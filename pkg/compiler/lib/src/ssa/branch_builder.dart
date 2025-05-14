@@ -46,7 +46,7 @@ class SsaBranchBuilder {
     visitCondition();
     checkNotAborted();
     assert(identical(builder.current, builder.lastOpenedBlock));
-    HInstruction conditionValue = builder.popBoolified();
+    HInstruction conditionValue = builder.pop();
     HIf branch = HIf(conditionValue)..sourceInformation = sourceInformation;
     HBasicBlock conditionExitBlock = builder.current!;
     builder.close(branch);
@@ -191,7 +191,7 @@ class SsaBranchBuilder {
 
     void visitCondition() {
       left();
-      boolifiedLeft = builder.popBoolified();
+      boolifiedLeft = builder.pop();
       builder.stack.add(boolifiedLeft);
       if (!isAnd) {
         builder.push(
@@ -203,7 +203,7 @@ class SsaBranchBuilder {
 
     void visitThen() {
       right();
-      boolifiedRight = builder.popBoolified();
+      boolifiedRight = builder.pop();
     }
 
     handleIf(

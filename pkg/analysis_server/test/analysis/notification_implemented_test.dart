@@ -140,6 +140,7 @@ class B extends A {}
     assertHasImplementedClass('A {');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_class_extended_augment() async {
     newFile('$testPackageLibPath/b.dart', '''
 part 'test.dart';
@@ -425,6 +426,7 @@ class B extends A {
     assertHasImplementedMember('f => null; // A');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_ofClass_byClass_method_augment() async {
     newFile('$testPackageLibPath/b.dart', '''
 part 'test.dart';
@@ -449,6 +451,7 @@ augment class A {
     assertHasImplementedMember('m() {} // 2');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_ofClass_byClass_method_inAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
@@ -469,6 +472,7 @@ class B extends A {}
     assertHasImplementedMember('m()');
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   Future<void> test_ofClass_byClass_method_inAugmented() async {
     newFile('$testPackageLibPath/b.dart', '''
 part 'test.dart';

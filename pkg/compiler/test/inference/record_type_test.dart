@@ -97,53 +97,53 @@ main() {
     }
 
     // Base types
-    final aMask = FlatTypeMask.nonNullSubclass(env.getClass('A'), world);
-    final bMask = FlatTypeMask.nonNullExact(env.getClass('B'), world);
+    final aMask = FlatTypeMask.nonNullSubclass(env.getClass('A'), domain);
+    final bMask = FlatTypeMask.nonNullExact(env.getClass('B'), domain);
     final stringMask = FlatTypeMask.nonNullExact(
       world.commonElements.jsStringClass,
-      world,
+      domain,
     );
 
     // General record classes
     final record0ArityMask = FlatTypeMask.nonNullExact(
       world.commonElements.emptyRecordClass,
-      world,
+      domain,
     );
     final record1ArityMask = FlatTypeMask.nonNullExact(
       world.commonElements.recordArityClass(1),
-      world,
+      domain,
     );
     final record2ArityMask = FlatTypeMask.nonNullExact(
       world.commonElements.recordArityClass(2),
-      world,
+      domain,
     );
     final record3ArityMask = FlatTypeMask.nonNullExact(
       world.commonElements.recordArityClass(3),
-      world,
+      domain,
     );
     final recordBaseFlatMask = FlatTypeMask.nonNullSubclass(
       world.commonElements.recordBaseClass,
-      world,
+      domain,
     );
     final recordFlatMask = FlatTypeMask.nonNullSubtype(
       world.commonElements.recordClass,
-      world,
+      domain,
     );
 
     // Shapes
     final shape0 = RecordShape(0, []);
     final shape0Class = world.recordData.representationForShape(shape0)!.cls;
-    final shape0Mask = FlatTypeMask.nonNullExact(shape0Class, world);
+    final shape0Mask = FlatTypeMask.nonNullExact(shape0Class, domain);
     final shape1 = RecordShape(1, []);
     final shape1Class = world.recordData.representationForShape(shape1)!.cls;
-    final shape1Mask = FlatTypeMask.nonNullExact(shape1Class, world);
+    final shape1Mask = FlatTypeMask.nonNullExact(shape1Class, domain);
     final shape2 = RecordShape(2, []);
     final shape2Class = world.recordData.representationForShape(shape2)!.cls;
-    final shape2Mask = FlatTypeMask.nonNullExact(shape2Class, world);
+    final shape2Mask = FlatTypeMask.nonNullExact(shape2Class, domain);
     final shape1Foo = RecordShape(1, ["foo"]);
     final shape1FooClass =
         world.recordData.representationForShape(shape1Foo)!.cls;
-    final shape1FooMask = FlatTypeMask.nonNullExact(shape1FooClass, world);
+    final shape1FooMask = FlatTypeMask.nonNullExact(shape1FooClass, domain);
     final uninstantiatedShape = RecordShape(2, ["bar"]);
 
     // Record types
@@ -186,18 +186,15 @@ main() {
       RecordTypeMask.createRecord(domain, [aMask, domain.emptyType], shape2),
     );
     expectRecordMask(
-      RecordTypeMask.createRecord(domain, [
-        aMask,
-        domain.emptyType.withSpecialValues(isNullable: true),
-      ], shape2),
-      [aMask, domain.emptyType.withSpecialValues(isNullable: true)],
+      RecordTypeMask.createRecord(domain, [aMask, domain.nullType], shape2),
+      [aMask, domain.nullType],
     );
     expectRecordMask(
       RecordTypeMask.createRecord(domain, [
         aMask,
-        domain.emptyType.withSpecialValues(hasLateSentinel: true),
+        domain.lateSentinelType,
       ], shape2),
-      [aMask, domain.emptyType.withSpecialValues(hasLateSentinel: true)],
+      [aMask, domain.lateSentinelType],
     );
     expectRecordMask(
       RecordTypeMask.createRecord(domain, [aMask, bMask], shape2),
@@ -208,36 +205,22 @@ main() {
     // (A) | (A) => (A)
     expectRecordMask(recordAMask.union(recordAMask, domain), [aMask]);
     // (A) | [(A)|null] => [(A)|null]
-    expectRecordMask(
-      recordAMask.union(
-        recordAMask.withSpecialValues(isNullable: true),
-        domain,
-      ),
-      [aMask],
-      expectNullable: true,
-    );
+    expectRecordMask(recordAMask.union(recordAMask.nullable(domain), domain), [
+      aMask,
+    ], expectNullable: true);
     // [(A)|null] | (A)  => [(A)|null]
-    expectRecordMask(
-      recordAMask
-          .withSpecialValues(isNullable: true)
-          .union(recordAMask, domain),
-      [aMask],
-      expectNullable: true,
-    );
+    expectRecordMask(recordAMask.nullable(domain).union(recordAMask, domain), [
+      aMask,
+    ], expectNullable: true);
     // (A) | [(A)|late] => [(A)|late]
     expectRecordMask(
-      recordAMask.union(
-        recordAMask.withSpecialValues(hasLateSentinel: true),
-        domain,
-      ),
+      recordAMask.union(recordAMask.withLateSentinel(domain), domain),
       [aMask],
       expectHasLateSentinel: true,
     );
     // [(A)|late] | (A)  => [(A)|late]
     expectRecordMask(
-      recordAMask
-          .withSpecialValues(hasLateSentinel: true)
-          .union(recordAMask, domain),
+      recordAMask.withLateSentinel(domain).union(recordAMask, domain),
       [aMask],
       expectHasLateSentinel: true,
     );
@@ -290,17 +273,14 @@ main() {
     );
     // (A, string) | [subclass=_Record|null] => [subclass=_Record|null]
     expectFlatRecordMask(
-      recordAStringMask.union(
-        recordBaseFlatMask.withSpecialValues(isNullable: true),
-        domain,
-      ),
+      recordAStringMask.union(recordBaseFlatMask.nullable(domain), domain),
       world.commonElements.recordBaseClass,
       expectNullable: true,
     );
     // (A, string) | [subclass=_Record|late] => [subclass=_Record|late]
     expectFlatRecordMask(
       recordAStringMask.union(
-        recordBaseFlatMask.withSpecialValues(hasLateSentinel: true),
+        recordBaseFlatMask.withLateSentinel(domain),
         domain,
       ),
       world.commonElements.recordBaseClass,
@@ -314,35 +294,26 @@ main() {
       stringMask,
     ]);
     // (A, string) | [empty|null] => [(A, string)|null]
-    expectRecordMask(
-      recordAStringMask.union(
-        domain.emptyType.withSpecialValues(isNullable: true),
-        domain,
-      ),
-      [aMask, stringMask],
-      expectNullable: true,
-    );
+    expectRecordMask(recordAStringMask.union(domain.nullType, domain), [
+      aMask,
+      stringMask,
+    ], expectNullable: true);
     // [(A, string)|null] | [empty] => [(A, string)|null]
     expectRecordMask(
-      recordAStringMask
-          .withSpecialValues(isNullable: true)
-          .union(domain.emptyType, domain),
+      recordAStringMask.nullable(domain).union(domain.emptyType, domain),
       [aMask, stringMask],
       expectNullable: true,
     );
     // (A, string) | [empty|late] => [(A, string)|late]
     expectRecordMask(
-      recordAStringMask.union(
-        domain.emptyType.withSpecialValues(hasLateSentinel: true),
-        domain,
-      ),
+      recordAStringMask.union(domain.lateSentinelType, domain),
       [aMask, stringMask],
       expectHasLateSentinel: true,
     );
     // [(A, string)|late] | [empty] => [(A, string)|late]
     expectRecordMask(
       recordAStringMask
-          .withSpecialValues(hasLateSentinel: true)
+          .withLateSentinel(domain)
           .union(domain.emptyType, domain),
       [aMask, stringMask],
       expectHasLateSentinel: true,
@@ -370,53 +341,37 @@ main() {
     expectRecordMask(recordAMask.intersection(recordAMask, domain), [aMask]);
     // (A) & [(A)|null] => (A)
     expectRecordMask(
-      recordAMask.intersection(
-        recordAMask.withSpecialValues(isNullable: true),
-        domain,
-      ),
+      recordAMask.intersection(recordAMask.nullable(domain), domain),
       [aMask],
     );
     // [(A)|null] & (A)  => (A)
     expectRecordMask(
-      recordAMask
-          .withSpecialValues(isNullable: true)
-          .intersection(recordAMask, domain),
+      recordAMask.nullable(domain).intersection(recordAMask, domain),
       [aMask],
     );
     // [(A)|null] & [(A)|null] => [(A)|null]
     expectRecordMask(
       recordAMask
-          .withSpecialValues(isNullable: true)
-          .intersection(
-            recordAMask.withSpecialValues(isNullable: true),
-            domain,
-          ),
+          .nullable(domain)
+          .intersection(recordAMask.nullable(domain), domain),
       [aMask],
       expectNullable: true,
     );
     // (A) & [(A)|late] => (A)
     expectRecordMask(
-      recordAMask.intersection(
-        recordAMask.withSpecialValues(hasLateSentinel: true),
-        domain,
-      ),
+      recordAMask.intersection(recordAMask.withLateSentinel(domain), domain),
       [aMask],
     );
     // [(A)|late] & (A)  => (A)
     expectRecordMask(
-      recordAMask
-          .withSpecialValues(hasLateSentinel: true)
-          .intersection(recordAMask, domain),
+      recordAMask.withLateSentinel(domain).intersection(recordAMask, domain),
       [aMask],
     );
     // [(A)|late] & [(A)|late]  => ([(A)|late]
     expectRecordMask(
       recordAMask
-          .withSpecialValues(hasLateSentinel: true)
-          .intersection(
-            recordAMask.withSpecialValues(hasLateSentinel: true),
-            domain,
-          ),
+          .withLateSentinel(domain)
+          .intersection(recordAMask.withLateSentinel(domain), domain),
       [aMask],
       expectHasLateSentinel: true,
     );
@@ -456,7 +411,7 @@ main() {
     // (A, string) & [subclass=_Record|null] => (A, string)
     expectRecordMask(
       recordAStringMask.intersection(
-        recordBaseFlatMask.withSpecialValues(isNullable: true),
+        recordBaseFlatMask.nullable(domain),
         domain,
       ),
       [aMask, stringMask],
@@ -464,18 +419,15 @@ main() {
     // [(A, string)|null] & [subclass=_Record|null] => [(A, string)|null]
     expectRecordMask(
       recordAStringMask
-          .withSpecialValues(isNullable: true)
-          .intersection(
-            recordBaseFlatMask.withSpecialValues(isNullable: true),
-            domain,
-          ),
+          .nullable(domain)
+          .intersection(recordBaseFlatMask.nullable(domain), domain),
       [aMask, stringMask],
       expectNullable: true,
     );
     // (A, string) & [subclass=_Record|late] => (A, string)
     expectRecordMask(
       recordAStringMask.intersection(
-        recordBaseFlatMask.withSpecialValues(hasLateSentinel: true),
+        recordBaseFlatMask.withLateSentinel(domain),
         domain,
       ),
       [aMask, stringMask],
@@ -483,11 +435,8 @@ main() {
     // [(A, string)|late] & [subclass=_Record|late] => [(A, string)|late]
     expectRecordMask(
       recordAStringMask
-          .withSpecialValues(hasLateSentinel: true)
-          .intersection(
-            recordBaseFlatMask.withSpecialValues(hasLateSentinel: true),
-            domain,
-          ),
+          .withLateSentinel(domain)
+          .intersection(recordBaseFlatMask.withLateSentinel(domain), domain),
       [aMask, stringMask],
       expectHasLateSentinel: true,
     );
@@ -499,49 +448,31 @@ main() {
     // (A, string) & [empty] => [empty]
     expectEmptyMask(recordAStringMask.intersection(domain.emptyType, domain));
     // (A, string) & [empty|null] => [empty]
-    expectEmptyMask(
-      recordAStringMask.intersection(
-        domain.emptyType.withSpecialValues(isNullable: true),
-        domain,
-      ),
-    );
+    expectEmptyMask(recordAStringMask.intersection(domain.nullType, domain));
     // [(A, string)|null] & [empty] => [empty]
     expectEmptyMask(
-      recordAStringMask
-          .withSpecialValues(isNullable: true)
-          .intersection(domain.emptyType, domain),
+      recordAStringMask.nullable(domain).intersection(domain.emptyType, domain),
     );
     // [(A, string)|null] & [empty|null] => [empty|null]
     expectEmptyMask(
-      recordAStringMask
-          .withSpecialValues(isNullable: true)
-          .intersection(
-            domain.emptyType.withSpecialValues(isNullable: true),
-            domain,
-          ),
+      recordAStringMask.nullable(domain).intersection(domain.nullType, domain),
       expectNullable: true,
     );
     // (A, string) & [empty|late] => [empty]
     expectEmptyMask(
-      recordAStringMask.intersection(
-        domain.emptyType.withSpecialValues(hasLateSentinel: true),
-        domain,
-      ),
+      recordAStringMask.intersection(domain.lateSentinelType, domain),
     );
     // [(A, string)|late] & [empty] => [empty]
     expectEmptyMask(
       recordAStringMask
-          .withSpecialValues(hasLateSentinel: true)
+          .withLateSentinel(domain)
           .intersection(domain.emptyType, domain),
     );
     // [(A, string)|late] & [empty|late] => [empty|late]
     expectEmptyMask(
       recordAStringMask
-          .withSpecialValues(hasLateSentinel: true)
-          .intersection(
-            domain.emptyType.withSpecialValues(hasLateSentinel: true),
-            domain,
-          ),
+          .withLateSentinel(domain)
+          .intersection(domain.lateSentinelType, domain),
       expectHasLateSentinel: true,
     );
     // (A) & string => [empty]
@@ -711,163 +642,135 @@ main() {
 
     // ---containsMask tests---
     // () > () => true
-    Expect.isTrue(emptyRecordMask.containsMask(emptyRecordMask, world));
+    Expect.isTrue(emptyRecordMask.containsMask(emptyRecordMask, domain));
     // (A) > (A) => true
-    Expect.isTrue(recordAMask.containsMask(recordAMask, world));
+    Expect.isTrue(recordAMask.containsMask(recordAMask, domain));
     // (A) > (B) => true
-    Expect.isTrue(recordAMask.containsMask(recordBMask, world));
+    Expect.isTrue(recordAMask.containsMask(recordBMask, domain));
     // (B) > (A) => false
-    Expect.isFalse(recordBMask.containsMask(recordAMask, world));
+    Expect.isFalse(recordBMask.containsMask(recordAMask, domain));
     // (A) > (string) => false
-    Expect.isFalse(recordAMask.containsMask(recordStringMask, world));
+    Expect.isFalse(recordAMask.containsMask(recordStringMask, domain));
     // (A, string) > (A) => false
-    Expect.isFalse(recordAStringMask.containsMask(recordAMask, world));
+    Expect.isFalse(recordAStringMask.containsMask(recordAMask, domain));
     // (A, string) > (string) => false
-    Expect.isFalse(recordAStringMask.containsMask(recordStringBMask, world));
+    Expect.isFalse(recordAStringMask.containsMask(recordStringBMask, domain));
     // (A, string) > (B, string) => true
-    Expect.isTrue(recordAStringMask.containsMask(recordBStringMask, world));
+    Expect.isTrue(recordAStringMask.containsMask(recordBStringMask, domain));
     // (B, string) > (A, string) => false
-    Expect.isFalse(recordBStringMask.containsMask(recordAStringMask, world));
+    Expect.isFalse(recordBStringMask.containsMask(recordAStringMask, domain));
     // (A, string) > (A, foo: string) => false
-    Expect.isFalse(recordAStringMask.containsMask(recordAFooStringMask, world));
+    Expect.isFalse(
+      recordAStringMask.containsMask(recordAFooStringMask, domain),
+    );
     // [(A)|null] > (A) => true
     Expect.isTrue(
-      recordAMask
-          .withSpecialValues(isNullable: true)
-          .containsMask(recordAMask, world),
+      recordAMask.nullable(domain).containsMask(recordAMask, domain),
     );
     // (A) > [(A)|null] => false
     Expect.isFalse(
-      recordAMask.containsMask(
-        recordAMask.withSpecialValues(isNullable: true),
-        world,
-      ),
+      recordAMask.containsMask(recordAMask.nullable(domain), domain),
     );
     // [(A)|null] > [(A)|null] => true
     Expect.isTrue(
       recordAMask
-          .withSpecialValues(isNullable: true)
-          .containsMask(recordAMask.withSpecialValues(isNullable: true), world),
+          .nullable(domain)
+          .containsMask(recordAMask.nullable(domain), domain),
     );
     // [(A)|late] > (A) => true
     Expect.isTrue(
-      recordAMask
-          .withSpecialValues(hasLateSentinel: true)
-          .containsMask(recordAMask, world),
+      recordAMask.withLateSentinel(domain).containsMask(recordAMask, domain),
     );
     // (A) > [(A)|late] => false
     Expect.isFalse(
-      recordAMask.containsMask(
-        recordAMask.withSpecialValues(hasLateSentinel: true),
-        world,
-      ),
+      recordAMask.containsMask(recordAMask.withLateSentinel(domain), domain),
     );
     // [(A)|late] > [(A)|late] => true
     Expect.isTrue(
       recordAMask
-          .withSpecialValues(hasLateSentinel: true)
-          .containsMask(
-            recordAMask.withSpecialValues(hasLateSentinel: true),
-            world,
-          ),
+          .withLateSentinel(domain)
+          .containsMask(recordAMask.withLateSentinel(domain), domain),
     );
     // (A) > [subclass=_Record_1] => false
-    Expect.isFalse(recordAMask.containsMask(shape1Mask, world));
+    Expect.isFalse(recordAMask.containsMask(shape1Mask, domain));
     // (A) > [subclass=_Record1] => false
-    Expect.isFalse(recordAMask.containsMask(record1ArityMask, world));
+    Expect.isFalse(recordAMask.containsMask(record1ArityMask, domain));
     // (A) > [subclass=_Record] => false
-    Expect.isFalse(recordAMask.containsMask(recordBaseFlatMask, world));
+    Expect.isFalse(recordAMask.containsMask(recordBaseFlatMask, domain));
     // (A) > [subtype=Record] => false
-    Expect.isFalse(recordAMask.containsMask(recordFlatMask, world));
+    Expect.isFalse(recordAMask.containsMask(recordFlatMask, domain));
     // (A) > [dynamic] => false
-    Expect.isFalse(recordAMask.containsMask(domain.dynamicType, world));
+    Expect.isFalse(recordAMask.containsMask(domain.dynamicType, domain));
     // (A) > [empty] => true
-    Expect.isTrue(recordAMask.containsMask(domain.emptyType, world));
+    Expect.isTrue(recordAMask.containsMask(domain.emptyType, domain));
     // (A) > string => false
-    Expect.isFalse(recordAMask.containsMask(stringMask, world));
+    Expect.isFalse(recordAMask.containsMask(stringMask, domain));
     // (A, A, bar: A) > (A) => false
-    Expect.isFalse(uninstantiatedRecordMask.containsMask(recordAMask, world));
+    Expect.isFalse(uninstantiatedRecordMask.containsMask(recordAMask, domain));
 
     // ---isInMask tests---
     // () < () => true
-    Expect.isTrue(emptyRecordMask.isInMask(emptyRecordMask, world));
+    Expect.isTrue(emptyRecordMask.isInMask(emptyRecordMask, domain));
     // (A) < (A) => true
-    Expect.isTrue(recordAMask.isInMask(recordAMask, world));
+    Expect.isTrue(recordAMask.isInMask(recordAMask, domain));
     // (A) < (B) => false
-    Expect.isFalse(recordAMask.isInMask(recordBMask, world));
+    Expect.isFalse(recordAMask.isInMask(recordBMask, domain));
     // (B) < (A) => true
-    Expect.isTrue(recordBMask.isInMask(recordAMask, world));
+    Expect.isTrue(recordBMask.isInMask(recordAMask, domain));
     // (A) < (string) => false
-    Expect.isFalse(recordAMask.isInMask(recordStringMask, world));
+    Expect.isFalse(recordAMask.isInMask(recordStringMask, domain));
     // (A, string) < (A) => false
-    Expect.isFalse(recordAStringMask.isInMask(aMask, world));
+    Expect.isFalse(recordAStringMask.isInMask(aMask, domain));
     // (A, string) < (string) => false
-    Expect.isFalse(recordAStringMask.isInMask(stringMask, world));
+    Expect.isFalse(recordAStringMask.isInMask(stringMask, domain));
     // (A, string) < (B, string) => false
-    Expect.isFalse(recordAStringMask.isInMask(recordBStringMask, world));
+    Expect.isFalse(recordAStringMask.isInMask(recordBStringMask, domain));
     // (B, string) < (A, string) => true
-    Expect.isTrue(recordBStringMask.isInMask(recordAStringMask, world));
+    Expect.isTrue(recordBStringMask.isInMask(recordAStringMask, domain));
     // (A, string) < (A, foo: string) => false
-    Expect.isFalse(recordAStringMask.isInMask(recordAFooStringMask, world));
+    Expect.isFalse(recordAStringMask.isInMask(recordAFooStringMask, domain));
     // [(A)|null] < (A) => false
-    Expect.isFalse(
-      recordAMask
-          .withSpecialValues(isNullable: true)
-          .isInMask(recordAMask, world),
-    );
+    Expect.isFalse(recordAMask.nullable(domain).isInMask(recordAMask, domain));
     // (A) < [(A)|null] => true
-    Expect.isTrue(
-      recordAMask.isInMask(
-        recordAMask.withSpecialValues(isNullable: true),
-        world,
-      ),
-    );
+    Expect.isTrue(recordAMask.isInMask(recordAMask.nullable(domain), domain));
     // [(A)|null] < [(A)|null] => true
     Expect.isTrue(
       recordAMask
-          .withSpecialValues(isNullable: true)
-          .isInMask(recordAMask.withSpecialValues(isNullable: true), world),
+          .nullable(domain)
+          .isInMask(recordAMask.nullable(domain), domain),
     );
     // [(A)|late] < (A) => false
     Expect.isFalse(
-      recordAMask
-          .withSpecialValues(hasLateSentinel: true)
-          .isInMask(recordAMask, world),
+      recordAMask.withLateSentinel(domain).isInMask(recordAMask, domain),
     );
     // (A) < [(A)|late] => true
     Expect.isTrue(
-      recordAMask.isInMask(
-        recordAMask.withSpecialValues(hasLateSentinel: true),
-        world,
-      ),
+      recordAMask.isInMask(recordAMask.withLateSentinel(domain), domain),
     );
     // [(A)|late] < [(A)|late] => true
     Expect.isTrue(
       recordAMask
-          .withSpecialValues(hasLateSentinel: true)
-          .isInMask(
-            recordAMask.withSpecialValues(hasLateSentinel: true),
-            world,
-          ),
+          .withLateSentinel(domain)
+          .isInMask(recordAMask.withLateSentinel(domain), domain),
     );
     // (A) < [subclass=_Record_1] => true
-    Expect.isTrue(recordAMask.isInMask(shape1Mask, world));
+    Expect.isTrue(recordAMask.isInMask(shape1Mask, domain));
     // (A) < [subclass=_Record1] => true
-    Expect.isTrue(recordAMask.isInMask(record1ArityMask, world));
+    Expect.isTrue(recordAMask.isInMask(record1ArityMask, domain));
     // (A) < [subclass=_Record2] => false
-    Expect.isFalse(recordAMask.isInMask(record2ArityMask, world));
+    Expect.isFalse(recordAMask.isInMask(record2ArityMask, domain));
     // (A) < [subclass=_Record] => true
-    Expect.isTrue(recordAMask.isInMask(recordBaseFlatMask, world));
+    Expect.isTrue(recordAMask.isInMask(recordBaseFlatMask, domain));
     // (A) < [subtype=Record] => true
-    Expect.isTrue(recordAMask.isInMask(recordFlatMask, world));
+    Expect.isTrue(recordAMask.isInMask(recordFlatMask, domain));
     // (A) < [dynamic] => true
-    Expect.isTrue(recordAMask.isInMask(domain.dynamicType, world));
+    Expect.isTrue(recordAMask.isInMask(domain.dynamicType, domain));
     // (A) < [empty] => false
-    Expect.isFalse(recordAMask.isInMask(domain.emptyType, world));
+    Expect.isFalse(recordAMask.isInMask(domain.emptyType, domain));
     // (A) < string => false
-    Expect.isFalse(recordAMask.isInMask(stringMask, world));
+    Expect.isFalse(recordAMask.isInMask(stringMask, domain));
     // (A, A, bar: A) < (A) => false
-    Expect.isFalse(uninstantiatedRecordMask.isInMask(recordAMask, world));
+    Expect.isFalse(uninstantiatedRecordMask.isInMask(recordAMask, domain));
 
     // ---isDisjoint tests---
     // () ^ () => true
@@ -891,45 +794,28 @@ main() {
     // (A, string) ^ (A, foo: string) => true
     Expect.isTrue(recordAStringMask.isDisjoint(recordAFooStringMask, world));
     // [(A)|null] ^ (A) => false
-    Expect.isFalse(
-      recordAMask
-          .withSpecialValues(isNullable: true)
-          .isDisjoint(recordAMask, world),
-    );
+    Expect.isFalse(recordAMask.nullable(domain).isDisjoint(recordAMask, world));
     // (A) ^ [(A)|null] => false
-    Expect.isFalse(
-      recordAMask.isDisjoint(
-        recordAMask.withSpecialValues(isNullable: true),
-        world,
-      ),
-    );
+    Expect.isFalse(recordAMask.isDisjoint(recordAMask.nullable(domain), world));
     // [(A)|null] ^ [(A)|null] => false
     Expect.isFalse(
       recordAMask
-          .withSpecialValues(isNullable: true)
-          .isDisjoint(recordAMask.withSpecialValues(isNullable: true), world),
+          .nullable(domain)
+          .isDisjoint(recordAMask.nullable(domain), world),
     );
     // [(A)|late] ^ (A) => false
     Expect.isFalse(
-      recordAMask
-          .withSpecialValues(hasLateSentinel: true)
-          .isDisjoint(recordAMask, world),
+      recordAMask.withLateSentinel(domain).isDisjoint(recordAMask, world),
     );
     // (A) ^ [(A)|late] => false
     Expect.isFalse(
-      recordAMask.isDisjoint(
-        recordAMask.withSpecialValues(hasLateSentinel: true),
-        world,
-      ),
+      recordAMask.isDisjoint(recordAMask.withLateSentinel(domain), world),
     );
     // [(A)|late] ^ [(A)|late] => false
     Expect.isFalse(
       recordAMask
-          .withSpecialValues(hasLateSentinel: true)
-          .isDisjoint(
-            recordAMask.withSpecialValues(hasLateSentinel: true),
-            world,
-          ),
+          .withLateSentinel(domain)
+          .isDisjoint(recordAMask.withLateSentinel(domain), world),
     );
     // (A) ^ [subclass=_Record_1] => false
     Expect.isFalse(recordAMask.isDisjoint(shape1Mask, world));
@@ -951,22 +837,22 @@ main() {
     Expect.isTrue(uninstantiatedRecordMask.isDisjoint(recordAMask, world));
 
     // ---toFlatTypeMask tests---
-    Expect.equals(shape0Mask, emptyRecordMask.toFlatTypeMask(world));
-    Expect.equals(shape1Mask, recordAMask.toFlatTypeMask(world));
-    Expect.equals(shape2Mask, recordBStringMask.toFlatTypeMask(world));
+    Expect.equals(shape0Mask, emptyRecordMask.toFlatTypeMask(domain));
+    Expect.equals(shape1Mask, recordAMask.toFlatTypeMask(domain));
+    Expect.equals(shape2Mask, recordBStringMask.toFlatTypeMask(domain));
     Expect.equals(
       record3ArityMask,
-      uninstantiatedRecordMask.toFlatTypeMask(world),
+      uninstantiatedRecordMask.toFlatTypeMask(domain),
     );
     Expect.equals(
-      shape1Mask.withSpecialValues(isNullable: true),
-      recordAMask.withSpecialValues(isNullable: true).toFlatTypeMask(world),
+      shape1Mask.nullable(domain),
+      (recordAMask.nullable(domain) as RecordTypeMask).toFlatTypeMask(domain),
     );
     Expect.equals(
-      shape1Mask.withSpecialValues(hasLateSentinel: true),
-      recordAMask
-          .withSpecialValues(hasLateSentinel: true)
-          .toFlatTypeMask(world),
+      shape1Mask.withLateSentinel(domain),
+      (recordAMask.withLateSentinel(domain) as RecordTypeMask).toFlatTypeMask(
+        domain,
+      ),
     );
 
     // ---canHit tests---
@@ -975,7 +861,7 @@ main() {
         mask.canHit(
           env.elementEnvironment.lookupClassMember(cls, name)!,
           name,
-          world,
+          domain,
         ),
       );
     }
@@ -985,7 +871,7 @@ main() {
         mask.canHit(
           env.elementEnvironment.lookupClassMember(cls, name)!,
           name,
-          world,
+          domain,
         ),
       );
     }
@@ -1095,32 +981,20 @@ main() {
     Expect.isFalse(emptyRecordMask == recordAMask);
     Expect.isTrue(recordAMask == recordAMask);
     Expect.isTrue(
-      recordAMask.withSpecialValues(isNullable: true, hasLateSentinel: false) ==
-          recordAMask.withSpecialValues(
-            isNullable: true,
-            hasLateSentinel: false,
-          ),
+      recordAMask.nullable(domain).withoutLateSentinel(domain) ==
+          recordAMask.nullable(domain).withoutLateSentinel(domain),
     );
     Expect.isTrue(
-      recordAMask.withSpecialValues(isNullable: false, hasLateSentinel: true) ==
-          recordAMask.withSpecialValues(
-            isNullable: false,
-            hasLateSentinel: true,
-          ),
+      recordAMask.nonNullable(domain).withLateSentinel(domain) ==
+          recordAMask.nonNullable(domain).withLateSentinel(domain),
     );
     Expect.isFalse(
-      recordAMask.withSpecialValues(isNullable: true, hasLateSentinel: false) ==
-          recordAMask.withSpecialValues(
-            isNullable: false,
-            hasLateSentinel: false,
-          ),
+      recordAMask.nullable(domain).withoutLateSentinel(domain) ==
+          recordAMask.nonNullable(domain).withoutLateSentinel(domain),
     );
     Expect.isFalse(
-      recordAMask.withSpecialValues(isNullable: false, hasLateSentinel: true) ==
-          recordAMask.withSpecialValues(
-            isNullable: false,
-            hasLateSentinel: false,
-          ),
+      recordAMask.nonNullable(domain).withLateSentinel(domain) ==
+          recordAMask.nonNullable(domain).withoutLateSentinel(domain),
     );
     Expect.isFalse(recordAMask == recordBMask);
     Expect.isFalse(recordAMask == stringMask);
@@ -1145,18 +1019,16 @@ main() {
     Expect.equals(AbstractBool.false_, recordAMask.isLateSentinel);
     Expect.equals(
       AbstractBool.maybe,
-      recordAMask.withSpecialValues(hasLateSentinel: true).isLateSentinel,
+      recordAMask.withLateSentinel(domain).isLateSentinel,
     );
     Expect.equals(
       AbstractBool.maybe,
-      recordAMask
-          .withSpecialValues(isNullable: true, hasLateSentinel: true)
-          .isLateSentinel,
+      recordAMask.nullable(domain).withLateSentinel(domain).isLateSentinel,
     );
 
     // ---isNull tests---
     Expect.isFalse(recordAMask.isNull);
-    Expect.isFalse(recordAMask.withSpecialValues(isNullable: true).isNull);
+    Expect.isFalse(recordAMask.nullable(domain).isNull);
   }
 
   asyncTest(() async {

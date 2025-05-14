@@ -1,4 +1,4 @@
-// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,13 +22,16 @@ import 'library_b.dart';
 ///   constant containers, causing 'ConstantEqualityFailure's.
 class ConstObject {
   const ConstObject();
-  String get text => 'ConstObject('
+  String get text =>
+      'ConstObject('
       'reloadVariable: $variableToModifyToForceRecompile, '
       '${value1 == value2 ? 'ConstantEqualitySuccess' : 'ConstantEqualityFailure'})';
 }
 
 Future<void> main() async {
-  Expect.equals('ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
-      '${const ConstObject().text}');
+  Expect.equals(
+    'ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
+    '${const ConstObject().text}',
+  );
   await hotRestart();
 }

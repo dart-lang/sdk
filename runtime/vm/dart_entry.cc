@@ -52,9 +52,18 @@ class DartEntryScope : public TransitionToGenerated {
     saved_safestack_limit_ = OSThread::GetCurrentSafestackPointer();
     thread->set_saved_safestack_limit(saved_safestack_limit_);
 #endif
+
+    saved_api_scope_ = thread->api_top_scope();
   }
 
   ~DartEntryScope() {
+    // Propagating an Error that is not an UnhandledException, such as an
+    // UnwindError, will bypass the DLRT_ExitHandleScope in an FFI callout
+    // trampoline.
+    while (UNLIKELY(thread()->api_top_scope() != saved_api_scope_)) {
+      thread()->ExitApiScope();
+    }
+
 #if defined(USING_SAFE_STACK)
     thread()->set_saved_safestack_limit(saved_safestack_limit_);
 #endif
@@ -68,6 +77,7 @@ class DartEntryScope : public TransitionToGenerated {
 #if defined(USING_SAFE_STACK)
   uword saved_safestack_limit_ = 0;
 #endif
+  ApiLocalScope* saved_api_scope_;
 };
 
 // Note: The invocation stub follows the C ABI, so we cannot pass C++ struct
@@ -440,6 +450,12 @@ const char* ArgumentsDescriptor::ToCString() const {
   ZoneTextBuffer buf(Thread::Current()->zone());
   PrintTo(&buf);
   return buf.buffer();
+}
+
+bool ArgumentsDescriptor::IsCached() const {
+  const intptr_t num_arguments = Count();
+  return (num_arguments < kCachedDescriptorCount) &&
+         (array_.ptr() == cached_args_descriptors_[num_arguments]);
 }
 
 ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,

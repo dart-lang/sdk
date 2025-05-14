@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -945,10 +943,13 @@ main() {
 int a = 0;
 var b = 1 + 2;
 ''');
-    assertType(findElement.topVar('a').type, 'int');
-    assertElement(findNode.namedType('int a'), intElement);
+    assertType(findElement2.topVar('a').type, 'int');
+    assertElement(
+      findNode.namedType('int a').element2,
+      declaration: intElement,
+    );
 
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_dispose() async {
@@ -1063,7 +1064,7 @@ void func() {
 
     await resolveFile(b);
     var element = await _findElement(6, a);
-    var result = await fileResolver.findReferences2(element);
+    var result = await fileResolver.findReferences(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(b.path,
           [CiderSearchInfo(CharacterLocation(4, 11), 1, MatchKind.REFERENCE)])
@@ -1084,7 +1085,7 @@ class A {
 
     await resolveFile(a);
     var element = await _findElement(16, a);
-    var result = await fileResolver.findReferences2(element);
+    var result = await fileResolver.findReferences(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(a.path, [
         CiderSearchInfo(CharacterLocation(5, 5), 3, MatchKind.WRITE),
@@ -1104,7 +1105,7 @@ foo(String str) {}
 
     await resolveFile(a);
     var element = await _findElement(11, a);
-    var result = await fileResolver.findReferences2(element);
+    var result = await fileResolver.findReferences(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(a.path, [
         CiderSearchInfo(CharacterLocation(2, 3), 3, MatchKind.REFERENCE),
@@ -1130,7 +1131,7 @@ main() {
 
     await resolveFile(b);
     var element = await _findElement(20, a);
-    var result = await fileResolver.findReferences2(element);
+    var result = await fileResolver.findReferences(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(b.path, [
         CiderSearchInfo(CharacterLocation(5, 15), 3, MatchKind.REFERENCE),
@@ -1151,7 +1152,7 @@ class A {
 ''');
     await resolveFile(a);
     var element = await _findElement(39, a);
-    var result = await fileResolver.findReferences2(element);
+    var result = await fileResolver.findReferences(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(a.path, [
         CiderSearchInfo(CharacterLocation(4, 11), 3, MatchKind.REFERENCE),
@@ -1186,7 +1187,7 @@ main() {
     await resolveFile(b);
 
     var element = await _findElement(17, a);
-    var result = await fileResolver.findReferences2(element);
+    var result = await fileResolver.findReferences(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(b.path, [
         CiderSearchInfo(CharacterLocation(5, 5), 4, MatchKind.REFERENCE),
@@ -1215,7 +1216,7 @@ main() {
 
     await resolveFile(b);
     var element = await _findElement(21, a);
-    var result = await fileResolver.findReferences2(element);
+    var result = await fileResolver.findReferences(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(b.path, [
         CiderSearchInfo(CharacterLocation(5, 5), 5, MatchKind.WRITE),
@@ -1241,7 +1242,7 @@ main() {
 
     await resolveFile(b);
     var element = await _findElement(19, a);
-    var result = await fileResolver.findReferences2(element);
+    var result = await fileResolver.findReferences(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(b.path, [
         CiderSearchInfo(CharacterLocation(4, 13), 3, MatchKind.REFERENCE),
@@ -1267,7 +1268,7 @@ main() {
 
     await resolveFile(b);
     var element = await _findElement(20, a);
-    var result = await fileResolver.findReferences2(element);
+    var result = await fileResolver.findReferences(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(b.path, [
         CiderSearchInfo(CharacterLocation(4, 3), 3, MatchKind.WRITE),
@@ -1287,7 +1288,7 @@ void func() {
 
     await resolveFile(a);
     var element = await _findElement(10, a);
-    var result = await fileResolver.findReferences2(element);
+    var result = await fileResolver.findReferences(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(a.path, [
         CiderSearchInfo(CharacterLocation(4, 11), 1, MatchKind.READ),
@@ -1306,7 +1307,7 @@ class Foo<T> {
 ''');
     await resolveFile(a);
     var element = await _findElement(10, a);
-    var result = await fileResolver.findReferences2(element);
+    var result = await fileResolver.findReferences(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(a.path, [
         CiderSearchInfo(CharacterLocation(2, 8), 1, MatchKind.REFERENCE),
@@ -1329,7 +1330,7 @@ void f(func o) {}
 
     await resolveFile(b);
     var element = await _findElement(8, a);
-    var result = await fileResolver.findReferences2(element);
+    var result = await fileResolver.findReferences(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(b.path, [
         CiderSearchInfo(CharacterLocation(3, 8), 4, MatchKind.REFERENCE),
@@ -1348,7 +1349,7 @@ void f(int? a) {
 ''');
 
     assertType(
-      findElement.parameter('a').type,
+      findElement2.parameter('a').type,
       'int?',
     );
   }
@@ -1559,7 +1560,7 @@ elementFactory
 unlinkedUnitStore
   1: [k00, k02, k03, k04, k05, k06]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06]
 ''');
 
     await fileResolver.getLibraryByUri2(
@@ -1596,7 +1597,7 @@ elementFactory
 unlinkedUnitStore
   1: [k00, k02, k03, k04, k05, k06]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06]
 ''');
 
     await fileResolver.linkLibraries2(path: b.path);
@@ -1636,28 +1637,29 @@ files
           dependencies: cycle_0 dart:core
           libraries: library_6
           apiSignature_1
-      unlinkedKey: k08
+      unlinkedKey: k07
     unlinkedGet: []
-    unlinkedPut: [k08]
+    unlinkedPut: [k07]
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current: cycle_0
       key: k01
-    get: [k01, k01]
-    put: [k01]
+    get: [k01]
+    put: [k01, k01]
   /workspace/dart/test/lib/b.dart
     current: cycle_2
-      key: k09
-    get: [k09]
-    put: [k09]
+      key: k08
+    get: [k08]
+    put: [k08]
 elementFactory
-  hasReader
+  hasElement
     package:dart.test/a.dart
+  hasReader
     package:dart.test/b.dart
 unlinkedUnitStore
-  1: [k00, k02, k03, k04, k05, k06, k08]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 ''');
 
     var b_library = await fileResolver.getLibraryByUri2(
@@ -1703,30 +1705,30 @@ files
           dependencies: cycle_0 dart:core
           libraries: library_6
           apiSignature_1
-      unlinkedKey: k08
+      unlinkedKey: k07
     unlinkedGet: []
-    unlinkedPut: [k08]
+    unlinkedPut: [k07]
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current: cycle_0
       key: k01
-    get: [k01, k01]
-    put: [k01]
+    get: [k01]
+    put: [k01, k01]
   /workspace/dart/test/lib/b.dart
     current: cycle_2
-      key: k09
-    get: [k09]
-    put: [k09]
+      key: k08
+    get: [k08]
+    put: [k08]
 elementFactory
   hasElement
-    package:dart.test/b.dart
-  hasReader
     package:dart.test/a.dart
     package:dart.test/b.dart
+  hasReader
+    package:dart.test/b.dart
 unlinkedUnitStore
-  1: [k00, k02, k03, k04, k05, k06, k08]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 ''');
   }
 
@@ -1772,7 +1774,7 @@ elementFactory
 unlinkedUnitStore
   1: [k00, k02, k03, k04, k05, k06]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06]
 ''');
 
     var result = await getTestErrors();
@@ -1815,7 +1817,7 @@ elementFactory
 unlinkedUnitStore
   1: [k00, k02, k03, k04, k05, k06]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06]
 ''');
   }
 
@@ -1836,8 +1838,8 @@ void f(A a) {
 
     await resolveTestFile();
     {
-      var element = findNode.simple('foo();').staticElement!;
-      expect(element.nameOffset, 17);
+      var element = findNode.simple('foo();').element!;
+      expect(element.firstFragment.nameOffset2, 17);
     }
 
     // New resolver.
@@ -1845,8 +1847,8 @@ void f(A a) {
     createFileResolver();
     await resolveTestFile();
     {
-      var element = findNode.simple('foo();').staticElement!;
-      expect(element.nameOffset, 17);
+      var element = findNode.simple('foo();').element!;
+      expect(element.firstFragment.nameOffset2, 17);
     }
   }
 
@@ -1862,8 +1864,8 @@ var b = a;
 
     await resolveTestFile();
     {
-      var element = findNode.simple('a;').staticElement!;
-      expect(element.nonSynthetic.nameOffset, 4);
+      var element = findNode.simple('a;').element!;
+      expect(element.nonSynthetic2.firstFragment.nameOffset2, 4);
     }
 
     // New resolver.
@@ -1871,8 +1873,8 @@ var b = a;
     createFileResolver();
     await resolveTestFile();
     {
-      var element = findNode.simple('a;').staticElement!;
-      expect(element.nonSynthetic.nameOffset, 4);
+      var element = findNode.simple('a;').element!;
+      expect(element.nonSynthetic2.firstFragment.nameOffset2, 4);
     }
   }
 
@@ -2526,8 +2528,8 @@ void func() {
     // Both files use the same (default) analysis options.
     // So, when we resolve 'bbb', we can reuse the context after 'aaa'.
     expect(
-      aResult.libraryElement.context,
-      same(bResult.libraryElement.context),
+      aResult.libraryElement2.session,
+      same(bResult.libraryElement2.session),
     );
   }
 
@@ -2589,10 +2591,10 @@ import 'dart:math';
     }
   }
 
-  Future<Element> _findElement(int offset, File file) async {
+  Future<Element2> _findElement(int offset, File file) async {
     var resolvedUnit = await fileResolver.resolve(path: file.path);
     var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-    var element = getElementOfNode(node);
+    var element = getElementOfNode2(node);
     return element!;
   }
 }

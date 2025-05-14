@@ -132,28 +132,12 @@ library;
 // typedef CAlias = C?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:26:25: Error: The type 'BAlias' which is an alias of 'B?' can't be used as supertype because it is nullable.
-//  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
-// class C5 extends A with BAlias {}
-//                         ^
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
-// typedef BAlias = B?;
-//         ^
-//
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:28:13: Error: The type 'AAlias' which is an alias of 'A?' can't be used as supertype because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // mixin M1 on AAlias {}
 //             ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:13:9: Context: The issue arises via this type alias.
 // typedef AAlias = A?;
-//         ^
-//
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:30:16: Error: The type 'BAlias' which is an alias of 'B?' can't be used as supertype because it is nullable.
-//  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
-// mixin M2 on A, BAlias {}
-//                ^
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
-// typedef BAlias = B?;
 //         ^
 //
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:32:26: Error: The type 'BAlias' which is an alias of 'B?' can't be used as supertype because it is nullable.
@@ -212,14 +196,6 @@ library;
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:46:25: Error: The type 'TAlias<B>' which is an alias of 'B?' can't be used as supertype because it is nullable.
-//  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
-// class D5 extends A with TAlias<B> {}
-//                         ^
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:16:9: Context: The issue arises via this type alias.
-// typedef TAlias<T> = T?;
-//         ^
-//
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:48:13: Error: The type 'TAlias<A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // mixin N1 on TAlias<A> {}
@@ -244,18 +220,42 @@ library;
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:54:16: Error: The type 'TAlias<B>' which is an alias of 'B?' can't be used as supertype because it is nullable.
-//  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
-// mixin N2 on A, TAlias<B> {}
-//                ^
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:16:9: Context: The issue arises via this type alias.
-// typedef TAlias<T> = T?;
-//         ^
-//
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:56:26: Error: The type 'TAlias<B>' which is an alias of 'B?' can't be used as supertype because it is nullable.
 //  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // mixin N3 on A implements TAlias<B> {}
 //                          ^
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:16:9: Context: The issue arises via this type alias.
+// typedef TAlias<T> = T?;
+//         ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:26:25: Error: The type 'BAlias' which is an alias of 'B?' can't be used as supertype because it is nullable.
+//  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
+// class C5 extends A with BAlias {}
+//                         ^
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
+// typedef BAlias = B?;
+//         ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:30:16: Error: The type 'BAlias' which is an alias of 'B?' can't be used as supertype because it is nullable.
+//  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
+// mixin M2 on A, BAlias {}
+//                ^
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
+// typedef BAlias = B?;
+//         ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:46:25: Error: The type 'TAlias<B>' which is an alias of 'B?' can't be used as supertype because it is nullable.
+//  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
+// class D5 extends A with TAlias<B> {}
+//                         ^
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:16:9: Context: The issue arises via this type alias.
+// typedef TAlias<T> = T?;
+//         ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:54:16: Error: The type 'TAlias<B>' which is an alias of 'B?' can't be used as supertype because it is nullable.
+//  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
+// mixin N2 on A, TAlias<B> {}
+//                ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:16:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^
@@ -297,20 +297,11 @@ class C4 = self::A with self::B {
     : super self::A::•()
     ;
 }
-abstract class _C5&A&BAlias extends self::A /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_C5&A&BAlias
-    : super self::A::•()
-    ;
-}
 class C5 extends self::_C5&A&BAlias {
   synthetic constructor •() → self::C5
     ;
 }
 abstract class M1 extends core::Object /*isMixinDeclaration*/  {
-}
-abstract class _M2&A&BAlias extends core::Object implements self::A /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_M2&A&BAlias
-    ;
 }
 abstract class M2 extends self::_M2&A&BAlias /*isMixinDeclaration*/  {
 }
@@ -342,11 +333,6 @@ class D4 = self::A with self::B {
     : super self::A::•()
     ;
 }
-abstract class _D5&A&TAlias extends self::A /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_D5&A&TAlias
-    : super self::A::•()
-    ;
-}
 class D5 extends self::_D5&A&TAlias {
   synthetic constructor •() → self::D5
     ;
@@ -357,13 +343,27 @@ abstract class N1a extends core::Object /*isMixinDeclaration*/  {
 }
 abstract class N1b extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class _N2&A&TAlias extends core::Object implements self::A /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_N2&A&TAlias
-    ;
-}
 abstract class N2 extends self::_N2&A&TAlias /*isMixinDeclaration*/  {
 }
 abstract class N3 extends self::A /*isMixinDeclaration*/  {
+}
+abstract class _C5&A&BAlias extends self::A /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_C5&A&BAlias
+    : super self::A::•()
+    ;
+}
+abstract class _M2&A&BAlias extends core::Object implements self::A /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_M2&A&BAlias
+    ;
+}
+abstract class _D5&A&TAlias extends self::A /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_D5&A&TAlias
+    : super self::A::•()
+    ;
+}
+abstract class _N2&A&TAlias extends core::Object implements self::A /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_N2&A&TAlias
+    ;
 }
 static method main() → dynamic
   ;

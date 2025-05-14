@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CollectionMethodsUnrelatedTypeIterableTest);
     defineReflectiveTests(CollectionMethodsUnrelatedTypeListTest);
@@ -106,13 +106,16 @@ abstract class C implements List<num> {
   }
 
   test_contains_unrelated_implicitTarget() async {
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 abstract class C implements List<num> {
   void f() {
     contains('1');
   }
 }
-''', [lint(66, 3)]);
+''',
+      [lint(66, 3)],
+    );
   }
 
   test_contains_unrelated_recordAndNonRecord() async {
@@ -128,22 +131,28 @@ abstract class C implements List<num> {
   }
 
   test_contains_unrelated_subclassOfList() async {
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 abstract class C implements List<num> {}
 void f(C c) {
   c.contains('1');
 }
-''', [lint(68, 3)]);
+''',
+      [lint(68, 3)],
+    );
   }
 
   test_contains_unrelated_thisTarget() async {
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 abstract class C implements List<num> {
   void f() {
     this.contains('1');
   }
 }
-''', [lint(71, 3)]);
+''',
+      [lint(71, 3)],
+    );
   }
 }
 
@@ -157,10 +166,7 @@ class CollectionMethodsUnrelatedTypeListTest extends LintRuleTest {
   }
 
   test_remove_unrelated() async {
-    await assertDiagnostics(
-      '''var x = <num>[].remove('1');''',
-      [lint(23, 3)],
-    );
+    await assertDiagnostics('''var x = <num>[].remove('1');''', [lint(23, 3)]);
   }
 }
 
@@ -196,10 +202,7 @@ class CollectionMethodsUnrelatedTypeMapTest extends LintRuleTest {
   }
 
   test_index_unrelated() async {
-    await assertDiagnostics(
-      '''var x = <num, String>{}['1'];''',
-      [lint(24, 3)],
-    );
+    await assertDiagnostics('''var x = <num, String>{}['1'];''', [lint(24, 3)]);
   }
 
   test_remove_related_subtype() async {
@@ -229,12 +232,15 @@ void f(Queue<num> queue) {
   }
 
   test_remove_unrelated() async {
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 import 'dart:collection';
 void f(Queue<num> queue) {
   queue.remove('1');
 }
-''', [lint(68, 3)]);
+''',
+      [lint(68, 3)],
+    );
   }
 }
 
@@ -248,10 +254,7 @@ class CollectionMethodsUnrelatedTypeSetTest extends LintRuleTest {
   }
 
   test_lookup_unrelated() async {
-    await assertDiagnostics(
-      '''var x = <num>{}.lookup('1');''',
-      [lint(23, 3)],
-    );
+    await assertDiagnostics('''var x = <num>{}.lookup('1');''', [lint(23, 3)]);
   }
 
   test_remove_related_subtype() async {
@@ -259,9 +262,6 @@ class CollectionMethodsUnrelatedTypeSetTest extends LintRuleTest {
   }
 
   test_remove_unrelated() async {
-    await assertDiagnostics(
-      '''var x = <num>{}.remove('1');''',
-      [lint(23, 3)],
-    );
+    await assertDiagnostics('''var x = <num>{}.remove('1');''', [lint(23, 3)]);
   }
 }

@@ -93,6 +93,10 @@ class Zone {
   static void ClearCache();
   static intptr_t Size() { return total_size_; }
 
+  // Allow templated containers to check if this allocator supports
+  // freeing individual allocations.
+  static constexpr bool kSupportsFreeingIndividualAllocations = false;
+
  private:
   Zone();
   ~Zone();  // Delete all memory associated with the zone.

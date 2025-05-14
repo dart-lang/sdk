@@ -16,15 +16,16 @@ class X {}
 
 abstract class Interface {
   void takePositional(
-      int? unboxedSmi,
-      dynamic unboxedInt,
-      dynamic unboxedDouble,
-      dynamic boxedNullableInt,
-      dynamic boxedNullableDouble,
-      dynamic boxedNonNullableIntOrDouble,
-      dynamic boxedNullableIntOrDouble,
-      dynamic boxedNullableX,
-      dynamic boxedX);
+    int? unboxedSmi,
+    dynamic unboxedInt,
+    dynamic unboxedDouble,
+    dynamic boxedNullableInt,
+    dynamic boxedNullableDouble,
+    dynamic boxedNonNullableIntOrDouble,
+    dynamic boxedNullableIntOrDouble,
+    dynamic boxedNullableX,
+    dynamic boxedX,
+  );
 
   dynamic returnUnboxedSmi(X? ignored);
   dynamic returnUnboxedInt(X? ignored);
@@ -39,15 +40,16 @@ abstract class Interface {
 
 class Impl1 implements Interface {
   void takePositional(
-      int? unboxedSmi,
-      dynamic unboxedInt,
-      dynamic unboxedDouble,
-      dynamic boxedNullableInt,
-      dynamic boxedNullableDouble,
-      dynamic boxedNonNullableIntOrDouble,
-      dynamic boxedNullableIntOrDouble,
-      dynamic boxedNullableX,
-      dynamic boxedX) {
+    int? unboxedSmi,
+    dynamic unboxedInt,
+    dynamic unboxedDouble,
+    dynamic boxedNullableInt,
+    dynamic boxedNullableDouble,
+    dynamic boxedNonNullableIntOrDouble,
+    dynamic boxedNullableIntOrDouble,
+    dynamic boxedNullableX,
+    dynamic boxedX,
+  ) {
     use(unboxedInt);
     use(unboxedDouble);
     use(boxedNullableInt);
@@ -71,15 +73,16 @@ class Impl1 implements Interface {
 
 class BaseImpl2 {
   void takePositional(
-      int? unboxedSmi,
-      dynamic unboxedInt,
-      dynamic unboxedDouble,
-      dynamic boxedNullableInt,
-      dynamic boxedNullableDouble,
-      dynamic boxedNonNullableIntOrDouble,
-      dynamic boxedNullableIntOrDouble,
-      dynamic boxedNullableX,
-      dynamic boxedX) {
+    int? unboxedSmi,
+    dynamic unboxedInt,
+    dynamic unboxedDouble,
+    dynamic boxedNullableInt,
+    dynamic boxedNullableDouble,
+    dynamic boxedNonNullableIntOrDouble,
+    dynamic boxedNullableIntOrDouble,
+    dynamic boxedNullableX,
+    dynamic boxedX,
+  ) {
     use(unboxedInt);
     use(unboxedDouble);
     use(boxedNullableInt);
@@ -103,15 +106,16 @@ class BaseImpl2 {
 
 class SubImpl3 extends BaseImpl2 implements Interface {
   void takePositional(
-      int? unboxedSmi,
-      dynamic unboxedInt,
-      dynamic unboxedDouble,
-      dynamic boxedNullableInt,
-      dynamic boxedNullableDouble,
-      dynamic boxedNonNullableIntOrDouble,
-      dynamic boxedNullableIntOrDouble,
-      dynamic boxedNullableX,
-      dynamic boxedX) {
+    int? unboxedSmi,
+    dynamic unboxedInt,
+    dynamic unboxedDouble,
+    dynamic boxedNullableInt,
+    dynamic boxedNullableDouble,
+    dynamic boxedNonNullableIntOrDouble,
+    dynamic boxedNullableIntOrDouble,
+    dynamic boxedNullableX,
+    dynamic boxedX,
+  ) {
     use(unboxedInt);
     use(unboxedDouble);
     use(boxedNullableInt);

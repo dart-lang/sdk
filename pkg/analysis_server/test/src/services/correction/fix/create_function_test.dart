@@ -38,6 +38,96 @@ bool test() {
 ''');
   }
 
+  Future<void> test_await_infer_from_parent() async {
+    await resolveTestCode('''
+Future<void> f() async {
+  if (await myUndefinedFunction()) {}
+}
+''');
+    await assertHasFix('''
+Future<void> f() async {
+  if (await myUndefinedFunction()) {}
+}
+
+Future<bool> myUndefinedFunction() async {
+}
+''');
+  }
+
+  Future<void> test_await_no_assignment() async {
+    await resolveTestCode('''
+Future<void> f() async {
+  await myUndefinedFunction();
+}
+''');
+    await assertHasFix('''
+Future<void> f() async {
+  await myUndefinedFunction();
+}
+
+Future<void> myUndefinedFunction() async {
+}
+''');
+  }
+
+  Future<void> test_await_variable_assignment() async {
+    await resolveTestCode('''
+int x = 1;
+Future<void> f() async {
+  x = await myUndefinedFunction();
+  print(x);
+}
+''');
+    await assertHasFix('''
+int x = 1;
+Future<void> f() async {
+  x = await myUndefinedFunction();
+  print(x);
+}
+
+Future<int> myUndefinedFunction() async {
+}
+''');
+  }
+
+  Future<void> test_await_variable_declaration() async {
+    await resolveTestCode('''
+Future<void> f() async {
+  var x = await myUndefinedFunction();
+  print(x);
+}
+''');
+    await assertHasFix('''
+Future<void> f() async {
+  var x = await myUndefinedFunction();
+  print(x);
+}
+
+Future myUndefinedFunction() async {
+}
+''');
+  }
+
+  Future<void> test_await_variable_plusEq() async {
+    await resolveTestCode('''
+String x = 'hello';
+Future<void> f() async {
+  x += await myUndefinedFunction();
+  print(x);
+}
+''');
+    await assertHasFix('''
+String x = 'hello';
+Future<void> f() async {
+  x += await myUndefinedFunction();
+  print(x);
+}
+
+Future<String> myUndefinedFunction() async {
+}
+''');
+  }
+
   Future<void> test_bottomArgument() async {
     await resolveTestCode('''
 void f() {
@@ -634,6 +724,42 @@ void bar(int i) {
 
   Future<void> test_returnType_bool_while() async {
     await assert_returnType_bool('while ( test() ) {}');
+  }
+
+  Future<void> test_returnType_closure_expression() async {
+    await resolveTestCode('''
+void f(List<int> list) {
+  list.where((i) => myMethod(i));
+}
+''');
+    await assertHasFix('''
+void f(List<int> list) {
+  list.where((i) => myMethod(i));
+}
+
+bool myMethod(int i) {
+}
+''');
+  }
+
+  Future<void> test_returnType_closure_return() async {
+    await resolveTestCode('''
+void f(List<int> list) {
+  list.where((i) {
+    return myMethod(i);
+  });
+}
+''');
+    await assertHasFix('''
+void f(List<int> list) {
+  list.where((i) {
+    return myMethod(i);
+  });
+}
+
+bool myMethod(int i) {
+}
+''');
   }
 
   Future<void> test_returnType_fromAssignment_eq() async {

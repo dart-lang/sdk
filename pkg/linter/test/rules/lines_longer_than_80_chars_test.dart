@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LinesLongerThan80CharsTest);
   });
@@ -34,9 +34,7 @@ class LinesLongerThan80CharsTest extends LintRuleTest {
     await assertDiagnostics(
       '/*  5   10   15   20   25   30   35   40   50   55   60'
       '   65   70   75   80   85   90   95  100 */',
-      [
-        lint(80, 18),
-      ],
+      [lint(80, 18)],
     );
   }
 
@@ -57,9 +55,7 @@ class LinesLongerThan80CharsTest extends LintRuleTest {
     await assertDiagnostics(
       '/// 5   10   15   20   25   30   35   40   50   55   60'
       '   65   70   75   80   85   90   95  100',
-      [
-        lint(80, 15),
-      ],
+      [lint(80, 15)],
     );
   }
 
@@ -80,9 +76,7 @@ class LinesLongerThan80CharsTest extends LintRuleTest {
     await assertDiagnostics(
       '//  5   10   15   20   25   30   35   40   50   55   60'
       '   65   70   75   80   85   90   95  100',
-      [
-        lint(80, 15),
-      ],
+      [lint(80, 15)],
     );
   }
 
@@ -101,12 +95,13 @@ var p =
   }
 
   test_longerThan80Characters() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var p =
     '                                                                          ';
-''', [
-      lint(88, 1),
-    ]);
+''',
+      [lint(88, 1)],
+    );
   }
 
   test_multilineBlockComment_noSpaceAfter80() async {
@@ -141,9 +136,7 @@ var p =
       ' *  5   10   15   20   25   30   35   40   50   55   60'
       '   65   70   75   80   85   90   95  100\n'
       ' */',
-      [
-        lint(83, 15),
-      ],
+      [lint(83, 15)],
     );
   }
 

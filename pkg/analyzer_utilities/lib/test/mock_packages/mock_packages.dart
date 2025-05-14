@@ -114,6 +114,11 @@ mixin MockPackagesMixin {
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  Folder addFlutterTest() {
+    var packageFolder = _addFiles('flutter_test');
+    return packageFolder.getChildAssumingFolder('lib');
+  }
+
   Folder addJs() {
     var packageFolder = _addFiles('js');
     return packageFolder.getChildAssumingFolder('lib');
@@ -131,6 +136,11 @@ mixin MockPackagesMixin {
 
   Folder addPedantic() {
     var packageFolder = _addFiles('pedantic');
+    return packageFolder.getChildAssumingFolder('lib');
+  }
+
+  Folder addTestReflectiveLoader() {
+    var packageFolder = _addFiles('test_reflective_loader');
     return packageFolder.getChildAssumingFolder('lib');
   }
 

@@ -53,6 +53,29 @@ main() {
     ]);
   }
 
+  test_localVariable() async {
+    await assertNoErrorsInCode('''
+void f() {
+  late final int a;
+  a = 1;
+  a;
+}
+''');
+  }
+
+  test_localVariable_forEach() async {
+    await assertErrorsInCode('''
+f() {
+  late final int i;
+  for (i in [1, 2, 3]) {
+    print(i);
+  }
+}
+''', [
+      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 33, 1),
+    ]);
+  }
+
   test_postfixExpression_inc() async {
     await assertErrorsInCode('''
 main() {

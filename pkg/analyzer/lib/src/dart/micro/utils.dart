@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
-/// Return the [Element] of the given [node], or `null` if [node] is `null` or
+/// Return the [Element2] of the given [node], or `null` if [node] is `null` or
 /// does not have an element.
-Element? getElementOfNode(AstNode? node) {
+Element2? getElementOfNode2(AstNode? node) {
   if (node == null) {
     return null;
   }
@@ -27,25 +25,25 @@ Element? getElementOfNode(AstNode? node) {
     return null;
   }
 
-  Element? element;
+  Element2? element;
   switch (node) {
-    case ExportDirective():
-      element = node.element;
     case ImportDirective():
-      element = node.element;
-    case PartOfDirective():
-      element = node.element;
+      return MockLibraryImportElement(node.libraryImport!);
+    case ImportPrefixReference():
+      element = node.element2;
     default:
-      element = ElementLocator.locate2(node).asElement;
+      element = ElementLocator.locate2(node);
   }
 
-  if (node is SimpleIdentifier && element is PrefixElement) {
+  if (node is SimpleIdentifier && element is PrefixElement2) {
     var parent = node.parent;
     if (parent is ImportDirective) {
-      element = parent.element;
+      element = MockLibraryImportElement(parent.libraryImport!);
     } else {
-      element = _getImportElementInfo(node);
+      element = _getImportElementInfo2(node);
     }
+  } else if (node is ImportPrefixReference && element is PrefixElement2) {
+    element = _getImportElementInfoFromReference(node);
   }
 
   return element;
@@ -54,17 +52,17 @@ Element? getElementOfNode(AstNode? node) {
 /// If the given [constructor] is a synthetic constructor created for a
 /// [ClassTypeAlias], return the actual constructor of a [ClassDeclaration]
 /// which is invoked.  Return `null` if a redirection cycle is detected.
-ConstructorElement? _getActualConstructorElement(
-    ConstructorElement? constructor) {
-  var seenConstructors = <ConstructorElement?>{};
-  while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
-    var enclosing = constructor.enclosingElement3;
-    if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
+ConstructorElement2? _getActualConstructorElement(
+    ConstructorElement2? constructor) {
+  var seenConstructors = <ConstructorElement2?>{};
+  while (constructor is ConstructorElementImpl2 && constructor.isSynthetic) {
+    var enclosing = constructor.enclosingElement2;
+    if (enclosing is ClassElementImpl2 && enclosing.isMixinApplication) {
       var superInvocation = constructor.constantInitializers
           .whereType<SuperConstructorInvocation>()
           .singleOrNull;
       if (superInvocation != null) {
-        constructor = superInvocation.staticElement;
+        constructor = superInvocation.element;
       }
     } else {
       break;
@@ -77,42 +75,106 @@ ConstructorElement? _getActualConstructorElement(
   return constructor;
 }
 
+/// Returns the [LibraryImportElement] that is referenced by [prefixNode] with a
+/// [PrefixElement], maybe `null`.
+MockLibraryImportElement? _getImportElementInfo2(SimpleIdentifier prefixNode) {
+  // prepare environment
+  var parent = prefixNode.parent;
+  var unit = prefixNode.thisOrAncestorOfType<CompilationUnitImpl>();
+  var libraryFragment = unit?.declaredFragment;
+  if (libraryFragment == null) {
+    return null;
+  }
+  // prepare used element
+  Element2? usedElement;
+  if (parent is PrefixedIdentifier) {
+    var prefixed = parent;
+    if (prefixed.prefix == prefixNode) {
+      usedElement = prefixed.element;
+    }
+  } else if (parent is MethodInvocation) {
+    var invocation = parent;
+    if (invocation.target == prefixNode) {
+      usedElement = invocation.methodName.element;
+    }
+  }
+  // we need used Element
+  if (usedElement == null) {
+    return null;
+  }
+  // find ImportElement
+  var prefix = prefixNode.name;
+  var importElementsMap = <LibraryImport, Set<Element2>>{};
+  return _getMockImportElement(
+      libraryFragment, prefix, usedElement, importElementsMap);
+}
+
+/// Returns the [LibraryImportElement] that is referenced by [prefixNode] with a
+/// [PrefixElement], maybe `null`.
+MockLibraryImportElement? _getImportElementInfoFromReference(
+    ImportPrefixReference prefixNode) {
+  // prepare environment
+  var unit = prefixNode.thisOrAncestorOfType<CompilationUnitImpl>();
+  var libraryFragment = unit?.declaredFragment;
+  if (libraryFragment == null) {
+    return null;
+  }
+
+  // prepare used element
+  Element2? usedElement;
+  var parent = prefixNode.parent;
+  if (parent is ExtensionOverride) {
+    usedElement = parent.element2;
+  } else if (parent is NamedType) {
+    usedElement = parent.element2;
+  }
+  if (usedElement == null) {
+    return null;
+  }
+
+  // find ImportElement
+  var prefix = prefixNode.name.lexeme;
+  var importElementsMap = <LibraryImport, Set<Element2>>{};
+  return _getMockImportElement(
+      libraryFragment, prefix, usedElement, importElementsMap);
+}
+
 /// Returns the [LibraryImportElement] that declared [prefix] and imports [element].
 ///
 /// [libraryFragment] - the [CompilationUnitElementImpl] where reference is.
 /// [prefix] - the import prefix, maybe `null`.
 /// [element] - the referenced element.
 /// [importElementsMap] - the cache of [Element]s imported by [LibraryImportElement]s.
-LibraryImportElement? _getImportElement(
+MockLibraryImportElement? _getMockImportElement(
     CompilationUnitElementImpl libraryFragment,
     String prefix,
-    Element element,
-    Map<LibraryImportElement, Set<Element>> importElementsMap) {
-  if (element.enclosingElement3 is! CompilationUnitElement) {
+    Element2 element,
+    Map<LibraryImport, Set<Element2>> importElementsMap) {
+  if (element.enclosingElement2 is! LibraryElement2) {
     return null;
   }
-  var usedLibrary = element.library;
+  var usedLibrary = element.library2;
   // find ImportElement that imports used library with used prefix
-  List<LibraryImportElement>? candidates;
-  var libraryImports = libraryFragment.withEnclosing
-      .expand((fragment) => fragment.libraryImports)
+  List<LibraryImport>? candidates;
+  var libraryImports = libraryFragment.withEnclosing2
+      .expand((fragment) => fragment.libraryImports2)
       .toList();
   for (var importElement in libraryImports) {
     // required library
-    if (importElement.importedLibrary != usedLibrary) {
+    if (importElement.importedLibrary2 != usedLibrary) {
       continue;
     }
     // required prefix
-    var prefixElement = importElement.prefix?.element;
+    var prefixElement = importElement.prefix2?.element;
     if (prefixElement == null) {
       continue;
     }
-    if (prefix != prefixElement.name) {
+    if (prefix != prefixElement.name3) {
       continue;
     }
     // no combinators => only possible candidate
     if (importElement.combinators.isEmpty) {
-      return importElement;
+      return MockLibraryImportElement(importElement);
     }
     // OK, we have candidate
     candidates ??= [];
@@ -124,7 +186,7 @@ LibraryImportElement? _getImportElement(
   }
   // one candidate
   if (candidates.length == 1) {
-    return candidates[0];
+    return MockLibraryImportElement(candidates[0]);
   }
   // ensure that each ImportElement has set of elements
   for (var importElement in candidates) {
@@ -132,7 +194,7 @@ LibraryImportElement? _getImportElement(
       continue;
     }
     var namespace = importElement.namespace;
-    var elements = Set<Element>.from(namespace.definedNames.values);
+    var elements = namespace.definedNames2.values.toSet();
     importElementsMap[importElement] = elements;
   }
   // use import namespace to choose correct one
@@ -140,45 +202,11 @@ LibraryImportElement? _getImportElement(
     var importElement = entry.key;
     var elements = entry.value;
     if (elements.contains(element)) {
-      return importElement;
+      return MockLibraryImportElement(importElement);
     }
   }
   // not found
   return null;
-}
-
-/// Returns the [LibraryImportElement] that is referenced by [prefixNode] with a
-/// [PrefixElement], maybe `null`.
-LibraryImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
-  // prepare environment
-  var parent = prefixNode.parent;
-  var unit = prefixNode.thisOrAncestorOfType<CompilationUnit>();
-  var libraryFragment = unit?.declaredElement as CompilationUnitElementImpl?;
-  if (libraryFragment == null) {
-    return null;
-  }
-  // prepare used element
-  Element? usedElement;
-  if (parent is PrefixedIdentifier) {
-    var prefixed = parent;
-    if (prefixed.prefix == prefixNode) {
-      usedElement = prefixed.staticElement;
-    }
-  } else if (parent is MethodInvocation) {
-    var invocation = parent;
-    if (invocation.target == prefixNode) {
-      usedElement = invocation.methodName.staticElement;
-    }
-  }
-  // we need used Element
-  if (usedElement == null) {
-    return null;
-  }
-  // find ImportElement
-  var prefix = prefixNode.name;
-  var importElementsMap = <LibraryImportElement, Set<Element>>{};
-  return _getImportElement(
-      libraryFragment, prefix, usedElement, importElementsMap);
 }
 
 class MatchInfo {
@@ -228,18 +256,17 @@ class MatchKind {
 }
 
 class ReferencesCollector extends GeneralizingAstVisitor<void> {
-  final Element element;
+  final Element2 element;
   final List<MatchInfo> references = [];
 
   ReferencesCollector(this.element);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    if (node.writeElement != null &&
-        node.writeElement is PropertyAccessorElement) {
+    var writeElement = node.writeElement2;
+    if (writeElement is PropertyAccessorElement2) {
       var kind = MatchKind.WRITE;
-      var property = node.writeElement as PropertyAccessorElement;
-      if (property.variable2 == element || property == element) {
+      if (writeElement.variable3 == element || writeElement == element) {
         if (node.leftHandSide is SimpleIdentifier) {
           references.add(MatchInfo(
               node.leftHandSide.offset, node.leftHandSide.length, kind));
@@ -254,10 +281,10 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         }
       }
     }
-    if (node.readElement != null &&
-        node.readElement is PropertyAccessorElement) {
-      var property = node.readElement as PropertyAccessorElement;
-      if (property.variable2 == element) {
+
+    var readElement = node.readElement2;
+    if (readElement is PropertyAccessorElement2) {
+      if (readElement.variable3 == element) {
         references.add(MatchInfo(node.rightHandSide.offset,
             node.rightHandSide.length, MatchKind.READ));
       }
@@ -268,8 +295,8 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   visitCommentReference(CommentReference node) {
     var expression = node.expression;
     if (expression is Identifier) {
-      var element = expression.staticElement;
-      if (element is ConstructorElement) {
+      var element = expression.element;
+      if (element is ConstructorElement2) {
         if (expression is PrefixedIdentifier) {
           var offset = expression.prefix.end;
           var length = expression.end - offset;
@@ -290,12 +317,12 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
-    var e = node.declaredElement;
-    if (e == element) {
-      if (e!.name.isEmpty) {
-        references.add(
-            MatchInfo(e.nameOffset + e.nameLength, 0, MatchKind.DECLARATION));
+  visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+    var fragment = node.declaredFragment;
+    if (fragment?.element == element) {
+      if (fragment!.name.isEmpty) {
+        references.add(MatchInfo(fragment.nameOffset + fragment.nameLength, 0,
+            MatchKind.DECLARATION));
       } else {
         var offset = node.period!.offset;
         var length = node.name!.end - offset;
@@ -307,7 +334,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    var e = node.staticElement?.declaration;
+    var e = node.element?.baseElement;
     e = _getActualConstructorElement(e);
     MatchKind kind;
     int offset;
@@ -328,17 +355,17 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         length = 0;
       }
       references.add(MatchInfo(offset, length, kind));
-    } else if (e != null && e.enclosingElement3 == element) {
+    } else if (e != null && e.enclosingElement2 == element) {
       kind = MatchKind.REFERENCE;
       offset = node.offset;
-      length = element.nameLength;
+      length = element.name3?.length ?? 0;
       references.add(MatchInfo(offset, length, kind));
     }
   }
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    var constructorElement = node.constructorElement;
+    var constructorElement = node.constructorElement2;
     if (constructorElement != null && constructorElement == element) {
       int offset;
       int length;
@@ -359,7 +386,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    if (node.element == element) {
+    if (node.element2 == element) {
       references.add(
         MatchInfo(
           node.name2.offset,
@@ -376,7 +403,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    var e = node.staticElement;
+    var e = node.element;
     if (e == element) {
       if (node.constructorName != null) {
         int offset = node.period!.offset;
@@ -394,10 +421,10 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
     if (node.inDeclarationContext()) {
       return;
     }
-    var e = node.staticElement;
+    var e = node.element;
     if (e == element) {
       references.add(MatchInfo(node.offset, node.length, MatchKind.REFERENCE));
-    } else if (e is PropertyAccessorElement && e.variable2 == element) {
+    } else if (e is GetterElement && e.variable3 == element) {
       bool inGetterContext = node.inGetterContext();
       bool inSetterContext = node.inSetterContext();
       MatchKind kind;
@@ -414,7 +441,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    var e = node.staticElement;
+    var e = node.element;
     if (e == element) {
       if (node.constructorName != null) {
         int offset = node.period!.offset;

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert' show JsonEncoder;
 import 'dart:developer' as developer;
 import 'dart:io';
@@ -14,14 +15,19 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
     show LspAnalysisServer;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/server/http_server.dart';
-import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analysis_server/src/services/correction/fix_performance.dart';
+import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
+import 'package:analysis_server/src/utilities/stream_string_stink.dart';
+import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
+import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -172,8 +178,24 @@ _CollectedOptionsData _collectOptionsData(AnalysisDriver driver) {
   return collectedData;
 }
 
+(int, String) _producerDetails(ProducerRequestPerformance request) {
+  var details = StringBuffer();
+
+  var totalProducerTime = 0;
+  var producerTimings = request.producerTimings;
+
+  for (var timing in producerTimings.sortedBy((t) => t.elapsedTime).reversed) {
+    var producerTime = timing.elapsedTime;
+    totalProducerTime += producerTime;
+    details.write(timing.className);
+    details.write(': ');
+    details.writeln(printMilliseconds(producerTime));
+  }
+
+  return (totalProducerTime, details.toString());
+}
+
 class AnalysisDriverTimingsPage extends DiagnosticPageWithNav
-    with PerformanceChartMixin
     implements PostablePage {
   static const _resetFormId = 'reset-driver-timers';
 
@@ -181,9 +203,10 @@ class AnalysisDriverTimingsPage extends DiagnosticPageWithNav
     : super(
         site,
         'driver-timings',
-        'Analysis Driver Timings',
+        'Analysis Driver',
         description:
             'Timing statistics collected by the analysis driver scheduler since last reset.',
+        indentInNav: true,
       );
 
   @override
@@ -214,6 +237,47 @@ class AnalysisDriverTimingsPage extends DiagnosticPageWithNav
     }
 
     return this.path;
+  }
+}
+
+class AnalysisPerformanceLogPage extends WebSocketLoggingPage {
+  AnalysisPerformanceLogPage(DiagnosticsSite site)
+    : super(
+        site,
+        'analysis-performance-log',
+        'Analysis Performance Log',
+        description: 'Realtime logging from the Analysis Performance Log',
+      );
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    _writeWebSocketLogPanel();
+  }
+
+  @override
+  Future<void> handleWebSocket(WebSocket socket) async {
+    var logger = server.analysisPerformanceLogger;
+
+    // We were able to attach our temporary sink. Forward all data over the
+    // WebSocket and wait for it to close (this is done by the user clicking
+    // the Stop button or navigating away from the page).
+    var controller = StreamController<String>();
+    var sink = StreamStringSink(controller.sink);
+    try {
+      unawaited(socket.addStream(controller.stream));
+      logger.sink.addSink(sink);
+
+      // Wait for the socket to be closed so we can remove the secondary sink.
+      var completer = Completer<void>();
+      socket.listen(
+        null,
+        onDone: completer.complete,
+        onError: completer.complete,
+      );
+      await completer.future;
+    } finally {
+      logger.sink.removeSink(sink);
+    }
   }
 }
 
@@ -259,6 +323,62 @@ class AnalyticsPage extends DiagnosticPageWithNav {
     // Display the analytics data that has been gathered.
     //
     manager.toHtml(buf);
+  }
+}
+
+class AssistsPage extends DiagnosticPageWithNav with PerformanceChartMixin {
+  AssistsPage(DiagnosticsSite site)
+    : super(
+        site,
+        'getAssists',
+        'Assists',
+        description: 'Latency and timing statistics for getting assists.',
+        indentInNav: true,
+      );
+
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
+  List<GetAssistsPerformance> get performanceItems =>
+      server.recentPerformance.getAssists.items.toList();
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    var requests = performanceItems;
+
+    if (requests.isEmpty) {
+      blankslate('No assist requests recorded.');
+      return;
+    }
+
+    var fastCount =
+        requests.where((c) => c.elapsedInMilliseconds <= 100).length;
+    p(
+      '${requests.length} results; ${printPercentage(fastCount / requests.length)} within 100ms.',
+    );
+
+    drawChart(requests);
+
+    // Emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln(
+      '<tr><th>Time</th><th align = "left" title="Time in correction producer `compute()` calls">Producer.compute()</th><th align = "left">Source</th><th>Snippet</th></tr>',
+    );
+
+    for (var request in requests) {
+      var shortName = pathContext.basename(request.path);
+      var (producerTime, producerDetails) = _producerDetails(request);
+      buf.writeln(
+        '<tr>'
+        '<td class="pre right"><a href="/timing?id=${request.id}&kind=getAssists">'
+        '${_formatLatencyTiming(request.elapsedInMilliseconds, request.requestLatency)}'
+        '</a></td>'
+        '<td><abbr title="$producerDetails">${printMilliseconds(producerTime)}</abbr></td>'
+        '<td>${escape(shortName)}</td>'
+        '<td><code>${escape(request.snippet)}</code></td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
   }
 }
 
@@ -319,8 +439,9 @@ class ByteStoreTimingPage extends DiagnosticPageWithNav
     : super(
         site,
         'byte-store-timing',
-        'FileByteStore Timings',
+        'FileByteStore',
         description: 'FileByteStore Timing statistics.',
+        indentInNav: true,
       );
 
   @override
@@ -346,14 +467,14 @@ class ByteStoreTimingPage extends DiagnosticPageWithNav
     buf.writeln(
       '<tr><th>Files Read</th><th>Time Taken</th><th>&nbsp;</th></tr>',
     );
-    for (var i = 0; i < byteStoreTimings.length - 1; i++) {
+    for (var i = 0; i < byteStoreTimings.length; i++) {
       var timing = byteStoreTimings[i];
       if (timing.readCount == 0) {
         continue;
       }
 
       var nextTiming =
-          i <= byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
+          i + 1 < byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
       var duration = (nextTiming?.time ?? DateTime.now()).difference(
         timing.time,
       );
@@ -368,6 +489,17 @@ class ByteStoreTimingPage extends DiagnosticPageWithNav
       );
     }
     buf.writeln('</table>');
+  }
+}
+
+class ClientPage extends DiagnosticPageWithNav {
+  ClientPage(super.site, [super.id = 'client', super.title = 'Client'])
+    : super(description: 'Information about the client.');
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    h3('Client Diagnostic Information');
+    prettyJson(server.clientDiagnosticInformation);
   }
 }
 
@@ -433,7 +565,13 @@ class CollectReportPage extends DiagnosticPage {
     if (server is LegacyAnalysisServer) {
       collectedData['serverServices'] =
           server.serverServices.map((e) => e.toString()).toList();
+    } else if (server is LspAnalysisServer) {
+      collectedData['clientDiagnosticInformation'] =
+          server.clientDiagnosticInformation;
     }
+
+    collectedData['allowOverlappingHandlers'] =
+        MessageScheduler.allowOverlappingHandlers;
 
     var profiler = ProcessProfiler.getProfilerForPlatform();
     UsageInfo? usage;
@@ -486,10 +624,51 @@ class CollectReportPage extends DiagnosticPage {
       uniqueKnownFiles.addAll(knownFiles);
 
       var collectedOptionsData = _collectOptionsData(data);
-      contextData['lints'] = collectedOptionsData.lints.toList();
+      contextData['lints'] = collectedOptionsData.lints.sorted();
       contextData['plugins'] = collectedOptionsData.plugins.toList();
     }
     collectedData['uniqueKnownFiles'] = uniqueKnownFiles.length;
+
+    // Data from the 'Analysis Driver Timings' page.
+    var buffer = StringBuffer();
+    server.analysisDriverScheduler.accumulatedPerformance.write(buffer: buffer);
+    collectedData['accumulatedPerformance'] = buffer.toString();
+
+    // FileByteStore timings
+    {
+      var byteStoreTimings =
+          server.byteStoreTimings
+              ?.where(
+                (timing) =>
+                    timing.readCount != 0 || timing.readTime != Duration.zero,
+              )
+              .toList();
+      if (byteStoreTimings != null && byteStoreTimings.isNotEmpty) {
+        var performance = [];
+        collectedData['byteStoreTimings'] = performance;
+        for (var i = 0; i < byteStoreTimings.length; i++) {
+          var timing = byteStoreTimings[i];
+          if (timing.readCount == 0) {
+            continue;
+          }
+
+          var nextTiming =
+              i + 1 < byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
+          var duration = (nextTiming?.time ?? DateTime.now()).difference(
+            timing.time,
+          );
+          var description =
+              'Between ${timing.reason} and ${nextTiming?.reason ?? 'now'} '
+              '(${printMilliseconds(duration.inMilliseconds)}).';
+
+          var itemData = {};
+          performance.add(itemData);
+          itemData['file_reads'] = timing.readCount;
+          itemData['time'] = timing.readTime.inMilliseconds;
+          itemData['description'] = description;
+        }
+      }
+    }
 
     // Recorded performance data (timing and code completion).
     void collectPerformance(List<RequestPerformance> items, String type) {
@@ -513,6 +692,10 @@ class CollectReportPage extends DiagnosticPage {
     collectPerformance(
       server.recentPerformance.completion.items.toList(),
       'Completion',
+    );
+    collectPerformance(
+      server.recentPerformance.getFixes.items.toList(),
+      'GetFixes',
     );
     collectPerformance(
       server.recentPerformance.requests.items.toList(),
@@ -714,6 +897,7 @@ class CompletionPage extends DiagnosticPageWithNav with PerformanceChartMixin {
         'completion',
         'Code Completion',
         description: 'Latency statistics for code completion.',
+        indentInNav: true,
       );
 
   path.Context get pathContext => server.resourceProvider.pathContext;
@@ -748,7 +932,7 @@ class CompletionPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       buf.writeln(
         '<tr>'
         '<td class="pre right"><a href="/timing?id=${completion.id}&kind=completion">'
-        '${_formatTiming(completion)}'
+        '${_formatLatencyTiming(completion.elapsedInMilliseconds, completion.requestLatency)}'
         '</a></td>'
         '<td class="right">${completion.computedSuggestionCountStr}</td>'
         '<td class="right">${completion.transmittedSuggestionCountStr}</td>'
@@ -758,21 +942,6 @@ class CompletionPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       );
     }
     buf.writeln('</table>');
-  }
-
-  String _formatTiming(CompletionPerformance completion) {
-    var buffer = StringBuffer();
-    buffer.write(printMilliseconds(completion.elapsedInMilliseconds));
-
-    var latency = completion.requestLatency;
-    if (latency != null) {
-      buffer
-        ..write(' <small class="subtle" title="client-to-server latency">(+ ')
-        ..write(printMilliseconds(latency))
-        ..write(')</small>');
-    }
-
-    return buffer.toString();
   }
 }
 
@@ -1197,6 +1366,20 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
 
     buf.writeln('</div>');
   }
+
+  String _formatLatencyTiming(int elapsed, int? latency) {
+    var buffer = StringBuffer();
+    buffer.write(printMilliseconds(elapsed));
+
+    if (latency != null) {
+      buffer
+        ..write(' <small class="subtle" title="client-to-server latency">(+ ')
+        ..write(printMilliseconds(latency))
+        ..write(')</small>');
+    }
+
+    return buffer.toString();
+  }
 }
 
 class DiagnosticsSite extends Site implements AbstractHttpHandler {
@@ -1228,17 +1411,16 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
     if (server != null) {
       pages.add(PluginsPage(this, server));
     }
-    pages.add(CompletionPage(this));
     if (server is LegacyAnalysisServer) {
+      pages.add(ClientPage(this));
       pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
-      pages.add(LspPage(this, server));
+      pages.add(LspClientPage(this, server));
       pages.add(LspCapabilitiesPage(this, server));
       pages.add(LspRegistrationsPage(this, server));
     }
-    pages.add(TimingPage(this));
-    pages.add(ByteStoreTimingPage(this));
-    pages.add(AnalysisDriverTimingsPage(this));
+
+    pages.add(AnalysisPerformanceLogPage(this));
 
     var profiler = ProcessProfiler.getProfilerForPlatform();
     if (profiler != null) {
@@ -1259,6 +1441,16 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
     pages.add(AstPage(this));
     pages.add(ElementModelPage(this));
     pages.add(ContentsPage(this));
+
+    // Add timing pages
+    pages.add(TimingPage(this));
+    // (Nested)
+    pages.add(AnalysisDriverTimingsPage(this));
+    pages.add(AssistsPage(this));
+    pages.add(ByteStoreTimingPage(this));
+    pages.add(CompletionPage(this));
+    pages.add(FixesPage(this));
+    pages.add(RefactoringsPage(this));
   }
 
   @override
@@ -1448,6 +1640,62 @@ class FeedbackPage extends DiagnosticPage {
   }
 }
 
+class FixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
+  FixesPage(DiagnosticsSite site)
+    : super(
+        site,
+        'getFixes',
+        'Fixes',
+        description: 'Latency and timing statistics for getting fixes.',
+        indentInNav: true,
+      );
+
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
+  List<GetFixesPerformance> get performanceItems =>
+      server.recentPerformance.getFixes.items.toList();
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    var requests = performanceItems;
+
+    if (requests.isEmpty) {
+      blankslate('No fix requests recorded.');
+      return;
+    }
+
+    var fastCount =
+        requests.where((c) => c.elapsedInMilliseconds <= 100).length;
+    p(
+      '${requests.length} results; ${printPercentage(fastCount / requests.length)} within 100ms.',
+    );
+
+    drawChart(requests);
+
+    // Emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln(
+      '<tr><th>Time</th><th align = "left" title="Time in correction producer `compute()` calls">Producer.compute()</th><th align = "left">Source</th><th>Snippet</th></tr>',
+    );
+
+    for (var request in requests) {
+      var shortName = pathContext.basename(request.path);
+      var (producerTime, producerDetails) = _producerDetails(request);
+      buf.writeln(
+        '<tr>'
+        '<td class="pre right"><a href="/timing?id=${request.id}&kind=getFixes">'
+        '${_formatLatencyTiming(request.elapsedInMilliseconds, request.requestLatency)}'
+        '</a></td>'
+        '<td><abbr title="$producerDetails">${printMilliseconds(producerTime)}</abbr></td>'
+        '<td>${escape(shortName)}</td>'
+        '<td><code>${escape(request.snippet)}</code></td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
+  }
+}
+
 class LspCapabilitiesPage extends DiagnosticPageWithNav {
   @override
   LspAnalysisServer server;
@@ -1487,17 +1735,12 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
   }
 }
 
-class LspPage extends DiagnosticPageWithNav {
+/// Overrides [ClientPage] including LSP-specific data.
+class LspClientPage extends ClientPage {
   @override
   LspAnalysisServer server;
 
-  LspPage(DiagnosticsSite site, this.server)
-    : super(
-        site,
-        'lsp',
-        'LSP',
-        description: 'Information about an LSP client.',
-      );
+  LspClientPage(DiagnosticsSite site, this.server) : super(site, 'lsp', 'LSP');
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
@@ -1511,6 +1754,8 @@ class LspPage extends DiagnosticPageWithNav {
 
     h3('Initialization Options');
     prettyJson(server.initializationOptions?.raw);
+
+    await super.generateContent(params);
   }
 }
 
@@ -1735,6 +1980,63 @@ class PluginsPage extends DiagnosticPageWithNav {
   }
 }
 
+class RefactoringsPage extends DiagnosticPageWithNav
+    with PerformanceChartMixin {
+  RefactoringsPage(DiagnosticsSite site)
+    : super(
+        site,
+        'getRefactorings',
+        'Refactorings',
+        description: 'Latency and timing statistics for getting refactorings.',
+        indentInNav: true,
+      );
+
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
+  List<GetRefactoringsPerformance> get performanceItems =>
+      server.recentPerformance.getRefactorings.items.toList();
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    var requests = performanceItems;
+
+    if (requests.isEmpty) {
+      blankslate('No refactoring requests recorded.');
+      return;
+    }
+
+    var fastCount =
+        requests.where((c) => c.elapsedInMilliseconds <= 100).length;
+    p(
+      '${requests.length} results; ${printPercentage(fastCount / requests.length)} within 100ms.',
+    );
+
+    drawChart(requests);
+
+    // Emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln(
+      '<tr><th>Time</th><th align = "left" title="Time in refactoring producer `compute()` calls">Producer.compute()</th><th align = "left">Source</th><th>Snippet</th></tr>',
+    );
+
+    for (var request in requests) {
+      var shortName = pathContext.basename(request.path);
+      var (producerTime, producerDetails) = _producerDetails(request);
+      buf.writeln(
+        '<tr>'
+        '<td class="pre right"><a href="/timing?id=${request.id}&kind=getRefactorings">'
+        '${_formatLatencyTiming(request.elapsedInMilliseconds, request.requestLatency)}'
+        '</a></td>'
+        '<td><abbr title="$producerDetails">${printMilliseconds(producerTime)}</abbr></td>'
+        '<td>${escape(shortName)}</td>'
+        '<td><code>${escape(request.snippet)}</code></td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
+  }
+}
+
 class StatusPage extends DiagnosticPageWithNav {
   StatusPage(DiagnosticsSite site)
     : super(
@@ -1753,6 +2055,12 @@ class StatusPage extends DiagnosticPageWithNav {
     buf.writeln(writeOption('Server type', server.runtimeType));
     // buf.writeln(writeOption('Instrumentation enabled',
     //     AnalysisEngine.instance.instrumentationService.isActive));
+    buf.writeln(
+      writeOption(
+        '(Scheduler) allow overlapping message handlers:',
+        MessageScheduler.allowOverlappingHandlers,
+      ),
+    );
     buf.writeln(writeOption('Server process ID', pid));
     buf.writeln('</div>');
 
@@ -1834,6 +2142,12 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     List<RequestPerformance>? itemsSlow;
     if (kind == 'completion') {
       items = server.recentPerformance.completion.items.toList();
+    } else if (kind == 'getAssists') {
+      items = server.recentPerformance.getAssists.items.toList();
+    } else if (kind == 'getFixes') {
+      items = server.recentPerformance.getFixes.items.toList();
+    } else if (kind == 'getRefactorings') {
+      items = server.recentPerformance.getRefactorings.items.toList();
     } else {
       items = server.recentPerformance.requests.items.toList();
       itemsSlow = server.recentPerformance.slowRequests.items.toList();
@@ -1854,28 +2168,13 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       buf.writeln(
         '<tr>'
         '<td class="pre right"><a href="/timing?id=${item.id}">'
-        '${_formatTiming(item)}'
+        '${_formatLatencyTiming(item.performance.elapsed.inMilliseconds, item.requestLatency)}'
         '</a></td>'
         '<td>${escape(item.operation)}</td>'
         '</tr>',
       );
     }
     buf.writeln('</table>');
-  }
-
-  String _formatTiming(RequestPerformance item) {
-    var buffer = StringBuffer();
-    buffer.write(printMilliseconds(item.performance.elapsed.inMilliseconds));
-
-    var latency = item.requestLatency;
-    if (latency != null) {
-      buffer
-        ..write(' <small class="subtle" title="client-to-server latency">(+ ')
-        ..write(printMilliseconds(latency))
-        ..write(')</small>');
-    }
-
-    return buffer.toString();
   }
 
   void _generateDetails(
@@ -1938,6 +2237,121 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       h3('Slow requests');
       _emitTable(itemsSlow);
     }
+  }
+}
+
+/// A base class for pages that provide real-time logging over a WebSocket.
+abstract class WebSocketLoggingPage extends DiagnosticPageWithNav
+    implements WebSocketPage {
+  WebSocketLoggingPage(super.site, super.id, super.title, {super.description});
+
+  void button(String text, {String? id, String classes = '', String? onClick}) {
+    var attributes = {
+      'type': 'button',
+      if (id != null) 'id': id,
+      'class': 'btn $classes'.trim(),
+      if (onClick != null) 'onclick': onClick,
+      'value': text,
+    };
+
+    tag('input', attributes: attributes);
+  }
+
+  /// Writes an HTML tag for [tagName] with the given [attributes].
+  ///
+  /// If [gen] is supplied, it is executed to write child content to [buf].
+  void tag(
+    String tagName, {
+    Map<String, String>? attributes,
+    void Function()? gen,
+  }) {
+    buf.write('<$tagName');
+    if (attributes != null) {
+      for (var MapEntry(:key, :value) in attributes.entries) {
+        buf.write(' $key="${escape(value)}"');
+      }
+    }
+    buf.write('>');
+    gen?.call();
+    buf.writeln('</$tagName>');
+  }
+
+  /// Writes Start/Stop/Clear buttons and associated scripts to connect and
+  /// disconnect a websocket back to this page, along with a panel to show
+  /// any output received from the server over the WebSocket.
+  void _writeWebSocketLogPanel() {
+    // Add buttons to start/stop logging. Using "position: sticky" so they're
+    // always visible even when scrolled.
+    tag(
+      'div',
+      attributes: {
+        'style':
+            'position: sticky; top: 10px; text-align: right; margin-bottom: 20px;',
+      },
+      gen: () {
+        button(
+          'Start Logging',
+          id: 'btnStartLog',
+          classes: 'btn-danger',
+          onClick: 'startLogging()',
+        );
+        button(
+          'Stop Logging',
+          id: 'btnStopLog',
+          classes: 'btn-danger',
+          onClick: 'stopLogging()',
+        );
+        button('Clear', onClick: 'clearLog()');
+      },
+    );
+
+    // Write the log container.
+    pre(() {
+      tag('code', attributes: {'id': 'logContent'});
+    });
+
+    // Write the scripts to connect/disconnect the websocket and display the
+    // data.
+    buf.write('''
+<script>
+  let logContent = document.getElementById('logContent');
+  let btnEnable = document.getElementById('btnEnable');
+  let btnDisable = document.getElementById('btnDisable');
+  let socket;
+
+  function clearLog(data) {
+    logContent.textContent = '';
+  }
+
+  function append(data) {
+    logContent.appendChild(document.createTextNode(data));
+  }
+
+  function startLogging() {
+    append("Connecting...\\n");
+    socket = new WebSocket("${this.path}");
+    socket.addEventListener("open", (event) => {
+      append("Connected!\\n");
+    });
+    socket.addEventListener("close", (event) => {
+      append("Disconnected!\\n");
+      stopLogging();
+    });
+    socket.addEventListener("message", (event) => {
+      append(event.data);
+    });
+    btnEnable.disabled = true;
+    btnDisable.disabled = false;
+  }
+
+  function stopLogging() {
+    socket?.close(1000, 'User closed');
+    socket = undefined;
+    btnEnable.disabled = false;
+    btnDisable.disabled = true;
+  }
+</script>
+''');
   }
 }
 

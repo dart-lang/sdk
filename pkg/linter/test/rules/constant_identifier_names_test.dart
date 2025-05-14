@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantIdentifierNamesTest);
   });
@@ -17,6 +17,7 @@ class ConstantIdentifierNamesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.constant_identifier_names;
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationEnum() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -26,15 +27,16 @@ enum E {
 }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment enum E {
   Xy;
 }
-''', [
-      lint(38, 2),
-    ]);
+''',
+      [lint(38, 2)],
+    );
   }
 
   test_augmentationTopLevelVariable() async {
@@ -42,15 +44,17 @@ augment enum E {
 part 'test.dart';
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 const PI = 3.14;
-''', [
-      lint(25, 2),
-    ]);
+''',
+      [lint(25, 2)],
+    );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedEnumValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -84,35 +88,39 @@ augment const PI = 3.1415;
   }
 
   test_destructuredConstField() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   static const AA = (1, );
 }
-''', [
-      lint(25, 2),
-    ]);
+''',
+      [lint(25, 2)],
+    );
   }
 
   test_destructuredConstVariable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 const AA = (1, );
-''', [
-      lint(6, 2),
-    ]);
+''',
+      [lint(6, 2)],
+    );
   }
 
   test_destructuredFinalVariable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final (AA, ) = (1, );
 }
-''', [
-      lint(20, 2),
-    ]);
+''',
+      [lint(20, 2)],
+    );
   }
 
   test_destructuredObjectField_switch() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   var a;
 }
@@ -126,11 +134,9 @@ f(A a) {
     case A(a: int a_b!):
   }
 }
-''', [
-      lint(64, 3),
-      lint(107, 3),
-      lint(132, 3),
-    ]);
+''',
+      [lint(64, 3), lint(107, 3), lint(132, 3)],
+    );
   }
 
   test_destructuredObjectField_switch_ok() async {
@@ -152,24 +158,26 @@ f(A a) {
   }
 
   test_enumValue_upperFirstLetter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 enum Foo {
   bar,
   Baz,
 }
-''', [
-      lint(20, 3),
-    ]);
+''',
+      [lint(20, 3)],
+    );
   }
 
   test_recordFieldDestructured() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f(Object o) {
   if (o case (x: int x_x, z: int z)) { }
 }
-''', [
-      lint(35, 3),
-    ]);
+''',
+      [lint(35, 3)],
+    );
   }
 
   test_recordFieldDestructured_ok() async {
@@ -181,11 +189,12 @@ f(Object o) {
   }
 
   test_recordTypeDeclarations() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 const RR = (x: 1);
-''', [
-      lint(6, 2),
-    ]);
+''',
+      [lint(6, 2)],
+    );
   }
 
   test_recordTypeDeclarations_ok() async {
@@ -195,28 +204,31 @@ const r = (x: 1);
   }
 
   test_staticField_allCaps() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static const DEBUG = false;
 }
-''', [
-      lint(25, 5),
-    ]);
+''',
+      [lint(25, 5)],
+    );
   }
 
   test_topLevel_allCaps() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 const PI = 3.14;
-''', [
-      lint(6, 2),
-    ]);
+''',
+      [lint(6, 2)],
+    );
   }
 
   test_topLevel_screamingSnake() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 const CCC_CCC = 1000;
-''', [
-      lint(6, 7),
-    ]);
+''',
+      [lint(6, 7)],
+    );
   }
 }

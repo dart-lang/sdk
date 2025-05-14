@@ -47,7 +47,10 @@ main() {
   }
 
   // No coercion on switch expression value.
-  var result = switch ([123]) { List<double> _ => 'wrong', _ => 'ok' };
+  var result = switch ([123]) {
+    List<double> _ => 'wrong',
+    _ => 'ok',
+  };
   Expect.equals('ok', result);
 }
 

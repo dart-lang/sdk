@@ -7,13 +7,13 @@
 
 // Check that abstract declarations are abstract.
 class Abstract1 {
-//    ^
-// [cfe] The non-abstract class 'Abstract1' is missing implementations for these members:
+  //  ^
+  // [cfe] The non-abstract class 'Abstract1' is missing implementations for these members:
 
   // The class is not abstract and does not have an implementation of `x`.
   abstract int x;
-  //           ^
-  // [analyzer] unspecified
+  // [error column 3, length 15]
+  // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 }
 
 // Check that class has expected interface.
@@ -29,9 +29,8 @@ abstract class Abstract2 {
     // Cannot assign to final field.
     a.x = 42;
     //^
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
     // [cfe] The setter 'x' isn't defined for the class 'Abstract2'.
-    //  ^
-    // [analyzer] unspecified
 
     String y = a.y;
     a.y = "ab";
@@ -39,7 +38,7 @@ abstract class Abstract2 {
     // Cannot assign something of wrong type, even if covariant.
     a.y = Object();
     //    ^^^^^^^^
-    // [analyzer] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'String'.
   }
 
@@ -49,9 +48,8 @@ abstract class Abstract2 {
     // Cannot assign to final field.
     this.x = 42;
     //   ^
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
     // [cfe] The setter 'x' isn't defined for the class 'Abstract2'.
-    //     ^
-    // [analyzer] unspecified
 
     String y = this.y;
     this.y = "ab";
@@ -59,7 +57,7 @@ abstract class Abstract2 {
     // Cannot assign something of wrong type, even if covariant.
     this.y = Object();
     //       ^^^^^^^^
-    // [analyzer] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'String'.
   }
 }

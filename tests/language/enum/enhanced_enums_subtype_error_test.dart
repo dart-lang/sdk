@@ -35,8 +35,8 @@ abstract class AbstractImplementsWithValues implements Enum {
 }
 
 abstract class AbstractExtendsWithValues extends Enum {
-//                                               ^
-// [cfe] The class 'Enum' can't be extended outside of its library because it's an interface class.
+  //                                             ^
+  // [cfe] The class 'Enum' can't be extended outside of its library because it's an interface class.
   int get values => 42;
   //      ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES
@@ -51,8 +51,8 @@ abstract class AbstractImplementsWithIndex implements Enum {
 }
 
 abstract class AbstractExtendsWithIndex extends Enum {
-//                                              ^
-// [cfe] The class 'Enum' can't be extended outside of its library because it's an interface class.
+  //                                            ^
+  // [cfe] The class 'Enum' can't be extended outside of its library because it's an interface class.
   int get index => 42;
   //      ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
@@ -184,7 +184,7 @@ enum EnumImplementsEnum implements MyEnum {
   // [cfe] 'MyEnum' is an enum and can't be extended or implemented.
   //                               ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
-  e1;
+  e1,
 }
 
 enum EnumMixesInEnum with MyEnum {
@@ -195,11 +195,9 @@ enum EnumMixesInEnum with MyEnum {
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
   // [cfe] The class 'MyEnum' can't be used as a mixin because it extends a class other than 'Object'.
   // [cfe] The class 'MyEnum' can't be used as a mixin because it isn't a mixin class nor a mixin.
-  e1;
+  e1,
 }
 
 void main() {}
 
-enum MyEnum {
-  e1;
-}
+enum MyEnum { e1 }

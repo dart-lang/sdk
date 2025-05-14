@@ -8,9 +8,9 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:front_end/src/api_prototype/macros.dart' as macros
-    show isMacroLibraryUri;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
+import 'package:kernel/binary/ast_from_binary.dart' as kernel
+    show BinaryBuilder;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -28,6 +28,7 @@ import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import '../kernel/compiler.dart';
 import '../kernel/compiler_new.dart';
+import '../kernel/hot_reload_delta_inspector.dart';
 import '../kernel/module_metadata.dart';
 import '../kernel/module_symbols.dart';
 import '../kernel/module_symbols_collector.dart';
@@ -124,6 +125,16 @@ Future<CompilerResult> _compile(List<String> args,
     print(_usageMessage(argParser));
     return CompilerResult(64);
   }
+  if (argResults.wasParsed('sound-null-safety')) {
+    var soundNullSafety = argResults['sound-null-safety'] as bool;
+    print('Dart 3 only supports sound null safety, '
+        'see https://dart.dev/null-safety.\n'
+        'The `--sound-null-safety` flag is ignored '
+        'and will be removed in a future version.');
+    if (!soundNullSafety) {
+      return CompilerResult(64);
+    }
+  }
 
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = parseModuleFormatOption(argResults);
@@ -198,15 +209,6 @@ Future<CompilerResult> _compile(List<String> args,
   var compileSdk = argResults['compile-sdk'] == true;
   if (sdkSummaryPath == null) {
     if (!compileSdk) {
-      if (!options.soundNullSafety) {
-        // Technically if you can produce an SDK outline .dill and pass it
-        // this error can be avoided and the compile will still work for now.
-        // If you are reading this comment be warned, this loophole will be
-        // removed without warning in the future.
-        print('Dart 3 only supports sound null safety, '
-            'see https://dart.dev/null-safety.\n');
-        return CompilerResult(64);
-      }
       sdkSummaryPath = defaultSdkSummaryPath;
       librarySpecPath ??= defaultLibrarySpecPath;
     }
@@ -285,16 +287,11 @@ Future<CompilerResult> _compile(List<String> args,
         packageFile != null ? sourcePathToUri(packageFile) : null,
         sourcePathToUri(librarySpecPath),
         additionalDills,
-        DevCompilerTarget(TargetFlags(
-            trackWidgetCreation: trackWidgetCreation,
-            soundNullSafety: options.soundNullSafety)),
+        DevCompilerTarget(
+            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
-        environmentDefines: declaredVariables,
-        nnbdMode:
-            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak,
-        precompiledMacros: options.precompiledMacros,
-        macroSerializationMode: options.macroSerializationMode);
+        environmentDefines: declaredVariables);
     result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   } else {
     // If digests weren't given and if not in worker mode, create fake data and
@@ -328,16 +325,12 @@ Future<CompilerResult> _compile(List<String> args,
         sourcePathToUri(librarySpecPath),
         additionalDills,
         inputDigests,
-        DevCompilerTarget(TargetFlags(
-            trackWidgetCreation: trackWidgetCreation,
-            soundNullSafety: options.soundNullSafety)),
+        DevCompilerTarget(
+            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
-        trackNeededDillLibraries: recordUsedInputs,
-        nnbdMode:
-            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak,
-        precompiledMacros: options.precompiledMacros);
+        trackNeededDillLibraries: recordUsedInputs);
     var incrementalCompiler = compilerState.incrementalCompiler!;
     var cachedSdkInput = compileSdk
         ? null
@@ -351,7 +344,7 @@ Future<CompilerResult> _compile(List<String> args,
         incrementalCompilerResult.component,
         cachedSdkInput?.component,
         doneAdditionalDills,
-        incrementalCompilerResult.classHierarchy!,
+        incrementalCompilerResult.classHierarchy,
         incrementalCompilerResult.neededDillLibraries);
   }
   compilerState.options.onDiagnostic = null; // See http://dartbug.com/36983.
@@ -362,6 +355,34 @@ Future<CompilerResult> _compile(List<String> args,
 
   var component = result.component;
   var compiledLibraries = result.compiledLibraries;
+
+  final reloadDeltaKernel = options.reloadDeltaKernel;
+  final reloadLastAcceptedKernel = options.reloadLastAcceptedKernel;
+  if (reloadDeltaKernel != null) {
+    if (reloadLastAcceptedKernel != null) {
+      final lastAcceptedComponent = Component();
+      kernel.BinaryBuilder((await File(reloadLastAcceptedKernel).readAsBytes()))
+          .readComponent(lastAcceptedComponent);
+      final deltaInspector = HotReloadDeltaInspector();
+      final rejectionReasons = deltaInspector.compareGenerations(
+          lastAcceptedComponent, compiledLibraries);
+      if (rejectionReasons.isNotEmpty) {
+        throw StateError(
+            'Hot reload rejected due to:\n${rejectionReasons.join('\n')}\n'
+            'Try performing a hot restart instead.');
+      }
+    }
+    var sink = File(reloadDeltaKernel).openWrite();
+    kernel.BinaryPrinter(sink, includeSources: false, includeSourceBytes: false)
+        .writeComponentFile(compiledLibraries);
+    await sink.flush();
+    await sink.close();
+  } else {
+    if (reloadLastAcceptedKernel != null) {
+      throw ArgumentError("Must provide 'new-reload-delta-kernel' if "
+          "'old-reload-delta-kernel' provided.");
+    }
+  }
 
   // Output files can be written in parallel, so collect the futures.
   var outFiles = <Future>[];
@@ -818,13 +839,8 @@ ModuleSymbols _emitSymbols(Compiler compiler, String moduleName,
 
 ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
     String sourceMapUri, String moduleUri, String? fullDillUri) {
-  var metadata = ModuleMetadata(
-      program.name!,
-      loadFunctionName(program.name!),
-      sourceMapUri,
-      moduleUri,
-      fullDillUri,
-      component.mode == NonNullableByDefaultCompiledMode.Strong);
+  var metadata = ModuleMetadata(program.name!, loadFunctionName(program.name!),
+      sourceMapUri, moduleUri, fullDillUri);
 
   for (var lib in component.libraries) {
     metadata.addLibrary(LibraryMetadata(
@@ -1012,11 +1028,6 @@ Map<String, Object?> placeSourceMap(Map<String, Object?> sourceMap,
             .joinAll(p.split(p.relative(multiRootPath, from: sourceMapDir)));
         return multiRootPath;
       }
-      return sourcePath;
-    }
-
-    if (macros.isMacroLibraryUri(uri)) {
-      // TODO: https://github.com/dart-lang/sdk/issues/53913
       return sourcePath;
     }
 

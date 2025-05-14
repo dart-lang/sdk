@@ -13,7 +13,8 @@ import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart' show Target;
 
-import 'calls.dart' as calls
+import 'calls.dart'
+    as calls
     show Selector, DirectSelector, InterfaceSelector, VirtualSelector;
 import 'native_code.dart'
     show EntryPointsListener, NativeCodeOracle, PragmaEntryPointsVisitor;
@@ -44,19 +45,25 @@ class ClassInfo extends TFClass {
   final Set<ClassInfo> subtypes = Set<ClassInfo>();
 
   final Set<Selector>
-      calledDynamicSelectors; // Selectors called with dynamic and interface calls.
+  calledDynamicSelectors; // Selectors called with dynamic and interface calls.
   final Set<Selector> calledVirtualSelectors;
 
   bool isAllocated = false;
 
-  late final Map<Name, Member> _dispatchTargetsSetters =
-      _initDispatchTargets(true);
+  late final Map<Name, Member> _dispatchTargetsSetters = _initDispatchTargets(
+    true,
+  );
   late final Map<Name, Member> _dispatchTargetsNonSetters =
       _initDispatchTargets(false);
 
-  ClassInfo(int id, Class classNode, this.superclass, Set<ClassInfo> supertypes,
-      this.calledDynamicSelectors, this.calledVirtualSelectors)
-      : super(id, classNode, supertypes, null) {
+  ClassInfo(
+    int id,
+    Class classNode,
+    this.superclass,
+    Set<ClassInfo> supertypes,
+    this.calledDynamicSelectors,
+    this.calledVirtualSelectors,
+  ) : super(id, classNode, supertypes, null) {
     for (var sup in supertypes) {
       sup.subtypes.add(this);
     }
@@ -69,9 +76,11 @@ class ClassInfo extends TFClass {
     Map<Name, Member> targets;
     final superclass = this.superclass;
     if (superclass != null) {
-      targets = Map.from(setters
-          ? superclass._dispatchTargetsSetters
-          : superclass._dispatchTargetsNonSetters);
+      targets = Map.from(
+        setters
+            ? superclass._dispatchTargetsSetters
+            : superclass._dispatchTargetsNonSetters,
+      );
     } else {
       targets = {};
     }
@@ -125,7 +134,13 @@ class _ClassHierarchyCache {
       virtSel.addAll(superclass.calledVirtualSelectors);
     }
     return ClassInfo(
-        ++_classIdCounter, c, superclass, supertypes, dynSel, virtSel);
+      ++_classIdCounter,
+      c,
+      superclass,
+      supertypes,
+      dynSel,
+      virtSel,
+    );
   }
 
   ConcreteType addAllocatedClass(Class cl, RapidTypeAnalysis rta) {
@@ -187,16 +202,27 @@ class RapidTypeAnalysis {
   final Set<Member> visited = {};
   final List<Member> workList = [];
 
-  RapidTypeAnalysis(Component component, this.coreTypes, Target target,
-      this.hierarchy, LibraryIndex libraryIndex, this.protobufHandler) {
+  RapidTypeAnalysis(
+    Component component,
+    this.coreTypes,
+    Target target,
+    this.hierarchy,
+    LibraryIndex libraryIndex,
+    this.protobufHandler,
+  ) {
     Procedure? main = component.mainMethod;
     if (main != null) {
       addMember(main);
     }
     final annotationMatcher = ConstantPragmaAnnotationParser(coreTypes, target);
     final nativeCodeOracle = NativeCodeOracle(libraryIndex, annotationMatcher);
-    component.accept(PragmaEntryPointsVisitor(
-        _EntryPointsListenerImpl(this), nativeCodeOracle, annotationMatcher));
+    component.accept(
+      PragmaEntryPointsVisitor(
+        _EntryPointsListenerImpl(this),
+        nativeCodeOracle,
+        annotationMatcher,
+      ),
+    );
     run();
   }
 
@@ -212,13 +238,19 @@ class RapidTypeAnalysis {
     }
   }
 
-  void addCall(Class? currentClass, Member? interfaceTarget, Name name,
-      bool isVirtual, bool isSetter) {
-    final Class cl = isVirtual
-        ? currentClass!
-        : (interfaceTarget != null
-            ? interfaceTarget.enclosingClass!
-            : coreTypes.objectClass);
+  void addCall(
+    Class? currentClass,
+    Member? interfaceTarget,
+    Name name,
+    bool isVirtual,
+    bool isSetter,
+  ) {
+    final Class cl =
+        isVirtual
+            ? currentClass!
+            : (interfaceTarget != null
+                ? interfaceTarget.enclosingClass!
+                : coreTypes.objectClass);
     final Selector selector = Selector(name, isSetter);
     if (isVirtual) {
       hierarchyCache.addVirtualCall(selector, cl, this);
@@ -237,7 +269,7 @@ class RapidTypeAnalysis {
 
     return <Class>[
       for (var entry in hierarchyCache.classes.entries)
-        if (entry.value.isAllocated) entry.key
+        if (entry.value.isAllocated) entry.key,
     ];
   }
 
@@ -272,8 +304,10 @@ class _MemberVisitor extends RecursiveVisitor {
 
   _MemberVisitor(this.rta) : _constantVisitor = _ConstantVisitor(rta);
 
-  ClassInfo get superclassInfo => _superclassInfo ??=
-      rta.hierarchyCache.getClassInfo(_currentClass!.superclass!);
+  ClassInfo get superclassInfo =>
+      _superclassInfo ??= rta.hierarchyCache.getClassInfo(
+        _currentClass!.superclass!,
+      );
 
   @override
   void defaultMember(Member node) {
@@ -301,8 +335,13 @@ class _MemberVisitor extends RecursiveVisitor {
 
   @override
   void visitInstanceInvocation(InstanceInvocation node) {
-    rta.addCall(_currentClass, node.interfaceTarget, node.name,
-        node.receiver is ThisExpression, false);
+    rta.addCall(
+      _currentClass,
+      node.interfaceTarget,
+      node.name,
+      node.receiver is ThisExpression,
+      false,
+    );
     node.visitChildren(this);
   }
 
@@ -314,22 +353,37 @@ class _MemberVisitor extends RecursiveVisitor {
 
   @override
   void visitEqualsCall(EqualsCall node) {
-    rta.addCall(_currentClass, node.interfaceTarget, node.interfaceTarget.name,
-        node.left is ThisExpression, false);
+    rta.addCall(
+      _currentClass,
+      node.interfaceTarget,
+      node.interfaceTarget.name,
+      node.left is ThisExpression,
+      false,
+    );
     node.visitChildren(this);
   }
 
   @override
   void visitInstanceGet(InstanceGet node) {
-    rta.addCall(_currentClass, node.interfaceTarget, node.name,
-        node.receiver is ThisExpression, false);
+    rta.addCall(
+      _currentClass,
+      node.interfaceTarget,
+      node.name,
+      node.receiver is ThisExpression,
+      false,
+    );
     node.visitChildren(this);
   }
 
   @override
   void visitInstanceTearOff(InstanceTearOff node) {
-    rta.addCall(_currentClass, node.interfaceTarget, node.name,
-        node.receiver is ThisExpression, false);
+    rta.addCall(
+      _currentClass,
+      node.interfaceTarget,
+      node.name,
+      node.receiver is ThisExpression,
+      false,
+    );
     node.visitChildren(this);
   }
 
@@ -341,8 +395,13 @@ class _MemberVisitor extends RecursiveVisitor {
 
   @override
   void visitInstanceSet(InstanceSet node) {
-    rta.addCall(_currentClass, node.interfaceTarget, node.name,
-        node.receiver is ThisExpression, true);
+    rta.addCall(
+      _currentClass,
+      node.interfaceTarget,
+      node.name,
+      node.receiver is ThisExpression,
+      true,
+    );
     node.visitChildren(this);
   }
 
@@ -491,8 +550,8 @@ class _ConstantVisitor implements ConstantVisitor<void> {
 
   @override
   void visitRedirectingFactoryTearOffConstant(
-          RedirectingFactoryTearOffConstant constant) =>
-      _visitTearOffConstant(constant);
+    RedirectingFactoryTearOffConstant constant,
+  ) => _visitTearOffConstant(constant);
 
   @override
   void visitInstantiationConstant(InstantiationConstant constant) {
@@ -530,8 +589,10 @@ class _ConstantVisitor implements ConstantVisitor<void> {
 
   @override
   void visitAuxiliaryConstant(AuxiliaryConstant constant) {
-    throw new UnsupportedError("Unsupported auxiliary constant "
-        "${constant} (${constant.runtimeType}).");
+    throw new UnsupportedError(
+      "Unsupported auxiliary constant "
+      "${constant} (${constant.runtimeType}).",
+    );
   }
 }
 
@@ -548,8 +609,13 @@ class _EntryPointsListenerImpl implements EntryPointsListener {
     if (selector is calls.DirectSelector) {
       rta.addMember(selector.member);
     } else if (selector is calls.InterfaceSelector) {
-      rta.addCall(selector.member.enclosingClass!, selector.member,
-          selector.name, selector is calls.VirtualSelector, selector.isSetter);
+      rta.addCall(
+        selector.member.enclosingClass!,
+        selector.member,
+        selector.name,
+        selector is calls.VirtualSelector,
+        selector.isSetter,
+      );
     } else {
       throw 'Unexpected selector ${selector.runtimeType} $selector';
     }

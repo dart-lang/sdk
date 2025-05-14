@@ -41,13 +41,17 @@ class _AssertionError extends Error implements AssertionError {
   // out of the script. It expects a Dart stack frame from class
   // _AssertionError. Thus we need a Dart stub that calls the native code.
   @pragma("vm:entry-point", "call")
-  static _throwNew(int assertionStart, int assertionEnd, Object? message) {
+  static Never _throwNew(
+    int assertionStart,
+    int assertionEnd,
+    Object? message,
+  ) {
     _doThrowNew(assertionStart, assertionEnd, message);
   }
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:external-name", "AssertionError_throwNewSource")
-  external static _throwNewSource(
+  external static Never _throwNewSource(
     String failedAssertion,
     String? scriptUrl,
     int line,
@@ -56,7 +60,7 @@ class _AssertionError extends Error implements AssertionError {
   );
 
   @pragma("vm:external-name", "AssertionError_throwNew")
-  external static _doThrowNew(
+  external static Never _doThrowNew(
     int assertionStart,
     int assertionEnd,
     Object? message,
@@ -110,7 +114,7 @@ class _TypeError extends Error implements TypeError {
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:external-name", "TypeError_throwNew")
-  external static _throwNew(
+  external static Never _throwNew(
     int location,
     Object srcValue,
     _Type dstType,
@@ -136,8 +140,8 @@ class _InternalError {
 @patch
 @pragma("vm:entry-point")
 class UnsupportedError {
-  static _throwNew(String msg) {
-    throw new UnsupportedError(msg);
+  static Never _throwNew(String msg) {
+    throw UnsupportedError(msg);
   }
 }
 
@@ -145,8 +149,8 @@ class UnsupportedError {
 @pragma("vm:entry-point")
 class StateError {
   @pragma("vm:entry-point")
-  static _throwNew(String msg) {
-    throw new StateError(msg);
+  static Never _throwNew(String msg) {
+    throw StateError(msg);
   }
 }
 
@@ -163,15 +167,15 @@ class NoSuchMethodError {
 
   NoSuchMethodError._withInvocation(this._receiver, this._invocation);
 
-  static void _throwNewInvocation(Object? receiver, Invocation invocation) {
-    throw new NoSuchMethodError.withInvocation(receiver, invocation);
+  static Never _throwNewInvocation(Object? receiver, Invocation invocation) {
+    throw NoSuchMethodError.withInvocation(receiver, invocation);
   }
 
   // The compiler emits a call to _throwNew when it cannot resolve a static
   // method at compile time. The receiver is actually the literal class of the
   // unresolved method.
   @pragma("vm:entry-point", "call")
-  static void _throwNew(
+  static Never _throwNew(
     Object receiver,
     String memberName,
     int invocationType,
@@ -180,7 +184,7 @@ class NoSuchMethodError {
     List? arguments,
     List? argumentNames,
   ) {
-    throw new NoSuchMethodError._withType(
+    throw NoSuchMethodError._withType(
       receiver,
       memberName,
       invocationType,
@@ -196,11 +200,11 @@ class NoSuchMethodError {
     List arguments,
     List argumentNames,
   ) {
-    Map<Symbol, dynamic> namedArguments = new Map<Symbol, dynamic>();
+    Map<Symbol, dynamic> namedArguments = Map<Symbol, dynamic>();
     int numPositionalArguments = arguments.length - argumentNames.length;
     for (int i = 0; i < argumentNames.length; i++) {
       final argValue = arguments[numPositionalArguments + i];
-      namedArguments[new Symbol(argumentNames[i])] = argValue;
+      namedArguments[Symbol(argumentNames[i])] = argValue;
     }
     return namedArguments;
   }
@@ -218,8 +222,8 @@ class NoSuchMethodError {
     Object? typeArguments,
     List? arguments,
     List? argumentNames,
-  ) : this._invocation = new _InvocationMirror._withType(
-        new Symbol(memberName),
+  ) : this._invocation = _InvocationMirror._withType(
+        Symbol(memberName),
         invocationType,
         _InvocationMirror._unpackTypeArguments(
           typeArguments,
@@ -258,7 +262,7 @@ class NoSuchMethodError {
       StringBuffer? typeArgumentsBuf = null;
       final typeArguments = localInvocation.typeArguments;
       if ((typeArguments != null) && (typeArguments.length > 0)) {
-        final argsBuf = new StringBuffer();
+        final argsBuf = StringBuffer();
         argsBuf.write("<");
         for (int i = 0; i < typeArguments.length; i++) {
           if (i > 0) {
@@ -269,7 +273,7 @@ class NoSuchMethodError {
         argsBuf.write(">");
         typeArgumentsBuf = argsBuf;
       }
-      StringBuffer argumentsBuf = new StringBuffer();
+      StringBuffer argumentsBuf = StringBuffer();
       var positionalArguments = localInvocation.positionalArguments;
       int argumentCount = 0;
       if (positionalArguments != null) {
@@ -316,7 +320,7 @@ class NoSuchMethodError {
             ])[kind];
       }
 
-      StringBuffer msgBuf = new StringBuffer("NoSuchMethodError: ");
+      StringBuffer msgBuf = StringBuffer("NoSuchMethodError: ");
       bool isTypeCall = false;
       switch (level) {
         case _InvocationMirror._DYNAMIC:

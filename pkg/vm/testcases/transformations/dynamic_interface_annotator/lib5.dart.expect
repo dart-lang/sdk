@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension E2 on core::String {
+  get lastChar = self::E2|get#lastChar;
+}
+extension type E1(core::int _info) {
+  abstract extension-type-member representation-field get _info() → core::int;
+  get info = self::E1|get#info;
+  constructor _ = self::E1|constructor#_;
+  constructor tearoff _ = self::E1|constructor#_#_#tearOff;
+}
+@#C3
+static extension-type-member method E1|constructor#_(core::int _info) → self::E1% /* erasure=core::int, declared=! */ {
+  lowered final self::E1% /* erasure=core::int, declared=! */ #this = _info;
+  return #this;
+}
+@#C3
+static extension-type-member method E1|constructor#_#_#tearOff(core::int _info) → self::E1% /* erasure=core::int, declared=! */
+  return self::E1|constructor#_(_info);
+@#C3
+static extension-type-member method E1|get#info(lowered final self::E1% /* erasure=core::int, declared=! */ #this) → core::int
+  return #this as{Unchecked} core::int;
+@#C3
+static extension-member method E2|get#lastChar(lowered final core::String #this) → core::int
+  return #this.{core::String::codeUnitAt}(#this.{core::String::length}{core::int}.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::int};
+constants  {
+  #C1 = "dyn-module:callable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}

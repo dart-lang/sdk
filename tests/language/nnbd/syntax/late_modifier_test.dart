@@ -12,7 +12,9 @@ class C {
   static int e_init() => 6;
 
   late final int f;
-  C() { f = 7; }
+  C() {
+    f = 7;
+  }
 
   int get g {
     late final int x;

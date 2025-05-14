@@ -4,6 +4,7 @@
 
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/variable_builder.dart';
 import 'scope.dart';
 
 abstract class LocalScope implements LookupScope {
@@ -27,9 +28,7 @@ abstract class LocalScope implements LookupScope {
   /// If name was used previously in this scope, this method returns the read
   /// offsets which can be used for reporting a compile-time error about
   /// [name] being used before its declared.
-  List<int>? declare(String name, Builder builder);
-
-  void addLocalVariable(String name, Builder builder);
+  List<int>? declare(String name, VariableBuilder builder);
 
   @override
   Builder? lookupGetable(String name, int charOffset, Uri fileUri);
@@ -71,12 +70,13 @@ mixin LocalScopeMixin implements LookupScopeMixin, LocalScope {
   @override
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
     _recordUse(name, charOffset);
-    Builder? builder;
     if (_local != null) {
-      builder = lookupGetableIn(name, charOffset, fileUri, _local!);
-      if (builder != null) return builder;
+      Builder? builder = lookupGetableIn(name, charOffset, fileUri, _local!);
+      if (builder != null) {
+        return builder;
+      }
     }
-    return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
+    return _parent?.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
@@ -87,8 +87,13 @@ mixin LocalScopeMixin implements LookupScopeMixin, LocalScope {
   @override
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     _recordUse(name, charOffset);
-    Builder? builder = lookupSetableIn(name, charOffset, fileUri, _local);
-    return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
+    if (_local != null) {
+      Builder? builder = lookupSetableIn(name, charOffset, fileUri, _local);
+      if (builder != null) {
+        return builder;
+      }
+    }
+    return _parent?.lookupSetable(name, charOffset, fileUri);
   }
 
   void _recordUse(String name, int charOffset) {}
@@ -111,7 +116,7 @@ final class LocalScopeImpl extends BaseLocalScope
 
   /// Names declared in this scope.
   @override
-  Map<String, Builder>? _local;
+  Map<String, VariableBuilder>? _local;
 
   @override
   Map<String, List<int>>? usedNames;
@@ -122,12 +127,7 @@ final class LocalScopeImpl extends BaseLocalScope
   LocalScopeImpl(this._parent, this.kind, this.classNameOrDebugName);
 
   @override
-  void addLocalVariable(String name, Builder builder) {
-    (_local ??= {})[name] = builder;
-  }
-
-  @override
-  List<int>? declare(String name, Builder builder) {
+  List<int>? declare(String name, VariableBuilder builder) {
     List<int>? previousOffsets = usedNames?[name];
     if (previousOffsets != null && previousOffsets.isNotEmpty) {
       return previousOffsets;
@@ -151,18 +151,41 @@ final class LocalScopeImpl extends BaseLocalScope
 
 mixin ImmutableLocalScopeMixin implements LocalScope {
   @override
-  void addLocalVariable(String name, Builder builder) {
-    throw new UnsupportedError('$runtimeType($kind).addLocalMember');
-  }
-
-  @override
-  List<int>? declare(String name, Builder builder) {
+  List<int>? declare(String name, VariableBuilder builder) {
     throw new UnsupportedError('$runtimeType($kind).declare');
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   Map<String, List<int>>? get usedNames => null;
+}
+
+final class LocalTypeParameterScope extends BaseLocalScope
+    with LookupScopeMixin, ImmutableLocalScopeMixin, LocalScopeMixin {
+  @override
+  final LocalScope? _parent;
+  @override
+  final ScopeKind kind;
+  @override
+  final Map<String, TypeParameterBuilder>? _local;
+
+  final String _debugName;
+
+  LocalTypeParameterScope(
+      {required this.kind,
+      LocalScope? parent,
+      Map<String, TypeParameterBuilder>? local,
+      required String debugName})
+      : _parent = parent,
+        _local = local,
+        _debugName = debugName;
+
+  @override
+  String get classNameOrDebugName => _debugName;
+
+  @override
+  String toString() =>
+      "$runtimeType(${kind}, $classNameOrDebugName, ${_local?.keys})";
 }
 
 final class FixedLocalScope extends BaseLocalScope

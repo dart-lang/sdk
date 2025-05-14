@@ -24,17 +24,25 @@ runTestCase(Uri testCaseDir) async {
       File.fromUri(dynamicInterface).readAsStringSync();
 
   final target = VmTarget(TargetFlags());
-  Component component =
-      await compileTestCaseToKernelProgram(mainDart, target: target);
+  Component component = await compileTestCaseToKernelProgram(
+    mainDart,
+    target: target,
+  );
   final coreTypes = CoreTypes(component);
   annotateComponent(
-      dynamicInterfaceYaml, dynamicInterface, component, coreTypes);
+    dynamicInterfaceYaml,
+    dynamicInterface,
+    component,
+    coreTypes,
+    target,
+  );
 
   for (final lib in component.libraries) {
     if (!lib.importUri.isScheme('dart')) {
       print(lib.fileUri);
-      final actual = kernelLibraryToString(lib)
-          .replaceAll(pkgVmDir.toString(), 'file:pkg/vm/');
+      final actual = kernelLibraryToString(
+        lib,
+      ).replaceAll(pkgVmDir.toString(), 'file:pkg/vm/');
       compareResultWithExpectationsFile(lib.fileUri, actual);
     }
   }
@@ -42,8 +50,9 @@ runTestCase(Uri testCaseDir) async {
 
 main() {
   test('dynamic-interface-annotator', () async {
-    final testCaseDir = pkgVmDir
-        .resolve('testcases/transformations/dynamic_interface_annotator/');
+    final testCaseDir = pkgVmDir.resolve(
+      'testcases/transformations/dynamic_interface_annotator/',
+    );
     await runTestCase(testCaseDir);
   });
 }

@@ -358,7 +358,7 @@ class ExceptionHandlerStack {
         codeGen._jumpToTarget(_handlers[nextHandlerIdx].target);
       }
 
-      b.catch_(codeGen.translator.getExceptionTag(b.module));
+      b.catch_legacy(codeGen.translator.getExceptionTag(b.module));
       b.local_set(stackTraceLocal);
       b.local_set(exceptionLocal);
 
@@ -375,7 +375,7 @@ class ExceptionHandlerStack {
       }
 
       if (canHandleJSExceptions) {
-        b.catch_all();
+        b.catch_all_legacy();
 
         // We can't inspect the thrown object in a `catch_all` and get a stack
         // trace, so we just attach the current stack trace.
@@ -632,9 +632,10 @@ abstract class ProcedureStateMachineEntryCodeGenerator
 
     closures = translator.getClosures(member);
 
-    // We don't support inlining state machine functions atm. Only when we
-    // inline and have call-site guarantees we would use the unchecked entry.
-    setupParametersAndContexts(member, useUncheckedEntry: false);
+    // We don't support multiple function entry points for state machine
+    // functions atm.
+    setupParametersForNormalEntry(member);
+    setupContexts(member);
 
     Context? context = closures.contexts[member.function];
     if (context != null && context.isEmpty) context = context.parent;

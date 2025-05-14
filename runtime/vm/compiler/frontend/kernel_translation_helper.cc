@@ -3095,34 +3095,22 @@ TokenPosition KernelReaderHelper::ReadPosition() {
 
 intptr_t KernelReaderHelper::SourceTableSize() {
   AlternativeReadingScope alt(&reader_);
-  intptr_t library_count = reader_.ReadFromIndexNoReset(
-      reader_.size(), LibraryCountFieldCountFromEnd, 1, 0);
+  intptr_t library_count = reader_.ReadSingleFieldFromIndexNoReset(
+      reader_.size(), KernelFixedFieldsAfterLibraries);
 
-  const intptr_t count_from_first_library_offset =
-      SourceTableFieldCountFromFirstLibraryOffset;
-
-  intptr_t source_table_offset = reader_.ReadFromIndexNoReset(
-      reader_.size(),
-      LibraryCountFieldCountFromEnd + 1 + library_count + 1 +
-          count_from_first_library_offset,
-      1, 0);
+  intptr_t source_table_offset = reader_.ReadSingleFieldFromIndexNoReset(
+      reader_.size(), KernelNumberOfFixedFields(library_count));
   SetOffset(source_table_offset);  // read source table offset.
   return reader_.ReadUInt32();     // read source table size.
 }
 
 intptr_t KernelReaderHelper::GetOffsetForSourceInfo(intptr_t index) {
   AlternativeReadingScope alt(&reader_);
-  intptr_t library_count = reader_.ReadFromIndexNoReset(
-      reader_.size(), LibraryCountFieldCountFromEnd, 1, 0);
+  intptr_t library_count = reader_.ReadSingleFieldFromIndexNoReset(
+      reader_.size(), KernelFixedFieldsAfterLibraries);
 
-  const intptr_t count_from_first_library_offset =
-      SourceTableFieldCountFromFirstLibraryOffset;
-
-  intptr_t source_table_offset = reader_.ReadFromIndexNoReset(
-      reader_.size(),
-      LibraryCountFieldCountFromEnd + 1 + library_count + 1 +
-          count_from_first_library_offset,
-      1, 0);
+  intptr_t source_table_offset = reader_.ReadSingleFieldFromIndexNoReset(
+      reader_.size(), KernelNumberOfFixedFields(library_count));
   intptr_t next_field_offset = reader_.ReadUInt32();
   SetOffset(source_table_offset);
   intptr_t size = reader_.ReadUInt32();  // read source table size.
@@ -3586,6 +3574,14 @@ void TypeTranslator::BuildTypeParameterType() {
     const intptr_t class_type_parameter_count =
         active_class_->klass->NumTypeParameters();
     if (class_type_parameter_count > parameter_index) {
+      if (H.GetExpressionEvaluationClass().ptr() ==
+          active_class_->klass->ptr()) {
+        ASSERT(H.GetExpressionEvaluationClass().NumTypeParameters() ==
+               active_class_->klass->NumTypeParameters());
+        result_ = H.GetExpressionEvaluationRealClass().TypeParameterAt(
+            parameter_index, nullability);
+        return;
+      }
       result_ =
           active_class_->klass->TypeParameterAt(parameter_index, nullability);
       return;

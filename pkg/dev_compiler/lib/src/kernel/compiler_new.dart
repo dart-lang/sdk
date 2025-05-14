@@ -36,6 +36,7 @@ import '../js_ast/source_map_printer.dart'
 import 'compiler.dart' as old;
 import 'constants.dart';
 import 'future_or_normalizer.dart';
+import 'hot_reload_delta_inspector.dart';
 import 'js_interop.dart';
 import 'js_typerep.dart';
 import 'kernel_helpers.dart';
@@ -128,6 +129,12 @@ class LibraryBundleCompiler implements old.Compiler {
   js_ast.Program emitModule(Component component) {
     assert(_options.emitLibraryBundle);
     _ticker?.logMs('Emitting library bundle');
+    // When there is hot reload metadata, update the mappings to the nodes in
+    // the current LibraryIndex before passing it on the library compilers.
+    var repo = component.metadata[hotReloadLibraryMetadataTag]
+        as HotReloadLibraryMetadataRepository?;
+    repo?.mapToIndexedNodes(LibraryIndex.all(component));
+    var metadata = repo?.mapping;
     var compiledLibraries = <js_ast.Program>[];
     for (var library in component.libraries) {
       var libraryCompiler = LibraryCompiler(
@@ -139,6 +146,7 @@ class LibraryBundleCompiler implements old.Compiler {
         coreTypes: _coreTypes,
         ticker: _ticker,
         symbolData: _symbolData,
+        compileForHotReload: metadata?[library],
       );
       _libraryCompilers[library] = libraryCompiler;
       compiledLibraries.add(libraryCompiler.emitLibrary(library));
@@ -189,7 +197,6 @@ class LibraryBundleCompiler implements old.Compiler {
     var headerOptions = [
       if (_options.canaryFeatures) 'canary',
       if (_options.emitLibraryBundle) 'emitLibraryBundle',
-      'soundNullSafety(${_options.soundNullSafety})',
       'enableAsserts(${_options.enableAsserts})',
     ];
     var enabledExperiments = <String>[];
@@ -224,6 +231,20 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// module.
   Map<Class, js_ast.Identifier> get classIdentifiers =>
       _symbolData.classIdentifiers;
+
+  /// Maps every mixin application to a unique identifier.
+  ///
+  /// A mixin application is represented as a (mixin, class) pair, where
+  /// 'mixin' is being mixed into 'class'. Anonymous mixins are already
+  /// unique per mixin application and so pass themselves in as both 'mixin'
+  /// and 'class'.
+  ///
+  /// This mapping is used when generating super property getters in mixins.
+  final Map<(Class, Class), js_ast.Identifier> _mixinCache = {};
+
+  /// Records a reference to a mixin application's passed in superclass.
+  /// (see [_emitMixinStatement]).
+  final Map<Class, js_ast.Identifier> _mixinSuperclassCache = {};
 
   /// Maps each class `Member` node compiled in the module to the name used for
   /// the member in JavaScript.
@@ -347,6 +368,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Library link method statements that create type rules.
   final List<js_ast.Statement> _typeRuleLinks = [];
+
+  /// Holds additional initialization logic for enum fields.
+  final List<js_ast.Statement> _enumExtensions = [];
 
   /// Whether the current function needs to insert parameter checks.
   ///
@@ -596,6 +620,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Supports verbose logging with a timer.
   Ticker? _ticker;
 
+  /// Whether the library is being compiled for a hot reload.
+  bool _compileForHotReload;
+
   factory LibraryCompiler(
     Component component,
     ClassHierarchy hierarchy,
@@ -605,6 +632,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     CoreTypes? coreTypes,
     Ticker? ticker,
     required SymbolData symbolData,
+    bool? compileForHotReload,
   }) {
     coreTypes ??= CoreTypes(component);
     var types = TypeEnvironment(coreTypes, hierarchy);
@@ -627,6 +655,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       importToSummary,
       summaryToModule,
       symbolData,
+      compileForHotReload ?? false,
     );
   }
 
@@ -644,7 +673,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       this._options,
       this._importToSummary,
       this._summaryToModule,
-      this._symbolData)
+      this._symbolData,
+      this._compileForHotReload)
       : _jsArrayClass = sdk.getClass('dart:_interceptors', 'JSArray'),
         _privateSymbolClass = sdk.getClass('dart:_js_helper', 'PrivateSymbol'),
         _linkedHashMapImplClass = sdk.getClass('dart:_js_helper', 'LinkedMap'),
@@ -868,7 +898,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           typeRulesExceptLegacyJavaScriptObject,
           rulesFunction: 'addRules'));
     }
-    if (typesThatOnlyExtendObject.isNotEmpty) {
+    if (_compileForHotReload && typesThatOnlyExtendObject.isNotEmpty) {
       _typeRuleLinks.add(emitRulesStatement(typesThatOnlyExtendObject.toList(),
           rulesFunction: 'deleteRules'));
     }
@@ -922,9 +952,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // See normalization functions in: sdk/lib/_internal/js_shared/lib/rti.dart
     if (_isSdkInternalRuntime(_currentLibrary!)) {
       var prerequisiteRtiTypes = [
-        _coreTypes.objectLegacyRawType,
         _coreTypes.objectNullableRawType,
-        NeverType.legacy()
       ];
       prerequisiteRtiTypes.forEach((type) {
         var recipe = _typeRecipeGenerator
@@ -933,28 +961,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _typeRuleLinks.add(js.call('#.findType("$recipe")',
             [_emitLibraryName(_rtiLibrary)]).toStatement());
       });
-    }
-
-    // Insert a check that runs when loading this module to verify that the null
-    // safety mode it was compiled in matches the mode used when compiling the
-    // dart sdk module.
-    //
-    // This serves as a sanity check at runtime that we don't have an
-    // infrastructure issue that loaded js files compiled with different modes
-    // into the same application.
-    js_ast.LiteralBool soundNullSafety;
-    switch (_component.mode) {
-      case NonNullableByDefaultCompiledMode.Strong:
-        soundNullSafety = js_ast.LiteralBool(true);
-      case NonNullableByDefaultCompiledMode.Weak:
-        soundNullSafety = js_ast.LiteralBool(false);
-      default:
-        throw StateError('Unsupported Null Safety mode ${_component.mode}, '
-            'in ${_component.location?.file}.');
-    }
-    if (!_isBuildingSdk) {
-      items.add(_runtimeStatement(
-          '_checkModuleNullSafetyMode(#)', [soundNullSafety]));
     }
 
     // Additional method used by the module system to link class hierarchies.
@@ -1011,6 +1017,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ..._defineExtensionMemberLinks,
       ..._nativeExtensionLinks,
       ..._typeRuleLinks,
+      // Enum extensions must be emitted after type hierachies have stabilized.
+      ..._enumExtensions
     ]);
     var function =
         js_ast.NamedFunction(functionName, js_ast.Fun(parameters, body));
@@ -1178,6 +1186,13 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // a simpler representation within instance members of the class.
     _currentTypeEnvironment = ClassTypeEnvironment(c.typeParameters);
 
+    // Store identifiers for a mixin application's passed in superclass.
+    // (see [_emitMixinStatement]).
+    if (c.isMixinDeclaration && !c.isMixinClass) {
+      _mixinSuperclassCache.putIfAbsent(
+          c, () => _emitScopedId(getLocalClassName(c.superclass!)));
+    }
+
     // Mixins are unrolled in _defineClass.
     if (!c.isAnonymousMixin) {
       // If this class is annotated with `@JS`, then we only need to emit the
@@ -1248,8 +1263,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // We only need to tag static functions that are torn off at
         // compile-time. We attach these at late so tearoffs have access to
         // their types.
-        var reifiedType = member.function
-            .computeThisFunctionType(member.enclosingLibrary.nonNullable);
+        var reifiedType =
+            member.function.computeThisFunctionType(Nullability.nonNullable);
         jsStaticMethodTypeTags.add(
             _emitFunctionTagged(result, reifiedType, asLazy: true)
                 .toStatement());
@@ -1373,10 +1388,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (nonExternalProperties.isNotEmpty) {
       // Note that this class has no heritage. This class should never be used
       // as a type. It's merely a placeholder for static members.
-      var body = <js_ast.Statement>[
-        _emitClassStatement(c, className, null, nonExternalProperties)
-            .toStatement()
-      ];
+      var body = _emitClassStatement(c, className, null, nonExternalProperties);
       var typeFormals = c.typeParameters;
       if (typeFormals.isNotEmpty) {
         var genericClassStmts =
@@ -1398,19 +1410,40 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     ];
   }
 
-  js_ast.Statement _emitClassStatement(Class c, js_ast.Expression className,
-      js_ast.Expression? heritage, List<js_ast.Property> properties) {
-    var classIdentifier = _emitScopedId(getLocalClassName(c));
+  List<js_ast.Statement> _emitClassStatement(
+      Class c,
+      js_ast.Expression className,
+      js_ast.Expression? heritage,
+      List<js_ast.Property> properties) {
+    var localClassName = getLocalClassName(c);
+    var classIdentifier = _emitScopedId(localClassName);
+    var classDefIdentifier = _emitScopedId('_$localClassName');
+    // In order to ensure that 'super' binds to the correct target across hot
+    // reloads, we rebind its pre-assigned class definition's prototype during
+    // link phase (alongside the embedder-resolved class definition's).
+    var referencesSuperKeyword = hasSuper(c);
     if (_options.emitDebugSymbols) classIdentifiers[c] = classIdentifier;
     if (heritage != null) {
+      if (referencesSuperKeyword) {
+        _classExtendsLinks.add(_runtimeStatement(
+            'classExtends(#, #)', [classDefIdentifier, heritage]));
+      }
       _classExtendsLinks
           .add(_runtimeStatement('classExtends(#, #)', [className, heritage]));
     }
     var classExpr = js_ast.ClassExpression(classIdentifier, null, properties);
     var libraryExpr = (className as js_ast.PropertyAccess).receiver;
     var propertyExpr = className.selector;
-    return _runtimeStatement(
-        'declareClass(#, #, #)', [libraryExpr, propertyExpr, classExpr]);
+    return referencesSuperKeyword
+        ? [
+            js.statement('let # = #;', [classDefIdentifier, classExpr]),
+            _runtimeStatement('declareClass(#, #, #)',
+                [libraryExpr, propertyExpr, classDefIdentifier])
+          ]
+        : [
+            _runtimeStatement(
+                'declareClass(#, #, #)', [libraryExpr, propertyExpr, classExpr])
+          ];
   }
 
   /// Like [_emitClassStatement] but emits a Dart 2.1 mixin represented by
@@ -1449,8 +1482,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var staticProperties = properties.where((m) => m.isStatic).toList();
     var instanceProperties = properties.where((m) => !m.isStatic).toList();
 
-    body.add(_emitClassStatement(c, className, heritage, staticProperties));
-    var superclassId = _emitScopedId(getLocalClassName(c.superclass!));
+    body.addAll(_emitClassStatement(c, className, heritage, staticProperties));
+    var superclassId = _mixinSuperclassCache[c]!;
     var classId = className is js_ast.Identifier
         ? className
         : _emitScopedId(getLocalClassName(c));
@@ -1484,14 +1517,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   void _defineClass(Class c, js_ast.Expression className,
       List<js_ast.Property> properties, List<js_ast.Statement> body) {
     if (c == _coreTypes.objectClass) {
-      body.add(_emitClassStatement(c, className, null, properties));
+      body.addAll(_emitClassStatement(c, className, null, properties));
       return;
     }
 
-    js_ast.Expression emitClassRef(InterfaceType t) {
-      // TODO(jmesserly): investigate this. It seems like `lazyJSType` is
-      // invalid for use in an `extends` clause, hence this workaround.
-      return _emitJSInterop(t.classNode) ?? _emitClassRef(t);
+    js_ast.Expression emitClassRef(InterfaceType t,
+        {bool resolvedFromEmbedder = false}) {
+      return _emitJSInterop(t.classNode) ??
+          _emitClassRef(t, resolvedFromEmbedder: resolvedFromEmbedder);
     }
 
     // Find the real (user declared) superclass and the list of mixins.
@@ -1563,6 +1596,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Unroll mixins.
     var baseClass = emitClassRef(supertype);
+    // The SDK is never hot reloaded, so we can avoid the overhead of
+    // resolving their classes through the embedder.
+    var embedderResolvedBaseClass =
+        emitClassRef(supertype, resolvedFromEmbedder: !_isBuildingSdk);
 
     // TODO(jmesserly): we need to unroll kernel mixins because the synthetic
     // classes lack required synthetic members, such as constructors.
@@ -1573,9 +1610,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var mixinClass = m.isAnonymousMixin ? m.mixedInClass! : m;
       var mixinType =
           _hierarchy.getClassAsInstanceOf(c, mixinClass)!.asInterfaceType;
-      var mixinName =
-          '${getLocalClassName(superclass)}_${getLocalClassName(mixinClass)}';
-      var mixinId = _emitScopedId('$mixinName\$');
+      var mixinId = _emitMixinId(m, m.isAnonymousMixin ? m : c);
       // Collect all forwarding stub members from anonymous mixins classes.
       // These can contain covariant parameter checks that need to be applied.
       var savedClassProperties = _classProperties;
@@ -1613,28 +1648,46 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _currentTypeEnvironment = savedTypeEnvironment;
       _classProperties = savedClassProperties;
 
-      // Bind the mixin class to a name to workaround a V8 bug with es6 classes
-      // and anonymous function names.
-      // TODO(leafp:) Eliminate this once the bug is fixed:
-      // https://bugs.chromium.org/p/v8/issues/detail?id=7069
-      body.add(js.statement('const # = #', [
+      // Mixins need to be exposed in this library in case they are
+      // referenced in a super getter.
+      // TODO(markzipan): We originally bound mixin classes to a temporary as a
+      // workaround for a now-resolved Chrome issue. However, a side effect of
+      // this operation is that mixin IDs are renamed by the local visitor. We
+      // can remove this hoisting after we give mixins unique names.
+      body.add(js.statement('let # = #', [
         mixinId,
-        js_ast.ClassExpression(
-            _emitScopedId(mixinName), null, forwardingMethodStubs)
+        _runtimeCall('declareClass(#, #, #)', [
+          _emitLibraryName(_currentLibrary!),
+          js.string(mixinId.name),
+          js_ast.ClassExpression(
+            _emitScopedId('${mixinId.name}\$'),
+            null,
+            forwardingMethodStubs,
+          )
+        ])
       ]));
-      _classExtendsLinks
-          .add(_runtimeStatement('classExtends(#, #)', [mixinId, baseClass]));
+
+      _classExtendsLinks.add(_runtimeStatement(
+          'classExtends(#, #)', [mixinId, embedderResolvedBaseClass]));
       emitMixinConstructors(mixinId, superclass, mixinClass, mixinType);
       hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(mixinClass);
-      _mixinApplicationLinks.add(_runtimeStatement(
-          'applyMixin(#, #)', [mixinId, emitClassRef(mixinType)]));
+      var mixinTargetLabel = js.string(fullyResolvedMixinClassLabel(m));
+      // The SDK is never hot reloaded, so we can avoid the overhead of
+      // resolving their classes through the embedder.
+      _mixinApplicationLinks.add(_runtimeStatement('applyMixin(#, #, #)', [
+        mixinId,
+        emitClassRef(mixinType, resolvedFromEmbedder: !_isBuildingSdk),
+        mixinTargetLabel
+      ]));
       baseClass = mixinId;
+      embedderResolvedBaseClass = mixinId;
     }
 
     if (c.isMixinDeclaration && !c.isMixinClass) {
       _emitMixinStatement(c, className, baseClass, properties, body);
     } else {
-      body.add(_emitClassStatement(c, className, baseClass, properties));
+      body.addAll(_emitClassStatement(
+          c, className, embedderResolvedBaseClass, properties));
     }
 
     _classEmittingExtends = savedTopLevelClass;
@@ -1787,6 +1840,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var staticMethods = <js_ast.Property>[];
     var instanceMethods = <js_ast.Property>[];
     var instanceMethodsDefaultTypeArgs = <js_ast.Property>[];
+    var methodsImmediateTarget = <js_ast.Property>[];
     var staticGetters = <js_ast.Property>[];
     var instanceGetters = <js_ast.Property>[];
     var staticSetters = <js_ast.Property>[];
@@ -1840,9 +1894,16 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var needsSignature = memberOverride == null ||
           reifiedType != _memberRuntimeType(memberOverride, c);
 
+      var memberName = _declareMemberName(member,
+          useExtension: _isObjectMethodTearoff(member.name.text));
+      if (!member.isAccessor) {
+        var immediateTarget = js.string(fullyResolvedTargetLabel(member));
+        methodsImmediateTarget
+            .add(js_ast.Property(memberName, immediateTarget));
+      }
+
       if (needsSignature) {
         js_ast.Expression type;
-        var memberName = _declareMemberName(member);
         if (member.isAccessor) {
           // These signatures are used for dynamic access and to inform the
           // debugger. The `arrayRti` accessor is only used by the dart:_rti
@@ -1895,6 +1956,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     emitSignature('Method', instanceMethods);
     emitSignature('MethodsDefaultTypeArg', instanceMethodsDefaultTypeArgs);
+    emitSignature('MethodsImmediateTarget', methodsImmediateTarget);
     // TODO(40273) Skip for all statics when the debugger consumes signature
     // information from symbol files.
     emitSignature('StaticMethod', staticMethods);
@@ -1936,11 +1998,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     FunctionType result;
     if (!f.positionalParameters.any(isCovariantParameter) &&
         !f.namedParameters.any(isCovariantParameter)) {
-      // Avoid tagging a member as Function? or Function*
       result = f.computeThisFunctionType(Nullability.nonNullable);
     } else {
-      var fComputed =
-          f.computeThisFunctionType(member.enclosingLibrary.nonNullable);
+      var fComputed = f.computeThisFunctionType(Nullability.nonNullable);
       var fComputedNamedByName = {
         for (NamedType namedParameter in fComputed.namedParameters)
           namedParameter.name: namedParameter
@@ -1948,7 +2008,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       DartType reifyParameter(
               VariableDeclaration parameter, DartType fComputedParameter) =>
           isCovariantParameter(parameter)
-              ? _coreTypes.objectRawType(member.enclosingLibrary.nullable)
+              ? _coreTypes.objectNullableRawType
               : fComputedParameter;
       NamedType reifyNamedParameter(
           VariableDeclaration parameter, NamedType fComputedNamedParameter) {
@@ -2563,8 +2623,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     assert(!member.isAccessor);
 
     var superMethodType = substituteType(superMemberFunction!
-            .computeThisFunctionType(superMember.enclosingLibrary.nonNullable))
-        as FunctionType;
+        .computeThisFunctionType(Nullability.nonNullable)) as FunctionType;
     var function = member.function;
 
     var body = <js_ast.Statement>[];
@@ -2682,12 +2741,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var body = <js_ast.Statement>[];
     var value = _emitIdentifier('value');
-    // Avoid adding a null checks on forwarding field setters.
-    if (field.hasSetter &&
-        _requiresExtraNullCheck(field.setterType, field.annotations)) {
-      body.add(
-          _nullSafetyParameterCheck(value, field.location, field.name.text));
-    }
     var args = field.isFinal
         ? [js_ast.Super(), name, value]
         : [
@@ -2821,14 +2874,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// sentinel value if [field] is final to detect multiple initializations.
   js_ast.Fun _emitLazyInitializingFunction(js_ast.Expression valueCache,
       js_ast.Expression initializer, Field field) {
-    // We avoid emitting casts for top level fields in the legacy SDK since
-    // some are used for legacy type checks and must be initialized to avoid
-    // infinite loops.
     var initialFieldValueExpression =
-        !_options.soundNullSafety && _isSdkInternalRuntime(_currentLibrary!)
-            ? valueCache
-            : _emitCast(valueCache, field.type);
-
+        !_compileForHotReload ? valueCache : _emitCast(valueCache, field.type);
     // Lazy static fields require an additional type check around their value
     // cache if their type is updated after hot reload. To avoid a type check
     // on every access, the generated getter overrides itself with a direct
@@ -3061,10 +3108,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (!member.isFinal && !member.isConst) {
         var body = <js_ast.Statement>[];
         var param = _emitIdentifier('v');
-        if (_requiresExtraNullCheck(member.setterType, member.annotations)) {
-          body.add(_nullSafetyParameterCheck(
-              param, member.location, member.name.text));
-        }
         body.add(js.statement('this.# = #;', [memberValueStore, param]));
         // Even when no null check is present a dummy setter is still required
         // to indicate writeable.
@@ -3132,12 +3175,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// Unlike call sites, we always have an element available, so we can use it
   /// directly rather than computing the relevant options for [_emitMemberName].
-  js_ast.Expression _declareMemberName(Member m, {bool? useExtension}) {
+  js_ast.Expression _declareMemberName(Member m, {bool useExtension = false}) {
     var c = m.enclosingClass;
-    return _emitMemberName(m.name.text,
+    var name = m.name.text;
+    var actualUseExtension =
+        useExtension || (c != null && _extensionTypes.isNativeClass(c));
+    return _emitMemberName(name,
         isStatic: m is Field ? m.isStatic : (m as Procedure).isStatic,
-        useExtension:
-            useExtension ?? c != null && _extensionTypes.isNativeClass(c),
+        useExtension: actualUseExtension,
         member: m);
   }
 
@@ -3369,14 +3414,25 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Emit the top-level name associated with [n], which should not be an
   /// external interop member.
   js_ast.PropertyAccess _emitTopLevelNameNoExternalInterop(NamedNode n,
-      {String suffix = ''}) {
+      {String suffix = '', bool resolvedFromEmbedder = false}) {
     // Some native tests use top-level native methods.
     var isTopLevelNative = n is Member && isNative(n);
     return js_ast.PropertyAccess(
         isTopLevelNative
             ? _runtimeCall('global.self')
-            : _emitLibraryName(getLibrary(n)),
+            : (resolvedFromEmbedder
+                ? _emitEmbedderResolvedLibrary(getLibrary(n))
+                : _emitLibraryName(getLibrary(n))),
         _emitTopLevelMemberName(n, suffix: suffix));
+  }
+
+  /// Emits [library] fully resolved via the Dart Dev Embedder.
+  ///
+  /// Used when the 'current' hot reload's generation of a library needs to be
+  /// resolved.
+  js_ast.Expression _emitEmbedderResolvedLibrary(Library library) {
+    var libraryName = js.string('${library.importUri}');
+    return js.call('dartDevEmbedder.importLibrary(#)', [libraryName]);
   }
 
   /// Emits the member name portion of a top-level member.
@@ -3483,10 +3539,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // can tag them during the delta diff phase.
       if (p.isStatic && _reifyTearoff(p) && !p.isExternal) {
         var nameExpr = _emitTopLevelName(p);
-        _moduleItems.add(_emitFunctionTagged(
-                nameExpr,
-                p.function
-                    .computeThisFunctionType(p.enclosingLibrary.nonNullable),
+        _moduleItems.add(_emitFunctionTagged(nameExpr,
+                p.function.computeThisFunctionType(Nullability.nonNullable),
                 asLazy: true)
             .toStatement());
       }
@@ -3673,9 +3727,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitFunctionTagged(js_ast.Expression fn, FunctionType type,
       {bool asLazy = false}) {
-    var typeRep = _emitType(
-        // Avoid tagging a closure as Function? or Function*
-        type.withDeclaredNullability(Nullability.nonNullable));
+    assert(type.nullability == Nullability.nonNullable);
+    var typeRep = _emitType(type);
     if (type.typeParameters.isEmpty) {
       return asLazy
           ? _runtimeCall('lazyFn(#, () => #)', [fn, typeRep])
@@ -3818,20 +3871,18 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Note that for `package:js` types, this will emit the class we emitted
   /// using `_emitJSInteropClassNonExternalMembers`, and not the runtime type
   /// that we synthesize for `package:js` types.
-  js_ast.Expression _emitClassRef(InterfaceType type) {
-    if (!_emittingClassExtends && type.typeArguments.isNotEmpty) {
-      var genericName = _emitTopLevelNameNoExternalInterop(type.classNode);
-      return js.call('#', [genericName]);
-    }
-    return _emitTopLevelNameNoExternalInterop(type.classNode);
-  }
+  ///
+  /// [resolvedFromEmbedder] looks up [type] via the embedder, which retrieves
+  /// the correct library in the context of hot reload. This should not be set
+  /// for external classes.
+  js_ast.Expression _emitClassRef(InterfaceType type,
+          {bool resolvedFromEmbedder = false}) =>
+      _emitTopLevelNameNoExternalInterop(type.classNode,
+          resolvedFromEmbedder: resolvedFromEmbedder);
 
   Never _typeCompilationError(DartType type, String description) =>
       throw UnsupportedError('$description Encountered while compiling '
           '${_currentLibrary!.fileUri}, which contains the type: $type.');
-
-  bool get _emittingClassExtends =>
-      _currentClass != null && identical(_currentClass, _classEmittingExtends);
 
   /// Emits an expression that lets you access statics on a [type] from code.
   js_ast.Expression _emitConstructorName(InterfaceType type, Member c) {
@@ -4124,15 +4175,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       FunctionNode fn, List<js_ast.Statement> Function() action) {
     var savedFunction = _currentFunction;
     _currentFunction = fn;
-    if (_isDartLibrary(_currentLibrary!, '_rti') ||
-        _isSdkInternalRuntime(_currentLibrary!)) {
-      _nullableInference.treatDeclaredTypesAsSound = true;
-    }
     _nullableInference.enterFunction(fn);
     var result = _withLetScope(action);
     _nullableInference.exitFunction(fn);
-    _nullableInference.treatDeclaredTypesAsSound = false;
-
     _currentFunction = savedFunction;
     return result;
   }
@@ -4165,48 +4210,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   bool _mustBeNonNullable(DartType type) =>
       type.nullability == Nullability.nonNullable;
 
-  /// Returns `true` when an additional null check is needed because of the
-  /// null safety compile mode, the null safety migration status of the current
-  /// library and the provided [type] with its [annotations].
-  bool _requiresExtraNullCheck(DartType type, List<Expression> annotations) =>
-      !_options.soundNullSafety &&
-      // Libraries that haven't been migrated to null safety represent
-      // non-nullable as legacy.
-      _currentLibrary!.nonNullable == Nullability.nonNullable &&
-      _mustBeNonNullable(type) &&
-      !_annotatedNotNull(annotations) &&
-      // Trust the nullability of types in the dart:_rti library.
-      !_isDartLibrary(_currentLibrary!, '_rti');
-
-  /// Returns a null check for [value] that if fails produces an error message
-  /// containing the [location] and [name] of the original value being checked.
-  ///
-  /// This is used to generate checks for non-nullable parameters when running
-  /// with weak null safety. The checks can be silent, warn, or throw, depending
-  /// on the flags set in the SDK at runtime.
-  js_ast.Statement _nullSafetyParameterCheck(
-      js_ast.Identifier value, Location? location, String? name) {
-    // TODO(nshahan): Remove when weak mode null safety assertions are no longer
-    // supported.
-    // The check on `field.setterType` is per:
-    // https://github.com/dart-lang/language/blob/master/accepted/2.12/nnbd/feature-specification.md#automatic-debug-assertion-insertion
-    var condition = js.call('# == null', [value]);
-    // Offsets are not available for compiler-generated variables
-    // Get the best available location even if the offset is missing.
-    // https://github.com/dart-lang/sdk/issues/34942
-    return js.statement(' if (#) #;', [
-      condition,
-      _runtimeCall('nullFailed(#, #, #, #)', [
-        location != null
-            ? _cacheUri(location.file.toString())
-            : js_ast.LiteralNull(),
-        js.number(location?.line ?? -1),
-        js.number(location?.column ?? -1),
-        js.escapedString('$name')
-      ])
-    ]);
-  }
-
   /// Emits argument initializers, which handles optional/named args, as well
   /// as generic type checks needed due to our covariance.
   List<js_ast.Statement> _emitArgumentInitializers(
@@ -4215,7 +4218,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     _emitCovarianceBoundsCheck(f.typeParameters, body);
 
-    void initParameter(VariableDeclaration p, js_ast.Identifier jsParam) {
+    void initParameter(
+        VariableDeclaration p, js_ast.Identifier jsParam, bool isOptional) {
       // When the parameter is covariant, insert the null check before the
       // covariant cast to avoid a TypeError when testing equality with null.
       if (name == '==') {
@@ -4228,7 +4232,19 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // Eliminate it when possible.
         body.add(js.statement('if (# == null) return false;', [jsParam]));
       }
-      if (isCovariantParameter(p)) {
+      if (isCovariantParameter(p) ||
+          // TODO(52582): This should be unreachable once the CFE ensures that
+          // redirecting factories parameter types match the target constructor.
+          // Matches dart2js check semantics for redirecting factory tearoffs.
+          // If a non-nullable optional argument with a null initializer is
+          // detected, we add an additional covariant check at runtime.
+          (f.parent is Procedure &&
+              isOptional &&
+              isConstructorTearOffLowering(f.parent as Procedure) &&
+              !p.type.isPotentiallyNullable &&
+              !p.initializer!
+                  .getStaticType(_staticTypeContext)
+                  .isPotentiallyNonNullable)) {
         var castExpr = _emitCast(jsParam, p.type);
         if (!identical(castExpr, jsParam)) body.add(castExpr.toStatement());
       }
@@ -4237,16 +4253,16 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       if (_annotatedNullCheck(p.annotations)) {
         body.add(_nullParameterCheck(jsParam));
-      } else if (_requiresExtraNullCheck(p.type, p.annotations)) {
-        body.add(_nullSafetyParameterCheck(jsParam, p.location, p.name));
       }
     }
 
+    var counter = 0;
     for (var p in f.positionalParameters) {
       var jsParam = _emitVariableRef(p);
       if (_checkParameters) {
-        initParameter(p, jsParam);
+        initParameter(p, jsParam, counter >= f.requiredParameterCount);
       }
+      counter++;
     }
     for (var p in f.namedParameters) {
       // Parameters will be passed using their real names, not the (possibly
@@ -4264,7 +4280,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ]));
 
       if (_checkParameters) {
-        initParameter(p, jsParam);
+        initParameter(p, jsParam, !p.isRequired);
       }
     }
 
@@ -4280,9 +4296,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _annotatedNullCheck(List<Expression> annotations) =>
       annotations.any(_nullableInference.isNullCheckAnnotation);
-
-  bool _annotatedNotNull(List<Expression> annotations) =>
-      annotations.any(_nullableInference.isNotNullAnnotation);
 
   bool _reifyGenericFunction(Member? m) =>
       m == null ||
@@ -4433,7 +4446,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (node is AsExpression && node.isTypeError) {
       assert(node.getStaticType(_staticTypeContext) ==
-          _types.coreTypes.boolRawType(_currentLibrary!.nonNullable));
+          _types.coreTypes.boolNonNullableRawType);
       return _runtimeCall('dtest(#)', [_visitExpression(node.operand)]);
     }
 
@@ -4573,8 +4586,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         condition.getStaticType(_staticTypeContext).extensionTypeErasure;
     var jsCondition = _visitExpression(condition);
 
-    if (conditionType != _coreTypes.boolLegacyRawType &&
-        conditionType != _coreTypes.boolNullableRawType &&
+    if (conditionType != _coreTypes.boolNullableRawType &&
         conditionType != _coreTypes.boolNonNullableRawType) {
       jsCondition = _runtimeCall('dtest(#)', [jsCondition]);
     } else if (_isNullable(condition)) {
@@ -4947,8 +4959,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //
     // TODO(jmesserly): we may want a helper if these become common. For now the
     // full desugaring seems okay.
-    var streamIterator = _coreTypes.rawType(
-        _asyncStreamIteratorClass, _currentLibrary!.nonNullable);
+    var streamIterator =
+        _coreTypes.nonNullableRawType(_asyncStreamIteratorClass);
     var streamIteratorRti = _emitType(streamIterator);
     var createStreamIter = js_ast.Call(
         _emitConstructorName(
@@ -5278,7 +5290,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       declareFn = js_ast.Block([
         declareFn,
         _emitFunctionTagged(_emitVariableRef(node.variable),
-                func.computeThisFunctionType(_currentLibrary!.nonNullable))
+                func.computeThisFunctionType(Nullability.nonNullable))
             .toStatement()
       ]);
     }
@@ -5460,7 +5472,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     var jsMemberName = _emitMemberName(memberName, member: member);
     if (_reifyTearoff(member)) {
-      return _runtimeCall('tearoff(#, #)', [jsReceiver, jsMemberName]);
+      return _runtimeCall('tearoff(#, null, #)', [jsReceiver, jsMemberName]);
     }
     var jsPropertyAccess = js_ast.PropertyAccess(jsReceiver, jsMemberName);
     return isJsMember(member)
@@ -5559,8 +5571,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// This is true for non-nullable native return types.
   bool _isNullCheckableNative(Member member) {
     var c = member.enclosingClass;
-    return _options.soundNullSafety &&
-        member.isExternal &&
+    return member.isExternal &&
         c != null &&
         _extensionTypes.isNativeClass(c) &&
         member is Procedure &&
@@ -5602,13 +5613,42 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return _emitSuperPropertyGet(node.interfaceTarget);
   }
 
+  /// Emits a reference to a distinct mixin application, represented by
+  /// a [mixedInClass] being mixed into [baseClass].
+  ///
+  /// Anonymous mixins should pass themselves as [baseClass] since they are
+  /// already uniquely generated per distinct mixin application
+  js_ast.Identifier _emitMixinId(Class mixedInClass, Class baseClass) {
+    var mixinName = mixedInClass.name;
+    if (!mixedInClass.isAnonymousMixin) {
+      mixinName += '#${baseClass.name}';
+    }
+    return _mixinCache
+        .putIfAbsent((mixedInClass, baseClass), () => _emitScopedId(mixinName));
+  }
+
   js_ast.Expression _emitSuperPropertyGet(Member target) {
     if (_reifyTearoff(target)) {
       if (_superAllowed) {
-        var jsTarget = _emitSuperTarget(target);
-        return _runtimeCall('bind(this, #, #)', [jsTarget.selector, jsTarget]);
+        var jsName = _declareMemberName(target);
+        var enclosingClass = target.enclosingClass!;
+        js_ast.Expression? supertypeReference =
+            _mixinSuperclassCache[_currentClass!];
+        if (supertypeReference == null) {
+          if (enclosingClass.isAnonymousMixin) {
+            var mixinId = _emitMixinId(enclosingClass, enclosingClass);
+            var enclosingLibrary = _emitLibraryName(getLibrary(enclosingClass));
+            supertypeReference = js_ast.PropertyAccess(
+                enclosingLibrary, js.string(mixinId.name));
+          } else {
+            supertypeReference =
+                _emitTopLevelNameNoExternalInterop(enclosingClass);
+          }
+        }
+        return _runtimeCall(
+            'superTearoff(this, #, #)', [supertypeReference, jsName]);
       } else {
-        return _emitSuperTearoff(target);
+        return _emitSuperTearoffFromDisallowedContext(target);
       }
     }
     return _emitSuperTarget(target);
@@ -5655,7 +5695,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var property = propertyAccessor.selector;
     var result = js.call('#.#', [context, property]);
     if (_reifyTearoff(target)) {
-      return _runtimeCall('staticTearoff(#, #)', [context, property]);
+      var targetLabel = js.string(fullyResolvedTargetLabel(target));
+      return _runtimeCall(
+          'staticTearoff(#, #, #)', [context, targetLabel, property]);
     }
     return result;
   }
@@ -6289,8 +6331,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Emits the [js_ast.PropertyAccess] for accessors or method calls to
   /// [jsTarget].[jsName], replacing `super` if it is not allowed in scope.
   js_ast.PropertyAccess _emitSuperTarget(Member member, {bool setter = false}) {
-    var jsName = _emitMemberName(member.name.text, member: member);
-    // Optimize access to non-virtual fields, if allowed in the current context.
+    var jsName = _declareMemberName(member);
     if (_optimizeNonVirtualFieldAccess &&
         member is Field &&
         !_virtualFields.isVirtual(member)) {
@@ -6303,7 +6344,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //
     // NOTE: This is intended to help in the cases of calling a `super` getter,
     // setter, or method. For the case of tearing off a `super` method in
-    // contexts where `super` isn't allowed, see [_emitSuperTearoff].
+    // contexts where `super` isn't allowed, see
+    // [_emitSuperTearoffFromDisallowedContext].
     var name = member.name.text;
     var getter = (member is Field && !setter) ||
         (member is Procedure && member.isGetter);
@@ -6346,18 +6388,42 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return js_ast.PropertyAccess(js_ast.This(), jsMethod.name);
   }
 
+  /// Generates a special string used for identifying a torn off member [m].
+  ///
+  /// This tag is used for determining tearoff equality. We attach these tags
+  /// at tearoff time for static tearoffs and in the method signature for
+  /// dynamic tearoffs.
+  String fullyResolvedTargetLabel(Member m) {
+    return '${m.enclosingLibrary.importUri}:${m.enclosingClass?.name ?? ""}';
+  }
+
+  /// Generates a special string used for identifying class [c]'s applied mixed
+  /// in members.
+  ///
+  /// This tag is used for determining tearoff equality. We attach these tags
+  /// at tearoff time for static tearoffs and in the method signature for
+  /// dynamic tearoffs.
+  String fullyResolvedMixinClassLabel(Class c) {
+    return '${c.enclosingLibrary.importUri}:${c.name}';
+  }
+
   /// Generates a helper method that is inserted into the class that binds a
   /// tearoff of [member] from `super` and returns a call to the helper.
   ///
   /// This method assumes `super` is not allowed in the current context.
   // TODO(nshahan) Replace with a kernel transform and synthetic method filters
   // for devtools.
-  js_ast.Expression _emitSuperTearoff(Member member) {
-    var jsName = _emitMemberName(member.name.text, member: member);
+  js_ast.Expression _emitSuperTearoffFromDisallowedContext(Member member) {
+    var jsName = _declareMemberName(member);
     var name = '_#super#tearOff#${member.name.text}';
     var jsMethod = _superHelpers.putIfAbsent(name, () {
-      var jsReturnValue =
-          _runtimeCall('bind(this, #, super[#])', [jsName, jsName]);
+      var superclass = member.enclosingClass!;
+      var supertypeReference = _mixinSuperclassCache[superclass] ??
+          _emitTopLevelNameNoExternalInterop(superclass);
+      var jsReturnValue = _runtimeCall('superTearoff(this, #, #)', [
+        supertypeReference,
+        jsName,
+      ]);
       var fn = js.fun('function() { return #; }', [jsReturnValue]);
       name = js_ast.friendlyNameForDartOperator[name] ?? name;
       return js_ast.Method(_emitScopedId(name), fn);
@@ -6497,10 +6563,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           if (name == 'TYPE_REF') {
             return _emitType(typeArgs.single);
           }
-          if (name == 'LEGACY_TYPE_REF') {
-            return _emitType(
-                typeArgs.single.withDeclaredNullability(Nullability.legacy));
-          }
         }
       }
       if (args.length == 1) {
@@ -6537,22 +6599,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           var value = flag.value;
           return switch (value) {
             'DEV_COMPILER' => js.boolean(true),
-            'PRINT_LEGACY_STARS' => js.boolean(_options.printLegacyStars),
-            'LEGACY' => _options.soundNullSafety
-                ? js.boolean(false)
-                // When running the new runtime type system with weak null
-                // safety this flag gets toggled when performing `is` and `as`
-                // checks. This allows DDC to produce optional warnings or
-                // errors when tests pass but would fail in sound null safety.
-                : _runtimeCall('legacyTypeChecks'),
-            'SOUND_NULL_SAFETY' => js.boolean(_options.soundNullSafety),
-            'EXTRA_NULL_SAFETY_CHECKS' => _options.soundNullSafety
-                ? js.boolean(false)
-                // When running the new runtime type system with weak null
-                // safety this flag gets toggled when performing `is` and `as`
-                // checks. This allows DDC to produce optional warnings or
-                // errors when tests pass but would fail in sound null safety.
-                : _runtimeCall('extraNullSafetyChecks'),
             'MINIFIED' => js.boolean(false),
             'VARIANCE' =>
               // Variance is turned on by default, but only interfaces that have
@@ -6656,8 +6702,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             .toAssignExpression(js_ast.PropertyAccess(
                 _visitExpression(node.arguments.positional[0]),
                 _visitExpression(node.arguments.positional[1])));
-      } else if (RegExp(r'^\_callMethodUnchecked(TrustType)?[0-4]')
-          .hasMatch(name)) {
+      } else if (_callMethodUncheckedRegex.hasMatch(name)) {
         // Note that we don't lower `_callMethodTrustType`. This is because it
         // uses `assertInterop` checks.
         var trustType = name.contains('TrustType');
@@ -6676,7 +6721,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           call = _emitCast(call, node.arguments.types[0]);
         }
         return call;
-      } else if (RegExp(r'^\_callConstructorUnchecked[0-4]').hasMatch(name)) {
+      } else if (_callConstructorUncheckedRegex.hasMatch(name)) {
         var args = <js_ast.Expression>[];
         assert(node.arguments.named.isEmpty);
         // Ignore the constructor.
@@ -6857,7 +6902,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Add a check to make sure any JS() values from a native type are typed
     // properly in sound null-safety.
-    if (_isWebLibrary(_currentLibrary!.importUri) && _options.soundNullSafety) {
+    if (_isWebLibrary(_currentLibrary!.importUri)) {
       var type = node.getStaticType(_staticTypeContext);
       if (type.isPotentiallyNonNullable) {
         result = _runtimeCall('checkNativeNonNull(#)', [result]);
@@ -6966,15 +7011,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Returns true if [expr] can be null.
-  bool _isNullable(Expression expr) {
-    if (_isDartLibrary(_currentLibrary!, '_rti') ||
-        _isSdkInternalRuntime(_currentLibrary!)) {
-      _nullableInference.treatDeclaredTypesAsSound = true;
-    }
-    final result = _nullableInference.isNullable(expr);
-    _nullableInference.treatDeclaredTypesAsSound = false;
-    return result;
-  }
+  bool _isNullable(Expression expr) => _nullableInference.isNullable(expr);
 
   js_ast.Expression _emitJSDoubleEq(List<js_ast.Expression> args,
       {bool negated = false}) {
@@ -7350,9 +7387,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_typeRep.isNumber(from) && _typeRep.isNumber(to)) {
       // If `to` is some form of `num`, it should have been filtered above.
 
-      // * -> double? | double* : no-op
-      if (to == _coreTypes.doubleLegacyRawType ||
-          to == _coreTypes.doubleNullableRawType) {
+      // * -> double? : no-op
+      if (to == _coreTypes.doubleNullableRawType) {
         return jsFrom;
       }
 
@@ -7369,9 +7405,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         return _runtimeCall('asInt(#)', [jsFrom]);
       }
 
-      // * -> int? | int* : asNullableInt check
-      if (to == _coreTypes.intLegacyRawType ||
-          to == _coreTypes.intNullableRawType) {
+      // * -> int? : asNullableInt check
+      if (to == _coreTypes.intNullableRawType) {
         return _runtimeCall('asNullableInt(#)', [jsFrom]);
       }
     }
@@ -7761,31 +7796,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     if (node is TypeLiteralConstant) {
       // We bypass the use of constants, since types are already canonicalized
-      // in the DDC output. DDC emits type literals in two contexts:
-      //   * Foreign JS functions: we use the non-nullable version of some types
-      //     directly in the runtime libraries (e.g. dart:_runtime). For
-      //     correctness of those libraries, we need to remove the legacy marker
-      //     that was added by the CFE normalization of type literals.
-      //
-      //   * Regular user code: we need to emit a canonicalized type. We do so
-      //     by calling `wrapType` on the type at runtime. By emitting the
-      //     non-nullable version we save some redundant work at runtime.
-      //     Technically, emitting a legacy type in this case would be correct,
-      //     only more verbose and inefficient.
-      var type = node.type;
-      if (type.nullability == Nullability.legacy) {
-        type = type.withDeclaredNullability(Nullability.nonNullable);
-      }
-      assert(!_isInForeignJS ||
-          type.nullability == Nullability.nonNullable ||
-          // The types dynamic, void, and Null all intrinsically have
-          // `Nullability.nullable` but are handled explicitly without emitting
-          // the nullable runtime wrapper. They are safe to allow through
-          // unchanged.
-          type == const DynamicType() ||
-          type == const NullType() ||
-          type == const VoidType());
-      return _emitTypeLiteral(type);
+      // in the DDC output.
+      return _emitTypeLiteral(node.type);
     }
     if (node is PrimitiveConstant) {
       return super.visitConstant(node);
@@ -7906,6 +7918,69 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     ]);
   }
 
+  js_ast.Expression visitEnum(InstanceConstant node) {
+    var type = node.getType(_staticTypeContext);
+    assert(type.nullability == Nullability.nonNullable,
+        'An instance constant should only ever have a non-nullable type.');
+    var classRef = _emitClassRef(type as InterfaceType);
+    var prototype = js.call('#.prototype', [classRef]);
+    var enumAccessor = _emitTopLevelName(node.classNode);
+
+    // Enums are canonicalized based on their 'name' member alone. We
+    // append other members (such as 'index' and those introduced via enhanced
+    // enums) after canonicalization so they can be updated across hot reloads.
+    var constantProperties = <js_ast.Property>[];
+    var additionalProperties = <js_ast.Property>[];
+    if (type.typeArguments.isNotEmpty) {
+      // Generic interface type instances require a type information tag.
+      var property = js_ast.Property(
+          _propertyName(js_ast.FixedNames.rtiName), _emitType(type));
+      constantProperties.add(property);
+    }
+    node.fieldValues.forEach((k, v) {
+      var constant = visitConstant(v);
+      var member = k.asField;
+      var memberClass = member.enclosingClass!;
+      if (!memberClass.isEnum) {
+        if (member.name.text == 'index') {
+          // We transform the 'index' field of Enum fields into a special
+          // getter so that their indices are consistent across hot reloads.
+          var value = js.call('#.values.indexOf(this)', enumAccessor);
+          var jsMember = _getSymbol(_emitClassPrivateNameSymbol(
+              memberClass.enclosingLibrary,
+              getLocalClassName(memberClass),
+              member));
+          additionalProperties.add(js_ast.Method(
+              jsMember, js.fun('function() { return #; }', [value]),
+              isGetter: true));
+        } else {
+          var jsMember = _getSymbol(_emitClassPrivateNameSymbol(
+              memberClass.enclosingLibrary,
+              getLocalClassName(memberClass),
+              member));
+          constantProperties.add(js_ast.Property(jsMember, constant));
+        }
+      } else {
+        additionalProperties.add(js_ast.Property(
+            _emitMemberName(member.name.text, member: member), constant));
+      }
+    });
+
+    var canonicalizedEnum = _canonicalizeConstObject(
+        _emitJSObjectSetPrototypeOf(
+            js_ast.ObjectInitializer(constantProperties, multiline: true),
+            prototype,
+            fullyQualifiedName: false));
+
+    var enumExtension = _runtimeStatement('extendEnum(#, #)', [
+      canonicalizedEnum,
+      js_ast.ObjectInitializer(additionalProperties, multiline: true)
+    ]);
+    _enumExtensions.add(enumExtension);
+
+    return canonicalizedEnum;
+  }
+
   @override
   js_ast.Expression visitInstanceConstant(InstanceConstant node) {
     var savedTypeEnvironment = _currentTypeEnvironment;
@@ -7914,26 +7989,24 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           ClassTypeEnvironment(node.classNode.typeParameters);
     }
 
+    if (node.classNode.isEnum) {
+      var constant = visitEnum(node);
+      _currentTypeEnvironment = savedTypeEnvironment;
+      return constant;
+    }
+
     js_ast.Property entryToProperty(MapEntry<Reference, Constant> entry) {
       var constant = visitConstant(entry.value);
       var member = entry.key.asField;
       var cls = member.enclosingClass!;
-      // Enums cannot be overridden, so we can safely use the field name
-      // directly.  Otherwise, use a private symbol in case the field
-      // was overridden.
-      var symbol = cls.isEnum
-          ? _emitMemberName(member.name.text, member: member)
-          : _getSymbol(_emitClassPrivateNameSymbol(
-              cls.enclosingLibrary, getLocalClassName(cls), member));
+      var symbol = _getSymbol(_emitClassPrivateNameSymbol(
+          cls.enclosingLibrary, getLocalClassName(cls), member));
       return js_ast.Property(symbol, constant);
     }
 
-    // Non-nullable is forced here because the type of an instance constant
-    // should never appear as legacy "*" at runtime but the library where the
-    // constant is defined can cause those types to appear here.
-    var type = node
-        .getType(_staticTypeContext)
-        .withDeclaredNullability(Nullability.nonNullable);
+    var type = node.getType(_staticTypeContext);
+    assert(type.nullability == Nullability.nonNullable,
+        'An instance constant should only ever have a non-nullable type.');
     var classRef = _emitClassRef(type as InterfaceType);
     var prototype = js.call('#.prototype', [classRef]);
     var properties = [
@@ -8619,6 +8692,16 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       'SourceMap3G5a8h6JVhHfdGuDxZr1EF9GQC8y0e6u';
   static const String metricsLocationID =
       'MetricsJ7xFWBfSv6ZjrW9yLb21GNzisZr3anSf5h';
+
+  /// Matches against the `dart:js_util` `_callMethodUnchecked` and
+  /// `_callMethodUncheckedTrustType` variants with 0 to 4 arguments.
+  static final RegExp _callMethodUncheckedRegex =
+      RegExp(r'^\_callMethodUnchecked(TrustType)?[0-4]');
+
+  /// Matches against the `dart:js_util` `_callConstructorUnchecked` and
+  /// `_callConstructorUncheckedTrustType` variants with 0 to 4 arguments.
+  static final RegExp _callConstructorUncheckedRegex =
+      RegExp(r'^\_callConstructorUnchecked[0-4]');
 }
 
 bool _isInlineJSFunction(Statement? body) {

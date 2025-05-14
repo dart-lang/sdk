@@ -19,9 +19,9 @@ Future<void> main() async {
   var newType = getType();
   Expect.identical(oldType, 34);
 }
+
 /** DIFF **/
 /*
-@@ -8,7 +8,7 @@
  // Adapted from:
  // https://github.com/dart-lang/sdk/blob/bc58f69e532960a2f1d88f4b282869d6e2ad7cbe/runtime/vm/isolate_reload_test.cc#L822
  
@@ -30,7 +30,7 @@ Future<void> main() async {
  
  getType() => T;
  
-@@ -17,5 +17,5 @@
+@@ -17,5 +17,5 @@ Future<void> main() async {
    await hotReload();
  
    var newType = getType();

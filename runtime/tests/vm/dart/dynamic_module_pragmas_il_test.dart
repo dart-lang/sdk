@@ -55,8 +55,10 @@ void testIsA1(obj) {
   myprint(obj is C1);
 }
 
+@pragma('dyn-module:implicitly-extendable')
 abstract class A2 {
   void foo();
+  @pragma('dyn-module:can-be-overridden-implicitly')
   void bar();
   void baz();
 }

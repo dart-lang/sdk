@@ -22,10 +22,10 @@ class Thread;
 #if defined(TESTING) || defined(DEBUG)
 
 #if defined(USING_SIMULATOR)
+// The simulator/isolate might not exist yet for an async FFI callback, so do
+// not check. An equivalent check exists in the simulator itself.
 #define CHECK_STACK_ALIGNMENT                                                  \
   {                                                                            \
-    uword current_sp = Simulator::Current()->get_register(SPREG);              \
-    ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));      \
   }
 #elif defined(DART_HOST_OS_WINDOWS)
 // The compiler may dynamically align the stack on Windows, so do not check.
@@ -196,6 +196,7 @@ class NativeArguments {
         argc_tag_(ReverseArgOrderBit::update(true, argc_tag)),
         argv_(argv),
         retval_(retval) {}
+  NativeArguments() = default;
 #endif  // defined(DART_DYNAMIC_MODULES)
 
   // Since this function is passed an ObjectPtr directly, we need to be

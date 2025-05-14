@@ -21,14 +21,10 @@ const _nameSizedBox = 'SizedBox';
 const _nameState = 'State';
 const _nameStatefulWidget = 'StatefulWidget';
 const _nameStatelessWidget = 'StatelessWidget';
-const _nameStreamBuilder = 'StreamBuilder';
 
 const _nameWidget = 'Widget';
 final Uri _uriAlignment = Uri.parse(
   'package:flutter/src/painting/alignment.dart',
-);
-final Uri _uriAsync = Uri.parse(
-  'package:flutter/src/widgets/async.dart',
 );
 final Uri _uriBasic = Uri.parse(
   'package:flutter/src/widgets/basic.dart',
@@ -48,7 +44,6 @@ final Uri _uriFramework = Uri.parse(
 final Uri _uriWidgetsIcon = Uri.parse(
   'package:flutter/src/widgets/icon.dart',
 );
-
 final Uri _uriWidgetsText = Uri.parse(
   'package:flutter/src/widgets/text.dart',
 );
@@ -126,7 +121,7 @@ extension AstNodeExtension on AstNode? {
     return null;
   }
 
-  /// Whether the given [node] is the Flutter class `Widget`, or its subtype.
+  /// Whether this [AstNode] is the Flutter class `Widget`, or its subtype.
   bool get isWidgetExpression {
     return switch (this) {
       null => false,
@@ -232,7 +227,7 @@ extension DartTypeExtension on DartType? {
         self.element3._isExactly(_nameAlign, _uriBasic);
   }
 
-  /// Whether this is the Flutter class `StreamBuilder`.
+  /// Whether this is the Flutter class `Builder`.
   bool get isExactWidgetTypeBuilder {
     var self = this;
     return self is InterfaceType &&
@@ -279,13 +274,6 @@ extension DartTypeExtension on DartType? {
     var self = this;
     return self is InterfaceType &&
         self.element3._isExactly(_nameSizedBox, _uriBasic);
-  }
-
-  /// Whether this is the Flutter class `StreamBuilder`.
-  bool get isExactWidgetTypeStreamBuilder {
-    var self = this;
-    return self is InterfaceType &&
-        self.element3._isExactly(_nameStreamBuilder, _uriAsync);
   }
 
   /// Whether this is the Flutter class `Widget`, or its subtype.

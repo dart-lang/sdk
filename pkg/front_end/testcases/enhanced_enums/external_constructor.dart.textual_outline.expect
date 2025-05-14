@@ -1,0 +1,1 @@
+enum E { a(1); final int x; external const E(this.x); }

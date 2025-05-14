@@ -3482,17 +3482,27 @@ final Matcher isServerOpenUrlRequestParams = LazyMatcher(
 /// server.openUrlRequest result
 final Matcher isServerOpenUrlRequestResult = isNull;
 
+/// server.pluginError params
+///
+/// {
+///   "message": String
+/// }
+final Matcher isServerPluginErrorParams = LazyMatcher(
+  () => MatchesJsonObject('server.pluginError params', {'message': isString}),
+);
+
 /// server.setClientCapabilities params
 ///
 /// {
 ///   "requests": List<String>
 ///   "supportsUris": optional bool
+///   "lspCapabilities": optional object
 /// }
 final Matcher isServerSetClientCapabilitiesParams = LazyMatcher(
   () => MatchesJsonObject(
     'server.setClientCapabilities params',
     {'requests': isListOf(isString)},
-    optionalFields: {'supportsUris': isBool},
+    optionalFields: {'supportsUris': isBool, 'lspCapabilities': isObject},
   ),
 );
 

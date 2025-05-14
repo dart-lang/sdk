@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'package:dart2native/dart2native_macho.dart' show pipeStream;
 import 'package:dart2native/macho.dart';
+import 'package:native_assets_cli/code_assets_builder.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -21,21 +22,16 @@ void main() {
 }
 
 const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
-const String unsoundNullSafetyMessage =
-    'Info: Compiling without sound null safety';
-const String unsoundNullSafetyError =
-    'Error: the flag --no-sound-null-safety is not supported in Dart 3.';
-const String unsoundNullSafetyWarning =
-    'Warning: the flag --no-sound-null-safety is deprecated and pending removal.';
+const String soundNullSafetyWarning =
+    "Warning: Option '--sound-null-safety' is deprecated.";
+
 const String failedAssertionError = 'Failed assertion: line';
 String usingTargetOSMessageForPlatform(String targetOS) =>
     'Specializing Platform getters for target OS $targetOS.';
 final String usingTargetOSMessage =
     usingTargetOSMessageForPlatform(Platform.operatingSystem);
-String crossOSNotAllowedError(String command) =>
-    "'dart compile $command' does not support cross-OS compilation.";
-final String hostOSMessage = 'Host OS: ${Platform.operatingSystem}';
-String targetOSMessage(String targetOS) => 'Target OS: $targetOS';
+String unsupportedTargetError(Target target) =>
+    'Unsupported target platform $target';
 
 void defineCompileTests() {
   final isRunningOnIA32 = Platform.version.contains('ia32');
@@ -420,15 +416,20 @@ void defineCompileTests() {
         mainSrc: 'void main() {print(const String.fromEnvironment("cross"));}');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
-    final targetOS = Platform.isLinux ? 'macos' : 'linux';
-
+    // Make sure targetOS is always unsupported (not Linux and not matches host
+    // OS) to trigger an error.
+    final targetOS = Platform.isWindows ? OS.macOS : OS.windows;
+    final targetArch = Architecture.arm64;
+    final target = Target.fromArchitectureAndOS(targetArch, targetOS);
     final result = await p.run(
       [
         'compile',
         'exe',
         '-v',
         '--target-os',
-        targetOS,
+        targetOS.name,
+        '--target-arch',
+        targetArch.name,
         '-o',
         outFile,
         inFile,
@@ -436,9 +437,7 @@ void defineCompileTests() {
     );
 
     expect(result.stdout, isNot(contains(usingTargetOSMessage)));
-    expect(result.stderr, contains(crossOSNotAllowedError('exe')));
-    expect(result.stderr, contains(hostOSMessage));
-    expect(result.stderr, contains(targetOSMessage(targetOS)));
+    expect(result.stderr, contains(unsupportedTargetError(target)));
     expect(result.exitCode, 128);
   }, skip: isRunningOnIA32);
 
@@ -458,8 +457,8 @@ void defineCompileTests() {
       ],
     );
 
-    // AOT snapshots should not be OS-specific by default.
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    // AOT snapshots should be OS-specific by default.
+    expect(result.stdout, contains(usingTargetOSMessage));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -512,11 +511,14 @@ void defineCompileTests() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
-  test('Compile aot snapshot can compile cross platform', () async {
-    final targetOS = Platform.isLinux ? 'windows' : 'linux';
+  test('Compile aot snapshot cannot compile cross platform', () async {
+    // Make sure targetOS is always unsupported (not Linux and not matches host
+    // OS) to trigger an error.
+    final targetOS = Platform.isWindows ? OS.macOS : OS.windows;
+    final targetArch = Architecture.arm64;
+    final target = Target.fromArchitectureAndOS(targetArch, targetOS);
     final p = project(mainSrc: 'void main() { print("I love $targetOS"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'main.aot'));
 
     var result = await p.run(
       [
@@ -524,28 +526,20 @@ void defineCompileTests() {
         'aot-snapshot',
         '-v',
         '--target-os',
-        targetOS,
+        targetOS.name,
+        '--target-arch',
+        targetArch.name,
         '-o',
         'main.aot',
         inFile,
       ],
     );
 
-    expect(result.stdout, contains(usingTargetOSMessageForPlatform(targetOS)));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
+    expect(result.stdout,
+        isNot(contains(usingTargetOSMessageForPlatform(targetOS.name))));
+    expect(result.stderr, contains(unsupportedTargetError(target)));
 
-    final Directory binDir = File(Platform.resolvedExecutable).parent;
-    result = Process.runSync(
-      path.join(binDir.path, 'dartaotruntime'),
-      [outFile],
-    );
-
-    expect(result.stdout, contains('I love $targetOS'));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
+    expect(result.exitCode, isNot(0));
   }, skip: isRunningOnIA32);
 
   test('Compile and run kernel snapshot', () async {
@@ -965,6 +959,31 @@ void main() {
     );
 
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stdout, isNot(contains(soundNullSafetyWarning)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  }, skip: isRunningOnIA32);
+
+  test('Compile JS with sound null safety flag', () async {
+    final p = project(mainSrc: '''void main() {}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
+
+    final result = await p.run(
+      [
+        'compile',
+        'js',
+        '--sound-null-safety',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stdout, contains(soundNullSafetyWarning));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -992,32 +1011,6 @@ void main() {
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
   }, skip: isRunningOnIA32);
-
-  test('Compile JS with unsound null safety', () async {
-    final p = project(mainSrc: '''
-// @dart=2.9
-void main() {}
-''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'js',
-        '--no-sound-null-safety',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stdout, contains(unsoundNullSafetyError));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 1);
-    expect(File(outFile).existsSync(), false,
-        reason: 'File not found: $outFile');
-  });
 
   test('Compile JS without info', () async {
     final p = project(mainSrc: '''void main() {}''');

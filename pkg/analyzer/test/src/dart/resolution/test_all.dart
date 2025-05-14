@@ -68,7 +68,6 @@ import 'local_function_test.dart' as local_function;
 import 'local_variable_test.dart' as local_variable;
 import 'logical_and_pattern_test.dart' as logical_and_pattern;
 import 'logical_or_pattern_test.dart' as logical_or_pattern;
-import 'macro_test.dart' as macro;
 import 'map_pattern_test.dart' as map_pattern;
 import 'metadata_test.dart' as metadata;
 import 'method_declaration_test.dart' as method_declaration;
@@ -89,7 +88,6 @@ import 'pattern_assignment_test.dart' as pattern_assignment;
 import 'pattern_variable_declaration_statement_test.dart'
     as pattern_variable_declaration_statement;
 import 'postfix_expression_test.dart' as postfix_expression;
-import 'prefix_element_test.dart' as prefix_element;
 import 'prefix_expression_test.dart' as prefix_expression;
 import 'prefixed_identifier_test.dart' as prefixed_identifier;
 import 'property_access_test.dart' as property_access;
@@ -178,7 +176,6 @@ main() {
     local_variable.main();
     logical_and_pattern.main();
     logical_or_pattern.main();
-    macro.main();
     map_pattern.main();
     metadata.main();
     method_declaration.main();
@@ -197,7 +194,6 @@ main() {
     pattern_assignment.main();
     pattern_variable_declaration_statement.main();
     postfix_expression.main();
-    prefix_element.main();
     prefix_expression.main();
     prefixed_identifier.main();
     property_access.main();

@@ -31,7 +31,7 @@ class ElementWriter with TreeWriter {
     }
   }
 
-  /// Write a representation of the properties of the given [node] to the
+  /// Writes a representation of the properties of the given [element] to the
   /// buffer.
   Map<String, Object?> _computeProperties(Element2 element) {
     var properties = <String, Object?>{};

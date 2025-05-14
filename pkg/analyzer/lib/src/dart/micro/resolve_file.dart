@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -39,6 +37,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -255,9 +254,9 @@ class FileResolver {
 
   /// Looks for references to the given Element. All the files currently
   ///  cached by the resolver are searched, generated files are ignored.
-  Future<List<CiderSearchMatch>> findReferences2(Element element,
+  Future<List<CiderSearchMatch>> findReferences(Element2 element,
       {OperationPerformanceImpl? performance}) {
-    return logger.runAsync('findReferences for ${element.name}', () async {
+    return logger.runAsync('findReferences for ${element.name3}', () async {
       var references = <CiderSearchMatch>[];
 
       Future<void> collectReferences2(
@@ -283,10 +282,13 @@ class FileResolver {
 
       performance ??= OperationPerformanceImpl('<default>');
       // TODO(keertip): check if element is named constructor.
-      if (element is LocalVariableElement ||
-          (element is ParameterElement && !element.isNamed)) {
-        await collectReferences2(element.source!.fullName, performance!);
-      } else if (element is LibraryImportElement) {
+      if (element is LocalVariableElement2 ||
+          (element is FormalParameterElement && !element.isNamed)) {
+        await collectReferences2(
+          element.firstFragment.libraryFragment!.source.fullName,
+          performance!,
+        );
+      } else if (element is MockLibraryImportElement) {
         return await _searchReferences_Import(element);
       } else {
         var result = performance!.run('getFilesContaining', (performance) {
@@ -351,7 +353,6 @@ class FileResolver {
         uri: file.uri,
         lineInfo: file.lineInfo,
         isLibrary: file.kind is LibraryFileKind,
-        isMacroPart: file.isMacroPart,
         isPart: file.kind is PartFileKind,
         errors: errors,
         analysisOptions: file.analysisOptions,
@@ -416,8 +417,8 @@ class FileResolver {
       throw ArgumentError('$uri is not a library.');
     }
 
-    await performance.runAsync('libraryContext', (performance) async {
-      await libraryContext!.load(
+    performance.run('libraryContext', (performance) {
+      libraryContext!.load(
         targetLibrary: kind,
         performance: performance,
       );
@@ -471,7 +472,7 @@ class FileResolver {
     var libraryKind = file.kind.library ?? file.kind.asLibrary;
 
     // Load the library, link if necessary.
-    await libraryContext!.load(
+    libraryContext!.load(
       targetLibrary: libraryKind,
       performance: performance,
     );
@@ -481,7 +482,7 @@ class FileResolver {
     var linkedKeysToRelease = libraryContext!.unloadAll();
 
     // Load the library again, the reference count is `>= 2`.
-    await libraryContext!.load(
+    libraryContext!.load(
       targetLibrary: libraryKind,
       performance: performance,
     );
@@ -570,8 +571,8 @@ class FileResolver {
       var lineOffset = file.lineInfo.getOffsetOfLine(completionLine);
       var completionOffset = lineOffset + completionColumn;
 
-      await performance.runAsync('libraryContext', (performance) async {
-        await libraryContext!.load(
+      performance.run('libraryContext', (performance) {
+        libraryContext!.load(
           targetLibrary: libraryKind,
           performance: performance,
         );
@@ -595,6 +596,7 @@ class FileResolver {
           libraryElement,
           analysisSession.inheritanceManager,
           libraryKind,
+          performance: OperationPerformanceImpl('<root>'),
           typeSystemOperations: typeSystemOperations,
         );
         _clearFileSystemStateParsedCache();
@@ -645,8 +647,8 @@ class FileResolver {
       var file = fileContext.file;
       var libraryKind = file.kind.library ?? file.kind.asLibrary;
 
-      await performance.runAsync('libraryContext', (performance) async {
-        await libraryContext!.load(
+      performance.run('libraryContext', (performance) {
+        libraryContext!.load(
           targetLibrary: libraryKind,
           performance: performance,
         );
@@ -670,6 +672,7 @@ class FileResolver {
           libraryElement,
           libraryContext!.elementFactory.analysisSession.inheritanceManager,
           libraryKind,
+          performance: OperationPerformanceImpl('<root>'),
           typeSystemOperations: typeSystemOperations,
         );
 
@@ -691,7 +694,7 @@ class FileResolver {
       var libraryUnit = resolvedUnits.first;
       var result = ResolvedLibraryResultImpl(
         session: contextObjects!.analysisSession,
-        element: libraryUnit.libraryElement,
+        element2: libraryUnit.libraryElement2,
         units: resolvedUnits,
       );
 
@@ -780,6 +783,7 @@ class FileResolver {
       libraryContext = LibraryContext(
         declaredVariables: contextObjects!.declaredVariables,
         byteStore: byteStore,
+        eventsController: null,
         infoDeclarationStore: const NoOpInfoDeclarationStore(),
         analysisOptionsMap: AnalysisOptionsMap.forSharedOptions(
             contextObjects!.analysisOptions),
@@ -788,9 +792,11 @@ class FileResolver {
         fileSystemState: fsState!,
         sourceFactory: sourceFactory,
         externalSummaries: SummaryDataStore(),
-        macroSupport: null,
         packagesFile: null,
         testData: testData?.libraryContext,
+        linkedBundleProvider: LinkedBundleProvider(
+          byteStore: byteStore,
+        ),
       );
 
       contextObjects!.analysisSession.elementFactory =
@@ -876,13 +882,14 @@ class FileResolver {
   }
 
   Future<List<CiderSearchMatch>> _searchReferences_Import(
-      LibraryImportElement element) async {
+      MockLibraryImportElement element) async {
     var results = <CiderSearchMatch>[];
-    LibraryElement libraryElement = element.library;
-    for (CompilationUnitElement unitElement in libraryElement.units) {
-      String unitPath = unitElement.source.fullName;
+    var libraryElement = element.library2;
+    for (var libraryFragment in libraryElement.fragments) {
+      String unitPath = libraryFragment.source.fullName;
       var unitResult = await resolve(path: unitPath);
-      var visitor = ImportElementReferencesVisitor(element, unitElement);
+      var visitor =
+          ImportElementReferencesVisitor(element.import, libraryFragment);
       unitResult.unit.accept(visitor);
       var lineInfo = unitResult.lineInfo;
       var infos = visitor.results

@@ -72,6 +72,9 @@ class DartToolingDaemon {
   /// is terminated.
   Future<void> get done => _done;
 
+  /// Whether or not the connection is closed.
+  bool get isClosed => _clientPeer.isClosed;
+
   /// Registers this client as the handler for the [service].[method] service
   /// method.
   ///

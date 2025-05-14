@@ -13,10 +13,10 @@ const _desc = r'Avoid annotating types for function expression parameters.';
 
 class AvoidTypesOnClosureParameters extends LintRule {
   AvoidTypesOnClosureParameters()
-      : super(
-          name: LintNames.avoid_types_on_closure_parameters,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_types_on_closure_parameters,
+        description: _desc,
+      );
 
   @override
   List<String> get incompatibleRules => const [LintNames.always_specify_types];
@@ -26,7 +26,9 @@ class AvoidTypesOnClosureParameters extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFunctionExpression(this, visitor);
   }

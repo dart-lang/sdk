@@ -2,17 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/utilities/extensions/numeric.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
 /// Information about the arguments and parameters for an invocation.
 typedef EditableInvocationInfo =
     ({
+      AstNode invocation,
+      String? widgetName,
+      String? widgetDocumentation,
       List<FormalParameterElement> parameters,
       Map<FormalParameterElement, Expression> parameterArguments,
       Map<FormalParameterElement, int> positionalParameterIndexes,
@@ -22,6 +27,16 @@ typedef EditableInvocationInfo =
     });
 
 mixin EditableArgumentsMixin {
+  DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result);
+
+  String? getDocumentation(ResolvedUnitResult result, Element2 element) {
+    var dartDocInfo = getDartdocDirectiveInfoFor(result);
+    var dartDocComputer = DartDocumentationComputer(dartDocInfo);
+    var dartDoc = dartDocComputer.compute(element);
+
+    return dartDoc?.full;
+  }
+
   /// Gets the argument list at [offset] that can be edited.
   EditableInvocationInfo? getInvocationInfo(
     ResolvedUnitResult result,
@@ -36,6 +51,23 @@ mixin EditableArgumentsMixin {
         _ => false,
       };
     });
+
+    if (invocation == null) {
+      return null;
+    }
+
+    String? widgetName, widgetDocumentation;
+    if (invocation is InstanceCreationExpression) {
+      widgetName = invocation.constructorName.type.name2.lexeme;
+
+      if (invocation.constructorName.element case var element?) {
+        widgetDocumentation = getDocumentation(result, element);
+      }
+    } else if (invocation is InvocationExpression) {
+      if (invocation.function case Identifier(:var element?)) {
+        widgetDocumentation = getDocumentation(result, element);
+      }
+    }
 
     // Return the related argument list.
     var (parameters, argumentList) = switch (invocation) {
@@ -79,6 +111,9 @@ mixin EditableArgumentsMixin {
     };
 
     return (
+      invocation: invocation,
+      widgetName: widgetName,
+      widgetDocumentation: widgetDocumentation,
       parameters: parameters,
       positionalParameterIndexes: positionalParameterIndexes,
       parameterArguments: parameterArguments,
@@ -123,17 +158,17 @@ mixin EditableArgumentsMixin {
     return null;
   }
 
-  /// Returns the name of an enum constant prefixed with the enum name.
-  String? getQualifiedEnumConstantName(FieldElement2 enumConstant) {
-    var enumName = enumConstant.enclosingElement2.name3;
-    var name = enumConstant.name3;
-    return enumName != null && name != null ? '$enumName.$name' : null;
-  }
-
   /// Returns a list of the constants of an enum constant prefixed with the enum
   /// name.
   List<String> getQualifiedEnumConstantNames(EnumElement2 element3) =>
       element3.constants2.map(getQualifiedEnumConstantName).nonNulls.toList();
+
+  /// Returns the name of an enum constant prefixed with the enum name.
+  static String? getQualifiedEnumConstantName(FieldElement2 enumConstant) {
+    var enumName = enumConstant.enclosingElement2.name3;
+    var name = enumConstant.name3;
+    return enumName != null && name != null ? '$enumName.$name' : null;
+  }
 }
 
 extension on InvocationExpressionImpl {

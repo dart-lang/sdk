@@ -21,7 +21,6 @@ class ClientUriConverterTest with ResourceProviderMixin {
     for (var fileUri in [
       Uri.file(convertPath('/a/b.dart')),
       Uri.file(convertPath('/a/b.txt')),
-      Uri.file(convertPath('/a/b.macro.dart')),
       Uri.file(convertPath('/a/b')),
       Uri.file(convertPath('/')),
     ]) {
@@ -36,7 +35,6 @@ class ClientUriConverterTest with ResourceProviderMixin {
     for (var filePath in [
       convertPath('/a/b.dart'),
       convertPath('/a/b.txt'),
-      convertPath('/a/b.macro.dart'),
       convertPath('/a/b'),
       convertPath('/'),
     ]) {

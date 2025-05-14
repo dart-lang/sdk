@@ -82,8 +82,8 @@ void main() {
 /// value in the FFI trampoline.
 void testLookupFunctionReturn() {
   final dylib = DynamicLibrary.executable();
-  final function1 =
-      dylib.lookupFunction<Struct1 Function(), Struct1 Function()>('function1');
+  final function1 = dylib
+      .lookupFunction<Struct1 Function(), Struct1 Function()>('function1');
   final struct1 = function1();
   print(struct1);
 }
@@ -91,8 +91,9 @@ void testLookupFunctionReturn() {
 /// This forces retaining [Struct2], because it is constructed as return
 /// value in the FFI trampoline.
 void testAsFunctionReturn() {
-  final pointer =
-      Pointer<NativeFunction<Struct2 Function()>>.fromAddress(0xdeadbeef);
+  final pointer = Pointer<NativeFunction<Struct2 Function()>>.fromAddress(
+    0xdeadbeef,
+  );
   final function2 = pointer.asFunction<Struct2 Function()>();
   final struct2 = function2();
   print(struct2);
@@ -115,15 +116,17 @@ void testFromFunctionArgument() {
 
 void testLookupFunctionArgument() {
   final dylib = DynamicLibrary.executable();
-  final function5 =
-      dylib.lookupFunction<Void Function(Struct5), void Function(Struct5)>(
-          'function5');
+  final function5 = dylib
+      .lookupFunction<Void Function(Struct5), void Function(Struct5)>(
+        'function5',
+      );
   print(function5);
 }
 
 void testAsFunctionArgument() {
-  final pointer =
-      Pointer<NativeFunction<Void Function(Struct6)>>.fromAddress(0xdeadbeef);
+  final pointer = Pointer<NativeFunction<Void Function(Struct6)>>.fromAddress(
+    0xdeadbeef,
+  );
   final function6 = pointer.asFunction<void Function(Struct6)>();
   print(function6);
 }
@@ -140,16 +143,17 @@ void testFromFunctionReturn() {
 /// This does not force retaining [Struct8], because it is not reachable.
 void notInvokedLookupFunctionReturn() {
   final dylib = DynamicLibrary.executable();
-  final function8 =
-      dylib.lookupFunction<Struct8 Function(), Struct8 Function()>('function8');
+  final function8 = dylib
+      .lookupFunction<Struct8 Function(), Struct8 Function()>('function8');
   final struct8 = function8();
   print(struct8);
 }
 
 /// This does not force retaining [Struct9], because it is not reachable.
 void notInvokedAsFunctionReturn() {
-  final pointer =
-      Pointer<NativeFunction<Struct9 Function()>>.fromAddress(0xdeadbeef);
+  final pointer = Pointer<NativeFunction<Struct9 Function()>>.fromAddress(
+    0xdeadbeef,
+  );
   final function9 = pointer.asFunction<Struct9 Function()>();
   final struct9 = function9();
   print(struct9);
@@ -161,8 +165,10 @@ int useStruct10(Struct10 struct10) {
 
 /// This does not force retaining [Struct10], because it is not reachable.
 void notInvokedFromFunctionArgument() {
-  final pointer =
-      Pointer.fromFunction<Int32 Function(Struct10)>(useStruct10, 0);
+  final pointer = Pointer.fromFunction<Int32 Function(Struct10)>(
+    useStruct10,
+    0,
+  );
   print(pointer);
 }
 

@@ -33,10 +33,7 @@ class AvoidWebLibrariesInFlutter extends LintRule {
   static final Map<String, bool> _rootHasFlutterCache = {};
 
   AvoidWebLibrariesInFlutter()
-      : super(
-          name: LintNames.avoid_web_libraries_in_flutter,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_web_libraries_in_flutter, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_web_libraries_in_flutter;
@@ -57,8 +54,9 @@ class AvoidWebLibrariesInFlutter extends LintRule {
 
     // If it has Flutter as a dependency, continue checking.
     if (parsedPubspec['dependencies'] case {'flutter': var _?}) {
-      if (parsedPubspec['flutter']
-          case {'plugin': {'platforms': {'web': _?}}}) {
+      if (parsedPubspec['flutter'] case {
+        'plugin': {'platforms': {'web': _?}},
+      }) {
         // Is a Flutter web plugin; allow web libraries.
         return false;
       } else {
@@ -73,7 +71,9 @@ class AvoidWebLibrariesInFlutter extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     bool hasFlutter(String root) {
       var hasFlutter = _rootHasFlutterCache[root];
       if (hasFlutter == null) {

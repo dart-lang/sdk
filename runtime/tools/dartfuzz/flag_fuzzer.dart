@@ -52,6 +52,7 @@ final gcFlags = [
   "--verify_before_gc",
   "--verify_store_buffer",
   "--write_protect_code",
+  "--gc_at_throw",
 ];
 
 final compilerFlags = [

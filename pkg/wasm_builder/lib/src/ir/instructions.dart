@@ -6,11 +6,15 @@ import '../../source_map.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
 
-part 'instruction.dart';
-
 class Instructions implements Serializable {
   /// The locals used by this group of instructions.
   final List<Local> locals;
+
+  /// Names of the locals in `locals`.
+  ///
+  /// Most of the locals won't have names, so this is a [Map] instead of [List]
+  /// like [locals], with local indices as keys and names as values.
+  final Map<int, String> localNames;
 
   /// A sequence of Wasm instructions.
   final List<Instruction> instructions;
@@ -29,8 +33,8 @@ class Instructions implements Serializable {
   final List<SourceMapping>? _sourceMappings;
 
   /// Create a new instruction sequence.
-  Instructions(this.locals, this.instructions, this._stackTraces,
-      this._traceLines, this._sourceMappings);
+  Instructions(this.locals, this.localNames, this.instructions,
+      this._stackTraces, this._traceLines, this._sourceMappings);
 
   @override
   void serialize(Serializer s) {

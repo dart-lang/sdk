@@ -6,19 +6,18 @@
 // This should not prevent execution.
 
 library Prefix21NegativeTest.dart;
+
 import "../library12.dart" as lib12;
 
 class myClass {
-  myClass(
-      lib12.Library13
-//    ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
-// [cfe] Type 'lib12.Library13' not found.
-//          ^
-// [cfe] 'Library13' isn't a type.
-      p) { }
+  myClass(lib12.Library13 p) {}
+  //      ^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [cfe] Type 'lib12.Library13' not found.
+  //            ^
+  // [cfe] 'Library13' isn't a type.
 }
 
 main() {
-  new myClass(null);  // no dynamic type error when assigning null
+  new myClass(null); // no dynamic type error when assigning null
 }

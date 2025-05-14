@@ -50,6 +50,7 @@ import 'add_super_parameter_test.dart' as add_super_parameter;
 import 'add_switch_case_break_test.dart' as add_switch_case_break;
 import 'add_trailing_comma_test.dart' as add_trailing_comma;
 import 'add_type_annotation_test.dart' as add_type_annotation;
+import 'ambiguous_import_fix_test.dart' as ambiguous_import_fix;
 import 'analysis_options/test_all.dart' as analysis_options;
 import 'bulk_fix_processor_test.dart' as bulk_fix_processor;
 import 'change_argument_name_test.dart' as change_argument_name;
@@ -67,6 +68,8 @@ import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
 import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
+import 'convert_null_check_to_null_aware_element_or_entry_test.dart'
+    as convert_null_check_to_null_aware_element_or_entry;
 import 'convert_quotes_test.dart' as convert_quotes;
 import 'convert_related_to_cascade_test.dart' as convert_related_to_cascade;
 import 'convert_to_block_function_body_test.dart'
@@ -92,6 +95,12 @@ import 'convert_to_initializing_formal_test.dart'
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
+import 'convert_to_null_aware_list_element_test.dart'
+    as convert_to_null_aware_list_element_test;
+import 'convert_to_null_aware_map_entry_test.dart'
+    as convert_to_null_aware_map_entry_test;
+import 'convert_to_null_aware_set_element_test.dart'
+    as convert_to_null_aware_set_element_test;
 import 'convert_to_null_aware_spread_test.dart' as convert_to_null_aware_spread;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_on_type_test.dart' as convert_to_on_type;
@@ -154,6 +163,7 @@ import 'make_return_type_nullable_test.dart' as make_return_type_nullable;
 import 'make_super_invocation_last_test.dart' as make_super_invocation_last;
 import 'make_variable_not_final_test.dart' as make_variable_not_final;
 import 'make_variable_nullable_test.dart' as make_variable_nullable;
+import 'merge_combinators_test.dart' as merge_combinators;
 import 'move_annotation_to_library_directive_test.dart'
     as move_annotation_to_library_directive;
 import 'move_doc_comment_to_library_directive_test.dart'
@@ -187,6 +197,8 @@ import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_extends_clause_test.dart' as remove_extends_clause;
 import 'remove_if_null_operator_test.dart' as remove_if_null_operator;
+import 'remove_ignore_comment_test.dart' as remove_ignore_comment;
+import 'remove_ignored_diagnostic_test.dart' as remove_ignored_diagnostic;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_invocation_test.dart' as remove_invocation;
@@ -277,6 +289,8 @@ import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
 import 'replace_with_is_nan_test.dart' as replace_with_is_nan;
 import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_named_constant_test.dart' as replace_with_named_constant;
+import 'replace_with_not_null_aware_element_or_entry_test.dart'
+    as replace_with_not_null_aware_element_or_entry;
 import 'replace_with_not_null_aware_test.dart' as replace_with_not_null_aware;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_part_of_uri_test.dart' as replace_with_part_of_uri;
@@ -360,6 +374,7 @@ void main() {
     convert_into_block_body.main();
     convert_into_expression_body.main();
     convert_into_is_not.main();
+    convert_null_check_to_null_aware_element_or_entry.main();
     convert_quotes.main();
     convert_related_to_cascade.main();
     convert_to_block_function_body.main();
@@ -379,6 +394,9 @@ void main() {
     convert_to_map_literal.main();
     convert_to_named_arguments.main();
     convert_to_null_aware.main();
+    convert_to_null_aware_list_element_test.main();
+    convert_to_null_aware_map_entry_test.main();
+    convert_to_null_aware_set_element_test.main();
     convert_to_null_aware_spread.main();
     convert_to_on_type.main();
     convert_to_package_import.main();
@@ -416,6 +434,7 @@ void main() {
     fix_processor_map.main();
     format_file.main();
     ignore_error.main();
+    ambiguous_import_fix.main();
     import_library_hide.main();
     import_library_prefix.main();
     import_library_project.main();
@@ -436,6 +455,7 @@ void main() {
     make_super_invocation_last.main();
     make_variable_not_final.main();
     make_variable_nullable.main();
+    merge_combinators.main();
     move_annotation_to_library_directive.main();
     move_doc_comment_to_library_directive.main();
     move_type_arguments_to_class.main();
@@ -465,6 +485,8 @@ void main() {
     remove_empty_statement.main();
     remove_extends_clause.main();
     remove_if_null_operator.main();
+    remove_ignore_comment.main();
+    remove_ignored_diagnostic.main();
     remove_initializer.main();
     remove_interpolation_braces.main();
     remove_invocation.main();
@@ -543,6 +565,7 @@ void main() {
     replace_with_is_not_empty.main();
     replace_with_named_constant.main();
     replace_with_not_null_aware.main();
+    replace_with_not_null_aware_element_or_entry.main();
     replace_with_null_aware.main();
     replace_with_part_of_uri.main();
     replace_with_tear_off.main();

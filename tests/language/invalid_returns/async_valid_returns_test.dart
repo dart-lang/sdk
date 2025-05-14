@@ -540,15 +540,15 @@ Future<Future<int>>? async_dynamic_to_Future_Future_int_q_() async {
 }
 
 Future<Future<int>>
-    async_FutureOr_Future_int__to_Future_Future_int__e() async => fofvi;
+async_FutureOr_Future_int__to_Future_Future_int__e() async => fofvi;
 Future<Future<int>> async_FutureOr_Future_int__to_Future_Future_int_() async {
   return fofvi;
 }
 
 Future<Future<int>>?
-    async_FutureOr_Future_int__to_Future_Future_int_q__e() async => fofvi;
+async_FutureOr_Future_int__to_Future_Future_int_q__e() async => fofvi;
 Future<Future<int>>?
-    async_FutureOr_Future_int__to_Future_Future_int_q_() async {
+async_FutureOr_Future_int__to_Future_Future_int_q_() async {
   return fofvi;
 }
 
@@ -559,7 +559,7 @@ Future<Future<int>> async_Future_Future_int__to_Future_Future_int_() async {
 }
 
 Future<Future<int>>?
-    async_Future_Future_int__to_Future_Future_int_q__e() async => ffvi;
+async_Future_Future_int__to_Future_Future_int_q__e() async => ffvi;
 Future<Future<int>>? async_Future_Future_int__to_Future_Future_int_q_() async {
   return ffvi;
 }

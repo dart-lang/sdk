@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SizedBoxForWhitespaceTest);
   });
@@ -33,7 +33,8 @@ Widget f() {
   }
 
   test_hasHeight_andChild() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
@@ -42,9 +43,9 @@ Widget f() {
     child: Row(),
   );
 }
-''', [
-      lint(62, 9),
-    ]);
+''',
+      [lint(62, 9)],
+    );
   }
 
   test_hasHeight_noChild() async {
@@ -60,7 +61,8 @@ Widget f() {
   }
 
   test_hasWidth_andChild() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
@@ -69,9 +71,9 @@ Widget f() {
     child: Row(),
   );
 }
-''', [
-      lint(62, 9),
-    ]);
+''',
+      [lint(62, 9)],
+    );
   }
 
   test_hasWidth_noChild() async {
@@ -87,7 +89,8 @@ Widget f() {
   }
 
   test_hasWidthAndHeight_andChild() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
@@ -97,13 +100,14 @@ Widget f() {
     child: Row(),
   );
 }
-''', [
-      lint(62, 9),
-    ]);
+''',
+      [lint(62, 9)],
+    );
   }
 
   test_hasWidthAndHeight_andKey_noChild() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
@@ -113,13 +117,14 @@ Widget f() {
     height: 10,
   );
 }
-''', [
-      lint(62, 9),
-    ]);
+''',
+      [lint(62, 9)],
+    );
   }
 
   test_hasWidthAndHeight_noChild() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
@@ -128,9 +133,9 @@ Widget f() {
     height: 10,
   );
 }
-''', [
-      lint(62, 9),
-    ]);
+''',
+      [lint(62, 9)],
+    );
   }
 
   test_noArguments() async {

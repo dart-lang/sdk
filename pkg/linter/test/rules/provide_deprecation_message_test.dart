@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ProvideDeprecationMessageTest);
   });
@@ -25,11 +25,12 @@ class C {}
   }
 
   test_withoutMessage() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 @deprecated
 class C {}
-''', [
-      lint(0, 11),
-    ]);
+''',
+      [lint(0, 11)],
+    );
   }
 }

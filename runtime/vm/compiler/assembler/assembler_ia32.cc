@@ -2495,12 +2495,12 @@ void Assembler::EnterFullSafepoint(Register scratch) {
   }
 
   pushl(EAX);
-  movl(EAX, Immediate(target::Thread::full_safepoint_state_unacquired()));
-  movl(scratch, Immediate(target::Thread::full_safepoint_state_acquired()));
+  movl(EAX, Immediate(target::Thread::native_safepoint_state_unacquired()));
+  movl(scratch, Immediate(target::Thread::native_safepoint_state_acquired()));
   LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()), scratch);
   movl(scratch, EAX);
   popl(EAX);
-  cmpl(scratch, Immediate(target::Thread::full_safepoint_state_unacquired()));
+  cmpl(scratch, Immediate(target::Thread::native_safepoint_state_unacquired()));
 
   if (!FLAG_use_slow_path) {
     j(EQUAL, &done);
@@ -2537,8 +2537,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   }
 }
 
-void Assembler::ExitFullSafepoint(Register scratch,
-                                  bool ignore_unwind_in_progress) {
+void Assembler::ExitFullSafepoint(Register scratch) {
   ASSERT(scratch != EAX);
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
@@ -2551,26 +2550,19 @@ void Assembler::ExitFullSafepoint(Register scratch,
   }
 
   pushl(EAX);
-  movl(EAX, Immediate(target::Thread::full_safepoint_state_acquired()));
-  movl(scratch, Immediate(target::Thread::full_safepoint_state_unacquired()));
+  movl(EAX, Immediate(target::Thread::native_safepoint_state_acquired()));
+  movl(scratch, Immediate(target::Thread::native_safepoint_state_unacquired()));
   LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()), scratch);
   movl(scratch, EAX);
   popl(EAX);
-  cmpl(scratch, Immediate(target::Thread::full_safepoint_state_acquired()));
+  cmpl(scratch, Immediate(target::Thread::native_safepoint_state_acquired()));
 
   if (!FLAG_use_slow_path) {
     j(EQUAL, &done);
   }
 
   Bind(&slow_path);
-  if (ignore_unwind_in_progress) {
-    movl(scratch,
-         Address(THR,
-                 target::Thread::
-                     exit_safepoint_ignore_unwind_in_progress_stub_offset()));
-  } else {
-    movl(scratch, Address(THR, target::Thread::exit_safepoint_stub_offset()));
-  }
+  movl(scratch, Address(THR, target::Thread::exit_safepoint_stub_offset()));
   movl(scratch, FieldAddress(scratch, target::Code::entry_point_offset()));
   call(scratch);
 
@@ -2579,17 +2571,14 @@ void Assembler::ExitFullSafepoint(Register scratch,
 
 void Assembler::TransitionNativeToGenerated(Register scratch,
                                             bool exit_safepoint,
-                                            bool ignore_unwind_in_progress,
                                             bool set_tag) {
   if (exit_safepoint) {
-    ExitFullSafepoint(scratch, ignore_unwind_in_progress);
+    ExitFullSafepoint(scratch);
   } else {
-    // flag only makes sense if we are leaving safepoint
-    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     movl(scratch, Address(THR, target::Thread::safepoint_state_offset()));
-    andl(scratch, Immediate(target::Thread::full_safepoint_state_acquired()));
+    andl(scratch, Immediate(target::Thread::native_safepoint_state_acquired()));
     Label ok;
     j(ZERO, &ok);
     Breakpoint();

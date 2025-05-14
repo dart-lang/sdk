@@ -13,10 +13,7 @@ const _desc =
 
 class UnnecessaryLibraryDirective extends LintRule {
   UnnecessaryLibraryDirective()
-      : super(
-          name: LintNames.unnecessary_library_directive,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_library_directive, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_library_directive;

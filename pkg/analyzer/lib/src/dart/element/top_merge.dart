@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -14,6 +12,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class TopMergeHelper {
   final TypeSystemImpl typeSystem;
@@ -26,7 +25,7 @@ class TopMergeHelper {
   /// https://github.com/dart-lang/language/
   /// See `accepted/future-releases/nnbd/feature-specification.md`
   /// See `#classes-defined-in-opted-in-libraries`
-  DartType topMerge(DartType T, DartType S) {
+  TypeImpl topMerge(TypeImpl T, TypeImpl S) {
     var T_nullability = T.nullabilitySuffix;
     var S_nullability = S.nullabilitySuffix;
 
@@ -88,9 +87,9 @@ class TopMergeHelper {
     var T_isQuestion = T_nullability == NullabilitySuffix.question;
     var S_isQuestion = S_nullability == NullabilitySuffix.question;
     if (T_isQuestion && S_isQuestion) {
-      var T_none = (T as TypeImpl).withNullability(NullabilitySuffix.none);
-      var S_none = (S as TypeImpl).withNullability(NullabilitySuffix.none);
-      var R_none = topMerge(T_none, S_none) as TypeImpl;
+      var T_none = T.withNullability(NullabilitySuffix.none);
+      var S_none = S.withNullability(NullabilitySuffix.none);
+      var R_none = topMerge(T_none, S_none);
       return R_none.withNullability(NullabilitySuffix.question);
     } else if (T_isQuestion || S_isQuestion) {
       throw StateError('$T_nullability vs $S_nullability');
@@ -107,20 +106,20 @@ class TopMergeHelper {
     // The NNBD_TOP_MERGE of two types is not defined for types which are not
     // otherwise structurally equal.
 
-    if (T is InterfaceType && S is InterfaceType) {
+    if (T is InterfaceTypeImpl && S is InterfaceTypeImpl) {
       return _interfaceTypes(T, S);
     }
 
-    if (T is FunctionType && S is FunctionType) {
+    if (T is FunctionTypeImpl && S is FunctionTypeImpl) {
       return _functionTypes(T, S);
     }
 
-    if (T is RecordType && S is RecordType) {
+    if (T is RecordTypeImpl && S is RecordTypeImpl) {
       return _recordTypes(T, S);
     }
 
     if (T is TypeParameterType && S is TypeParameterType) {
-      if (T.element == S.element) {
+      if (T.element3 == S.element3) {
         return T;
       } else {
         throw _TopMergeStateError(T, S, 'Not the same type parameters');
@@ -130,18 +129,18 @@ class TopMergeHelper {
     throw _TopMergeStateError(T, S, 'Unexpected pair');
   }
 
-  FunctionTypeImpl _functionTypes(FunctionType T, FunctionType S) {
-    var T_typeParameters = T.typeFormals;
-    var S_typeParameters = S.typeFormals;
+  FunctionTypeImpl _functionTypes(FunctionTypeImpl T, FunctionTypeImpl S) {
+    var T_typeParameters = T.typeParameters;
+    var S_typeParameters = S.typeParameters;
     if (T_typeParameters.length != S_typeParameters.length) {
       throw _TopMergeStateError(T, S, 'Different number of type parameters');
     }
 
-    List<TypeParameterElement> R_typeParameters;
+    List<TypeParameterElementImpl2> R_typeParameters;
     Substitution? T_Substitution;
     Substitution? S_Substitution;
 
-    DartType mergeTypes(DartType T, DartType S) {
+    TypeImpl mergeTypes(TypeImpl T, TypeImpl S) {
       if (T_Substitution != null && S_Substitution != null) {
         T = T_Substitution.substituteType(T);
         S = S_Substitution.substituteType(S);
@@ -161,18 +160,18 @@ class TopMergeHelper {
       T_Substitution = mergedTypeParameters.aSubstitution;
       S_Substitution = mergedTypeParameters.bSubstitution;
     } else {
-      R_typeParameters = const <TypeParameterElement>[];
+      R_typeParameters = const <TypeParameterElementImpl2>[];
     }
 
     var R_returnType = mergeTypes(T.returnType, S.returnType);
 
-    var T_parameters = T.parameters;
-    var S_parameters = S.parameters;
+    var T_parameters = T.formalParameters;
+    var S_parameters = S.formalParameters;
     if (T_parameters.length != S_parameters.length) {
       throw _TopMergeStateError(T, S, 'Different number of formal parameters');
     }
 
-    var R_parameters = <ParameterElementImpl>[];
+    var R_parameters = <FormalParameterElementImpl>[];
     for (var i = 0; i < T_parameters.length; i++) {
       var T_parameter = T_parameters[i];
       var S_parameter = S_parameters[i];
@@ -182,11 +181,11 @@ class TopMergeHelper {
         throw _TopMergeStateError(T, S, 'Different formal parameter kinds');
       }
 
-      if (T_parameter.isNamed && T_parameter.name != S_parameter.name) {
+      if (T_parameter.isNamed && T_parameter.name3 != S_parameter.name3) {
         throw _TopMergeStateError(T, S, 'Different named parameter names');
       }
 
-      DartType R_type;
+      TypeImpl R_type;
 
       // Given two corresponding parameters of type `T1` and `T2`, where at least
       // one of the parameters is covariant:
@@ -222,16 +221,16 @@ class TopMergeHelper {
       );
     }
 
-    return FunctionTypeImpl(
-      typeFormals: R_typeParameters.toFixedList(),
-      parameters: R_parameters.toFixedList(),
+    return FunctionTypeImpl.v2(
+      typeParameters: R_typeParameters.toFixedList(),
+      formalParameters: R_parameters.toFixedList(),
       returnType: R_returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  InterfaceType _interfaceTypes(InterfaceType T, InterfaceType S) {
-    if (T.element != S.element) {
+  InterfaceTypeImpl _interfaceTypes(InterfaceTypeImpl T, InterfaceTypeImpl S) {
+    if (T.element3 != S.element3) {
       throw _TopMergeStateError(T, S, 'Different class elements');
     }
 
@@ -245,7 +244,7 @@ class TopMergeHelper {
         (i) => topMerge(T_arguments[i], S_arguments[i]),
         growable: false,
       );
-      return T.element.instantiate(
+      return T.element3.instantiateImpl(
         typeArguments: arguments,
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -253,31 +252,34 @@ class TopMergeHelper {
   }
 
   ParameterKind? _parameterKind(
-    ParameterElement T_parameter,
-    ParameterElement S_parameter,
+    FormalParameterElement T,
+    FormalParameterElement S,
   ) {
-    // ignore: deprecated_member_use_from_same_package
-    var T_kind = T_parameter.parameterKind;
+    if (T.isRequiredPositional && S.isRequiredPositional) {
+      return ParameterKind.REQUIRED;
+    }
 
-    // ignore: deprecated_member_use_from_same_package
-    var S_kind = S_parameter.parameterKind;
+    if (T.isOptionalPositional && S.isOptionalPositional) {
+      return ParameterKind.REQUIRED;
+    }
 
-    if (T_kind == S_kind) {
-      return T_kind;
+    if (T.isRequiredNamed && S.isRequiredNamed) {
+      return ParameterKind.NAMED_REQUIRED;
+    }
+
+    if (T.isOptionalNamed && S.isOptionalNamed) {
+      return ParameterKind.NAMED;
     }
 
     // Legacy named vs. Required named.
-    if (T_kind == ParameterKind.NAMED_REQUIRED &&
-            S_kind == ParameterKind.NAMED ||
-        T_kind == ParameterKind.NAMED &&
-            S_kind == ParameterKind.NAMED_REQUIRED) {
+    if (T.isRequiredNamed && S.isNamed || T.isNamed || S.isRequiredNamed) {
       return ParameterKind.NAMED_REQUIRED;
     }
 
     return null;
   }
 
-  RecordType _recordTypes(RecordType T1, RecordType T2) {
+  RecordTypeImpl _recordTypes(RecordTypeImpl T1, RecordTypeImpl T2) {
     var positional1 = T1.positionalFields;
     var positional2 = T2.positionalFields;
     if (positional1.length != positional1.length) {
@@ -326,18 +328,17 @@ class TopMergeHelper {
   }
 
   _MergeTypeParametersResult? _typeParameters(
-    List<TypeParameterElement> aParameters,
-    List<TypeParameterElement> bParameters,
+    List<TypeParameterElementImpl2> aParameters,
+    List<TypeParameterElementImpl2> bParameters,
   ) {
     if (aParameters.length != bParameters.length) {
       return null;
     }
 
-    var newParameters = <TypeParameterElementImpl>[];
+    var newParameters = <TypeParameterElementImpl2>[];
     var newTypes = <TypeParameterType>[];
     for (var i = 0; i < aParameters.length; i++) {
-      var name = aParameters[i].name;
-      var newParameter = TypeParameterElementImpl.synthetic(name);
+      var newParameter = aParameters[i].freshCopy();
       newParameters.add(newParameter);
 
       var newType = newParameter.instantiate(
@@ -346,8 +347,8 @@ class TopMergeHelper {
       newTypes.add(newType);
     }
 
-    var aSubstitution = Substitution.fromPairs(aParameters, newTypes);
-    var bSubstitution = Substitution.fromPairs(bParameters, newTypes);
+    var aSubstitution = Substitution.fromPairs2(aParameters, newTypes);
+    var bSubstitution = Substitution.fromPairs2(bParameters, newTypes);
     for (var i = 0; i < aParameters.length; i++) {
       var a = aParameters[i];
       var b = bParameters[i];
@@ -361,6 +362,7 @@ class TopMergeHelper {
         bBound = bSubstitution.substituteType(bBound);
         var newBound = topMerge(aBound, bBound);
         newParameters[i].bound = newBound;
+        newParameters[i].firstFragment.bound = newBound;
       } else {
         return null;
       }
@@ -375,7 +377,7 @@ class TopMergeHelper {
 }
 
 class _MergeTypeParametersResult {
-  final List<TypeParameterElement> typeParameters;
+  final List<TypeParameterElementImpl2> typeParameters;
   final Substitution aSubstitution;
   final Substitution bSubstitution;
 

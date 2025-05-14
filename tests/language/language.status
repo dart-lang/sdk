@@ -30,7 +30,6 @@ vm/type_cast_vm_test: SkipByDesign # Relies on symbol names
 [ $compiler == dart2bytecode ]
 class_modifiers/trans_legacy/legacy_superdeclaration_test: Crash
 const/inference_test: Crash
-final/syntax_test/08: Crash
 regress/regress45763_test: Crash
 vm/reflect_core_vm_test: Crash
 
@@ -74,6 +73,4 @@ function_type/*: Skip # Needs checked mode.
 identifier/built_in_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 
 [ $hot_reload || $hot_reload_rollback ]
-macros/introspect/declaration_introspect_cycle_failure_test: Skip # Issue 54779
 regress/regress22780_test/01: Crash # Issue 29094
-vm/optimized_stacktrace_test: Slow, Pass

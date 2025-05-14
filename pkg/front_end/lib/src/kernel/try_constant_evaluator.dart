@@ -26,12 +26,10 @@ class TryConstantEvaluator extends ConstantEvaluator {
       TypeEnvironment typeEnvironment,
       ReportErrorFunction reportError,
       {Map<String, String>? environmentDefines,
-      required EvaluationMode evaluationMode,
       bool supportReevaluationForTesting = false})
       : this._(librarySupport, constantsBackend, component, typeEnvironment,
             new _ErrorReporter(reportError),
             environmentDefines: environmentDefines,
-            evaluationMode: evaluationMode,
             supportReevaluationForTesting: supportReevaluationForTesting);
 
   TryConstantEvaluator._(
@@ -41,7 +39,6 @@ class TryConstantEvaluator extends ConstantEvaluator {
       TypeEnvironment typeEnvironment,
       this.errorReporter,
       {Map<String, String>? environmentDefines,
-      required super.evaluationMode,
       bool supportReevaluationForTesting = false})
       : _supportReevaluationForTesting = supportReevaluationForTesting,
         super(librarySupport, constantsBackend, component,

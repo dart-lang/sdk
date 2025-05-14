@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: camel_case_types
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -29,6 +28,7 @@ void main() {
     defineReflectiveTests(DartFileEditBuilderImplTest);
     defineReflectiveTests(DartLinkedEditBuilderImplTest);
     defineReflectiveTests(ImportLibraryTest);
+    defineReflectiveTests(ImportLibraryElementTest);
     defineReflectiveTests(WriteOverrideTest);
   });
 }
@@ -1614,72 +1614,6 @@ a''');
     expect(edit.replacement, equalsIgnoringWhitespace(''));
   }
 
-  Future<void> test_writeType_prefixGenerator() async {
-    var aPath = convertPath('/home/test/lib/a.dart');
-    var bPath = convertPath('/home/test/lib/b.dart');
-
-    addSource(aPath, r'''
-class A1 {}
-class A2 {}
-''');
-    addSource(bPath, r'''
-class B {}
-''');
-
-    var path = convertPath('/home/test/lib/test.dart');
-    var content = '';
-    addSource(path, content);
-
-    var a1 = await _getClassElement(aPath, 'A1');
-    var a2 = await _getClassElement(aPath, 'A2');
-    var b = await _getClassElement(bPath, 'B');
-
-    var nextPrefixIndex = 0;
-    String prefixGenerator(_) {
-      return '_prefix${nextPrefixIndex++}';
-    }
-
-    var builder = await newBuilder();
-    await builder.addDartFileEdit(path, (builder) {
-      builder.addInsertion(0, (builder) {
-        builder.writeType(a1.instantiate(
-          typeArguments: [],
-          nullabilitySuffix: NullabilitySuffix.none,
-        ));
-        builder.write(' a1; ');
-
-        builder.writeType(a2.instantiate(
-          typeArguments: [],
-          nullabilitySuffix: NullabilitySuffix.none,
-        ));
-        builder.write(' a2; ');
-
-        builder.writeType(b.instantiate(
-          typeArguments: [],
-          nullabilitySuffix: NullabilitySuffix.none,
-        ));
-        builder.write(' b;');
-      });
-    }, importPrefixGenerator: prefixGenerator);
-    var edits = getEdits(builder);
-    expect(edits, hasLength(2));
-    expect(
-        edits[0].replacement,
-        equalsIgnoringWhitespace(
-            '_prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;'));
-    expect(
-        edits[1].replacement,
-        equalsIgnoringWhitespace("import 'package:test/a.dart' as _prefix0; "
-            "import 'package:test/b.dart' as _prefix1;"));
-
-    var resultCode = SourceEdit.applySequence(content, edits);
-    expect(resultCode, r'''
-import 'package:test/a.dart' as _prefix0;
-import 'package:test/b.dart' as _prefix1;
-
-_prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
-  }
-
   Future<void> test_writeType_preserveHiddenTypesA() async {
     var aPath = convertPath('/home/test/lib/test_a.dart');
     var aContent = 'class A {} class B {} class C {} class D {}';
@@ -2566,144 +2500,6 @@ import 'package:test/all.dart';
     expect(cache[futureOrElement], resolvedFakeUnit.libraryElement2);
   }
 
-  /// Test that importing elements where the library is already imported
-  /// (without a show/hide combinator) produces no additional edits.
-  Future<void> test_importElementLibrary_useShow_existingImport() async {
-    var content = '''
-import 'package:test/a.dart';
-''';
-    var otherContent = '''
-class A {}
-class B {}
-class C {}
-''';
-    var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
-    var unit = await resolveContent('/home/test/lib/test.dart', content);
-
-    var edits = await _getClassImportEdits(
-      destinationUnit: unit,
-      importedUnit: otherUnit,
-      classNames: {'A', 'B'},
-      useShow: true,
-    );
-    expect(edits, isEmpty);
-  }
-
-  /// Test that importing elements where the library is already imported but
-  /// hides the element causes the element to be shown.
-  Future<void>
-      test_importElementLibrary_useShow_existingImport_hidesElement() async {
-    var content = '''
-import 'package:test/a.dart' hide A;
-''';
-    var otherContent = '''
-class A {}
-class B {}
-class C {}
-''';
-    var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
-    var unit = await resolveContent('/home/test/lib/test.dart', content);
-
-    var edits = await _getClassImportEdits(
-      destinationUnit: unit,
-      importedUnit: otherUnit,
-      classNames: {'A', 'B'},
-      useShow: true,
-    );
-    var resultContent = SourceEdit.applySequence(content, edits);
-    expect(
-        resultContent,
-        equals(
-          '''
-import 'package:test/a.dart';
-''',
-        ));
-  }
-
-  /// Test that importing elements where the library is already imported and
-  /// already shows the elements produces no edits.
-  Future<void>
-      test_importElementLibrary_useShow_existingImport_showsElement() async {
-    var content = '''
-import 'package:test/a.dart' show A, B, C;
-''';
-    var otherContent = '''
-class A {}
-class B {}
-class C {}
-''';
-    var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
-    var unit = await resolveContent('/home/test/lib/test.dart', content);
-
-    var edits = await _getClassImportEdits(
-      destinationUnit: unit,
-      importedUnit: otherUnit,
-      classNames: {'A', 'B'},
-      useShow: true,
-    );
-    expect(edits, isEmpty);
-  }
-
-  /// Test that importing elements where the library is already imported but it
-  /// only shows other elements results in the element being shown.
-  Future<void>
-      test_importElementLibrary_useShow_existingImport_showsOthers() async {
-    var content = '''
-import 'package:test/a.dart' show C;
-''';
-    var otherContent = '''
-class A {}
-class B {}
-class C {}
-''';
-    var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
-    var unit = await resolveContent('/home/test/lib/test.dart', content);
-
-    var edits = await _getClassImportEdits(
-      destinationUnit: unit,
-      importedUnit: otherUnit,
-      classNames: {'A', 'B'},
-      useShow: true,
-    );
-    var resultContent = SourceEdit.applySequence(content, edits);
-    expect(
-        resultContent,
-        equals(
-          '''
-import 'package:test/a.dart' show A, B, C;
-''',
-        ));
-  }
-
-  /// Test that that we can add a new import elements using 'show'.
-  Future<void> test_importElementLibrary_useShow_newImport() async {
-    var otherUnit = await resolveContent(
-      '/home/test/lib/a.dart',
-      '''
-class A {}
-class B {}
-''',
-    );
-    var unit = await resolveContent(
-      '/home/test/lib/test.dart',
-      '',
-    );
-
-    var edits = await _getClassImportEdits(
-      destinationUnit: unit,
-      importedUnit: otherUnit,
-      classNames: {'A', 'B'},
-      useShow: true,
-    );
-    expect(edits, hasLength(1));
-    expect(
-        edits[0].replacement,
-        equals(
-          '''import 'package:test/a.dart' show A, B;
-''',
-        ));
-  }
-
   /// Ensure that trying to add an import to show a symbol works with an
   /// explicit empty prefix (to ensure an import with a prefix is not reused nor
   /// a prefix generated).
@@ -2814,30 +2610,6 @@ import 'z.dart';
     expect(edits, hasLength(1));
     expect(edits[0].replacement, equalsIgnoringWhitespace('Future<String>'));
   }
-
-  /// Computes edits to import the class [className] from [importedUnit] into
-  /// [destinationUnit].
-  ///
-  /// If [useShow] is set, will try to add a show combinator for this class.
-  Future<List<SourceEdit>> _getClassImportEdits({
-    required ResolvedUnitResult destinationUnit,
-    required ResolvedUnitResult importedUnit,
-    required Set<String> classNames,
-    bool useShow = false,
-  }) async {
-    var findNode = FindNode(importedUnit.content, importedUnit.unit);
-    var builder = await newBuilder();
-    await builder.addDartFileEdit(destinationUnit.path, (builder) async {
-      var builderImpl = builder as DartFileEditBuilderImpl;
-      for (var className in classNames) {
-        var classElement =
-            findNode.classDeclaration(className).declaredFragment!.element;
-        await builderImpl.importElementLibrary(classElement, useShow: useShow);
-      }
-    });
-
-    return getEdits(builder);
-  }
 }
 
 @reflectiveTest
@@ -2884,6 +2656,206 @@ class C extends B {}
     expect(suggestions, hasLength(4));
     expect(suggestions.map((s) => s.value),
         unorderedEquals(['Object?', 'A?', 'B?', 'C?']));
+  }
+}
+
+@reflectiveTest
+class ImportLibraryElementTest extends AbstractContextTest
+    with DartChangeBuilderMixin {
+  Future<void> test_show_name_differentCombinators() async {
+    _createOther();
+    await _assertImportLibraryElement(
+      initialCode: '''
+import 'dart:aaa';
+import 'other.dart' hide B, C show A, D;
+
+class A {}
+''',
+      uriString: 'package:test/other.dart',
+      showName: 'B',
+      expectedCode: '''
+import 'dart:aaa';
+import 'other.dart' hide C show A, B, D;
+
+class A {}
+''',
+    );
+  }
+
+  Future<void> test_show_name_hideCombinator_multipleNames() async {
+    _createOther();
+    await _assertImportLibraryElement(
+      initialCode: '''
+import 'dart:aaa';
+import 'other.dart' hide A, B;
+
+class A {}
+''',
+      uriString: 'package:test/other.dart',
+      showName: 'B',
+      expectedCode: '''
+import 'dart:aaa';
+import 'other.dart' hide A;
+
+class A {}
+''',
+    );
+  }
+
+  Future<void> test_show_name_hideCombinator_name() async {
+    _createOther();
+    await _assertImportLibraryElement(
+      initialCode: '''
+import 'dart:aaa';
+import 'other.dart' hide B;
+
+class A {}
+''',
+      uriString: 'package:test/other.dart',
+      showName: 'B',
+      expectedCode: '''
+import 'dart:aaa';
+import 'other.dart';
+
+class A {}
+''',
+    );
+  }
+
+  Future<void> test_show_name_multipleHide() async {
+    _createOther();
+    await _assertImportLibraryElement(
+      initialCode: '''
+import 'dart:aaa';
+import 'other.dart' hide B hide A, D;
+
+class A {}
+''',
+      uriString: 'package:test/other.dart',
+      showName: 'B',
+      expectedCode: '''
+import 'dart:aaa';
+import 'other.dart' hide A, D;
+
+class A {}
+''',
+    );
+  }
+
+  Future<void> test_show_name_multipleShow() async {
+    _createOther();
+    await _assertImportLibraryElement(
+      initialCode: '''
+import 'dart:aaa';
+import 'other.dart' show B show A, D;
+
+class A {}
+''',
+      uriString: 'package:test/other.dart',
+      showName: 'B',
+      expectedCode: '''
+import 'dart:aaa';
+import 'other.dart' show B show A, B, D;
+
+class A {}
+''',
+    );
+  }
+
+  Future<void> test_show_name_no_combinator() async {
+    _createOther();
+    await _assertImportLibraryElement(
+      initialCode: '''
+import 'dart:aaa';
+
+class A {}
+''',
+      uriString: 'package:test/other.dart',
+      showName: 'B',
+      expectedCode: '''
+import 'dart:aaa';
+
+import 'package:test/other.dart';
+
+class A {}
+''',
+    );
+  }
+
+  Future<void> test_show_name_prefix() async {
+    _createOther();
+    await _assertImportLibraryElement(
+      initialCode: '''
+import 'dart:aaa';
+
+import 'package:test/other.dart' as b;
+
+class A {}
+''',
+      uriString: 'package:test/other.dart',
+      showName: 'B',
+      expectedCode: '''
+import 'dart:aaa';
+
+import 'package:test/other.dart' as b;
+
+class A {}
+''',
+    );
+  }
+
+  Future<void> test_show_name_showCombinator() async {
+    _createOther();
+    await _assertImportLibraryElement(
+      initialCode: '''
+import 'dart:aaa';
+import 'other.dart' show A;
+
+class A {}
+''',
+      uriString: 'package:test/other.dart',
+      showName: 'B',
+      expectedCode: '''
+import 'dart:aaa';
+import 'other.dart' show A, B;
+
+class A {}
+''',
+    );
+  }
+
+  Future<void> _assertImportLibraryElement({
+    required String initialCode,
+    required String uriString,
+    required String expectedCode,
+    String? prefix,
+    String? showName,
+    bool createEditsForImports = true,
+  }) async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, initialCode);
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path,
+        createEditsForImports: createEditsForImports, (builder) {
+      var uri = Uri.parse(uriString);
+      builder.importLibraryElement(uri, prefix: prefix, showName: showName);
+    });
+
+    var resultCode = initialCode;
+    var edits = getEdits(builder);
+    for (var edit in edits) {
+      resultCode = edit.apply(resultCode);
+    }
+    expect(resultCode, expectedCode);
+  }
+
+  File _createOther() {
+    return newFile(convertPath('/home/test/lib/other.dart'), '''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
   }
 }
 

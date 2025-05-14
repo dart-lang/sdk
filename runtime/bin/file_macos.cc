@@ -94,9 +94,11 @@ MappedMemory* File::Map(MapType type,
       // Try to allocate near the VM's binary.
       hint = reinterpret_cast<void*>(&Dart_Initialize);
       prot = PROT_READ | PROT_EXEC;
-      if (IsAtLeastOS10_14()) {
+#if !defined(DART_HOST_OS_IOS)
+      if (IsAtLeastMacOSX10_14()) {
         map_flags |= (MAP_JIT | MAP_ANONYMOUS);
       }
+#endif
       break;
     case kReadWrite:
       prot = PROT_READ | PROT_WRITE;
@@ -107,10 +109,15 @@ MappedMemory* File::Map(MapType type,
     map_flags |= MAP_FIXED;
   }
   void* addr = start;
-  if ((type == kReadExecute) && IsAtLeastOS10_14()) {
-    // Due to codesigning restrictions, we cannot map the file as executable
-    // directly. We must first copy it into an anonymous mapping and then mark
-    // the mapping as executable.
+#if !defined(DART_HOST_OS_IOS)
+  // Due to codesigning restrictions, we cannot map the file as executable
+  // directly. We must first copy it into an anonymous mapping and then mark
+  // the mapping as executable.
+  const bool should_copy = (type == kReadExecute) && IsAtLeastMacOSX10_14();
+#else
+  const bool should_copy = false;
+#endif
+  if (should_copy) {
     if (addr == nullptr) {
       addr = mmap(hint, length, (PROT_READ | PROT_WRITE), map_flags, -1, 0);
       if (addr == MAP_FAILED) {
@@ -259,7 +266,10 @@ File* File::OpenFD(int fd) {
   return new File(new FileHandle(fd));
 }
 
-File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
+File* File::Open(Namespace* namespc,
+                 const char* name,
+                 FileOpenMode mode,
+                 bool executable) {
   // Report errors for non-regular files.
   struct stat st;
   if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
@@ -307,12 +317,15 @@ CStringUniquePtr File::UriToPath(const char* uri) {
   return CStringUniquePtr(strdup(uri_decoder.decoded()));
 }
 
-File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+File* File::OpenUri(Namespace* namespc,
+                    const char* uri,
+                    FileOpenMode mode,
+                    bool executable) {
   auto path = UriToPath(uri);
   if (path == nullptr) {
     return nullptr;
   }
-  return File::Open(namespc, path.get(), mode);
+  return File::Open(namespc, path.get(), mode, executable);
 }
 
 File* File::OpenStdio(int fd) {

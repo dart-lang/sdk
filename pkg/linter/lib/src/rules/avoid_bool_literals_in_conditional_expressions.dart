@@ -11,10 +11,10 @@ const _desc = r'Avoid `bool` literals in conditional expressions.';
 
 class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
   AvoidBoolLiteralsInConditionalExpressions()
-      : super(
-          name: LintNames.avoid_bool_literals_in_conditional_expressions,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_bool_literals_in_conditional_expressions,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -22,7 +22,9 @@ class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addConditionalExpression(this, visitor);
   }

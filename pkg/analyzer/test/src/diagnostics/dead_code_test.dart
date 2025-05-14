@@ -17,6 +17,16 @@ main() {
 @reflectiveTest
 class DeadCodeTest extends PubPackageResolutionTest
     with DeadCodeTestCases_Language212 {
+  test_asExpression_type() async {
+    await assertErrorsInCode(r'''
+Never doNotReturn() => throw 0;
+
+test() => doNotReturn() as int;
+''', [
+      error(WarningCode.DEAD_CODE, 60, 4),
+    ]);
+  }
+
   test_deadBlock_conditionalElse_recordPropertyAccess() async {
     await assertErrorsInCode(r'''
 void f(({int x, int y}) p) {
@@ -157,6 +167,17 @@ void f(int a) {
     ]);
   }
 
+  test_isExpression_type() async {
+    await assertErrorsInCode(r'''
+Never doNotReturn() => throw 0;
+
+test() => doNotReturn() is int;
+''', [
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 43, 20),
+      error(WarningCode.DEAD_CODE, 60, 4),
+    ]);
+  }
+
   test_localFunction_wildcard() async {
     await assertErrorsInCode(r'''
 void f() {
@@ -181,6 +202,66 @@ void f() {
     ]);
   }
 
+  test_nullAwareIndexedRead() async {
+    await assertErrorsInCode(r'''
+void f(Null n, int i) {
+  n?[i];
+  print('reached');
+}
+''', [
+      // Dead range: `i]`
+      error(WarningCode.DEAD_CODE, 29, 2)
+    ]);
+  }
+
+  test_nullAwareIndexedWrite() async {
+    await assertErrorsInCode(r'''
+void f(Null n, int i, int j) {
+  n?[i] = j;
+  print('reached');
+}
+''', [
+      // Dead range: `i] = j`
+      error(WarningCode.DEAD_CODE, 36, 6)
+    ]);
+  }
+
+  test_nullAwareMethodInvocation() async {
+    await assertErrorsInCode(r'''
+void f(Null n, int i) {
+  n?.foo(i);
+  print('reached');
+}
+''', [
+      // Dead range: `foo(i)`
+      error(WarningCode.DEAD_CODE, 29, 6)
+    ]);
+  }
+
+  test_nullAwarePropertyRead() async {
+    await assertErrorsInCode(r'''
+void f(Null n) {
+  n?.p;
+  print('reached');
+}
+''', [
+      // Dead range: `p`
+      error(WarningCode.DEAD_CODE, 22, 1)
+    ]);
+  }
+
+  test_nullAwarePropertyWrite() async {
+    await assertErrorsInCode(r'''
+void f(Null n, int i) {
+  n?.p = i;
+  print('reached');
+}
+''', [
+      // Dead range: `p = i`
+      error(WarningCode.DEAD_CODE, 29, 5)
+    ]);
+  }
+
   test_objectPattern_neverTypedGetter() async {
     await assertErrorsInCode(r'''
 class A {
@@ -192,6 +273,26 @@ void f(Object x) {
 }
 ''', [
       error(WarningCode.DEAD_CODE, 84, 2),
+    ]);
+  }
+
+  test_prefixedIdentifier_identifier() async {
+    await assertErrorsInCode(r'''
+Never get doNotReturn => throw 0;
+
+test() => doNotReturn.hashCode;
+''', [
+      error(WarningCode.DEAD_CODE, 57, 9),
+    ]);
+  }
+
+  test_propertyAccess_property() async {
+    await assertErrorsInCode(r'''
+Never doNotReturn() => throw 0;
+
+test() => doNotReturn().hashCode;
+''', [
+      error(WarningCode.DEAD_CODE, 57, 9),
     ]);
   }
 }

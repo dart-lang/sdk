@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryOverridesTest);
   });
@@ -21,7 +21,8 @@ class UnnecessaryOverridesTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_overrides;
 
   test_binaryOperator_expressionFunctionBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int operator +(int other) => 0;
 }
@@ -29,9 +30,9 @@ class C extends A {
   @override
   int operator +(int other) => super + other;
 }
-''', [
-      lint(93, 1),
-    ]);
+''',
+      [lint(93, 1)],
+    );
   }
 
   test_class_augmentation_method_withoutOverride_noSuper() async {
@@ -54,27 +55,29 @@ augment class A {
   }
 
   test_enum_field() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 enum A {
   a,b,c;
   @override
   Type get runtimeType => super.runtimeType;
 }
-''', [
-      lint(41, 11),
-    ]);
+''',
+      [lint(41, 11)],
+    );
   }
 
   test_enum_method() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 enum A {
   a,b,c;
   @override
   String toString() => super.toString();
 }
-''', [
-      lint(39, 8),
-    ]);
+''',
+      [lint(39, 8)],
+    );
   }
 
   test_getter_expressionFunctionBody_otherTarget() async {
@@ -91,7 +94,8 @@ class C extends A {
   }
 
   test_getter_expressionFunctionBody_superCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int get x => 0;
 }
@@ -99,9 +103,9 @@ class C extends A {
   @override
   int get x => super.x;
 }
-''', [
-      lint(72, 1),
-    ]);
+''',
+      [lint(72, 1)],
+    );
   }
 
   test_getter_returnTypeChanged() async {
@@ -117,7 +121,8 @@ class C extends A {
   }
 
   test_method_blockBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   void m() {}
 }
@@ -127,9 +132,9 @@ class C extends A {
     super.m();
   }
 }
-''', [
-      lint(65, 1),
-    ]);
+''',
+      [lint(65, 1)],
+    );
   }
 
   test_method_blockBody_noSuper() async {
@@ -175,7 +180,8 @@ class E extends C {
   }
 
   test_method_expressionFunctionBody_everythingTheSame() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int m(int a, int b) => 0;
 }
@@ -183,9 +189,9 @@ class C extends A {
   @override
   int m(int a, int b) => super.m(a, b);
 }
-''', [
-      lint(78, 1),
-    ]);
+''',
+      [lint(78, 1)],
+    );
   }
 
   test_method_expressionFunctionBody_mismatchedAguments() async {
@@ -201,7 +207,8 @@ class C extends A {
   }
 
   test_method_expressionFunctionBody_namedParameters() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int m({int a = 0, int b = 0}) => 0;
 }
@@ -209,9 +216,9 @@ class C extends A {
   @override
   int m({int a = 0, int b = 0}) => super.m(a: a, b: b);
 }
-''', [
-      lint(88, 1),
-    ]);
+''',
+      [lint(88, 1)],
+    );
   }
 
   test_method_expressionFunctionBody_namedParameters_mismatchedArguments() async {
@@ -227,7 +234,8 @@ class C extends A {
   }
 
   test_method_expressionFunctionBody_namedParameters_outOfOrder() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int m({int a = 0, int b = 0}) => 0;
 }
@@ -235,9 +243,9 @@ class C extends A {
   @override
   int m({int a = 0, int b = 0}) => super.m(b: b, a: a);
 }
-''', [
-      lint(88, 1),
-    ]);
+''',
+      [lint(88, 1)],
+    );
   }
 
   test_method_hasOtherAnnotations() async {
@@ -456,7 +464,8 @@ class C extends A {
   }
 
   test_setter_blockBody_superCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   set x(other) {}
 }
@@ -466,9 +475,9 @@ class C extends A {
     super.x = other;
   }
 }
-''', [
-      lint(68, 1),
-    ]);
+''',
+      [lint(68, 1)],
+    );
   }
 
   test_setter_expressionFunctionBody_otherTarget() async {
@@ -509,7 +518,8 @@ class C extends A {
   }
 
   test_unaryOperator_expressionFunctionBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A operator ~() => A();
 }
@@ -517,8 +527,8 @@ class C extends A {
   @override
   A operator ~() => ~super;
 }
-''', [
-      lint(82, 1),
-    ]);
+''',
+      [lint(82, 1)],
+    );
   }
 }

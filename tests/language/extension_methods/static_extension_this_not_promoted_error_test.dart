@@ -17,7 +17,6 @@ extension on C? {
       f(this.cProp);
       //     ^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-      //     ^
       // [cfe] Property 'cProp' cannot be accessed on 'C?' because it is potentially null.
       f(cProp);
       //^^^^^

@@ -35,9 +35,9 @@ Future<void> main() async {
   Expect.type<Map<String, String>>(v1);
   Expect.type<Map<int, int>>(v2);
 }
+
 /** DIFF **/
 /*
-@@ -10,15 +10,14 @@
  
  class Foo<T> {
    T? x;

@@ -12,17 +12,16 @@ const _desc = r'Unnecessary `.new` constructor name.';
 
 class UnnecessaryConstructorName extends LintRule {
   UnnecessaryConstructorName()
-      : super(
-          name: LintNames.unnecessary_constructor_name,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_constructor_name, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_constructor_name;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addRepresentationConstructorName(this, visitor);

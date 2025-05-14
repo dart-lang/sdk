@@ -33,7 +33,6 @@ abstract class TypeEnvironment extends Types {
   Class get functionClass => coreTypes.functionClass;
   Class get objectClass => coreTypes.objectClass;
 
-  InterfaceType get objectLegacyRawType => coreTypes.objectLegacyRawType;
   InterfaceType get objectNonNullableRawType =>
       coreTypes.objectNonNullableRawType;
   InterfaceType get objectNullableRawType => coreTypes.objectNullableRawType;
@@ -293,11 +292,7 @@ abstract class TypeEnvironment extends Types {
       {required DartType expressionStaticType,
       required DartType checkTargetType,
       required SubtypeCheckMode subtypeCheckMode}) {
-    if (!IsSubtypeOf.basedSolelyOnNullabilities(
-            expressionStaticType, checkTargetType)
-        .inMode(subtypeCheckMode)) {
-      return TypeShapeCheckSufficiency.insufficient;
-    } else if (checkTargetType is InterfaceType &&
+    if (checkTargetType is InterfaceType &&
         expressionStaticType is InterfaceType) {
       // Analyze if an interface shape check is sufficient.
 
@@ -410,7 +405,7 @@ abstract class TypeEnvironment extends Types {
       // `E1`. The first type argument of `E2<num, dynamic>` is the same in all
       // such types, and the second type argument is the default type for the
       // second parameter of `E2`, so condition (2*) is satisfied. We conclude
-      // that the shape check is sufficient in `e is E2<enum, dynamic>`.
+      // that the shape check is sufficient in `e is E2<num, dynamic>`.
 
       // First, we compute `B<Q1, ..., Qk>`, which is `A<T1, ..., Tn>` taken as
       // an instance of `B` in `e is/as A<T1, ..., Tn>`, where `B<S1, ..., Sk>`
@@ -473,7 +468,8 @@ abstract class TypeEnvironment extends Types {
           // Condition (2*) is satisfied. We need to check condition (1).
           return isSubtypeOf(
                   expressionStaticType,
-                  testedAgainstTypeAsOperandClass,
+                  testedAgainstTypeAsOperandClass
+                      .withDeclaredNullability(Nullability.nullable),
                   SubtypeCheckMode.withNullabilities)
               ? TypeShapeCheckSufficiency.interfaceShape
               : TypeShapeCheckSufficiency.insufficient;
@@ -879,9 +875,6 @@ abstract class StaticTypeContext {
   /// For opt out libraries this is [Nullability.legacy].
   Nullability get nullable;
 
-  /// Returns the mode under which the current library was compiled.
-  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode;
-
   /// Returns the static type of [node].
   DartType getExpressionType(Expression node);
 
@@ -945,15 +938,10 @@ class StaticTypeContextImpl implements StaticTypeContext {
   @override
   Nullability get nullable => _library.nullable;
 
-  /// Returns the mode under which the current library was compiled.
-  @override
-  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
-      _library.nonNullableByDefaultCompiledMode;
-
   @override
   DartType getExpressionType(Expression node) {
     if (_cache != null) {
-      return _cache!.getExpressionType(node, this);
+      return _cache.getExpressionType(node, this);
     } else {
       return node.getStaticTypeInternal(this);
     }
@@ -962,7 +950,7 @@ class StaticTypeContextImpl implements StaticTypeContext {
   @override
   DartType getForInIteratorType(ForInStatement node) {
     if (_cache != null) {
-      return _cache!.getForInIteratorType(node, this);
+      return _cache.getForInIteratorType(node, this);
     } else {
       return node.getIteratorTypeInternal(this);
     }
@@ -971,7 +959,7 @@ class StaticTypeContextImpl implements StaticTypeContext {
   @override
   DartType getForInElementType(ForInStatement node) {
     if (_cache != null) {
-      return _cache!.getForInElementType(node, this);
+      return _cache.getForInElementType(node, this);
     } else {
       return node.getElementTypeInternal(this);
     }
@@ -1056,10 +1044,6 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
 
   @override
   Nullability get nullable => _library.nullable;
-
-  @override
-  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
-      _library.nonNullableByDefaultCompiledMode;
 
   /// Updates the [nonNullable] and [thisType] to match static type context for
   /// the member [node].
@@ -1158,10 +1142,6 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
 
   @override
   Nullability get nullable => _library.nullable;
-
-  @override
-  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
-      _library.nonNullableByDefaultCompiledMode;
 
   /// Updates the [library] and [thisType] to match static type context for
   /// the member [node].

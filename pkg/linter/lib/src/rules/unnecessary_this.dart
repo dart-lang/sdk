@@ -14,17 +14,16 @@ const _desc = r"Don't access members with `this` unless avoiding shadowing.";
 
 class UnnecessaryThis extends LintRule {
   UnnecessaryThis()
-      : super(
-          name: LintNames.unnecessary_this,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_this, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_this;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addConstructorFieldInitializer(this, visitor);
     registry.addThisExpression(this, visitor);
@@ -67,8 +66,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element == null) return false;
 
     var id = element.displayName;
-    var result = resolveNameInScope(id, node,
-        shouldResolveSetter: element is SetterElement);
+    var result = resolveNameInScope(
+      id,
+      node,
+      shouldResolveSetter: element is SetterElement,
+    );
 
     // No result, definitely no shadowing.
     // The requested element is inherited, or from an extension.

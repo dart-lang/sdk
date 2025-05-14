@@ -4,11 +4,14 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    hide MapPatternEntry;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/instrumentation.dart' show Instrumentation;
+import '../base/scope.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/internal_ast.dart';
 import '../source/constructor_declaration.dart';
@@ -34,7 +37,7 @@ abstract class TypeInferrer {
 
   /// Returns the [FlowAnalysis] used during inference.
   FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
-      SharedTypeView<DartType>> get flowAnalysis;
+      SharedTypeView> get flowAnalysis;
 
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables;
 
@@ -52,8 +55,10 @@ abstract class TypeInferrer {
       DartType returnType, AsyncMarker asyncMarker, Statement body);
 
   /// Performs type inference on the given constructor initializer.
-  InitializerInferenceResult inferInitializer(InferenceHelper helper,
-      ConstructorDeclaration constructorDeclaration, Initializer initializer);
+  InitializerInferenceResult inferInitializer(
+      InferenceHelper helper,
+      ConstructorDeclarationBuilder constructorDeclaration,
+      Initializer initializer);
 
   /// Performs type inference on the given metadata annotations.
   void inferMetadata(
@@ -84,16 +89,13 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final OperationsCfe operations;
 
+  TypeAnalyzerOptions typeAnalyzerOptions;
+
   @override
   late final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
-          SharedTypeView<DartType>> flowAnalysis =
+          SharedTypeView> flowAnalysis =
       new FlowAnalysis(operations, assignedVariables,
-          respectImplicitlyTypedVarInitializers:
-              libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled,
-          fieldPromotionEnabled:
-              libraryBuilder.libraryFeatures.inferenceUpdate2.isEnabled,
-          inferenceUpdate4Enabled:
-              libraryBuilder.libraryFeatures.inferenceUpdate4.isEnabled);
+          typeAnalyzerOptions: typeAnalyzerOptions);
 
   @override
   final AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
@@ -118,6 +120,8 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final SourceLibraryBuilder libraryBuilder;
 
+  final LookupScope extensionScope;
+
   late final StaticTypeContext staticTypeContext =
       new StaticTypeContextImpl.direct(
           libraryBuilder.library, typeSchemaEnvironment,
@@ -129,6 +133,7 @@ class TypeInferrerImpl implements TypeInferrer {
       this.isTopLevel,
       this.thisType,
       this.libraryBuilder,
+      this.extensionScope,
       this.assignedVariables,
       this.dataForTesting)
       : instrumentation = isTopLevel ? null : engine.instrumentation,
@@ -137,14 +142,26 @@ class TypeInferrerImpl implements TypeInferrer {
             fieldNonPromotabilityInfo: libraryBuilder.fieldNonPromotabilityInfo,
             typeCacheNonNullable: engine.typeCacheNonNullable,
             typeCacheNullable: engine.typeCacheNullable,
-            typeCacheLegacy: engine.typeCacheLegacy);
+            typeCacheLegacy: engine.typeCacheLegacy),
+        typeAnalyzerOptions = new TypeAnalyzerOptions(
+            patternsEnabled: libraryBuilder.libraryFeatures.patterns.isEnabled,
+            inferenceUpdate3Enabled:
+                libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled,
+            respectImplicitlyTypedVarInitializers:
+                libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled,
+            fieldPromotionEnabled:
+                libraryBuilder.libraryFeatures.inferenceUpdate2.isEnabled,
+            inferenceUpdate4Enabled:
+                libraryBuilder.libraryFeatures.inferenceUpdate4.isEnabled,
+            soundFlowAnalysisEnabled:
+                libraryBuilder.libraryFeatures.soundFlowAnalysis.isEnabled);
 
   InferenceVisitorBase _createInferenceVisitor(InferenceHelper helper,
-      [ConstructorDeclaration? constructorDeclaration]) {
+      [ConstructorDeclarationBuilder? constructorDeclaration]) {
     // For full (non-top level) inference, we need access to the
     // InferenceHelper so that we can perform error reporting.
     return new InferenceVisitorImpl(
-        this, helper, constructorDeclaration, operations);
+        this, helper, constructorDeclaration, operations, typeAnalyzerOptions);
   }
 
   @override
@@ -245,8 +262,10 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  InitializerInferenceResult inferInitializer(InferenceHelper helper,
-      ConstructorDeclaration constructorDeclaration, Initializer initializer) {
+  InitializerInferenceResult inferInitializer(
+      InferenceHelper helper,
+      ConstructorDeclarationBuilder constructorDeclaration,
+      Initializer initializer) {
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
     // kind of type inference is correct for this kind of initializer.
     // TODO(paulberry): experiment to see if dynamic dispatch would be better,
@@ -300,12 +319,20 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     Uri uriForInstrumentation,
     bool topLevel,
     InterfaceType? thisType,
-    SourceLibraryBuilder library,
+    SourceLibraryBuilder libraryBuilder,
+    LookupScope extensionScope,
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables,
     InferenceDataForTesting? dataForTesting,
     this.benchmarker,
-  ) : impl = new TypeInferrerImpl(engine, uriForInstrumentation, topLevel,
-            thisType, library, assignedVariables, dataForTesting);
+  ) : impl = new TypeInferrerImpl(
+            engine,
+            uriForInstrumentation,
+            topLevel,
+            thisType,
+            libraryBuilder,
+            extensionScope,
+            assignedVariables,
+            dataForTesting);
 
   @override
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables =>
@@ -313,7 +340,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
 
   @override
   FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
-      SharedTypeView<DartType>> get flowAnalysis => impl.flowAnalysis;
+      SharedTypeView> get flowAnalysis => impl.flowAnalysis;
 
   @override
   TypeSchemaEnvironment get typeSchemaEnvironment => impl.typeSchemaEnvironment;
@@ -348,8 +375,10 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   }
 
   @override
-  InitializerInferenceResult inferInitializer(InferenceHelper helper,
-      ConstructorDeclaration constructorDeclaration, Initializer initializer) {
+  InitializerInferenceResult inferInitializer(
+      InferenceHelper helper,
+      ConstructorDeclarationBuilder constructorDeclaration,
+      Initializer initializer) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferInitializer);
     InitializerInferenceResult result =
         impl.inferInitializer(helper, constructorDeclaration, initializer);

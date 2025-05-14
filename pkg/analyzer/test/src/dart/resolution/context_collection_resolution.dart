@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -16,8 +15,6 @@ import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
-import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -34,7 +31,6 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
-import '../../summary/macros_environment.dart';
 import '../analysis/analyzer_state_printer.dart';
 import 'node_text_expectations.dart';
 import 'resolution.dart';
@@ -177,9 +173,6 @@ abstract class ContextResolutionTest
   /// Optional summaries to provide for the collection.
   List<File>? librarySummaryFiles;
 
-  /// By default the kernel implementation is used, this can override it.
-  MacroSupportFactory? macroSupportFactory;
-
   AnalyzerStatePrinterConfiguration analyzerStatePrinterConfiguration =
       AnalyzerStatePrinterConfiguration();
 
@@ -209,8 +202,7 @@ abstract class ContextResolutionTest
       sdkPath: sdkRoot.path,
       sdkSummaryPath: sdkSummaryFile?.path,
       librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
-      updateAnalysisOptions2: updateAnalysisOptions,
-      macroSupportFactory: macroSupportFactory,
+      updateAnalysisOptions3: updateAnalysisOptions,
       drainStreams: false,
     );
 
@@ -342,16 +334,12 @@ abstract class ContextResolutionTest
   @mustCallSuper
   Future<void> tearDown() async {
     await disposeAnalysisContextCollection();
-    KernelCompilationService.disposeDelayed(
-      const Duration(milliseconds: 500),
-    );
   }
 
   /// Override this method to update [analysisOptions] for every context root,
   /// the default or already updated with `analysis_options.yaml` file.
   void updateAnalysisOptions({
     required AnalysisOptionsImpl analysisOptions,
-    required ContextRoot contextRoot,
     required DartSdk sdk,
   }) {}
 
@@ -395,24 +383,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
 
   String get workspaceRootPath => '/home';
 
-  /// Creates `package:macro` and `package:_macro` files, adds to [config].
-  void addMacrosEnvironment(
-    PackageConfigFileBuilder config,
-    MacrosEnvironment macrosEnvironment,
-  ) {
-    var packagesRootFolder = getFolder(packagesRootPath);
-    macrosEnvironment.publicMacrosFolder.copyTo(packagesRootFolder);
-    macrosEnvironment.privateMacrosFolder.copyTo(packagesRootFolder);
-    config.add(
-      name: '_macros',
-      rootPath: getFolder('$packagesRootPath/_macros').path,
-    );
-    config.add(
-      name: 'macros',
-      rootPath: getFolder('$packagesRootPath/macros').path,
-    );
-  }
-
   /// Build summary bundle for a single URI `package:foo/foo.dart`.
   Future<File> buildPackageFooSummary({
     required Map<String, String> files,
@@ -446,25 +416,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
     await disposeAnalysisContextCollection();
 
     return bundleFile;
-  }
-
-  bool configureWithCommonMacros() {
-    try {
-      writeTestPackageConfig(
-        PackageConfigFileBuilder(),
-        macrosEnvironment: MacrosEnvironment.instance,
-      );
-
-      newFile(
-        '$testPackageLibPath/append.dart',
-        getMacroCode('append.dart'),
-      );
-
-      return true;
-    } catch (_) {
-      markTestSkipped('Cannot initialize macro environment.');
-      return false;
-    }
   }
 
   @override
@@ -510,7 +461,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
     bool flutter = false,
     bool js = false,
     bool meta = false,
-    MacrosEnvironment? macrosEnvironment,
   }) {
     config = config.copy();
 
@@ -546,10 +496,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
     if (meta || flutter) {
       var metaPath = addMeta().parent.path;
       config.add(name: 'meta', rootPath: metaPath);
-    }
-
-    if (macrosEnvironment != null) {
-      addMacrosEnvironment(config, macrosEnvironment);
     }
 
     writePackageConfig(testPackageRootPath, config);

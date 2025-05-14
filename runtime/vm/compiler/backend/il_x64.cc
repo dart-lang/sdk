@@ -175,12 +175,12 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
        ((element_size_ == 16) && unboxed_inputs_));
   locs->set_in(kSrcStartPos,
                needs_writable_inputs
-                   ? LocationWritableRegisterOrConstant(src_start())
-                   : LocationRegisterOrConstant(src_start()));
+                   ? LocationWritableRegisterOrSmiConstant(src_start())
+                   : LocationRegisterOrSmiConstant(src_start()));
   locs->set_in(kDestStartPos,
                needs_writable_inputs
-                   ? LocationWritableRegisterOrConstant(dest_start())
-                   : LocationRegisterOrConstant(dest_start()));
+                   ? LocationWritableRegisterOrSmiConstant(dest_start())
+                   : LocationRegisterOrSmiConstant(dest_start()));
   if (length()->BindsToSmiConstant() && length()->BoundSmiConstant() <= 4) {
     locs->set_in(
         kLengthPos,
@@ -1348,7 +1348,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ CallCFunction(target_address, /*restore_rsp=*/true);
 
       // Update information in the thread object and leave the safepoint.
-      __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
+      __ TransitionNativeToGenerated(/*exit_safepoint=*/true);
     } else {
       // We cannot trust that this code will be executable within a safepoint.
       // Therefore we delegate the responsibility of entering/exiting the
@@ -1474,7 +1474,6 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // The callback trampoline (caller) has already left the safepoint for us.
   __ TransitionNativeToGenerated(/*exit_safepoint=*/false,
-                                 /*ignore_unwind_in_progress=*/false,
                                  /*set_tag=*/false);
 
   // Load the code object.

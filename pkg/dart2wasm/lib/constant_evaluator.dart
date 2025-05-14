@@ -16,8 +16,14 @@ import 'target.dart';
 class ConstantEvaluator extends kernel.ConstantEvaluator
     implements VMConstantEvaluator {
   final bool _checkBounds;
+  final bool _minify;
+  final bool _hasDynamicModuleSupport;
+  final bool _deferredLoadingEnabled;
 
   final Procedure _dartInternalCheckBoundsGetter;
+  final Procedure _dartInternalMinifyGetter;
+  final Procedure _dartInternalHasDynamicModuleSupportGetter;
+  final Procedure _dartInternalDeferredLoadingEnabled;
 
   ConstantEvaluator(
       WasmCompilerOptions options,
@@ -27,8 +33,20 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
       ClassHierarchy classHierarchy,
       LibraryIndex libraryIndex)
       : _checkBounds = !options.translatorOptions.omitBoundsChecks,
+        _minify = options.translatorOptions.minify,
+        _hasDynamicModuleSupport = options.dynamicModuleMainUri != null,
+        _deferredLoadingEnabled =
+            options.translatorOptions.enableDeferredLoading ||
+                options.translatorOptions.enableMultiModuleStressTestMode,
         _dartInternalCheckBoundsGetter = libraryIndex.getTopLevelProcedure(
-            "dart:_internal", "get:_checkBounds"),
+            "dart:_internal", "get:checkBounds"),
+        _dartInternalMinifyGetter =
+            libraryIndex.getTopLevelProcedure("dart:_internal", "get:minify"),
+        _dartInternalHasDynamicModuleSupportGetter =
+            libraryIndex.getTopLevelProcedure(
+                "dart:_internal", "get:hasDynamicModuleSupport"),
+        _dartInternalDeferredLoadingEnabled = libraryIndex.getTopLevelProcedure(
+            "dart:_internal", "get:deferredLoadingEnabled"),
         super(
           target.dartLibrarySupport,
           target.constantsBackend,
@@ -39,7 +57,6 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
           enableTripleShift: true,
           enableAsserts: options.translatorOptions.enableAsserts,
           errorOnUnevaluatedConstant: true,
-          evaluationMode: kernel.EvaluationMode.strong,
         );
 
   @override
@@ -47,6 +64,15 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
     final target = node.target;
     if (target == _dartInternalCheckBoundsGetter) {
       return canonicalize(BoolConstant(_checkBounds));
+    }
+    if (target == _dartInternalMinifyGetter) {
+      return canonicalize(BoolConstant(_minify));
+    }
+    if (target == _dartInternalHasDynamicModuleSupportGetter) {
+      return canonicalize(BoolConstant(_hasDynamicModuleSupport));
+    }
+    if (target == _dartInternalDeferredLoadingEnabled) {
+      return canonicalize(BoolConstant(_deferredLoadingEnabled));
     }
 
     return super.visitStaticGet(node);
@@ -58,5 +84,8 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
   // error if they are not).
   @override
   bool shouldEvaluateMember(Member node) =>
-      node == _dartInternalCheckBoundsGetter;
+      node == _dartInternalCheckBoundsGetter ||
+      node == _dartInternalMinifyGetter ||
+      node == _dartInternalHasDynamicModuleSupportGetter ||
+      node == _dartInternalDeferredLoadingEnabled;
 }

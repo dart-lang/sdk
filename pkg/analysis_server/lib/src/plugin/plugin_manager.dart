@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analysis_server_plugin/src/plugin_server.dart';
+/// @docImport 'package:analysis_server/src/plugin/plugin_watcher.dart';
+library;
+
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
@@ -203,13 +207,20 @@ abstract class PluginInfo {
 
   void reportException(CaughtException exception) {
     // If a previous exception has been reported, do not replace it here; the
-    //first should have more "root cause" information.
+    // first should have more "root cause" information.
     _exception ??= exception;
     instrumentationService.logPluginException(
       data,
       exception.exception,
       exception.stackTrace,
     );
+    var message =
+        'An error occurred while executing an analyzer plugin: '
+        // Sometimes the message is the primary information; sometimes the
+        // exception is.
+        '${exception.message ?? exception.exception}\n'
+        '${exception.stackTrace}';
+    notificationManager.handlePluginError(message);
   }
 
   /// If the plugin is currently running, send a request based on the given
@@ -320,6 +331,14 @@ class PluginManager {
 
   final StreamController<void> _pluginsChanged = StreamController.broadcast();
 
+  /// Whether plugins are "initialized."
+  ///
+  /// Plugins are declared to be initialized either (a) when the [PluginWatcher]
+  /// has determined no plugins are configured to be run, or (b) when the
+  /// plugins are configured and the first status notification is received by
+  /// the analysis server.
+  Completer<void> initializedCompleter = Completer();
+
   /// Initialize a newly created plugin manager. The notifications from the
   /// running plugins will be handled by the given [notificationManager].
   PluginManager(
@@ -376,6 +395,7 @@ class PluginManager {
       );
       _pluginMap[path] = plugin;
       try {
+        instrumentationService.logInfo('Starting plugin "$plugin"');
         var session = await plugin.start(byteStorePath, sdkPath);
         unawaited(
           session?.onDone.then((_) {
@@ -689,13 +709,16 @@ class PluginManager {
       String? exceptionReason;
       if (result.exitCode != 0) {
         var buffer = StringBuffer();
-        buffer.writeln('Failed to run pub $pubCommand');
-        buffer.writeln('  pluginFolder = ${pluginFolder.path}');
+        buffer.writeln(
+          'An error occurred while setting up the analyzer plugin package at '
+          "'${pluginFolder.path}'. The `dart pub $pubCommand` command failed:",
+        );
         buffer.writeln('  exitCode = ${result.exitCode}');
         buffer.writeln('  stdout = ${result.stdout}');
         buffer.writeln('  stderr = ${result.stderr}');
         exceptionReason = buffer.toString();
         instrumentationService.logError(exceptionReason);
+        notificationManager.handlePluginError(exceptionReason);
       }
       if (!packageConfigFile.exists) {
         exceptionReason ??= 'File "${packageConfigFile.path}" does not exist.';
@@ -917,8 +940,7 @@ class PluginSession {
   /// response to those requests.
   @visibleForTesting
   // ignore: library_private_types_in_public_api
-  Map<String, _PendingRequest>
-  pendingRequests = <String, _PendingRequest>{};
+  Map<String, _PendingRequest> pendingRequests = <String, _PendingRequest>{};
 
   /// A boolean indicating whether the plugin is compatible with the version of
   /// the plugin API being used by this server.
@@ -948,7 +970,7 @@ class PluginSession {
   /// Return a future that will complete when the plugin has stopped.
   Future<void> get onDone => pluginStoppedCompleter.future;
 
-  /// Handle the given [notification].
+  /// Handle the given [notification] from [PluginServer].
   void handleNotification(Notification notification) {
     if (notification.event == PLUGIN_NOTIFICATION_ERROR) {
       var params = PluginErrorParams.fromNotification(notification);
@@ -974,11 +996,19 @@ class PluginSession {
 
   /// Handle the fact that an unhandled error has occurred in the plugin.
   void handleOnError(dynamic error) {
-    var errorPair = (error as List).cast<String>();
-    var stackTrace = StackTrace.fromString(errorPair[1]);
-    info.reportException(
-      CaughtException(PluginException(errorPair[0]), stackTrace),
-    );
+    if (error case [String message, String stackTraceString]) {
+      var stackTrace = StackTrace.fromString(stackTraceString);
+      var exception = PluginException(message);
+      info.reportException(
+        CaughtException.withMessage(message, exception, stackTrace),
+      );
+    } else {
+      throw ArgumentError.value(
+        error,
+        'error',
+        'expected to be a two-element List of Strings.',
+      );
+    }
   }
 
   /// Handle a [response] from the plugin by completing the future that was
@@ -1027,6 +1057,17 @@ class PluginSession {
       completer,
     );
     channel.sendRequest(request);
+    completer.future.then((response) {
+      // If a RequestError is returned in the response, report this as an
+      // exception.
+      if (response.error case var error?) {
+        var stackTrace = StackTrace.fromString(error.stackTrace!);
+        var exception = PluginException(error.message);
+        info.reportException(
+          CaughtException.withMessage(error.message, exception, stackTrace),
+        );
+      }
+    });
     return completer.future;
   }
 

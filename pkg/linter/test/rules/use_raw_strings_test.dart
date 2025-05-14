@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseRawStringsTest);
   });
@@ -18,27 +18,30 @@ class UseRawStringsTest extends LintRuleTest {
   String get lintRule => LintNames.use_raw_strings;
 
   test_escapedBackslash() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var f = '\\';
-''', [
-      lint(8, 4),
-    ]);
+''',
+      [lint(8, 4)],
+    );
   }
 
   test_escapedDollar() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var f = '\$';
-''', [
-      lint(8, 4),
-    ]);
+''',
+      [lint(8, 4)],
+    );
   }
 
   test_escapedMultiple() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var f = '\$ and \\';
-''', [
-      lint(8, 11),
-    ]);
+''',
+      [lint(8, 11)],
+    );
   }
 
   test_escapedMultiple_withInterpolation() async {
@@ -86,27 +89,30 @@ var f = r'\$ and \\ and \n';
   }
 
   test_triple_escapedBackslash() async {
-    await assertDiagnostics(r"""
+    await assertDiagnostics(
+      r"""
 var f = '''\\''';
-""", [
-      lint(8, 8),
-    ]);
+""",
+      [lint(8, 8)],
+    );
   }
 
   test_triple_escapedDollar() async {
-    await assertDiagnostics(r"""
+    await assertDiagnostics(
+      r"""
 var f = '''\$''';
-""", [
-      lint(8, 8),
-    ]);
+""",
+      [lint(8, 8)],
+    );
   }
 
   test_triple_escapedMultiple() async {
-    await assertDiagnostics(r"""
+    await assertDiagnostics(
+      r"""
 var f = '''\$ and \\''';
-""", [
-      lint(8, 15),
-    ]);
+""",
+      [lint(8, 15)],
+    );
   }
 
   test_triple_escapedMultiple_andInterpolation() async {

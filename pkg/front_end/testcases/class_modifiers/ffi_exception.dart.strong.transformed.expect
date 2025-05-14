@@ -46,11 +46,6 @@ import "dart:ffi" as ffi;
 
 import "dart:ffi";
 
-abstract final class _WithFinal&Object&Double extends core::Object implements ffi::Double /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_WithFinal&Object&Double
-    : super core::Object::•()
-    ;
-}
 class WithFinal extends self::_WithFinal&Object&Double {
   synthetic constructor •() → self::WithFinal
     : super self::_WithFinal&Object&Double::•()
@@ -79,5 +74,10 @@ class ImplementsBase extends core::Object implements ffi::Opaque {
 class ExtendsInterface extends ffi::Finalizable {
   synthetic constructor •() → self::ExtendsInterface
     : invalid-initializer
+    ;
+}
+abstract final class _WithFinal&Object&Double extends core::Object implements ffi::Double /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithFinal&Object&Double
+    : super core::Object::•()
     ;
 }

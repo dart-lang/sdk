@@ -506,34 +506,31 @@ class NoProducerOverlapsTest {
     // action accidentally executing data-driven fixes.
 
     var dataDrivenCodes = <String>{};
-    var bulkFixCodes = registeredFixGenerators.lintProducers.entries
+    var bulkFixForLintCodes = registeredFixGenerators.lintProducers.entries
         .where(
-          (e) =>
-              e.value
-                  .where(
-                    (generator) =>
-                        generator(
-                          context: StubCorrectionProducerContext.instance,
-                        ).canBeAppliedAcrossFiles,
-                  )
-                  .isNotEmpty,
+          (e) => e.value.any(
+            (generator) =>
+                generator(
+                  context: StubCorrectionProducerContext.instance,
+                ).canBeAppliedAcrossFiles,
+          ),
         )
         .map((e) => e.key);
+    var bulkFixForNonLintCodes = registeredFixGenerators
+        .nonLintProducers
+        .entries
+        .where(
+          (e) => e.value.any(
+            (generator) =>
+                generator(
+                  context: StubCorrectionProducerContext.instance,
+                ).canBeAppliedAcrossFiles,
+          ),
+        )
+        .map((e) => e.key.uniqueName);
     var nonDataDrivenCodes = {
-      ...bulkFixCodes,
-      ...registeredFixGenerators.nonLintProducers.entries
-          .where(
-            (e) =>
-                e.value
-                    .where(
-                      (generator) =>
-                          generator(
-                            context: StubCorrectionProducerContext.instance,
-                          ).canBeAppliedAcrossFiles,
-                    )
-                    .isNotEmpty,
-          )
-          .map((e) => e.key.uniqueName),
+      ...bulkFixForLintCodes,
+      ...bulkFixForNonLintCodes,
     };
 
     for (var MapEntry(key: code, value: generators)

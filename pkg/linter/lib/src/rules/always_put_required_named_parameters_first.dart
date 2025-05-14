@@ -11,10 +11,10 @@ const _desc = r'Put required named parameters first.';
 
 class AlwaysPutRequiredNamedParametersFirst extends LintRule {
   AlwaysPutRequiredNamedParametersFirst()
-      : super(
-          name: LintNames.always_put_required_named_parameters_first,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.always_put_required_named_parameters_first,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -22,7 +22,9 @@ class AlwaysPutRequiredNamedParametersFirst extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFormalParameterList(this, visitor);
   }

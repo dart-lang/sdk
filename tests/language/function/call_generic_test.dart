@@ -6,11 +6,25 @@
 import "package:expect/expect.dart";
 
 @pragma('dart2js:noInline')
-List staticFn<T>([T? a1, T? a2, T? a3, T? a4, T? a5]) => [T, a1, a2, a3, a4, a5];
+List staticFn<T>([T? a1, T? a2, T? a3, T? a4, T? a5]) => [
+  T,
+  a1,
+  a2,
+  a3,
+  a4,
+  a5,
+];
 
 class C {
   @pragma('dart2js:noInline')
-  List memberFn<T>([T? a1, T? a2, T? a3, T? a4, T? a5]) => [T, a1, a2, a3, a4, a5];
+  List memberFn<T>([T? a1, T? a2, T? a3, T? a4, T? a5]) => [
+    T,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+  ];
 
   @pragma('dart2js:noInline')
   // 'map' is implemented by native iterables. On dart2js, 'map' has interceptor

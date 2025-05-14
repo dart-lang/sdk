@@ -24,11 +24,10 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // NNBD makes this obsolete in the "chain" application; for the "single"
-          // application, there are other options and a null-aware replacement is
-          // not predictably correct.
-          CorrectionApplicability
-          .singleLocation;
+      // NNBD makes this obsolete in the "chain" application; for the "single"
+      // application, there are other options and a null-aware replacement is
+      // not predictably correct.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_operator, '?$_operator'];
@@ -46,11 +45,9 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeInChain(ChangeBuilder builder) async {
-    var node = coveringNode;
-    if (node is Expression) {
-      var node_final = node;
-      await builder.addDartFileEdit(file, (builder) {
-        var parent = node_final.parent;
+    await builder.addDartFileEdit(file, (builder) {
+      var node = coveringNode;
+      if (node case Expression(:var parent)) {
         while (parent != null) {
           if (parent is MethodInvocation && parent.target == node) {
             var operator = parent.operator;
@@ -63,10 +60,10 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
             break;
           }
           node = parent;
-          parent = node?.parent;
+          parent = node.parent;
         }
-      });
-    }
+      }
+    });
   }
 
   Future<void> _computeSingle(ChangeBuilder builder) async {

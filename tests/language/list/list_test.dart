@@ -68,7 +68,7 @@ class ListTest {
     Expect.equals(1, a[1]);
     Expect.throwsRangeError(() => a[len]);
 
-   Expect.throws(() {
+    Expect.throws(() {
       List a = new List<dynamic>.filled(4, null);
       // Ensure that we catch null coming in even in weak mode.
       a.setRange(1, 2, a, null as dynamic);

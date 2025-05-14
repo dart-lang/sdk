@@ -266,15 +266,7 @@ control_flow_in_finally:
     ...
 ```
 
-If you do add or change a lint's diagnostic documentation,
-make sure to regenerate the resulting [`diagnostics.md` file][]:
-
-```
-dart run pkg/analyzer/tool/diagnostics/generate.dart
-```
-
 [documenting diagnostics]: ../../analyzer/doc/implementation/diagnostics.md#document-the-diagnostic
-[`diagnostics.md` file]: ../../analyzer/tool/diagnostics/diagnostics.md
 
 ## Mechanics
 
@@ -399,7 +391,6 @@ make sure all generated files are up to date.
 
 ```
 dart run pkg/linter/tool/generate_lints.dart
-dart run pkg/analyzer/tool/diagnostics/generate.dart
 ```
 
 ### Utilities
@@ -429,4 +420,4 @@ performing your own full `CompilationUnit` visits.
 Details are under active development.
 Feedback is most [welcome][issues]!
 
-[issues]: https://github.com/dart-lang/sdk/issues/new?assignees=&labels=area-analyzer,analyzer-linter&projects=&template=2_analyzer.md
+[issues]: https://github.com/dart-lang/sdk/issues/new?assignees=&labels=area-devexp,devexp-linter&projects=&template=2_analyzer.md

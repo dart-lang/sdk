@@ -33,10 +33,8 @@ class FakeFlutter {
   Widget f() {
     return Column(children: [
       Text('aaa'),
-// start
-      Text('bbb'),
-      Text('ccc'),
-// end
+      [!Text('bbb'),
+      Text('ccc'),!]
       Text('ddd'),
     ]);
   }

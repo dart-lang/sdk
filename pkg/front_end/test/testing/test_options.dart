@@ -10,8 +10,6 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
         AllowedExperimentalFlags,
         ExperimentalFlag,
         defaultAllowedExperimentalFlags;
-import 'package:front_end/src/base/command_line_options.dart';
-import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:kernel/ast.dart' show Component, Version;
 import 'package:testing/testing.dart' show TestDescription;
 
@@ -22,8 +20,6 @@ const Option<Uri?> dynamicInterface =
     const Option('--dynamic-interface', const UriValue());
 
 const List<Option> testOptionsSpecification = [
-  Options.nnbdStrongMode,
-  Options.nnbdWeakMode,
   fixNnbdReleaseVersion,
   dynamicInterface,
 ];
@@ -39,7 +35,6 @@ class SuiteTestOptions {
       File optionsFile =
           new File.fromUri(directory.uri.resolve('test.options'));
       Set<Uri> linkDependencies = new Set<Uri>();
-      NnbdMode? nnbdMode;
       AllowedExperimentalFlags? allowedExperimentalFlags;
       Map<ExperimentalFlag, Version>? experimentEnabledVersion;
       Map<ExperimentalFlag, Version>? experimentReleasedVersion;
@@ -49,16 +44,6 @@ class SuiteTestOptions {
             ParsedOptions.readOptionsFile(optionsFile.readAsStringSync());
         ParsedOptions parsedOptions =
             ParsedOptions.parse(arguments, testOptionsSpecification);
-        if (Options.nnbdStrongMode.read(parsedOptions)) {
-          nnbdMode = NnbdMode.Strong;
-        }
-        if (Options.nnbdWeakMode.read(parsedOptions)) {
-          if (nnbdMode != null) {
-            throw new UnsupportedError(
-                'Nnbd mode $nnbdMode already specified.');
-          }
-          nnbdMode = NnbdMode.Weak;
-        }
         if (fixNnbdReleaseVersion.read(parsedOptions)) {
           // Allow package:allowed_package to use nnbd features from version
           // 2.9.
@@ -92,7 +77,6 @@ class SuiteTestOptions {
         }
       }
       testOptions = new TestOptions(linkDependencies,
-          nnbdMode: nnbdMode,
           allowedExperimentalFlags: allowedExperimentalFlags,
           experimentEnabledVersion: experimentEnabledVersion,
           experimentReleasedVersion: experimentReleasedVersion,
@@ -109,7 +93,6 @@ class SuiteTestOptions {
 /// setting up custom experimental flag defaults for a single test.
 class TestOptions {
   final Set<Uri> linkDependencies;
-  final NnbdMode? nnbdMode;
   final AllowedExperimentalFlags? allowedExperimentalFlags;
   final Map<ExperimentalFlag, Version>? experimentEnabledVersion;
   final Map<ExperimentalFlag, Version>? experimentReleasedVersion;
@@ -118,8 +101,7 @@ class TestOptions {
   List<Iterable<String>>? errors;
 
   TestOptions(this.linkDependencies,
-      {required this.nnbdMode,
-      required this.allowedExperimentalFlags,
+      {required this.allowedExperimentalFlags,
       required this.experimentEnabledVersion,
       required this.experimentReleasedVersion,
       required this.dynamicInterfaceSpecificationUri});

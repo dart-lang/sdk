@@ -72,3 +72,6 @@ io/named_pipe_script_test: Skip # Issue 28737
 io/dart_std_io_pipe_test: Timeout, Pass
 io/http_client_stays_alive_test: Skip # Spawns process in Dart2 mode.
 io/process_sync_test: Timeout, Pass
+
+[ $hot_reload || $hot_reload_rollback ]
+io/named_pipe_script_test: Skip # Can't read from the pipe twice

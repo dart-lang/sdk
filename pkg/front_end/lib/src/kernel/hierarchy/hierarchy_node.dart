@@ -10,10 +10,9 @@ import 'package:kernel/type_algebra.dart';
 import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/library_builder.dart';
-import '../../builder/named_type_builder.dart';
-import '../../builder/nullability_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../codes/cfe_codes.dart';
+import '../../source/source_class_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../testing/id_testing_utils.dart' show typeToText;
 import '../../type_inference/type_schema.dart' show UnknownType;
@@ -119,9 +118,8 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
   Uri get _fileUri => _classBuilder.fileUri;
 
   ClassHierarchyNode build() {
-    assert(!_classBuilder.isAugmenting);
     ClassHierarchyNode? supernode;
-    if (_objectClass != _classBuilder.origin) {
+    if (_objectClass != _classBuilder) {
       ClassBuilder? superClassBuilder =
           getClass(_classBuilder.supertypeBuilder!);
       supernode =
@@ -264,25 +262,15 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
     if (typeArguments.isEmpty || typeArguments.first is! UnknownType) {
       return mixinNode;
     }
-    new BuilderMixinInferrer(_classBuilder, _hierarchy,
-            mixedInSupertype.classNode.typeParameters)
-        .infer(cls);
-    InterfaceType mixedInType = cls.mixedInType!.asInterfaceType;
-    TypeBuilder mixedInTypeBuilder = _classBuilder.mixedInTypeBuilder!;
-    _classBuilder.mixedInTypeBuilder = new NamedTypeBuilderImpl.forDartType(
-        mixedInType,
-        mixedInTypeBuilder.declaration!,
-        new NullabilityBuilder.fromNullability(Nullability.nonNullable),
-        arguments: new List<TypeBuilder>.generate(typeArguments.length,
-            (int i) => _hierarchy.loader.computeTypeBuilder(typeArguments[i]),
-            growable: false),
-        fileUri: mixedInTypeBuilder.fileUri,
-        charOffset: mixedInTypeBuilder.charOffset);
-    LibraryBuilder library = _classBuilder.libraryBuilder;
-    if (library is SourceLibraryBuilder) {
-      library.registerBoundsCheck(mixedInType, mixedInTypeBuilder.fileUri!,
-          mixedInTypeBuilder.charOffset!, TypeUse.classWithType,
-          inferred: true);
+    ClassBuilder classBuilder = _classBuilder;
+    if (classBuilder is SourceClassBuilder) {
+      new BuilderMixinInferrer(classBuilder, _hierarchy,
+              mixedInSupertype.classNode.typeParameters)
+          .infer(cls);
+      classBuilder.setInferredMixedInTypeArguments(
+          new List<TypeBuilder>.generate(typeArguments.length,
+              (int i) => _hierarchy.loader.computeTypeBuilder(typeArguments[i]),
+              growable: false));
     }
     return mixinNode;
   }
@@ -408,7 +396,6 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   Uri get _fileUri => _extensionTypeBuilder.fileUri;
 
   ExtensionTypeHierarchyNode build() {
-    assert(!_extensionTypeBuilder.isAugmenting);
     Map<Class, Supertype> superclasses = {};
     Map<ExtensionTypeDeclaration, ExtensionType> superExtensionTypes = {};
     List<ClassHierarchyNode>? superclassNodes;

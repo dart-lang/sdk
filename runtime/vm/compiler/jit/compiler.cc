@@ -498,7 +498,7 @@ CodePtr CompileParsedFunctionHelper::Compile() {
   while (!done) {
     *result = Code::null();
     LongJumpScope jump;
-    if (setjmp(*jump.Set()) == 0) {
+    if (DART_SETJMP(*jump.Set()) == 0) {
       FlowGraph* flow_graph = nullptr;
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
 
@@ -673,7 +673,7 @@ static ObjectPtr CompileFunctionHelper(const Function& function,
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
@@ -811,7 +811,8 @@ ObjectPtr Compiler::CompileFunction(Thread* thread, const Function& function) {
         Function::KindToCString(function.kind()));
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-  VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
+  VMTagScope tag_scope(thread, VMTag::kCompileUnoptimizedTagId);
+  NoReloadScope no_reload_scope(thread);
 #if defined(SUPPORT_TIMELINE)
   const char* event_name;
   if (IsBackgroundCompilation()) {
@@ -860,6 +861,7 @@ ObjectPtr Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
   VMTagScope tag_scope(thread, VMTag::kCompileOptimizedTagId);
+  NoReloadScope no_reload_scope(thread);
 
 #if defined(SUPPORT_TIMELINE)
   const char* event_name;
@@ -880,7 +882,6 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(!code.is_optimized());
   ASSERT(!FLAG_precompiled_mode);
   const Function& function = Function::Handle(code.function());
-  ASSERT(code.var_descriptors() == Object::null());
   // IsIrregexpFunction have eager var descriptors generation.
   ASSERT(!function.IsIrregexpFunction());
   // In background compilation, parser can produce 'errors": bailouts
@@ -889,7 +890,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   Zone* zone = thread->zone();
   CompilerState state(thread, /*is_aot=*/false, /*is_optimizing=*/false);
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     ParsedFunction* parsed_function =
         new ParsedFunction(thread, Function::ZoneHandle(zone, function.ptr()));
     ZoneGrowableArray<const ICData*>* ic_data_array =

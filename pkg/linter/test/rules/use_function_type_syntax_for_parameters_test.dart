@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseFunctionTypeSyntaxForParametersTest);
   });
@@ -18,11 +18,12 @@ class UseFunctionTypeSyntaxForParametersTest extends LintRuleTest {
   String get lintRule => LintNames.use_function_type_syntax_for_parameters;
 
   test_classicSyntax() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f1(bool f(int e)) {}
-''', [
-      lint(8, 13),
-    ]);
+''',
+      [lint(8, 13)],
+    );
   }
 
   test_functionTypeSyntax() async {

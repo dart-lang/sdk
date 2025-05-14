@@ -12,6 +12,10 @@ analyzer:
     implementation_imports: ignore
     non_constant_identifier_names: ignore
 
+    # Ignoring this for all developers means developers don't need to ignore
+    # TODOs in their IDE settings.
+    todo: ignore
+
 linter:
   rules:
     - always_use_package_imports

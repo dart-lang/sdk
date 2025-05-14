@@ -156,7 +156,7 @@ class CompileTimeErrorCode extends ErrorCode {
   ///  No parameters.
   static const CompileTimeErrorCode ASSIGNMENT_TO_CONST = CompileTimeErrorCode(
     'ASSIGNMENT_TO_CONST',
-    "Constant variables can't be assigned a value.",
+    "Constant variables can't be assigned a value after initialization.",
     correctionMessage:
         "Try removing the assignment, or remove the modifier 'const' from the "
         "variable.",
@@ -1546,8 +1546,8 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode ENUM_WITHOUT_CONSTANTS =
       CompileTimeErrorCode(
     'ENUM_WITHOUT_CONSTANTS',
-    "The enum must have at least one constant.",
-    correctionMessage: "Try declaring a constant.",
+    "The enum must have at least one enum constant.",
+    correctionMessage: "Try declaring an enum constant.",
   );
 
   ///  Parameters:
@@ -1742,6 +1742,15 @@ class CompileTimeErrorCode extends ErrorCode {
         "the same name.",
     correctionMessage:
         "Try renaming the member to a name that doesn't conflict.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_DECLARES_INSTANCE_FIELD =
+      CompileTimeErrorCode(
+    'EXTENSION_DECLARES_INSTANCE_FIELD',
+    "Extensions can't declare instance fields.",
+    correctionMessage: "Try replacing the field with a getter.",
     hasPublishedDocs: true,
   );
 
@@ -2919,14 +2928,6 @@ class CompileTimeErrorCode extends ErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the list of target kind names
-  static const CompileTimeErrorCode INVALID_MACRO_APPLICATION_TARGET =
-      CompileTimeErrorCode(
-    'INVALID_MACRO_APPLICATION_TARGET',
-    "The macro can be applied only to a {0}.",
-  );
-
-  ///  Parameters:
   ///  0: the invalid modifier
   static const CompileTimeErrorCode INVALID_MODIFIER_ON_CONSTRUCTOR =
       CompileTimeErrorCode(
@@ -3145,68 +3146,15 @@ class CompileTimeErrorCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Reported when there is an issue converting a macro application argument
-  ///  into a value. So, we cannot instantiate the macro, and run it.
   ///  Parameters:
-  ///  0: the message
-  static const CompileTimeErrorCode MACRO_APPLICATION_ARGUMENT_ERROR =
-      CompileTimeErrorCode(
-    'MACRO_APPLICATION_ARGUMENT_ERROR',
-    "{0}",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the introspected declaration
+  ///  0: the actual type of the list element
+  ///  1: the expected type of the list element
   static const CompileTimeErrorCode
-      MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE = CompileTimeErrorCode(
-    'MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE',
-    "The declaration '{0}' can't be introspected because there is a cycle of "
-        "macro applications.",
-    correctionMessage:
-        "Try removing one or more macro applications to break the cycle.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the macro class
-  static const CompileTimeErrorCode
-      MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE = CompileTimeErrorCode(
-    'MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE',
-    "The macro '{0}' can't be applied in the same library cycle where it is "
-        "defined.",
-    correctionMessage:
-        "Try moving it to a different library that does not import the one "
-        "where it is applied.",
-  );
-
-  ///  Reported when the macro uses `Builder.report()` with `Severity.error`.
-  ///  Parameters:
-  ///  0: the message
-  static const CompileTimeErrorCode MACRO_ERROR = CompileTimeErrorCode(
-    'MACRO_ERROR',
-    "{0}",
-  );
-
-  ///  Reported when there is an exception inside the analyzer when running
-  ///  macros. Should not happen, but just in case.
-  ///  Parameters:
-  ///  0: the message
-  ///  1: the stack trace
-  static const CompileTimeErrorCode MACRO_INTERNAL_EXCEPTION =
-      CompileTimeErrorCode(
-    'MACRO_INTERNAL_EXCEPTION',
-    "{0} {1}",
-  );
-
-  ///  Parameters:
-  ///  0: the macro phase
-  ///  1: the list of ranges in the code
-  ///  2: the generated code
-  static const CompileTimeErrorCode MACRO_NOT_ALLOWED_DECLARATION =
-      CompileTimeErrorCode(
-    'MACRO_NOT_ALLOWED_DECLARATION',
-    "The macro attempted to add declaration(s) not allowed during the {0} "
-        "phase.\nLocations: {1}\n---\n{2}\n---",
-    correctionMessage: "Try adding these declaration during an earlier phase.",
+      LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY = CompileTimeErrorCode(
+    'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
+    "The element type '{0}' can't be assigned to the list type '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
   );
 
   ///  No parameters.
@@ -3270,6 +3218,17 @@ class CompileTimeErrorCode extends ErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the type of the expression being used as a key
+  ///  1: the type of keys declared for the map
+  static const CompileTimeErrorCode MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY =
+      CompileTimeErrorCode(
+    'MAP_KEY_TYPE_NOT_ASSIGNABLE',
+    "The element type '{0}' can't be assigned to the map key type '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+  );
+
+  ///  Parameters:
   ///  0: the type of the expression being used as a value
   ///  1: the type of values declared for the map
   static const CompileTimeErrorCode MAP_VALUE_TYPE_NOT_ASSIGNABLE =
@@ -3277,6 +3236,17 @@ class CompileTimeErrorCode extends ErrorCode {
     'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
     "The element type '{0}' can't be assigned to the map value type '{1}'.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the type of the expression being used as a value
+  ///  1: the type of values declared for the map
+  static const CompileTimeErrorCode MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY =
+      CompileTimeErrorCode(
+    'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
+    "The element type '{0}' can't be assigned to the map value type '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY',
   );
 
   ///  12.1 Constants: A constant expression is ... a constant list literal.
@@ -4988,6 +4958,17 @@ class CompileTimeErrorCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the actual type of the set element
+  ///  1: the expected type of the set element
+  static const CompileTimeErrorCode
+      SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY = CompileTimeErrorCode(
+    'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
+    "The element type '{0}' can't be assigned to the set type '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode SHARED_DEFERRED_PREFIX =
       CompileTimeErrorCode(
@@ -6481,10 +6462,22 @@ class WarningCode extends ErrorCode {
     correctionMessage: "Try removing the 'deferred' keyword.",
   );
 
+  static const WarningCode DOC_IMPORT_CANNOT_HAVE_COMBINATORS = WarningCode(
+    'DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
+    "Doc imports can't have show or hide combinators.",
+    correctionMessage: "Try removing the combinator.",
+  );
+
   static const WarningCode DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS = WarningCode(
     'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
     "Doc imports can't have configurations.",
     correctionMessage: "Try removing the configurations.",
+  );
+
+  static const WarningCode DOC_IMPORT_CANNOT_HAVE_PREFIX = WarningCode(
+    'DOC_IMPORT_CANNOT_HAVE_PREFIX',
+    "Doc imports can't have prefixes.",
+    correctionMessage: "Try removing the prefix.",
   );
 
   ///  Duplicate exports.
@@ -6974,14 +6967,6 @@ class WarningCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Reported when the macro uses `Builder.report()` with `Severity.warning`.
-  ///  Parameters:
-  ///  0: the message
-  static const WarningCode MACRO_WARNING = WarningCode(
-    'MACRO_WARNING',
-    "{0}",
-  );
-
   ///  Parameters:
   ///  0: the name of the member
   static const WarningCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE =
@@ -7055,6 +7040,15 @@ class WarningCode extends ErrorCode {
     correctionMessage:
         "Try composing with this class, or refer to its documentation for more "
         "information.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode MULTIPLE_COMBINATORS = WarningCode(
+    'MULTIPLE_COMBINATORS',
+    "Using multiple 'hide' or 'show' combinators is never necessary and often "
+        "produces surprising results.",
+    correctionMessage: "Try using a single combinator.",
     hasPublishedDocs: true,
   );
 
@@ -7465,17 +7459,6 @@ class WarningCode extends ErrorCode {
         "'final'.",
     correctionMessage: "Try removing the 'final'.",
     hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the diagnostic being ignored
-  static const WarningCode UNNECESSARY_IGNORE = WarningCode(
-    'UNNECESSARY_IGNORE',
-    "The diagnostic '{0}' isn't produced at this location so it doesn't need "
-        "to be ignored.",
-    correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if "
-        "this is the only name in the list.",
   );
 
   ///  No parameters.

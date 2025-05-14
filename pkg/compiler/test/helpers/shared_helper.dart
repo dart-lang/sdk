@@ -27,15 +27,6 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
   }
 
   @override
-  void visitLegacyType(LegacyType type, StringBuffer sb) {
-    bool wrapFunction = type.baseType is FunctionType;
-    if (wrapFunction) sb.write('(');
-    visit(type.baseType, sb);
-    if (wrapFunction) sb.write(')');
-    sb.write('*');
-  }
-
-  @override
   void visitNullableType(NullableType type, StringBuffer sb) {
     bool wrapFunction = type.baseType is FunctionType;
     if (wrapFunction) sb.write('(');

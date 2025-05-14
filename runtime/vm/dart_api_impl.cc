@@ -1422,7 +1422,7 @@ DART_EXPORT void Dart_ShutdownIsolate() {
   // scope objects as the original transition happened outside this scope in
   // Dart_EnterIsolate/Dart_CreateIsolateGroup.
   ASSERT(T->execution_state() == Thread::kThreadInNative);
-  T->ExitSafepoint();
+  T->ExitSafepointFromNative();
   T->set_execution_state(Thread::kThreadInVM);
 
   I->WaitForOutstandingSpawns();
@@ -1527,21 +1527,30 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   // TODO(http://dartbug.com/16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  ThreadId os_thread = OSThread::GetCurrentThreadId();
   if (iso->IsScheduled()) {
     FATAL(
         "Isolate %s is already scheduled on mutator thread %p, "
         "failed to schedule from os thread 0x%" Px "\n",
         iso->name(), iso->scheduled_mutator_thread(),
-        OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadId()));
+        OSThread::ThreadIdToIntPtr(os_thread));
   }
   Thread::EnterIsolate(iso);
+  ThreadId owner_thread = iso->GetOwnerThread(nullptr);
+  if (owner_thread != OSThread::kInvalidThreadId && owner_thread != os_thread) {
+    FATAL("Isolate %s is owned by os thread 0x%" Px
+          ", "
+          "failed to schedule from os thread 0x%" Px "\n",
+          iso->name(), OSThread::ThreadIdToIntPtr(owner_thread),
+          OSThread::ThreadIdToIntPtr(os_thread));
+  }
   // A Thread structure has been associated to the thread, we do the
   // safepoint transition explicitly here instead of using the
   // TransitionXXX scope objects as the reverse transition happens
   // outside this scope in Dart_ExitIsolate/Dart_ShutdownIsolate.
   Thread* T = Thread::Current();
+  T->EnterSafepointToNative();
   T->set_execution_state(Thread::kThreadInNative);
-  T->EnterSafepoint();
 }
 
 DART_EXPORT void Dart_StartProfiling() {
@@ -1861,7 +1870,7 @@ DART_EXPORT void Dart_ExitIsolate() {
   // scope objects as the original transition happened outside this scope in
   // Dart_EnterIsolate/Dart_CreateIsolateGroup.
   ASSERT(T->execution_state() == Thread::kThreadInNative);
-  T->ExitSafepoint();
+  T->ExitSafepointFromNative();
   T->set_execution_state(Thread::kThreadInVM);
   Thread::ExitIsolate();
 }
@@ -2197,6 +2206,20 @@ DART_EXPORT Dart_Port Dart_GetMainPortId() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   return isolate->main_port();
+}
+
+DART_EXPORT void Dart_SetCurrentThreadOwnsIsolate() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (!isolate->SetOwnerThread(OSThread::kInvalidThreadId,
+                               OSThread::GetCurrentThreadId())) {
+    FATAL("Tried to claim ownership of isolate %s, but it is already owned\n",
+          isolate->name());
+  }
+}
+
+DART_EXPORT bool Dart_GetCurrentThreadOwnsIsolate(Dart_Port port) {
+  return PortMap::IsOwnedByCurrentThread(port);
 }
 
 // --- Scopes ----

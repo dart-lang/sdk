@@ -31,7 +31,7 @@ class FixesTest extends PubPackageAnalysisServerTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    registerBuiltInProducers();
+    registerBuiltInFixGenerators();
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
 

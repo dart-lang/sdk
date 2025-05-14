@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FileNamesInvalidTest);
     defineReflectiveTests(FileNamesNonStrictTest);
@@ -22,11 +22,12 @@ class FileNamesInvalidTest extends LintRuleTest {
   String get testFilePath => '$testPackageLibPath/a-test.dart';
 
   test_invalidName() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A { }
-''', [
-      lint(0, 0),
-    ]);
+''',
+      [lint(0, 0)],
+    );
   }
 }
 

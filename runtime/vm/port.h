@@ -43,13 +43,15 @@ class PortMap : public AllStatic {
   static bool PostMessage(std::unique_ptr<Message> message,
                           bool before_events = false);
 
-  // Returns the owning Isolate for port 'id'.
-  static Isolate* GetIsolate(Dart_Port id);
-
   // Returns the origin id for port 'id'.
   static Dart_Port GetOriginId(Dart_Port id);
 
+  // Returns whether the isolate that owns the port is owned by the current
+  // thread.
+  static bool IsOwnedByCurrentThread(Dart_Port id);
+
 #if defined(TESTING)
+  static Isolate* GetIsolate(Dart_Port id);
   static bool PortExists(Dart_Port id);
   static bool HasPorts(MessageHandler* handler);
 #endif
@@ -83,6 +85,8 @@ class PortMap : public AllStatic {
 
   // Allocate a new unique port.
   static Dart_Port AllocatePort();
+
+  static Isolate* GetIsolateLocked(const Locker& ml, Dart_Port id);
 
   // Lock protecting access to the port map.
   static Mutex* mutex_;

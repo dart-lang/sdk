@@ -39,9 +39,11 @@ bool _isJsInteropType(DartType type, _InteropTypeKind kind) {
   if (type is TypeParameterType) return _isJsInteropType(type.bound, kind);
   if (type is InterfaceType) {
     var element = type.element3;
-    var dartJsInteropTypeKind = kind == _InteropTypeKind.dartJsInteropType ||
+    var dartJsInteropTypeKind =
+        kind == _InteropTypeKind.dartJsInteropType ||
         kind == _InteropTypeKind.any;
-    var userJsInteropTypeKind = kind == _InteropTypeKind.userJsInteropType ||
+    var userJsInteropTypeKind =
+        kind == _InteropTypeKind.userJsInteropType ||
         kind == _InteropTypeKind.any;
     if (element is ExtensionTypeElement2) {
       if (dartJsInteropTypeKind && element.isFromLibrary(_dartJsInteropUri)) {
@@ -49,9 +51,13 @@ bool _isJsInteropType(DartType type, _InteropTypeKind kind) {
       } else if (userJsInteropTypeKind) {
         var representationType = element.representation2.type;
         return _isJsInteropType(
-                representationType, _InteropTypeKind.dartJsInteropType) ||
+              representationType,
+              _InteropTypeKind.dartJsInteropType,
+            ) ||
             _isJsInteropType(
-                representationType, _InteropTypeKind.userJsInteropType);
+              representationType,
+              _InteropTypeKind.userJsInteropType,
+            );
       }
     } else if (userJsInteropTypeKind && _jsTypeForStaticInterop(type) != null) {
       return true;
@@ -131,14 +137,14 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
   final _visitedTypes = <DartType>{};
 
   @override
-  DartType perform(DartType type, {bool keepUserInteropTypes = false}) {
+  TypeImpl perform(TypeImpl type, {bool keepUserInteropTypes = false}) {
     _keepUserInteropTypes = keepUserInteropTypes;
     _visitedTypes.clear();
     return super.perform(type);
   }
 
   @override
-  DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
+  TypeImpl? visitInterfaceType(covariant InterfaceTypeImpl type) {
     if (_keepUserInteropTypes
         ? _isJsInteropType(type, _InteropTypeKind.any)
         : _isJsInteropType(type, _InteropTypeKind.dartJsInteropType)) {
@@ -146,14 +152,17 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
       // order to just compare the interfaces themselves, we use `thisType`.
       return type.element3.thisType;
     } else {
-      return _jsTypeForStaticInterop(type) ?? super.visitInterfaceType(type);
+      // TODO(scheglov): remove this cast
+      var jsType = _jsTypeForStaticInterop(type) as TypeImpl?;
+      return jsType ?? super.visitInterfaceType(type);
     }
   }
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType type) {
+  TypeImpl? visitTypeParameterType(TypeParameterType type) {
     // Visiting the bound may result in a cycle e.g. `class C<T extends C<T>>`.
-    if (!_visitedTypes.add(type)) return type;
+    // TODO(scheglov): remove this cast
+    if (!_visitedTypes.add(type)) return type as TypeParameterTypeImpl;
     // If the bound is a JS interop type, replace it with its `dart:js_interop`
     // equivalent.
     var newBound = type.bound.accept(this);
@@ -195,28 +204,30 @@ class InteropTypeChecker extends RecursiveTypeVisitor {
 
 class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
   InvalidRuntimeCheckWithJSInteropTypes()
-      : super(
-          name: LintNames.invalid_runtime_check_with_js_interop_types,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.invalid_runtime_check_with_js_interop_types,
+        description: _desc,
+      );
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.invalid_runtime_check_with_js_interop_types_dart_as_js,
-        LinterLintCode.invalid_runtime_check_with_js_interop_types_dart_is_js,
-        LinterLintCode.invalid_runtime_check_with_js_interop_types_js_as_dart,
-        LinterLintCode
-            .invalid_runtime_check_with_js_interop_types_js_as_incompatible_js,
-        LinterLintCode.invalid_runtime_check_with_js_interop_types_js_is_dart,
-        LinterLintCode
-            .invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js,
-        LinterLintCode
-            .invalid_runtime_check_with_js_interop_types_js_is_unrelated_js
-      ];
+    LinterLintCode.invalid_runtime_check_with_js_interop_types_dart_as_js,
+    LinterLintCode.invalid_runtime_check_with_js_interop_types_dart_is_js,
+    LinterLintCode.invalid_runtime_check_with_js_interop_types_js_as_dart,
+    LinterLintCode
+        .invalid_runtime_check_with_js_interop_types_js_as_incompatible_js,
+    LinterLintCode.invalid_runtime_check_with_js_interop_types_js_is_dart,
+    LinterLintCode
+        .invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js,
+    LinterLintCode
+        .invalid_runtime_check_with_js_interop_types_js_is_unrelated_js,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context.typeSystem);
     registry.addIsExpression(this, visitor);
     registry.addAsExpression(this, visitor);
@@ -231,11 +242,7 @@ class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
 /// representation type is a JS interop type, an `@staticInterop` type, or a
 /// type parameter that is bound to either.
 /// [any] corresponds to either a [dartJsInteropType] or [userJsInteropType].
-enum _InteropTypeKind {
-  dartJsInteropType,
-  userJsInteropType,
-  any,
-}
+enum _InteropTypeKind { dartJsInteropType, userJsInteropType, any }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
@@ -245,7 +252,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final InteropTypeChecker interopTypeChecker = InteropTypeChecker();
 
   _Visitor(this.rule, TypeSystem typeSystem)
-      : typeSystem = typeSystem as TypeSystemImpl;
+    : typeSystem = typeSystem as TypeSystemImpl;
 
   /// Determines if a type test from [leftType] to [rightType] is a valid test
   /// for JS interop, and if not, returns the [LintCode] associated with the
@@ -285,18 +292,27 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Types that belong to JS interop libraries that are not available when
   /// compiling to Wasm are ignored. Nullability is also ignored for the purpose
   /// of this test.
-  LintCode? getInvalidJsInteropTypeTest(DartType leftType, DartType rightType,
-      {required bool check}) {
+  LintCode? getInvalidJsInteropTypeTest(
+    DartType leftType,
+    DartType rightType, {
+    required bool check,
+  }) {
     LintCode? lintCode;
-    (DartType, DartType) eraseTypes(DartType left, DartType right) {
-      var erasedLeft =
-          typeSystem.promoteToNonNull(eraseNonJsInteropTypes.perform(left));
-      var erasedRight =
-          typeSystem.promoteToNonNull(eraseNonJsInteropTypes.perform(right));
-      var leftIsInteropType =
-          _isJsInteropType(erasedLeft, _InteropTypeKind.dartJsInteropType);
-      var rightIsInteropType =
-          _isJsInteropType(erasedRight, _InteropTypeKind.dartJsInteropType);
+    (TypeImpl, TypeImpl) eraseTypes(TypeImpl left, TypeImpl right) {
+      var erasedLeft = typeSystem.promoteToNonNull(
+        eraseNonJsInteropTypes.perform(left),
+      );
+      var erasedRight = typeSystem.promoteToNonNull(
+        eraseNonJsInteropTypes.perform(right),
+      );
+      var leftIsInteropType = _isJsInteropType(
+        erasedLeft,
+        _InteropTypeKind.dartJsInteropType,
+      );
+      var rightIsInteropType = _isJsInteropType(
+        erasedRight,
+        _InteropTypeKind.dartJsInteropType,
+      );
       // If there's already an invalid check in this `canBeSubtypeOf` check, we
       // are already going to lint, so only continue checking if we haven't
       // found an issue.
@@ -304,23 +320,30 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (lintCode == null && leftIsInteropType || rightIsInteropType) {
         if (!_isWasmIncompatibleJsInterop(erasedLeft) &&
             !_isWasmIncompatibleJsInterop(erasedRight)) {
-          var erasedLeftIsSubtype =
-              typeSystem.isSubtypeOf(erasedLeft, erasedRight);
-          var erasedRightIsSubtype =
-              typeSystem.isSubtypeOf(erasedRight, erasedLeft);
+          var erasedLeftIsSubtype = typeSystem.isSubtypeOf(
+            erasedLeft,
+            erasedRight,
+          );
+          var erasedRightIsSubtype = typeSystem.isSubtypeOf(
+            erasedRight,
+            erasedLeft,
+          );
           var erasedLeftIsDynamic = erasedLeft is DynamicType;
           var erasedRightIsDynamic = erasedRight is DynamicType;
           if (check) {
             if (!erasedLeftIsSubtype && !erasedRightIsDynamic) {
               if (leftIsInteropType && rightIsInteropType) {
-                lintCode = LinterLintCode
-                    .invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js;
+                lintCode =
+                    LinterLintCode
+                        .invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js;
               } else if (leftIsInteropType) {
-                lintCode = LinterLintCode
-                    .invalid_runtime_check_with_js_interop_types_js_is_dart;
+                lintCode =
+                    LinterLintCode
+                        .invalid_runtime_check_with_js_interop_types_js_is_dart;
               } else {
-                lintCode = LinterLintCode
-                    .invalid_runtime_check_with_js_interop_types_dart_is_js;
+                lintCode =
+                    LinterLintCode
+                        .invalid_runtime_check_with_js_interop_types_dart_is_js;
               }
             } else if (erasedLeftIsSubtype &&
                 leftIsInteropType &&
@@ -330,12 +353,18 @@ class _Visitor extends SimpleAstVisitor<void> {
               // linting.
               if (_isJsInteropType(right, _InteropTypeKind.userJsInteropType) &&
                   !typeSystem.isSubtypeOf(
-                      eraseNonJsInteropTypes.perform(left,
-                          keepUserInteropTypes: true),
-                      eraseNonJsInteropTypes.perform(right,
-                          keepUserInteropTypes: true))) {
-                lintCode = LinterLintCode
-                    .invalid_runtime_check_with_js_interop_types_js_is_unrelated_js;
+                    eraseNonJsInteropTypes.perform(
+                      left,
+                      keepUserInteropTypes: true,
+                    ),
+                    eraseNonJsInteropTypes.perform(
+                      right,
+                      keepUserInteropTypes: true,
+                    ),
+                  )) {
+                lintCode =
+                    LinterLintCode
+                        .invalid_runtime_check_with_js_interop_types_js_is_unrelated_js;
               }
             }
           } else {
@@ -344,14 +373,17 @@ class _Visitor extends SimpleAstVisitor<void> {
                 !erasedLeftIsDynamic &&
                 !erasedRightIsDynamic) {
               if (leftIsInteropType && rightIsInteropType) {
-                lintCode = LinterLintCode
-                    .invalid_runtime_check_with_js_interop_types_js_as_incompatible_js;
+                lintCode =
+                    LinterLintCode
+                        .invalid_runtime_check_with_js_interop_types_js_as_incompatible_js;
               } else if (leftIsInteropType) {
-                lintCode = LinterLintCode
-                    .invalid_runtime_check_with_js_interop_types_js_as_dart;
+                lintCode =
+                    LinterLintCode
+                        .invalid_runtime_check_with_js_interop_types_js_as_dart;
               } else {
-                lintCode = LinterLintCode
-                    .invalid_runtime_check_with_js_interop_types_dart_as_js;
+                lintCode =
+                    LinterLintCode
+                        .invalid_runtime_check_with_js_interop_types_dart_as_js;
               }
             }
           }
@@ -371,7 +403,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       return lintCode;
     }
     // Called here for the side effects of `eraseTypes`.
-    typeSystem.canBeSubtypeOf(leftType, rightType, eraseTypes: eraseTypes);
+    typeSystem.canBeSubtypeOf(
+      leftType as TypeImpl,
+      rightType as TypeImpl,
+      eraseTypes: eraseTypes,
+    );
     return lintCode;
   }
 

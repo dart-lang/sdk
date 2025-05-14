@@ -29,18 +29,6 @@ f() {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -62,31 +50,6 @@ typedef F(int p);
 main(F f) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: dynamic Function(int)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional p @14
-                type: int
-            returnType: dynamic
-      functions
-        main @18
-          reference: <testLibraryFragment>::@function::main
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional f @25
-              type: dynamic Function(int)
-                alias: <testLibraryFragment>::@typeAlias::F
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -114,7 +77,7 @@ library
       formalParameters
         requiredPositional f
           type: dynamic Function(int)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
       returnType: dynamic
 ''');
   }
@@ -122,33 +85,6 @@ library
   test_futureOr() async {
     var library = await buildLibrary('import "dart:async"; FutureOr<int> x;');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:async
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static x @35
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: FutureOr<int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: FutureOr<int>
-        synthetic static set x= @-1
-          reference: <testLibraryFragment>::@setter::x
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _x @-1
-              type: FutureOr<int>
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -171,7 +107,7 @@ library
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
-            <null-name>
+            _x
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
@@ -201,33 +137,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:async
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const x @27
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: FutureOr @31
-              staticElement: dart:async::<fragment>::@class::FutureOr
-              element: dart:async::@class::FutureOr
-              staticType: Type
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -237,6 +146,11 @@ library
         hasInitializer x @27
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
+            SimpleIdentifier
+              token: FutureOr @31
+              element: dart:async::@class::FutureOr
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -247,6 +161,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -267,55 +184,6 @@ var x = f();
 var y = x.then((z) => z.asDouble());
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:async
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static x @52
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: FutureOr<int>
-          shouldUseTypeForInitializerInference: false
-        static y @65
-          reference: <testLibraryFragment>::@topLevelVariable::y
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: FutureOr<int>
-        synthetic static set x= @-1
-          reference: <testLibraryFragment>::@setter::x
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _x @-1
-              type: FutureOr<int>
-          returnType: void
-        synthetic static get y @-1
-          reference: <testLibraryFragment>::@getter::y
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-        synthetic static set y= @-1
-          reference: <testLibraryFragment>::@setter::y
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _y @-1
-              type: InvalidType
-          returnType: void
-      functions
-        f @35
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: FutureOr<int>
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -346,13 +214,13 @@ library
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
-            <null-name>
+            _x
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
         synthetic set y
           reference: <testLibraryFragment>::@setter::y
           element: <testLibraryFragment>::@setter::y#element
           formalParameters
-            <null-name>
+            _y
               element: <testLibraryFragment>::@setter::y::@parameter::_y#element
       functions
         f @35
@@ -415,41 +283,6 @@ class C<T, U> {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-            covariant U @11
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            static m @30
-              reference: <testLibraryFragment>::@class::C::@method::m
-              enclosingElement3: <testLibraryFragment>::@class::C
-              typeParameters
-                covariant V @32
-                  defaultType: dynamic
-                covariant W @35
-                  defaultType: dynamic
-              parameters
-                requiredPositional v @40
-                  type: V
-                requiredPositional w @45
-                  type: W
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -459,9 +292,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -473,9 +306,9 @@ library
               element: <testLibraryFragment>::@class::C::@method::m#element
               typeParameters
                 V @32
-                  element: <not-implemented>
+                  element: V@32
                 W @35
-                  element: <not-implemented>
+                  element: W@35
               formalParameters
                 v @40
                   element: <testLibraryFragment>::@class::C::@method::m::@parameter::v#element
@@ -493,7 +326,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           typeParameters
             V
@@ -519,69 +351,6 @@ class D {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            call @17
-              reference: <testLibraryFragment>::@class::C::@method::call
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: void
-        class D @36
-          reference: <testLibraryFragment>::@class::D
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const @48
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::D
-              parameters
-                requiredPositional c @52
-                  type: C
-              constantInitializers
-                RedirectingConstructorInvocation
-                  thisKeyword: this @57
-                  period: . @61
-                  constructorName: SimpleIdentifier
-                    token: named @62
-                    staticElement: <testLibraryFragment>::@class::D::@constructor::named
-                    element: <testLibraryFragment>::@class::D::@constructor::named#element
-                    staticType: null
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @67
-                    arguments
-                      ImplicitCallReference
-                        expression: SimpleIdentifier
-                          token: c @68
-                          staticElement: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c
-                          element: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c#element
-                          staticType: C
-                        staticElement: <testLibraryFragment>::@class::C::@method::call
-                        element: <testLibraryFragment>::@class::C::@method::call#element
-                        staticType: void Function()
-                    rightParenthesis: ) @69
-                  staticElement: <testLibraryFragment>::@class::D::@constructor::named
-                  element: <testLibraryFragment>::@class::D::@constructor::named#element
-              redirectedConstructor: <testLibraryFragment>::@class::D::@constructor::named
-            const named @83
-              reference: <testLibraryFragment>::@class::D::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::D
-              periodOffset: 82
-              nameEnd: 88
-              parameters
-                requiredPositional f @105
-                  type: void Function()
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -612,31 +381,6 @@ library
               formalParameters
                 c @52
                   element: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c#element
-              constantInitializers
-                RedirectingConstructorInvocation
-                  thisKeyword: this @57
-                  period: . @61
-                  constructorName: SimpleIdentifier
-                    token: named @62
-                    staticElement: <testLibraryFragment>::@class::D::@constructor::named
-                    element: <testLibraryFragment>::@class::D::@constructor::named#element
-                    staticType: null
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @67
-                    arguments
-                      ImplicitCallReference
-                        expression: SimpleIdentifier
-                          token: c @68
-                          staticElement: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c
-                          element: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c#element
-                          staticType: C
-                        staticElement: <testLibraryFragment>::@class::C::@method::call
-                        element: <testLibraryFragment>::@class::C::@method::call#element
-                        staticType: void Function()
-                    rightParenthesis: ) @69
-                  staticElement: <testLibraryFragment>::@class::D::@constructor::named
-                  element: <testLibraryFragment>::@class::D::@constructor::named#element
-              redirectedConstructor: <testLibraryFragment>::@class::D::@constructor::named
             const named @83
               reference: <testLibraryFragment>::@class::D::@constructor::named
               element: <testLibraryFragment>::@class::D::@constructor::named#element
@@ -655,7 +399,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         call
-          reference: <testLibrary>::@class::C::@method::call
           firstFragment: <testLibraryFragment>::@class::C::@method::call
     class D
       reference: <testLibrary>::@class::D
@@ -666,6 +409,26 @@ library
           formalParameters
             requiredPositional c
               type: C
+          constantInitializers
+            RedirectingConstructorInvocation
+              thisKeyword: this @57
+              period: . @61
+              constructorName: SimpleIdentifier
+                token: named @62
+                element: <testLibraryFragment>::@class::D::@constructor::named#element
+                staticType: null
+              argumentList: ArgumentList
+                leftParenthesis: ( @67
+                arguments
+                  ImplicitCallReference
+                    expression: SimpleIdentifier
+                      token: c @68
+                      element: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c#element
+                      staticType: C
+                    element: <testLibraryFragment>::@class::C::@method::call#element
+                    staticType: void Function()
+                rightParenthesis: ) @69
+              element: <testLibraryFragment>::@class::D::@constructor::named#element
           redirectedConstructor: <testLibraryFragment>::@class::D::@constructor::named#element
         const named
           firstFragment: <testLibraryFragment>::@class::D::@constructor::named
@@ -678,31 +441,6 @@ library
   test_initializer_executable_with_return_type_from_closure() async {
     var library = await buildLibrary('var v = () => 0;');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static v @4
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int Function()
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int Function()
-        synthetic static set v= @-1
-          reference: <testLibraryFragment>::@setter::v
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _v @-1
-              type: int Function()
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -723,7 +461,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -749,31 +487,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static v @4
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: Future<dynamic> Function(dynamic)
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: Future<dynamic> Function(dynamic)
-        synthetic static set v= @-1
-          reference: <testLibraryFragment>::@setter::v
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _v @-1
-              type: Future<dynamic> Function(dynamic)
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -792,7 +505,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -822,34 +535,6 @@ var v = (Future<Future<Future<int>>> f) async => await f;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:async
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static v @25
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: Future<int> Function(Future<Future<Future<int>>>)
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: Future<int> Function(Future<Future<Future<int>>>)
-        synthetic static set v= @-1
-          reference: <testLibraryFragment>::@setter::v
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _v @-1
-              type: Future<int> Function(Future<Future<Future<int>>>)
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -870,7 +555,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -899,34 +584,6 @@ var v = (Future<int> f) async => await f;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:async
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static v @25
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: Future<int> Function(Future<int>)
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: Future<int> Function(Future<int>)
-        synthetic static set v= @-1
-          reference: <testLibraryFragment>::@setter::v
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _v @-1
-              type: Future<int> Function(Future<int>)
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -947,7 +604,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -976,34 +633,6 @@ var v = (Future f) async => await f;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:async
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static v @25
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: Future<dynamic> Function(Future<dynamic>)
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: Future<dynamic> Function(Future<dynamic>)
-        synthetic static set v= @-1
-          reference: <testLibraryFragment>::@setter::v
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _v @-1
-              type: Future<dynamic> Function(Future<dynamic>)
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1024,7 +653,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -1054,39 +683,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            v @16
-              reference: <testLibraryFragment>::@class::C::@field::v
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: int Function()
-              shouldUseTypeForInitializerInference: false
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic get v @-1
-              reference: <testLibraryFragment>::@class::C::@getter::v
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int Function()
-            synthetic set v= @-1
-              reference: <testLibraryFragment>::@class::C::@setter::v
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional _v @-1
-                  type: int Function()
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1114,7 +710,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::v
               element: <testLibraryFragment>::@class::C::@setter::v#element
               formalParameters
-                <null-name>
+                _v
                   element: <testLibraryFragment>::@class::C::@setter::v::@parameter::_v#element
   classes
     class C
@@ -1149,18 +745,6 @@ void f() {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1205,68 +789,6 @@ class X3 extends NullSafeInt {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/nullSafe.dart
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class X1 @30
-          reference: <testLibraryFragment>::@class::X1
-          enclosingElement3: <testLibraryFragment>
-          supertype: NullSafeDefault
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::X1::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::X1
-              superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeDefault::@constructor::new
-          methods
-            == @74
-              reference: <testLibraryFragment>::@class::X1::@method::==
-              enclosingElement3: <testLibraryFragment>::@class::X1
-              parameters
-                requiredPositional hasImplicitType other @77
-                  type: Object
-              returnType: bool
-        class X2 @102
-          reference: <testLibraryFragment>::@class::X2
-          enclosingElement3: <testLibraryFragment>
-          supertype: NullSafeObject
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::X2::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::X2
-              superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeObject::@constructor::new
-          methods
-            == @145
-              reference: <testLibraryFragment>::@class::X2::@method::==
-              enclosingElement3: <testLibraryFragment>::@class::X2
-              parameters
-                requiredPositional hasImplicitType other @148
-                  type: Object
-              returnType: bool
-        class X3 @173
-          reference: <testLibraryFragment>::@class::X3
-          enclosingElement3: <testLibraryFragment>
-          supertype: NullSafeInt
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::X3::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::X3
-              superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeInt::@constructor::new
-          methods
-            == @213
-              reference: <testLibraryFragment>::@class::X3::@method::==
-              enclosingElement3: <testLibraryFragment>::@class::X3
-              parameters
-                requiredPositional hasImplicitType other @216
-                  type: int
-              returnType: bool
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1281,7 +803,6 @@ library
               reference: <testLibraryFragment>::@class::X1::@constructor::new
               element: <testLibraryFragment>::@class::X1::@constructor::new#element
               typeName: X1
-              superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeDefault::@constructor::new
           methods
             == @74
               reference: <testLibraryFragment>::@class::X1::@method::==
@@ -1297,7 +818,6 @@ library
               reference: <testLibraryFragment>::@class::X2::@constructor::new
               element: <testLibraryFragment>::@class::X2::@constructor::new#element
               typeName: X2
-              superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeObject::@constructor::new
           methods
             == @145
               reference: <testLibraryFragment>::@class::X2::@method::==
@@ -1313,7 +833,6 @@ library
               reference: <testLibraryFragment>::@class::X3::@constructor::new
               element: <testLibraryFragment>::@class::X3::@constructor::new#element
               typeName: X3
-              superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeInt::@constructor::new
           methods
             == @213
               reference: <testLibraryFragment>::@class::X3::@method::==
@@ -1332,7 +851,6 @@ library
           superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeDefault::@constructor::new#element
       methods
         ==
-          reference: <testLibrary>::@class::X1::@method::==
           firstFragment: <testLibraryFragment>::@class::X1::@method::==
           formalParameters
             requiredPositional hasImplicitType other
@@ -1347,7 +865,6 @@ library
           superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeObject::@constructor::new#element
       methods
         ==
-          reference: <testLibrary>::@class::X2::@method::==
           firstFragment: <testLibraryFragment>::@class::X2::@method::==
           formalParameters
             requiredPositional hasImplicitType other
@@ -1362,7 +879,6 @@ library
           superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeInt::@constructor::new#element
       methods
         ==
-          reference: <testLibrary>::@class::X3::@method::==
           firstFragment: <testLibraryFragment>::@class::X3::@method::==
           formalParameters
             requiredPositional hasImplicitType other
@@ -1378,45 +894,6 @@ C c;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        notSimplyBounded class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant S @8
-              bound: num
-              defaultType: num
-            covariant T @23
-              bound: C<S, T>
-              defaultType: C<num, dynamic>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      topLevelVariables
-        static c @47
-          reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingElement3: <testLibraryFragment>
-          type: C<num, C<num, dynamic>>
-      accessors
-        synthetic static get c @-1
-          reference: <testLibraryFragment>::@getter::c
-          enclosingElement3: <testLibraryFragment>
-          returnType: C<num, C<num, dynamic>>
-        synthetic static set c= @-1
-          reference: <testLibraryFragment>::@setter::c
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _c @-1
-              type: C<num, C<num, dynamic>>
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1426,9 +903,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             S @8
-              element: <not-implemented>
+              element: S@8
             T @23
-              element: <not-implemented>
+              element: T@23
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1449,10 +926,10 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -1494,83 +971,6 @@ class B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        notSimplyBounded class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              bound: C<T>
-              defaultType: C<dynamic>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-        class B @56
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          fields
-            c3 @66
-              reference: <testLibraryFragment>::@class::B::@field::c3
-              enclosingElement3: <testLibraryFragment>::@class::B
-              type: C<C<Object?>>
-              shouldUseTypeForInitializerInference: false
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-          accessors
-            synthetic get c3 @-1
-              reference: <testLibraryFragment>::@class::B::@getter::c3
-              enclosingElement3: <testLibraryFragment>::@class::B
-              returnType: C<C<Object?>>
-            synthetic set c3= @-1
-              reference: <testLibraryFragment>::@class::B::@setter::c3
-              enclosingElement3: <testLibraryFragment>::@class::B
-              parameters
-                requiredPositional _c3 @-1
-                  type: C<C<Object?>>
-              returnType: void
-      topLevelVariables
-        static c @29
-          reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingElement3: <testLibraryFragment>
-          type: C<C<dynamic>>
-        static c2 @36
-          reference: <testLibraryFragment>::@topLevelVariable::c2
-          enclosingElement3: <testLibraryFragment>
-          type: C<C<Object?>>
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get c @-1
-          reference: <testLibraryFragment>::@getter::c
-          enclosingElement3: <testLibraryFragment>
-          returnType: C<C<dynamic>>
-        synthetic static set c= @-1
-          reference: <testLibraryFragment>::@setter::c
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _c @-1
-              type: C<C<dynamic>>
-          returnType: void
-        synthetic static get c2 @-1
-          reference: <testLibraryFragment>::@getter::c2
-          enclosingElement3: <testLibraryFragment>
-          returnType: C<C<Object?>>
-        synthetic static set c2= @-1
-          reference: <testLibraryFragment>::@setter::c2
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _c2 @-1
-              type: C<C<Object?>>
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1580,7 +980,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1609,7 +1009,7 @@ library
               reference: <testLibraryFragment>::@class::B::@setter::c3
               element: <testLibraryFragment>::@class::B::@setter::c3#element
               formalParameters
-                <null-name>
+                _c3
                   element: <testLibraryFragment>::@class::B::@setter::c3::@parameter::_c3#element
       topLevelVariables
         c @29
@@ -1634,16 +1034,16 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
         synthetic set c2
           reference: <testLibraryFragment>::@setter::c2
           element: <testLibraryFragment>::@setter::c2#element
           formalParameters
-            <null-name>
+            _c2
               element: <testLibraryFragment>::@setter::c2::@parameter::_c2#element
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -1713,45 +1113,6 @@ C c;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        notSimplyBounded class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              bound: C<T, U>
-              defaultType: C<dynamic, num>
-            covariant U @27
-              bound: num
-              defaultType: num
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      topLevelVariables
-        static c @47
-          reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingElement3: <testLibraryFragment>
-          type: C<C<dynamic, num>, num>
-      accessors
-        synthetic static get c @-1
-          reference: <testLibraryFragment>::@getter::c
-          enclosingElement3: <testLibraryFragment>
-          returnType: C<C<dynamic, num>, num>
-        synthetic static set c= @-1
-          reference: <testLibraryFragment>::@setter::c
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _c @-1
-              type: C<C<dynamic, num>, num>
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1761,9 +1122,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @27
-              element: <not-implemented>
+              element: U@27
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1784,10 +1145,10 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -1834,32 +1195,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @23
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            f @31
-              reference: <testLibraryFragment>::@class::C::@method::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: O Function(O)
-                alias: package:test/a.dart::<fragment>::@typeAlias::F
-                  typeArguments
-                    O
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1887,7 +1222,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -1900,52 +1234,6 @@ F f;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            contravariant T @10
-              bound: num
-              defaultType: num
-          aliasedType: dynamic Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional p @27
-                type: T
-            returnType: dynamic
-      topLevelVariables
-        static f @33
-          reference: <testLibraryFragment>::@topLevelVariable::f
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic Function(num)
-            alias: <testLibraryFragment>::@typeAlias::F
-              typeArguments
-                num
-      accessors
-        synthetic static get f @-1
-          reference: <testLibraryFragment>::@getter::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic Function(num)
-            alias: <testLibraryFragment>::@typeAlias::F
-              typeArguments
-                num
-        synthetic static set f= @-1
-          reference: <testLibraryFragment>::@setter::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _f @-1
-              type: dynamic Function(num)
-                alias: <testLibraryFragment>::@typeAlias::F
-                  typeArguments
-                    num
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1955,7 +1243,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
       topLevelVariables
         f @33
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -1971,7 +1259,7 @@ library
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
-            <null-name>
+            _f
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   typeAliases
     F
@@ -1985,7 +1273,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function(num)
-        alias: <testLibraryFragment>::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
           typeArguments
             num
       getter: <testLibraryFragment>::@getter::f#element
@@ -1999,7 +1287,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function(num)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 num
 ''');
@@ -2014,55 +1302,6 @@ B b;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        notSimplyBounded class B @20
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @22
-              bound: int Function()
-              defaultType: int Function()
-            covariant U @48
-              bound: A<T>
-              defaultType: A<int Function()>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-      topLevelVariables
-        static b @69
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: B<int Function(), A<int Function()>>
-      accessors
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: B<int Function(), A<int Function()>>
-        synthetic static set b= @-1
-          reference: <testLibraryFragment>::@setter::b
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _b @-1
-              type: B<int Function(), A<int Function()>>
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2072,7 +1311,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -2083,9 +1322,9 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @22
-              element: <not-implemented>
+              element: T@22
             U @48
-              element: <not-implemented>
+              element: U@48
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -2106,7 +1345,7 @@ library
           reference: <testLibraryFragment>::@setter::b
           element: <testLibraryFragment>::@setter::b#element
           formalParameters
-            <null-name>
+            _b
               element: <testLibraryFragment>::@setter::b::@parameter::_b#element
   classes
     class A
@@ -2117,7 +1356,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-    class B
+    notSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       typeParameters
@@ -2155,54 +1394,6 @@ F f;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            contravariant T @10
-              bound: num
-              defaultType: num
-          aliasedType: S Function<S>(T)
-          aliasedElement: GenericFunctionTypeElement
-            typeParameters
-              covariant S @38
-            parameters
-              requiredPositional p @43
-                type: T
-            returnType: S
-      topLevelVariables
-        static f @49
-          reference: <testLibraryFragment>::@topLevelVariable::f
-          enclosingElement3: <testLibraryFragment>
-          type: S Function<S>(num)
-            alias: <testLibraryFragment>::@typeAlias::F
-              typeArguments
-                num
-      accessors
-        synthetic static get f @-1
-          reference: <testLibraryFragment>::@getter::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: S Function<S>(num)
-            alias: <testLibraryFragment>::@typeAlias::F
-              typeArguments
-                num
-        synthetic static set f= @-1
-          reference: <testLibraryFragment>::@setter::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _f @-1
-              type: S Function<S>(num)
-                alias: <testLibraryFragment>::@typeAlias::F
-                  typeArguments
-                    num
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2212,7 +1403,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
       topLevelVariables
         f @49
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -2228,7 +1419,7 @@ library
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
-            <null-name>
+            _f
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   typeAliases
     F
@@ -2242,7 +1433,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: S Function<S>(num)
-        alias: <testLibraryFragment>::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
           typeArguments
             num
       getter: <testLibraryFragment>::@getter::f#element
@@ -2256,7 +1447,7 @@ library
       formalParameters
         requiredPositional _f
           type: S Function<S>(num)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 num
 ''');
@@ -2272,47 +1463,6 @@ class B<T extends num> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant R @8
-              bound: B<num>
-              defaultType: B<num>
-          fields
-            final values @31
-              reference: <testLibraryFragment>::@class::A::@field::values
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: List<B<num>>
-              shouldUseTypeForInitializerInference: false
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get values @-1
-              reference: <testLibraryFragment>::@class::A::@getter::values
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: List<B<num>>
-        class B @55
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @57
-              bound: num
-              defaultType: num
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2322,7 +1472,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             R @8
-              element: <not-implemented>
+              element: R@8
           fields
             hasInitializer values @31
               reference: <testLibraryFragment>::@class::A::@field::values
@@ -2342,7 +1492,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @57
-              element: <not-implemented>
+              element: T@57
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -2386,42 +1536,6 @@ C c;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              bound: num
-              defaultType: num
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      topLevelVariables
-        static c @28
-          reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingElement3: <testLibraryFragment>
-          type: C<num>
-      accessors
-        synthetic static get c @-1
-          reference: <testLibraryFragment>::@getter::c
-          enclosingElement3: <testLibraryFragment>
-          returnType: C<num>
-        synthetic static set c= @-1
-          reference: <testLibraryFragment>::@setter::c
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _c @-1
-              type: C<num>
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2431,7 +1545,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2452,7 +1566,7 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   classes
     class C
@@ -2493,45 +1607,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:async as ppp @23
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        ppp @23
-          reference: <testLibraryFragment>::@prefix::ppp
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @34
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            v @50
-              reference: <testLibraryFragment>::@class::C::@field::v
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: List<dynamic>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic get v @-1
-              reference: <testLibraryFragment>::@class::C::@getter::v
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: List<dynamic>
-            synthetic set v= @-1
-              reference: <testLibraryFragment>::@class::C::@setter::v
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional _v @-1
-                  type: List<dynamic>
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2564,7 +1639,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::v
               element: <testLibraryFragment>::@class::C::@setter::v#element
               formalParameters
-                <null-name>
+                _v
                   element: <testLibraryFragment>::@class::C::@setter::v::@parameter::_v#element
   classes
     class C
@@ -2592,6 +1667,8 @@ library
   }
 
   test_invalid_nameConflict_imported() async {
+    if (!keepLinkingLibraries) return;
+
     newFile('$testPackageLibPath/a.dart', 'V() {}');
     newFile('$testPackageLibPath/b.dart', 'V() {}');
     var library = await buildLibrary('''
@@ -2600,32 +1677,6 @@ import 'b.dart';
 foo([p = V]) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-        package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-      functions
-        foo @34
-          reference: <testLibraryFragment>::@function::foo
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            optionalPositional default hasImplicitType p @39
-              type: dynamic
-              constantInitializer
-                SimpleIdentifier
-                  token: V @43
-                  staticElement: <null>
-                  element: <null>
-                  staticType: InvalidType
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2641,6 +1692,13 @@ library
           formalParameters
             default p @39
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
+              initializer: expression_0
+                SimpleIdentifier
+                  token: V @43
+                  element: multiplyDefinedElement
+                    package:test/a.dart::@function::V
+                    package:test/b.dart::@function::V
+                  staticType: InvalidType
   functions
     foo
       reference: <testLibrary>::@function::foo
@@ -2648,6 +1706,8 @@ library
       formalParameters
         optionalPositional hasImplicitType p
           type: dynamic
+          constantInitializer
+            expression: expression_0
       returnType: dynamic
 ''');
   }
@@ -2666,30 +1726,6 @@ foo([p = V]) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/c.dart
-          enclosingElement3: <testLibraryFragment>
-      functions
-        foo @17
-          reference: <testLibraryFragment>::@function::foo
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            optionalPositional default hasImplicitType p @22
-              type: dynamic
-              constantInitializer
-                SimpleIdentifier
-                  token: V @26
-                  staticElement: package:test/a.dart::<fragment>::@function::V
-                  element: package:test/a.dart::@function::V
-                  staticType: dynamic Function()
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2702,6 +1738,11 @@ library
           formalParameters
             default p @22
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
+              initializer: expression_0
+                SimpleIdentifier
+                  token: V @26
+                  element: package:test/a.dart::@function::V
+                  staticType: dynamic Function()
   functions
     foo
       reference: <testLibrary>::@function::foo
@@ -2709,6 +1750,8 @@ library
       formalParameters
         optionalPositional hasImplicitType p
           type: dynamic
+          constantInitializer
+            expression: expression_0
       returnType: dynamic
 ''');
   }
@@ -2720,48 +1763,6 @@ V() {}
 var V;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static V @27
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        synthetic static set V= @-1
-          reference: <testLibraryFragment>::@setter::V
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _V @-1
-              type: dynamic
-          returnType: void
-      functions
-        foo @0
-          reference: <testLibraryFragment>::@function::foo
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            optionalPositional default hasImplicitType p @5
-              type: dynamic
-              constantInitializer
-                SimpleIdentifier
-                  token: V @9
-                  staticElement: <testLibraryFragment>::@getter::V
-                  element: <testLibraryFragment>::@getter::V#element
-                  staticType: dynamic
-          returnType: dynamic
-        V @16
-          reference: <testLibraryFragment>::@function::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2782,7 +1783,7 @@ library
           reference: <testLibraryFragment>::@setter::V
           element: <testLibraryFragment>::@setter::V#element
           formalParameters
-            <null-name>
+            _V
               element: <testLibraryFragment>::@setter::V::@parameter::_V#element
       functions
         foo @0
@@ -2791,6 +1792,11 @@ library
           formalParameters
             default p @5
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
+              initializer: expression_0
+                SimpleIdentifier
+                  token: V @9
+                  element: <testLibraryFragment>::@getter::V#element
+                  staticType: dynamic
         V @16
           reference: <testLibraryFragment>::@function::V
           element: <testLibrary>::@function::V
@@ -2817,6 +1823,8 @@ library
       formalParameters
         optionalPositional hasImplicitType p
           type: dynamic
+          constantInitializer
+            expression: expression_0
       returnType: dynamic
     V
       reference: <testLibrary>::@function::V
@@ -2836,34 +1844,6 @@ import 'c.dart';
 C v = null;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/c.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static v @19
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: C
-          shouldUseTypeForInitializerInference: true
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: C
-        synthetic static set v= @-1
-          reference: <testLibraryFragment>::@setter::v
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _v @-1
-              type: C
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2886,7 +1866,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -2921,34 +1901,6 @@ C v = null;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/d.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static v @19
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: C
-          shouldUseTypeForInitializerInference: true
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: C
-        synthetic static set v= @-1
-          reference: <testLibraryFragment>::@setter::v
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _v @-1
-              type: C
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2969,7 +1921,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -3008,34 +1960,6 @@ C v = null;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/c.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static v @19
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: C
-          shouldUseTypeForInitializerInference: true
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: C
-        synthetic static set v= @-1
-          reference: <testLibraryFragment>::@setter::v
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _v @-1
-              type: C
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3056,7 +1980,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -3089,36 +2013,6 @@ class C<T, U> {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-            covariant U @11
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            g @23
-              reference: <testLibraryFragment>::@class::C::@method::g
-              enclosingElement3: <testLibraryFragment>::@class::C
-              typeParameters
-                covariant V @25
-                  defaultType: dynamic
-                covariant W @28
-                  defaultType: dynamic
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3128,9 +2022,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -3142,9 +2036,9 @@ library
               element: <testLibraryFragment>::@class::C::@method::g#element
               typeParameters
                 V @25
-                  element: <not-implemented>
+                  element: V@25
                 W @28
-                  element: <not-implemented>
+                  element: W@28
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -3157,7 +2051,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         g
-          reference: <testLibrary>::@class::C::@method::g
           firstFragment: <testLibraryFragment>::@class::C::@method::g
           typeParameters
             V
@@ -3183,36 +2076,6 @@ class C<T, U> {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-            covariant U @11
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            g @23
-              reference: <testLibraryFragment>::@class::C::@method::g
-              enclosingElement3: <testLibraryFragment>::@class::C
-              typeParameters
-                covariant V @25
-                  defaultType: dynamic
-                covariant W @28
-                  defaultType: dynamic
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3222,9 +2085,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -3236,9 +2099,9 @@ library
               element: <testLibraryFragment>::@class::C::@method::g#element
               typeParameters
                 V @25
-                  element: <not-implemented>
+                  element: V@25
                 W @28
-                  element: <not-implemented>
+                  element: W@28
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -3251,7 +2114,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         g
-          reference: <testLibrary>::@class::C::@method::g
           firstFragment: <testLibraryFragment>::@class::C::@method::g
           typeParameters
             V
@@ -3271,23 +2133,6 @@ void f<T, U>() {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @7
-              defaultType: dynamic
-            covariant U @10
-              defaultType: dynamic
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3297,9 +2142,9 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
             U @10
-              element: <not-implemented>
+              element: U@10
   functions
     f
       reference: <testLibrary>::@function::f
@@ -3329,23 +2174,6 @@ void f<T, U>() {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @7
-              defaultType: dynamic
-            covariant U @10
-              defaultType: dynamic
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3355,9 +2183,9 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
             U @10
-              element: <not-implemented>
+              element: U@10
   functions
     f
       reference: <testLibrary>::@function::f
@@ -3377,18 +2205,6 @@ void f() {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3412,29 +2228,6 @@ final v = f() ? <T>(T t) => 0 : <T>(T t) => 1;
 bool f() => true;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static final v @6
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int Function<T>(T)
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int Function<T>(T)
-      functions
-        f @52
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3479,26 +2272,6 @@ void f<T, U>(bool b) {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @7
-              defaultType: dynamic
-            covariant U @10
-              defaultType: dynamic
-          parameters
-            requiredPositional b @18
-              type: bool
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3508,9 +2281,9 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
             U @10
-              element: <not-implemented>
+              element: U@10
           formalParameters
             b @18
               element: <testLibraryFragment>::@function::f::@parameter::b#element
@@ -3538,49 +2311,6 @@ bool f() => false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-            covariant U @11
-              defaultType: dynamic
-          fields
-            v @22
-              reference: <testLibraryFragment>::@class::C::@field::v
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: int Function(T, U)
-              shouldUseTypeForInitializerInference: false
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic get v @-1
-              reference: <testLibraryFragment>::@class::C::@getter::v
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int Function(T, U)
-            synthetic set v= @-1
-              reference: <testLibraryFragment>::@class::C::@setter::v
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional _v @-1
-                  type: int Function(T, U)
-              returnType: void
-      functions
-        f @74
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3590,9 +2320,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
           fields
             hasInitializer v @22
               reference: <testLibraryFragment>::@class::C::@field::v
@@ -3613,7 +2343,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::v
               element: <testLibraryFragment>::@class::C::@setter::v#element
               formalParameters
-                <null-name>
+                _v
                   element: <testLibraryFragment>::@class::C::@setter::v::@parameter::_v#element
       functions
         f @74
@@ -3661,26 +2391,6 @@ void f<T, U>(bool b) {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @7
-              defaultType: dynamic
-            covariant U @10
-              defaultType: dynamic
-          parameters
-            requiredPositional b @18
-              type: bool
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3690,9 +2400,9 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
             U @10
-              element: <not-implemented>
+              element: U@10
           formalParameters
             b @18
               element: <testLibraryFragment>::@function::f::@parameter::b#element
@@ -3716,29 +2426,6 @@ final v = f() ? () => 0 : () => 1;
 bool f() => true;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static final v @6
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int Function()
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int Function()
-      functions
-        f @40
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3782,29 +2469,6 @@ bool f() => true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static final v @6
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int Function(int, String)
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int Function(int, String)
-      functions
-        f @70
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3843,30 +2507,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static m @22
-          reference: <testLibraryFragment>::@topLevelVariable::m
-          enclosingElement3: <testLibraryFragment>
-          type: Map<dynamic, dynamic>
-      accessors
-        synthetic static get m @-1
-          reference: <testLibraryFragment>::@getter::m
-          enclosingElement3: <testLibraryFragment>
-          returnType: Map<dynamic, dynamic>
-        synthetic static set m= @-1
-          reference: <testLibraryFragment>::@setter::m
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _m @-1
-              type: Map<dynamic, dynamic>
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3885,7 +2525,7 @@ library
           reference: <testLibraryFragment>::@setter::m
           element: <testLibraryFragment>::@setter::m#element
           formalParameters
-            <null-name>
+            _m
               element: <testLibraryFragment>::@setter::m::@parameter::_m#element
   topLevelVariables
     m
@@ -3911,30 +2551,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static m @18
-          reference: <testLibraryFragment>::@topLevelVariable::m
-          enclosingElement3: <testLibraryFragment>
-          type: Map<dynamic, int>
-      accessors
-        synthetic static get m @-1
-          reference: <testLibraryFragment>::@getter::m
-          enclosingElement3: <testLibraryFragment>
-          returnType: Map<dynamic, int>
-        synthetic static set m= @-1
-          reference: <testLibraryFragment>::@setter::m
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _m @-1
-              type: Map<dynamic, int>
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3953,7 +2569,7 @@ library
           reference: <testLibraryFragment>::@setter::m
           element: <testLibraryFragment>::@setter::m#element
           formalParameters
-            <null-name>
+            _m
               element: <testLibraryFragment>::@setter::m::@parameter::_m#element
   topLevelVariables
     m
@@ -3979,30 +2595,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static m @21
-          reference: <testLibraryFragment>::@topLevelVariable::m
-          enclosingElement3: <testLibraryFragment>
-          type: Map<String, dynamic>
-      accessors
-        synthetic static get m @-1
-          reference: <testLibraryFragment>::@getter::m
-          enclosingElement3: <testLibraryFragment>
-          returnType: Map<String, dynamic>
-        synthetic static set m= @-1
-          reference: <testLibraryFragment>::@setter::m
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _m @-1
-              type: Map<String, dynamic>
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4021,7 +2613,7 @@ library
           reference: <testLibraryFragment>::@setter::m
           element: <testLibraryFragment>::@setter::m#element
           formalParameters
-            <null-name>
+            _m
               element: <testLibraryFragment>::@setter::m::@parameter::_m#element
   topLevelVariables
     m
@@ -4047,30 +2639,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static m @17
-          reference: <testLibraryFragment>::@topLevelVariable::m
-          enclosingElement3: <testLibraryFragment>
-          type: Map<String, int>
-      accessors
-        synthetic static get m @-1
-          reference: <testLibraryFragment>::@getter::m
-          enclosingElement3: <testLibraryFragment>
-          returnType: Map<String, int>
-        synthetic static set m= @-1
-          reference: <testLibraryFragment>::@setter::m
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _m @-1
-              type: Map<String, int>
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4089,7 +2657,7 @@ library
           reference: <testLibraryFragment>::@setter::m
           element: <testLibraryFragment>::@setter::m#element
           formalParameters
-            <null-name>
+            _m
               element: <testLibraryFragment>::@setter::m::@parameter::_m#element
   topLevelVariables
     m
@@ -4115,30 +2683,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static m @4
-          reference: <testLibraryFragment>::@topLevelVariable::m
-          enclosingElement3: <testLibraryFragment>
-          type: Map<dynamic, dynamic>
-      accessors
-        synthetic static get m @-1
-          reference: <testLibraryFragment>::@getter::m
-          enclosingElement3: <testLibraryFragment>
-          returnType: Map<dynamic, dynamic>
-        synthetic static set m= @-1
-          reference: <testLibraryFragment>::@setter::m
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _m @-1
-              type: Map<dynamic, dynamic>
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4157,7 +2701,7 @@ library
           reference: <testLibraryFragment>::@setter::m
           element: <testLibraryFragment>::@setter::m#element
           formalParameters
-            <null-name>
+            _m
               element: <testLibraryFragment>::@setter::m::@parameter::_m#element
   topLevelVariables
     m
@@ -4183,30 +2727,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static d @8
-          reference: <testLibraryFragment>::@topLevelVariable::d
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-      accessors
-        synthetic static get d @-1
-          reference: <testLibraryFragment>::@getter::d
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        synthetic static set d= @-1
-          reference: <testLibraryFragment>::@setter::d
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _d @-1
-              type: dynamic
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4225,7 +2745,7 @@ library
           reference: <testLibraryFragment>::@setter::d
           element: <testLibraryFragment>::@setter::d#element
           formalParameters
-            <null-name>
+            _d
               element: <testLibraryFragment>::@setter::d::@parameter::_d#element
   topLevelVariables
     d
@@ -4251,30 +2771,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static c @2
-          reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-      accessors
-        synthetic static get c @-1
-          reference: <testLibraryFragment>::@getter::c
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-        synthetic static set c= @-1
-          reference: <testLibraryFragment>::@setter::c
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _c @-1
-              type: InvalidType
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4293,7 +2789,7 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   topLevelVariables
     c
@@ -4319,37 +2815,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:core as core @22
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        core @22
-          reference: <testLibraryFragment>::@prefix::core
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static c @35
-          reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-      accessors
-        synthetic static get c @-1
-          reference: <testLibraryFragment>::@getter::c
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-        synthetic static set c= @-1
-          reference: <testLibraryFragment>::@setter::c
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _c @-1
-              type: InvalidType
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4373,7 +2838,7 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   topLevelVariables
     c

@@ -27,8 +27,11 @@ class DerivedClassThatOverridesBaseMembers<T extends Object> extends Base<T> {
   final T? _t;
   final T? Function() _f;
   DerivedClassThatOverridesBaseMembers(
-      this._t, this._f, T? superI, T? Function() superF)
-      : super(superI, superF);
+    this._t,
+    this._f,
+    T? superI,
+    T? Function() superF,
+  ) : super(superI, superF);
 
   void ordinaryVariableGet() {
     _t.expectStaticType<Exactly<T?>>();

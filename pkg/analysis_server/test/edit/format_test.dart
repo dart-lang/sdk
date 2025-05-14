@@ -174,6 +174,71 @@ void f() {
     expect(formatResult.selectionLength, equals(3));
   }
 
+  Future<void> test_format_trailingCommas_automate() async {
+    writeTestPackageAnalysisOptionsFile(r'''
+formatter:
+  trailing_commas: automate
+''');
+    var content = '''
+enum A {
+  a,
+  b,
+}
+''';
+    addTestFile(content);
+    await waitForTasksFinished();
+    var formatResult = await _formatAt(0, 3);
+
+    expect(
+      formatResult.edits.single.replacement,
+      equals('''
+enum A { a, b }
+'''),
+    );
+  }
+
+  Future<void> test_format_trailingCommas_preserve() async {
+    writeTestPackageAnalysisOptionsFile(r'''
+formatter:
+  trailing_commas: preserve
+''');
+    var content = '''
+enum A { a, b, }
+''';
+    addTestFile(content);
+    await waitForTasksFinished();
+    var formatResult = await _formatAt(0, 3);
+
+    expect(
+      formatResult.edits.single.replacement,
+      equals('''
+enum A {
+  a,
+  b,
+}
+'''),
+    );
+  }
+
+  Future<void> test_format_trailingCommas_unspecified() async {
+    var content = '''
+enum A {
+  a,
+  b,
+}
+''';
+    addTestFile(content);
+    await waitForTasksFinished();
+    var formatResult = await _formatAt(0, 3);
+
+    expect(
+      formatResult.edits.single.replacement,
+      equals('''
+enum A { a, b }
+'''),
+    );
+  }
+
   /// Verify version 2.19 is passed to the formatter so it will not produce any
   /// edits for code containing records (since it fails to parse).
   Future<void> test_format_version_2_19() async {

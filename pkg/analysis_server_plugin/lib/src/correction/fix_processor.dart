@@ -7,32 +7,42 @@ import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/src/correction/fix_in_file_processor.dart';
+import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
-Future<List<Fix>> computeFixes(DartFixContext context) async {
+Future<List<Fix>> computeFixes(DartFixContext context,
+    {FixPerformance? performance}) async {
   return [
-    ...await FixProcessor(context).compute(),
+    ...await FixProcessor(context, performance: performance).compute(),
     ...await FixInFileProcessor(context).compute(),
   ];
+}
+
+/// A callback for recording fix request timings.
+class FixPerformance {
+  Duration? computeTime;
+  List<ProducerTiming> producerTimings = [];
 }
 
 /// The computer for Dart fixes.
 class FixProcessor {
   final DartFixContext _fixContext;
+  final FixPerformance? _performance;
+  final Stopwatch _timer = Stopwatch();
 
   final List<Fix> _fixes = <Fix>[];
 
-  FixProcessor(this._fixContext);
+  FixProcessor(this._fixContext, {FixPerformance? performance})
+      : _performance = performance;
 
   Future<List<Fix>> compute() async {
-    if (isMacroGenerated(_fixContext.unitResult.file.path)) {
-      return _fixes;
-    }
+    _timer.start();
     await _addFromProducers();
+    _timer.stop();
+    _performance?.computeTime = _timer.elapsed;
     return _fixes;
   }
 
@@ -68,7 +78,18 @@ class FixProcessor {
           ChangeBuilder(workspace: _fixContext.workspace, eol: producer.eol);
       try {
         var fixKind = producer.fixKind;
-        await producer.compute(builder);
+
+        if (_performance != null) {
+          var startTime = _timer.elapsedMilliseconds;
+          await producer.compute(builder);
+          _performance.producerTimings.add((
+            className: producer.runtimeType.toString(),
+            elapsedTime: _timer.elapsedMilliseconds - startTime,
+          ));
+        } else {
+          await producer.compute(builder);
+        }
+
         assert(
           !producer.canBeAppliedAcrossSingleFile || producer.fixKind == fixKind,
           'Producers used in bulk fixes must not modify the FixKind during '

@@ -1111,39 +1111,6 @@ class B {}
     );
   }
 
-  Future<void> test_kind_class_referencedInMacro() async {
-    addMacros([declareInTypeMacro()]);
-
-    var originalSource = '''
-import 'macros.dart';
-
-class ClassToMove^ {}
-
-@DeclareInType('  ClassToMove? c;')
-class A {}
-''';
-    var declarationName = 'ClassToMove';
-
-    // Verify that `main.macro.dart` is unmodified.
-    var expected = '''
->>>>>>>>>> lib/class_to_move.dart created
-class ClassToMove {}
->>>>>>>>>> lib/main.dart
-import 'package:test/class_to_move.dart';
-
-import 'macros.dart';
-
-@DeclareInType('  ClassToMove? c;')
-class A {}
-''';
-
-    await _singleDeclaration(
-      originalSource: originalSource,
-      expected: expected,
-      declarationName: declarationName,
-    );
-  }
-
   Future<void> test_kind_extensionType() async {
     var originalSource = '''
 class A {}
@@ -1669,6 +1636,31 @@ class B {}
     );
   }
 
+  Future<void> test_single_extensionType() async {
+    var originalSource = '''
+class A {}
+
+extension type ExtensionTypeToMo^ve(String _) {}
+
+class B {}
+''';
+    var declarationName = 'ExtensionTypeToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/extension_type_to_move.dart created
+extension type ExtensionTypeToMove(String _) {}
+>>>>>>>>>> lib/main.dart
+class A {}
+
+class B {}
+''';
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
+  }
+
   Future<void> test_single_function_endOfName() async {
     var originalSource = '''
 class A {}
@@ -1850,6 +1842,53 @@ part of 'containing_library.dart';
       declarationName: declarationName,
       otherFilePath: containingLibraryFilePath,
       otherFileContent: containingLibraryFileContent,
+    );
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/59968#issuecomment-2622191812
+  Future<void> test_single_topLevelVariable_withReferenceToGetter() async {
+    var originalSource = '''
+class A {}
+
+
+int variableT^oMove = 3;
+
+class B {}
+''';
+    var otherFilePath = '$projectFolderPath/lib/other.dart';
+    var otherFileContent = '''
+import "main.dart";
+
+void f() {
+  print(variableToMove);
+}
+''';
+
+    var declarationName = 'variableToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class A {}
+
+class B {}
+>>>>>>>>>> lib/other.dart
+import "package:test/variable_to_move.dart";
+
+import "main.dart";
+
+void f() {
+  print(variableToMove);
+}
+>>>>>>>>>> lib/variable_to_move.dart created
+int variableToMove = 3;
+''';
+
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
     );
   }
 

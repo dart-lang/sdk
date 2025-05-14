@@ -5,15 +5,22 @@
 import 'package:front_end/src/api_prototype/dynamic_module_validator.dart'
     show DynamicInterfaceSpecification;
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/target/targets.dart' show Target;
 
 import 'pragma.dart'
     show
+        ConstantPragmaAnnotationParser,
         kDynModuleCanBeOverriddenPragmaName,
         kDynModuleCallablePragmaName,
         kDynModuleExtendablePragmaName,
         kDynModuleImplicitlyCallablePragmaName,
-        kDynModuleImplicitlyExtendablePragmaName;
+        kDynModuleImplicitlyExtendablePragmaName,
+        kDynModuleCanBeOverriddenImplicitlyPragmaName,
+        ParsedDynModuleLanguageImplCanBeOverriddenPragma,
+        ParsedDynModuleLanguageImplCallablePragma,
+        ParsedDynModuleLanguageImplExtendablePragma;
 
 const bool _debug = false;
 
@@ -22,35 +29,76 @@ void debugPrint(Object? o) {
   print(o);
 }
 
-void annotateComponent(String dynamicInterfaceSpecification, Uri baseUri,
-    Component component, CoreTypes coreTypes) {
+void annotateComponent(
+  String dynamicInterfaceSpecification,
+  Uri baseUri,
+  Component component,
+  CoreTypes coreTypes,
+  Target target,
+) {
   final spec = DynamicInterfaceSpecification(
-      dynamicInterfaceSpecification, baseUri, component);
+    dynamicInterfaceSpecification,
+    baseUri,
+    component,
+  );
+
+  discoverLanguageImplPragmasInCoreLibraries(
+    spec,
+    component,
+    coreTypes,
+    target,
+  );
 
   final extendableAnnotator = annotateNodes(
-      spec.extendable, kDynModuleExtendablePragmaName, baseUri, coreTypes,
-      annotateClasses: true,
-      annotateFinalClasses: false,
-      annotateStaticMembers: false,
-      annotateInstanceMembers: false);
-  annotateImplicitlyExtendable(coreTypes, extendableAnnotator.annotatedClasses);
-  annotateNodes(spec.canBeOverridden, kDynModuleCanBeOverriddenPragmaName,
-      baseUri, coreTypes,
-      annotateClasses: false,
-      annotateFinalClasses: true,
-      annotateStaticMembers: false,
-      annotateInstanceMembers: true);
+    spec.extendable,
+    kDynModuleExtendablePragmaName,
+    baseUri,
+    coreTypes,
+    annotateClasses: true,
+    annotateFinalClasses: false,
+    annotateStaticMembers: false,
+    annotateInstanceMembers: false,
+  );
+
+  _ImplicitExtendableAnnotator(
+    pragmaConstant(coreTypes, kDynModuleImplicitlyExtendablePragmaName),
+    extendableAnnotator.annotatedClasses,
+  ).annotate();
+
+  final canBeOverriddenAnnotator = annotateNodes(
+    spec.canBeOverridden,
+    kDynModuleCanBeOverriddenPragmaName,
+    baseUri,
+    coreTypes,
+    annotateClasses: false,
+    annotateFinalClasses: true,
+    annotateStaticMembers: false,
+    annotateInstanceMembers: true,
+  );
+
+  final hierarchy = ClassHierarchy(component, coreTypes);
+  _ImplicitOverridesAnnotator(
+    pragmaConstant(coreTypes, kDynModuleCanBeOverriddenImplicitlyPragmaName),
+    hierarchy,
+    canBeOverriddenAnnotator.annotatedMembers,
+  ).annotate();
+
   final callableAnnotator = annotateNodes(
-      spec.callable, kDynModuleCallablePragmaName, baseUri, coreTypes,
-      annotateClasses: true,
-      annotateFinalClasses: true,
-      annotateStaticMembers: true,
-      annotateInstanceMembers: true);
+    spec.callable,
+    kDynModuleCallablePragmaName,
+    baseUri,
+    coreTypes,
+    annotateClasses: true,
+    annotateFinalClasses: true,
+    annotateStaticMembers: true,
+    annotateInstanceMembers: true,
+  );
 
   final implicitUsesAnnotator = _ImplicitUsesAnnotator(
-      pragmaConstant(coreTypes, kDynModuleImplicitlyCallablePragmaName),
-      callableAnnotator.annotatedClasses,
-      callableAnnotator.annotatedMembers);
+    pragmaConstant(coreTypes, kDynModuleImplicitlyCallablePragmaName),
+    callableAnnotator.annotatedClasses,
+    callableAnnotator.annotatedMembers,
+  );
 
   implicitUsesAnnotator.annotateMixinUses(extendableAnnotator.annotatedClasses);
   implicitUsesAnnotator.annotateMemberUses(callableAnnotator.annotatedMembers);
@@ -60,7 +108,7 @@ void annotateComponent(String dynamicInterfaceSpecification, Uri baseUri,
 InstanceConstant pragmaConstant(CoreTypes coreTypes, String pragmaName) {
   return InstanceConstant(coreTypes.pragmaClass.reference, [], {
     coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
-    coreTypes.pragmaOptions.fieldReference: NullConstant()
+    coreTypes.pragmaOptions.fieldReference: NullConstant(),
   });
 }
 
@@ -75,11 +123,13 @@ _Annotator annotateNodes(
   required bool annotateInstanceMembers,
 }) {
   final pragma = pragmaConstant(coreTypes, pragmaName);
-  final annotator = _Annotator(pragma,
-      annotateClasses: annotateClasses,
-      annotateFinalClasses: annotateFinalClasses,
-      annotateStaticMembers: annotateStaticMembers,
-      annotateInstanceMembers: annotateInstanceMembers);
+  final annotator = _Annotator(
+    pragma,
+    annotateClasses: annotateClasses,
+    annotateFinalClasses: annotateFinalClasses,
+    annotateStaticMembers: annotateStaticMembers,
+    annotateInstanceMembers: annotateInstanceMembers,
+  );
   for (final node in nodes) {
     node.accept(annotator);
   }
@@ -112,6 +162,16 @@ class _Annotator extends RecursiveVisitor {
     for (final c in node.classes) {
       if (c.name[0] != '_') {
         c.accept(this);
+      }
+    }
+    for (final ext in node.extensions) {
+      if (ext.name[0] != '_') {
+        ext.accept(this);
+      }
+    }
+    for (final extensionType in node.extensionTypeDeclarations) {
+      if (extensionType.name[0] != '_') {
+        extensionType.accept(this);
       }
     }
     for (final exportRef in node.additionalExports) {
@@ -169,18 +229,111 @@ class _Annotator extends RecursiveVisitor {
       node.addAnnotation(ConstantExpression(pragma));
     }
   }
+
+  @override
+  void visitExtension(Extension node) {
+    for (final md in node.memberDescriptors) {
+      final member = md.memberReference?.node;
+      if (member != null) {
+        annotateMember(member as Member);
+      }
+      final tearOff = md.tearOffReference?.node;
+      if (tearOff != null) {
+        annotateMember(tearOff as Member);
+      }
+    }
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    for (final md in node.memberDescriptors) {
+      final member = md.memberReference?.node;
+      if (member != null) {
+        annotateMember(member as Member);
+      }
+      final tearOff = md.tearOffReference?.node;
+      if (tearOff != null) {
+        annotateMember(tearOff as Member);
+      }
+    }
+  }
 }
 
-void annotateImplicitlyExtendable(
-    CoreTypes coreTypes, Set<Class> extendableClasses) {
-  final pragma =
-      pragmaConstant(coreTypes, kDynModuleImplicitlyExtendablePragmaName);
-  for (final cls in [...extendableClasses]) {
+class _ImplicitExtendableAnnotator {
+  final Constant pragma;
+  final Set<Class> extendableClasses;
+  final Set<Class> implicitlyExtendable = Set<Class>.identity();
+
+  _ImplicitExtendableAnnotator(this.pragma, this.extendableClasses);
+
+  void annotate() {
+    for (final cls in extendableClasses) {
+      annotateSupertypesOf(cls);
+    }
+  }
+
+  void annotateSupertypesOf(Class cls) {
     for (final supertype in cls.supers) {
       final supertypeClass = supertype.classNode;
-      if (extendableClasses.add(supertypeClass)) {
+      if (implicitlyExtendable.add(supertypeClass) &&
+          !extendableClasses.contains(supertypeClass)) {
         supertypeClass.addAnnotation(ConstantExpression(pragma));
+        annotateSupertypesOf(supertypeClass);
       }
+    }
+  }
+}
+
+class _ImplicitOverridesAnnotator {
+  final Constant pragma;
+  final ClassHierarchy hierarchy;
+  final Set<Member> overriddenMembers;
+  final Set<Member> implicitlyOverriddenSetters = Set<Member>.identity();
+  final Set<Member> implicitlyOverriddenNonSetters = Set<Member>.identity();
+
+  _ImplicitOverridesAnnotator(
+    this.pragma,
+    this.hierarchy,
+    this.overriddenMembers,
+  );
+
+  void annotate() {
+    for (final member in overriddenMembers) {
+      final cls = member.enclosingClass!;
+      if (member.hasGetter) {
+        annotateSupertypesOf(cls, member.name, setter: false);
+      }
+      if (member.hasSetter) {
+        annotateSupertypesOf(cls, member.name, setter: true);
+      }
+    }
+  }
+
+  void annotateSupertypesOf(
+    Class cls,
+    Name memberName, {
+    required bool setter,
+  }) {
+    for (final supertype in cls.supers) {
+      final supertypeClass = supertype.classNode;
+      final member = ClassHierarchy.findMemberByName(
+        hierarchy.getDeclaredMembers(supertypeClass, setters: setter),
+        memberName,
+      );
+      if (member != null) {
+        final implicitlyOverridden =
+            setter
+                ? implicitlyOverriddenSetters
+                : implicitlyOverriddenNonSetters;
+        if (implicitlyOverridden.add(member) &&
+            !overriddenMembers.contains(member)) {
+          member.addAnnotation(ConstantExpression(pragma));
+        } else {
+          // The member is already annotated - do not go deeper.
+          continue;
+        }
+      }
+      annotateSupertypesOf(supertypeClass, memberName, setter: setter);
     }
   }
 }
@@ -194,8 +347,11 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
   final Set<Constant> _visitedConstants = Set<Constant>.identity();
   final Map<Class, _ClassInfo> _classInfos = Map<Class, _ClassInfo>.identity();
 
-  _ImplicitUsesAnnotator(this.pragma, Set<Class> explicitlyUsedClasses,
-      Set<Member> explicitlyUsedMembers) {
+  _ImplicitUsesAnnotator(
+    this.pragma,
+    Set<Class> explicitlyUsedClasses,
+    Set<Member> explicitlyUsedMembers,
+  ) {
     annotatedClasses.addAll(explicitlyUsedClasses);
     annotatedMembers.addAll(explicitlyUsedMembers);
   }
@@ -323,11 +479,16 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
     final mixedInClass = cls.mixedInClass;
     final mixedInClassInfo =
         mixedInClass != null ? _getClassInfo(mixedInClass) : null;
-    final implementedClassInfos = cls.implementedTypes
-        .map((sup) => _getClassInfo(sup.classNode))
-        .toList();
+    final implementedClassInfos =
+        cls.implementedTypes
+            .map((sup) => _getClassInfo(sup.classNode))
+            .toList();
     return _ClassInfo(
-        cls, superclassInfo, mixedInClassInfo, implementedClassInfos);
+      cls,
+      superclassInfo,
+      mixedInClassInfo,
+      implementedClassInfos,
+    );
   }
 }
 
@@ -343,13 +504,19 @@ class _ClassInfo {
   bool collected = false;
 
   // Cache of dispatch targets.
-  late final Map<Name, Member> dispatchTargetsSetters =
-      _initDispatchTargets(true);
-  late final Map<Name, Member> dispatchTargetsNonSetters =
-      _initDispatchTargets(false);
+  late final Map<Name, Member> dispatchTargetsSetters = _initDispatchTargets(
+    true,
+  );
+  late final Map<Name, Member> dispatchTargetsNonSetters = _initDispatchTargets(
+    false,
+  );
 
-  _ClassInfo(this.classNode, this.superclass, this.mixedInClass,
-      this.implementedClasses);
+  _ClassInfo(
+    this.classNode,
+    this.superclass,
+    this.mixedInClass,
+    this.implementedClasses,
+  );
 
   void addSelector(Member m) {
     if (m.isInstanceMember) {
@@ -391,17 +558,21 @@ class _ClassInfo {
     Map<Name, Member> targets;
     final superclass = this.superclass;
     if (superclass != null) {
-      targets = Map.of(setters
-          ? superclass.dispatchTargetsSetters
-          : superclass.dispatchTargetsNonSetters);
+      targets = Map.of(
+        setters
+            ? superclass.dispatchTargetsSetters
+            : superclass.dispatchTargetsNonSetters,
+      );
     } else {
       targets = {};
     }
     final mixedInClass = this.mixedInClass;
     if (mixedInClass != null) {
-      targets.addAll(setters
-          ? mixedInClass.dispatchTargetsSetters
-          : mixedInClass.dispatchTargetsNonSetters);
+      targets.addAll(
+        setters
+            ? mixedInClass.dispatchTargetsSetters
+            : mixedInClass.dispatchTargetsNonSetters,
+      );
     }
     for (Field f in classNode.fields) {
       if (!f.isStatic && !f.isAbstract) {
@@ -421,4 +592,56 @@ class _ClassInfo {
   }
 
   static bool _isSetter(Member m) => m is Procedure && m.isSetter;
+}
+
+void discoverLanguageImplPragmasInCoreLibraries(
+  DynamicInterfaceSpecification spec,
+  Component component,
+  CoreTypes coreTypes,
+  Target target,
+) {
+  final pragmaParser = ConstantPragmaAnnotationParser(coreTypes, target);
+  final visitor = _DiscoverLanguageImplPragmasVisitor(spec, pragmaParser);
+  for (final lib in component.libraries) {
+    if (lib.importUri.isScheme('dart')) {
+      visitor.visitLibrary(lib);
+    }
+  }
+}
+
+class _DiscoverLanguageImplPragmasVisitor extends RecursiveVisitor {
+  final DynamicInterfaceSpecification spec;
+  final ConstantPragmaAnnotationParser parser;
+
+  _DiscoverLanguageImplPragmasVisitor(this.spec, this.parser);
+
+  @override
+  void visitClass(Class node) {
+    for (final annotation in node.annotations) {
+      final pragma = parser.parsePragma(annotation);
+      switch (pragma) {
+        case ParsedDynModuleLanguageImplExtendablePragma():
+          spec.extendable.add(node);
+        case ParsedDynModuleLanguageImplCallablePragma():
+          spec.callable.add(node);
+      }
+    }
+    node.visitChildren(this);
+  }
+
+  @override
+  void defaultMember(Member node) {
+    for (final annotation in node.annotations) {
+      final pragma = parser.parsePragma(annotation);
+      switch (pragma) {
+        case ParsedDynModuleLanguageImplCallablePragma():
+          spec.callable.add(node);
+        case ParsedDynModuleLanguageImplCanBeOverriddenPragma():
+          if (!node.isInstanceMember) {
+            throw 'Expected instance member $node';
+          }
+          spec.canBeOverridden.add(node);
+      }
+    }
+  }
 }

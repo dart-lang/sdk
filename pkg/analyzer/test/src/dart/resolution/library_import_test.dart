@@ -34,11 +34,10 @@ ImportDirective
       hiddenNames
         SimpleIdentifier
           token: Random
-          staticElement: dart:math::<fragment>::@class::Random
           element: dart:math::@class::Random
           staticType: null
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithLibrary
       uri: dart:math
 ''');
@@ -64,11 +63,10 @@ ImportDirective
       hiddenNames
         SimpleIdentifier
           token: Unresolved
-          staticElement: <null>
           element: <null>
           staticType: null
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithLibrary
       uri: dart:math
 ''');
@@ -93,11 +91,10 @@ ImportDirective
       shownNames
         SimpleIdentifier
           token: Random
-          staticElement: dart:math::<fragment>::@class::Random
           element: dart:math::@class::Random
           staticType: null
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithLibrary
       uri: dart:math
 ''');
@@ -123,11 +120,10 @@ ImportDirective
       shownNames
         SimpleIdentifier
           token: Unresolved
-          staticElement: <null>
           element: <null>
           staticType: null
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithLibrary
       uri: dart:math
 ''');
@@ -167,17 +163,14 @@ CompilationUnit
             components
               SimpleIdentifier
                 token: dart
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
-                staticElement: <null>
                 element: <null>
                 staticType: null
           rightParenthesis: )
@@ -192,17 +185,14 @@ CompilationUnit
             components
               SimpleIdentifier
                 token: dart
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
-                staticElement: <null>
                 element: <null>
                 staticType: null
           rightParenthesis: )
@@ -211,7 +201,7 @@ CompilationUnit
           resolvedUri: DirectiveUriWithSource
             source: package:test/a_io.dart
       semicolon: ;
-      element: LibraryImportElement
+      libraryImport: LibraryImport
         uri: DirectiveUriWithLibrary
           uri: package:test/a.dart
   declarations
@@ -226,10 +216,8 @@ CompilationUnit
               constructorName: ConstructorName
                 type: NamedType
                   name: A
-                  element: package:test/a.dart::<fragment>::@class::A
                   element2: package:test/a.dart::@class::A
                   type: A
-                staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
                 element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -275,17 +263,14 @@ CompilationUnit
             components
               SimpleIdentifier
                 token: dart
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
-                staticElement: <null>
                 element: <null>
                 staticType: null
           rightParenthesis: )
@@ -300,17 +285,14 @@ CompilationUnit
             components
               SimpleIdentifier
                 token: dart
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
-                staticElement: <null>
                 element: <null>
                 staticType: null
           rightParenthesis: )
@@ -319,7 +301,7 @@ CompilationUnit
           resolvedUri: DirectiveUriWithSource
             source: package:test/a_io.dart
       semicolon: ;
-      element: LibraryImportElement
+      libraryImport: LibraryImport
         uri: DirectiveUriWithLibrary
           uri: package:test/a_html.dart
   declarations
@@ -334,10 +316,8 @@ CompilationUnit
               constructorName: ConstructorName
                 type: NamedType
                   name: A
-                  element: package:test/a_html.dart::<fragment>::@class::A
                   element2: package:test/a_html.dart::@class::A
                   type: A
-                staticElement: package:test/a_html.dart::<fragment>::@class::A::@constructor::new
                 element: package:test/a_html.dart::<fragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -367,7 +347,6 @@ Configuration
     components
       SimpleIdentifier
         token: x
-        staticElement: <null>
         element: <null>
         staticType: null
   rightParenthesis: )
@@ -396,7 +375,6 @@ Configuration
     components
       SimpleIdentifier
         token: x
-        staticElement: <null>
         element: <null>
         staticType: null
   rightParenthesis: )
@@ -435,7 +413,6 @@ Configuration
     components
       SimpleIdentifier
         token: x
-        staticElement: <null>
         element: <null>
         staticType: null
   rightParenthesis: )
@@ -464,7 +441,6 @@ Configuration
     components
       SimpleIdentifier
         token: x
-        staticElement: <null>
         element: <null>
         staticType: null
   rightParenthesis: )
@@ -509,17 +485,14 @@ CompilationUnit
             components
               SimpleIdentifier
                 token: dart
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
-                staticElement: <null>
                 element: <null>
                 staticType: null
           rightParenthesis: )
@@ -534,17 +507,14 @@ CompilationUnit
             components
               SimpleIdentifier
                 token: dart
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
-                staticElement: <null>
                 element: <null>
                 staticType: null
           rightParenthesis: )
@@ -553,7 +523,7 @@ CompilationUnit
           resolvedUri: DirectiveUriWithSource
             source: package:test/a_io.dart
       semicolon: ;
-      element: LibraryImportElement
+      libraryImport: LibraryImport
         uri: DirectiveUriWithLibrary
           uri: package:test/a_io.dart
   declarations
@@ -568,10 +538,8 @@ CompilationUnit
               constructorName: ConstructorName
                 type: NamedType
                   name: A
-                  element: package:test/a_io.dart::<fragment>::@class::A
                   element2: package:test/a_io.dart::@class::A
                   type: A
-                staticElement: package:test/a_io.dart::<fragment>::@class::A::@constructor::new
                 element: package:test/a_io.dart::<fragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -598,7 +566,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithLibrary
       uri: package:test/a.dart
 ''');
@@ -618,7 +586,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithLibrary
       uri: package:test/a.dart
 ''');
@@ -644,7 +612,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: 'package:foo/foo.dart'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithLibrary
       uri: package:foo/foo.dart
 ''');
@@ -664,7 +632,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: ':net'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithRelativeUriString
       relativeUriString: :net
 ''');
@@ -695,7 +663,7 @@ ImportDirective
     staticType: String
     stringValue: null
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUri
 ''');
   }
@@ -714,7 +682,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: 'foo:bar'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithRelativeUri
       relativeUri: foo:bar
 ''');
@@ -738,7 +706,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithSource
       source: package:test/a.dart
 ''');
@@ -762,7 +730,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithSource
       source: package:test/a.dart
 ''');
@@ -790,7 +758,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: 'package:foo/foo2.dart'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithSource
       source: package:foo/foo2.dart
 ''');
@@ -821,7 +789,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: 'c.dart'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithLibrary
       uri: package:test/c.dart
 ''');
@@ -849,7 +817,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: 'c.dart'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithLibrary
       uri: package:test/c.dart
 ''');
@@ -877,7 +845,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: ':net'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithRelativeUriString
       relativeUriString: :net
 ''');
@@ -916,7 +884,7 @@ ImportDirective
     staticType: String
     stringValue: null
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUri
 ''');
   }
@@ -943,7 +911,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: 'foo:bar'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithRelativeUri
       relativeUri: foo:bar
 ''');
@@ -975,7 +943,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: 'c.dart'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithSource
       source: package:test/c.dart
 ''');
@@ -1007,7 +975,7 @@ ImportDirective
   uri: SimpleStringLiteral
     literal: 'c.dart'
   semicolon: ;
-  element: LibraryImportElement
+  libraryImport: LibraryImport
     uri: DirectiveUriWithSource
       source: package:test/c.dart
 ''');

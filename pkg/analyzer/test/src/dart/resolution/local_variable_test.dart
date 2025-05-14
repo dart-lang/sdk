@@ -27,13 +27,13 @@ void f() {
 ''');
 
     var x = findElement2.localVar('x');
-    assertElement3(
+    assertElement(
       x.metadata2.annotations.single.element2,
       declaration: findElement2.topGet('a'),
     );
 
     var y = findElement2.localVar('y');
-    assertElement3(
+    assertElement(
       y.metadata2.annotations.single.element2,
       declaration: findElement2.topGet('a'),
     );
@@ -161,7 +161,6 @@ f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
-  staticElement: _@52
   element: _@52
   staticType: Null Function()
 ''');
@@ -182,7 +181,6 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
-  staticElement: <testLibraryFragment>::@class::C::@getter::_
   element: <testLibraryFragment>::@class::C::@getter::_#element
   staticType: int
 ''');
@@ -202,7 +200,6 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
-  staticElement: <testLibraryFragment>::@getter::_
   element: <testLibraryFragment>::@getter::_#element
   staticType: int
 ''');

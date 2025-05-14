@@ -10,10 +10,10 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -32,7 +32,7 @@ import '../resolution/resolution.dart';
 
 /// [FileResolver] based implementation of [ResolutionTest].
 class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
-  final MemoryByteStore byteStore = MemoryByteStore();
+  final CiderByteStore byteStore = CiderByteStore();
 
   final FileResolverTestData testData = FileResolverTestData();
 
@@ -122,14 +122,14 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   }
 
   @override
-  Future<ResolvedUnitResult> resolveFile(
+  Future<ResolvedUnitResultImpl> resolveFile(
     File file, {
     OperationPerformanceImpl? performance,
   }) async {
     result = await fileResolver.resolve(
       path: file.path,
       performance: performance,
-    );
+    ) as ResolvedUnitResultImpl;
     return result;
   }
 
@@ -137,7 +137,6 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   Future<void> resolveTestFile() async {
     result = await resolveFile(testFile);
     findNode = FindNode(result.content, result.unit);
-    findElement = FindElement(result.unit);
     findElement2 = FindElement2(result.unit);
   }
 

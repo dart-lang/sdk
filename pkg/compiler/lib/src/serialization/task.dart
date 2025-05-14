@@ -10,7 +10,6 @@ import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
 
 import '../../compiler_api.dart' as api;
-import '../commandline_options.dart' show Flags;
 import '../common/codegen.dart';
 import '../common/tasks.dart';
 import '../deferred_load/output_unit.dart';
@@ -97,31 +96,8 @@ class SerializationTask extends CompilerTask {
     });
   }
 
-  void updateOptionsFromComponent(ir.Component component) {
-    var isStrongDill =
-        component.mode == ir.NonNullableByDefaultCompiledMode.Strong;
-    var incompatibleNullSafetyMode =
-        isStrongDill ? NullSafetyMode.unsound : NullSafetyMode.sound;
-    if (_options.nullSafetyMode == incompatibleNullSafetyMode) {
-      var dillMode = isStrongDill ? 'sound' : 'unsound';
-      var option =
-          isStrongDill ? Flags.noSoundNullSafety : Flags.soundNullSafety;
-      throw ArgumentError(
-        "${_options.inputDillUri} was compiled with "
-        "$dillMode null safety and is incompatible with the '$option' "
-        "option",
-      );
-    }
-
-    _options.nullSafetyMode =
-        component.mode == ir.NonNullableByDefaultCompiledMode.Strong
-            ? NullSafetyMode.sound
-            : NullSafetyMode.unsound;
-  }
-
   Future<ir.Component> deserializeComponentAndUpdateOptions() async {
     ir.Component component = await deserializeComponent();
-    updateOptionsFromComponent(component);
     return component;
   }
 
@@ -388,7 +364,7 @@ class SerializationTask extends CompilerTask {
     source.registerAbstractValueDomain(abstractValueDomain);
     return DumpInfoProgramData.readFromDataSource(
       source,
-      includeCodeText: !_options.useDumpInfoBinaryFormat,
+      includeCodeText: _options.dumpInfoFormat != DumpInfoFormat.binary,
     );
   }
 }

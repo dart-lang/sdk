@@ -277,7 +277,6 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: m
-    staticElement: <null>
     element: <null>
     staticType: InvalidType
   argumentList: ArgumentList
@@ -309,7 +308,6 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: a
-    staticElement: <null>
     element: <null>
     staticType: InvalidType
   staticType: InvalidType

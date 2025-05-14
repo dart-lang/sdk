@@ -431,11 +431,13 @@ main() {
   Expect.identical(0.0, v1);
   v2 = 1..toString();
   Expect.identical(1.0, v2);
-  v3 = -0
-    ..toString();
+  v3 =
+      -0
+        ..toString();
   Expect.identical(-0.0, v3);
-  v4 = -1
-    ..toString();
+  v4 =
+      -1
+        ..toString();
   Expect.identical(-1.0, v4);
   v5 = 9223372036854775808..toString();
   Expect.identical(9223372036854775808.0, v5);
@@ -443,8 +445,9 @@ main() {
   Expect.identical(18446744073709551616.0, v6);
   v7 = 0x02..toString(); // Hex literal.
   Expect.identical(2.0, v7);
-  v8 = -0x02
-    ..toString(); // Hex literal.
+  v8 =
+      -0x02
+        ..toString(); // Hex literal.
   Expect.identical(-2.0, v8);
 
   // Nexted context, double assignment.
@@ -551,8 +554,9 @@ main() {
   {
     // Check that the correct value is used as receiver for the cascade.
     var collector = StringBuffer();
-    double tricky = -42
-      ..toString().codeUnits.forEach(collector.writeCharCode);
+    double tricky =
+        -42
+          ..toString().codeUnits.forEach(collector.writeCharCode);
     Expect.equals("${-42.0}", collector.toString());
   }
 

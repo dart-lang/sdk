@@ -190,6 +190,13 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
         .getMember(name, setter);
   }
 
+  ClassMember? getExtensionTypeStaticClassMember(
+      ExtensionTypeDeclaration extensionTypeDeclaration, Name name,
+      {bool setter = false}) {
+    return getNodeFromExtensionTypeDeclaration(extensionTypeDeclaration)
+        .getStaticMember(name, setter);
+  }
+
   @override
   Member? getDispatchTarget(Class cls, Name name, {bool setter = false}) {
     return getNodeFromClass(cls)
@@ -202,6 +209,10 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     return getNodeFromClass(cls).getDispatchTarget(name, setter);
   }
 
+  Member? getStaticMember(Class cls, Name name, {bool setter = false}) {
+    return getNodeFromClass(cls).getStaticMember(name, setter)?.getMember(this);
+  }
+
   static ClassMembersBuilder build(
       ClassHierarchyBuilder hierarchyBuilder,
       List<ClassBuilder> classes,
@@ -209,8 +220,6 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     ClassMembersBuilder membersBuilder =
         new ClassMembersBuilder(hierarchyBuilder);
     for (ClassBuilder classBuilder in classes) {
-      assert(!classBuilder.isAugmenting,
-          "Unexpected augmentation class $classBuilder");
       membersBuilder.classNodes[classBuilder.cls] = new ClassMembersNodeBuilder(
               membersBuilder,
               hierarchyBuilder.getNodeFromClassBuilder(classBuilder))
@@ -218,10 +227,6 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     }
     for (ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder
         in extensionTypeDeclarations) {
-      assert(
-          !extensionTypeDeclarationBuilder.isAugmenting,
-          "Unexpected augment extension type declaration "
-          "$extensionTypeDeclarationBuilder");
       membersBuilder.extensionTypeDeclarationNodes[
               extensionTypeDeclarationBuilder.extensionTypeDeclaration] =
           new ExtensionTypeMembersNodeBuilder(

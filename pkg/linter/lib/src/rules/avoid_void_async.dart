@@ -14,17 +14,16 @@ const _desc = r'Avoid `async` functions that return `void`.';
 
 class AvoidVoidAsync extends LintRule {
   AvoidVoidAsync()
-      : super(
-          name: LintNames.avoid_void_async,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_void_async, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_void_async;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -39,18 +38,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.name.lexeme == 'main' && node.parent is CompilationUnit) return;
-    _check(
-      fragment: node.declaredFragment,
-      errorNode: node.name,
-    );
+    _check(fragment: node.declaredFragment, errorNode: node.name);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    _check(
-      fragment: node.declaredFragment,
-      errorNode: node.name,
-    );
+    _check(fragment: node.declaredFragment, errorNode: node.name);
   }
 
   void _check({

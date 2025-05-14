@@ -901,10 +901,9 @@ class Assembler : public AssemblerBase {
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(Register scratch,
                                    bool exit_safepoint,
-                                   bool ignore_unwind_in_progress = false,
                                    bool set_tag = true);
   void EnterFullSafepoint(Register scratch);
-  void ExitFullSafepoint(Register scratch, bool ignore_unwind_in_progress);
+  void ExitFullSafepoint(Register scratch);
 
   // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);

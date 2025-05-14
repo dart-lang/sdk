@@ -40,12 +40,12 @@ final bool isUnalignedFloatingPointAccessSupported = switch (Abi.current()) {
 
 void main() {
   print("hello");
-  testUnalignedInt16(); //# 01: ok
-  testUnalignedInt32(); //# 02: ok
-  testUnalignedInt64(); //# 03: ok
+  testUnalignedInt16();
+  testUnalignedInt32();
+  testUnalignedInt64();
   if (isUnalignedFloatingPointAccessSupported) {
-    testUnalignedFloat(); //# 04: ok
-    testUnalignedDouble(); //# 05: ok
+    testUnalignedFloat();
+    testUnalignedDouble();
   }
   _freeAll();
 }

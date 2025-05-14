@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidAnnotatingWithDynamicTest);
   });
@@ -33,9 +33,7 @@ augment class A {
 ''');
 
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [
-      lint(46, 9),
-    ]);
+    await assertDiagnosticsInFile(b.path, [lint(46, 9)]);
   }
 
   test_augmentationTopLevelFunction() async {
@@ -50,11 +48,10 @@ void f(dynamic o) { }
 ''');
 
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [
-      lint(26, 9),
-    ]);
+    await assertDiagnosticsInFile(b.path, [lint(26, 9)]);
   }
 
+  @FailingTest(reason: 'Chaining formal parameter fragments is not implemented')
   test_augmentationTopLevelFunction_localDynamic() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -72,9 +69,7 @@ augment void f(int i) {
 ''');
 
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [
-      lint(54, 9),
-    ]);
+    await assertDiagnosticsInFile(b.path, [lint(54, 9)]);
   }
 
   test_augmentedMethod() async {
@@ -94,9 +89,7 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(35, 9),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(35, 9)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
@@ -113,9 +106,7 @@ part of 'a.dart';
 augment void f(dynamic o) { }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(23, 9),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(23, 9)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
@@ -133,9 +124,7 @@ augment void f(dynamic o) { }
 augment void f(dynamic o) { }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(23, 9),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(23, 9)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
@@ -145,14 +134,15 @@ augment void f(dynamic o) { }
   // Test parameter with a default value.
 
   test_fieldFormals() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   var a;
   A(dynamic this.a);
 }
-''', [
-      lint(23, 14),
-    ]);
+''',
+      [lint(23, 14)],
+    );
   }
 
   test_implicitDynamic() async {
@@ -162,27 +152,30 @@ void f(p) {}
   }
 
   test_optionalNamedParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f({dynamic p}) {}
-''', [
-      lint(8, 9),
-    ]);
+''',
+      [lint(8, 9)],
+    );
   }
 
   test_optionalParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f([dynamic p]) {}
-''', [
-      lint(8, 9),
-    ]);
+''',
+      [lint(8, 9)],
+    );
   }
 
   test_requiredParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(dynamic p) {}
-''', [
-      lint(7, 9),
-    ]);
+''',
+      [lint(7, 9)],
+    );
   }
 
   test_returnType() async {
@@ -194,7 +187,8 @@ dynamic f() {
   }
 
   test_super() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   var a;
   var b;
@@ -203,9 +197,8 @@ class A {
 class B extends A {
   B(dynamic super.a, dynamic super.b);
 }
-''', [
-      lint(75, 15),
-      lint(92, 15),
-    ]);
+''',
+      [lint(75, 15), lint(92, 15)],
+    );
   }
 }

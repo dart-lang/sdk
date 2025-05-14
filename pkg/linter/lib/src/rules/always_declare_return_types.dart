@@ -13,20 +13,19 @@ const _desc = r'Declare method return types.';
 
 class AlwaysDeclareReturnTypes extends LintRule {
   AlwaysDeclareReturnTypes()
-      : super(
-          name: LintNames.always_declare_return_types,
-          description: _desc,
-        );
+    : super(name: LintNames.always_declare_return_types, description: _desc);
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.always_declare_return_types_of_functions,
-        LinterLintCode.always_declare_return_types_of_methods
-      ];
+    LinterLintCode.always_declare_return_types_of_functions,
+    LinterLintCode.always_declare_return_types_of_methods,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
@@ -43,18 +42,22 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (!node.isSetter && node.returnType == null && !node.isAugmentation) {
-      rule.reportLintForToken(node.name,
-          arguments: [node.name.lexeme],
-          errorCode: LinterLintCode.always_declare_return_types_of_functions);
+      rule.reportLintForToken(
+        node.name,
+        arguments: [node.name.lexeme],
+        errorCode: LinterLintCode.always_declare_return_types_of_functions,
+      );
     }
   }
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (node.returnType == null) {
-      rule.reportLintForToken(node.name,
-          arguments: [node.name.lexeme],
-          errorCode: LinterLintCode.always_declare_return_types_of_functions);
+      rule.reportLintForToken(
+        node.name,
+        arguments: [node.name.lexeme],
+        errorCode: LinterLintCode.always_declare_return_types_of_functions,
+      );
     }
   }
 

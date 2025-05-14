@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:dynamic_modules/dynamic_modules.dart' show loadModuleFromBytes;
 
-main(List<String> args) {
+Future<void> main(List<String> args) {
   final bytes = File(args[0]).readAsBytesSync();
   return loadModuleFromBytes(bytes);
 }

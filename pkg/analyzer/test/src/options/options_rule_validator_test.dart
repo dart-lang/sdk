@@ -7,7 +7,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -262,16 +261,17 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
 
   @override
   void setUp() {
-    Registry.ruleRegistry
-      ..registerLintRule(DeprecatedLint())
-      ..registerLintRule(DeprecatedSince3Lint())
-      ..registerLintRule(DeprecatedLintWithReplacement())
-      ..registerLintRule(StableLint())
-      ..registerLintRule(RuleNeg())
-      ..registerLintRule(RulePos())
-      ..registerLintRule(RemovedIn2_12Lint())
-      ..registerLintRule(ReplacedLint())
-      ..registerLintRule(ReplacingLint());
+    registerLintRules([
+      DeprecatedLint(),
+      DeprecatedSince3Lint(),
+      DeprecatedLintWithReplacement(),
+      StableLint(),
+      RuleNeg(),
+      RulePos(),
+      RemovedIn2_12Lint(),
+      ReplacedLint(),
+      ReplacingLint()
+    ]);
     super.setUp();
   }
 }

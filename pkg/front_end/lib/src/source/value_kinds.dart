@@ -26,9 +26,9 @@ import '../builder/constructor_reference_builder.dart' as type;
 import '../builder/declaration_builders.dart' as type;
 import '../builder/formal_parameter_builder.dart' as type;
 import '../builder/metadata_builder.dart' as type;
-import '../builder/mixin_application_builder.dart' as type;
 import '../builder/record_type_builder.dart' as type;
 import '../builder/type_builder.dart' as type;
+import '../fragment/fragment.dart' as type;
 import '../kernel/body_builder.dart' as type
     show
         Condition,
@@ -38,7 +38,6 @@ import '../kernel/body_builder.dart' as type
         Label;
 import '../kernel/expression_generator.dart' as type;
 import 'outline_builder.dart' as type;
-import 'source_enum_builder.dart' as type show EnumConstantInfo;
 
 class ValueKinds {
   static const ValueKind AnnotationList =
@@ -138,11 +137,6 @@ class ValueKinds {
   static const ValueKind PrefixOrParserRecoveryOrNull =
       const UnionValueKind([PrefixOrNull, ParserRecovery]);
   static const ValueKind MethodBody = const SingleValueKind<type.MethodBody>();
-  static const ValueKind MixinApplicationBuilder =
-      const SingleValueKind<type.MixinApplicationBuilder>();
-  static const ValueKind MixinApplicationBuilderOrNull =
-      const SingleValueKind<type.MixinApplicationBuilder>(
-          NullValues.MixinApplicationBuilder);
   static const ValueKind Modifiers = const SingleValueKind<type.Modifiers>();
   static const ValueKind Name = const SingleValueKind<type.String>();
   static const ValueKind NamedExpression =
@@ -210,6 +204,9 @@ class ValueKinds {
       const SingleValueKind<List<type.TypeBuilder>>();
   static const ValueKind TypeBuilderListOrNull =
       const SingleValueKind<List<type.TypeBuilder>>(NullValues.TypeBuilderList);
+  static const ValueKind TypeParameterFragmentListOrNull =
+      const SingleValueKind<List<type.TypeParameterFragment>>(
+          NullValues.NominalParameters);
   static const ValueKind NominalVariableListOrNull =
       const SingleValueKind<List<type.NominalParameterBuilder>>(
           NullValues.NominalParameters);

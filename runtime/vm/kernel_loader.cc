@@ -526,7 +526,7 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
   }
 
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     // Note that `problemsAsJson` on Component is implicitly skipped.
     const intptr_t length = program_->library_count();
     for (intptr_t i = 0; i < length; i++) {
@@ -652,7 +652,7 @@ void KernelLoader::FindModifiedLibraries(Program* program,
                                          intptr_t* p_num_procedures) {
   LongJumpScope jump;
   Zone* zone = Thread::Current()->zone();
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     if (force_reload) {
       // If a reload is being forced we mark all libraries as having
       // been modified.
@@ -827,21 +827,6 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
       Library::Handle(Z, LookupLibrary(library_helper.canonical_name_));
 
   if (library.Loaded()) return library.ptr();
-
-  const NNBDCompiledMode mode =
-      library_helper.GetNonNullableByDefaultCompiledMode();
-  if (mode == NNBDCompiledMode::kInvalid) {
-    H.ReportError(
-        "Library '%s' was compiled in an unsupported mixed mode between sound "
-        "null safety and not sound null safety.",
-        String::Handle(library.url()).ToCString());
-  }
-  if (mode == NNBDCompiledMode::kWeak) {
-    H.ReportError(
-        "Library '%s' was compiled without sound null safety (in weak mode) "
-        "and it cannot be used at runtime",
-        String::Handle(library.url()).ToCString());
-  }
 
   library_kernel_data_ = helper_.reader_.ViewFromTo(
       library_kernel_offset_, library_kernel_offset_ + library_size);
@@ -1139,8 +1124,6 @@ void KernelLoader::FinishTopLevelClassLoading(
 
 void KernelLoader::LoadLibraryImportsAndExports(Library* library,
                                                 const Class& toplevel_class) {
-  GrowableObjectArray& show_list = GrowableObjectArray::Handle(Z);
-  GrowableObjectArray& hide_list = GrowableObjectArray::Handle(Z);
   Array& show_names = Array::Handle(Z);
   Array& hide_names = Array::Handle(Z);
   Namespace& ns = Namespace::Handle(Z);
@@ -1168,8 +1151,8 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
     }
 
     // Prepare show and hide lists.
-    show_list = GrowableObjectArray::New(Heap::kOld);
-    hide_list = GrowableObjectArray::New(Heap::kOld);
+    GrowableObjectArray& show_list = GrowableObjectArray::Handle(Z);
+    GrowableObjectArray& hide_list = GrowableObjectArray::Handle(Z);
     const intptr_t combinator_count = helper_.ReadListLength();
     for (intptr_t c = 0; c < combinator_count; ++c) {
       uint8_t flags = helper_.ReadFlags();
@@ -1178,20 +1161,26 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
         String& show_hide_name =
             H.DartSymbolObfuscate(helper_.ReadStringReference());
         if ((flags & LibraryDependencyHelper::Show) != 0) {
+          if (show_list.IsNull()) {
+            show_list = GrowableObjectArray::New(Heap::kOld);
+          }
           show_list.Add(show_hide_name, Heap::kOld);
         } else {
+          if (hide_list.IsNull()) {
+            hide_list = GrowableObjectArray::New(Heap::kOld);
+          }
           hide_list.Add(show_hide_name, Heap::kOld);
         }
       }
     }
 
-    if (show_list.Length() > 0) {
+    if (!show_list.IsNull() && show_list.Length() > 0) {
       show_names = Array::MakeFixedLength(show_list);
     } else {
       show_names = Array::null();
     }
 
-    if (hide_list.Length() > 0) {
+    if (!hide_list.IsNull() && hide_list.Length() > 0) {
       hide_names = Array::MakeFixedLength(hide_list);
     } else {
       hide_names = Array::null();
@@ -1310,6 +1299,7 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
     klass->set_is_abstract();
   }
   if (class_helper->is_transformed_mixin_application()) {
+    ASSERT(interface_count > 0);
     klass->set_is_transformed_mixin_application();
   }
   if (class_helper->has_const_constructor()) {
@@ -1382,8 +1372,9 @@ void KernelLoader::LoadClass(const Library& library,
   if (HasPragma::decode(pragma_bits)) {
     out_class->set_has_pragma(true);
   }
-  if (DynModuleExtendablePragma::decode(pragma_bits)) {
-    out_class->set_is_dynamically_extendable(true);
+  if (DynModuleExtendablePragma::decode(pragma_bits) ||
+      DynModuleImplicitlyExtendablePragma::decode(pragma_bits)) {
+    out_class->set_has_dynamically_extendable_subtypes(true);
     IG->set_has_dynamically_extendable_classes(true);
   }
   class_helper.SetJustRead(ClassHelper::kAnnotations);
@@ -1621,8 +1612,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     signature.set_result_type(T.ReceiverType(klass));
     function.set_has_pragma(HasPragma::decode(pragma_bits));
     function.set_is_visible(!InvisibleFunctionPragma::decode(pragma_bits));
-    function.SetIsDynamicallyOverridden(
-        DynModuleCanBeOverriddenPragma::decode(pragma_bits));
 
     FunctionNodeHelper function_node_helper(&helper_);
     function_node_helper.ReadUntilExcluding(
@@ -1805,10 +1794,20 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
                                              "dyn-module:extendable")) {
           *pragma_bits = DynModuleExtendablePragma::update(true, *pragma_bits);
         }
+        if (constant_reader.IsStringConstant(
+                name_index, "dyn-module:implicitly-extendable")) {
+          *pragma_bits =
+              DynModuleImplicitlyExtendablePragma::update(true, *pragma_bits);
+        }
         if (constant_reader.IsStringConstant(name_index,
                                              "dyn-module:can-be-overridden")) {
           *pragma_bits =
               DynModuleCanBeOverriddenPragma::update(true, *pragma_bits);
+        }
+        if (constant_reader.IsStringConstant(
+                name_index, "dyn-module:can-be-overridden-implicitly")) {
+          *pragma_bits = DynModuleCanBeOverriddenImplicitlyPragma::update(
+              true, *pragma_bits);
         }
       }
     } else {
@@ -1876,7 +1875,8 @@ void KernelLoader::LoadProcedure(const Library& library,
                             is_synthetic);
   function.set_is_visible(!InvisibleFunctionPragma::decode(pragma_bits));
   function.SetIsDynamicallyOverridden(
-      DynModuleCanBeOverriddenPragma::decode(pragma_bits));
+      DynModuleCanBeOverriddenPragma::decode(pragma_bits) ||
+      DynModuleCanBeOverriddenImplicitlyPragma::decode(pragma_bits));
   if (register_function) {
     functions_.Add(&function);
   } else {

@@ -12,22 +12,24 @@ library;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
-import "dart:convert" as con;
 
-abstract class _A&Object&Comparable extends core::Object implements core::Comparable<core::int> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_A&Object&Comparable
-    : super core::Object::•()
-    ;
-  abstract method /* from org-dartlang-sdk:///sdk/lib/core/comparable.dart */ compareTo(covariant-by-class core::int other) → core::int;
-  static method /* from org-dartlang-sdk:///sdk/lib/core/comparable.dart */ compare(core::Comparable<dynamic> a, core::Comparable<dynamic> b) → core::int
-    return a.{core::Comparable::compareTo}(b){(dynamic) → core::int};
-}
 class A extends self::_A&Object&Comparable {
   synthetic constructor •() → self::A
     : super self::_A&Object&Comparable::•()
     ;
   method compareTo(covariant-by-class core::int x) → core::int
     return 0;
+}
+class B extends self::_B&Object&Error {
+  synthetic constructor •() → self::B
+    : super self::_B&Object&Error::•()
+    ;
+}
+abstract class _A&Object&Comparable extends core::Object implements core::Comparable<core::int> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A&Object&Comparable
+    : super core::Object::•()
+    ;
+  abstract method /* from org-dartlang-sdk:///sdk/lib/core/comparable.dart */ compareTo(covariant-by-class core::int other) → core::int;
 }
 abstract class _B&Object&Error extends core::Object implements core::Error /*isAnonymousMixin,isEliminatedMixin*/  {
   @#C3
@@ -38,38 +40,6 @@ abstract class _B&Object&Error extends core::Object implements core::Error /*isA
   @#C4
   get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/errors_patch.dart */ stackTrace() → core::StackTrace?
     return this.{core::Error::_stackTrace}{core::StackTrace?};
-  static method /* from org-dartlang-sdk:///sdk/lib/core/errors.dart */ safeToString(core::Object? object) → core::String {
-    if(object is core::num || object is core::bool || object == null) {
-      return object.{core::Object::toString}{<object>}.(){() → core::String};
-    }
-    if(object{core::Object} is core::String) {
-      return core::Error::_stringToSafeString(object{core::String});
-    }
-    return core::Error::_objectToString(object{core::Object});
-  }
-  @#C4
-  static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/errors_patch.dart */ _stringToSafeString(core::String string) → core::String {
-    return #C5.{con::JsonCodec::encode}(string){(core::Object?, {toEncodable: (dynamic) →? core::Object?}) → core::String};
-  }
-  @#C4
-  static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/errors_patch.dart */ _objectToString(core::Object object) → core::String {
-    return core::Object::_toString(object);
-  }
-  @#C7
-  static method /* from org-dartlang-sdk:///sdk/lib/core/errors.dart */ throwWithStackTrace(core::Object error, core::StackTrace stackTrace) → Never {
-    _in::checkNotNullable<core::Object>(error, "error");
-    _in::checkNotNullable<core::StackTrace>(stackTrace, "stackTrace");
-    core::Error::_throw(error, stackTrace);
-  }
-  @#C4
-  @#C10
-  @/* from org-dartlang-sdk:///sdk/lib/core/errors.dart */ #C12
-  external static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/errors_patch.dart */ _throw(core::Object error, core::StackTrace stackTrace) → Never;
-}
-class B extends self::_B&Object&Error {
-  synthetic constructor •() → self::B
-    : super self::_B&Object&Error::•()
-    ;
 }
 
 constants  {
@@ -77,12 +47,4 @@ constants  {
   #C2 = null
   #C3 = core::pragma {name:#C1, options:#C2}
   #C4 = _in::_Patch {}
-  #C5 = con::JsonCodec {_reviver:#C2, _toEncodable:#C2}
-  #C6 = "2.16"
-  #C7 = _in::Since {version:#C6}
-  #C8 = "vm:external-name"
-  #C9 = "Error_throwWithStackTrace"
-  #C10 = core::pragma {name:#C8, options:#C9}
-  #C11 = "wasm:entry-point"
-  #C12 = core::pragma {name:#C11, options:#C2}
 }

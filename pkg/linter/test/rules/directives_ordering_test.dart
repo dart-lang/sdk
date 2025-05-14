@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DirectivesOrderingTest);
   });
@@ -17,24 +17,30 @@ main() {
     void checkSection(List<String> correctlyOrderedImports) {
       for (int i = 0; i < correctlyOrderedImports.length; i++) {
         var a = correctlyOrderedImports[i];
-        expect(compareDirectives(a, a), 0,
-            reason: '"$a" sorts the same as itself');
+        expect(
+          compareDirectives(a, a),
+          0,
+          reason: '"$a" sorts the same as itself',
+        );
 
         for (int j = i + 1; j < correctlyOrderedImports.length; j++) {
           var b = correctlyOrderedImports[j];
-          expect(compareDirectives(a, b), lessThan(0),
-              reason: '"$a" sorts before "$b"');
-          expect(compareDirectives(b, a), greaterThan(0),
-              reason: '"$b" sorts after "$a"');
+          expect(
+            compareDirectives(a, b),
+            lessThan(0),
+            reason: '"$a" sorts before "$b"',
+          );
+          expect(
+            compareDirectives(b, a),
+            greaterThan(0),
+            reason: '"$b" sorts after "$a"',
+          );
         }
       }
     }
 
     test('dart: imports', () {
-      checkSection(const [
-        'dart:aaa',
-        'dart:bbb',
-      ]);
+      checkSection(const ['dart:aaa', 'dart:bbb']);
     });
 
     test('package: imports', () {
@@ -78,51 +84,52 @@ class DirectivesOrderingTest extends LintRuleTest {
 
   test_dartDirectivesGoFirst_docImports() async {
     newFile('$testPackageLibPath/a.dart', '');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// @docImport 'dart:math';
 /// @docImport 'a.dart';
 /// @docImport 'dart:html';
 /// @docImport 'dart:isolate';
 library;
-''', [
-      lint(61, 19),
-      lint(89, 22),
-    ]);
+''',
+      [lint(61, 19), lint(89, 22)],
+    );
   }
 
   test_dartDirectivesGoFirst_exports() async {
     newFile('$testPackageLibPath/a.dart', '');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 export 'dart:math';
 export 'a.dart';
 export 'dart:html';
 export 'dart:isolate';
 // ignore_for_file: unused_import
-''', [
-      lint(37, 19),
-      lint(57, 22),
-    ]);
+''',
+      [lint(37, 19), lint(57, 22)],
+    );
   }
 
   test_dartDirectivesGoFirst_imports() async {
     newFile('$testPackageLibPath/a.dart', '');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:math';
 import 'a.dart';
 import 'dart:html';
 import 'dart:isolate';
 // ignore_for_file: unused_import
-''', [
-      lint(37, 19),
-      lint(57, 22),
-    ]);
+''',
+      [lint(37, 19), lint(57, 22)],
+    );
   }
 
   test_importsGoBeforeExports() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
     newFile('$testPackageLibPath/c.dart', '');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'a.dart';
 
 export 'a.dart';
@@ -135,10 +142,9 @@ import 'c.dart';
 
 export 'c.dart';
 // ignore_for_file: unused_import
-''', [
-      lint(18, 16),
-      lint(54, 16),
-    ]);
+''',
+      [lint(18, 16), lint(54, 16)],
+    );
   }
 
   test_multipleSchemaImportsSortedByPath() async {
@@ -184,47 +190,49 @@ main() {}
   test_packageDirectivesGoBeforeRelative_docImports() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// @docImport 'dart:math';
 /// @docImport 'package:js/js.dart';
 /// @docImport 'a.dart';
 /// @docImport 'package:meta/meta.dart';
 /// @docImport 'b.dart';
 library;
-''', [
-      lint(98, 32),
-    ]);
+''',
+      [lint(98, 32)],
+    );
   }
 
   test_packageDirectivesGoBeforeRelative_exports() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 export 'dart:math';
 export 'a.dart';
 export 'package:js/js.dart';
 export 'package:meta/meta.dart';
 export 'b.dart';
 // ignore_for_file: unused_import
-''', [
-      lint(37, 28),
-      lint(66, 32),
-    ]);
+''',
+      [lint(37, 28), lint(66, 32)],
+    );
   }
 
   test_packageDirectivesGoBeforeRelative_imports() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:math';
 import 'package:js/js.dart';
 import 'a.dart';
 import 'package:meta/meta.dart';
 import 'b.dart';
 // ignore_for_file: unused_import
-''', [
-      lint(66, 32),
-    ]);
+''',
+      [lint(66, 32)],
+    );
   }
 
   test_packageImportsSortedByPath() async {
@@ -279,58 +287,65 @@ part 'a.dart';
 
   test_reportOneNodeOnlyOnce() async {
     newFile('$testPackageLibPath/a.dart', '');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:meta/meta.dart';
 import 'a.dart';
 import 'package:js/js.dart';
 // ignore_for_file: unused_import
-''', [
-      lint(50, 28),
-    ]);
+''',
+      [lint(50, 28)],
+    );
   }
 
   test_sortDirectiveSectionsAlphabetically_dartSchema_docImport() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// @docImport 'dart:html';
 /// @docImport 'dart:isolate';
 /// @docImport 'dart:convert';
 /// @docImport 'dart:math';
 library;
-''', [
-      lint(67, 22),
-    ]);
+''',
+      [lint(67, 22)],
+    );
   }
 
   test_sortDirectiveSectionsAlphabetically_dartSchema_export() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 export 'dart:isolate';
 export 'dart:convert';
 export 'dart:math';
-''', [
-      lint(23, 22),
-    ]);
+''',
+      [lint(23, 22)],
+    );
   }
 
   test_sortDirectiveSectionsAlphabetically_dartSchema_import() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:html';
 import 'dart:isolate';
 import 'dart:convert';
 import 'dart:math';
 // ignore_for_file: unused_import
-''', [
-      lint(43, 22),
-    ]);
+''',
+      [lint(43, 22)],
+    );
   }
 
   test_sortDirectiveSectionsAlphabetically_dotInRelativePath_import() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import './foo1.dart';
 import '../../foo2.dart';
 import '../foo3.dart';
 import 'foo4.dart';
 // ignore_for_file: unused_import, uri_does_not_exist
-''', [lint(22, 25)]);
+''',
+      [lint(22, 25)],
+    );
   }
 
   test_sortDirectiveSectionsAlphabetically_dotInRelativePath_import_ok() async {
@@ -348,7 +363,8 @@ import 'foo1.dart';
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
     newFile('$testPackageLibPath/c.dart', '');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 export 'package:js/js.dart';
 export 'package:meta/meta.dart';
 export 'package:flutter/widgets.dart';
@@ -356,17 +372,17 @@ export 'package:flutter/widgets.dart';
 export 'package:test/a.dart';
 export 'package:test/c.dart';
 export 'package:test/b.dart';
-''', [
-      lint(62, 38),
-      lint(162, 29),
-    ]);
+''',
+      [lint(62, 38), lint(162, 29)],
+    );
   }
 
   test_sortDirectiveSectionsAlphabetically_packageSchema_import() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
     newFile('$testPackageLibPath/c.dart', '');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:js/js.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter/widgets.dart';
@@ -375,10 +391,9 @@ import 'package:test/a.dart';
 import 'package:test/c.dart';
 import 'package:test/b.dart';
 // ignore_for_file: unused_import
-''', [
-      lint(62, 38),
-      lint(162, 29),
-    ]);
+''',
+      [lint(62, 38), lint(162, 29)],
+    );
   }
 
   test_sortDirectiveSectionsAlphabetically_relativePath_export() async {
@@ -386,14 +401,15 @@ import 'package:test/b.dart';
     newFile('$testPackageLibPath/b.dart', '');
     newFile('$testPackageLibPath/c.dart', '');
     newFile('$testPackageLibPath/d.dart', '');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 export 'd.dart';
 export 'a.dart';
 export 'b.dart';
 export 'c.dart';
-''', [
-      lint(17, 16),
-    ]);
+''',
+      [lint(17, 16)],
+    );
   }
 
   test_sortDirectiveSectionsAlphabetically_relativePath_import() async {
@@ -401,7 +417,8 @@ export 'c.dart';
     newFile('$testPackageLibPath/b.dart', '');
     newFile('$testPackageLibPath/c.dart', '');
     newFile('$testPackageLibPath/d.dart', '');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'd.dart';
 import 'd.dart';
 import 'c.dart';
@@ -411,10 +428,8 @@ import 'b.dart';
 import 'a.dart';
 import 'a.dart';
 // ignore_for_file: duplicate_import, unused_import
-''', [
-      lint(34, 16),
-      lint(68, 16),
-      lint(102, 16),
-    ]);
+''',
+      [lint(34, 16), lint(68, 16), lint(102, 16)],
+    );
   }
 }

@@ -10,6 +10,8 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
+
 import 'android.dart';
 import 'browser_controller.dart';
 import 'command.dart';
@@ -498,10 +500,6 @@ class CommandExecutorImpl implements CommandExecutor {
   final int maxBrowserProcesses;
   AdbDevicePool? adbDevicePool;
 
-  /// For dart2js and analyzer batch processing,
-  /// we keep a list of batch processes.
-  final _batchProcesses = <String, List<BatchRunnerProcess>>{};
-
   /// We keep a BrowserTestRunner for every configuration.
   final _browserTestRunners = <TestConfiguration, Future<BrowserTestRunner>>{};
 
@@ -516,14 +514,6 @@ class CommandExecutorImpl implements CommandExecutor {
     assert(!_finishing);
     _finishing = true;
 
-    Future terminateBatchRunners() {
-      var futures = <Future>[];
-      for (var runners in _batchProcesses.values) {
-        futures.addAll(runners.map((runner) => runner.terminate()));
-      }
-      return Future.wait(futures);
-    }
-
     Future terminateBrowserRunners() async {
       var futures = _browserTestRunners.values
           .map((runner) async => (await runner).terminate());
@@ -531,7 +521,7 @@ class CommandExecutorImpl implements CommandExecutor {
     }
 
     return Future.wait([
-      terminateBatchRunners(),
+      BatchRunnerProcess.terminateAll(),
       terminateBrowserRunners(),
     ]);
   }
@@ -562,18 +552,15 @@ class CommandExecutorImpl implements CommandExecutor {
       // For now, we always run vm_compile_to_kernel in batch mode.
       var name = command.displayName;
       assert(name == 'vm_compile_to_kernel');
-      return _getBatchRunner(name)
-          .runCommand(name, command, timeout, command.arguments);
+      return _getBatchRunner(name).runCommand(command, timeout);
     } else if (command is AnalysisCommand && globalConfiguration.batch) {
-      return _getBatchRunner(command.displayName)
-          .runCommand(command.displayName, command, timeout, command.arguments);
+      return _getBatchRunner(command.displayName).runCommand(command, timeout);
     } else if (command is CompilationCommand &&
         (command.displayName == 'dart2js' ||
             command.displayName == 'ddc' ||
             command.displayName == 'fasta') &&
         globalConfiguration.batch) {
-      return _getBatchRunner(command.displayName)
-          .runCommand(command.displayName, command, timeout, command.arguments);
+      return _getBatchRunner(command.displayName).runCommand(command, timeout);
     } else if (command is ScriptCommand) {
       return command.run();
     } else if (command is AdbPrecompilationCommand ||
@@ -590,12 +577,6 @@ class CommandExecutorImpl implements CommandExecutor {
           adbDevicePool!.releaseDevice(device);
         }
       });
-    } else if (command is CompilationCommand &&
-        command.displayName == 'babel') {
-      return RunningProcess(command, timeout,
-              configuration: globalConfiguration,
-              outputFile: io.File(command.outputFile))
-          .run();
     } else if (command is ProcessCommand) {
       return RunningProcess(command, timeout,
               configuration: globalConfiguration)
@@ -776,18 +757,8 @@ class CommandExecutorImpl implements CommandExecutor {
         utf8.encode('$writer'), [], stopwatch.elapsed, false);
   }
 
-  BatchRunnerProcess _getBatchRunner(String identifier) {
-    // Start batch processes if needed.
-    var runners = _batchProcesses.putIfAbsent(
-        identifier,
-        () => List<BatchRunnerProcess>.generate(maxProcesses,
-            (_) => BatchRunnerProcess(useJson: identifier == "fasta")));
-
-    for (var runner in runners) {
-      if (!runner._currentlyRunning) return runner;
-    }
-    throw Exception('Unable to find inactive batch runner.');
-  }
+  BatchRunnerProcess _getBatchRunner(String identifier) =>
+      BatchRunnerProcess.byIdentifier(identifier, maxProcesses);
 
   Future<CommandOutput> _startBrowserControllerTest(
       BrowserTestCommand browserCommand, int timeout) async {
@@ -966,14 +937,16 @@ class TestCaseCompleter {
 }
 
 class BatchRunnerProcess {
+  /// For dart2js and analyzer batch processing,
+  /// we keep a list of batch processes.
+  static final _batchProcesses = <String, List<BatchRunnerProcess>>{};
+
   /// When true, the command line is passed to the test runner as a
   /// JSON-encoded list of strings.
   final bool _useJson;
 
-  Completer<CommandOutput>? _completer;
-  late ProcessCommand _command;
+  ProcessCommand? _command;
   late List<String> _arguments;
-  String? _runnerType;
 
   bool _processJustStarted = false;
   io.Process? _process;
@@ -982,69 +955,68 @@ class BatchRunnerProcess {
   late Completer<void> _stderrCompleter;
   late StreamSubscription<String> _stdoutSubscription;
   late StreamSubscription<String> _stderrSubscription;
-  late Function _processExitHandler;
+  late Function(int) _processExitHandler;
 
-  bool _currentlyRunning = false;
   late OutputLog _testStdout;
   late OutputLog _testStderr;
   String? _status;
   late DateTime _startTime;
   Timer? _timer;
-  int _testCount = 0;
 
-  static const int extraStartupTimeout = 60;
+  static const int _extraStartupTimeout = 60;
 
-  BatchRunnerProcess({bool useJson = true}) : _useJson = useJson;
+  static Future terminateAll() => Future.wait([
+        for (var runners in _batchProcesses.values)
+          for (var runner in runners) runner.terminate()
+      ]);
 
-  Future<CommandOutput> runCommand(String runnerType, ProcessCommand command,
-      int timeout, List<String> arguments) {
-    assert(_completer == null);
-    assert(!_currentlyRunning);
+  BatchRunnerProcess._(this._useJson);
 
-    _completer = Completer();
-    var sameRunnerType = _runnerType == runnerType &&
-        _dictEquals(_processEnvironmentOverrides, command.environmentOverrides);
-    _runnerType = runnerType;
-    _currentlyRunning = true;
-    _command = command;
-    _arguments = arguments;
-    _processEnvironmentOverrides = command.environmentOverrides;
+  factory BatchRunnerProcess.byIdentifier(String identifier, int maxProcesses) {
+    // Start batch processes if needed.
+    var runners = _batchProcesses.putIfAbsent(
+        identifier,
+        () => List<BatchRunnerProcess>.generate(
+            maxProcesses, (_) => BatchRunnerProcess._(identifier == "fasta")));
 
-    // TODO(jmesserly): this restarts `dartdevc --batch` to work around a
-    // memory leak, see https://github.com/dart-lang/sdk/issues/30314.
-    var clearMemoryLeak = command is CompilationCommand &&
-        command.displayName == 'dartdevc' &&
-        ++_testCount % 100 == 0;
-    if (_process == null) {
-      // Start process if not yet started.
-      _startProcess(() {
-        doStartTest(command, timeout);
-      });
-    } else if (!sameRunnerType || clearMemoryLeak) {
-      // Restart this runner with the right executable for this test if needed.
-      _processExitHandler = (_) {
-        _startProcess(() {
-          doStartTest(command, timeout);
-        });
-      };
-      _process!.kill();
-      _stdoutSubscription.cancel();
-      _stderrSubscription.cancel();
-    } else {
-      doStartTest(command, timeout);
+    for (var runner in runners) {
+      if (!runner._currentlyRunning) return runner;
     }
-    return _completer!.future;
+    throw Exception('Unable to find inactive batch runner.');
   }
 
-  Future<bool> terminate() {
-    if (_process == null) return Future.value(true);
-    var terminateCompleter = Completer<bool>();
+  bool get _currentlyRunning => _command != null;
+
+  bool isCompatibleRunner(ProcessCommand command) => const MapEquality()
+      .equals(_processEnvironmentOverrides, command.environmentOverrides);
+
+  bool get hasRunningProcess => _process != null;
+
+  Future<CommandOutput> runCommand(ProcessCommand command, int timeout) async {
+    assert(!_currentlyRunning);
+
+    if (!isCompatibleRunner(command)) {
+      await terminate();
+    }
+    _command = command;
+    _arguments = command.arguments;
+    _processEnvironmentOverrides = command.environmentOverrides;
+    if (_process == null) {
+      await _startProcess();
+    }
+    return await _doStartTest(timeout);
+  }
+
+  Future<void> terminate() async {
+    if (_process == null) return;
+    var terminateCompleter = Completer<void>();
     final sigkillTimer = Timer(const Duration(seconds: 5), () {
       _process?.kill(io.ProcessSignal.sigkill);
     });
     _processExitHandler = (_) {
       sigkillTimer.cancel();
-      terminateCompleter.complete(true);
+      _process = null;
+      terminateCompleter.complete();
     };
     _process!.kill();
     _stdoutSubscription.cancel();
@@ -1053,12 +1025,12 @@ class BatchRunnerProcess {
     return terminateCompleter.future;
   }
 
-  void doStartTest(Command command, int timeout) {
+  Future<CommandOutput> _doStartTest(int timeout) async {
     if (_processJustStarted) {
       // We just started the process, add some extra timeout to account for
       // the startup cost of the batch compiler.
       _processJustStarted = false;
-      timeout += extraStartupTimeout;
+      timeout += _extraStartupTimeout;
     }
     _startTime = DateTime.now();
     _testStdout = OutputLog();
@@ -1066,17 +1038,21 @@ class BatchRunnerProcess {
     _status = null;
     _stdoutCompleter = Completer();
     _stderrCompleter = Completer();
+    _stdoutSubscription.resume();
+    _stderrSubscription.resume();
     _timer = Timer(Duration(seconds: timeout), _timeoutHandler);
 
     var line = _createArgumentsLine(_arguments, timeout);
     _process!.stdin.write(line);
-    _stdoutSubscription.resume();
-    _stderrSubscription.resume();
-    Future.wait([_stdoutCompleter.future, _stderrCompleter.future])
-        .then((_) => _reportResult());
+    await (_stdoutCompleter.future, _stderrCompleter.future).wait;
+    if (_status == null) {
+      await _process!.exitCode;
+    }
+    return _reportResult();
   }
 
   String _createArgumentsLine(List<String> arguments, int timeout) {
+    arguments = arguments.map(escapeCommandLineArgument).toList();
     if (_useJson) {
       return "${jsonEncode(arguments)}\n";
     } else {
@@ -1084,9 +1060,7 @@ class BatchRunnerProcess {
     }
   }
 
-  void _reportResult() {
-    if (!_currentlyRunning) return;
-
+  CommandOutput _reportResult() {
     var outcome = _status!.split(" ")[2];
     var exitCode = 0;
     if (outcome == "CRASH") exitCode = unhandledCompilerExceptionExitCode;
@@ -1100,47 +1074,42 @@ class BatchRunnerProcess {
       exitCode = truncatedFakeExitCode;
     }
 
-    var output = _command.createOutput(
+    var output = _command!.createOutput(
         exitCode,
         outcome == "TIMEOUT",
         _testStdout.bytes,
         _testStderr.bytes,
         DateTime.now().difference(_startTime),
         false);
-    assert(_completer != null);
-    _completer!.complete(output);
-    _completer = null;
-    _currentlyRunning = false;
+    _command = null;
+    return output;
   }
 
-  void Function(int) makeExitHandler(String status) {
+  void Function(int) _makeExitHandler(String status) {
     return (int exitCode) {
       if (_currentlyRunning) {
-        if (_timer != null) _timer!.cancel();
+        _timer?.cancel();
         _status = status;
         _stdoutSubscription.cancel();
         _stderrSubscription.cancel();
-        _startProcess(_reportResult);
-      } else {
-        // No active test case running.
-        _process = null;
       }
+      // No active test case running.
+      _process = null;
     };
   }
 
   void _timeoutHandler() {
-    _processExitHandler = makeExitHandler(">>> TEST TIMEOUT");
+    _processExitHandler = _makeExitHandler(">>> TEST TIMEOUT");
     _process!.kill();
   }
 
-  void _startProcess(void Function() callback) async {
-    var executable = _command.executable;
-    var arguments = _command.batchArguments.toList();
-    arguments.add('--batch');
-    var environment = Map<String, String>.from(io.Platform.environment);
-    if (_processEnvironmentOverrides != null) {
-      environment.addAll(_processEnvironmentOverrides!);
-    }
+  Future<void> _startProcess() async {
+    var executable = _command!.executable;
+    var arguments = [..._command!.batchArguments, '--batch'];
+    var environment = {
+      ...io.Platform.environment,
+      ...?_processEnvironmentOverrides,
+    };
     try {
       _process = await io.Process.start(executable, arguments,
           environment: environment);
@@ -1173,9 +1142,9 @@ class BatchRunnerProcess {
       if (_status != null) {
         _stdoutSubscription.pause();
         _timer!.cancel();
-        _stdoutCompleter.complete(null);
+        _stdoutCompleter.complete();
       }
-    });
+    }, onDone: () => _stdoutCompleter.complete());
     _stdoutSubscription.pause();
 
     var stderrStream = _process!.stderr
@@ -1184,18 +1153,13 @@ class BatchRunnerProcess {
     _stderrSubscription = stderrStream.listen((String line) {
       if (line.startsWith('>>> EOF STDERR')) {
         _stderrSubscription.pause();
-        _stderrCompleter.complete(null);
+        _stderrCompleter.complete();
       } else {
         _testStderr.add(utf8.encode(line));
         _testStderr.add("\n".codeUnits);
       }
-    });
+    }, onDone: () => _stderrCompleter.complete());
     _stderrSubscription.pause();
-
-    _processExitHandler = makeExitHandler(">>> TEST CRASH");
-    _process!.exitCode.then((exitCode) {
-      _processExitHandler(exitCode);
-    });
 
     _process!.stdin.done.catchError((Object err) {
       print('Error on batch runner input stream stdin');
@@ -1203,16 +1167,8 @@ class BatchRunnerProcess {
       print('  Error: $err');
       throw err;
     });
-    callback();
-  }
 
-  bool _dictEquals(Map? a, Map? b) {
-    if (a == null) return b == null;
-    if (b == null) return false;
-    if (a.length != b.length) return false;
-    for (var key in a.keys) {
-      if (a[key] != b[key]) return false;
-    }
-    return true;
+    _processExitHandler = _makeExitHandler(">>> TEST CRASH");
+    _process!.exitCode.then((exitCode) => _processExitHandler(exitCode));
   }
 }

@@ -18,6 +18,7 @@ import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_type_alias_builder.dart';
+import '../source/source_type_parameter_builder.dart';
 
 /// Combines syntactic nullabilities on types for performing type substitution.
 ///
@@ -379,9 +380,6 @@ List<List<RawTypeCycleElement>> _findRawTypePathsToDeclaration(
             case BuiltinTypeDeclarationBuilder():
               // Do nothing.
               break;
-            // Coverage-ignore(suite): Not run.
-            // TODO(johnniwinther): How should we handle this case?
-            case OmittedTypeDeclarationBuilder():
             case null:
               // Do nothing.
               break;
@@ -542,7 +540,7 @@ List<NonSimplicityIssue> _convertRawTypeCyclesIntoIssues(
 /// The issues are those caused by raw types with inbound references in the
 /// bounds of their type parameters.
 List<NonSimplicityIssue> _getNonSimplicityIssuesForTypeParameters(
-    List<NominalParameterBuilder>? parameters) {
+    List<SourceNominalParameterBuilder>? parameters) {
   if (parameters == null) return <NonSimplicityIssue>[];
   return _getInboundReferenceIssues(parameters);
 }
@@ -853,7 +851,8 @@ class ComputeDefaultTypeContext {
     return hasReportedErrors;
   }
 
-  int computeDefaultTypesForVariables(List<NominalParameterBuilder>? variables,
+  int computeDefaultTypesForVariables(
+      List<SourceNominalParameterBuilder>? variables,
       {required bool inErrorRecovery}) {
     if (variables == null) return 0;
 
@@ -915,7 +914,7 @@ class ComputeDefaultTypeContext {
   }
 
   bool reportSimplicityIssuesForTypeParameters(
-      List<NominalParameterBuilder>? typeParameters) {
+      List<SourceNominalParameterBuilder>? typeParameters) {
     List<NonSimplicityIssue> issues =
         _getNonSimplicityIssuesForTypeParameters(typeParameters);
     _reportIssues(issues);

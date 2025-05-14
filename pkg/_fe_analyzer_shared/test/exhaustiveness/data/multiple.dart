@@ -42,7 +42,7 @@ nonExhaustiveEnumNested2(
           Enum,
           Enum
         ) r) => /*
-         error=non-exhaustive:(Enum.b, Enum.a),
+         error=non-exhaustive:(Enum.b, _),
          fields={$1:Enum,$2:Enum},
          type=(Enum, Enum)
         */
@@ -57,7 +57,7 @@ nonExhaustiveEnumNested3(
           Enum,
           Enum
         ) r) => /*
-         error=non-exhaustive:(Enum.b, Enum.a),
+         error=non-exhaustive:(Enum.b, _),
          fields={$1:Enum,$2:Enum},
          type=(Enum, Enum)
         */
@@ -153,7 +153,7 @@ nonExhaustiveSealedNested3(
           S,
           S
         ) r) => /*
-         error=non-exhaustive:(B(), A()),
+         error=non-exhaustive:(B(), _),
          fields={$1:S,$2:S},
          type=(S, S)
         */

@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
@@ -28,6 +26,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
@@ -52,6 +51,7 @@ import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -71,6 +71,7 @@ class AnalysisForCompletionResult {
 
 /// Analyzer of a single library.
 class LibraryAnalyzer {
+  final OperationPerformanceImpl performance;
   final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final LibraryFileKind _library;
@@ -95,6 +96,7 @@ class LibraryAnalyzer {
     this._libraryElement,
     this._inheritance,
     this._library, {
+    required this.performance,
     TestingData? testingData,
     required TypeSystemOperations typeSystemOperations,
     bool enableLintRuleTiming = false,
@@ -116,8 +118,13 @@ class LibraryAnalyzer {
 
   /// Compute analysis results for all units of the library.
   List<UnitAnalysisResult> analyze() {
-    _parseAndResolve();
-    _computeDiagnostics();
+    performance.run('parseAndResolve', (performance) {
+      _parseAndResolve();
+    });
+
+    performance.run('computeDiagnostics', (performance) {
+      _computeDiagnostics();
+    });
 
     // Return full results.
     var results = <UnitAnalysisResult>[];
@@ -190,9 +197,12 @@ class LibraryAnalyzer {
         ),
       );
 
+      var featureSet = _libraryElement.featureSet;
+      var typeAnalyzerOptions = computeTypeAnalyzerOptions(featureSet);
       FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-          _testingData != null, _libraryElement.featureSet,
-          typeSystemOperations: _typeSystemOperations);
+          _testingData != null,
+          typeSystemOperations: _typeSystemOperations,
+          typeAnalyzerOptions: typeAnalyzerOptions);
       _testingData?.recordFlowAnalysisDataForTesting(
           file.uri, flowAnalysisHelper.dataForTesting!);
 
@@ -207,6 +217,7 @@ class LibraryAnalyzer {
         analysisOptions: _library.file.analysisOptions,
         flowAnalysisHelper: flowAnalysisHelper,
         libraryFragment: unitElement,
+        typeAnalyzerOptions: typeAnalyzerOptions,
       );
       _testingData?.recordTypeConstraintGenerationDataForTesting(
           file.uri, resolverVisitor.inferenceHelper.dataForTesting!);
@@ -246,16 +257,16 @@ class LibraryAnalyzer {
     var libraryUnit = libraryUnitAnalysis.unit;
     var libraryOverrideToken = libraryUnit.languageVersionToken;
 
-    var elementToUnit = <CompilationUnitElement, CompilationUnit>{};
+    var elementToUnit = <CompilationUnitElementImpl, CompilationUnit>{};
     for (var fileAnalysis in _libraryFiles.values) {
       elementToUnit[fileAnalysis.element] = fileAnalysis.unit;
     }
 
     for (var directive in libraryUnit.directives) {
       if (directive is PartDirectiveImpl) {
-        var elementUri = directive.element?.uri;
-        if (elementUri is DirectiveUriWithUnit) {
-          var partUnit = elementToUnit[elementUri.unit];
+        var uri = directive.partInclude?.uri;
+        if (uri is DirectiveUriWithUnitImpl) {
+          var partUnit = elementToUnit[uri.unit];
           if (partUnit != null) {
             var shouldReport = false;
             var partOverrideToken = partUnit.languageVersionToken;
@@ -350,16 +361,22 @@ class LibraryAnalyzer {
 
     _checkForInconsistentLanguageVersionOverride();
 
+    var validateUnnecessaryIgnores =
+        _analysisOptions.isLintEnabled('unnecessary_ignore');
+
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
-    for (var fileAnalysis in _libraryFiles.values) {
+    for (var fileAnalysis in _libraryFiles.values
+        // Only validate non-generated files.
+        .whereNot((f) => f.file.source.isGenerated)) {
       IgnoreValidator(
-        fileAnalysis.errorReporter,
-        fileAnalysis.errorListener.errors,
-        fileAnalysis.ignoreInfo,
-        fileAnalysis.unit.lineInfo,
-        _analysisOptions.unignorableNames,
-      ).reportErrors();
+              fileAnalysis.errorReporter,
+              fileAnalysis.errorListener.errors,
+              fileAnalysis.ignoreInfo,
+              fileAnalysis.unit.lineInfo,
+              _analysisOptions.unignorableNames,
+              validateUnnecessaryIgnores)
+          .reportErrors();
     }
   }
 
@@ -376,7 +393,7 @@ class LibraryAnalyzer {
         errorReporter: fileAnalysis.errorReporter,
       );
       analysesToContextUnits[fileAnalysis] = linterContextUnit;
-      if (fileAnalysis.unit.declaredElement == definingUnit) {
+      if (fileAnalysis.unit.declaredFragment == definingUnit) {
         definingContextUnit = linterContextUnit;
         workspacePackage = fileAnalysis.file.workspacePackage;
       }
@@ -405,9 +422,6 @@ class LibraryAnalyzer {
 
     for (var MapEntry(key: fileAnalysis, value: currentUnit)
         in analysesToContextUnits.entries) {
-      // Skip computing lints on macro generated augmentations.
-      // See: https://github.com/dart-lang/sdk/issues/54875
-      if (fileAnalysis.file.isMacroPart) return;
       // Skip computing lints on files that don't exist.
       // See: https://github.com/Dart-Code/Dart-Code/issues/5343
       if (!fileAnalysis.file.exists) continue;
@@ -461,7 +475,7 @@ class LibraryAnalyzer {
     ErrorVerifier errorVerifier = ErrorVerifier(
       errorReporter,
       _libraryElement,
-      unit.declaredElement!,
+      unit.declaredFragment!,
       _typeProvider,
       _inheritance,
       _libraryVerificationContext,
@@ -502,7 +516,6 @@ class LibraryAnalyzer {
 
     unit.accept(OverrideVerifier(
       _inheritance,
-      _libraryElement,
       errorReporter,
     ));
 
@@ -645,7 +658,7 @@ class LibraryAnalyzer {
       errorListener: errorListener,
       performance: OperationPerformanceImpl('<root>'),
     );
-    unit.declaredElement = unitElement;
+    unit.declaredFragment = unitElement;
 
     // TODO(scheglov): Store [IgnoreInfo] as unlinked data.
 
@@ -713,7 +726,7 @@ class LibraryAnalyzer {
       } else if (state is LibraryImportWithFile && !state.importedFile.exists) {
         var errorCode = state.isDocImport
             ? WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT
-            : isGeneratedSource(state.importedSource)
+            : state.importedSource.isGenerated
                 ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
                 : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
         errorReporter.atNode(
@@ -797,22 +810,6 @@ class LibraryAnalyzer {
       }
     }
 
-    // The macro part does not have an explicit `part` directive.
-    // So, we look into the file part includes.
-    var macroInclude = fileKind.partIncludes.lastOrNull;
-    if (macroInclude is PartIncludeWithFile) {
-      var includedFile = macroInclude.includedFile;
-      if (includedFile.isMacroPart) {
-        _resolvePartDirective(
-          enclosingFile: fileAnalysis,
-          directive: null,
-          partState: macroInclude,
-          partElement: fileElement.parts.last,
-          errorReporter: containerErrorReporter,
-        );
-      }
-    }
-
     var docImports = containerUnit.directives
         .whereType<LibraryDirective>()
         .firstOrNull
@@ -872,9 +869,11 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
+    var typeAnalyzerOptions = computeTypeAnalyzerOptions(unit.featureSet);
     FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-        _testingData != null, unit.featureSet,
-        typeSystemOperations: _typeSystemOperations);
+        _testingData != null,
+        typeSystemOperations: _typeSystemOperations,
+        typeAnalyzerOptions: typeAnalyzerOptions);
     _testingData?.recordFlowAnalysisDataForTesting(
         fileAnalysis.file.uri, flowAnalysisHelper.dataForTesting!);
 
@@ -889,6 +888,7 @@ class LibraryAnalyzer {
       featureSet: unit.featureSet,
       flowAnalysisHelper: flowAnalysisHelper,
       libraryFragment: unitElement,
+      typeAnalyzerOptions: typeAnalyzerOptions,
     );
     unit.accept(resolver);
     _testingData?.recordTypeConstraintGenerationDataForTesting(
@@ -974,7 +974,7 @@ class LibraryAnalyzer {
     required ErrorReporter errorReporter,
   }) {
     directive.element = element;
-    directive.prefix?.staticElement = element.prefix?.element;
+    directive.prefix?.element = element.prefix?.element.asElement2;
     _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
@@ -1120,7 +1120,7 @@ class LibraryAnalyzer {
 /// Analysis result for single file.
 class UnitAnalysisResult {
   final FileState file;
-  final CompilationUnit unit;
+  final CompilationUnitImpl unit;
   final List<AnalysisError> errors;
 
   UnitAnalysisResult(this.file, this.unit, this.errors);
@@ -1147,4 +1147,8 @@ extension on file_state.DirectiveUri {
     }
     return DirectiveUriImpl();
   }
+}
+
+extension on FileSource {
+  bool get isGenerated => isGeneratedSource(this);
 }

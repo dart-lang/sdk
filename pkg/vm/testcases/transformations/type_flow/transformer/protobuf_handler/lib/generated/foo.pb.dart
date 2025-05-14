@@ -10,31 +10,66 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class FooKeep extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'FooKeep',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'FooKeep',
       createEmptyInstance: create)
-    ..aOM<BarKeep>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'barKeep',
-        protoName: 'barKeep', subBuilder: BarKeep.create)
-    ..aOM<BarKeep>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'barDrop',
-        protoName: 'barDrop', subBuilder: BarKeep.create)
-    ..m<$core.String, BarKeep>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mapKeep',
+    ..aOM<BarKeep>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'barKeep',
+        protoName: 'barKeep',
+        subBuilder: BarKeep.create)
+    ..aOM<BarKeep>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'barDrop',
+        protoName: 'barDrop',
+        subBuilder: BarKeep.create)
+    ..m<$core.String, BarKeep>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'mapKeep',
         protoName: 'mapKeep',
         entryClassName: 'FooKeep.MapKeepEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OM,
         valueCreator: BarKeep.create)
     ..m<$core.String, ZopDrop>(
-        4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mapDrop',
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'mapDrop',
         protoName: 'mapDrop',
         entryClassName: 'FooKeep.MapDropEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OM,
         valueCreator: ZopDrop.create)
-    ..a<$core.int>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'aKeep', $pb.PbFieldType.O3,
+    ..a<$core.int>(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'aKeep',
+        $pb.PbFieldType.O3,
         protoName: 'aKeep')
-    ..aOM<HasKeep>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'hasKeep',
-        protoName: 'hasKeep', subBuilder: HasKeep.create)
-    ..aOM<ClearKeep>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'clearKeep',
-        protoName: 'clearKeep', subBuilder: ClearKeep.create)
+    ..aOM<HasKeep>(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'hasKeep',
+        protoName: 'hasKeep',
+        subBuilder: HasKeep.create)
+    ..aOM<ClearKeep>(
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'clearKeep',
+        protoName: 'clearKeep',
+        subBuilder: ClearKeep.create)
     ..hasRequiredFields = false;
 
   FooKeep._() : super();

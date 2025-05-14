@@ -38,6 +38,7 @@ DartDevIsolate::DartDevRunner DartDevIsolate::runner_ =
     DartDevIsolate::DartDevRunner();
 bool DartDevIsolate::should_run_dart_dev_ = false;
 bool DartDevIsolate::print_usage_error_ = false;
+CommandLineOptions* DartDevIsolate::vm_options_ = nullptr;
 Monitor* DartDevIsolate::DartDevRunner::monitor_ = new Monitor();
 DartDevIsolate::DartDev_Result DartDevIsolate::DartDevRunner::result_ =
     DartDevIsolate::DartDev_Result_Unknown;
@@ -204,6 +205,86 @@ void DartDevIsolate::DartDevRunner::DartDevResultCallback(
       }
       break;
     }
+    case DartDevIsolate::DartDev_Result_RunExec: {
+      result_ = DartDevIsolate::DartDev_Result_RunExec;
+      ASSERT(GetArrayItem(message, 1)->type == Dart_CObject_kString);
+      auto item2 = GetArrayItem(message, 2);
+
+      ASSERT(item2->type == Dart_CObject_kString ||
+             item2->type == Dart_CObject_kNull);
+
+      auto item3 = GetArrayItem(message, 3);
+
+      ASSERT(item3->type == Dart_CObject_kBool);
+      const bool mark_main_isolate_as_system_isolate = item3->value.as_bool;
+      if (mark_main_isolate_as_system_isolate) {
+        Options::set_mark_main_isolate_as_system_isolate(true);
+      }
+
+      if (*script_ != nullptr) {
+        free(*script_);
+      }
+      if (*package_config_override_ != nullptr) {
+        free(*package_config_override_);
+        *package_config_override_ = nullptr;
+      }
+      *script_ = Utils::StrDup(GetArrayItem(message, 1)->value.as_string);
+
+      if (item2->type == Dart_CObject_kString) {
+        *package_config_override_ = Utils::StrDup(item2->value.as_string);
+      }
+
+      intptr_t num_vm_options = 0;
+      const char** vm_options = nullptr;
+      ASSERT(GetArrayItem(message, 4)->type == Dart_CObject_kArray);
+      Dart_CObject* args = GetArrayItem(message, 4);
+      intptr_t argc = args->value.as_array.length;
+      Dart_CObject** dart_args = args->value.as_array.values;
+
+      if (vm_options_ != nullptr) {
+        num_vm_options = vm_options_->count();
+        vm_options = vm_options_->arguments();
+      }
+      auto deleter = [](char** args) {
+        for (intptr_t i = 0; i < argc_; ++i) {
+          free(args[i]);
+        }
+        delete[] args;
+      };
+      // Total count of arguments to be passed to the script being execed.
+      argc_ = argc + num_vm_options + 1;
+
+      // Array of arguments to be passed to the script being execed.
+      argv_ = std::unique_ptr<char*[], void (*)(char**)>(new char*[argc_ + 1],
+                                                         deleter);
+
+      intptr_t idx = 0;
+      // Copy in name of the script to run (dartaotruntime).
+      argv_[0] = Utils::StrDup(GetArrayItem(message, 1)->value.as_string);
+      idx += 1;
+      // Copy in any vm options that need to be passed to the execed process.
+      for (intptr_t i = 0; i < num_vm_options; ++i) {
+        argv_[i + idx] = Utils::StrDup(vm_options[i]);
+      }
+      idx += num_vm_options;
+      // Copy in the dart options that need to be passed to the command.
+      for (intptr_t i = 0; i < argc; ++i) {
+        argv_[i + idx] = Utils::StrDup(dart_args[i]->value.as_string);
+      }
+      // Null terminate the argv array.
+      argv_[argc + idx] = nullptr;
+
+      // Exec the script to be run and pass the arguments.
+      char err_msg[256];
+      err_msg[0] = '\0';
+      int ret = Process::Exec(nullptr, *script_,
+                              const_cast<const char**>(argv_.get()), argc_,
+                              nullptr, err_msg, sizeof(err_msg));
+      if (ret != 0) {
+        ProcessError(err_msg, kErrorExitCode);
+      }
+      break;
+    }
     case DartDevIsolate::DartDev_Result_Exit: {
       ASSERT(GetArrayItem(message, 1)->type == Dart_CObject_kInt32);
       int32_t dartdev_exit_code = GetArrayItem(message, 1)->value.as_int32;
@@ -314,7 +395,9 @@ DartDevIsolate::DartDev_Result DartDevIsolate::RunDartDev(
     Dart_IsolateGroupCreateCallback create_isolate,
     char** packages_file,
     char** script,
+    CommandLineOptions* vm_options,
     CommandLineOptions* dart_options) {
+  vm_options_ = vm_options;
   runner_.Run(create_isolate, packages_file, script, dart_options);
   return runner_.result();
 }

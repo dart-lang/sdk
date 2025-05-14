@@ -5,6 +5,7 @@
 /// @docImport 'package:analyzer/src/error/codes.g.dart';
 library;
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/error/error.dart';
 
 /// Defines style and best practice recommendations.
@@ -13,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 /// compiler, lint recommendations focus on matters of avoiding errors,
 /// unintended code, maintainability, style and other best practices that might
 /// be aggregated to define a project's style guide.
+@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')
 class LintCode extends ErrorCode {
   const LintCode(
     String name,

@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dartdev/src/experiments.dart';
 import 'package:pub/pub.dart';
+import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../native_assets.dart';
@@ -46,18 +48,51 @@ Run "${runner!.executableName} help" to see global options.''');
     final args = argResults!;
 
     String? nativeAssets;
-    if (!nativeAssetsExperimentEnabled) {
-      if (await warnOnNativeAssets()) {
-        return DartdevCommand.errorExitCode;
+    final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
+      Directory.current.uri,
+    );
+    if (packageConfig != null) {
+      final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
+        Directory.current.uri,
+      );
+      if (runPackageName != null) {
+        final pubspecUri =
+            await DartNativeAssetsBuilder.findPubspec(Directory.current.uri);
+        final Map? pubspec;
+        if (pubspecUri == null) {
+          pubspec = null;
+        } else {
+          pubspec =
+              loadYaml(File.fromUri(pubspecUri).readAsStringSync()) as Map;
+          final pubspecErrors =
+              DartNativeAssetsBuilder.validateHooksUserDefinesFromPubspec(
+                  pubspec);
+          if (pubspecErrors.isNotEmpty) {
+            log.stderr('Errors in pubspec:');
+            pubspecErrors.forEach(log.stderr);
+            return DartdevCommand.errorExitCode;
+          }
+        }
+        final builder = DartNativeAssetsBuilder(
+          pubspec: pubspec,
+          packageConfigUri: packageConfig,
+          runPackageName: runPackageName,
+          verbose: verbose,
+        );
+        if (!nativeAssetsExperimentEnabled) {
+          if (await builder.warnOnNativeAssets()) {
+            return DartdevCommand.errorExitCode;
+          }
+        } else {
+          final assetsYamlFileUri =
+              await builder.compileNativeAssetsJitYamlFile();
+          if (assetsYamlFileUri == null) {
+            log.stderr('Error: Compiling native assets failed.');
+            return DartdevCommand.errorExitCode;
+          }
+          nativeAssets = assetsYamlFileUri.toFilePath();
+        }
       }
-    } else {
-      final assetsYamlFileUri =
-          await compileNativeAssetsJitYamlFile(verbose: verbose);
-      if (assetsYamlFileUri == null) {
-        log.stderr('Error: Compiling native assets failed.');
-        return DartdevCommand.errorExitCode;
-      }
-      nativeAssets = assetsYamlFileUri.toFilePath();
     }
 
     try {

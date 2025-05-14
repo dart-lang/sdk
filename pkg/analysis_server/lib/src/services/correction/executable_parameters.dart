@@ -43,7 +43,7 @@ class ExecutableParameters {
   /// Return the [FormalParameterList] of the [executable], or `null` if it
   /// can't be found.
   Future<FormalParameterList?> getParameterList() async {
-    var result = await sessionHelper.getElementDeclaration(firstFragment);
+    var result = await sessionHelper.getFragmentDeclaration(firstFragment);
     var targetDeclaration = result?.node;
     if (targetDeclaration is ConstructorDeclaration) {
       return targetDeclaration.parameters;
@@ -58,10 +58,10 @@ class ExecutableParameters {
 
   /// Return the [FormalParameter] of the [fragment] in [FormalParameterList],
   /// or `null` if it can't be found.
-  Future<FormalParameter?> getParameterNode2(
+  Future<FormalParameter?> getParameterNode(
     FormalParameterFragment fragment,
   ) async {
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     var declaration = result?.node;
     for (var node = declaration; node != null; node = node.parent) {
       if (node is FormalParameter && node.parent is FormalParameterList) {

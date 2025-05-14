@@ -80,8 +80,6 @@ class Exceptions : AllStatic {
 
   DART_NORETURN static void ThrowByType(ExceptionType type,
                                         const Array& arguments);
-  // Uses the preallocated out of memory exception to avoid calling
-  // into Dart code or allocating any code.
   DART_NORETURN static void ThrowOOM();
   DART_NORETURN static void ThrowStackOverflow();
   DART_NORETURN static void ThrowArgumentError(const Instance& arg);

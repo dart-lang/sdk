@@ -2,20 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -38,11 +36,11 @@ class AssignmentExpressionResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  TypeProvider get _typeProvider => _resolver.typeProvider;
+  TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(AssignmentExpressionImpl node, {required DartType contextType}) {
+  void resolve(AssignmentExpressionImpl node, {required TypeImpl contextType}) {
     var operator = node.operator.type;
     var hasRead = operator != TokenType.EQ;
     var isIfNull = operator == TokenType.QUESTION_QUESTION_EQ;
@@ -55,8 +53,8 @@ class AssignmentExpressionResolver {
     var left = node.leftHandSide;
     var right = node.rightHandSide;
 
-    var readElement = leftResolution.readElement;
-    var writeElement = leftResolution.writeElement;
+    var readElement = leftResolution.readElement2;
+    var writeElement = leftResolution.writeElement2;
     var writeElement2 = leftResolution.writeElement2;
 
     if (hasRead) {
@@ -82,10 +80,10 @@ class AssignmentExpressionResolver {
     // TODO(scheglov): Use VariableElement and do in resolveForWrite() ?
     _assignmentShared.checkFinalAlreadyAssigned(left);
 
-    DartType rhsContext;
+    TypeImpl rhsContext;
     {
       var leftType = node.writeType;
-      if (writeElement is VariableElement) {
+      if (writeElement is VariableElement2) {
         leftType = _resolver.localVariableTypeProvider
             .getType(left as SimpleIdentifierImpl, isRead: false);
       }
@@ -118,11 +116,10 @@ class AssignmentExpressionResolver {
   }
 
   void _checkForInvalidAssignment(
-    DartType writeType,
+    TypeImpl writeType,
     Expression right,
-    DartType rightType, {
-    required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
-        whyNotPromoted,
+    TypeImpl rightType, {
+    required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     if (writeType is! VoidType && _checkForUseOfVoidResult(right)) {
       return;
@@ -134,10 +131,10 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    if (writeType is RecordType &&
+    if (writeType is RecordTypeImpl &&
         writeType.positionalFields.length == 1 &&
         rightType is! RecordType &&
-        right is ParenthesizedExpression) {
+        right is ParenthesizedExpressionImpl) {
       var field = writeType.positionalFields.first;
       if (_typeSystem.isAssignableTo(field.type, rightType,
           strictCasts: strictCasts)) {
@@ -185,7 +182,7 @@ class AssignmentExpressionResolver {
     return true;
   }
 
-  DartType _computeRhsContext(AssignmentExpressionImpl node, DartType leftType,
+  TypeImpl _computeRhsContext(AssignmentExpressionImpl node, TypeImpl leftType,
       TokenType operator, Expression right) {
     switch (operator) {
       case TokenType.EQ:
@@ -195,11 +192,11 @@ class AssignmentExpressionResolver {
       case TokenType.BAR_BAR_EQ:
         return _typeProvider.boolType;
       default:
-        var method = node.staticElement;
+        var method = node.element;
         if (method != null) {
-          var parameters = method.parameters;
+          var parameters = method.formalParameters;
           if (parameters.isNotEmpty) {
-            return _typeSystem.refineNumericInvocationContext(
+            return _typeSystem.refineNumericInvocationContext2(
                 leftType, method, leftType, parameters[0].type);
           }
         }
@@ -249,7 +246,7 @@ class AssignmentExpressionResolver {
       propertyErrorEntity: operator,
       nameErrorEntity: operator,
     );
-    node.staticElement = result.getter as MethodElement?;
+    node.element = result.getter2 as MethodElement2OrMember?;
     if (result.needsGetterError) {
       _errorReporter.atToken(
         operator,
@@ -260,10 +257,10 @@ class AssignmentExpressionResolver {
   }
 
   void _resolveTypes(AssignmentExpressionImpl node,
-      {required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+      {required Map<SharedTypeView, NonPromotionReason> Function()?
           whyNotPromoted,
-      required DartType contextType}) {
-    DartType assignedType;
+      required TypeImpl contextType}) {
+    TypeImpl assignedType;
 
     var rightHandSide = node.rightHandSide;
     var operator = node.operator.type;
@@ -276,7 +273,7 @@ class AssignmentExpressionResolver {
       assignedType = _typeProvider.boolType;
     } else {
       var leftType = node.readType!;
-      var operatorElement = node.staticElement;
+      var operatorElement = node.element;
       if (leftType is DynamicType) {
         assignedType = DynamicTypeImpl.instance;
       } else if (operatorElement != null) {

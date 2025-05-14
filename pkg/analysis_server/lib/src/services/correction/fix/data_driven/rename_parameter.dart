@@ -141,10 +141,7 @@ extension on MethodDeclaration {
     if (element != null) {
       var enclosingElement = element.enclosingElement2;
       if (enclosingElement is InterfaceElement2) {
-        var name = Name(
-          enclosingElement.library2.uri,
-          element.name3!,
-        );
+        var name = Name(enclosingElement.library2.uri, element.name3!);
         return inheritanceManager.getInherited4(enclosingElement, name);
       }
     }

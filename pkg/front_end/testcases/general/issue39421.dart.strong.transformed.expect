@@ -23,8 +23,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class A#1#0 extends core::Object {
-  synthetic constructor •() → self::A#1#0
+class A#1 extends core::Object {
+  synthetic constructor •() → self::A#1
     : super core::Object::•()
     ;
 }

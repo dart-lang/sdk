@@ -86,7 +86,8 @@ var v = const <int, bool>{a : true};
 const dynamic a = null;
 var v = const <int, bool>{a : true};
 ''', [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 50, 1),
+      error(
+          CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY, 50, 1),
     ]);
   }
 
@@ -94,7 +95,8 @@ var v = const <int, bool>{a : true};
     await assertErrorsInCode('''
 var v = const <int, bool>{null : true};
 ''', [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 26, 4),
+      error(
+          CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY, 26, 4),
     ]);
   }
 

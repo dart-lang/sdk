@@ -110,7 +110,7 @@ afterIfListThen_toConditionalVar(int? x, bool b2) {
     if (b) x.expectStaticType<Exactly<int>>();
     [
       if (b2)
-        [b = true, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']
+        [b = true, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo'],
     ];
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -121,7 +121,7 @@ afterIfListThen_toPromotedVar(int? x, bool b2, int? y) {
     bool b = x != null;
     if (b) x.expectStaticType<Exactly<int>>();
     [
-      if (b2) [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']
+      if (b2) [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo'],
     ];
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -135,7 +135,7 @@ afterIfListElse_toConditionalVar(int? x, bool b2) {
       if (b2)
         null
       else
-        [b = true, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']
+        [b = true, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo'],
     ];
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -149,7 +149,7 @@ afterIfListElse_toPromotedVar(int? x, bool b2, int? y) {
       if (b2)
         null
       else
-        [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']
+        [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo'],
     ];
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -161,7 +161,7 @@ afterIfSetThen_toConditionalVar(int? x, bool b2) {
     if (b) x.expectStaticType<Exactly<int>>();
     ({
       if (b2)
-        [b = true, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']
+        [b = true, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo'],
     });
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -172,7 +172,7 @@ afterIfSetThen_toPromotedVar(int? x, bool b2, int? y) {
     bool b = x != null;
     if (b) x.expectStaticType<Exactly<int>>();
     ({
-      if (b2) [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']
+      if (b2) [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo'],
     });
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -186,7 +186,7 @@ afterIfSetElse_toConditionalVar(int? x, bool b2) {
       if (b2)
         null
       else
-        [b = true, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']
+        [b = true, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo'],
     });
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -200,7 +200,7 @@ afterIfSetElse_toPromotedVar(int? x, bool b2, int? y) {
       if (b2)
         null
       else
-        [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']
+        [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo'],
     });
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -213,7 +213,7 @@ afterIfMapKeyThen_toConditionalVar(int? x, bool b2) {
     ({
       if (b2)
         [b = true, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']:
-            null
+            null,
     });
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -225,7 +225,7 @@ afterIfMapKeyThen_toPromotedVar(int? x, bool b2, int? y) {
     if (b) x.expectStaticType<Exactly<int>>();
     ({
       if (b2)
-        [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']: null
+        [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']: null,
     });
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -240,7 +240,7 @@ afterIfMapKeyElse_toConditionalVar(int? x, bool b2) {
         null: null
       else
         [b = true, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']:
-            null
+            null,
     });
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -254,7 +254,7 @@ afterIfMapKeyElse_toPromotedVar(int? x, bool b2, int? y) {
       if (b2)
         null: null
       else
-        [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']: null
+        [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']: null,
     });
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -269,8 +269,8 @@ afterIfMapValueThen_toConditionalVar(int? x, bool b2) {
         null: [
           b = true,
           if (b) x.expectStaticType<Exactly<int?>>(),
-          throw 'foo'
-        ]
+          throw 'foo',
+        ],
     });
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -282,7 +282,7 @@ afterIfMapValueThen_toPromotedVar(int? x, bool b2, int? y) {
     if (b) x.expectStaticType<Exactly<int>>();
     ({
       if (b2)
-        null: [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']
+        null: [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo'],
     });
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -299,8 +299,8 @@ afterIfMapValueElse_toConditionalVar(int? x, bool b2) {
         null: [
           b = true,
           if (b) x.expectStaticType<Exactly<int?>>(),
-          throw 'foo'
-        ]
+          throw 'foo',
+        ],
     });
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}
@@ -314,7 +314,7 @@ afterIfMapValueElse_toPromotedVar(int? x, bool b2, int? y) {
       if (b2)
         null: null
       else
-        null: [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo']
+        null: [x = y, if (b) x.expectStaticType<Exactly<int?>>(), throw 'foo'],
     });
     if (b) x.expectStaticType<Exactly<int>>();
   } on String {}

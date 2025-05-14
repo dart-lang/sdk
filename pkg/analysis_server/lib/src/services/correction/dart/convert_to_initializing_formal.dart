@@ -16,10 +16,9 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // The fix isn't able to remove the initializer list / block function body
-          // in the case where multiple initializers / statements are being removed.
-          CorrectionApplicability
-          .singleLocation;
+      // The fix isn't able to remove the initializer list / block function body
+      // in the case where multiple initializers / statements are being removed.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_INITIALIZING_FORMAL;

@@ -50,7 +50,7 @@ void nonNullAssert(Null Function() f) {
 }
 
 void nullAwareAccess(Null Function() f, Object? Function() g) {
-  f()?.extensionMethod(/*unreachable*/ 1);
+  f()?./*analyzer.unreachable*/extensionMethod(/*unreachable*/ 1);
   g()?.extensionMethod(2);
 }
 

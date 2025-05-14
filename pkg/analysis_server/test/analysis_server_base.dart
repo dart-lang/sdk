@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
@@ -24,9 +25,9 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
+import 'constants.dart';
 import 'mocks.dart';
 import 'support/configuration_files.dart';
-import 'test_macros.dart';
 
 // TODO(scheglov): This is duplicate with pkg/linter/test/rule_test_support.dart.
 // Keep them as consistent with each other as they are today. Ultimately combine
@@ -88,6 +89,9 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
   /// implementation are still fully verified.
   static final MemoryByteStore _sharedByteStore = MemoryByteStore();
 
+  /// The next ID to use in a request to the server.
+  var nextRequestId = 0;
+
   MemoryByteStore _byteStore = _sharedByteStore;
 
   final TestPluginManager pluginManager = TestPluginManager();
@@ -148,7 +152,10 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     handleSuccessfulRequest(
       AnalysisSetPriorityFilesParams(
         files.map((e) => e.path).toList(),
-      ).toRequest('0', clientUriConverter: server.uriConverter),
+      ).toRequest(
+        '${nextRequestId++}',
+        clientUriConverter: server.uriConverter,
+      ),
     );
   }
 
@@ -156,7 +163,10 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     await handleSuccessfulRequest(
       AnalysisSetPriorityFilesParams(
         files.map((e) => e.path).toList(),
-      ).toRequest('0', clientUriConverter: server.uriConverter),
+      ).toRequest(
+        '${nextRequestId++}',
+        clientUriConverter: server.uriConverter,
+      ),
     );
   }
 
@@ -171,13 +181,16 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
         includedConverted,
         excludedConverted,
         packageRoots: {},
-      ).toRequest('0', clientUriConverter: server.uriConverter),
+      ).toRequest(
+        '${nextRequestId++}',
+        clientUriConverter: server.uriConverter,
+      ),
     );
   }
 
   @mustCallSuper
   void setUp() {
-    serverChannel = MockServerChannel();
+    serverChannel = MockServerChannel(printMessages: debugPrintCommunication);
 
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
@@ -214,17 +227,22 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   Future<void> _setGeneralAnalysisSubscriptions() async {
     await handleSuccessfulRequest(
-      AnalysisSetGeneralSubscriptionsParams(
-        _analysisGeneralServices,
-      ).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetGeneralSubscriptionsParams(_analysisGeneralServices).toRequest(
+        '${nextRequestId++}',
+        clientUriConverter: server.uriConverter,
+      ),
     );
   }
 }
 
 class PubPackageAnalysisServerTest extends ContextResolutionTest
-    with MockPackagesMixin, ConfigurationFilesMixin, TestMacros {
+    with MockPackagesMixin, ConfigurationFilesMixin {
   // TODO(scheglov): Consider turning it back into a getter.
-  late String testFilePath = '$testPackageLibPath/test.dart';
+  late String testFilePath = resourceProvider.convertPath(
+    '$testPackageLibPath/test.dart',
+  );
+
+  late TestCode parsedTestCode;
 
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, an empty list if there are no experiments that should be enabled.
@@ -262,15 +280,17 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   ) async {
     (_analysisFileSubscriptions[service] ??= []).add(file.path);
     await handleSuccessfulRequest(
-      AnalysisSetSubscriptionsParams(
-        _analysisFileSubscriptions,
-      ).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetSubscriptionsParams(_analysisFileSubscriptions).toRequest(
+        '${nextRequestId++}',
+        clientUriConverter: server.uriConverter,
+      ),
     );
   }
 
   // TODO(scheglov): rename
   void addTestFile(String content) {
-    newFile(testFilePath, content);
+    parsedTestCode = TestCode.parse(content);
+    newFile(testFilePath, parsedTestCode.code);
   }
 
   @override

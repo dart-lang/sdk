@@ -60,19 +60,23 @@ main() {
     var string = '';
     var stringQuestion = null as String?;
     contextUnknown(
-        // ignore: dead_null_aware_expression
-        string ?? (contextType('')..expectStaticType<Exactly<String>>()));
-    contextUnknown(stringQuestion ??
-        (contextType('')..expectStaticType<Exactly<String?>>()));
+      // ignore: dead_null_aware_expression
+      string ?? (contextType('')..expectStaticType<Exactly<String>>()),
+    );
+    contextUnknown(
+      stringQuestion ?? (contextType('')..expectStaticType<Exactly<String?>>()),
+    );
   }
 
   //     - Otherwise, J = K.
   {
     var intQuestion = null as int?;
     context<num?>(
-        intQuestion ?? (contextType(2)..expectStaticType<Exactly<num?>>()));
+      intQuestion ?? (contextType(2)..expectStaticType<Exactly<num?>>()),
+    );
     context<num>(
-        intQuestion ?? (contextType(2)..expectStaticType<Exactly<num>>()));
+      intQuestion ?? (contextType(2)..expectStaticType<Exactly<num>>()),
+    );
   }
 
   //   - Let T be UP(NonNull(T1), T2).
@@ -106,8 +110,10 @@ main() {
     // Therefore the type of `e` is T = Iterable<num>.
     var iterableIntQuestion = null as Iterable<int>?;
     var iterableDouble = <double>[] as Iterable<double>;
-    contextIterable((iterableIntQuestion ?? iterableDouble)
-      ..expectStaticType<Exactly<Iterable<num>>>());
+    contextIterable(
+      (iterableIntQuestion ?? iterableDouble)
+        ..expectStaticType<Exactly<Iterable<num>>>(),
+    );
   }
 
   //   - Otherwise, if NonNull(T1) <: S and T2 <: S, then the type of `e` is S.
@@ -127,7 +133,8 @@ main() {
     var c1IntQuestion = null as C1<int>?;
     var c2Double = C2<double>();
     contextB1(
-        (c1IntQuestion ?? c2Double)..expectStaticType<Exactly<B1<Object?>>>());
+      (c1IntQuestion ?? c2Double)..expectStaticType<Exactly<B1<Object?>>>(),
+    );
 
     // This example has:
     // - K = B1<Object>
@@ -142,7 +149,8 @@ main() {
     // - T2 <: S
     // Therefore the type of `e` is S = B1<Object>.
     contextB1<Object>(
-        (c1IntQuestion ?? c2Double)..expectStaticType<Exactly<B1<Object>>>());
+      (c1IntQuestion ?? c2Double)..expectStaticType<Exactly<B1<Object>>>(),
+    );
 
     // This example has:
     // - K = Iterable<num>
@@ -158,8 +166,10 @@ main() {
     // Therefore the type of `e` is S = Iterable<num>.
     var iterableIntQuestion = null as Iterable<int>?;
     var listNum = <num>[];
-    context<Iterable<num>>((iterableIntQuestion ?? listNum)
-      ..expectStaticType<Exactly<Iterable<num>>>());
+    context<Iterable<num>>(
+      (iterableIntQuestion ?? listNum)
+        ..expectStaticType<Exactly<Iterable<num>>>(),
+    );
   }
 
   //   - Otherwise, the type of `e` is T.

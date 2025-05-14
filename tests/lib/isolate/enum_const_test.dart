@@ -2,30 +2,56 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
 import "dart:isolate";
+
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
-enum Foo { BAR, BAZ }
+/// Check that an enum value sent through a send/receive-port retains identity.
 
-verify(val) {
-  Expect.identical(Foo.BAR, val);
+enum Foo { bar, baz }
+
+void main() {
+  asyncStart();
+  test1();
+  test2();
+  test3();
+  asyncEnd();
 }
 
-main() {
-  test1(); //# 01: ok
-  test2(); //# 02: ok
+void verify(Object? val) {
+  Expect.identical(Foo.bar, val);
 }
 
-test1() => verify(Foo.BAR);
+void test1() {
+  // Sanity check.
+  verify(Foo.bar);
+}
 
-test2() {
-  var rp;
-  rp = new RawReceivePort((val) {
+void test2() {
+  // From same isolate.
+  asyncStart();
+  var rp = RawReceivePort();
+  rp.handler = (val) {
     verify(val);
     rp.close();
-  });
-  rp.sendPort.send(Foo.BAR);
+    asyncEnd();
+  };
+  rp.sendPort.send(Foo.bar);
+}
+
+void test3() {
+  // From other isolate.
+  asyncStart();
+  var rp = RawReceivePort();
+  rp.handler = (val) {
+    verify(val);
+    rp.close();
+    asyncEnd();
+  };
+  Isolate.spawn(_sendFoo, rp.sendPort);
+}
+
+void _sendFoo(SendPort sendPort) {
+  sendPort.send(Foo.bar);
 }

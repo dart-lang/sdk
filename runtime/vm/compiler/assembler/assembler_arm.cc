@@ -590,10 +590,10 @@ void Assembler::EnterFullSafepoint(Register addr, Register state) {
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldrex(state, addr);
-  cmp(state, Operand(target::Thread::full_safepoint_state_unacquired()));
+  cmp(state, Operand(target::Thread::native_safepoint_state_unacquired()));
   b(&slow_path, NE);
 
-  mov(state, Operand(target::Thread::full_safepoint_state_acquired()));
+  mov(state, Operand(target::Thread::native_safepoint_state_acquired()));
   strex(TMP, state, addr);
   cmp(TMP, Operand(0));  // 0 means strex was successful.
   b(&done, EQ);
@@ -623,6 +623,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
                 target::Thread::exit_through_ffi_offset());
   Register tmp2 = exit_through_ffi;
 
+  VerifyInGenerated(tmp1);
   // Mark that the thread is executing native code.
   StoreToOffset(destination_address, THR, target::Thread::vm_tag_offset());
   LoadImmediate(tmp1, target::Thread::native_execution_state());
@@ -633,9 +634,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   }
 }
 
-void Assembler::ExitFullSafepoint(Register tmp1,
-                                  Register tmp2,
-                                  bool ignore_unwind_in_progress) {
+void Assembler::ExitFullSafepoint(Register tmp1, Register tmp2) {
   Register addr = tmp1;
   Register state = tmp2;
 
@@ -650,10 +649,10 @@ void Assembler::ExitFullSafepoint(Register tmp1,
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldrex(state, addr);
-  cmp(state, Operand(target::Thread::full_safepoint_state_acquired()));
+  cmp(state, Operand(target::Thread::native_safepoint_state_acquired()));
   b(&slow_path, NE);
 
-  mov(state, Operand(target::Thread::full_safepoint_state_unacquired()));
+  mov(state, Operand(target::Thread::native_safepoint_state_unacquired()));
   strex(TMP, state, addr);
   cmp(TMP, Operand(0));  // 0 means strex was successful.
   b(&done, EQ);
@@ -663,14 +662,7 @@ void Assembler::ExitFullSafepoint(Register tmp1,
   }
 
   Bind(&slow_path);
-  if (ignore_unwind_in_progress) {
-    ldr(TMP,
-        Address(THR,
-                target::Thread::
-                    exit_safepoint_ignore_unwind_in_progress_stub_offset()));
-  } else {
-    ldr(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
-  }
+  ldr(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
   ldr(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
   blx(TMP);
 
@@ -680,17 +672,14 @@ void Assembler::ExitFullSafepoint(Register tmp1,
 void Assembler::TransitionNativeToGenerated(Register addr,
                                             Register state,
                                             bool exit_safepoint,
-                                            bool ignore_unwind_in_progress,
                                             bool set_tag) {
   if (exit_safepoint) {
-    ExitFullSafepoint(addr, state, ignore_unwind_in_progress);
+    ExitFullSafepoint(addr, state);
   } else {
-    // flag only makes sense if we are leaving safepoint
-    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
-    ASSERT(target::Thread::full_safepoint_state_acquired() != 0);
-    LoadImmediate(state, target::Thread::full_safepoint_state_acquired());
+    ASSERT(target::Thread::native_safepoint_state_acquired() != 0);
+    LoadImmediate(state, target::Thread::native_safepoint_state_acquired());
     ldr(TMP, Address(THR, target::Thread::safepoint_state_offset()));
     ands(TMP, TMP, Operand(state));
     Label ok;
@@ -700,6 +689,7 @@ void Assembler::TransitionNativeToGenerated(Register addr,
 #endif
   }
 
+  VerifyNotInGenerated(TMP);
   // Mark that the thread is executing Dart code.
   if (set_tag) {
     LoadImmediate(state, target::Thread::vm_tag_dart_id());
@@ -712,6 +702,32 @@ void Assembler::TransitionNativeToGenerated(Register addr,
   LoadImmediate(state, 0);
   StoreToOffset(state, THR, target::Thread::top_exit_frame_info_offset());
   StoreToOffset(state, THR, target::Thread::exit_through_ffi_offset());
+}
+
+void Assembler::VerifyInGenerated(Register scratch) {
+#if defined(DEBUG)
+  // Verify the thread is in generated.
+  Comment("VerifyInGenerated");
+  ldr(scratch, Address(THR, target::Thread::execution_state_offset()));
+  Label ok;
+  CompareImmediate(scratch, target::Thread::generated_execution_state());
+  BranchIf(EQUAL, &ok, Assembler::kNearJump);
+  Breakpoint();
+  Bind(&ok);
+#endif
+}
+
+void Assembler::VerifyNotInGenerated(Register scratch) {
+#if defined(DEBUG)
+  // Verify the thread is in native or VM.
+  Comment("VerifyNotInGenerated");
+  ldr(scratch, Address(THR, target::Thread::execution_state_offset()));
+  CompareImmediate(scratch, target::Thread::generated_execution_state());
+  Label ok;
+  BranchIf(NOT_EQUAL, &ok, Assembler::kNearJump);
+  Breakpoint();
+  Bind(&ok);
+#endif
 }
 
 void Assembler::clrex() {

@@ -11,17 +11,16 @@ const _desc = r'Only reference in-scope identifiers in doc comments.';
 
 class CommentReferences extends LintRule {
   CommentReferences()
-      : super(
-          name: LintNames.comment_references,
-          description: _desc,
-        );
+    : super(name: LintNames.comment_references, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.comment_references;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addComment(this, visitor);
     registry.addCommentReference(this, visitor);

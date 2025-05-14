@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExhaustiveCasesTestLanguage219);
     defineReflectiveTests(ExhaustiveCasesTest);
@@ -27,8 +27,9 @@ void ae(ActualEnum e) {
   @override
   String get lintRule => LintNames.exhaustive_cases;
 
-  test_enumLike() async {
-    await assertDiagnostics(r'''
+  Future<void> test_enumLike() async {
+    await assertDiagnostics(
+      r'''
 class E {
   final int i;
   const E._(this.i);
@@ -45,12 +46,12 @@ void e(E e) {
     case E.f:
   }
 }
-''', [
-      lint(147, 10),
-    ]);
+''',
+      [lint(147, 10)],
+    );
   }
 
-  test_enumLike_default_ok() async {
+  Future<void> test_enumLike_default_ok() async {
     await assertNoDiagnostics(r'''
 class E {
   final int i;
@@ -72,8 +73,9 @@ void okDefault(E e) {
 ''');
   }
 
-  test_enumLike_deprecatedFields() async {
-    await assertDiagnostics(r'''
+  Future<void> test_enumLike_deprecatedFields() async {
+    await assertDiagnostics(
+      r'''
 class DeprecatedFields {
   final int i;
   const DeprecatedFields._(this.i);
@@ -111,13 +113,15 @@ void dep(DeprecatedFields e) {
       break;
   }
 }
-''', [
-      lint(449, 10),
-      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 599, 6),
-    ]);
+''',
+      [
+        lint(449, 10),
+        error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 599, 6),
+      ],
+    );
   }
 
-  test_enumLike_ok() async {
+  Future<void> test_enumLike_ok() async {
     await assertNoDiagnostics(r'''
 class E {
   final int i;
@@ -141,7 +145,7 @@ void ok(E e) {
 ''');
   }
 
-  test_enumLike_parenthesized_ok() async {
+  Future<void> test_enumLike_parenthesized_ok() async {
     await assertNoDiagnostics(r'''
 class E {
   final int i;
@@ -165,7 +169,7 @@ void okParenthesized(E e) {
 ''');
   }
 
-  test_enumLike_prefixed() async {
+  Future<void> test_enumLike_prefixed() async {
     newFile('$testPackageLibPath/e.dart', '''
 class E {
   final int i;
@@ -177,7 +181,8 @@ class E {
 }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'e.dart' as prefixed;
 
 void e(prefixed.E e) {
@@ -189,12 +194,12 @@ void e(prefixed.E e) {
       print('e');
   }
 }
-''', [
-      lint(55, 9),
-    ]);
+''',
+      [lint(55, 9)],
+    );
   }
 
-  test_notEnumLike_ok() async {
+  Future<void> test_notEnumLike_ok() async {
     await assertNoDiagnostics(r'''
 class TooFew {
   const TooFew._();
@@ -222,7 +227,7 @@ void p(PublicCons e) {
 ''');
   }
 
-  test_notEnumLike_subclassed_ok() async {
+  Future<void> test_notEnumLike_subclassed_ok() async {
     await assertNoDiagnostics(r'''
 class Subclassed {
   const Subclassed._();

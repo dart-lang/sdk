@@ -21,11 +21,11 @@ class _StdIOUtils {
       case _stdioHandleTypePipe:
       case _stdioHandleTypeSocket:
       case _stdioHandleTypeOther:
-        return new Stdin._(new _Socket._readPipe(fd), fd);
+        return Stdin._(_Socket._readPipe(fd), fd);
       case _stdioHandleTypeFile:
-        return new Stdin._(new _FileStream.forStdin(), fd);
+        return Stdin._(_FileStream.forStdin(), fd);
     }
-    throw new UnsupportedError("Unexpected handle type $type");
+    throw UnsupportedError("Unexpected handle type $type");
   }
 
   @patch
@@ -38,7 +38,7 @@ class _StdIOUtils {
         type,
       );
     }
-    return new Stdout._(new IOSink(new _StdConsumer(fd)), fd);
+    return Stdout._(IOSink(_StdConsumer(fd)), fd);
   }
 
   @patch
@@ -50,7 +50,7 @@ class _StdIOUtils {
   static int _nativeSocketType(_NativeSocket nativeSocket) {
     var result = _getSocketType(nativeSocket);
     if (result is OSError) {
-      throw new FileSystemException("Error retrieving socket type", "", result);
+      throw FileSystemException("Error retrieving socket type", "", result);
     }
     return result;
   }
@@ -66,7 +66,7 @@ class Stdin {
   int readByteSync() {
     var result = _readByte(_fd);
     if (result is OSError) {
-      throw new StdinException("Error reading byte from stdin", result);
+      throw StdinException("Error reading byte from stdin", result);
     }
     return result;
   }
@@ -75,7 +75,7 @@ class Stdin {
   bool get echoMode {
     var result = _echoMode(_fd);
     if (result is OSError) {
-      throw new StdinException("Error getting terminal echo mode", result);
+      throw StdinException("Error getting terminal echo mode", result);
     }
     return result;
   }
@@ -83,13 +83,11 @@ class Stdin {
   @patch
   void set echoMode(bool enabled) {
     if (!_EmbedderConfig._maySetEchoMode) {
-      throw new UnsupportedError(
-        "This embedder disallows setting Stdin.echoMode",
-      );
+      throw UnsupportedError("This embedder disallows setting Stdin.echoMode");
     }
     var result = _setEchoMode(_fd, enabled);
     if (result is OSError) {
-      throw new StdinException("Error setting terminal echo mode", result);
+      throw StdinException("Error setting terminal echo mode", result);
     }
   }
 
@@ -97,10 +95,7 @@ class Stdin {
   bool get echoNewlineMode {
     var result = _echoNewlineMode(_fd);
     if (result is OSError) {
-      throw new StdinException(
-        "Error getting terminal echo newline mode",
-        result,
-      );
+      throw StdinException("Error getting terminal echo newline mode", result);
     }
     return result;
   }
@@ -108,16 +103,13 @@ class Stdin {
   @patch
   void set echoNewlineMode(bool enabled) {
     if (!_EmbedderConfig._maySetEchoNewlineMode) {
-      throw new UnsupportedError(
+      throw UnsupportedError(
         "This embedder disallows setting Stdin.echoNewlineMode",
       );
     }
     var result = _setEchoNewlineMode(_fd, enabled);
     if (result is OSError) {
-      throw new StdinException(
-        "Error setting terminal echo newline mode",
-        result,
-      );
+      throw StdinException("Error setting terminal echo newline mode", result);
     }
   }
 
@@ -125,7 +117,7 @@ class Stdin {
   bool get lineMode {
     var result = _lineMode(_fd);
     if (result is OSError) {
-      throw new StdinException("Error getting terminal line mode", result);
+      throw StdinException("Error getting terminal line mode", result);
     }
     return result;
   }
@@ -133,13 +125,11 @@ class Stdin {
   @patch
   void set lineMode(bool enabled) {
     if (!_EmbedderConfig._maySetLineMode) {
-      throw new UnsupportedError(
-        "This embedder disallows setting Stdin.lineMode",
-      );
+      throw UnsupportedError("This embedder disallows setting Stdin.lineMode");
     }
     var result = _setLineMode(_fd, enabled);
     if (result is OSError) {
-      throw new StdinException("Error setting terminal line mode", result);
+      throw StdinException("Error setting terminal line mode", result);
     }
   }
 
@@ -147,7 +137,7 @@ class Stdin {
   bool get supportsAnsiEscapes {
     var result = _supportsAnsiEscapes(_fd);
     if (result is OSError) {
-      throw new StdinException("Error determining ANSI support", result);
+      throw StdinException("Error determining ANSI support", result);
     }
     return result;
   }
@@ -182,7 +172,7 @@ class Stdout {
   static List _terminalSize(int fd) {
     var size = _getTerminalSize(fd);
     if (size is! List) {
-      throw new StdoutException("Could not get terminal size", size);
+      throw StdoutException("Could not get terminal size", size);
     }
     return size;
   }
@@ -194,7 +184,7 @@ class Stdout {
   static bool _supportsAnsiEscapes(int fd) {
     var result = _getAnsiSupported(fd);
     if (result is! bool) {
-      throw new StdoutException("Error determining ANSI support", result);
+      throw StdoutException("Error determining ANSI support", result);
     }
     return result;
   }

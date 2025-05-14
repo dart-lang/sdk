@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
-import '../base/nnbd_mode.dart';
 import '../source/source_library_builder.dart';
 
 const String lateFieldPrefix = '_#';
@@ -524,15 +523,7 @@ enum IsSetStrategy {
 IsSetStrategy computeIsSetStrategy(SourceLibraryBuilder libraryBuilder) {
   IsSetStrategy isSetStrategy = IsSetStrategy.useIsSetFieldOrNull;
   if (libraryBuilder.loader.target.backendTarget.supportsLateLoweringSentinel) {
-    if (libraryBuilder.loader.nnbdMode != NnbdMode.Strong) {
-      // Non-nullable fields/locals might contain `null` so we always use the
-      // sentinel.
-      isSetStrategy = IsSetStrategy.forceUseSentinel;
-    } else {
-      isSetStrategy = IsSetStrategy.useSentinelOrNull;
-    }
-  } else if (libraryBuilder.loader.nnbdMode != NnbdMode.Strong) {
-    isSetStrategy = IsSetStrategy.forceUseIsSetField;
+    isSetStrategy = IsSetStrategy.useSentinelOrNull;
   }
   return isSetStrategy;
 }

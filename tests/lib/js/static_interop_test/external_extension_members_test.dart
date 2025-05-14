@@ -5,13 +5,9 @@
 // Tests behavior of external extension members, which are routed to js_util
 // calls by a CFE transformation.
 
-@JS()
-library external_extension_members_test;
-
 import 'dart:js_interop';
 
 import 'package:expect/expect.dart';
-import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 // To test non-JS types for @staticInterop.
 import 'package:js/js.dart' as pkgJs;
 import 'package:js/js_util.dart' as js_util;
@@ -129,105 +125,127 @@ void main() {
     }
     """);
 
-  test('fields', () {
+  {
+    // fields.
+
     var foo = Foo(42);
     // field getters
-    expect(foo.field, equals(42));
-    expect(foo.finalField, equals(42));
-    expect(foo.annotatedField, equals(42));
+    Expect.equals(42, foo.field);
+    Expect.equals(42, foo.finalField);
+    Expect.equals(42, foo.annotatedField);
 
     // field setters
     foo.field = 'squid';
-    expect(foo.field, equals('squid'));
+    Expect.equals('squid', foo.field);
 
     foo.annotatedField = 'octopus';
-    expect(foo.annotatedField, equals('octopus'));
+    Expect.equals('octopus', foo.annotatedField);
     js_util.setProperty(foo, 'fieldAnnotation', 'clownfish');
-    expect(foo.annotatedField, equals('clownfish'));
-  });
+    Expect.equals('clownfish', foo.annotatedField);
+  }
 
-  test('getters', () {
+  {
+    // getters.
+
     var foo = Foo(42);
-    expect(foo.getter, equals(42));
-    expect(foo.annotatedGetter, equals(42));
+    Expect.equals(42, foo.getter);
+    Expect.equals(42, foo.annotatedGetter);
 
     js_util.setProperty(foo, 'getterAnnotation', 'eel');
-    expect(foo.annotatedGetter, equals('eel'));
-  });
+    Expect.equals('eel', foo.annotatedGetter);
+  }
 
-  test('setters', () {
+  {
+    // setters.
+
     var foo = Foo(42);
     foo.setter = 'starfish';
-    expect(js_util.getProperty(foo, 'setter'), equals('starfish'));
+    Expect.equals('starfish', js_util.getProperty(foo, 'setter'));
 
     foo.annotatedSetter = 'whale';
-    expect(js_util.getProperty(foo, 'setterAnnotation'), equals('whale'));
-  });
+    Expect.equals('whale', js_util.getProperty(foo, 'setterAnnotation'));
+  }
 
-  test('methods', () {
+  {
+    // methods.
+
     var foo = Foo(42);
 
-    expect(foo.getField(), equals(42));
-    expect(foo.extToString(), equals('Foo: 42'));
-    expect(foo.getFirstEl([1, 2, 3]), equals(1));
-    expect(foo.sumFn(2, 3), equals(5));
-    expect(foo.otherSumFn(10, 5), equals(15));
-  });
+    Expect.equals(42, foo.getField());
+    Expect.equals('Foo: 42', foo.extToString());
+    Expect.equals(1, foo.getFirstEl([1, 2, 3]));
+    Expect.equals(5, foo.sumFn(2, 3));
+    Expect.equals(15, foo.otherSumFn(10, 5));
+  }
 
-  test('module class', () {
+  {
+    // module class.
+
     var bar = Bar(5);
-    expect(js_util.getProperty(bar, 'fieldAnnotation'), equals(5));
-    expect(bar.barField, equals(5));
-    expect(js_util.getProperty(bar, 'field'), equals(5));
+    Expect.equals(5, js_util.getProperty(bar, 'fieldAnnotation'));
+    Expect.equals(5, bar.barField);
+    Expect.equals(5, js_util.getProperty(bar, 'field'));
 
     bar.barField = 10;
-    expect(js_util.getProperty(bar, 'fieldAnnotation'), equals(5));
-    expect(js_util.getProperty(bar, 'field'), equals(10));
-  });
+    Expect.equals(5, js_util.getProperty(bar, 'fieldAnnotation'));
+    Expect.equals(10, js_util.getProperty(bar, 'field'));
+  }
 
-  test('type parameters', () {
+  {
+    // type parameters.
+
     final foo = Foo<JSString, Nested>(0);
     final value = 'value';
     final jsValue = value.toJS;
     foo.fieldT = jsValue;
-    expect(foo.fieldT.toDart, value);
-    expect(foo.sumFnT(jsValue, jsValue).toDart, '$value$value');
-    expect(foo.sumFnGeneric<JSNumber, JSNumber>(0.toJS, 0.toJS).toDartInt, 0);
+    Expect.equals(value, foo.fieldT.toDart);
+    Expect.equals('$value$value', foo.sumFnT(jsValue, jsValue).toDart);
+    Expect.equals(
+      0,
+      foo.sumFnGeneric<JSNumber, JSNumber>(0.toJS, 0.toJS).toDartInt,
+    );
 
     foo.nested = Nested(jsValue);
-    expect((foo.nested as Nested<JSString>).value.toDart, value);
-    expect(
-        (foo.combineNested(Nested(value.toJS), Nested(jsValue))
-                as Nested<JSString>)
-            .value
-            .toDart,
-        '$value$value');
+    Expect.equals(value, (foo.nested as Nested<JSString>).value.toDart);
+    Expect.equals(
+      '$value$value',
+      (foo.combineNested(Nested(value.toJS), Nested(jsValue))
+              as Nested<JSString>)
+          .value
+          .toDart,
+    );
 
     foo.nestedU = Nested(jsValue);
-    expect((foo.nestedU as Nested<JSString>).value.toDart, value);
-    expect(
-        (foo.combineNestedU(Nested(jsValue), Nested(jsValue))
-                as Nested<JSString>)
-            .value
-            .toDart,
-        '$value$value');
-    expect(
-        foo.combineNestedGeneric(Nested(jsValue), Nested(jsValue)).value.toDart,
-        '$value$value');
+    Expect.equals(value, (foo.nestedU as Nested<JSString>).value.toDart);
+    Expect.equals(
+      '$value$value',
+      (foo.combineNestedU(Nested(jsValue), Nested(jsValue)) as Nested<JSString>)
+          .value
+          .toDart,
+    );
+    Expect.equals(
+      '$value$value',
+      foo.combineNestedGeneric(Nested(jsValue), Nested(jsValue)).value.toDart,
+    );
 
     // Try invalid generics.
     (foo as Foo<JSNumber, Nested>).fieldT = 0.toJS;
     // dart2wasm uses a JSStringImpl here for conversion without validating the
     // extern ref, so we would only see that it's not a String when we call
     // methods on it.
-    Expect.throws(() => foo.fieldT.toDart.toLowerCase());
-    Expect.throws(() => foo
-        .sumFnGeneric<JSNumber, JSString>(value.toJS, value.toJS)
-        .toDartInt
-        .isEven);
-    Expect.throws(() => foo
-        .sumFnGeneric<JSString, JSNumber>(0.toJS, 0.toJS)
-        .toDart
-        .toLowerCase());
-  });
+    Expect.throws(() => foo.fieldT.toDart.split('foo'));
+    Expect.throws(
+      () =>
+          foo
+              .sumFnGeneric<JSNumber, JSString>(value.toJS, value.toJS)
+              .toDartInt
+              .isEven,
+    );
+    Expect.throws(
+      () => foo
+          .sumFnGeneric<JSString, JSNumber>(0.toJS, 0.toJS)
+          .toDart
+          .split('foo'),
+    );
+  }
 }

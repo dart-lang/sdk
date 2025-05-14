@@ -22,9 +22,9 @@ Future<void> main() async {
 
   Expect.equals('1020', validate());
 }
+
 /** DIFF **/
 /*
-@@ -9,9 +9,10 @@
  // https://github.com/dart-lang/sdk/blob/36c0788137d55c6c77f4b9a8be12e557bc764b1c/runtime/vm/isolate_reload_test.cc#L449
  
  var value1 = 10;

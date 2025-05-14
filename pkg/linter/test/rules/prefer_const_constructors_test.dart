@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferConstConstructorsTest);
   });
@@ -21,25 +21,27 @@ class PreferConstConstructorsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_const_constructors;
 
   test_canBeConst_argumentIsAdjacentStrings() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   const A(String s);
 }
 var a = A('adjacent' 'string');
-''', [
-      lint(41, 22),
-    ]);
+''',
+      [lint(41, 22)],
+    );
   }
 
   test_canBeConst_argumentIsListLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   const A(List<int> l);
 }
 var a = A([]);
-''', [
-      lint(44, 5),
-    ]);
+''',
+      [lint(44, 5)],
+    );
   }
 
   test_canBeConst_argumentIsMap_nonLiteral() async {
@@ -61,36 +63,39 @@ A f(int x) => A({x: x});
   }
 
   test_canBeConst_argumentIsMapLiteral_instantiated() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   const A(Map<int, int> m);
 }
 var a = A({});
-''', [
-      lint(48, 5),
-    ]);
+''',
+      [lint(48, 5)],
+    );
   }
 
   test_canBeConst_explicitTypeArgument_dynamic() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A<T> {
   const A();
 }
 var a = A<dynamic>();
-''', [
-      lint(36, 12),
-    ]);
+''',
+      [lint(36, 12)],
+    );
   }
 
   test_canBeConst_explicitTypeArgument_string() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A<T> {
   const A();
 }
 var a = A<String>();
-''', [
-      lint(36, 11),
-    ]);
+''',
+      [lint(36, 11)],
+    );
   }
 
   test_canBeConst_implicitTypeArgument() async {
@@ -103,14 +108,15 @@ A<T, int> f<T>() => A();
   }
 
   test_canBeConst_implicitTypeArgument_downwardInference() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A<T> {
   const A();
 }
 A<int> f() => A();
-''', [
-      lint(42, 3),
-    ]);
+''',
+      [lint(42, 3)],
+    );
   }
 
   test_canBeConst_implicitTypeArgument_inConditional() async {
@@ -124,29 +130,32 @@ A<T, int> f<T>(bool b) => b ? A() : B();
   }
 
   test_canBeConst_intLiteralArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   const A(int x);
 }
 var a = A(5);
-''', [
-      lint(38, 4),
-    ]);
+''',
+      [lint(38, 4)],
+    );
   }
 
   test_canBeConst_optionalNamedParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   const A({A? parent});
 }
 var a = A();
-''', [
-      lint(44, 3),
-    ]);
+''',
+      [lint(44, 3)],
+    );
   }
 
   test_canBeConst_optionalNamedParameter_nested() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   const A({A? parent});
   const A.a();
@@ -154,21 +163,21 @@ class A {
 var a = A(
   parent: A.a(),
 );
-''', [
-      lint(59, 21),
-      lint(72, 5),
-    ]);
+''',
+      [lint(59, 21), lint(72, 5)],
+    );
   }
 
   test_canBeConst_optionalNamedParameter_newKeyword() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   const A({A? parent});
 }
 var a = new A();
-''', [
-      lint(44, 7),
-    ]);
+''',
+      [lint(44, 7)],
+    );
   }
 
   test_cannotBeConst_argumentIsAdjacentStrings_withInterpolation() async {
@@ -314,13 +323,14 @@ void f() {
   }
 
   test_extensionType_constPrimaryConstructor() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type const E(int i) {}
 
 var e = E(1);
-''', [
-      lint(42, 4),
-    ]);
+''',
+      [lint(42, 4)],
+    );
   }
 
   test_extensionType_nonConstPrimaryConstructor() async {
@@ -332,7 +342,8 @@ var e = E(1);
   }
 
   test_extraPositionalArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:meta/meta.dart';
 
 class K {
@@ -344,10 +355,12 @@ K k() {
   var kk = K();
   return kk;
 }
-''', [
-      // No lint
-      error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 90, 3),
-    ]);
+''',
+      [
+        // No lint
+        error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 90, 3),
+      ],
+    );
   }
 
   test_isConst_intLiteralArgument() async {

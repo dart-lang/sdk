@@ -4,7 +4,7 @@
 
 // Requirements=nnbd-strong
 
-import 'dart:_foreign_helper' show LEGACY_TYPE_REF, TYPE_REF;
+import 'dart:_foreign_helper' show TYPE_REF;
 import 'dart:async' show FutureOr;
 
 import 'runtime_utils.dart'
@@ -68,31 +68,6 @@ void main() {
   checkProperSubtype(TYPE_REF<Null>(), TYPE_REF<A?>());
   // A? <: Object?
   checkProperSubtype(TYPE_REF<A?>(), TYPE_REF<Object?>());
-
-  // Legacy types will eventually be migrated to T or T? but until then are
-  // symmetric with both.
-  // Object* <:> Object
-  checkMutualSubtype(LEGACY_TYPE_REF<Object>(), TYPE_REF<Object>());
-  // Object* <:> Object?
-  checkMutualSubtype(LEGACY_TYPE_REF<Object>(), TYPE_REF<Object?>());
-
-  // Bottom Types
-  // Null <: Object*
-  checkSubtype(TYPE_REF<Null>(), LEGACY_TYPE_REF<Object>());
-  // Never <: Object*
-  checkSubtype(TYPE_REF<Never>(), LEGACY_TYPE_REF<Object>());
-  // A* <:> A
-  checkMutualSubtype(LEGACY_TYPE_REF<A>(), TYPE_REF<A>());
-  // A* <:> A?
-  checkMutualSubtype(LEGACY_TYPE_REF<A>(), TYPE_REF<A?>());
-  // A* <: Object
-  checkProperSubtype(LEGACY_TYPE_REF<A>(), TYPE_REF<Object>());
-  // A* <: Object?
-  checkProperSubtype(LEGACY_TYPE_REF<A>(), TYPE_REF<Object?>());
-  // Null <: A*
-  checkProperSubtype(TYPE_REF<Null>(), LEGACY_TYPE_REF<A>());
-  // Never <: A*
-  checkProperSubtype(TYPE_REF<Never>(), LEGACY_TYPE_REF<A>());
 
   // Futures.
   // Null <: FutureOr<Object?>
@@ -267,22 +242,6 @@ void main() {
   checkProperSubtype(TYPE_REF<B?>(), TYPE_REF<A?>());
   // C? <: A?
   checkProperSubtype(TYPE_REF<C?>(), TYPE_REF<A?>());
-
-  // Mixed mode.
-  // B* <: A
-  checkProperSubtype(LEGACY_TYPE_REF<B>(), TYPE_REF<A>());
-  // B* <: A?
-  checkProperSubtype(LEGACY_TYPE_REF<B>(), TYPE_REF<A?>());
-  // A* <\: B
-  checkSubtypeFailure(LEGACY_TYPE_REF<A>(), TYPE_REF<B>());
-  // B? <: A*
-  checkProperSubtype(TYPE_REF<B?>(), LEGACY_TYPE_REF<A>());
-  // B <: A*
-  checkProperSubtype(TYPE_REF<B>(), LEGACY_TYPE_REF<A>());
-  // A <: B*
-  checkSubtypeFailure(TYPE_REF<A>(), LEGACY_TYPE_REF<B>());
-  // A? <: B*
-  checkSubtypeFailure(TYPE_REF<A?>(), LEGACY_TYPE_REF<B>());
 
   // Allowed in weak mode.
   // dynamic <\: Object

@@ -271,6 +271,7 @@ class A {
     await _initializeAndVerifyTokensInRange(content, expected);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_augmentations() async {
     var mainContent = '''
 part 'main_augmentation.dart';
@@ -1275,48 +1276,6 @@ void f() {
     await _initializeAndVerifyTokens(content, expected);
   }
 
-  /// Verify we can send requests for semantic tokens inside files generated
-  /// by macros (which are not file:/// scheme).
-  Future<void> test_macroGenerated() async {
-    setDartTextDocumentContentProviderSupport();
-    addMacros([declareInTypeMacro()]);
-
-    const mainContent = '''
-import 'macros.dart';
-
-@DeclareInType('void f() {}')
-class A {}
-''';
-
-    // Create the file and start up the server so that the macro-generated
-    // files is available.
-    newFile(mainFilePath, mainContent);
-    await Future.wait([waitForAnalysisComplete(), initialize()]);
-
-    // Fetch the macro-generated content to ensure it was generated successfully
-    // but also because verifyTokens uses the content to map locations back to
-    // source code to simplify comparing the tokens.
-    var generatedFile = await getDartTextDocumentContent(mainFileMacroUri);
-    var generatedContent = generatedFile!.content!;
-
-    await _verifyTokens(mainFileMacroUri, generatedContent, [
-      _Token('part of', SemanticTokenTypes.keyword),
-      _Token("'package:test/main.dart'", SemanticTokenTypes.string),
-      _Token('augment', SemanticTokenTypes.keyword),
-      _Token('class', SemanticTokenTypes.keyword),
-      _Token('A', SemanticTokenTypes.class_, [
-        SemanticTokenModifiers.declaration,
-      ]),
-      _Token('void', SemanticTokenTypes.keyword, [
-        CustomSemanticTokenModifiers.void_,
-      ]),
-      _Token('f', SemanticTokenTypes.method, [
-        SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.instance,
-      ]),
-    ]);
-  }
-
   Future<void> test_manyBools_bug() async {
     // Similar to test_manyImports_sortBug, this code triggered inconsistent tokens
     // for "false" because tokens were sorted incorrectly (because both boolean and
@@ -1768,7 +1727,9 @@ void f() {
     var content = r'''
 void f() {
   switch (1) {
-    case int(isEven: var isEven) when isEven:
+    case int(isEven: var isEven, toString: var toString) when isEven:
+      isEven;
+      toString;
   }
 }
 ''';
@@ -1796,10 +1757,19 @@ void f() {
       _Token('isEven', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
       ]),
+      _Token('toString', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('var', SemanticTokenTypes.keyword),
+      _Token('toString', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('when', SemanticTokenTypes.keyword, [
         CustomSemanticTokenModifiers.control,
       ]),
       _Token('isEven', SemanticTokenTypes.variable),
+      _Token('isEven', SemanticTokenTypes.variable),
+      _Token('toString', SemanticTokenTypes.variable),
     ];
 
     await _initializeAndVerifyTokens(content, expected);

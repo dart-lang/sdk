@@ -127,19 +127,19 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   ChangedStructureNotifier? changedStructureNotifier;
 
   _FfiDefinitionTransformer(
-      this.index,
-      CoreTypes coreTypes,
-      ClassHierarchy hierarchy,
-      DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex? referenceFromIndex,
-      this.changedStructureNotifier)
-      : super(
-          index,
-          coreTypes,
-          hierarchy,
-          diagnosticReporter,
-          referenceFromIndex,
-        );
+    this.index,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    DiagnosticReporter diagnosticReporter,
+    ReferenceFromIndex? referenceFromIndex,
+    this.changedStructureNotifier,
+  ) : super(
+        index,
+        coreTypes,
+        hierarchy,
+        diagnosticReporter,
+        referenceFromIndex,
+      );
 
   /// Finds all compound class dependencies.
   ///
@@ -233,8 +233,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       } else {
         // Only visit the ones without cycles.
         final clazz = component.single;
-        final mustBeTransformed = (transformCompoundsInvalid.contains(clazz) ||
-            transformCompounds.contains(clazz));
+        final mustBeTransformed =
+            (transformCompoundsInvalid.contains(clazz) ||
+                transformCompounds.contains(clazz));
         if (!mustBeTransformed) {
           compoundCache[clazz] = _compoundAnnotatedNativeTypeCfe(clazz);
         } else {
@@ -281,10 +282,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   @override
   visitClass(Class node) {
     if (_isUserAbiSpecificInteger(node)) {
-      final nativeTypeCfe = NativeTypeCfe(
-        this,
-        node.getThisType(coreTypes, Nullability.nonNullable),
-      ) as AbiSpecificNativeTypeCfe;
+      final nativeTypeCfe =
+          NativeTypeCfe(
+                this,
+                node.getThisType(coreTypes, Nullability.nonNullable),
+              )
+              as AbiSpecificNativeTypeCfe;
       if (nativeTypeCfe.abiSpecificTypes.isEmpty) {
         // Annotation missing, multiple annotations, or invalid mapping.
         diagnosticReporter.report(
@@ -307,10 +310,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           node.location!.file,
         );
       }
-      final IndexedClass? indexedClass =
-          currentLibraryIndex?.lookupIndexedClass(
-        node.name,
-      );
+      final IndexedClass? indexedClass = currentLibraryIndex
+          ?.lookupIndexedClass(node.name);
       _addSizeOfGetter(node, indexedClass, nativeTypeCfe.size);
       _annotateAbiSpecificTypeWithMapping(node, nativeTypeCfe);
     }
@@ -320,8 +321,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
     final packing = _checkCompoundClass(node);
 
-    final IndexedClass? indexedClass =
-        currentLibraryIndex?.lookupIndexedClass(node.name);
+    final IndexedClass? indexedClass = currentLibraryIndex?.lookupIndexedClass(
+      node.name,
+    );
     _checkConstructors(node, indexedClass);
     if (indexedClass != null) {
       indexedCompoundClasses[node] = indexedClass;
@@ -343,7 +345,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     if (node.typeParameters.isNotEmpty) {
       diagnosticReporter.report(
         templateFfiStructGeneric.withArguments(
-            node.superclass!.name, node.name),
+          node.superclass!.name,
+          node.name,
+        ),
         node.fileOffset,
         1,
         node.location!.file,
@@ -357,10 +361,14 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
 
     final finalizableType = FutureOrType(
-        InterfaceType(finalizableClass, Nullability.nullable),
-        Nullability.nullable);
-    if (env.isSubtypeOf(InterfaceType(node, Nullability.nonNullable),
-        finalizableType, SubtypeCheckMode.ignoringNullabilities)) {
+      InterfaceType(finalizableClass, Nullability.nullable),
+      Nullability.nullable,
+    );
+    if (env.isSubtypeOf(
+      InterfaceType(node, Nullability.nonNullable),
+      finalizableType,
+      SubtypeCheckMode.ignoringNullabilities,
+    )) {
       diagnosticReporter.report(
         templateFfiCompoundImplementsFinalizable.withArguments(
           node.superclass!.name,
@@ -421,15 +429,15 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       return p.isGetter;
     });
     final compoundMembers = [...node.fields, ...getterSetters]..sort((m1, m2) {
-        if (m1.fileOffset == m2.fileOffset) {
-          // Getter and setter have same offset, getter comes first.
-          if (m1 is Procedure) {
-            return m1.isGetter ? -1 : 1;
-          }
-          // Generated fields with fileOffset identical to class, fallthrough.
+      if (m1.fileOffset == m2.fileOffset) {
+        // Getter and setter have same offset, getter comes first.
+        if (m1 is Procedure) {
+          return m1.isGetter ? -1 : 1;
         }
-        return m1.fileOffset - m2.fileOffset;
-      });
+        // Generated fields with fileOffset identical to class, fallthrough.
+      }
+      return m1.fileOffset - m2.fileOffset;
+    });
     return compoundMembers;
   }
 
@@ -446,8 +454,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   bool _checkFieldAnnotations(Class node, int? packing) {
     bool success = true;
-    final membersWithAnnotations =
-        _compoundFieldMembers(node, includeSetters: false);
+    final membersWithAnnotations = _compoundFieldMembers(
+      node,
+      includeSetters: false,
+    );
     final lastField = membersWithAnnotations.lastOrNull;
     for (final Member f in membersWithAnnotations) {
       if (f is Field) {
@@ -511,19 +521,27 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         // This class is invalid, but continue reporting other errors on it.
         success = false;
       } else {
-        final DartType nativeType =
-            InterfaceType(nativeTypeAnnos.first, Nullability.nonNullable);
+        final DartType nativeType = InterfaceType(
+          nativeTypeAnnos.first,
+          Nullability.nonNullable,
+        );
         final DartType? shouldBeDartType = convertNativeTypeToDartType(
           nativeType,
           allowStructAndUnion: true,
           allowHandle: false,
         );
         if (shouldBeDartType == null ||
-            !env.isSubtypeOf(type, shouldBeDartType,
-                SubtypeCheckMode.ignoringNullabilities)) {
+            !env.isSubtypeOf(
+              type,
+              shouldBeDartType,
+              SubtypeCheckMode.ignoringNullabilities,
+            )) {
           diagnosticReporter.report(
             templateFfiTypeMismatch.withArguments(
-                type, shouldBeDartType!, nativeType),
+              type,
+              shouldBeDartType!,
+              nativeType,
+            ),
             f.fileOffset,
             1,
             f.location!.file,
@@ -579,28 +597,23 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final name = Name("#fromTypedDataBase");
     final reference = indexedClass?.lookupConstructorReference(name);
     final Constructor ctor = Constructor(
-        FunctionNode(
-          EmptyStatement(),
-          positionalParameters: [
-            typedDataBase,
-            offsetInBytes,
-          ],
-          returnType: InterfaceType(node, Nullability.nonNullable),
+      FunctionNode(
+        EmptyStatement(),
+        positionalParameters: [typedDataBase, offsetInBytes],
+        returnType: InterfaceType(node, Nullability.nonNullable),
+      ),
+      name: name,
+      initializers: [
+        SuperInitializer(
+          node.superclass == structClass
+              ? structFromTypedDataBase
+              : unionFromTypedDataBase,
+          Arguments([VariableGet(typedDataBase), VariableGet(offsetInBytes)]),
         ),
-        name: name,
-        initializers: [
-          SuperInitializer(
-              node.superclass == structClass
-                  ? structFromTypedDataBase
-                  : unionFromTypedDataBase,
-              Arguments([
-                VariableGet(typedDataBase),
-                VariableGet(offsetInBytes),
-              ]))
-        ],
-        fileUri: node.fileUri,
-        reference: reference)
-      ..fileOffset = node.fileOffset;
+      ],
+      fileUri: node.fileUri,
+      reference: reference,
+    )..fileOffset = node.fileOffset;
 
     // Struct objects are manufactured in the VM by being passed by value
     // in return position in FFI calls, and by value in arguments in FFI
@@ -639,29 +652,27 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final name = Name("#fromTypedData");
       final reference = indexedClass?.lookupConstructorReference(name);
       final Constructor ctor = Constructor(
-          FunctionNode(
-            EmptyStatement(),
-            positionalParameters: [typedData, offset, sizeInBytes],
-            returnType: InterfaceType(node, Nullability.nonNullable),
+        FunctionNode(
+          EmptyStatement(),
+          positionalParameters: [typedData, offset, sizeInBytes],
+          returnType: InterfaceType(node, Nullability.nonNullable),
+        ),
+        name: name,
+        initializers: [
+          SuperInitializer(
+            node.superclass == structClass
+                ? structFromTypedData
+                : unionFromTypedData,
+            Arguments([
+              VariableGet(typedData),
+              VariableGet(offset),
+              VariableGet(sizeInBytes),
+            ]),
           ),
-          name: name,
-          initializers: [
-            SuperInitializer(
-              node.superclass == structClass
-                  ? structFromTypedData
-                  : unionFromTypedData,
-              Arguments(
-                [
-                  VariableGet(typedData),
-                  VariableGet(offset),
-                  VariableGet(sizeInBytes),
-                ],
-              ),
-            )
-          ],
-          fileUri: node.fileUri,
-          reference: reference)
-        ..fileOffset = node.fileOffset;
+        ],
+        fileUri: node.fileUri,
+        reference: reference,
+      )..fileOffset = node.fileOffset;
       addPragmaPreferInline(ctor);
       node.addConstructor(ctor);
     }
@@ -690,10 +701,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               assert(elementType is InvalidType);
               type = InvalidNativeTypeCfe("Invalid element type.");
             } else {
-              type = NativeTypeCfe(this, dartType,
-                  compoundCache: compoundCache,
-                  arrayDimensions: arrayDimensions,
-                  variableLength: variableLength);
+              type = NativeTypeCfe(
+                this,
+                dartType,
+                compoundCache: compoundCache,
+                arrayDimensions: arrayDimensions,
+                variableLength: variableLength,
+              );
             }
           } else {
             type = InvalidNativeTypeCfe("Invalid array dimensions.");
@@ -708,7 +722,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           final clazz = nativeTypeAnnos.first;
           if (_isUserAbiSpecificInteger(clazz)) {
             type = NativeTypeCfe(
-                this, clazz.getThisType(coreTypes, Nullability.nonNullable));
+              this,
+              clazz.getThisType(coreTypes, Nullability.nonNullable),
+            );
           } else {
             final nativeType = _getFieldType(clazz)!;
             type = PrimitiveNativeTypeCfe(nativeType, clazz);
@@ -751,8 +767,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
     List<CompoundField> fieldsFound = [];
     for (int j = 0; j < i; j++) {
-      fieldsFound
-          .add(CompoundField(types[j], fields[j], getters[j], setters[j]));
+      fieldsFound.add(
+        CompoundField(types[j], fields[j], getters[j], setters[j]),
+      );
     }
     return CompoundData(fieldsFound, packing, compoundType);
   }
@@ -771,7 +788,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final compoundLayout = compoundType.layout;
 
     _annoteStructOrUnionWithFields(
-        node, compoundType.members, compoundData.packing);
+      node,
+      compoundType.members,
+      compoundData.packing,
+    );
     if (compoundType.members.isEmpty) {
       diagnosticReporter.report(
         templateFfiEmptyStruct.withArguments(node.superclass!.name, node.name),
@@ -790,8 +810,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       Procedure? getter = compoundField.getter;
       Procedure? setter = compoundField.setter;
 
-      final fieldOffsets = compoundLayout
-          .map((Abi abi, CompoundLayout v) => MapEntry(abi, v.offsets[i]));
+      final fieldOffsets = compoundLayout.map(
+        (Abi abi, CompoundLayout v) => MapEntry(abi, v.offsets[i]),
+      );
 
       final offsetGetter = _createAddOffsetOfGetter(
         node,
@@ -862,8 +883,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   Set<Class> _compoundAnnotatedDependencies(InstanceConstant layoutConstant) {
-    final fieldTypes = layoutConstant
-        .fieldValues[ffiStructLayoutTypesField.fieldReference] as ListConstant;
+    final fieldTypes =
+        layoutConstant.fieldValues[ffiStructLayoutTypesField.fieldReference]
+            as ListConstant;
     final result = <Class>{};
     for (final fieldType in fieldTypes.entries) {
       if (fieldType is TypeLiteralConstant) {
@@ -879,19 +901,19 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   /// Must only be called if all the dependencies are already in the cache.
   StructOrUnionNativeTypeCfe _compoundAnnotatedNativeTypeCfe(
-      Class compoundClass) {
+    Class compoundClass,
+  ) {
     final layoutConstant = _compoundAnnotatedFields(compoundClass)!;
-    final fieldTypes = layoutConstant
-        .fieldValues[ffiStructLayoutTypesField.fieldReference] as ListConstant;
+    final fieldTypes =
+        layoutConstant.fieldValues[ffiStructLayoutTypesField.fieldReference]
+            as ListConstant;
     final members = <NativeTypeCfe>[];
     for (final fieldType in fieldTypes.entries) {
       if (fieldType is TypeLiteralConstant) {
         final dartType = fieldType.type;
-        members.add(NativeTypeCfe(
-          this,
-          dartType,
-          compoundCache: compoundCache,
-        ));
+        members.add(
+          NativeTypeCfe(this, dartType, compoundCache: compoundCache),
+        );
       } else if (fieldType is InstanceConstant) {
         final singleElementConstant =
             fieldType.fieldValues[ffiInlineArrayElementTypeField.fieldReference]
@@ -905,17 +927,20 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             fieldType.fieldValues[ffiInlineArrayLengthField.fieldReference]
                 as IntConstant;
         final arrayLength = arrayLengthConstant.value;
-        final variableLengthConstant = fieldType
-                .fieldValues[ffiInlineArrayVariableLengthField.fieldReference]
-            as BoolConstant;
+        final variableLengthConstant =
+            fieldType.fieldValues[ffiInlineArrayVariableLengthField
+                    .fieldReference]
+                as BoolConstant;
         final variableLength = variableLengthConstant.value;
         members.add(
-            ArrayNativeTypeCfe(singleElementType, arrayLength, variableLength));
+          ArrayNativeTypeCfe(singleElementType, arrayLength, variableLength),
+        );
       }
     }
     if (compoundClass.superclass == structClass) {
-      final packingConstant = layoutConstant
-          .fieldValues[ffiStructLayoutPackingField.fieldReference];
+      final packingConstant =
+          layoutConstant.fieldValues[ffiStructLayoutPackingField
+              .fieldReference];
       if (packingConstant is IntConstant) {
         return StructNativeTypeCfe(
           compoundClass,
@@ -929,36 +954,28 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   void _annoteStructOrUnionWithFields(
-      Class node, List<NativeTypeCfe> types, int? packing) {
+    Class node,
+    List<NativeTypeCfe> types,
+    int? packing,
+  ) {
     List<Constant> constants =
         types.map((t) => t.generateConstant(this)).toList();
 
     node.addAnnotation(
       ConstantExpression(
-        InstanceConstant(
-          pragmaClass.reference,
-          [],
-          {
-            pragmaName.fieldReference: StringConstant(vmFfiStructFields),
-            pragmaOptions.fieldReference: InstanceConstant(
-              ffiStructLayoutClass.reference,
-              [],
-              {
+        InstanceConstant(pragmaClass.reference, [], {
+          pragmaName.fieldReference: StringConstant(vmFfiStructFields),
+          pragmaOptions.fieldReference:
+              InstanceConstant(ffiStructLayoutClass.reference, [], {
                 ffiStructLayoutTypesField.fieldReference: ListConstant(
                   InterfaceType(typeClass, Nullability.nonNullable),
                   constants,
                 ),
                 ffiStructLayoutPackingField.fieldReference:
                     packing == null ? NullConstant() : IntConstant(packing),
-              },
-            )
-          },
-        ),
-        InterfaceType(
-          pragmaClass,
-          Nullability.nonNullable,
-          [],
-        ),
+              }),
+        }),
+        InterfaceType(pragmaClass, Nullability.nonNullable, []),
       ),
     );
   }
@@ -966,34 +983,30 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   static const vmFfiAbiSpecificIntMapping = 'vm:ffi:abi-specific-mapping';
 
   void _annotateAbiSpecificTypeWithMapping(
-      Class node, AbiSpecificNativeTypeCfe nativeTypeCfe) {
+    Class node,
+    AbiSpecificNativeTypeCfe nativeTypeCfe,
+  ) {
     final constants = [
       for (final abi in Abi.values)
         nativeTypeCfe.abiSpecificTypes[abi]?.generateConstant(this) ??
-            NullConstant()
+            NullConstant(),
     ];
-    node.addAnnotation(ConstantExpression(
-        InstanceConstant(
-          pragmaClass.reference,
-          [],
-          {
-            pragmaName.fieldReference: StringConstant(
-              vmFfiAbiSpecificIntMapping,
-            ),
-            pragmaOptions.fieldReference: InstanceConstant(
-              ffiAbiSpecificMappingClass.reference,
-              [],
-              {
-                ffiAbiSpecificMappingNativeTypesField.fieldReference:
-                    ListConstant(
+    node.addAnnotation(
+      ConstantExpression(
+        InstanceConstant(pragmaClass.reference, [], {
+          pragmaName.fieldReference: StringConstant(vmFfiAbiSpecificIntMapping),
+          pragmaOptions.fieldReference:
+              InstanceConstant(ffiAbiSpecificMappingClass.reference, [], {
+                ffiAbiSpecificMappingNativeTypesField
+                    .fieldReference: ListConstant(
                   InterfaceType(typeClass, Nullability.nullable),
                   constants,
                 ),
-              },
-            ),
-          },
-        ),
-        InterfaceType(pragmaClass, Nullability.nonNullable, [])));
+              }),
+        }),
+        InterfaceType(pragmaClass, Nullability.nonNullable, []),
+      ),
+    );
   }
 
   Procedure _createAddOffsetOfGetter(
@@ -1006,22 +1019,21 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   ) {
     final nameNode = Name('$name#offsetOf', node.enclosingLibrary);
     final getterReference = indexedClass?.lookupGetterReference(nameNode);
-    final Procedure result = Procedure(
-      nameNode,
-      ProcedureKind.Getter,
-      FunctionNode(
-        ReturnStatement(
-          runtimeBranchOnLayout(offsets),
-        ),
-        returnType: coreTypes.intNonNullableRawType,
-      ),
-      fileUri: fileUri,
-      reference: getterReference,
-    )
-      ..fileOffset = fileOffset
-      ..isStatic = true
-      ..isSynthetic = true
-      ..annotations = [];
+    final Procedure result =
+        Procedure(
+            nameNode,
+            ProcedureKind.Getter,
+            FunctionNode(
+              ReturnStatement(runtimeBranchOnLayout(offsets)),
+              returnType: coreTypes.intNonNullableRawType,
+            ),
+            fileUri: fileUri,
+            reference: getterReference,
+          )
+          ..fileOffset = fileOffset
+          ..isStatic = true
+          ..isSynthetic = true
+          ..annotations = [];
     addPragmaPreferInline(result);
     return result;
   }
@@ -1046,28 +1058,28 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     );
     Reference getterReference =
         indexedClass?.lookupGetterReference(field.name) ??
-            field.getterReference;
-    assert(getterReference == field.getterReference,
-        "Unexpected getter reference for ${field}, found $getterReference.");
-    final Procedure getter = Procedure(
-      field.name,
-      ProcedureKind.Getter,
-      FunctionNode(
-        getterStatement,
-        returnType: field.type,
-      ),
-      fileUri: field.fileUri,
-      reference: getterReference,
-    )
-      ..fileOffset = field.fileOffset
-      ..annotations = field.annotations;
+        field.getterReference;
+    assert(
+      getterReference == field.getterReference,
+      "Unexpected getter reference for ${field}, found $getterReference.",
+    );
+    final Procedure getter =
+        Procedure(
+            field.name,
+            ProcedureKind.Getter,
+            FunctionNode(getterStatement, returnType: field.type),
+            fileUri: field.fileUri,
+            reference: getterReference,
+          )
+          ..fileOffset = field.fileOffset
+          ..annotations = field.annotations;
     addPragmaPreferInline(getter);
     node.addProcedure(getter);
 
     if (!field.isFinal) {
       Reference? setterReference =
           indexedClass?.lookupSetterReference(field.name) ??
-              field.setterReference;
+          field.setterReference;
       assert(
         setterReference == field.setterReference,
         "Unexpected setter reference for ${field}, found $setterReference.",
@@ -1108,8 +1120,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   ///
   /// If sizes are not supplied still emits a field so that the use site
   /// transformer can still rewrite to it.
-  void _addSizeOfGetter(Class compound, IndexedClass? indexedClass,
-      [Map<Abi, int?>? sizes = null]) {
+  void _addSizeOfGetter(
+    Class compound,
+    IndexedClass? indexedClass, [
+    Map<Abi, int?>? sizes = null,
+  ]) {
     if (sizes == null) {
       sizes = {for (var abi in Abi.values) abi: 0};
     }
@@ -1117,16 +1132,16 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final getterReference = indexedClass?.lookupGetterReference(name);
 
     final Procedure getter = Procedure(
-        name,
-        ProcedureKind.Getter,
-        FunctionNode(
-          ReturnStatement(runtimeBranchOnLayout(sizes)),
-          returnType: coreTypes.intNonNullableRawType,
-        ),
-        fileUri: compound.fileUri,
-        reference: getterReference,
-        isStatic: true)
-      ..fileOffset = compound.fileOffset;
+      name,
+      ProcedureKind.Getter,
+      FunctionNode(
+        ReturnStatement(runtimeBranchOnLayout(sizes)),
+        returnType: coreTypes.intNonNullableRawType,
+      ),
+      fileUri: compound.fileUri,
+      reference: getterReference,
+      isStatic: true,
+    )..fileOffset = compound.fileOffset;
     addPragmaPreferInline(getter);
     compound.addProcedure(getter);
   }
@@ -1147,8 +1162,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         .map((expr) => expr.constant)
         .whereType<InstanceConstant>()
         .map((constant) => constant.classNode)
-        .where((klass) =>
-            _getFieldType(klass) != null || _isUserAbiSpecificInteger(klass));
+        .where(
+          (klass) =>
+              _getFieldType(klass) != null || _isUserAbiSpecificInteger(klass),
+        );
   }
 
   Iterable<int> _getPackedAnnotations(Class node) {

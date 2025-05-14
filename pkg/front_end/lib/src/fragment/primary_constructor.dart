@@ -17,22 +17,28 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   final List<FormalParameterBuilder>? formals;
   final bool forAbstractClassOrMixin;
   Token? _beginInitializers;
+  final DeclarationFragment enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
 
-  AbstractSourceConstructorBuilder? _builder;
+  SourceConstructorBuilderImpl? _builder;
 
-  PrimaryConstructorFragment(
-      {required this.constructorName,
-      required this.fileUri,
-      required this.startOffset,
-      required this.formalsOffset,
-      required this.modifiers,
-      required this.returnType,
-      required this.typeParameterNameSpace,
-      required this.typeParameterScope,
-      required this.formals,
-      required this.forAbstractClassOrMixin,
-      required Token? beginInitializers})
-      : _beginInitializers = beginInitializers;
+  ConstructorDeclaration? _declaration;
+
+  PrimaryConstructorFragment({
+    required this.constructorName,
+    required this.fileUri,
+    required this.startOffset,
+    required this.formalsOffset,
+    required this.modifiers,
+    required this.returnType,
+    required this.typeParameterNameSpace,
+    required this.typeParameterScope,
+    required this.formals,
+    required this.forAbstractClassOrMixin,
+    required Token? beginInitializers,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  }) : _beginInitializers = beginInitializers;
 
   @override
   String get name => constructorName.name;
@@ -47,14 +53,26 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  AbstractSourceConstructorBuilder get builder {
+  SourceConstructorBuilderImpl get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
   }
 
-  void set builder(AbstractSourceConstructorBuilder value) {
+  void set builder(SourceConstructorBuilderImpl value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
+  }
+
+  ConstructorDeclaration get declaration {
+    assert(
+        _declaration != null, "Declaration has not been computed for $this.");
+    return _declaration!;
+  }
+
+  void set declaration(ConstructorDeclaration value) {
+    assert(_declaration == null,
+        "Declaration has already been computed for $this.");
+    _declaration = value;
   }
 
   @override
@@ -84,7 +102,8 @@ class _PrimaryConstructorBodyBuildingContext
 
   @override
   LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
-    return _fragment.builder.computeFormalParameterScope(typeParameterScope);
+    return _fragment.declaration
+        .computeFormalParameterScope(typeParameterScope);
   }
 
   @override
@@ -94,7 +113,7 @@ class _PrimaryConstructorBodyBuildingContext
 
   @override
   BodyBuilderContext createBodyBuilderContext() {
-    return _fragment.builder.createBodyBuilderContext();
+    return _fragment.declaration.createBodyBuilderContext(_fragment.builder);
   }
 
   @override
@@ -106,8 +125,8 @@ class _PrimaryConstructorBodyBuildingContext
 
   @override
   List<TypeParameter>? get thisTypeParameters =>
-      _fragment.builder.thisTypeParameters;
+      _fragment.declaration.thisTypeParameters;
 
   @override
-  VariableDeclaration? get thisVariable => _fragment.builder.thisVariable;
+  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
 }

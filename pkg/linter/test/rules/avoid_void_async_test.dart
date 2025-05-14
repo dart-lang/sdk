@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidVoidAsyncTest);
   });
@@ -30,19 +30,21 @@ Future<void> c() async {}
   }
 
   test_function_async_voidReturnType_arrow() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() async => null;
-''', [
-      lint(5, 1),
-    ]);
+''',
+      [lint(5, 1)],
+    );
   }
 
   test_function_async_voidReturnType_block() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() async {}
-''', [
-      lint(5, 1),
-    ]);
+''',
+      [lint(5, 1)],
+    );
   }
 
   test_function_asyncStar() async {
@@ -102,41 +104,43 @@ void f() {
   }
 
   test_functionLocal_async_arrow() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   void g() async => null;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 18, 1),
-      lint(18, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 18, 1), lint(18, 1)],
+    );
   }
 
   test_functionLocal_main_async_arrow() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   void main() async => null;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 18, 4),
-      lint(18, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 18, 4), lint(18, 4)],
+    );
   }
 
   test_getter_async() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void get l async => null;
-''', [
-      lint(9, 1),
-    ]);
+''',
+      [lint(9, 1)],
+    );
   }
 
   test_getter_async_voidReturnType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void get f async => null;
-''', [
-      lint(9, 1),
-    ]);
+''',
+      [lint(9, 1)],
+    );
   }
 
   test_getter_notAsync() async {
@@ -146,14 +150,14 @@ void get f => null;
   }
 
   test_localFunction_async() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Future<void> f() async {
   void g() async {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 32, 1),
-      lint(32, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 32, 1), lint(32, 1)],
+    );
   }
 
   test_main_async() async {
@@ -166,23 +170,25 @@ void main() async {
   }
 
   test_method_async_arrow() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class Foo {
   void d() async => null;
 }
-''', [
-      lint(19, 1),
-    ]);
+''',
+      [lint(19, 1)],
+    );
   }
 
   test_method_async_block() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class Foo {
   void f() async {}
 }
-''', [
-      lint(19, 1),
-    ]);
+''',
+      [lint(19, 1)],
+    );
   }
 
   test_method_async_futureVoidReturnType_arrow() async {
@@ -210,13 +216,14 @@ class Foo {
   }
 
   test_method_main_async_arrow() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class Foo {
   void main() async => null;
 }
-''', [
-      lint(19, 4),
-    ]);
+''',
+      [lint(19, 4)],
+    );
   }
 
   test_method_notAsync_arrow() async {
@@ -244,13 +251,14 @@ class Foo {
   }
 
   test_operator_async() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class Foo {
   void operator |(_) async => null;
 }
-''', [
-      lint(28, 1),
-    ]);
+''',
+      [lint(28, 1)],
+    );
   }
 
   test_operator_notAsync() async {

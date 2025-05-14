@@ -4,7 +4,6 @@
 
 import 'dart:math' as math;
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
@@ -12,6 +11,7 @@ import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -107,6 +107,12 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
   /// Use [coveringNode] to access this field.
   AstNode? _coveringNode;
 
+  /// Whether the [_coveringNode] field has been set.
+  ///
+  /// The field may be set to `null`, so it's nullity is not a signal of whether
+  /// it needs to be computed.
+  bool _coveringNodeIsSet = false;
+
   CorrectionProducer({required super.context});
 
   /// The applicability of this producer.
@@ -154,18 +160,20 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
   /// the diagnostic, or `null` if there is no diagnostic or if such a node does
   /// not exist.
   AstNode? get coveringNode {
-    if (_coveringNode == null) {
-      var diagnostic = this.diagnostic;
-      if (diagnostic == null) {
-        return null;
-      }
-      var errorOffset = diagnostic.problemMessage.offset;
-      var errorLength = diagnostic.problemMessage.length;
-      _coveringNode =
-          NodeLocator2(errorOffset, math.max(errorOffset + errorLength - 1, 0))
-              .searchWithin(unit);
+    if (_coveringNodeIsSet) {
+      return _coveringNode;
     }
-    return _coveringNode;
+
+    _coveringNodeIsSet = true;
+    var diagnostic = this.diagnostic;
+    if (diagnostic == null) {
+      return null;
+    }
+    var errorOffset = diagnostic.problemMessage.offset;
+    var errorLength = diagnostic.problemMessage.length;
+    var endOffset = math.max(errorOffset + errorLength - 1, 0);
+    return _coveringNode =
+        NodeLocator2(errorOffset, endOffset).searchWithin(unit);
   }
 
   /// The length of the source range associated with the error message being
@@ -413,7 +421,7 @@ abstract class ResolvedCorrectionProducer
   /// Returns the class declaration for the given [fragment], or `null` if there
   /// is no such class.
   Future<ClassDeclaration?> getClassDeclaration(ClassFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ClassDeclaration) {
       return node;
@@ -425,7 +433,7 @@ abstract class ResolvedCorrectionProducer
   /// there is no such extension.
   Future<ExtensionDeclaration?> getExtensionDeclaration(
       ExtensionFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionDeclaration) {
       return node;
@@ -437,7 +445,7 @@ abstract class ResolvedCorrectionProducer
   /// is no such extension type.
   Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration(
       ExtensionTypeFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionTypeDeclaration) {
       return node;
@@ -448,7 +456,7 @@ abstract class ResolvedCorrectionProducer
   /// Returns the mixin declaration for the given [fragment], or `null` if there
   /// is no such mixin.
   Future<MixinDeclaration?> getMixinDeclaration(MixinFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is MixinDeclaration) {
       return node;
@@ -458,7 +466,7 @@ abstract class ResolvedCorrectionProducer
 
   /// Returns the class element associated with the [target], or `null` if there
   /// is no such element.
-  InterfaceElement2? getTargetInterfaceElement2(Expression target) {
+  InterfaceElement2? getTargetInterfaceElement(Expression target) {
     var type = target.staticType;
     if (type is InterfaceType) {
       return type.element3;
@@ -494,7 +502,7 @@ abstract class ResolvedCorrectionProducer
           return FunctionTypeImpl(
             typeFormals: const [],
             parameters: const [],
-            returnType: typeProvider.dynamicType,
+            returnType: DynamicTypeImpl.instance,
             nullabilitySuffix: NullabilitySuffix.none,
           );
         }
@@ -503,11 +511,17 @@ abstract class ResolvedCorrectionProducer
     }
     // `=> myFunction();`.
     if (parent is ExpressionFunctionBody) {
+      if (_closureReturnType(expression) case var returnType?) {
+        return returnType;
+      }
       var executable = expression.enclosingExecutableElement2;
       return executable?.returnType;
     }
     // `return myFunction();`.
     if (parent is ReturnStatement) {
+      if (_closureReturnType(expression) case var returnType?) {
+        return returnType;
+      }
       var executable = expression.enclosingExecutableElement2;
       return executable?.returnType;
     }
@@ -611,14 +625,50 @@ abstract class ResolvedCorrectionProducer
         }
       }
     }
+    // Handle `await`, infer a `Future` type.
+    if (parent is AwaitExpression) {
+      var grandParent = parent.parent;
+      // `await myFunction();`
+      if (grandParent is ExpressionStatement) {
+        return typeProvider.futureType(typeProvider.voidType);
+      }
+      var inferredParentType =
+          inferUndefinedExpressionType(parent) ?? typeProvider.dynamicType;
+      if (inferredParentType is InvalidType) {
+        inferredParentType = typeProvider.dynamicType;
+      }
+      return typeProvider.futureType(inferredParentType);
+    }
     // We don't know.
     return null;
   }
 
   bool isEnabled(Feature feature) =>
       libraryElement2.featureSet.isEnabled(feature);
+
+  /// Looks if the [expression] is directly inside a closure and returns the
+  /// return type of the closure.
+  DartType? _closureReturnType(Expression expression) {
+    if (expression.enclosingClosure
+        case FunctionExpression(:var correspondingParameter, :var staticType)) {
+      if (correspondingParameter?.type ?? staticType
+          case FunctionType(:var returnType)) {
+        return returnType;
+      }
+    }
+    return null;
+  }
 }
 
+/// A stub implementation of [CorrectionProducerContext], which can be used to
+/// instantiate a correction producer for the purpose of examining fixed
+/// properties on it.
+///
+/// This has several acceptable use cases:
+/// * checking the applicability of a correction producer,
+/// * testing purposes,
+/// * short-circuiting logic in a correction producer factory constructor that
+///   relies on the context's `node` property.
 final class StubCorrectionProducerContext implements CorrectionProducerContext {
   static final instance = StubCorrectionProducerContext._();
 
@@ -738,7 +788,7 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
-  Stream<LibraryElement2> librariesWithExtensions(String memberName) {
+  Stream<LibraryElement2> librariesWithExtensions(Name memberName) {
     return _context.dartFixContext!.librariesWithExtensions(memberName);
   }
 }

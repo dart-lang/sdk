@@ -7,8 +7,6 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../base/loader.dart';
 import '../base/name_space.dart';
-import '../base/problems.dart' show unimplemented;
-import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
@@ -17,6 +15,7 @@ import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_member_builder.dart';
+import 'dill_type_parameter_builder.dart';
 
 mixin DillClassMemberAccessMixin implements ClassMemberAccess {
   DeclarationNameSpace get nameSpace;
@@ -24,24 +23,20 @@ mixin DillClassMemberAccessMixin implements ClassMemberAccess {
   @override
   // Coverage-ignore(suite): Not run.
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
+      nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
 
   @override
   NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorNameIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
+      nameSpace.filteredConstructorNameIterator<T>(includeDuplicates: false);
 
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>
-      nameSpace.filteredIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
+      nameSpace.filteredIterator<T>(includeDuplicates: false);
 
   @override
   // Coverage-ignore(suite): Not run.
   NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      nameSpace.filteredNameIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
+      nameSpace.filteredNameIterator<T>(includeDuplicates: false);
 }
 
 class DillClassBuilder extends ClassBuilderImpl
@@ -52,11 +47,7 @@ class DillClassBuilder extends ClassBuilderImpl
   @override
   final Class cls;
 
-  late final LookupScope _scope;
-
   final DeclarationNameSpace _nameSpace;
-
-  late final ConstructorScope _constructorScope;
 
   List<NominalParameterBuilder>? _typeParameters;
 
@@ -65,13 +56,7 @@ class DillClassBuilder extends ClassBuilderImpl
   List<TypeBuilder>? _interfaceBuilders;
 
   DillClassBuilder(this.cls, this.parent)
-      : _nameSpace = new DeclarationNameSpaceImpl() {
-    _scope = new NameSpaceLookupScope(
-        _nameSpace, ScopeKind.declaration, "class ${cls.name}",
-        parent: parent.scope);
-    _constructorScope =
-        new DeclarationNameSpaceConstructorScope(cls.name, _nameSpace);
-  }
+      : _nameSpace = new DeclarationNameSpaceImpl();
 
   @override
   int get fileOffset => cls.fileOffset;
@@ -83,27 +68,14 @@ class DillClassBuilder extends ClassBuilderImpl
   Uri get fileUri => cls.fileUri;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  LookupScope get scope => _scope;
-
-  @override
   DeclarationNameSpace get nameSpace => _nameSpace;
-
-  @override
-  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   bool get isEnum => cls.isEnum;
 
   @override
-  DillClassBuilder get origin => this;
-
-  @override
   DillLibraryBuilder get libraryBuilder =>
       super.libraryBuilder as DillLibraryBuilder;
-
-  @override
-  bool get isMacro => cls.isMacro;
 
   @override
   bool get isMixinClass => cls.isMixinClass;
@@ -150,10 +122,6 @@ class DillClassBuilder extends ClassBuilderImpl
     }
     return supertype;
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<TypeBuilder>? get onTypes => null;
 
   void addField(Field field) {
     DillFieldBuilder builder =
@@ -243,12 +211,6 @@ class DillClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  void set mixedInTypeBuilder(TypeBuilder? mixin) {
-    unimplemented("mixedInType=", -1, null);
-  }
-
-  @override
   List<TypeBuilder>? get interfaceBuilders {
     if (cls.implementedTypes.isEmpty) return null;
     List<TypeBuilder>? interfaceBuilders = _interfaceBuilders;
@@ -279,11 +241,11 @@ TypeBuilder? computeTypeBuilder(
       : library.loader.computeTypeBuilder(supertype.asInterfaceType);
 }
 
-List<NominalParameterBuilder>? computeTypeParameterBuilders(
+List<DillNominalParameterBuilder>? computeTypeParameterBuilders(
     List<TypeParameter>? typeParameters, Loader loader) {
   if (typeParameters == null || typeParameters.length == 0) return null;
-  return <NominalParameterBuilder>[
+  return <DillNominalParameterBuilder>[
     for (TypeParameter typeParameter in typeParameters)
-      new NominalParameterBuilder.fromKernel(typeParameter, loader: loader)
+      new DillNominalParameterBuilder(typeParameter, loader: loader)
   ];
 }

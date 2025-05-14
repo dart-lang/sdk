@@ -25,9 +25,9 @@ Future<void> main() async {
   Expect.equals(20, savedA.field);
   Expect.equals(10, helper().field);
 }
+
 /** DIFF **/
 /*
-@@ -9,7 +9,7 @@
  // https://github.com/dart-lang/sdk/blob/f34a2ed99fc1b34cedbd974a5801f8d922121126/runtime/vm/isolate_reload_test.cc#L690
  
  class A {

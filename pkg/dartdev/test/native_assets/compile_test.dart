@@ -12,6 +12,10 @@ import '../utils.dart';
 import 'helpers.dart';
 
 void main() async {
+  if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
+    return;
+  }
+
   test('dart compile not supported', timeout: longTimeout, () async {
     await nativeAssetsTest('dart_app', (dartAppUri) async {
       final result = await runDart(

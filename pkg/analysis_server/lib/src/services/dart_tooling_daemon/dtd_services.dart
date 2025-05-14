@@ -11,8 +11,9 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/server/message_scheduler.dart';
-import 'package:analysis_server/src/server/performance.dart';
+import 'package:analysis_server/src/scheduler/message_scheduler.dart';
+import 'package:analysis_server/src/scheduler/scheduled_message.dart';
+import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:dtd/dtd.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
@@ -202,7 +203,7 @@ class DtdServices {
       DtdMessage(
         message: message,
         performance: performance,
-        completer: completer,
+        responseCompleter: completer,
       ),
     );
     return completer.future;

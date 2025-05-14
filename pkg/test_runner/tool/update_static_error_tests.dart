@@ -22,7 +22,6 @@ import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
 import 'package:test_runner/src/command_output.dart';
-import 'package:test_runner/src/feature.dart' show Feature;
 import 'package:test_runner/src/path.dart';
 import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
@@ -167,10 +166,6 @@ List<String> _testFileOptions(TestFile testFile, {bool cfe = false}) {
     ...testFile.sharedOptions,
     if (testFile.experiments.isNotEmpty)
       "--enable-experiment=${testFile.experiments.join(',')}",
-    if (cfe) ...[
-      if (testFile.requirements.contains(Feature.nnbdWeak)) "--nnbd-weak",
-      if (testFile.requirements.contains(Feature.nnbdStrong)) "--nnbd-strong",
-    ]
   ];
 }
 
@@ -192,6 +187,11 @@ List<TestFile> _listFiles(List<String> pathGlobs,
     // Allow tests to be specified either relative to the "tests" directory
     // or relative to the current directory.
     var root = pathGlob.startsWith("tests") ? "." : "tests";
+
+    // [Glob] doesn't handle Windows path delimiters, so we normalize it using
+    // [Path]. [Glob] doesn't handle absolute Windows paths, though, so this
+    // only supports the relative paths.
+    pathGlob = Path.normalize(pathGlob);
 
     for (var file in Glob(pathGlob, recursive: true).listSync(root: root)) {
       if (file is! File) continue;
@@ -409,7 +409,7 @@ Future<Map<TestFile, List<StaticError>>> _runCfe(
         result.stdout as String, parsedErrors, parsedErrors);
     for (var error in parsedErrors) {
       var testFile =
-          testFiles.firstWhere((test) => test.path.toString() == error.path);
+          testFiles.firstWhere((test) => test.path == Path(error.path));
       errors.putIfAbsent(testFile, () => []).add(error);
     }
   }
@@ -473,20 +473,21 @@ void _updateErrors(TestFile testFile, List<StaticError> errors,
   // Error expectations can be in imported libraries or part files. Iterate
   // over the set of paths that is the main file path plus all paths mentioned
   // in expectations, updating them.
-  var paths = {testFile.path.toString(), for (var error in errors) error.path};
+  var paths = {testFile.path, for (var error in errors) Path(error.path)};
 
   for (var path in paths) {
-    var file = File(path);
-    var pathErrors = errors.where((e) => e.path == path).toList();
+    var nativePath = path.toNativePath();
+    var file = File(nativePath);
+    var pathErrors = errors.where((e) => Path(e.path) == path).toList();
     var result = updateErrorExpectations(
-        path, file.readAsStringSync(), pathErrors,
+        nativePath, file.readAsStringSync(), pathErrors,
         remove: remove, includeContext: includeContext);
 
     if (dryRun) {
       print(result);
     } else {
       file.writeAsString(result);
-      print('- $path (${_plural(pathErrors, 'error')})');
+      print('- $nativePath (${_plural(pathErrors, 'error')})');
     }
   }
 }

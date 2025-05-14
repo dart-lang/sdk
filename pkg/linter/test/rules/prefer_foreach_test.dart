@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     // TODO(srawlins): Add tests with non-block-bodies for the for loop. Add
     // tests with multiple statements in the body.
@@ -20,19 +20,21 @@ class PreferForeachTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_foreach;
 
   test_blockBody_singleStatement_functionCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<int> list, void Function(int) fn) {
   for (final a in list) {
     fn(a);
   }
 }
-''', [
-      lint(50, 38),
-    ]);
+''',
+      [lint(50, 38)],
+    );
   }
 
   test_blockBody_singleStatement_functionTypedExpressionCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void Function(int) fn() => (int a) {};
 
 void f(List<int> list) {
@@ -40,13 +42,14 @@ void f(List<int> list) {
     fn()(a);
   }
 }
-''', [
-      lint(67, 40),
-    ]);
+''',
+      [lint(67, 40)],
+    );
   }
 
   test_blockBody_singleStatement_methodCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void f(int o) {}
 
@@ -56,13 +59,14 @@ class C {
     }
   }
 }
-''', [
-      lint(63, 41),
-    ]);
+''',
+      [lint(63, 41)],
+    );
   }
 
   test_blockBody_singleStatement_methodCall_explicitTarget() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(D d, List<int> list) {
   for (final a in list) {
     d.f(a);
@@ -71,9 +75,9 @@ void f(D d, List<int> list) {
 class D {
   void f(int a) {}
 }
-''', [
-      lint(32, 39),
-    ]);
+''',
+      [lint(32, 39)],
+    );
   }
 
   test_blockBody_singleStatement_methodCall_forVariableIsInTarget() async {
@@ -103,19 +107,21 @@ class D {
   }
 
   test_blockBody_singleStatement_parenthesizedFunctionCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<int> list, void Function(int) fn) {
   for (final a in list) {
     (fn(a));
   }
 }
-''', [
-      lint(50, 40),
-    ]);
+''',
+      [lint(50, 40)],
+    );
   }
 
   test_blockBody_singleStatement_staticMethodCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<int> list) {
   for (final a in list) {
     C.f(a);
@@ -124,8 +130,8 @@ void f(List<int> list) {
 class C {
   static void f(int a) {}
 }
-''', [
-      lint(27, 39),
-    ]);
+''',
+      [lint(27, 39)],
+    );
   }
 }

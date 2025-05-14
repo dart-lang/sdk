@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/uri.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:kernel/ast.dart';
@@ -238,15 +237,9 @@ Future<TestResult<T>> processCompiledResult<T, C extends TestConfig, R,
     Map<Uri, Map<int, List<FormattedMessage>>> errorMap = {};
     for (FormattedMessage error in errors) {
       Uri? uri = error.uri;
-      bool isMacroLibrary = false;
-      if (uri != null && isMacroLibraryUri(uri)) {
-        isMacroLibrary = true;
-        uri = toOriginLibraryUri(uri);
-      }
       Map<int, List<FormattedMessage>> map =
           errorMap.putIfAbsent(uri ?? nullUri, () => {});
-      List<FormattedMessage> list =
-          map.putIfAbsent(isMacroLibrary ? -1 : error.charOffset, () => []);
+      List<FormattedMessage> list = map.putIfAbsent(error.charOffset, () => []);
       list.add(error);
     }
 
@@ -270,9 +263,6 @@ Future<TestResult<T>> processCompiledResult<T, C extends TestConfig, R,
     Uri uri = node is Library
         ? node.fileUri
         : (node is Member ? node.fileUri : node.location!.file);
-    if (isMacroLibraryUri(uri)) {
-      uri = toOriginLibraryUri(uri);
-    }
     return actualMapForUri(uri);
   }
 

@@ -15,11 +15,13 @@ class NativeAssetsValidator {
   NativeAssetsValidator(this.errorDetector);
 
   void _reportError(String message, {Severity severity = Severity.error}) {
-    errorDetector(NativeAssetsDiagnosticMessage(
-      message: message,
-      involvedFiles: involvedFiles,
-      severity: severity,
-    ));
+    errorDetector(
+      NativeAssetsDiagnosticMessage(
+        message: message,
+        involvedFiles: involvedFiles,
+        severity: severity,
+      ),
+    );
   }
 
   /// Parses and validates [nativeAssetsYamlString].
@@ -95,7 +97,8 @@ class NativeAssetsValidator {
   bool _validateFormatVersion(Object object) {
     if (object is! List || object.length != 3) {
       _reportError(
-          'Unexpected format version: $object. Expected a List with length 3.');
+        'Unexpected format version: $object. Expected a List with length 3.',
+      );
       return false;
     }
     final major = object[0];
@@ -103,24 +106,28 @@ class NativeAssetsValidator {
     final patch = object[2];
     if (major > _maximumMajor) {
       _reportError(
-          'Unexpected format version: $object. Major version above $_maximumMajor not supported.');
+        'Unexpected format version: $object. Major version above $_maximumMajor not supported.',
+      );
       return false;
     }
     if (major > _minimumMajor) return true;
     if (major < _minimumMajor) {
       _reportError(
-          'Unexpected format version: $object. Versions below $_minimumVersion not supported.');
+        'Unexpected format version: $object. Versions below $_minimumVersion not supported.',
+      );
       return false;
     }
     if (minor > _minimumMinor) return true;
     if (minor < _minimumMinor) {
       _reportError(
-          'Unexpected format version: $object. Versions below $_minimumVersion not supported.');
+        'Unexpected format version: $object. Versions below $_minimumVersion not supported.',
+      );
       return false;
     }
     if (patch < _minimumPatch) {
       _reportError(
-          'Unexpected format version: $object. Versions below $_minimumVersion not supported.');
+        'Unexpected format version: $object. Versions below $_minimumVersion not supported.',
+      );
       return false;
     }
     return true;
@@ -182,8 +189,10 @@ class NativeAssetsValidator {
   /// yamls lingering around.
   bool _validateTarget(Object object) {
     if (!_validTargets.contains(object)) {
-      _reportError('Unexpected target: $object. Valid targets: $_validTargets.',
-          severity: Severity.warning);
+      _reportError(
+        'Unexpected target: $object. Valid targets: $_validTargets.',
+        severity: Severity.warning,
+      );
       return false;
     }
     return true;
@@ -210,35 +219,31 @@ class NativeAssetsValidator {
     return true;
   }
 
-  final _pathTypesWithPath = [
-    'absolute',
-    'relative',
-    'system',
-  ];
+  final _pathTypesWithPath = ['absolute', 'relative', 'system'];
 
-  late final _validPathTypes = [
-    ..._pathTypesWithPath,
-    'executable',
-    'process',
-  ]..sort();
+  late final _validPathTypes = [..._pathTypesWithPath, 'executable', 'process']
+    ..sort();
 
   bool _validateAssetPath(Object object) {
     if (object is! List || object.isEmpty) {
       _reportError(
-          'Unexpected asset path: $object. Expected a non-empty List.');
+        'Unexpected asset path: $object. Expected a non-empty List.',
+      );
       return false;
     }
     final pathType = object[0];
     if (pathType is! String || !_validPathTypes.contains(pathType)) {
       _reportError(
-          'Unexpected path type: $pathType. Valid path types: $_validPathTypes.');
+        'Unexpected path type: $pathType. Valid path types: $_validPathTypes.',
+      );
       return false;
     }
     final needsPath = _pathTypesWithPath.contains(pathType);
     final listLength = 1 + (needsPath ? 1 : 0);
     if (object.length != listLength) {
       _reportError(
-          'Unexpected asset path: $object. Expected list with $listLength elements.');
+        'Unexpected asset path: $object. Expected list with $listLength elements.',
+      );
       return false;
     }
     if (needsPath) {

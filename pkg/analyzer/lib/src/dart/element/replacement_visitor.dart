@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -18,24 +16,25 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/record_type_builder.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper visitor that clones a type if a nested type is replaced, and
 /// otherwise returns `null`.
 class ReplacementVisitor
     implements
-        TypeVisitor<DartType?>,
-        InferenceTypeVisitor<DartType?>,
-        LinkingTypeVisitor<DartType?> {
+        TypeVisitor<TypeImpl?>,
+        InferenceTypeVisitor<TypeImpl?>,
+        LinkingTypeVisitor<TypeImpl?> {
   const ReplacementVisitor();
 
   void changeVariance() {}
 
-  DartType? createFunctionType({
-    required FunctionType type,
-    required InstantiatedTypeAliasElement? newAlias,
-    required List<TypeParameterElement>? newTypeParameters,
-    required List<ParameterElement>? newParameters,
-    required DartType? newReturnType,
+  FunctionTypeImpl? createFunctionType({
+    required FunctionTypeImpl type,
+    required InstantiatedTypeAliasElementImpl? newAlias,
+    required List<TypeParameterElementImpl2>? newTypeParameters,
+    required List<FormalParameterElementMixin>? newParameters,
+    required TypeImpl? newReturnType,
     required NullabilitySuffix? newNullability,
   }) {
     if (newAlias == null &&
@@ -45,40 +44,40 @@ class ReplacementVisitor
       return null;
     }
 
-    return FunctionTypeImpl(
-      typeFormals: newTypeParameters ?? type.typeFormals,
-      parameters: newParameters ?? type.parameters,
+    return FunctionTypeImpl.v2(
+      typeParameters: newTypeParameters ?? type.typeParameters,
+      formalParameters: newParameters ?? type.formalParameters,
       returnType: newReturnType ?? type.returnType,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
       alias: newAlias ?? type.alias,
     );
   }
 
-  DartType? createFunctionTypeBuilder({
+  FunctionTypeBuilder? createFunctionTypeBuilder({
     required FunctionTypeBuilder type,
-    required List<TypeParameterElement>? newTypeParameters,
-    required List<ParameterElement>? newParameters,
-    required DartType? newReturnType,
+    required List<TypeParameterElementImpl2>? newTypeParameters,
+    required List<FormalParameterElementImpl>? newFormalParameters,
+    required TypeImpl? newReturnType,
     required NullabilitySuffix? newNullability,
   }) {
     if (newNullability == null &&
         newReturnType == null &&
-        newParameters == null) {
+        newFormalParameters == null) {
       return null;
     }
 
-    return FunctionTypeBuilder(
-      newTypeParameters ?? type.typeFormals,
-      newParameters ?? type.parameters,
-      newReturnType ?? type.returnType,
-      newNullability ?? type.nullabilitySuffix,
+    return FunctionTypeBuilder.v2(
+      typeParameters: newTypeParameters ?? type.typeParameters,
+      formalParameters: newFormalParameters ?? type.formalParameters,
+      returnType: newReturnType ?? type.returnType,
+      nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
     );
   }
 
-  DartType? createInterfaceType({
-    required InterfaceType type,
-    required InstantiatedTypeAliasElement? newAlias,
-    required List<DartType>? newTypeArguments,
+  InterfaceTypeImpl? createInterfaceType({
+    required InterfaceTypeImpl type,
+    required InstantiatedTypeAliasElementImpl? newAlias,
+    required List<TypeImpl>? newTypeArguments,
     required NullabilitySuffix? newNullability,
   }) {
     if (newAlias == null &&
@@ -88,7 +87,7 @@ class ReplacementVisitor
     }
 
     return InterfaceTypeImpl(
-      element: type.element,
+      element: type.element3,
       typeArguments: newTypeArguments ?? type.typeArguments,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
       alias: newAlias ?? type.alias,
@@ -97,34 +96,34 @@ class ReplacementVisitor
 
   NamedTypeBuilder? createNamedTypeBuilder({
     required NamedTypeBuilder type,
-    required List<DartType>? newTypeArguments,
+    required List<TypeImpl>? newTypeArguments,
     required NullabilitySuffix? newNullability,
   }) {
     if (newTypeArguments == null && newNullability == null) {
       return null;
     }
 
-    return NamedTypeBuilder(
-      type.linker,
-      type.typeSystem,
-      type.element,
-      newTypeArguments ?? type.arguments,
-      newNullability ?? type.nullabilitySuffix,
+    return NamedTypeBuilder.v2(
+      linker: type.linker,
+      typeSystem: type.typeSystem,
+      element: type.element3,
+      arguments: newTypeArguments ?? type.arguments,
+      nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
     );
   }
 
-  DartType? createNeverType({
-    required NeverType type,
+  NeverTypeImpl? createNeverType({
+    required NeverTypeImpl type,
     required NullabilitySuffix? newNullability,
   }) {
     if (newNullability == null) {
       return null;
     }
 
-    return (type as TypeImpl).withNullability(newNullability);
+    return type.withNullability(newNullability);
   }
 
-  DartType? createPromotedTypeParameterType({
+  TypeParameterTypeImpl? createPromotedTypeParameterType({
     required TypeParameterType type,
     required NullabilitySuffix? newNullability,
     required DartType? newPromotedBound,
@@ -135,15 +134,15 @@ class ReplacementVisitor
 
     var promotedBound = (type as TypeParameterTypeImpl).promotedBound;
     return TypeParameterTypeImpl(
-      element: type.element,
+      element3: type.element3,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
       promotedBound: newPromotedBound ?? promotedBound,
       alias: type.alias,
     );
   }
 
-  DartType? createTypeParameterType({
-    required TypeParameterType type,
+  TypeParameterTypeImpl? createTypeParameterType({
+    required TypeParameterTypeImpl type,
     required NullabilitySuffix? newNullability,
   }) {
     if (newNullability == null) {
@@ -151,60 +150,64 @@ class ReplacementVisitor
     }
 
     return TypeParameterTypeImpl(
-      element: type.element,
+      element3: type.element3,
       nullabilitySuffix: newNullability,
       alias: type.alias,
     );
   }
 
   @override
-  DartType? visitDynamicType(DynamicType type) {
+  TypeImpl? visitDynamicType(DynamicType type) {
     return null;
   }
 
   @override
-  DartType? visitFunctionType(FunctionType node) {
+  TypeImpl? visitFunctionType(FunctionType node) {
+    // TODO(scheglov): avoid this cast
+    node as FunctionTypeImpl;
     var newNullability = visitNullability(node);
 
-    List<TypeParameterElement>? newTypeParameters;
-    for (var i = 0; i < node.typeFormals.length; i++) {
-      var typeParameter = node.typeFormals[i];
+    List<TypeParameterElementImpl2>? newTypeParameters;
+    for (var i = 0; i < node.typeParameters.length; i++) {
+      var typeParameter = node.typeParameters[i];
       var bound = typeParameter.bound;
       if (bound != null) {
         var newBound = visitTypeParameterBound(bound);
         if (newBound != null) {
-          newTypeParameters ??= node.typeFormals.toList(growable: false);
-          newTypeParameters[i] = TypeParameterElementImpl.synthetic(
-            typeParameter.name,
-          )..bound = newBound;
+          newTypeParameters ??= node.typeParameters.toList(growable: false);
+          newTypeParameters[i] = typeParameter.freshCopy()
+            ..bound =
+                // TODO(paulberry): eliminate this cast by changing the return
+                // type of `visitTypeParameterBound`.
+                newBound as TypeImpl;
         }
       }
     }
 
     Substitution? substitution;
     if (newTypeParameters != null) {
-      var map = <TypeParameterElement, DartType>{};
+      var map = <TypeParameterElement2, DartType>{};
       for (var i = 0; i < newTypeParameters.length; ++i) {
-        var typeParameter = node.typeFormals[i];
+        var typeParameter = node.typeParameters[i];
         var newTypeParameter = newTypeParameters[i];
         map[typeParameter] = newTypeParameter.instantiate(
           nullabilitySuffix: NullabilitySuffix.none,
         );
       }
 
-      substitution = Substitution.fromMap(map);
+      substitution = Substitution.fromMap2(map);
 
       for (var i = 0; i < newTypeParameters.length; i++) {
         var newTypeParameter = newTypeParameters[i];
         var bound = newTypeParameter.bound;
         if (bound != null) {
           var newBound = substitution.substituteType(bound);
-          (newTypeParameter as TypeParameterElementImpl).bound = newBound;
+          newTypeParameter.bound = newBound;
         }
       }
     }
 
-    DartType? visitType(DartType? type) {
+    TypeImpl? visitType(TypeImpl? type) {
       if (type == null) return null;
       var result = type.accept(this);
       if (substitution != null) {
@@ -215,10 +218,10 @@ class ReplacementVisitor
 
     var newReturnType = visitType(node.returnType);
 
-    InstantiatedTypeAliasElement? newAlias;
+    InstantiatedTypeAliasElementImpl? newAlias;
     var alias = node.alias;
     if (alias != null) {
-      List<DartType>? newArguments;
+      List<TypeImpl>? newArguments;
       var aliasArguments = alias.typeArguments;
       for (var i = 0; i < aliasArguments.length; i++) {
         var substitution = aliasArguments[i].accept(this);
@@ -228,8 +231,8 @@ class ReplacementVisitor
         }
       }
       if (newArguments != null) {
-        newAlias = InstantiatedTypeAliasElementImpl(
-          element: alias.element,
+        newAlias = InstantiatedTypeAliasElementImpl.v2(
+          element: alias.element2,
           typeArguments: newArguments,
         );
       }
@@ -237,19 +240,18 @@ class ReplacementVisitor
 
     changeVariance();
 
-    List<ParameterElement>? newParameters;
-    for (var i = 0; i < node.parameters.length; i++) {
-      var parameter = node.parameters[i];
+    List<FormalParameterElementMixin>? newParameters;
+    for (var i = 0; i < node.formalParameters.length; i++) {
+      var parameter = node.formalParameters[i];
 
       var type = parameter.type;
       var newType = visitType(type);
 
-      // ignore: deprecated_member_use_from_same_package
       var kind = parameter.parameterKind;
       var newKind = visitParameterKind(kind);
 
       if (newType != null || newKind != null) {
-        newParameters ??= node.parameters.toList(growable: false);
+        newParameters ??= node.formalParameters.toList(growable: false);
         newParameters[i] = parameter.copyWith(
           type: newType,
           kind: newKind,
@@ -270,48 +272,50 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitFunctionTypeBuilder(FunctionTypeBuilder node) {
+  TypeImpl? visitFunctionTypeBuilder(FunctionTypeBuilder node) {
     var newNullability = visitNullability(node);
 
-    List<TypeParameterElement>? newTypeParameters;
-    for (var i = 0; i < node.typeFormals.length; i++) {
-      var typeParameter = node.typeFormals[i];
+    List<TypeParameterElementImpl2>? newTypeParameters;
+    for (var i = 0; i < node.typeParameters.length; i++) {
+      var typeParameter = node.typeParameters[i];
       var bound = typeParameter.bound;
       if (bound != null) {
         var newBound = visitTypeParameterBound(bound);
         if (newBound != null) {
-          newTypeParameters ??= node.typeFormals.toList(growable: false);
-          newTypeParameters[i] = TypeParameterElementImpl.synthetic(
-            typeParameter.name,
-          )..bound = newBound;
+          newTypeParameters ??= node.typeParameters.toList(growable: false);
+          newTypeParameters[i] = typeParameter.freshCopy()
+            ..bound =
+                // TODO(paulberry): eliminate this cast by changing the return
+                // type of `visitTypeParameterBound`.
+                newBound as TypeImpl;
         }
       }
     }
 
     Substitution? substitution;
     if (newTypeParameters != null) {
-      var map = <TypeParameterElement, DartType>{};
+      var map = <TypeParameterElement2, DartType>{};
       for (var i = 0; i < newTypeParameters.length; ++i) {
-        var typeParameter = node.typeFormals[i];
+        var typeParameter = node.typeParameters[i];
         var newTypeParameter = newTypeParameters[i];
         map[typeParameter] = newTypeParameter.instantiate(
           nullabilitySuffix: NullabilitySuffix.none,
         );
       }
 
-      substitution = Substitution.fromMap(map);
+      substitution = Substitution.fromMap2(map);
 
       for (var i = 0; i < newTypeParameters.length; i++) {
         var newTypeParameter = newTypeParameters[i];
         var bound = newTypeParameter.bound;
         if (bound != null) {
           var newBound = substitution.substituteType(bound);
-          (newTypeParameter as TypeParameterElementImpl).bound = newBound;
+          newTypeParameter.bound = newBound;
         }
       }
     }
 
-    DartType? visitType(DartType? type) {
+    TypeImpl? visitType(DartType? type) {
       if (type == null) return null;
       var result = type.accept(this);
       if (substitution != null) {
@@ -324,20 +328,19 @@ class ReplacementVisitor
 
     changeVariance();
 
-    List<ParameterElement>? newParameters;
-    for (var i = 0; i < node.parameters.length; i++) {
-      var parameter = node.parameters[i];
+    List<FormalParameterElementImpl>? newFormalParameters;
+    for (var i = 0; i < node.formalParameters.length; i++) {
+      var parameter = node.formalParameters[i];
 
       var type = parameter.type;
       var newType = visitType(type);
 
-      // ignore: deprecated_member_use_from_same_package
       var kind = parameter.parameterKind;
       var newKind = visitParameterKind(kind);
 
       if (newType != null || newKind != null) {
-        newParameters ??= node.parameters.toList(growable: false);
-        newParameters[i] = parameter.copyWith(
+        newFormalParameters ??= node.formalParameters.toList(growable: false);
+        newFormalParameters[i] = parameter.copyWith(
           type: newType,
           kind: newKind,
         );
@@ -349,33 +352,33 @@ class ReplacementVisitor
     return createFunctionTypeBuilder(
       type: node,
       newTypeParameters: newTypeParameters,
-      newParameters: newParameters,
+      newFormalParameters: newFormalParameters,
       newReturnType: newReturnType,
       newNullability: newNullability,
     );
   }
 
   @override
-  DartType? visitInterfaceType(InterfaceType type) {
+  TypeImpl? visitInterfaceType(covariant InterfaceTypeImpl type) {
     var newNullability = visitNullability(type);
 
-    InstantiatedTypeAliasElement? newAlias;
+    InstantiatedTypeAliasElementImpl? newAlias;
     var alias = type.alias;
     if (alias != null) {
       var newArguments = _typeArguments(
-        alias.element.typeParameters,
+        alias.element2.typeParameters2,
         alias.typeArguments,
       );
       if (newArguments != null) {
-        newAlias = InstantiatedTypeAliasElementImpl(
-          element: alias.element,
+        newAlias = InstantiatedTypeAliasElementImpl.v2(
+          element: alias.element2,
           typeArguments: newArguments,
         );
       }
     }
 
     var newTypeArguments = _typeArguments(
-      type.element.typeParameters,
+      type.element3.typeParameters2,
       type.typeArguments,
     );
 
@@ -388,20 +391,20 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitInvalidType(InvalidType type) {
+  TypeImpl? visitInvalidType(InvalidType type) {
     return null;
   }
 
   @override
-  DartType? visitNamedTypeBuilder(NamedTypeBuilder type) {
+  TypeImpl? visitNamedTypeBuilder(NamedTypeBuilder type) {
     var newNullability = visitNullability(type);
 
-    var parameters = const <TypeParameterElement>[];
-    var element = type.element;
-    if (element is InterfaceElement) {
-      parameters = element.typeParameters;
-    } else if (element is TypeAliasElement) {
-      parameters = element.typeParameters;
+    var parameters = const <TypeParameterElementImpl2>[];
+    var element = type.element3;
+    if (element is InterfaceElementImpl2) {
+      parameters = element.typeParameters2;
+    } else if (element is TypeAliasElementImpl2) {
+      parameters = element.typeParameters2;
     }
 
     var newArguments = _typeArguments(parameters, type.arguments);
@@ -413,7 +416,7 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitNeverType(NeverType type) {
+  TypeImpl? visitNeverType(covariant NeverTypeImpl type) {
     var newNullability = visitNullability(type);
 
     return createNeverType(
@@ -431,19 +434,19 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitRecordType(covariant RecordTypeImpl type) {
+  TypeImpl? visitRecordType(covariant RecordTypeImpl type) {
     var newNullability = visitNullability(type);
 
-    InstantiatedTypeAliasElement? newAlias;
+    InstantiatedTypeAliasElementImpl? newAlias;
     var alias = type.alias;
     if (alias != null) {
       var newArguments = _typeArguments(
-        alias.element.typeParameters,
+        alias.element2.typeParameters2,
         alias.typeArguments,
       );
       if (newArguments != null) {
-        newAlias = InstantiatedTypeAliasElementImpl(
-          element: alias.element,
+        newAlias = InstantiatedTypeAliasElementImpl.v2(
+          element: alias.element2,
           typeArguments: newArguments,
         );
       }
@@ -492,7 +495,7 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitRecordTypeBuilder(RecordTypeBuilder type) {
+  TypeImpl? visitRecordTypeBuilder(RecordTypeBuilder type) {
     List<DartType>? newFieldTypes;
     var fieldTypes = type.fieldTypes;
     for (var i = 0; i < fieldTypes.length; i++) {
@@ -518,9 +521,9 @@ class ReplacementVisitor
     );
   }
 
-  DartType? visitTypeArgument(
-    TypeParameterElement parameter,
-    DartType argument,
+  TypeImpl? visitTypeArgument(
+    TypeParameterElementImpl2 parameter,
+    TypeImpl argument,
   ) {
     return argument.accept(this);
   }
@@ -530,10 +533,12 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType type) {
+  TypeImpl? visitTypeParameterType(TypeParameterType type) {
+    // TODO(scheglov): avoid this cast
+    type as TypeParameterTypeImpl;
     var newNullability = visitNullability(type);
 
-    var promotedBound = (type as TypeParameterTypeImpl).promotedBound;
+    var promotedBound = type.promotedBound;
     if (promotedBound != null) {
       var newPromotedBound = promotedBound.accept(this);
       return createPromotedTypeParameterType(
@@ -550,24 +555,24 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitUnknownInferredType(UnknownInferredType type) {
+  TypeImpl? visitUnknownInferredType(UnknownInferredType type) {
     return null;
   }
 
   @override
-  DartType? visitVoidType(VoidType type) {
+  TypeImpl? visitVoidType(VoidType type) {
     return null;
   }
 
-  List<DartType>? _typeArguments(
-    List<TypeParameterElement> parameters,
-    List<DartType> arguments,
+  List<TypeImpl>? _typeArguments(
+    List<TypeParameterElementImpl2> parameters,
+    List<TypeImpl> arguments,
   ) {
     if (arguments.length != parameters.length) {
       return null;
     }
 
-    List<DartType>? newArguments;
+    List<TypeImpl>? newArguments;
     for (var i = 0; i < arguments.length; i++) {
       var substitution = visitTypeArgument(parameters[i], arguments[i]);
       if (substitution != null) {

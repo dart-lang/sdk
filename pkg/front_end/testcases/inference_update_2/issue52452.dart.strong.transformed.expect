@@ -17,11 +17,6 @@ class A extends core::Object {
 }
 abstract class M3 extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class _D&A&M3 extends self::A implements self::M3 /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •(core::int? i) → self::_D&A&M3
-    : super self::A::•(i)
-    ;
-}
 abstract class D extends self::_D&A&M3 {
   final field core::int? _f4;
   constructor •(core::int? i) → self::D
@@ -38,14 +33,6 @@ class B extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class _E&B&M1 extends self::B implements self::M1 /*isAnonymousMixin,isEliminatedMixin*/  {
-  late field core::int? _f2;
-  late final [setter] field core::int? _f3;
-  late final field core::int? _f4 = 0;
-  synthetic constructor •(core::int? i) → self::_E&B&M1
-    : super self::B::•(i)
-    ;
-}
 class E extends self::_E&B&M1 implements self::D {
   constructor •(core::int? i) → self::E
     : super self::_E&B&M1::•(i)
@@ -53,6 +40,19 @@ class E extends self::_E&B&M1 implements self::D {
   @#C1
   method noSuchMethod(core::Invocation invocation) → dynamic
     return super.{core::Object::noSuchMethod}(invocation);
+}
+abstract class _D&A&M3 extends self::A implements self::M3 /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •(core::int? i) → self::_D&A&M3
+    : super self::A::•(i)
+    ;
+}
+abstract class _E&B&M1 extends self::B implements self::M1 /*isAnonymousMixin,isEliminatedMixin*/  {
+  late field core::int? _f2;
+  late final [setter] field core::int? _f3;
+  late final field core::int? _f4 = 0;
+  synthetic constructor •(core::int? i) → self::_E&B&M1
+    : super self::B::•(i)
+    ;
 }
 static method acceptsInt(core::int x) → void {}
 static method testConflictWithNoSuchMethodForwarderIfImplementedInMixin(self::C c) → void {

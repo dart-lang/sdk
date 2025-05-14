@@ -53,7 +53,7 @@ class _Directory {
 class _AsyncDirectoryListerOps {
   @patch
   factory _AsyncDirectoryListerOps(int pointer) =>
-      new _AsyncDirectoryListerOpsImpl(pointer);
+      _AsyncDirectoryListerOpsImpl(pointer);
 }
 
 base class _AsyncDirectoryListerOpsImpl extends NativeFieldWrapperClass1
@@ -61,7 +61,7 @@ base class _AsyncDirectoryListerOpsImpl extends NativeFieldWrapperClass1
   _AsyncDirectoryListerOpsImpl._();
 
   factory _AsyncDirectoryListerOpsImpl(int pointer) =>
-      new _AsyncDirectoryListerOpsImpl._().._setPointer(pointer);
+      _AsyncDirectoryListerOpsImpl._().._setPointer(pointer);
 
   @pragma("vm:external-name", "Directory_SetAsyncDirectoryListerPointer")
   external void _setPointer(int pointer);
@@ -79,13 +79,13 @@ Uri _uriBaseClosure() {
   }
   var result = _Directory._current(_Namespace._namespace);
   if (result is OSError) {
-    throw new FileSystemException._fromOSError(
+    throw FileSystemException._fromOSError(
       result,
       "Getting current working directory failed",
       "",
     );
   }
-  return new Uri.directory(result as String);
+  return Uri.directory(result as String);
 }
 
 @pragma("vm:entry-point", "call")

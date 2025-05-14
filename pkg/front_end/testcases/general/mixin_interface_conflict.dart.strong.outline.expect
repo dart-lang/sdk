@@ -28,11 +28,11 @@ class C extends core::Object {
   get n() → core::double
     ;
 }
+abstract class M extends self::_M&B&C /*isMixinDeclaration*/  {
+}
 abstract class _M&B&C extends core::Object implements self::B, self::C /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_M&B&C
     ;
-}
-abstract class M extends self::_M&B&C /*isMixinDeclaration*/  {
 }
 static method main() → dynamic
   ;

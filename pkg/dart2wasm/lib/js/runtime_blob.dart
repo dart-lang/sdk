@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-const jsRuntimeBlobPart1 = r'''
-
+final jsRuntimeBlobTemplate = Template(r'''
 // Compiles a dart2wasm-generated main module from `source` which can then
 // instantiatable via the `instantiate` method.
 //
 // `source` needs to be a `Response` object (or promise thereof) e.g. created
 // via the `fetch()` JS API.
 export async function compileStreaming(source) {
-  const builtins = {builtins: ['js-string']};
+  const builtins = {<<BUILTINS_MAP_BODY>>};
   return new CompiledApp(
       await WebAssembly.compileStreaming(source, builtins), builtins);
 }
@@ -18,7 +17,7 @@ export async function compileStreaming(source) {
 // Compiles a dart2wasm-generated wasm modules from `bytes` which is then
 // instantiatable via the `instantiate` method.
 export async function compile(bytes) {
-  const builtins = {builtins: ['js-string']};
+  const builtins = {<<BUILTINS_MAP_BODY>>};
   return new CompiledApp(await WebAssembly.compile(bytes, builtins), builtins);
 }
 
@@ -52,7 +51,7 @@ class CompiledApp {
   //   wasm file produced by the dart2wasm compiler and returns the bytes to
   //   load the module. These bytes can be in either a format supported by
   //   `WebAssembly.compile` or `WebAssembly.compileStreaming`.
-  async instantiate(additionalImports, {loadDeferredWasm} = {}) {
+  async instantiate(additionalImports, {loadDeferredWasm, loadDynamicModule} = {}) {
     let dartInstance;
 
     // Prints to the console
@@ -73,19 +72,6 @@ class CompiledApp {
       throw "Unable to print message: " + js;
     }
 
-    // Converts a Dart List to a JS array. Any Dart objects will be converted, but
-    // this will be cheap for JSValues.
-    function arrayFromDartList(constructor, list) {
-      const exports = dartInstance.exports;
-      const read = exports.$listRead;
-      const length = exports.$listLength(list);
-      const array = new constructor(length);
-      for (let i = 0; i < length; i++) {
-        array[i] = read(list, i);
-      }
-      return array;
-    }
-
     // A special symbol attached to functions that wrap Dart functions.
     const jsWrappedDartFunctionSymbol = Symbol("JSWrappedDartFunction");
 
@@ -97,27 +83,49 @@ class CompiledApp {
 
     // Imports
     const dart2wasm = {
-''';
-
-// We break inside the 'dart2wasm' object to enable injection of methods. We
-// could use interpolation, but then we'd have to escape characters.
-const jsRuntimeBlobPart2 = r'''
+      <<JS_METHODS>>
     };
 
     const baseImports = {
       dart2wasm: dart2wasm,
-''';
-
-// We break inside of `baseImports` to inject internalized strings.
-const jsRuntimeBlobPart3 = r'''
       Math: Math,
       Date: Date,
       Object: Object,
       Array: Array,
       Reflect: Reflect,
+      <<IMPORTED_JS_STRINGS_IN_MJS>>
     };
 
-    const jsStringPolyfill = {
+    <<JS_STRING_POLYFILL_METHODS>>
+
+    <<DEFERRED_LIBRARY_HELPER_METHODS>>
+
+    dartInstance = await WebAssembly.instantiate(this.module, {
+      ...baseImports,
+      ...additionalImports,
+      <<MODULE_LOADING_IMPORT>>
+      <<JS_POLYFILL_IMPORT>>
+    });
+
+    return new InstantiatedApp(this, dartInstance);
+  }
+}
+
+class InstantiatedApp {
+  constructor(compiledApp, instantiatedModule) {
+    this.compiledApp = compiledApp;
+    this.instantiatedModule = instantiatedModule;
+  }
+
+  // Call the main function with the given arguments.
+  invokeMain(...args) {
+    this.instantiatedModule.exports.$invokeMain(args);
+  }
+}
+''');
+
+const String jsPolyFillMethods = r'''
+const jsStringPolyfill = {
       "charCodeAt": (s, i) => s.charCodeAt(i),
       "compare": (s1, s2) => {
         if (s1 < s2) return -1;
@@ -149,46 +157,108 @@ const jsRuntimeBlobPart3 = r'''
         }
         return result;
       },
-    };
+      "intoCharCodeArray": (s, a, start) => {
+        if (s == '') return 0;
 
-    const deferredLibraryHelper = {
-      "loadModule": async (moduleName) => {
-        if (!loadDeferredWasm) {
-          throw "No implementation of loadDeferredWasm provided.";
+        const write = dartInstance.exports.$wasmI16ArraySet;
+        for (var i = 0; i < s.length; ++i) {
+          write(a, start++, s.charCodeAt(i));
         }
-        const source = await Promise.resolve(loadDeferredWasm(moduleName));
+        return s.length;
+      },
+    };
+''';
+
+final moduleLoadingHelperTemplate = Template(r'''
+const loadModuleFromBytes = async (bytes) => {
+        const module = await WebAssembly.compile(bytes, this.builtins);
+        return await WebAssembly.instantiate(module, {
+          ...baseImports,
+          ...additionalImports,
+          <<JS_POLYFILL_IMPORT>>
+          "module0": dartInstance.exports,
+        });
+    }
+
+    const loadModule = async (loader, loaderArgument) => {
+        const source = await Promise.resolve(loader(loaderArgument));
         const module = await ((source instanceof Response)
             ? WebAssembly.compileStreaming(source, this.builtins)
             : WebAssembly.compile(source, this.builtins));
         return await WebAssembly.instantiate(module, {
           ...baseImports,
           ...additionalImports,
-          "wasm:js-string": jsStringPolyfill,
+          <<JS_POLYFILL_IMPORT>>
           "module0": dartInstance.exports,
         });
+    }
+
+    const moduleLoadingHelper = {
+      "loadModule": async (moduleName) => {
+        if (!loadDeferredWasm) {
+          throw "No implementation of loadDeferredWasm provided.";
+        }
+        return await loadModule(loadDeferredWasm, moduleName);
+      },
+      "loadDynamicModuleFromUri": async (uri) => {
+        if (!loadDynamicModule) {
+          throw "No implementation of loadDynamicModule provided.";
+        }
+        const loadedModule = await loadModule(loadDynamicModule, uri);
+        return loadedModule.exports.$invokeEntryPoint;
+      },
+      "loadDynamicModuleFromBytes": async (bytes) => {
+        const loadedModule = await loadModuleFromBytes(loadDynamicModule, uri);
+        return loadedModule.exports.$invokeEntryPoint;
       },
     };
+''');
 
-    dartInstance = await WebAssembly.instantiate(this.module, {
-      ...baseImports,
-      ...additionalImports,
-      "deferredLibraryHelper": deferredLibraryHelper,
-      "wasm:js-string": jsStringPolyfill,
-    });
+class Template {
+  static final _templateVariableRegExp = RegExp(r'<<(?<varname>[A-Z_]+)>>');
+  final List<_TemplatePart> _parts = [];
 
-    return new InstantiatedApp(this, dartInstance);
+  Template(String stringTemplate) {
+    int offset = 0;
+    for (final match in _templateVariableRegExp.allMatches(stringTemplate)) {
+      _parts.add(
+          _TemplateStringPart(stringTemplate.substring(offset, match.start)));
+      _parts.add(_TemplateVariablePart(match.namedGroup('varname')!));
+      offset = match.end;
+    }
+    _parts.add(_TemplateStringPart(
+        stringTemplate.substring(offset, stringTemplate.length)));
+  }
+
+  String instantiate(Map<String, String> variableValues) {
+    final sb = StringBuffer();
+    for (final part in _parts) {
+      sb.write(part.instantiate(variableValues));
+    }
+    return sb.toString();
   }
 }
 
-class InstantiatedApp {
-  constructor(compiledApp, instantiatedModule) {
-    this.compiledApp = compiledApp;
-    this.instantiatedModule = instantiatedModule;
-  }
+abstract class _TemplatePart {
+  String instantiate(Map<String, String> variableValues);
+}
 
-  // Call the main function with the given arguments.
-  invokeMain(...args) {
-    this.instantiatedModule.exports.$invokeMain(args);
+class _TemplateStringPart extends _TemplatePart {
+  final String string;
+  _TemplateStringPart(this.string);
+
+  @override
+  String instantiate(Map<String, String> variableValues) => string;
+}
+
+class _TemplateVariablePart extends _TemplatePart {
+  final String variable;
+  _TemplateVariablePart(this.variable);
+
+  @override
+  String instantiate(Map<String, String> variableValues) {
+    final value = variableValues[variable];
+    if (value != null) return value;
+    throw 'Template contains no value for variable $variable';
   }
 }
-''';

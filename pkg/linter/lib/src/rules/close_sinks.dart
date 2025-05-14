@@ -11,18 +11,16 @@ import '../util/leak_detector_visitor.dart';
 const _desc = r'Close instances of `dart:core` `Sink`.';
 
 class CloseSinks extends LintRule {
-  CloseSinks()
-      : super(
-          name: LintNames.close_sinks,
-          description: _desc,
-        );
+  CloseSinks() : super(name: LintNames.close_sinks, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.close_sinks;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);

@@ -25,23 +25,20 @@ class RemoveUnusedParameter extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    // To work for the unused_parameter hint as well as the lint, we must
-    // allow for passing in `SimpleIdentifier`s.
+    // To work for the unused_element_parameter warning as well as the lint (?),
+    // we must allow for passing in `SimpleIdentifier`s.
     var maybeParameter = node;
     var maybeParameterParent = maybeParameter.parent;
     if (maybeParameter is SimpleIdentifier && maybeParameterParent != null) {
       maybeParameter = maybeParameterParent;
     }
 
-    var parameter = maybeParameter;
-    if (parameter is! FormalParameter) {
+    if (maybeParameter is! FormalParameter) {
       return;
     }
 
-    var parent = parameter.parent;
-    if (parent is DefaultFormalParameter) {
-      parameter = parent;
-    }
+    var parent = maybeParameter.parent;
+    var parameter = parent is DefaultFormalParameter ? parent : maybeParameter;
 
     var parameterList = parameter.parent;
     if (parameterList is! FormalParameterList) {
@@ -50,7 +47,6 @@ class RemoveUnusedParameter extends ResolvedCorrectionProducer {
 
     var parameters = parameterList.parameters;
     var index = parameters.indexOf(parameter);
-    var parameter_final = parameter;
     await builder.addDartFileEdit(file, (builder) {
       if (index == 0) {
         // Remove the first parameter in the list.
@@ -65,7 +61,7 @@ class RemoveUnusedParameter extends ResolvedCorrectionProducer {
           );
         } else {
           var following = parameters[1];
-          if (parameter_final.isRequiredPositional &&
+          if (parameter.isRequiredPositional &&
               !following.isRequiredPositional) {
             // The parameter to be removed and the following parameter are not
             // of the same kind, so there is a delimiter between them that we
@@ -85,8 +81,7 @@ class RemoveUnusedParameter extends ResolvedCorrectionProducer {
         }
       } else {
         var preceding = parameters[index - 1];
-        if (preceding.isRequiredPositional &&
-            !parameter_final.isRequiredPositional) {
+        if (preceding.isRequiredPositional && !parameter.isRequiredPositional) {
           // The parameter to be removed and the preceding parameter are not
           // of the same kind, so there is a delimiter between them.
           if (index == parameters.length - 1) {

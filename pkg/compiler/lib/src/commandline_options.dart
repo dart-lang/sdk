@@ -58,11 +58,6 @@ class Flags {
   static const String experimentCallInstrumentation =
       '--experiment-call-instrumentation';
 
-  static const String experimentNewRti = '--experiment-new-rti';
-
-  static const String experimentNullSafetyChecks =
-      '--experiment-null-safety-checks';
-
   static const String enableLanguageExperiments = '--enable-experiment';
 
   static const String fastStartup = '--fast-startup';
@@ -77,6 +72,7 @@ class Flags {
   static const String laxRuntimeTypeToString = '--lax-runtime-type-to-string';
 
   static const String enableProtoShaking = '--enable-proto-shaking';
+  static const String enableProtoMixinShaking = '--enable-proto-mixin-shaking';
 
   static const String platformBinaries = '--platform-binaries=.+';
 
@@ -98,7 +94,6 @@ class Flags {
   static const String noOmitLateNames = '--no-omit-late-names';
 
   static const String preserveUris = '--preserve-uris';
-  static const String printLegacyStars = '--debug-print-legacy-stars';
   static const String showPackageWarnings = '--show-package-warnings';
   static const String suppressHints = '--suppress-hints';
   static const String suppressWarnings = '--suppress-warnings';
@@ -110,7 +105,6 @@ class Flags {
       '--experimental-trust-js-interop-type-annotations';
   static const String useMultiSourceInfo = '--use-multi-source-info';
   static const String useNewSourceInfo = '--use-new-source-info';
-  static const String useOldRti = '--use-old-rti';
   static const String useSimpleLoadIds = '--simple-load-ids';
   static const String verbose = '--verbose';
   static const String verbosity = '--verbosity';
@@ -134,7 +128,7 @@ class Flags {
   static const String serverMode = '--server-mode';
 
   static const String soundNullSafety = '--sound-null-safety';
-  static const String noSoundNullSafety = '--no-sound-null-safety';
+
   static const String mergeFragmentsThreshold = '--merge-fragments-threshold';
 
   static const String writeResources = '--write-resources';

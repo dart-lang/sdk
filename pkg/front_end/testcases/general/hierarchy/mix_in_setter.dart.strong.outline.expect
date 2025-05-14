@@ -127,8 +127,12 @@ mixin class Mixin extends core::Object {
   abstract set extendedConcreteMixedInAbstractSetter(core::int i) → void;
   abstract set extendedAbstractMixedInAbstractSetter(core::int i) → void;
 }
-abstract class _ClassMixin&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_ClassMixin&Super&Mixin
+class ClassMixin extends self::_ClassMixin&Super&Mixin {
+  synthetic constructor •() → self::ClassMixin
+    ;
+}
+class NamedMixin = self::Super with self::Mixin {
+  synthetic constructor •() → self::NamedMixin
     : super self::Super::•()
     ;
   mixin-super-stub set mixedInConcreteSetter(core::int i) → void
@@ -141,12 +145,8 @@ abstract class _ClassMixin&Super&Mixin = self::Super with self::Mixin /*isAnonym
   abstract mixin-stub set mixedInAbstractSetter(core::int i) → void; -> self::Mixin::mixedInAbstractSetter
   abstract mixin-stub set extendedAbstractMixedInAbstractSetter(core::int i) → void; -> self::Mixin::extendedAbstractMixedInAbstractSetter
 }
-class ClassMixin extends self::_ClassMixin&Super&Mixin {
-  synthetic constructor •() → self::ClassMixin
-    ;
-}
-class NamedMixin = self::Super with self::Mixin {
-  synthetic constructor •() → self::NamedMixin
+abstract class _ClassMixin&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_ClassMixin&Super&Mixin
     : super self::Super::•()
     ;
   mixin-super-stub set mixedInConcreteSetter(core::int i) → void

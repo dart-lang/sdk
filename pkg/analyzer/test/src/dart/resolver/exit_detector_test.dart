@@ -970,6 +970,23 @@ void f() {
 ''', 0);
   }
 
+  test_patternAssignment() async {
+    await _assertNthStatementDoesNotExit(r'''
+void f() {
+    final String s;
+    (s: s) = (s: "");
+}
+    ''', 1);
+  }
+
+  test_patternVariableDeclaration() async {
+    await _assertNthStatementDoesNotExit(r'''
+void f() {
+    final (s: s) = (s: "");
+}
+    ''', 0);
+  }
+
   test_switch_withEnum_false_noDefault() async {
     await _assertNthStatementDoesNotExit(r'''
 enum E { A, B }

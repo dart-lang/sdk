@@ -4,8 +4,6 @@
 
 // Tests using wildcards in class generic type parameters.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'package:expect/expect.dart';
 
 typedef _ = BB;

@@ -16,10 +16,7 @@ import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 class AnalyzerStatePrinter {
-  static const String _macroUriStr = 'package:macros/macros.dart';
-  static const String _macroImplApiUriStr = 'package:_macros/src/api.dart';
-
-  final MemoryByteStore byteStore;
+  final ByteStore byteStore;
   final UnlinkedUnitStoreImpl unlinkedUnitStore;
   final IdProvider idProvider;
   final LibraryContext libraryContext;
@@ -75,9 +72,6 @@ class AnalyzerStatePrinter {
         }
       }
     }
-    if (cycle.libraries.any((e) => e.file.uriStr == _macroUriStr)) {
-      return _macroUriStr;
-    }
     return idProvider.libraryCycle(cycle);
   }
 
@@ -104,14 +98,19 @@ class AnalyzerStatePrinter {
   void _writeByteStore() {
     sink.writelnWithIndent('byteStore');
     sink.withIndent(() {
-      var groups = byteStore.map.entries.groupListsBy((element) {
-        return element.value.refCount;
-      });
+      switch (byteStore) {
+        case CiderByteStore byteStore:
+          var groups = byteStore.map.entries.groupListsBy((element) {
+            return element.value.refCount;
+          });
 
-      for (var groupEntry in groups.entries) {
-        var keys = groupEntry.value.map((e) => e.key).toList();
-        var shortKeys = idProvider.shortKeys(keys)..sort();
-        sink.writelnWithIndent('${groupEntry.key}: $shortKeys');
+          for (var groupEntry in groups.entries) {
+            var keys = groupEntry.value.map((e) => e.key).toList();
+            var shortKeys = idProvider.shortKeys(keys)..sort();
+            sink.writelnWithIndent('${groupEntry.key}: $shortKeys');
+          }
+        default:
+          throw UnimplementedError('${byteStore.runtimeType}');
       }
     });
   }
@@ -192,6 +191,11 @@ class AnalyzerStatePrinter {
           var filesIds = kind.fileKinds.map(idProvider.fileKind);
           sink.writelnWithIndent('fileKinds: ${filesIds.join(' ')}');
 
+          if (configuration.withResolvedKey) {
+            var id = idProvider.shortKey(kind.resolvedKey);
+            sink.writelnWithIndent('resolvedKey: $id');
+          }
+
           _writeLibraryCycle(kind);
         });
       case PartOfNameFileKind():
@@ -245,13 +249,6 @@ class AnalyzerStatePrinter {
 
   void _writeFiles(FileSystemTestData testData) {
     fileSystemState.discoverReferencedFiles();
-
-    if (configuration.discardPartialMacroAugmentationFiles) {
-      var pattern = RegExp(r'^.*\.macro\d+\.dart$');
-      testData.files.removeWhere((file, value) {
-        return pattern.hasMatch(file.path);
-      });
-    }
 
     _verifyKnownFiles();
 
@@ -317,9 +314,6 @@ class AnalyzerStatePrinter {
         if (configuration.omitSdkFiles && fileData.uri.isScheme('dart')) {
           continue;
         }
-        if (_isMacroApiUri(fileData.uri)) {
-          continue;
-        }
         var file = fileData.file;
         sink.writelnWithIndent(file.posixPath);
         sink.withIndent(() {
@@ -354,9 +348,6 @@ class AnalyzerStatePrinter {
       for (var entry in testData.libraryCycles.entries) {
         if (configuration.omitSdkFiles &&
             entry.key.any((e) => e.uri.isScheme('dart'))) {
-          continue;
-        }
-        if (entry.key.any((e) => _isMacroApiUri(e.uri))) {
           continue;
         }
         cyclesToPrint.add(
@@ -400,6 +391,16 @@ class AnalyzerStatePrinter {
         });
       }
     });
+
+    if (testData.instance case var libraryContext?) {
+      var bundleProvider = libraryContext.linkedBundleProvider;
+      var bundleKeys = bundleProvider.map.entries
+          .map((entry) => idProvider.shortKey(entry.key))
+          .sorted();
+      if (bundleKeys.isNotEmpty) {
+        sink.writelnWithIndent('linkedBundleProvider: $bundleKeys');
+      }
+    }
   }
 
   void _writeLibraryCycle(LibraryFileKind library) {
@@ -513,9 +514,6 @@ class AnalyzerStatePrinter {
           if (configuration.omitSdkFiles && file.uri.isScheme('dart')) {
             sink.write(' ${file.uri}');
           }
-          if (file.uriStr == _macroUriStr) {
-            sink.write(' $_macroUriStr');
-          }
 
           if (import.isSyntheticDartCore) {
             sink.write(' synthetic');
@@ -626,9 +624,6 @@ class AnalyzerStatePrinter {
       if (configuration.omitSdkFiles && uri.isScheme('dart')) {
         continue;
       }
-      if (const {_macroUriStr, _macroImplApiUriStr}.contains('$uri')) {
-        continue;
-      }
       uriStrList.add('$uri');
     }
 
@@ -642,20 +637,13 @@ class AnalyzerStatePrinter {
       });
     }
   }
-
-  static bool _isMacroApiUri(Uri uri) {
-    var uriStr = '$uri';
-    return uriStr.startsWith('package:macros/') ||
-        uriStr.startsWith('package:_macros/');
-  }
 }
 
 class AnalyzerStatePrinterConfiguration {
-  bool discardPartialMacroAugmentationFiles = true;
-
   Set<File> filesToPrintContent = {};
 
   bool omitSdkFiles = true;
+  bool withResolvedKey = false;
 }
 
 /// Encoder of object identifies into short identifiers.

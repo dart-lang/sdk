@@ -8,11 +8,7 @@ import '../../utils.dart';
 const _desc = r'Use `lowercase_with_underscores` for package names.';
 
 class PackageNames extends LintRule {
-  PackageNames()
-      : super(
-          name: LintNames.package_names,
-          description: _desc,
-        );
+  PackageNames() : super(name: LintNames.package_names, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.package_names;

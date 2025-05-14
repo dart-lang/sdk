@@ -11,10 +11,7 @@ const _desc = r'Avoid return types on setters.';
 
 class AvoidReturnTypesOnSetters extends LintRule {
   AvoidReturnTypesOnSetters()
-      : super(
-          name: LintNames.avoid_return_types_on_setters,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_return_types_on_setters, description: _desc);
 
   @override
   bool get canUseParsedResult => true;
@@ -24,7 +21,9 @@ class AvoidReturnTypesOnSetters extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);

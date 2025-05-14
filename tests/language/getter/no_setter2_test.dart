@@ -10,30 +10,28 @@ class Example {
   static int get nextVar => _var++;
   Example() {
     nextVar++;
-//  ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'nextVar'.
+    // [error column 5, length 7]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'nextVar'.
     this.nextVar++;
     //   ^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-    // [cfe] The getter 'nextVar' isn't defined for the class 'Example'.
-    //   ^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INSTANCE_ACCESS_TO_STATIC_MEMBER
+    // [cfe] The getter 'nextVar' isn't defined for the class 'Example'.
     // [cfe] The setter 'nextVar' isn't defined for the class 'Example'.
   }
   static test() {
     nextVar++;
-//  ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'nextVar'.
+    // [error column 5, length 7]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'nextVar'.
     this.nextVar++;
-//  ^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
-// [cfe] Expected identifier, but got 'this'.
-//       ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INSTANCE_ACCESS_TO_STATIC_MEMBER
-//       ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [error column 5, length 4]
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
+    // [cfe] Expected identifier, but got 'this'.
+    //   ^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [analyzer] COMPILE_TIME_ERROR.INSTANCE_ACCESS_TO_STATIC_MEMBER
   }
 }
 

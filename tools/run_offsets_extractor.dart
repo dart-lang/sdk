@@ -21,8 +21,11 @@ void main(List<String> args) async {
   final footer = old.substring(old.lastIndexOf('\n#endif '));
 
   // Build all configurations
-  await forAllConfigurationsMode(
-      (String buildDir, String mode, String arch) async {
+  await forAllConfigurationsMode((
+    String buildDir,
+    String mode,
+    String arch,
+  ) async {
     print('Building $buildDir');
     await run([
       'tools/build.py',
@@ -31,16 +34,16 @@ void main(List<String> args) async {
       '-m$mode',
       '--no-rbe',
       'offsets_extractor',
-      'offsets_extractor_aotruntime'
+      'offsets_extractor_aotruntime',
     ]);
     print('Building $buildDir - done');
   });
 
   final (jit, aot) = await (
-    forAllConfigurationsMode((String buildDir, _, _) async {
+    forAllConfigurationsMode((String buildDir, _, __) async {
       return await run(['$buildDir/offsets_extractor']);
     }).then<String>((lines) => lines.join('\n')),
-    forAllConfigurationsMode((String buildDir, _, _) async {
+    forAllConfigurationsMode((String buildDir, _, __) async {
       return await run(['$buildDir/offsets_extractor_aotruntime']);
     }).then<String>((lines) => lines.join('\n')),
   ).wait;
@@ -59,7 +62,8 @@ void main(List<String> args) async {
 }
 
 Future<List<T>> forAllConfigurationsMode<T>(
-    Future<T> Function(String buildDir, String mode, String arch) fun) async {
+  Future<T> Function(String buildDir, String mode, String arch) fun,
+) async {
   final archs = [
     'simarm',
     'x64',
@@ -81,8 +85,11 @@ Future<List<T>> forAllConfigurationsMode<T>(
 }
 
 Future<String> run(List<String> args) async {
-  final result =
-      await Process.run(args.first, args.skip(1).toList(), runInShell: true);
+  final result = await Process.run(
+    args.first,
+    args.skip(1).toList(),
+    runInShell: true,
+  );
   if (result.exitCode != 0) {
     exitCode = result.exitCode;
     print('Running ${args.join(' ')} has failed with exit code $exitCode:');

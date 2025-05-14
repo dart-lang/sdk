@@ -127,9 +127,20 @@ def GetPidsPosix(process_name):
 
 
 def GetPidsWindows(process_name):
-    cmd = 'tasklist /FI "IMAGENAME eq %s" /NH' % process_name
+    cmd = 'tasklist /fo list /FI "IMAGENAME eq %s"' % process_name
     # Sample output:
-    # dart.exe    4356 Console            1      6,800 K
+    #   Image Name:   dart.exe
+    #   PID:          26568
+    #   Session Name: Console
+    #   Session#:     1
+    #   Mem Usage:    130,236 K
+    #
+    #   Image Name:   dart.exe
+    #   PID:          22424
+    #   Session Name: Console
+    #   Session#:     1
+    #   Mem Usage:    280,776 K
+
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
@@ -140,9 +151,9 @@ def GetPidsWindows(process_name):
     lines = output.splitlines()
 
     for line in lines:
-        split = line.split()
-        if len(split) > 2 and split[0] == process_name:
-            results.append(split[1])
+        split = line.split(':')
+        if (len(split) == 2) and (split[0].strip() == 'PID'):
+            results.append(split[1].strip())
     return results
 
 

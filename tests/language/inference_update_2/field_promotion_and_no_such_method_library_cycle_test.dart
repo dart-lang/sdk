@@ -72,9 +72,7 @@ class G extends A implements D {
 class H {
   final int? _f1;
   final int? _f2;
-  H(int? i)
-      : _f1 = i,
-        _f2 = i;
+  H(int? i) : _f1 = i, _f2 = i;
 }
 
 testImplementedFieldSeenViaOtherLib(H h) {

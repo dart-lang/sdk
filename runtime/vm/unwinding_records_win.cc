@@ -10,8 +10,11 @@
 
 namespace dart {
 
-#if (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)) &&      \
-    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
+// When the host is 64-bit Windows but the target is not, only define this
+// when the ELF loader may be used, so _not_ in gen_snapshot.
+#if (defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)) ||     \
+    (defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT) &&               \
+     (!defined(DART_PRECOMPILER) || defined(TESTING)))
 
 static void InitUnwindingRecord(intptr_t offset,
                                 CodeRangeUnwindingRecord* record,
@@ -88,10 +91,14 @@ static void InitUnwindingRecord(intptr_t offset,
   // cover it, more pages will need to reserved for unwind data.
   ASSERT(remaining_size_in_bytes <= 0);
 #else
-#error What architecture?
+#error Unhandled Windows architecture.
 #endif
   record->magic = kUnwindingRecordMagic;
 }
+
+#endif  // defined(DART_TARGET_OS_WINDOWS) || ...
+
+#if defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
 
 const void* UnwindingRecords::GenerateRecordsInto(intptr_t offset,
                                                   uint8_t* target_buffer) {
@@ -101,10 +108,13 @@ const void* UnwindingRecords::GenerateRecordsInto(intptr_t offset,
   return target_buffer;
 }
 
-#endif  // (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS))
+#endif  // defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
 
-#if defined(DART_HOST_OS_WINDOWS) &&                                           \
-    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
+// Only use these definitions when the ELF loader may be used on 64-bit
+// Windows, as it is the only client of these methods (e.g., _not_ in
+// gen_snapshot).
+#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT) &&                \
+    (!defined(DART_PRECOMPILER) || defined(TESTING))
 
 // Special exception-unwinding records are put at the end of executable
 // page on Windows for 64-bit applications.
@@ -144,6 +154,6 @@ void UnwindingRecords::UnregisterExecutablePage(Page* page) {
   RtlDeleteGrowableFunctionTable(record->dynamic_table);
 }
 
-#endif  // defined(DART_HOST_OS_WINDOWS)
+#endif  // defined(DART_HOST_OS_WINDOWS) ...
 
 }  // namespace dart

@@ -5,8 +5,6 @@
 // `_` import prefixes are non-binding. This tests that we can't access the
 // top-level declarations of that imported library.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'import_lib.dart' as _;
 
 main() {

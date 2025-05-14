@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseIsEvenRatherThanModuloTest);
   });
@@ -52,20 +52,22 @@ const b = a % 2 == 0;
   }
 
   test_moduloTwoEqualEqualOne_intTypedExpression() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var a = 3;
 var b = a % 2 == 0;
-''', [
-      lint(19, 10),
-    ]);
+''',
+      [lint(19, 10)],
+    );
   }
 
   test_moduloTwoEqualEqualOne_literalInt() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var a = 13 % 2 == 1;
-''', [
-      lint(8, 11),
-    ]);
+''',
+      [lint(8, 11)],
+    );
   }
 
   test_moduloTwoEqualEqualThree() async {
@@ -75,11 +77,12 @@ var a = 1 % 2 == 3 - 3;
   }
 
   test_moduloTwoEqualEqualZero_literalInt() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var a = 1 % 2 == 0;
-''', [
-      lint(8, 10),
-    ]);
+''',
+      [lint(8, 10)],
+    );
   }
 
   test_moduloTwoGreaterOrEqualZero_literalInt() async {
@@ -103,12 +106,15 @@ var b = a + 2 == 0;
   }
 
   test_undefinedClass() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Class tmp;
 bool a = tmp % 2 == 0;
-''', [
-      // No lint
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 5),
-    ]);
+''',
+      [
+        // No lint
+        error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 5),
+      ],
+    );
   }
 }

@@ -36,47 +36,6 @@ assertFailed(
   throw AssertionErrorImpl(message, fileUri, line, column, conditionSource);
 }
 
-/// Throws if [isModuleSound] does not match the null safety mode of this SDK.
-///
-/// The call to this method is inserted into every module at compile time when
-/// the compile time null safety mode for the module is known.
-void _checkModuleNullSafetyMode(@notNull bool isModuleSound) {
-  if (isModuleSound != JS_GET_FLAG('SOUND_NULL_SAFETY')) {
-    var sdkMode = JS_GET_FLAG('SOUND_NULL_SAFETY') ? 'sound' : 'unsound';
-    var moduleMode = isModuleSound ? 'sound' : 'unsound';
-
-    throw AssertionError(
-      'The null safety mode of the Dart SDK module '
-      '($sdkMode) does not match the null safety mode of this module '
-      '($moduleMode).',
-    );
-  }
-}
-
-final _nullFailedSet = JS('!', 'new Set()');
-
-String _nullFailedMessage(variableName) =>
-    'A null value was passed into a non-nullable parameter: $variableName.';
-
-// Run-time null safety assertion per:
-// https://github.com/dart-lang/language/blob/master/accepted/2.12/nnbd/feature-specification.md#automatic-debug-assertion-insertion
-nullFailed(String? fileUri, int? line, int? column, String? variable) {
-  if (_nonNullAsserts) {
-    throw AssertionErrorImpl(
-      _nullFailedMessage(variable),
-      fileUri,
-      line,
-      column,
-      '$variable != null',
-    );
-  }
-  var key = '$fileUri:$line:$column';
-  if (!JS('!', '#.has(#)', _nullFailedSet, key)) {
-    JS('', '#.add(#)', _nullFailedSet, key);
-    _nullWarn(_nullFailedMessage(variable));
-  }
-}
-
 throwLateInitializationError(String name) {
   var errorText = "Field '$name' has been assigned during initialization.";
   throw internal.LateError(errorText);

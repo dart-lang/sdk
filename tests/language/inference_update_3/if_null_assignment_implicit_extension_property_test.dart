@@ -116,8 +116,10 @@ main() {
     // - T <: S
     // Therefore the type of `e` is T = Iterable<num>.
     var iterableDouble = <double>[] as Iterable<double>;
-    contextIterable((''.pIterableIntQuestion ??= iterableDouble)
-      ..expectStaticType<Exactly<Iterable<num>>>());
+    contextIterable(
+      (''.pIterableIntQuestion ??= iterableDouble)
+        ..expectStaticType<Exactly<Iterable<num>>>(),
+    );
 
     // This example has:
     // - K = Function
@@ -131,8 +133,10 @@ main() {
     // - T <: S
     // Therefore the type of `e` is T = Function.
     var callableClassInt = CallableClass<int>();
-    context<Function>((''.pFunctionQuestion ??= callableClassInt)
-      ..expectStaticType<Exactly<Function>>());
+    context<Function>(
+      (''.pFunctionQuestion ??= callableClassInt)
+        ..expectStaticType<Exactly<Function>>(),
+    );
   }
 
   //   - Otherwise, if NonNull(T1) <: S and T2' <: S, then the type of `e` is S.
@@ -150,8 +154,10 @@ main() {
     // - T2' <: S
     // Therefore the type of `e` is S = B1<Object?>.
     var c2Double = C2<double>();
-    contextB1((''.pC1IntQuestion ??= c2Double)
-      ..expectStaticType<Exactly<B1<Object?>>>());
+    contextB1(
+      (''.pC1IntQuestion ??= c2Double)
+        ..expectStaticType<Exactly<B1<Object?>>>(),
+    );
 
     // This example has:
     // - K = B1<Object>
@@ -165,8 +171,9 @@ main() {
     // - NonNull(T1) <: S
     // - T2' <: S
     // Therefore the type of `e` is S = B1<Object>.
-    contextB1<Object>((''.pC1IntQuestion ??= c2Double)
-      ..expectStaticType<Exactly<B1<Object>>>());
+    contextB1<Object>(
+      (''.pC1IntQuestion ??= c2Double)..expectStaticType<Exactly<B1<Object>>>(),
+    );
 
     // This example has:
     // - K = Iterable<num>
@@ -181,8 +188,10 @@ main() {
     // - T2' <: S
     // Therefore the type of `e` is S = Iterable<num>.
     var listNum = <num>[];
-    context<Iterable<num>>((''.pIterableIntQuestion ??= listNum)
-      ..expectStaticType<Exactly<Iterable<num>>>());
+    context<Iterable<num>>(
+      (''.pIterableIntQuestion ??= listNum)
+        ..expectStaticType<Exactly<Iterable<num>>>(),
+    );
 
     // This example has:
     // - K = B1<int> Function()
@@ -198,9 +207,10 @@ main() {
     // - T2' <: S
     // Therefore the type of `e` is S = B1<int> Function().
     var callableClassC2Int = CallableClass<C2<int>>();
-    context<B1<int> Function()>((''.pC1IntFunctionQuestion ??=
-        callableClassC2Int)
-      ..expectStaticType<Exactly<B1<int> Function()>>());
+    context<B1<int> Function()>(
+      (''.pC1IntFunctionQuestion ??= callableClassC2Int)
+        ..expectStaticType<Exactly<B1<int> Function()>>(),
+    );
   }
 
   //   - Otherwise, the type of `e` is T.
@@ -242,8 +252,9 @@ main() {
       // The fact that NonNull(T1) <!: S precludes using S as static type.
       // Therefore the type of `e` is T = num?.
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (''.pDoubleQuestion ??= intQuestion)
-        ..expectStaticType<Exactly<num?>>();
+      o =
+          (''.pDoubleQuestion ??= intQuestion)
+            ..expectStaticType<Exactly<num?>>();
     }
     o = '' as Object?;
     if (o is String?) {
@@ -283,8 +294,9 @@ main() {
       // The fact that T2' <!: S precludes using S as static type.
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (''.pC1IntFunctionQuestion ??= callableClassC2Int)
-        ..expectStaticType<Exactly<A Function()>>();
+      o =
+          (''.pC1IntFunctionQuestion ??= callableClassC2Int)
+            ..expectStaticType<Exactly<A Function()>>();
     }
 
     o = (() => C2<int>()) as Object?;
@@ -304,8 +316,9 @@ main() {
       // The fact that NonNull(T1) <!: S precludes using S as static type.
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (''.pC1IntFunctionQuestion ??= callableClassC2Int)
-        ..expectStaticType<Exactly<A Function()>>();
+      o =
+          (''.pC1IntFunctionQuestion ??= callableClassC2Int)
+            ..expectStaticType<Exactly<A Function()>>();
     }
 
     o = 0 as Object?;
@@ -325,8 +338,9 @@ main() {
       // The fact that NonNull(T1) <!: S precludes using S as static type.
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (''.pC1IntFunctionQuestion ??= callableClassC2Int)
-        ..expectStaticType<Exactly<A Function()>>();
+      o =
+          (''.pC1IntFunctionQuestion ??= callableClassC2Int)
+            ..expectStaticType<Exactly<A Function()>>();
     }
   }
 }

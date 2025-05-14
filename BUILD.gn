@@ -29,12 +29,7 @@ group("most") {
     ":dartanalyzer",
     ":ddc",
     ":runtime",
-    ":samples",
   ]
-}
-
-group("samples") {
-  deps = [ "samples/embedder:all" ]
 }
 
 group("runtime") {
@@ -52,7 +47,7 @@ group("runtime") {
     "runtime/bin:process_test",
     "runtime/bin:run_vm_tests",
     "runtime/vm:kernel_platform_files($host_toolchain)",
-    "samples/embedder:all",
+    "samples/embedder:kernel",
     "samples/ffi/http:fake_http",
     "utils/dartdev:dartdev",
     "utils/kernel-service:kernel-service",
@@ -65,6 +60,13 @@ group("runtime") {
     deps += [ "runtime/bin:dartaotruntime_product" ]
   } else {
     deps += [ "utils/kernel-service:frontend_server" ]
+  }
+
+  # AOT samples use dlopen to load AOT snapshots and it works only on
+  # 64-bit Linux right now.
+  if ((is_linux || is_mac) &&
+      (dart_target_arch == "x64" || dart_target_arch == "arm64")) {
+    deps += [ "samples/embedder:aot" ]
   }
 
   if (!is_win) {
@@ -204,7 +206,7 @@ group("tools") {
 group("dart2js_bot") {
   deps = [
     ":create_sdk",
-    "utils/compiler:compile_dart2js_platform_unsound",
+    "utils/compiler:compile_dart2js_platform",
   ]
 }
 
@@ -223,12 +225,13 @@ group("compressed_observatory_archive") {
 if (is_fuchsia) {
   import("third_party/fuchsia/gn-sdk/src/component.gni")
   import("third_party/fuchsia/gn-sdk/src/package.gni")
+  import("utils/aot_snapshot.gni")
   import("utils/application_snapshot.gni")
+
+  # TODO(b/399714829): Test packages should be created at test-time, not build-time.
 
   # tests/ffi/**_test.dart except those with compile-time errors
   test_sources = [
-    "tests/ffi/abi_specific_int_incomplete_aot_test.dart",
-    "tests/ffi/abi_specific_int_incomplete_jit_test.dart",
     "tests/ffi/abi_specific_int_test.dart",
     "tests/ffi/abi_test.dart",
     "tests/ffi/address_of_array_generated_test.dart",
@@ -238,6 +241,8 @@ if (is_fuchsia) {
     "tests/ffi/address_of_typeddata_generated_test.dart",
     "tests/ffi/aliasing_test.dart",
     "tests/ffi/allocator_test.dart",
+    "tests/ffi/array_compound_elements_test.dart",
+    "tests/ffi/array_primitive_elements_generated_test.dart",
     "tests/ffi/async_void_function_callbacks_test.dart",
     "tests/ffi/bool_test.dart",
     "tests/ffi/c_types_test.dart",
@@ -356,6 +361,7 @@ if (is_fuchsia) {
     "tests/ffi/structs_typed_data_test.dart",
     "tests/ffi/unaligned_test.dart",
     "tests/ffi/variance_function_test.dart",
+    "tests/ffi/vmspecific_callback_unwind_error_through_handle_test.dart",
     "tests/ffi/vmspecific_deprecated_funcs_test.dart",
     "tests/ffi/vmspecific_dynamic_library_test.dart",
     "tests/ffi/vmspecific_enable_ffi_test.dart",
@@ -388,6 +394,7 @@ if (is_fuchsia) {
   test_resources = []
   foreach(test_source, test_sources) {
     label = string_replace(test_source, "/", "_")
+    aot_label = label + "_aot"
 
     application_snapshot(label) {
       dart_snapshot_kind = "kernel"
@@ -395,12 +402,23 @@ if (is_fuchsia) {
       training_args = []  # Not used
       output = "$target_gen_dir/$test_source.dill"
     }
+    aot_snapshot(aot_label) {
+      main_dart = test_source
+      output = "$target_gen_dir/$test_source.elf"
+    }
 
-    test_deps += [ ":$label" ]
+    test_deps += [
+      ":$aot_label",
+      ":$label",
+    ]
     test_resources += [
       {
         path = rebase_path("$target_gen_dir/$test_source.dill")
         dest = "data/$test_source"
+      },
+      {
+        path = rebase_path("$target_gen_dir/$test_source.elf")
+        dest = "data/$test_source.elf"
       },
     ]
   }

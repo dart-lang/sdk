@@ -4,7 +4,7 @@
 
 # Run
 #
-#     dart run analyzer/tool/messages/generate.dart
+#     dart run pkg/analyzer/tool/messages/generate.dart
 #
 # to regenerate messages after having edited this file.
 
@@ -788,7 +788,7 @@ CompileTimeErrorCode:
       }
       ```
   ASSIGNMENT_TO_CONST:
-    problemMessage: "Constant variables can't be assigned a value."
+    problemMessage: "Constant variables can't be assigned a value after initialization."
     correctionMessage: "Try removing the assignment, or remove the modifier 'const' from the variable."
     hasPublishedDocs: true
     comment: No parameters.
@@ -4575,8 +4575,8 @@ CompileTimeErrorCode:
 
       Rename the enum to something other than `values`.
   ENUM_WITHOUT_CONSTANTS:
-    problemMessage: The enum must have at least one constant.
-    correctionMessage: Try declaring a constant.
+    problemMessage: The enum must have at least one enum constant.
+    correctionMessage: Try declaring an enum constant.
     hasPublishedDocs: false
   EQUAL_ELEMENTS_IN_CONST_SET:
     problemMessage: "Two elements in a constant set literal can't be equal."
@@ -5111,6 +5111,64 @@ CompileTimeErrorCode:
         static int b() => 0;
       }
       ```
+  EXTENSION_DECLARES_INSTANCE_FIELD:
+    problemMessage: "Extensions can't declare instance fields."
+    correctionMessage: Try replacing the field with a getter.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an instance field declaration is
+      found in an extension. It isn't valid to define an instance field because
+      extensions can only add behavior, not state.
+
+      #### Example
+
+      The following code produces this diagnostic because `s` is an instance
+      field:
+
+      ```dart
+      %language=2.9
+      extension E on String {
+        String [!s!];
+      }
+      ```
+
+      #### Common fixes
+
+      If the value can be computed without storing it in a field, then try
+      using a getter or a method:
+
+      ```dart
+      extension E on String {
+        String get s => '';
+
+        void s(String value) => print(s);
+      }
+      ```
+
+      If the value must be stored, but is the same for every instance,
+      try using a static field:
+
+      ```dart
+      extension E on String {
+        static String s = '';
+      }
+      ```
+
+      If each instance needs to have its own value stored, then try
+      using a getter and setter pair backed by a static `Expando`:
+
+      ```dart
+      extension E on SomeType {
+        static final _s = Expando<String>();
+
+        String get s => _s[this] ?? '';
+        set s(String value) => _s[this] = value;
+      }
+      ```
+
   EXTENSION_DECLARES_MEMBER_OF_OBJECT:
     problemMessage: "Extensions can't declare members with the same name as a member declared by 'Object'."
     correctionMessage: Try specifying a different name for the member.
@@ -8802,12 +8860,6 @@ CompileTimeErrorCode:
       ```dart
       typedef F = int Function(int Function(String));
       ```
-  INVALID_MACRO_APPLICATION_TARGET:
-    problemMessage: "The macro can be applied only to a {0}."
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the list of target kind names
   INVALID_MODIFIER_ON_CONSTRUCTOR:
     problemMessage: "The modifier '{0}' can't be applied to the body of a constructor."
     correctionMessage: Try removing the modifier.
@@ -9625,6 +9677,14 @@ CompileTimeErrorCode:
         return v;
       }
       ```
+  LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+    sharedName: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+    problemMessage: "The element type '{0}' can't be assigned to the list type '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the actual type of the list element
+      1: the expected type of the list element
   LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the list type '{1}'."
     hasPublishedDocs: true
@@ -9668,58 +9728,6 @@ CompileTimeErrorCode:
       ```dart
       List<num> x = [1, 2.5, 3];
       ```
-  MACRO_APPLICATION_ARGUMENT_ERROR:
-    problemMessage: "{0}"
-    hasPublishedDocs: false
-    comment: |-
-      Reported when there is an issue converting a macro application argument
-      into a value. So, we cannot instantiate the macro, and run it.
-      Parameters:
-      0: the message
-  MACRO_ERROR:
-    problemMessage: "{0}"
-    hasPublishedDocs: false
-    comment: |-
-      Reported when the macro uses `Builder.report()` with `Severity.error`.
-      Parameters:
-      0: the message
-  MACRO_INTERNAL_EXCEPTION:
-    problemMessage: "{0} {1}"
-    hasPublishedDocs: false
-    comment: |-
-      Reported when there is an exception inside the analyzer when running
-      macros. Should not happen, but just in case.
-      Parameters:
-      0: the message
-      1: the stack trace
-  MACRO_NOT_ALLOWED_DECLARATION:
-    problemMessage: |-
-      The macro attempted to add declaration(s) not allowed during the {0} phase.
-      Locations: {1}
-      ---
-      {2}
-      ---
-    correctionMessage: Try adding these declaration during an earlier phase.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the macro phase
-      1: the list of ranges in the code
-      2: the generated code
-  MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:
-    problemMessage: "The declaration '{0}' can't be introspected because there is a cycle of macro applications."
-    correctionMessage: Try removing one or more macro applications to break the cycle.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the name of the introspected declaration
-  MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE:
-    problemMessage: "The macro '{0}' can't be applied in the same library cycle where it is defined."
-    correctionMessage: Try moving it to a different library that does not import the one where it is applied.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the name of the macro class
   MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
     problemMessage: "The type of the first positional parameter of the 'main' function must be a supertype of 'List<String>'."
     correctionMessage: Try changing the type of the parameter.
@@ -9896,6 +9904,14 @@ CompileTimeErrorCode:
       ```dart
       var collection = <String>{'a', 'b'};
       ```
+  MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+    sharedName: MAP_KEY_TYPE_NOT_ASSIGNABLE
+    problemMessage: "The element type '{0}' can't be assigned to the map key type '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the type of the expression being used as a key
+      1: the type of keys declared for the map
   MAP_KEY_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the map key type '{1}'."
     hasPublishedDocs: true
@@ -9932,6 +9948,14 @@ CompileTimeErrorCode:
       ```dart
       var m = <int, String>{2 : 'a'};
       ```
+  MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+    sharedName: MAP_VALUE_TYPE_NOT_ASSIGNABLE
+    problemMessage: "The element type '{0}' can't be assigned to the map value type '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the type of the expression being used as a value
+      1: the type of values declared for the map
   MAP_VALUE_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the map value type '{1}'."
     hasPublishedDocs: true
@@ -15262,6 +15286,14 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the sealed class being extended, implemented, or mixed in
+  SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+    sharedName: SET_ELEMENT_TYPE_NOT_ASSIGNABLE
+    problemMessage: "The element type '{0}' can't be assigned to the set type '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the actual type of the set element
+      1: the expected type of the set element
   SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the set type '{1}'."
     hasPublishedDocs: true
@@ -21308,13 +21340,6 @@ HintCode:
       If you can't migrate the imported library, then the importing library
       needs to have a language version that is before 2.12, when null safety was
       enabled by default.
-  MACRO_INFO:
-    problemMessage: "{0}"
-    hasPublishedDocs: false
-    comment: |-
-      Reported when the macro uses `Builder.report()` with `Severity.info`.
-      Parameters:
-      0: the message
   UNNECESSARY_IMPORT:
     problemMessage: "The import of '{0}' is unnecessary because all of the used elements are also provided by the import of '{1}'."
     correctionMessage: Try removing the import directive.
@@ -23727,9 +23752,17 @@ WarningCode:
     problemMessage: "Doc imports can't be deferred."
     correctionMessage: Try removing the 'deferred' keyword.
     hasPublishedDocs: false
+  DOC_IMPORT_CANNOT_HAVE_COMBINATORS:
+    problemMessage: "Doc imports can't have show or hide combinators."
+    correctionMessage: Try removing the combinator.
+    hasPublishedDocs: false
   DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
     problemMessage: "Doc imports can't have configurations."
     correctionMessage: Try removing the configurations.
+    hasPublishedDocs: false
+  DOC_IMPORT_CANNOT_HAVE_PREFIX:
+    problemMessage: "Doc imports can't have prefixes."
+    correctionMessage: Try removing the prefix.
     hasPublishedDocs: false
   DUPLICATE_EXPORT:
     problemMessage: Duplicate export.
@@ -24379,7 +24412,7 @@ WarningCode:
       The analyzer produces this diagnostic when a comment that appears to be an
       attempt to specify a language version override doesn't conform to the
       requirements for such a comment. For more information, see
-      [Per-library language version selection](https://dart.dev/guides/language/evolution#per-library-language-version-selection).
+      [Per-library language version selection](https://dart.dev/resources/language/evolution#per-library-language-version-selection).
 
       #### Example
 
@@ -25162,13 +25195,6 @@ WarningCode:
         void m() {}
       }
       ```
-  MACRO_WARNING:
-    problemMessage: "{0}"
-    hasPublishedDocs: false
-    comment: |-
-      Reported when the macro uses `Builder.report()` with `Severity.warning`.
-      Parameters:
-      0: the message
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
     problemMessage: "Missing concrete implementation of '{0}'."
@@ -27022,13 +27048,6 @@ WarningCode:
         B(super.value);
       }
       ```
-  UNNECESSARY_IGNORE:
-    problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
-    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the name of the diagnostic being ignored
   UNNECESSARY_NAN_COMPARISON_FALSE:
     sharedName: UNNECESSARY_NAN_COMPARISON
     problemMessage: A double can't equal 'double.nan', so the condition is always 'false'.
@@ -27685,6 +27704,76 @@ WarningCode:
       }
       ```
       TODO(brianwilkerson): Highlight the identifier without the colon.
+  MULTIPLE_COMBINATORS:
+    problemMessage: "Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results."
+    correctionMessage: "Try using a single combinator."
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an import or export directive
+      contains more than one combinator.
+
+      #### Examples
+
+      The following code produces this diagnostic because the second `show`
+      combinator hides `List` and `int`:
+
+      ```dart
+      import 'dart:core' [!show Future, List, int show Future!];
+
+      var x = Future.value(1);
+      ```
+
+      The following code produces this diagnostic because
+      the second `hide` combinator is redundant:
+
+      ```dart
+      import 'dart:math' [!hide Random, max, min hide min!];
+
+      var x = pi;
+      ```
+
+      The following codes produce this diagnostic because
+      the `hide` combinator is redundant:
+
+      ```dart
+      import 'dart:math' [!show Random, max hide min!];
+
+      var x = max(0, 1);
+      var r = Random();
+      ```
+
+      The following code produces this diagnostic because
+      the `show` combinator already hides `Random` and `max`,
+      so the `hide` combinator is redundant:
+
+      ```dart
+      import 'dart:math' [!hide Random, max show min!];
+
+      var x = min(0, 1);
+      ```
+
+      #### Common fixes
+
+      If you prefer to list the names that should be visible,
+      then use a single `show` combinator:
+
+      ```dart
+      import 'dart:math' show min;
+
+      var x = min(0, 1);
+      ```
+
+      If you prefer to list the names that should be hidden,
+      then use a single `hide` combinator:
+
+      ```dart
+      import 'dart:math' hide Random, max, min;
+
+      var x = pi;
+      ```
   UNUSED_LOCAL_VARIABLE:
     problemMessage: "The value of the local variable '{0}' isn't used."
     correctionMessage: Try removing the variable or using it.

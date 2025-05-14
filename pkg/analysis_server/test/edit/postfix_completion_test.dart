@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -26,18 +27,17 @@ class PostfixCompletionTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_for() async {
-    var key = '.for';
-    var offset = _newFileForCompletion(key, '''
+    addTestFile('''
 void f() {
-  [].for
+  []^
 }
 ''');
 
-    await _prepareCompletionAt(offset, key);
+    await _prepareCompletionAt(parsedTestCode.position.offset, '.for');
     _assertHasChange('Expand .for', '''
 void f() {
   for (var value in []) {
-    /*caret*/
+    ^
   }
 }
 ''');
@@ -72,31 +72,34 @@ void f() {
   }
 
   Future<void> test_notApplicable_inComment_try() async {
-    var key = '.try';
-    var offset = _newFileForCompletion(key, '''
+    addTestFile('''
 void f() {
   () {
-    // comment.try
+    // comment^
   };
 }
 ''');
 
-    var result = await _isApplicable(offset: offset, key: key);
+    var result = await _isApplicable(
+      offset: parsedTestCode.position.offset,
+      key: '.try',
+    );
     expect(result, isFalse);
   }
 
-  void _assertHasChange(String message, String expectedCode) {
-    if (change.message == message) {
-      if (change.edits.isNotEmpty) {
-        var resultCode = SourceEdit.applySequence(
-          testFileContent,
-          change.edits[0].edits,
-        );
-        expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
-      }
-      return;
+  void _assertHasChange(String message, String expected) {
+    var expectedCode = TestCode.parse(expected);
+    if (change.message != message) {
+      fail('Expected to find |$message| but got: ${change.message}');
     }
-    fail('Expected to find |$message| but got: ${change.message}');
+    if (change.edits.isNotEmpty) {
+      var resultCode = SourceEdit.applySequence(
+        testFileContent,
+        change.edits[0].edits,
+      );
+      expect(resultCode, expectedCode.code);
+    }
+    expect(change.selection?.offset, expectedCode.position.offset);
   }
 
   Future<bool> _isApplicable({required int offset, required String key}) async {
@@ -112,19 +115,6 @@ void f() {
       clientUriConverter: server.uriConverter,
     );
     return result.value;
-  }
-
-  int _newFileForCompletion(String key, String content) {
-    var keyOffset = content.indexOf(key);
-    expect(keyOffset, isNot(equals(-1)), reason: 'missing "$key"');
-
-    modifyFile2(
-      testFile,
-      content.substring(0, keyOffset) +
-          content.substring(keyOffset + key.length),
-    );
-
-    return keyOffset;
   }
 
   Future<void> _prepareCompletionAt(int offset, String key) async {

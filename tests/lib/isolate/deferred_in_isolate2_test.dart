@@ -5,22 +5,37 @@
 library deferred_in_isolate2_test;
 
 import 'dart:isolate';
-import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
+
+import 'package:expect/async_helper.dart';
+import 'package:expect/expect.dart';
 
 import 'deferred_in_isolate2_lib.dart' deferred as lib;
 
-loadDeferred(port) {
+void loadDeferred(SendPort port) {
   lib.loadLibrary().then((_) {
     port.send(lib.f());
   });
 }
 
-main() {
-  test("Deferred loading in isolate", () {
-    ReceivePort port = new ReceivePort();
-    port.first.then(expectAsync((msg) {
-      expect(msg, equals("hi"));
-    }));
-    Isolate.spawn(loadDeferred, port.sendPort);
-  });
+void main() {
+  asyncStart(2);
+  var port = RawReceivePort();
+  port.handler = (msg) {
+    if (msg == null) {
+      asyncEnd();
+      port.close();
+    } else if (msg case [String error, String stack]) {
+      var remoteError = RemoteError("Error in isolate: $error", stack);
+      Error.throwWithStackTrace(remoteError, remoteError.stackTrace);
+    } else {
+      Expect.equals("hi", msg);
+      asyncEnd();
+    }
+  };
+  Isolate.spawn(
+    loadDeferred,
+    port.sendPort,
+    onError: port.sendPort,
+    onExit: port.sendPort,
+  );
 }

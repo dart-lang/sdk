@@ -967,7 +967,8 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         /// Member types can be queried at arbitrary points during top level
         /// inference so we need to ensure that types are computed in dependency
         /// order.
-        classMember.registerOverrideDependency(overriddenMembers);
+        classMember.registerOverrideDependency(
+            _membersBuilder, overriddenMembers);
 
         /// Not all member type are queried during top level inference so we
         /// register delayed computation to ensure that all types have been
@@ -1186,6 +1187,20 @@ class ClassMembersNode {
       return supernode?.getDispatchTarget(name, isSetter);
     }
     return result;
+  }
+
+  ClassMember? getStaticMember(Name name, bool isSetter) {
+    ClassMember? result = isSetter
+        ?
+        // Coverage-ignore(suite): Not run.
+        classSetterMap[name]
+        : classMemberMap[name];
+    if (result == null) {
+      return null;
+    } else if (result.isStatic) {
+      return result;
+    }
+    return null;
   }
 }
 
@@ -2604,7 +2619,7 @@ class _Overrides {
     if (_classBuilder is SourceClassBuilder && !declaredMember.isStatic) {
       assert(
           declaredMember.isSourceDeclaration &&
-              declaredMember.declarationBuilder.origin == _classBuilder,
+              declaredMember.declarationBuilder == _classBuilder,
           "Only declared members can override: ${declaredMember}");
       hasDeclaredMembers = true;
       if (declaredMember.isProperty) {

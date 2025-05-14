@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidImplementingValueTypesTest);
   });
@@ -49,7 +49,8 @@ class C extends A {}
   }
 
   test_implementsClass_indirectlyWithEqualEqual() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   @override
   bool operator ==(Object o) => false;
@@ -58,21 +59,22 @@ class A {
 class B extends A {}
 
 class C implements B {}
-''', [
-      lint(105, 1),
-    ]);
+''',
+      [lint(105, 1)],
+    );
   }
 
   test_implementsClassWithEqualEqual() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   @override
   bool operator ==(Object o) => false;
 }
 class C implements A {}
-''', [
-      lint(82, 1),
-    ]);
+''',
+      [lint(82, 1)],
+    );
   }
 
   test_implementsClassWithoutEqualEqual() async {

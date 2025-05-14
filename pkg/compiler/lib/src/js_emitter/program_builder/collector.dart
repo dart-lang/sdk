@@ -143,10 +143,9 @@ class Collector {
 
     // Compute needed classes.
     Set<ClassEntity> instantiatedClasses =
-            // TODO(johnniwinther): This should be accessed from a codegen closed
-            // world.
-            _codegenWorld
-            .directlyInstantiatedClasses
+        // TODO(johnniwinther): This should be accessed from a codegen closed
+        // world.
+        _codegenWorld.directlyInstantiatedClasses
             .where(computeClassFilter(backendTypeHelpers))
             .toSet();
 

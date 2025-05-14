@@ -12,6 +12,7 @@
 namespace dart {
 
 enum class ExperimentalFeature {
+  null_aware_elements,
   inference_using_bounds,
   wildcard_variables,
   digit_separators,

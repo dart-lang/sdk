@@ -13,9 +13,7 @@ library Prefix23Test.dart;
 import "../library12.dart" as lib12;
 
 class myClass {
-  final
-
-      fld = null;
+  final fld = null;
 }
 
 main() {}

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:source_span/source_span.dart';
 import 'package:yaml/src/event.dart';
 import 'package:yaml/yaml.dart';
@@ -33,8 +31,8 @@ class Merger {
   YamlNode merge(YamlNode o1, YamlNode o2) {
     // Handle promotion first.
     YamlMap listToMap(YamlList list) {
-      Map<YamlNode, YamlNode> map =
-          HashMap<YamlNode, YamlNode>(); // equals: _equals, hashCode: _hashCode
+      // We use the default linked hash map so the ordering is the same every time.
+      Map<YamlNode, YamlNode> map = {};
       ScalarEvent event =
           ScalarEvent(o1.span as FileSpan, 'true', ScalarStyle.PLAIN);
       for (var element in list.nodes) {
@@ -76,8 +74,8 @@ class Merger {
 
   /// Merge maps (recursively).
   YamlMap mergeMap(YamlMap m1, YamlMap m2) {
-    Map<YamlNode, YamlNode> merged =
-        HashMap<YamlNode, YamlNode>(); // equals: _equals, hashCode: _hashCode
+    // We use the default linked hash map so the ordering is the same every time.
+    Map<YamlNode, YamlNode> merged = {};
     m1.nodeMap.forEach((k, v) {
       merged[k] = v;
     });

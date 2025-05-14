@@ -282,7 +282,6 @@ class Configuration {
         name, architecture, compiler, mode, runtime, system,
         nnbdMode: nnbdMode,
         sanitizer: sanitizer,
-        babel: stringOption("babel"),
         builderTag: stringOption("builder-tag"),
         genKernelOptions: stringListOption("gen-kernel-options"),
         vmOptions: stringListOption("vm-options"),
@@ -328,8 +327,6 @@ class Configuration {
   final NnbdMode nnbdMode;
 
   final Sanitizer sanitizer;
-
-  final String babel;
 
   final String builderTag;
 
@@ -385,7 +382,6 @@ class Configuration {
       this.runtime, this.system,
       {NnbdMode? nnbdMode,
       Sanitizer? sanitizer,
-      String? babel,
       String? builderTag,
       List<String>? genKernelOptions,
       List<String>? vmOptions,
@@ -408,7 +404,6 @@ class Configuration {
       bool? useQemu})
       : nnbdMode = nnbdMode ?? NnbdMode.strong,
         sanitizer = sanitizer ?? Sanitizer.none,
-        babel = babel ?? "",
         builderTag = builderTag ?? "",
         genKernelOptions = genKernelOptions ?? <String>[],
         vmOptions = vmOptions ?? <String>[],
@@ -448,7 +443,6 @@ class Configuration {
     this.system, {
     required this.nnbdMode,
     required this.sanitizer,
-    required this.babel,
     required this.builderTag,
     required this.genKernelOptions,
     required this.vmOptions,
@@ -486,7 +480,6 @@ class Configuration {
         System.host,
         nnbdMode: source.nnbdMode,
         sanitizer: source.sanitizer,
-        babel: source.babel,
         builderTag: source.builderTag,
         genKernelOptions: source.genKernelOptions,
         vmOptions: source.vmOptions,
@@ -523,7 +516,6 @@ class Configuration {
       system == other.system &&
       nnbdMode == other.nnbdMode &&
       sanitizer == other.sanitizer &&
-      babel == other.babel &&
       builderTag == other.builderTag &&
       _listsEqual(genKernelOptions, other.genKernelOptions) &&
       _listsEqual(vmOptions, other.vmOptions) &&
@@ -575,7 +567,6 @@ class Configuration {
       runtime.hashCode ^
       system.hashCode ^
       nnbdMode.hashCode ^
-      babel.hashCode ^
       builderTag.hashCode ^
       genKernelOptions.join(" & ").hashCode ^
       vmOptions.join(" & ").hashCode ^
@@ -619,7 +610,6 @@ class Configuration {
       fields.add("$name: [${field.join(", ")}]");
     }
 
-    if (babel.isNotEmpty) fields.add("babel: $babel");
     if (builderTag.isNotEmpty) fields.add("builder-tag: $builderTag");
     stringListField("gen-kernel-options", genKernelOptions);
     stringListField("vm-options", vmOptions);
@@ -676,7 +666,6 @@ class Configuration {
 
     fields.add("nnbd: $nnbdMode ${other.nnbdMode}");
     fields.add("sanitizer: $sanitizer ${other.sanitizer}");
-    stringField("babel", babel, other.babel);
     stringField("builder-tag", builderTag, other.builderTag);
     stringListField(
         "gen-kernel-options", genKernelOptions, other.genKernelOptions);
@@ -722,6 +711,8 @@ class Architecture extends NamedEnum {
   // ignore: constant_identifier_names
   static const simarm_x64 = Architecture._('simarm_x64');
   static const simarm64 = Architecture._('simarm64');
+  // ignore: constant_identifier_names
+  static const simarm64_arm64 = Architecture._('simarm64_arm64');
   static const simarm64c = Architecture._('simarm64c');
   static const riscv32 = Architecture._('riscv32');
   static const riscv64 = Architecture._('riscv64');
@@ -743,6 +734,7 @@ class Architecture extends NamedEnum {
     simarm,
     simarm_x64,
     simarm64,
+    simarm64_arm64,
     simarm64c,
     riscv32,
     riscv64,
@@ -757,7 +749,7 @@ class Architecture extends NamedEnum {
     throw ArgumentError('Unknown architecture "$name".');
   }
 
-  const Architecture._(String name) : super(name);
+  const Architecture._(super.name);
 
   bool get isSimulator => _simulators.contains(this);
   static final _simulators = <Architecture>{
@@ -845,7 +837,7 @@ class Compiler extends NamedEnum {
     throw ArgumentError('Unknown compiler "$name".');
   }
 
-  const Compiler._(String name) : super(name);
+  const Compiler._(super.name);
 
   /// Gets the runtimes this compiler can target.
   List<Runtime> get supportedRuntimes {
@@ -862,9 +854,6 @@ class Compiler extends NamedEnum {
           Runtime.firefox,
           Runtime.chrome,
           Runtime.safari,
-          Runtime.ie9,
-          Runtime.ie10,
-          Runtime.ie11,
           Runtime.edge,
           Runtime.chromeOnAndroid,
         ];
@@ -965,7 +954,7 @@ class Mode extends NamedEnum {
     throw ArgumentError('Unknown mode "$name".');
   }
 
-  const Mode._(String name) : super(name);
+  const Mode._(super.name);
 
   bool get isDebug => this == debug;
 }
@@ -991,7 +980,7 @@ class Sanitizer extends NamedEnum {
     throw ArgumentError('Unknown sanitizer "$name".');
   }
 
-  const Sanitizer._(String name) : super(name);
+  const Sanitizer._(super.name);
 }
 
 class Runtime extends NamedEnum {
@@ -1004,9 +993,6 @@ class Runtime extends NamedEnum {
   static const firefox = Runtime._('firefox');
   static const chrome = Runtime._('chrome');
   static const safari = Runtime._('safari');
-  static const ie9 = Runtime._('ie9');
-  static const ie10 = Runtime._('ie10');
-  static const ie11 = Runtime._('ie11');
   static const edge = Runtime._('edge');
   static const chromeOnAndroid = Runtime._('chromeOnAndroid');
   static const none = Runtime._('none');
@@ -1023,9 +1009,6 @@ class Runtime extends NamedEnum {
     firefox,
     chrome,
     safari,
-    ie9,
-    ie10,
-    ie11,
     edge,
     chromeOnAndroid,
     none
@@ -1038,28 +1021,15 @@ class Runtime extends NamedEnum {
     throw ArgumentError('Unknown runtime "$name".');
   }
 
-  const Runtime._(String name) : super(name);
+  const Runtime._(super.name);
 
-  bool get isBrowser => const [
-        ie9,
-        ie10,
-        ie11,
-        edge,
-        safari,
-        chrome,
-        firefox,
-        chromeOnAndroid
-      ].contains(this);
-
-  bool get isIE => name.startsWith("ie");
+  bool get isBrowser =>
+      const [edge, safari, chrome, firefox, chromeOnAndroid].contains(this);
 
   bool get isSafari => name.startsWith("safari");
 
   /// Whether this runtime is a command-line JavaScript environment.
   bool get isJSCommandLine => const [d8, jsc, jsshell].contains(this);
-
-  /// If the runtime doesn't support `Window.open`, we use iframes instead.
-  bool get requiresIFrame => !const [ie11, ie10].contains(this);
 
   /// The preferred compiler to use with this runtime if no other compiler is
   /// specified.
@@ -1077,9 +1047,6 @@ class Runtime extends NamedEnum {
       case firefox:
       case chrome:
       case safari:
-      case ie9:
-      case ie10:
-      case ie11:
       case edge:
       case chromeOnAndroid:
         return Compiler.dart2js;
@@ -1128,7 +1095,7 @@ class System extends NamedEnum {
     throw ArgumentError('Unknown operating system "$name".');
   }
 
-  const System._(String name) : super(name);
+  const System._(super.name);
 
   /// The root directory name for build outputs on this system.
   String get outputDirectory {
@@ -1175,7 +1142,7 @@ class NnbdMode extends NamedEnum {
     throw ArgumentError('Unknown NNBD mode "$name".');
   }
 
-  const NnbdMode._(String name) : super(name);
+  const NnbdMode._(super.name);
 }
 
 /// Base class for an enum-like class whose values are identified by name.

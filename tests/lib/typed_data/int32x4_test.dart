@@ -81,9 +81,97 @@ void testBigArguments() {
   }
 }
 
+// TODO: Maybe move to `int32x4_arithmetic_test.dart`.
+void testBitOperators() {
+  var m = Int32x4(0xAAAAAAA, 0xAAAAAAA, 0xAAAAAAA, 0xAAAAAAA);
+  var n = Int32x4(0x5555555, 0x5555555, 0x5555555, 0x5555555);
+  Expect.equals(0xAAAAAAA, m.x);
+  Expect.equals(0xAAAAAAA, m.y);
+  Expect.equals(0xAAAAAAA, m.z);
+  Expect.equals(0xAAAAAAA, m.w);
+  Expect.equals(0x5555555, n.x);
+  Expect.equals(0x5555555, n.y);
+  Expect.equals(0x5555555, n.z);
+  Expect.equals(0x5555555, n.w);
+  Expect.equals(true, n.flagX);
+  Expect.equals(true, n.flagY);
+  Expect.equals(true, n.flagZ);
+  Expect.equals(true, n.flagW);
+  var o = m | n; // or
+  Expect.equals(0xFFFFFFF, o.x);
+  Expect.equals(0xFFFFFFF, o.y);
+  Expect.equals(0xFFFFFFF, o.z);
+  Expect.equals(0xFFFFFFF, o.w);
+  Expect.equals(true, o.flagX);
+  Expect.equals(true, o.flagY);
+  Expect.equals(true, o.flagZ);
+  Expect.equals(true, o.flagW);
+  o = m & n; // and
+  Expect.equals(0x0, o.x);
+  Expect.equals(0x0, o.y);
+  Expect.equals(0x0, o.z);
+  Expect.equals(0x0, o.w);
+  n = n.withX(0xAAAAAAA);
+  n = n.withY(0xAAAAAAA);
+  n = n.withZ(0xAAAAAAA);
+  n = n.withW(0xAAAAAAA);
+  Expect.equals(0xAAAAAAA, n.x);
+  Expect.equals(0xAAAAAAA, n.y);
+  Expect.equals(0xAAAAAAA, n.z);
+  Expect.equals(0xAAAAAAA, n.w);
+  o = m ^ n; // xor
+  Expect.equals(0x0, o.x);
+  Expect.equals(0x0, o.y);
+  Expect.equals(0x0, o.z);
+  Expect.equals(0x0, o.w);
+  Expect.equals(false, o.flagX);
+  Expect.equals(false, o.flagY);
+  Expect.equals(false, o.flagZ);
+  Expect.equals(false, o.flagW);
+}
+
+void testSetters() {
+  var m = Int32x4.bool(false, false, false, false);
+  Expect.equals(false, m.flagX);
+  Expect.equals(false, m.flagY);
+  Expect.equals(false, m.flagZ);
+  Expect.equals(false, m.flagW);
+  m = m.withFlagX(true);
+  Expect.equals(true, m.flagX);
+  Expect.equals(false, m.flagY);
+  Expect.equals(false, m.flagZ);
+  Expect.equals(false, m.flagW);
+  m = m.withFlagY(true);
+  Expect.equals(true, m.flagX);
+  Expect.equals(true, m.flagY);
+  Expect.equals(false, m.flagZ);
+  Expect.equals(false, m.flagW);
+  m = m.withFlagZ(true);
+  Expect.equals(true, m.flagX);
+  Expect.equals(true, m.flagY);
+  Expect.equals(true, m.flagZ);
+  Expect.equals(false, m.flagW);
+  m = m.withFlagW(true);
+  Expect.equals(true, m.flagX);
+  Expect.equals(true, m.flagY);
+  Expect.equals(true, m.flagZ);
+  Expect.equals(true, m.flagW);
+}
+
+void testGetters() {
+  var m = Int32x4.bool(false, true, true, false);
+  Expect.equals(false, m.flagX);
+  Expect.equals(true, m.flagY);
+  Expect.equals(true, m.flagZ);
+  Expect.equals(false, m.flagW);
+}
+
 main() {
   for (int i = 0; i < 20; i++) {
     testBigArguments();
     testBadArguments();
+    testBitOperators();
+    testSetters();
+    testGetters();
   }
 }

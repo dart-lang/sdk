@@ -131,11 +131,11 @@ mixin Mixin {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null]",
+  "inferredReturnType": "[null|powerset=1]",
   "parameters": [
     {
       "name": "t",
-      "type": "[exact=JSUInt31]",
+      "type": "[exact=JSUInt31|powerset=0]",
       "declaredType": "int"
     }
   ],
@@ -151,20 +151,15 @@ mixin Mixin {
     {"id":"function/dart:_rti::_arrayInstanceType"},
     {"id":"function/dart:_rti::_asBool"},
     {"id":"function/dart:_rti::_asBoolQ"},
-    {"id":"function/dart:_rti::_asBoolS"},
     {"id":"function/dart:_rti::_asDouble"},
     {"id":"function/dart:_rti::_asDoubleQ"},
-    {"id":"function/dart:_rti::_asDoubleS"},
     {"id":"function/dart:_rti::_asInt"},
     {"id":"function/dart:_rti::_asIntQ"},
-    {"id":"function/dart:_rti::_asIntS"},
     {"id":"function/dart:_rti::_asNum"},
     {"id":"function/dart:_rti::_asNumQ"},
-    {"id":"function/dart:_rti::_asNumS"},
     {"id":"function/dart:_rti::_asObject"},
     {"id":"function/dart:_rti::_asString"},
     {"id":"function/dart:_rti::_asStringQ"},
-    {"id":"function/dart:_rti::_asStringS"},
     {"id":"function/dart:_rti::_asTop"},
     {"id":"function/dart:_rti::_generalAsCheckImplementation"},
     {"id":"function/dart:_rti::_generalIsTestImplementation"},
@@ -219,11 +214,11 @@ mixin Mixin {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null]",
+  "inferredReturnType": "[null|powerset=1]",
   "parameters": [
     {
       "name": "t",
-      "type": "Union([exact=JSString], [exact=JSUInt31])",
+      "type": "Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)",
       "declaredType": "int"
     }
   ],
@@ -239,20 +234,15 @@ mixin Mixin {
   {"id":"function/dart:_rti::_arrayInstanceType"},
   {"id":"function/dart:_rti::_asBool"},
   {"id":"function/dart:_rti::_asBoolQ"},
-  {"id":"function/dart:_rti::_asBoolS"},
   {"id":"function/dart:_rti::_asDouble"},
   {"id":"function/dart:_rti::_asDoubleQ"},
-  {"id":"function/dart:_rti::_asDoubleS"},
   {"id":"function/dart:_rti::_asInt"},
   {"id":"function/dart:_rti::_asIntQ"},
-  {"id":"function/dart:_rti::_asIntS"},
   {"id":"function/dart:_rti::_asNum"},
   {"id":"function/dart:_rti::_asNumQ"},
-  {"id":"function/dart:_rti::_asNumS"},
   {"id":"function/dart:_rti::_asObject"},
   {"id":"function/dart:_rti::_asString"},
   {"id":"function/dart:_rti::_asStringQ"},
-  {"id":"function/dart:_rti::_asStringS"},
   {"id":"function/dart:_rti::_asTop"},
   {"id":"function/dart:_rti::_generalAsCheckImplementation"},
   {"id":"function/dart:_rti::_generalIsTestImplementation"},
@@ -306,7 +296,7 @@ class Clazz = Super<int> with Mixin;
     "external": false
   },
   "returnType": "Subclass",
-  "inferredReturnType": "[exact=Subclass]",
+  "inferredReturnType": "[exact=Subclass|powerset=0]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
@@ -330,7 +320,7 @@ class Subclass extends Clazz {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null]",
+  "inferredReturnType": "[null|powerset=1]",
   "parameters": [],
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 1,
@@ -372,7 +362,7 @@ class Subclass extends Clazz {
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[null]",
+  "inferredReturnType": "[null|powerset=1]",
   "parameters": [],
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
@@ -395,7 +385,7 @@ class Subclass extends Clazz {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null]",
+  "inferredReturnType": "[null|powerset=1]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,

@@ -435,7 +435,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     _methodElement = element;
 
-    var declaration = await sessionHelper.getElementDeclaration(
+    var declaration = await sessionHelper.getFragmentDeclaration(
       element.firstFragment,
     );
     var methodNode = declaration!.node;
@@ -529,7 +529,7 @@ class _ReferenceProcessor {
   _ReferenceProcessor(this.ref, this.reference);
 
   Future<void> init() async {
-    refElement = reference.element2;
+    refElement = reference.element;
 
     // prepare CorrectionUtils
     var result = await ref.sessionHelper.getResolvedUnitByElement(refElement);
@@ -825,6 +825,11 @@ class _ReturnsValidatorVisitor extends RecursiveAstVisitor<void> {
   int _numReturns = 0;
 
   _ReturnsValidatorVisitor(this.result);
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    // Return statements within closures aren't counted.
+  }
 
   @override
   void visitReturnStatement(ReturnStatement node) {

@@ -41,7 +41,8 @@ Component loadComponentSourceFromBytes(Uint8List bytes,
   return component;
 }
 
-Future writeComponentToBinary(Component component, String path) {
+Future writeComponentToBinary(Component component, String path,
+    {bool includeSource = true}) {
   IOSink sink;
   if (path == 'null' || path == 'stdout') {
     sink = stdout.nonBlocking;
@@ -51,7 +52,8 @@ Future writeComponentToBinary(Component component, String path) {
 
   Future future;
   try {
-    new BinaryPrinter(sink).writeComponentFile(component);
+    new BinaryPrinter(sink, includeSources: includeSource)
+        .writeComponentFile(component);
   } finally {
     if (sink == stdout.nonBlocking) {
       future = sink.flush();

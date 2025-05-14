@@ -26,7 +26,6 @@ LogicalOrPattern
   leftOperand: WildcardPattern
     type: NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     name: _
@@ -35,7 +34,6 @@ LogicalOrPattern
   rightOperand: WildcardPattern
     type: NamedType
       name: double
-      element: dart:core::<fragment>::@class::double
       element2: dart:core::@class::double
       type: double
     name: _
@@ -59,7 +57,6 @@ LogicalOrPattern
   leftOperand: WildcardPattern
     type: NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     name: _
@@ -68,12 +65,48 @@ LogicalOrPattern
   rightOperand: WildcardPattern
     type: NamedType
       name: double
-      element: dart:core::<fragment>::@class::double
       element2: dart:core::@class::double
       type: double
     name: _
     matchedValueType: dynamic
   matchedValueType: dynamic
+''');
+  }
+
+  test_switchCase_topLevel3() async {
+    // https://github.com/dart-lang/sdk/issues/60168
+    await resolveTestCode(r'''
+var _ = switch (0) {
+  var a || var a || var a => 0,
+};
+''');
+
+    var node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
+    leftOperand: DeclaredVariablePattern
+      keyword: var
+      name: a
+      declaredElement: hasImplicitType a@27
+        type: int
+      matchedValueType: int
+    operator: ||
+    rightOperand: DeclaredVariablePattern
+      keyword: var
+      name: a
+      declaredElement: hasImplicitType a@36
+        type: int
+      matchedValueType: int
+    matchedValueType: int
+  operator: ||
+  rightOperand: DeclaredVariablePattern
+    keyword: var
+    name: a
+    declaredElement: hasImplicitType a@45
+      type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 }

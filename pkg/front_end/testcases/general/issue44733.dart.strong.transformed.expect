@@ -33,11 +33,6 @@ library;
 import self as self;
 import "dart:core" as core;
 
-abstract class _B&A&C extends self::A implements self::C /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_B&A&C
-    : super self::A::•()
-    ;
-}
 abstract class B extends self::_B&A&C {
   synthetic constructor •() → self::B
     : super self::_B&A&C::•()
@@ -69,6 +64,11 @@ abstract class A extends core::Object {
     return invalid-expression "pkg/front_end/testcases/general/issue44733.dart:22:20: Error: Superclass has no getter named 'y'.
   F get y => super.y as F;
                    ^" as invalid-type;
+}
+abstract class _B&A&C extends self::A implements self::C /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_B&A&C
+    : super self::A::•()
+    ;
 }
 static get x() → self::B
   return invalid-expression "pkg/front_end/testcases/general/issue44733.dart:9:12: Error: Expected identifier, but got 'super'.

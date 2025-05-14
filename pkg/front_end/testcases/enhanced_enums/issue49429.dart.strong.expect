@@ -10,8 +10,8 @@ class A extends core::Object /*hasConstConstructor*/  {
     return new self::A::•();
 }
 class E extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E> values = #C4;
   enum-element static const field self::E element = #C3;
+  static const field core::List<self::E> values = #C4;
   const constructor •(core::int #index, core::String #name, self::A a) → self::E
     : super core::_Enum::•(#index, #name)
     ;

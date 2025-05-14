@@ -5,8 +5,6 @@
 // The representation variable of an extension type can be named `_`, and no
 // formal parameter name is introduced into any scopes.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'package:expect/expect.dart';
 
 extension type Id(int _) {

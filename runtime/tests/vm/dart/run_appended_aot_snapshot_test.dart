@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:dart2native/dart2native.dart' hide platformDill, genSnapshot;
 import 'package:path/path.dart' as path;
 import 'package:expect/expect.dart';
+import 'package:native_assets_cli/code_assets_builder.dart' show OS;
 
 import 'snapshot_test_helper.dart';
 
@@ -18,38 +19,59 @@ Future<void> main(List<String> args) async {
   }
 
   final String sourcePath = path.join(
-      'runtime', 'tests', 'vm', 'dart', 'run_appended_aot_snapshot_test.dart');
+    'runtime',
+    'tests',
+    'vm',
+    'dart',
+    'run_appended_aot_snapshot_test.dart',
+  );
 
   await withTempDir((String tmp) async {
     final String exeName = 'test.exe';
     final String dillPath = path.join(tmp, 'test.dill');
     final String aotPath = path.join(tmp, 'test.aot');
     final String exePath = path.join(tmp, exeName);
-    final extraGenKernelOptions = Platform.executableArguments
-        .where((arg) =>
-            arg.startsWith('--enable-experiment=') ||
-            arg == '--sound-null-safety' ||
-            arg == '--no-sound-null-safety')
-        .toList();
+    final extraGenKernelOptions =
+        Platform.executableArguments
+            .where(
+              (arg) =>
+                  arg.startsWith('--enable-experiment=') ||
+                  arg == '--sound-null-safety' ||
+                  arg == '--no-sound-null-safety',
+            )
+            .toList();
 
     {
       final result = await generateAotKernel(
-          checkedInDartVM, genKernelDart, platformDill, sourcePath, dillPath,
-          extraGenKernelOptions: extraGenKernelOptions);
+        checkedInDartVM,
+        genKernelDart,
+        platformDill,
+        sourcePath,
+        dillPath,
+        extraGenKernelOptions: extraGenKernelOptions,
+      );
       Expect.equals(result.stderr, '');
       Expect.equals(result.stdout, '');
       Expect.equals(result.exitCode, 0);
     }
 
     {
-      final result =
-          await generateAotSnapshotHelper(genSnapshot, dillPath, aotPath);
+      final result = await generateAotSnapshotHelper(
+        genSnapshot,
+        dillPath,
+        aotPath,
+      );
       Expect.equals(result.stderr, '');
       Expect.equals(result.stdout, '');
       Expect.equals(result.exitCode, 0);
     }
 
-    await writeAppendedExecutable(dartPrecompiledRuntime, aotPath, exePath);
+    await writeAppendedExecutable(
+      dartPrecompiledRuntime,
+      aotPath,
+      exePath,
+      OS.current,
+    );
 
     if (Platform.isLinux || Platform.isMacOS) {
       final result = await markExecutable(exePath);
@@ -59,8 +81,9 @@ Future<void> main(List<String> args) async {
     }
 
     {
-      final runResult =
-          await runBinary('run appended aot snapshot', exePath, ['--child']);
+      final runResult = await runBinary('run appended aot snapshot', exePath, [
+        '--child',
+      ]);
       expectOutput('Hello, Appended AOT', runResult);
     }
 
@@ -68,22 +91,29 @@ Future<void> main(List<String> args) async {
       // Test that it runs when invoked via PATH as well.
       Map<String, String> environment = {'PATH': tmp};
       final runResult = await runBinary(
-          'run appended aot snapshot from PATH', exeName, ['--child'],
-          environment: environment, runInShell: true);
+        'run appended aot snapshot from PATH',
+        exeName,
+        ['--child'],
+        environment: environment,
+        runInShell: true,
+      );
       expectOutput('Hello, Appended AOT', runResult);
     }
 
     // Windows allows leaving out .exe. Make sure we can load that as well.
     if (Platform.isWindows) {
-      final String exeNameWithoutExt =
-          exeName.replaceFirst(new RegExp(r'.exe$'), '');
+      final String exeNameWithoutExt = exeName.replaceFirst(
+        new RegExp(r'.exe$'),
+        '',
+      );
       Map<String, String> environment = {'PATH': tmp};
       final runResult = await runBinary(
-          'run appended aot snapshot without extension',
-          exeNameWithoutExt,
-          ['--child'],
-          environment: environment,
-          runInShell: true);
+        'run appended aot snapshot without extension',
+        exeNameWithoutExt,
+        ['--child'],
+        environment: environment,
+        runInShell: true,
+      );
       expectOutput('Hello, Appended AOT', runResult);
     }
   });
@@ -106,12 +136,18 @@ Future generateAotKernel(
     '-o',
     kernelFile,
     ...extraGenKernelOptions,
-    sourceFile
+    sourceFile,
   ]);
 }
 
 Future<ProcessResult> generateAotSnapshotHelper(
-    String genSnapshot, String kernelFile, String snapshotFile) {
-  return Process.run(genSnapshot,
-      ['--snapshot-kind=app-aot-elf', '--elf=$snapshotFile', kernelFile]);
+  String genSnapshot,
+  String kernelFile,
+  String snapshotFile,
+) {
+  return Process.run(genSnapshot, [
+    '--snapshot-kind=app-aot-elf',
+    '--elf=$snapshotFile',
+    kernelFile,
+  ]);
 }

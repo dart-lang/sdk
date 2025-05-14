@@ -18,6 +18,7 @@ platform_sources = [
   "growable_array.h",
   "hashmap.cc",
   "hashmap.h",
+  "lockers.h",
   "memory_sanitizer.h",
   "safe_stack.h",
   "signal_blocker.h",

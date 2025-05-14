@@ -40,23 +40,23 @@ main() {
     dynamic classC = elementEnvironment.lookupClass(mainLibrary, 'C');
     dynamic classD = elementEnvironment.lookupClass(mainLibrary, 'D');
 
-    var exactA = TypeMask.nonNullExact(classA, closedWorld);
-    var exactB = TypeMask.nonNullExact(classB, closedWorld);
-    var exactC = TypeMask.nonNullExact(classC, closedWorld);
-    var exactD = TypeMask.nonNullExact(classD, closedWorld);
+    var exactA = TypeMask.nonNullExact(classA, commonMasks);
+    var exactB = TypeMask.nonNullExact(classB, commonMasks);
+    var exactC = TypeMask.nonNullExact(classC, commonMasks);
+    var exactD = TypeMask.nonNullExact(classD, commonMasks);
 
-    var subclassA = TypeMask.nonNullSubclass(classA, closedWorld);
-    var subtypeA = TypeMask.nonNullSubtype(classA, closedWorld);
+    var subclassA = TypeMask.nonNullSubclass(classA, commonMasks);
+    var subtypeA = TypeMask.nonNullSubtype(classA, commonMasks);
 
     var subclassObject = TypeMask.nonNullSubclass(
       closedWorld.commonElements.objectClass,
-      closedWorld,
+      commonMasks,
     );
 
     var unionABC = UnionTypeMask.unionOf([exactA, exactB, exactC], commonMasks);
     var unionABnC = UnionTypeMask.unionOf([
       exactA,
-      exactB.nullable(),
+      exactB.nullable(commonMasks),
       exactC,
     ], commonMasks);
     var unionAB = UnionTypeMask.unionOf([exactA, exactB], commonMasks);
@@ -69,7 +69,7 @@ main() {
     var unionBCDn = UnionTypeMask.unionOf([
       exactB,
       exactC,
-      exactD.nullable(),
+      exactD.nullable(commonMasks),
     ], commonMasks);
 
     Expect.isFalse(unionABC.isNullable);
@@ -77,7 +77,8 @@ main() {
     Expect.isFalse(unionBCD.isNullable);
     Expect.isTrue(unionBCDn.isNullable);
 
-    rule(a, b, c) => Expect.equals(c, a.isInMask(b, closedWorld));
+    rule(TypeMask a, TypeMask b, bool c) =>
+        Expect.equals(c, a.isInMask(b, commonMasks));
 
     rule(exactA, exactA, true);
     rule(exactA, exactB, false);
@@ -137,13 +138,13 @@ main() {
 
     rule(unionABnC, unionABC, false);
     rule(unionABC, unionABnC, true);
-    rule(exactA.nullable(), unionABnC, true);
-    rule(exactA.nullable(), unionABC, false);
+    rule(exactA.nullable(commonMasks), unionABnC, true);
+    rule(exactA.nullable(commonMasks), unionABC, false);
     rule(exactB, unionABnC, true);
     rule(unionBCDn, unionBCD, false);
     rule(unionBCD, unionBCDn, true);
-    rule(exactB.nullable(), unionBCDn, true);
-    rule(exactB.nullable(), unionBCD, false);
+    rule(exactB.nullable(commonMasks), unionBCDn, true);
+    rule(exactB.nullable(commonMasks), unionBCD, false);
   }
 
   asyncTest(() async {

@@ -157,12 +157,12 @@ abstract final class CustomMethods {
   /// Method for requesting the set of editable arguments at a location in a
   /// document.
   static const dartTextDocumentEditableArguments = Method(
-    'experimental/dart/textDocument/editableArguments',
+    'dart/textDocument/editableArguments',
   );
 
   /// Method for adding/editing an argument at a location in a document.
   static const dartTextDocumentEditArgument = Method(
-    'experimental/dart/textDocument/editArgument',
+    'dart/textDocument/editArgument',
   );
 
   // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
@@ -175,6 +175,13 @@ abstract final class CustomMethods {
   /// the required constant.
   static const semanticTokenDynamicRegistration = Method(
     'textDocument/semanticTokens',
+  );
+
+  /// Used to pass diagnostic information from the client editor to the server
+  /// that can be shown in the analyzer diagnostic pages, and also included in
+  /// the exported diagnostic report.
+  static const updateDiagnosticInformation = Method(
+    'dart/updateDiagnosticInformation',
   );
 
   /// An experimental 'echo' handler that can used by tests to verify
@@ -322,6 +329,21 @@ abstract final class ServerErrorCodes {
 
   /// General state error.
   static const StateError = ErrorCodes(-32015);
+
+  /// A request was made that requires use of workspace/applyEdit but the
+  /// current editor does not support it.
+  static const EditsUnsupportedByEditor = ErrorCodes(-32016);
+
+  /// An editArgument request tried to modify an invocation at a position where
+  /// there was no invocation.
+  static const EditArgumentInvalidPosition = ErrorCodes(-32017);
+
+  /// An editArgument request tried to modify a parameter that does not exist or
+  /// is not editable.
+  static const EditArgumentInvalidParameter = ErrorCodes(-32018);
+
+  /// An editArgument request tried to set an argument value that is not valid.
+  static const EditArgumentInvalidValue = ErrorCodes(-32019);
 
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification

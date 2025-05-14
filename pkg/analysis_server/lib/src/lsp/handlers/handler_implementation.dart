@@ -63,7 +63,7 @@ class ImplementationHandler
     OperationPerformanceImpl performance,
   ) async {
     var node = NodeLocator(offset).searchWithin(result.unit);
-    var element = server.getElementOfNode2(node);
+    var element = server.getElementOfNode(node);
     if (element == null) {
       return success([]);
     }

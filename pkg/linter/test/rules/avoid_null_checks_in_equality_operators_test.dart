@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidNullChecksInEqualityOperatorsTest);
   });
@@ -19,7 +19,8 @@ class AvoidNullChecksInEqualityOperatorsTest extends LintRuleTest {
 
   test_dynamicParameter_neNull() async {
     // https://github.com/dart-lang/linter/issues/2864
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String foo = '';
   @override
@@ -27,26 +28,28 @@ class C {
     return other != null && other is C && foo == other.foo;
   }
 }
-''', [
-      error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2),
-    ]);
+''',
+      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2)],
+    );
   }
 
   test_dynamicParameter_propertyAccess() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String foo = '';
   @override
   operator ==(dynamic other) => other is C && foo == other.foo;
 }
-''', [
-      error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2),
-    ]);
+''',
+      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2)],
+    );
   }
 
   test_nonNullableParameter_neNull() async {
     // https://github.com/dart-lang/linter/issues/2864
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String foo = '';
   @override
@@ -54,41 +57,42 @@ class C {
     return other != null && other is C && foo == other.foo;
   }
 }
-''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 88, 7),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 88, 7)],
+    );
   }
 
   test_nullableParameter_eqeqNull_not() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String foo = '';
   @override
   operator ==(Object? other) =>
           !(other == null) && other is C && foo == other.foo;
 }
-''', [
-      error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2),
-      lint(85, 13),
-    ]);
+''',
+      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2), lint(85, 13)],
+    );
   }
 
   test_nullableParameter_eqeqNull_not_parens() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String foo = '';
   @override
   operator ==(Object? other) =>
           !((other) == null) && (other) is C && foo == (other.foo);
 }
-''', [
-      error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2),
-      lint(85, 15),
-    ]);
+''',
+      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2), lint(85, 15)],
+    );
   }
 
   test_nullableParameter_fieldComparisonOnLocal() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String foo;
   C(this.foo);
@@ -102,38 +106,43 @@ class C {
   }
 
 }
-''', [
-      error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 62, 2),
-      lint(126, 14),
-      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 135, 5),
-    ]);
+''',
+      [
+        error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 62, 2),
+        lint(126, 14),
+        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 135, 5),
+      ],
+    );
   }
 
   test_nullableParameter_neNull() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String foo = '';
   @override
   operator ==(Object? other) =>
           other != null && other is C && foo == other.foo;
 }
-''', [
-      error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2),
-      lint(83, 13),
-    ]);
+''',
+      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2), lint(83, 13)],
+    );
   }
 
   test_nullableParameter_nullAwarePropertyAccess() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String foo = '';
   @override
   operator ==(Object? other) => other is C && foo == other?.foo;
 }
-''', [
-      error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2),
-      lint(94, 10),
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 99, 2),
-    ]);
+''',
+      [
+        error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2),
+        lint(94, 10),
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 99, 2),
+      ],
+    );
   }
 }

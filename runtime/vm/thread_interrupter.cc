@@ -51,7 +51,7 @@ Monitor* ThreadInterrupter::monitor_ = nullptr;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
 
-void ThreadInterrupter::Init() {
+void ThreadInterrupter::Init(intptr_t period) {
   ASSERT(!initialized_);
   if (monitor_ == nullptr) {
     monitor_ = new Monitor();
@@ -59,6 +59,7 @@ void ThreadInterrupter::Init() {
   ASSERT(monitor_ != nullptr);
   initialized_ = true;
   shutdown_ = false;
+  interrupt_period_ = period;
 }
 
 void ThreadInterrupter::Startup() {

@@ -3115,7 +3115,7 @@ class StoreOptimizer : public LivenessAnalysis {
   StoreOptimizer(FlowGraph* graph,
                  AliasedSet* aliased_set,
                  PointerSet<Place>* map)
-      : LivenessAnalysis(aliased_set->max_place_id(), graph->postorder()),
+      : LivenessAnalysis(graph, aliased_set->max_place_id()),
         graph_(graph),
         map_(map),
         aliased_set_(aliased_set),

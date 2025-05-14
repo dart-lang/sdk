@@ -35,8 +35,17 @@ class MapTest {
     testDeletedElement(map);
     testMap(map, 1, 2, 3, 4, 5, 6, 7, 8);
     map.clear();
-    testMap(map, "value1", "value2", "value3", "value4", "value5", "value6",
-        "value7", "value8");
+    testMap(
+      map,
+      "value1",
+      "value2",
+      "value3",
+      "value4",
+      "value5",
+      "value6",
+      "value7",
+      "value8",
+    );
   }
 
   static void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {

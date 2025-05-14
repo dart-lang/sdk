@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore: unused_import
+// ignore: unused_import, multiple_combinators
 import 'dart:isolate' show Isolate, SendPort hide Capability;
 
 import 'package:test/test.dart';
@@ -10,6 +10,7 @@ import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
+// ignore: multiple_combinators
 export 'dart:io' show Socket hide SecureSocket;
 
 void testMain() {}

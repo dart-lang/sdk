@@ -8,11 +8,11 @@ const _desc = r'Do use sound null safety.';
 
 class EnableNullSafety extends LintRule {
   EnableNullSafety()
-      : super(
-          name: LintNames.enable_null_safety,
-          description: _desc,
-          state: State.removed(since: dart3),
-        );
+    : super(
+        name: LintNames.enable_null_safety,
+        description: _desc,
+        state: State.removed(since: dart3),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

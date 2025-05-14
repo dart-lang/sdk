@@ -63,6 +63,162 @@ class Foo {
     );
   }
 
+  Future<void> test_nullAwareElements_inList() async {
+    var code = TestCode.parse('''
+class Foo<T> {
+  List<int> a(String b) {
+    return [?(1 ^+ 2) * 3];
+  }
+}
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var lineInfo = LineInfo.fromContent(code.code);
+
+    // The returned List corresponds to the input list of positions, and not
+    // the set of ranges - each range within that list has a (recursive) parent
+    // to walk up all ranges for that position.
+    var regions = await getSelectionRanges(mainFileUri, [
+      code.position.position,
+    ]);
+    expect(regions!.length, equals(1)); // Only one position was sent.
+    var regionTexts =
+        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+
+    expect(
+      regionTexts,
+      equals([
+        '1 + 2',
+        '(1 + 2)',
+        '(1 + 2) * 3',
+        '?(1 + 2) * 3',
+        '[?(1 + 2) * 3]',
+        'return [?(1 + 2) * 3];',
+        '{\n    return [?(1 + 2) * 3];\n  }',
+        'List<int> a(String b) {\n    return [?(1 + 2) * 3];\n  }',
+        'class Foo<T> {\n  List<int> a(String b) {\n    return [?(1 + 2) * 3];\n  }\n}',
+      ]),
+    );
+  }
+
+  Future<void> test_nullAwareElements_inMapKey() async {
+    var code = TestCode.parse('''
+class Foo<T> {
+  Map<int, String> a(String b) {
+    return {?(1 ^+ 2) * 3: b};
+  }
+}
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var lineInfo = LineInfo.fromContent(code.code);
+
+    // The returned List corresponds to the input list of positions, and not
+    // the set of ranges - each range within that list has a (recursive) parent
+    // to walk up all ranges for that position.
+    var regions = await getSelectionRanges(mainFileUri, [
+      code.position.position,
+    ]);
+    expect(regions!.length, equals(1)); // Only one position was sent.
+    var regionTexts =
+        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+
+    expect(
+      regionTexts,
+      equals([
+        '1 + 2',
+        '(1 + 2)',
+        '(1 + 2) * 3',
+        '?(1 + 2) * 3: b',
+        '{?(1 + 2) * 3: b}',
+        'return {?(1 + 2) * 3: b};',
+        '{\n    return {?(1 + 2) * 3: b};\n  }',
+        'Map<int, String> a(String b) {\n    return {?(1 + 2) * 3: b};\n  }',
+        'class Foo<T> {\n  Map<int, String> a(String b) {\n    return {?(1 + 2) * 3: b};\n  }\n}',
+      ]),
+    );
+  }
+
+  Future<void> test_nullAwareElements_inMapValue() async {
+    var code = TestCode.parse('''
+class Foo<T> {
+  Map<String, int> a(String b) {
+    return {b: ?(1 ^+ 2) * 3};
+  }
+}
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var lineInfo = LineInfo.fromContent(code.code);
+
+    // The returned List corresponds to the input list of positions, and not
+    // the set of ranges - each range within that list has a (recursive) parent
+    // to walk up all ranges for that position.
+    var regions = await getSelectionRanges(mainFileUri, [
+      code.position.position,
+    ]);
+    expect(regions!.length, equals(1)); // Only one position was sent.
+    var regionTexts =
+        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+
+    expect(
+      regionTexts,
+      equals([
+        '1 + 2',
+        '(1 + 2)',
+        '(1 + 2) * 3',
+        'b: ?(1 + 2) * 3',
+        '{b: ?(1 + 2) * 3}',
+        'return {b: ?(1 + 2) * 3};',
+        '{\n    return {b: ?(1 + 2) * 3};\n  }',
+        'Map<String, int> a(String b) {\n    return {b: ?(1 + 2) * 3};\n  }',
+        'class Foo<T> {\n  Map<String, int> a(String b) {\n    return {b: ?(1 + 2) * 3};\n  }\n}',
+      ]),
+    );
+  }
+
+  Future<void> test_nullAwareElements_inSet() async {
+    var code = TestCode.parse('''
+class Foo<T> {
+  Set<int> a(String b) {
+    return {?(1 ^+ 2) * 3};
+  }
+}
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var lineInfo = LineInfo.fromContent(code.code);
+
+    // The returned List corresponds to the input list of positions, and not
+    // the set of ranges - each range within that list has a (recursive) parent
+    // to walk up all ranges for that position.
+    var regions = await getSelectionRanges(mainFileUri, [
+      code.position.position,
+    ]);
+    expect(regions!.length, equals(1)); // Only one position was sent.
+    var regionTexts =
+        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+
+    expect(
+      regionTexts,
+      equals([
+        '1 + 2',
+        '(1 + 2)',
+        '(1 + 2) * 3',
+        '?(1 + 2) * 3',
+        '{?(1 + 2) * 3}',
+        'return {?(1 + 2) * 3};',
+        '{\n    return {?(1 + 2) * 3};\n  }',
+        'Set<int> a(String b) {\n    return {?(1 + 2) * 3};\n  }',
+        'class Foo<T> {\n  Set<int> a(String b) {\n    return {?(1 + 2) * 3};\n  }\n}',
+      ]),
+    );
+  }
+
   Future<void> test_single() async {
     var code = TestCode.parse('''
 class Foo<T> {

@@ -2,41 +2,43 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
+/// @docImport 'package:analyzer/dart/element/element2.dart';
+library;
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Information about a constructor element to instantiate.
 ///
-/// If the target is a [ClassElement], the [element] is a raw
-/// [ConstructorElement] from the class, and [typeParameters] are the
+/// If the target is a [ClassElement2], the [element] is a raw
+/// [ConstructorElement2] from the class, and [typeParameters] are the
 /// type parameters of the class.
 ///
-/// If the target is a [TypeAliasElement] with an [InterfaceType] as the
+/// If the target is a [TypeAliasElement2] with an [InterfaceType] as the
 /// aliased type, the [element] is a [ConstructorMember] created from the
-/// [ConstructorElement] of the corresponding class, and substituting
+/// [ConstructorElement2] of the corresponding class, and substituting
 /// the class type parameters with the type arguments specified in the alias,
 /// explicit types or the type parameters of the alias. The [typeParameters]
 /// are the type parameters of the alias.
 class ConstructorElementToInfer {
   /// The type parameters used in [element].
-  final List<TypeParameterElement> typeParameters;
+  final List<TypeParameterElementImpl2> typeParameters2;
 
   /// The element, might be [ConstructorMember].
-  final ConstructorElement element;
+  final ConstructorElementMixin2 element2;
 
-  ConstructorElementToInfer(this.typeParameters, this.element);
+  ConstructorElementToInfer(this.typeParameters2, this.element2);
 
   /// Return the equivalent generic function type that we could use to
   /// forward to the constructor, or for a non-generic type simply returns
@@ -53,6 +55,12 @@ class ConstructorElementToInfer {
             returnType: element.returnType,
             nullabilitySuffix: NullabilitySuffix.none,
           );
+  }
+
+  ConstructorElementMixin get element => element2.asElement;
+
+  List<TypeParameterElementImpl> get typeParameters {
+    return typeParameters2.map((e) => e.asElement).toList();
   }
 }
 
@@ -79,32 +87,32 @@ class InvocationInferenceHelper {
   /// return the element and type parameters to infer. Otherwise return `null`.
   ConstructorElementToInfer? constructorElementToInfer({
     required ConstructorName constructorName,
-    required LibraryElement definingLibrary,
+    required LibraryElementImpl definingLibrary,
   }) {
-    List<TypeParameterElement> typeParameters;
-    ConstructorElement? rawElement;
+    List<TypeParameterElementImpl2> typeParameters;
+    ConstructorElementMixin2? rawElement;
 
     var typeName = constructorName.type;
-    var typeElement = typeName.element;
-    if (typeElement is InterfaceElement) {
-      var augmented = typeElement.augmented;
-      typeParameters = typeElement.typeParameters;
+    var typeElement = typeName.element2;
+    if (typeElement is InterfaceElementImpl2) {
+      typeParameters = typeElement.typeParameters2;
       var constructorIdentifier = constructorName.name;
       if (constructorIdentifier == null) {
-        rawElement = augmented.unnamedConstructor;
+        rawElement = typeElement.unnamedConstructor2;
       } else {
         var name = constructorIdentifier.name;
-        rawElement = augmented.getNamedConstructor(name);
-        if (rawElement != null && !rawElement.isAccessibleIn(definingLibrary)) {
+        rawElement = typeElement.getNamedConstructor2(name);
+        if (rawElement != null &&
+            !rawElement.isAccessibleIn2(definingLibrary)) {
           rawElement = null;
         }
       }
-    } else if (typeElement is TypeAliasElement) {
-      typeParameters = typeElement.typeParameters;
+    } else if (typeElement is TypeAliasElementImpl2) {
+      typeParameters = typeElement.typeParameters2;
       var aliasedType = typeElement.aliasedType;
-      if (aliasedType is InterfaceType) {
+      if (aliasedType is InterfaceTypeImpl) {
         var constructorIdentifier = constructorName.name;
-        rawElement = aliasedType.lookUpConstructor(
+        rawElement = aliasedType.lookUpConstructor2(
           constructorIdentifier?.name,
           definingLibrary,
         );
@@ -125,7 +133,7 @@ class InvocationInferenceHelper {
   DartType inferTearOff(ExpressionImpl expression,
       SimpleIdentifierImpl identifier, DartType tearOffType,
       {required DartType contextType}) {
-    if (contextType is FunctionType && tearOffType is FunctionType) {
+    if (contextType is FunctionTypeImpl && tearOffType is FunctionTypeImpl) {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
         contextType,
         tearOffType,
@@ -149,14 +157,14 @@ class InvocationInferenceHelper {
 
   /// Finish resolution of the [MethodInvocation].
   ///
-  /// We have already found the invoked [ExecutableElement], and the [rawType]
+  /// We have already found the invoked [ExecutableElement2], and the [rawType]
   /// is its not yet instantiated type. Here we perform downwards inference,
   /// resolution of arguments, and upwards inference.
   void resolveMethodInvocation({
     required MethodInvocationImpl node,
     required FunctionType rawType,
     required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required DartType contextType,
+    required TypeImpl contextType,
   }) {
     var returnType = MethodInvocationInferrer(
       resolver: _resolver,
@@ -164,7 +172,10 @@ class InvocationInferenceHelper {
       argumentList: node.argumentList,
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(rawType: rawType);
+    ).resolveInvocation(
+        // TODO(paulberry): eliminate this cast by changing the type of
+        // `rawType`.
+        rawType: rawType as FunctionTypeImpl);
 
     node.recordStaticType(returnType, resolver: _resolver);
   }

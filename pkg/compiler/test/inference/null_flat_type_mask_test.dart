@@ -16,13 +16,14 @@ main() {
       """, testBackendWorld: true);
     JClosedWorld world = env.jClosedWorld;
     ClassEntity nullClass = env.commonElements.nullClass;
-    FlatTypeMask empty = FlatTypeMask.empty();
-    Expect.equals(empty, FlatTypeMask.exact(nullClass, world));
-    Expect.equals(empty, FlatTypeMask.subclass(nullClass, world));
-    Expect.equals(empty, FlatTypeMask.subtype(nullClass, world));
-    Expect.equals(empty, FlatTypeMask.nonNullExact(nullClass, world));
-    Expect.equals(empty, FlatTypeMask.nonNullSubclass(nullClass, world));
-    Expect.equals(empty, FlatTypeMask.nonNullSubtype(nullClass, world));
+    final domain = world.abstractValueDomain as CommonMasks;
+    FlatTypeMask empty = FlatTypeMask.empty(domain);
+    Expect.equals(empty, FlatTypeMask.exact(nullClass, domain));
+    Expect.equals(empty, FlatTypeMask.subclass(nullClass, domain));
+    Expect.equals(empty, FlatTypeMask.subtype(nullClass, domain));
+    Expect.equals(empty, FlatTypeMask.nonNullExact(nullClass, domain));
+    Expect.equals(empty, FlatTypeMask.nonNullSubclass(nullClass, domain));
+    Expect.equals(empty, FlatTypeMask.nonNullSubtype(nullClass, domain));
   }
 
   asyncTest(() async {

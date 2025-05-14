@@ -13,17 +13,17 @@ abstract class M extends core::Object /*isMixinDeclaration*/  {
   method m() → dynamic
     return 42;
 }
+class C extends self::_C&A&M {
+  synthetic constructor •() → self::C
+    : super self::_C&A&M::•()
+    ;
+}
 abstract class _C&A&M extends self::A<self::A<dynamic>> implements self::M /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_C&A&M
     : super self::A::•()
     ;
   method m() → dynamic
     return 42;
-}
-class C extends self::_C&A&M {
-  synthetic constructor •() → self::C
-    : super self::_C&A&M::•()
-    ;
 }
 static method main() → dynamic {
   new self::C::•().{self::_C&A&M::m}(){() → dynamic}{dynamic}.+(1);

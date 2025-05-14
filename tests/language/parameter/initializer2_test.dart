@@ -65,9 +65,7 @@ class E {
 
 // mixed
 class F {
-  F(x, this.y_, int w, int this.z)
-      : x_ = x,
-        w_ = w {}
+  F(x, this.y_, int w, int this.z) : x_ = x, w_ = w {}
   F.foobar(this.z, int this.x_, int this.az_) {}
   int x_;
   late int y_;

@@ -469,6 +469,9 @@ bool Slot::Equals(const Slot& other) const {
   }
 
   switch (kind_) {
+#define NATIVE_SLOT_CASE(CN, __, FN, ___, ____) case Kind::k##CN##_##FN:
+    NATIVE_SLOTS_LIST(NATIVE_SLOT_CASE)
+#undef NATIVE_SLOT_CASE
     case Kind::kTypeArguments:
     case Kind::kTypeArgumentsIndex:
     case Kind::kArrayElement:

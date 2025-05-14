@@ -33,27 +33,32 @@ testEarlierUnnamedParameter(int i) {
 
 testLaterNamedParameter(int i) {
   i._laterNamedParameter(
-      a: 0,
-      b: (x) {
-        x.expectStaticType<Exactly<int>>();
-      });
+    a: 0,
+    b: (x) {
+      x.expectStaticType<Exactly<int>>();
+    },
+  );
 }
 
 testEarlierNamedParameter(int i) {
   i._earlierNamedParameter(
-      a: (x) {
-        x.expectStaticType<Exactly<int>>();
-      },
-      b: 0);
+    a: (x) {
+      x.expectStaticType<Exactly<int>>();
+    },
+    b: 0,
+  );
 }
 
 /// This special case verifies that the implementations correctly associate the
 /// zeroth positional parameter with the corresponding argument (even if that
 /// argument isn't in the zeroth position at the call site).
 testEarlierNamedParameterDependsOnUnnamedParameter(int i) {
-  i._earlierNamedParameterDependsOnUnnamedParameter(a: (x) {
-    x.expectStaticType<Exactly<int>>();
-  }, 0);
+  i._earlierNamedParameterDependsOnUnnamedParameter(
+    a: (x) {
+      x.expectStaticType<Exactly<int>>();
+    },
+    0,
+  );
 }
 
 testPropagateToReturnType(int i) {
@@ -68,60 +73,77 @@ testPropagateToReturnType(int i) {
 testClosureAsParameterType(int i) {
   i
       ._closureAsParameterType(
-          () => 0, (h) => [h()]..expectStaticType<Exactly<List<int>>>())
+        () => 0,
+        (h) => [h()]..expectStaticType<Exactly<List<int>>>(),
+      )
       .expectStaticType<Exactly<List<int>>>();
 }
 
 testPropagateToEarlierClosure(int i) {
   i
       ._propagateToEarlierClosure(
-          (x) => [x]..expectStaticType<Exactly<List<int>>>(), () => 0)
+        (x) => [x]..expectStaticType<Exactly<List<int>>>(),
+        () => 0,
+      )
       .expectStaticType<Exactly<List<int>>>();
 }
 
 testPropagateToLaterClosure(int i) {
   i
       ._propagateToLaterClosure(
-          () => 0, (x) => [x]..expectStaticType<Exactly<List<int>>>())
+        () => 0,
+        (x) => [x]..expectStaticType<Exactly<List<int>>>(),
+      )
       .expectStaticType<Exactly<List<int>>>();
 }
 
 testLongDependencyChain(int i) {
   i
       ._longDependencyChain(
-          () => [0],
-          (x) => x.single..expectStaticType<Exactly<int>>(),
-          (y) => {y}..expectStaticType<Exactly<Set<int>>>())
+        () => [0],
+        (x) => x.single..expectStaticType<Exactly<int>>(),
+        (y) => {y}..expectStaticType<Exactly<Set<int>>>(),
+      )
       .expectStaticType<Exactly<Set<int>>>();
 }
 
 testDependencyCycle(int i) {
   i
-      ._dependencyCycle((x) => [x]..expectStaticType<Exactly<List<Object?>>>(),
-          (y) => {y}..expectStaticType<Exactly<Set<Object?>>>())
+      ._dependencyCycle(
+        (x) => [x]..expectStaticType<Exactly<List<Object?>>>(),
+        (y) => {y}..expectStaticType<Exactly<Set<Object?>>>(),
+      )
       .expectStaticType<Exactly<Map<List<Object?>, Set<Object?>>>>();
 }
 
 testPropagateFromContravariantReturnType(int i) {
   i
       ._propagateFromContravariantReturnType(
-          () => (int i) {}, (x) => [x]..expectStaticType<Exactly<List<int>>>())
+        () => (int i) {},
+        (x) => [x]..expectStaticType<Exactly<List<int>>>(),
+      )
       .expectStaticType<Exactly<List<int>>>();
 }
 
 testPropagateToContravariantParameterType(int i) {
   i
-      ._propagateToContravariantParameterType(() => 0,
-          (x) => [x]..expectStaticType<Exactly<List<void Function(int)>>>())
+      ._propagateToContravariantParameterType(
+        () => 0,
+        (x) => [x]..expectStaticType<Exactly<List<void Function(int)>>>(),
+      )
       .expectStaticType<Exactly<List<void Function(int)>>>();
 }
 
 testReturnTypeRefersToMultipleTypeVars(int i) {
-  i._returnTypeRefersToMultipleTypeVars(() => {0: ''}, (k) {
-    k.expectStaticType<Exactly<int>>();
-  }, (v) {
-    v.expectStaticType<Exactly<String>>();
-  });
+  i._returnTypeRefersToMultipleTypeVars(
+    () => {0: ''},
+    (k) {
+      k.expectStaticType<Exactly<int>>();
+    },
+    (v) {
+      v.expectStaticType<Exactly<String>>();
+    },
+  );
 }
 
 testUnnecessaryDueToNoDependency(int i) {
@@ -132,7 +154,9 @@ testUnnecessaryDueToNoDependency(int i) {
 
 testUnnecessaryDueToExplicitParameterTypeNamed(int i) {
   var a = i._unnecessaryDueToExplicitParameterTypeNamed(
-      null, ({int? x, required y}) => (x ?? 0) + y);
+    null,
+    ({int? x, required y}) => (x ?? 0) + y,
+  );
   a.expectStaticType<Exactly<int?>>();
 }
 
@@ -144,10 +168,11 @@ testParenthesized(int i) {
 
 testParenthesizedNamed(int i) {
   i._parenthesizedNamed(
-      a: 0,
-      b: ((x) {
-        x.expectStaticType<Exactly<int>>();
-      }));
+    a: 0,
+    b: ((x) {
+      x.expectStaticType<Exactly<int>>();
+    }),
+  );
 }
 
 testParenthesizedTwice(int i) {
@@ -158,55 +183,66 @@ testParenthesizedTwice(int i) {
 
 testParenthesizedTwiceNamed(int i) {
   i._parenthesizedTwiceNamed(
-      a: 0,
-      b: (((x) {
-        x.expectStaticType<Exactly<int>>();
-      })));
+    a: 0,
+    b: (((x) {
+      x.expectStaticType<Exactly<int>>();
+    })),
+  );
 }
 
 extension on int {
   T _laterUnnamedParameter<T>(T x, void Function(T) y) => throw '';
-  void _laterUnnamedParameterDependsOnNamedParameter<T>(void Function(T) x,
-          {required T a}) =>
-      throw '';
+  void _laterUnnamedParameterDependsOnNamedParameter<T>(
+    void Function(T) x, {
+    required T a,
+  }) => throw '';
   void _earlierUnnamedParameter<T>(void Function(T) x, T y) => throw '';
   void _laterNamedParameter<T>({required T a, required void Function(T) b}) =>
       throw '';
   void _earlierNamedParameter<T>({required void Function(T) a, required T b}) =>
       throw '';
-  void _earlierNamedParameterDependsOnUnnamedParameter<T>(T b,
-          {required void Function(T) a}) =>
-      throw '';
+  void _earlierNamedParameterDependsOnUnnamedParameter<T>(
+    T b, {
+    required void Function(T) a,
+  }) => throw '';
   U _propagateToReturnType<T, U>(T x, U Function(T) y) => throw '';
   U _closureAsParameterType<T, U>(T x, U Function(T) y) => throw '';
   U _propagateToEarlierClosure<T, U>(U Function(T) x, T Function() y) =>
       throw '';
   U _propagateToLaterClosure<T, U>(T Function() x, U Function(T) y) => throw '';
   V _longDependencyChain<T, U, V>(
-          T Function() x, U Function(T) y, V Function(U) z) =>
-      throw '';
+    T Function() x,
+    U Function(T) y,
+    V Function(U) z,
+  ) => throw '';
   Map<T, U> _dependencyCycle<T, U>(T Function(U) x, U Function(T) y) =>
       throw '';
   U _propagateFromContravariantReturnType<T, U>(
-          void Function(T) Function() x, U Function(T) y) =>
-      throw '';
+    void Function(T) Function() x,
+    U Function(T) y,
+  ) => throw '';
   U _propagateToContravariantParameterType<T, U>(
-          T Function() x, U Function(void Function(T)) y) =>
-      throw '';
+    T Function() x,
+    U Function(void Function(T)) y,
+  ) => throw '';
   void _returnTypeRefersToMultipleTypeVars<T, U>(
-          Map<T, U> Function() x, void Function(T) y, void Function(U) z) =>
-      throw '';
+    Map<T, U> Function() x,
+    void Function(T) y,
+    void Function(U) z,
+  ) => throw '';
   T _unnecessaryDueToNoDependency<T>(T Function() x, T y) => throw '';
   T _unnecessaryDueToExplicitParameterTypeNamed<T>(
-          T x, T Function({required T x, required int y}) y) =>
-      throw '';
+    T x,
+    T Function({required T x, required int y}) y,
+  ) => throw '';
   void _parenthesized<T>(T x, void Function(T) y) => throw '';
   void _parenthesizedNamed<T>({required T a, required void Function(T) b}) =>
       throw '';
   void _parenthesizedTwice<T>(T x, void Function(T) y) => throw '';
-  void _parenthesizedTwiceNamed<T>(
-          {required T a, required void Function(T) b}) =>
-      throw '';
+  void _parenthesizedTwiceNamed<T>({
+    required T a,
+    required void Function(T) b,
+  }) => throw '';
 }
 
 main() {}

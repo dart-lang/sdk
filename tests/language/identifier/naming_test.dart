@@ -62,36 +62,16 @@ class with$I extends debugger$C {
   factory with$I.F() {
     return new with$I(1, 2);
   }
-  with$I(x, y)
-      : this.y = y + 11,
-        super(x) {}
-  with$I.I(x, y)
-      : this.y = y + 12,
-        super.C(x) {}
-  with$I.C(x, y)
-      : this.y = y + 13,
-        super.C$C(x){}
-  with$I.I$C(x, y)
-      : this.y = y + 14,
-        super.C$I(x) {}
-  with$I.C$C(x, y)
-      : this.y = y + 15,
-        super(x) {}
-  with$I.C$C$C(x, y)
-      : this.y = y + 16,
-        super.C(x) {}
-  with$I.$C$I(x, y)
-      :this.y = y + 17,
-        super.C$C(x) {}
-  with$I.$$I$C(x, y)
-      :this.y = y + 18,
-        super.C$I(x) {}
-  with$I.$(x, y)
-      : this.y = y + 19,
-        super(x) {}
-  with$I.$$(x, y)
-      : this.y = y + 20,
-        super.C(x) {}
+  with$I(x, y) : this.y = y + 11, super(x) {}
+  with$I.I(x, y) : this.y = y + 12, super.C(x) {}
+  with$I.C(x, y) : this.y = y + 13, super.C$C(x) {}
+  with$I.I$C(x, y) : this.y = y + 14, super.C$I(x) {}
+  with$I.C$C(x, y) : this.y = y + 15, super(x) {}
+  with$I.C$C$C(x, y) : this.y = y + 16, super.C(x) {}
+  with$I.$C$I(x, y) : this.y = y + 17, super.C$C(x) {}
+  with$I.$$I$C(x, y) : this.y = y + 18, super.C$I(x) {}
+  with$I.$(x, y) : this.y = y + 19, super(x) {}
+  with$I.$$(x, y) : this.y = y + 20, super.C(x) {}
 }
 
 class with$C extends debugger$C$C {
@@ -100,36 +80,16 @@ class with$C extends debugger$C$C {
   factory with$C.F() {
     return new with$C(1, 2);
   }
-  with$C(x, y)
-      : this.y = y + 21,
-        super(x) {}
-  with$C.I(x, y)
-      : this.y = y + 22,
-        super.C(x) {}
-  with$C.C(x, y)
-      : this.y = y + 23,
-        super.C$C(x) {}
-  with$C.I$C(x, y)
-      : this.y = y + 24,
-        super.C$I(x) {}
-  with$C.C$C(x, y)
-      : this.y = y + 25,
-        super(x) {}
-  with$C.C$C$C(x, y)
-      : this.y = y + 26,
-        super.C(x) {}
-  with$C.$C$I(x, y)
-      : this.y = y + 27,
-        super.C$C(x) {}
-  with$C.$$I$C(x, y)
-      : this.y = y + 28,
-        super.C$I(x) {}
-  with$C.$(x, y)
-      : this.y = y + 29,
-        super(x) {}
-  with$C.$$(x, y)
-      : this.y = y + 30,
-        super.C(x) {}
+  with$C(x, y) : this.y = y + 21, super(x) {}
+  with$C.I(x, y) : this.y = y + 22, super.C(x) {}
+  with$C.C(x, y) : this.y = y + 23, super.C$C(x) {}
+  with$C.I$C(x, y) : this.y = y + 24, super.C$I(x) {}
+  with$C.C$C(x, y) : this.y = y + 25, super(x) {}
+  with$C.C$C$C(x, y) : this.y = y + 26, super.C(x) {}
+  with$C.$C$I(x, y) : this.y = y + 27, super.C$C(x) {}
+  with$C.$$I$C(x, y) : this.y = y + 28, super.C$I(x) {}
+  with$C.$(x, y) : this.y = y + 29, super(x) {}
+  with$C.$$(x, y) : this.y = y + 30, super.C(x) {}
 }
 
 class with$I$C extends debugger$C$C {
@@ -138,36 +98,16 @@ class with$I$C extends debugger$C$C {
   factory with$I$C.F() {
     return new with$I$C(1, 2);
   }
-  with$I$C(x, y)
-      : this.y = y + 31,
-        super(x) {}
-  with$I$C.I(x, y)
-      : this.y = y + 32,
-        super.C(x) {}
-  with$I$C.C(x, y)
-      : this.y = y + 33,
-        super.C$C(x) {}
-  with$I$C.I$C(x, y)
-      : this.y = y + 34,
-        super.C$I(x) {}
-  with$I$C.C$C(x, y)
-      : this.y = y + 35,
-        super(x) {}
-  with$I$C.C$C$C(x, y)
-      : this.y = y + 36,
-        super.C(x) {}
-  with$I$C.$C$I(x, y)
-      : this.y = y + 37,
-        super.C$C(x) {}
-  with$I$C.$$I$C(x, y)
-      : this.y = y + 38,
-        super.C$I(x) {}
-  with$I$C.$(x, y)
-      : this.y = y + 39,
-        super(x) {}
-  with$I$C.$$(x, y)
-      : this.y = y + 40,
-        super.C(x) {}
+  with$I$C(x, y) : this.y = y + 31, super(x) {}
+  with$I$C.I(x, y) : this.y = y + 32, super.C(x) {}
+  with$I$C.C(x, y) : this.y = y + 33, super.C$C(x) {}
+  with$I$C.I$C(x, y) : this.y = y + 34, super.C$I(x) {}
+  with$I$C.C$C(x, y) : this.y = y + 35, super(x) {}
+  with$I$C.C$C$C(x, y) : this.y = y + 36, super.C(x) {}
+  with$I$C.$C$I(x, y) : this.y = y + 37, super.C$C(x) {}
+  with$I$C.$$I$C(x, y) : this.y = y + 38, super.C$I(x) {}
+  with$I$C.$(x, y) : this.y = y + 39, super(x) {}
+  with$I$C.$$(x, y) : this.y = y + 40, super.C(x) {}
 }
 
 class Tata {
@@ -183,9 +123,7 @@ class Tata {
 class Toto extends Tata {
   var __PROTO__;
 
-  Toto()
-      : this.__PROTO__ = 0,
-        super() {}
+  Toto() : this.__PROTO__ = 0, super() {}
 
   prototype$() {
     return 10;

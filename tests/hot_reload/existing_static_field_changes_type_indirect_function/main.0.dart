@@ -32,5 +32,7 @@ Future<void> main() async {
 
   // B is no longer a subtype of A.
   Expect.contains(
-      "type '(A) => bool' is not a subtype of type '(B) => bool'", helper());
+    "type '(A) => bool' is not a subtype of type '(B) => bool'",
+    helper(),
+  );
 }

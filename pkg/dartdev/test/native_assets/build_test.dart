@@ -22,6 +22,10 @@ final String hostOSMessage = 'Host OS: ${Platform.operatingSystem}';
 String targetOSMessage(String targetOS) => 'Target OS: $targetOS';
 
 void main(List<String> args) async {
+  if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
+    return;
+  }
+
   final bool fromDartdevSource = args.contains('--source');
   final hostOS = Platform.operatingSystem;
   final crossOS = Platform.isLinux ? 'macos' : 'linux';
@@ -320,6 +324,35 @@ void main(List<String> args) {
           throwOnUnexpectedExitCode: true,
         );
         expect(proccessResult.stdout, contains('42'));
+      });
+    },
+  );
+
+  test(
+    'dart build with user defines',
+    timeout: longTimeout,
+    () async {
+      await nativeAssetsTest('user_defines', (packageUri) async {
+        await runDart(
+          arguments: [
+            '--enable-experiment=native-assets',
+            'build',
+            'bin/user_defines.dart',
+          ],
+          workingDirectory: packageUri,
+          logger: logger,
+        );
+
+        final outputDirectory =
+            Directory.fromUri(packageUri.resolve('bin/user_defines'));
+        expect(outputDirectory.existsSync(), true);
+
+        final proccessResult = await runProcess(
+          executable: outputDirectory.uri.resolve('user_defines.exe'),
+          logger: logger,
+          throwOnUnexpectedExitCode: true,
+        );
+        expect(proccessResult.stdout, contains('Hello world!'));
       });
     },
   );

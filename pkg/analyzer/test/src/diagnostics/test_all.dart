@@ -201,8 +201,12 @@ import 'doc_directive_missing_two_arguments_test.dart'
     as doc_directive_missing_two_arguments;
 import 'doc_import_cannot_be_deferred_test.dart'
     as doc_import_cannot_be_deferred;
+import 'doc_import_cannot_have_combinators_test.dart'
+    as doc_import_cannot_have_combinators;
 import 'doc_import_cannot_have_configurations_test.dart'
     as doc_import_cannot_have_configurations;
+import 'doc_import_cannot_have_prefix_test.dart'
+    as doc_import_cannot_have_prefix;
 import 'duplicate_constructor_default_test.dart'
     as duplicate_constructor_default;
 import 'duplicate_constructor_name_test.dart' as duplicate_constructor_name;
@@ -576,6 +580,7 @@ import 'mixin_with_non_class_superclass_test.dart'
     as mixin_with_non_class_superclass;
 import 'mixins_super_class_test.dart' as mixins_super_class;
 import 'mock_sdk_test.dart' as mock_sdk;
+import 'multiple_combinators_test.dart' as multiple_combinators;
 import 'multiple_redirecting_constructor_invocations_test.dart'
     as multiple_redirecting_constructor_invocations;
 import 'multiple_super_initializers_test.dart' as multiple_super_initializers;
@@ -875,7 +880,6 @@ import 'unignorable_ignore_test.dart' as unignorable_ignore;
 import 'unnecessary_cast_pattern_test.dart' as unnecessary_cast_pattern;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
 import 'unnecessary_final_test.dart' as unnecessary_final;
-import 'unnecessary_ignore_test.dart' as unnecessary_ignore;
 import 'unnecessary_import_test.dart' as unnecessary_import;
 import 'unnecessary_nan_comparison_test.dart' as unnecessary_nan_comparison;
 import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
@@ -1061,7 +1065,9 @@ main() {
     doc_directive_missing_three_arguments.main();
     doc_directive_missing_two_arguments.main();
     doc_import_cannot_be_deferred.main();
+    doc_import_cannot_have_combinators.main();
     doc_import_cannot_have_configurations.main();
+    doc_import_cannot_have_prefix.main();
     duplicate_constructor_default.main();
     duplicate_constructor_name.main();
     duplicate_definition.main();
@@ -1296,6 +1302,7 @@ main() {
     mixin_with_non_class_superclass.main();
     mixins_super_class.main();
     mock_sdk.main();
+    multiple_combinators.main();
     multiple_redirecting_constructor_invocations.main();
     multiple_super_initializers.main();
     must_be_a_native_function_type.main();
@@ -1498,7 +1505,6 @@ main() {
     unnecessary_cast_pattern.main();
     unnecessary_cast.main();
     unnecessary_final.main();
-    unnecessary_ignore.main();
     unnecessary_nan_comparison.main();
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();

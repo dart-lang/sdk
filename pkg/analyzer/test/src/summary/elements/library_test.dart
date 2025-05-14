@@ -26,16 +26,6 @@ library test;''');
 
     checkElementText(library, r'''
 library
-  name: test
-  nameOffset: 30
-  reference: <testLibrary>
-  documentationComment: /**\n * aaa\n * bbb\n */
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-----------------------------------------
-library
   reference: <testLibrary>
   name: test
   documentationComment: /**\n * aaa\n * bbb\n */
@@ -51,13 +41,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -67,13 +50,6 @@ library
   test_library() async {
     var library = await buildLibrary('');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -91,16 +67,6 @@ library test;
 
     checkElementText(library, r'''
 library
-  name: test
-  nameOffset: 24
-  reference: <testLibrary>
-  documentationComment: /// aaa\n/// bbb
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-----------------------------------------
-library
   reference: <testLibrary>
   name: test
   documentationComment: /// aaa\n/// bbb
@@ -116,15 +82,6 @@ library foo.bar;
 ''');
 
     checkElementText(library, r'''
-library
-  name: foo.bar
-  nameOffset: 8
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-----------------------------------------
 library
   reference: <testLibrary>
   name: foo.bar
@@ -142,13 +99,6 @@ library;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -161,15 +111,6 @@ library foo . bar ;
 ''');
 
     checkElementText(library, r'''
-library
-  name: foo.bar
-  nameOffset: 8
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-----------------------------------------
 library
   reference: <testLibrary>
   name: foo.bar

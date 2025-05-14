@@ -966,8 +966,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFunctionName(Token beginToken, Token token) {
-    listener?.endFunctionName(beginToken, token);
+  void endFunctionName(
+      Token beginToken, Token token, bool isFunctionExpression) {
+    listener?.endFunctionName(beginToken, token, isFunctionExpression);
   }
 
   @override
@@ -2192,6 +2193,26 @@ class ForwardingListener implements Listener {
   @override
   void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
     listener?.handleNoPrimaryConstructor(token, constKeyword);
+  }
+
+  @override
+  void handleDotShorthandHead(Token token) {
+    listener?.handleDotShorthandHead(token);
+  }
+
+  @override
+  void handleDotShorthandContext(Token token) {
+    listener?.handleDotShorthandContext(token);
+  }
+
+  @override
+  void beginConstDotShorthand(Token token) {
+    listener?.beginConstDotShorthand(token);
+  }
+
+  @override
+  void endConstDotShorthand(Token token) {
+    listener?.beginConstDotShorthand(token);
   }
 }
 

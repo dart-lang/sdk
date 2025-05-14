@@ -113,7 +113,6 @@ abstract class HVisitor<R> {
   R visitTruncatingDivide(HTruncatingDivide node);
   R visitTry(HTry node);
   R visitPrimitiveCheck(HPrimitiveCheck node);
-  R visitBoolConversion(HBoolConversion node);
   R visitNullCheck(HNullCheck node);
   R visitLateReadCheck(HLateReadCheck node);
   R visitLateWriteOnceCheck(HLateWriteOnceCheck node);
@@ -631,8 +630,6 @@ class HBaseVisitor<R> extends HGraphVisitor implements HVisitor<R> {
   @override
   R visitLateValue(HLateValue node) => visitInstruction(node);
   @override
-  R visitBoolConversion(HBoolConversion node) => visitCheck(node);
-  @override
   R visitNullCheck(HNullCheck node) => visitCheck(node);
   R visitLateCheck(HLateCheck node) => visitCheck(node);
   @override
@@ -1121,7 +1118,6 @@ enum _GvnType {
   remainder,
   getLength,
   abs,
-  boolConversion,
   nullCheck,
   primitiveCheck,
   isTest,
@@ -1234,9 +1230,6 @@ abstract class HInstruction implements SpannableWithEntity {
 
   /// Can this node throw an exception?
   bool canThrow(AbstractValueDomain domain) => false;
-
-  /// Does this node potentially affect control flow.
-  bool isControlFlow() => false;
 
   bool isValue(AbstractValueDomain domain) =>
       domain.isPrimitiveValue(instructionType);
@@ -1477,6 +1470,12 @@ abstract class HInstruction implements SpannableWithEntity {
 
   bool isCodeMotionInvariant() => false;
 
+  /// Returns `true` when this HInstruction might be compiled to a JavaScript
+  /// statement, `false` when always compiled to a JavaScript expression.
+  ///
+  /// Some checks are marked as statements even though the generated code is an
+  /// expression. This is done when the value of the generated expression does
+  /// not correspond to the value of the check (usually one of its inputs).
   bool isJsStatement() => false;
 
   bool dominates(HInstruction other) {
@@ -1782,8 +1781,6 @@ class HBoundsCheck extends HCheck {
   // There can be an additional fourth input which is the index to report to
   // [ioore]. This is used by the expansion of [JSArray.removeLast].
   HInstruction get reportedIndex => inputs.length > 3 ? inputs[3] : index;
-  @override
-  bool isControlFlow() => true;
 
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitBoundsCheck(this);
@@ -1806,8 +1803,7 @@ abstract class HConditionalBranch extends HControlFlow {
 
 abstract class HControlFlow extends HInstruction {
   HControlFlow() : super._noType();
-  @override
-  bool isControlFlow() => true;
+
   @override
   bool isJsStatement() => true;
 
@@ -1910,15 +1906,16 @@ abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
   /// Static type at call-site, often better than union-over-targets.
   AbstractValue? staticType;
 
-  /// `true` if the type parameters at the call known to be invariant with
+  /// `true` if the type parameters at the call are known to be invariant with
   /// respect to the type parameters of the receiver instance. This corresponds
-  /// to the [ir.MethodInvocation.isInvariant] property and may be updated with
-  /// additional analysis.
+  /// to the [ir.InstanceInvocation.isInvariant] property.  Parametric
+  /// covariance checks of the target may be omitted. If the target has explicit
+  /// `covariant` checks, these might still need to be checked.
   bool isInvariant = false;
 
   /// `true` for an indexed getter or setter if the index is known to be in
-  /// range. This corresponds to the [ir.MethodInvocation.isBoundsSafe] property
-  /// but and may updated with additional analysis.
+  /// range. This corresponds to the [ir.InstanceInvocation.isBoundsSafe]
+  /// property but and may updated with additional analysis.
   bool isBoundsSafe = false;
 
   // Cached target when non-nullable receiver type and selector determine a
@@ -2357,10 +2354,6 @@ class HFieldSet extends HFieldAccess {
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitFieldSet(this);
 
-  // HFieldSet is an expression if it has a user.
-  @override
-  bool isJsStatement() => usedBy.isEmpty;
-
   @override
   String toString() => "FieldSet(element=$element,type=$instructionType)";
 }
@@ -2490,8 +2483,6 @@ class HReadModifyWrite extends HInstruction implements HLateInstruction {
   R accept<R>(HVisitor<R> visitor) => visitor.visitReadModifyWrite(this);
 
   @override
-  bool isJsStatement() => isAssignOp;
-  @override
   String toString() => "ReadModifyWrite $jsOp $opKind $element";
 }
 
@@ -2538,8 +2529,6 @@ class HLocalSet extends HLocalAccess {
 
   HLocalValue get local => inputs[0] as HLocalValue;
   HInstruction get value => inputs[1];
-  @override
-  bool isJsStatement() => true;
 }
 
 /// Invocation of a native or JS-interop method.
@@ -2699,6 +2688,7 @@ class HForeignCode extends HForeign {
 
   @override
   bool isJsStatement() => isStatement;
+
   @override
   bool canThrow(AbstractValueDomain domain) {
     if (inputs.isNotEmpty) {
@@ -2733,8 +2723,13 @@ class HForeignCode extends HForeign {
   bool typeEquals(other) => other is HForeignCode;
   @override
   bool dataEquals(HForeignCode other) {
-    return codeTemplate.source != null &&
-        codeTemplate.source == other.codeTemplate.source;
+    if (codeTemplate.source == null) {
+      return other.codeTemplate.source == null &&
+          // The ASTs will be equal if identical, and in some limited other
+          // cases, like a ModularExpression.
+          codeTemplate.ast == other.codeTemplate.ast;
+    }
+    return codeTemplate.source == other.codeTemplate.source;
   }
 
   @override
@@ -3423,11 +3418,13 @@ class HReturn extends HControlFlow {
 }
 
 class HThrowExpression extends HInstruction {
+  final bool withoutHelperFrame;
   HThrowExpression(
     super.value,
     super.type,
-    SourceInformation? sourceInformation,
-  ) : super._oneInput() {
+    SourceInformation? sourceInformation, {
+    this.withoutHelperFrame = false,
+  }) : super._oneInput() {
     this.sourceInformation = sourceInformation;
   }
   @override
@@ -3472,10 +3469,12 @@ class HYield extends HInstruction {
 
 class HThrow extends HControlFlow {
   final bool isRethrow;
+  final bool withoutHelperFrame;
   HThrow(
     HInstruction value,
     SourceInformation? sourceInformation, {
     this.isRethrow = false,
+    this.withoutHelperFrame = false,
   }) {
     inputs.add(value);
     this.sourceInformation = sourceInformation;
@@ -3648,8 +3647,6 @@ class HStaticStore extends HInstruction {
   bool typeEquals(other) => other is HStaticStore;
   @override
   bool dataEquals(HStaticStore other) => element == other.element;
-  @override
-  bool isJsStatement() => usedBy.isEmpty;
 }
 
 class HLiteralList extends HInstruction {
@@ -3833,8 +3830,6 @@ class HPrimitiveCheck extends HCheck {
 
   @override
   bool isJsStatement() => true;
-  @override
-  bool isControlFlow() => true;
 
   @override
   _GvnType get _gvnType => _GvnType.primitiveCheck;
@@ -3866,44 +3861,6 @@ class HPrimitiveCheck extends HCheck {
       'checkedInput=$checkedInput)';
 }
 
-/// A check that the input to a condition (if, ?:, while, etc) is non-null. The
-/// front-end generates 'as bool' checks, but until the transition to null
-/// safety is complete, this allows `null` to be passed to the condition.
-///
-// TODO(sra): Once NNDB is far enough along that the front-end can generate `as
-// bool!` checks and the backend checks them correctly, this instruction will
-// become unnecessary and should be removed.
-class HBoolConversion extends HCheck {
-  HBoolConversion(super.input, super.type) : super._oneInput();
-
-  @override
-  bool isJsStatement() => false;
-
-  @override
-  bool isCodeMotionInvariant() => false;
-
-  @override
-  R accept<R>(HVisitor<R> visitor) => visitor.visitBoolConversion(this);
-
-  @override
-  _GvnType get _gvnType => _GvnType.boolConversion;
-  @override
-  bool typeEquals(HInstruction other) => other is HBoolConversion;
-  @override
-  bool dataEquals(HBoolConversion other) => true;
-
-  bool isRedundant(JClosedWorld closedWorld) {
-    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-    AbstractValue inputType = checkedInput.instructionType;
-    return abstractValueDomain
-        .isIn(inputType, instructionType)
-        .isDefinitelyTrue;
-  }
-
-  @override
-  String toString() => 'HBoolConversion($checkedInput)';
-}
-
 /// A check that the input is not null. This corresponds to the postfix
 /// null-check operator '!'.
 ///
@@ -3919,8 +3876,6 @@ class HNullCheck extends HCheck {
   HNullCheck(super.input, super.type, {this.sticky = false})
     : super._oneInput();
 
-  @override
-  bool isControlFlow() => true;
   @override
   bool isJsStatement() => true;
 
@@ -3972,9 +3927,6 @@ abstract class HLateCheck extends HCheck {
     if (hasName) return inputs[1];
     throw StateError('HLateCheck.name: no name');
   }
-
-  @override
-  bool isControlFlow() => true;
 
   @override
   bool isCodeMotionInvariant() => false;
@@ -4093,7 +4045,7 @@ class HLateInitializeOnceCheck extends HLateCheck {
 
 /// The [HTypeKnown] instruction marks a value with a refined type.
 class HTypeKnown extends HCheck {
-  AbstractValue knownType;
+  final AbstractValue knownType;
   final bool _isMovable;
 
   HTypeKnown.pinned(this.knownType, HInstruction input)
@@ -4111,8 +4063,7 @@ class HTypeKnown extends HCheck {
 
   @override
   bool isJsStatement() => false;
-  @override
-  bool isControlFlow() => false;
+
   @override
   bool canThrow(AbstractValueDomain domain) => false;
 
@@ -4611,10 +4562,6 @@ AbstractBool _typeTest(
   CompilerOptions options, {
   required bool isCast,
 }) {
-  // The null safety mode may affect the result of a type test, so defer to
-  // runtime.
-  if (options.experimentNullSafetyChecks) return AbstractBool.maybe;
-
   JCommonElements commonElements = closedWorld.commonElements;
   DartTypes dartTypes = closedWorld.dartTypes;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
@@ -4623,11 +4570,7 @@ AbstractBool _typeTest(
   AbstractBool expressionIsNull = expression.isNull(abstractValueDomain);
 
   bool nullIs(DartType type) =>
-      dartTypes.isStrongTopType(type) ||
-      type is LegacyType &&
-          (type.baseType.isObject ||
-              type.baseType is NeverType ||
-              nullIs(type.baseType)) ||
+      dartTypes.isTopType(type) ||
       type is NullableType ||
       type is FutureOrType && nullIs(type.typeArgument) ||
       type.isNull;
@@ -4692,10 +4635,7 @@ AbstractBool _typeTest(
     return AbstractBool.maybe;
   }
 
-  AbstractBool isNullAsCheck =
-      !options.useLegacySubtyping && isCast
-          ? expressionIsNull
-          : AbstractBool.false_;
+  AbstractBool isNullAsCheck = isCast ? expressionIsNull : AbstractBool.false_;
   AbstractBool isNullIsTest = !isCast ? expressionIsNull : AbstractBool.false_;
 
   AbstractBool unwrapAndCheck(DartType type) {
@@ -4704,10 +4644,6 @@ AbstractBool _typeTest(
     if (type is InterfaceType) {
       if (type.isNull) return expressionIsNull;
       return ~(isNullAsCheck | isNullIsTest) & checkInterface(type);
-    }
-    if (type is LegacyType) {
-      assert(!type.baseType.isObject);
-      return ~isNullIsTest & unwrapAndCheck(type.baseType);
     }
     if (type is NullableType) {
       return unwrapAndCheck(type.baseType);
@@ -5017,7 +4953,7 @@ class HArrayFlagsCheck extends HCheck {
     AbstractValue inputType,
     AbstractValueDomain domain,
   ) {
-    // TODO(sra): Depening on the checked flags, the output is fixed-length or
+    // TODO(sra): Depending on the checked flags, the output is fixed-length or
     // unmodifiable. Refine the type to the degree an AbstractValue can express
     // that.
     return inputType;
@@ -5036,8 +4972,6 @@ class HArrayFlagsCheck extends HCheck {
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitArrayFlagsCheck(this);
 
-  @override
-  bool isControlFlow() => true;
   @override
   bool isJsStatement() => true;
 

@@ -15,7 +15,7 @@ namespace dart {
   V(AsyncLibrary, _FutureListener, handleValue, FutureListenerHandleValue,     \
     0xaa83f1d2)                                                                \
   V(AsyncLibrary, _SuspendState, get:_functionData,                            \
-    SuspendState_getFunctionData, 0x79c36a6d)                                  \
+    SuspendState_getFunctionData, 0x79c36e2e)                                  \
   V(AsyncLibrary, _SuspendState, set:_functionData,                            \
     SuspendState_setFunctionData, 0x3299d0aa)                                  \
   V(AsyncLibrary, _SuspendState, get:_thenCallback,                            \
@@ -33,7 +33,7 @@ namespace dart {
   V(CoreLibrary, Object, Object., ObjectConstructor, 0xab6d6cf2)               \
   V(CoreLibrary, _Array, [], ObjectArrayGetIndexed, 0x78d7e092)                \
   V(CoreLibrary, _GrowableList, [], GrowableArrayGetIndexed, 0x78d7e092)       \
-  V(CoreLibrary, _List, ., ObjectArrayAllocate, 0x4c802222)                    \
+  V(CoreLibrary, _List, ., ObjectArrayAllocate, 0x4c8025e3)                    \
   V(CoreLibrary, _List, []=, ObjectArraySetIndexed, 0x3a23c6fa)                \
   V(CoreLibrary, _GrowableList, ._withData, GrowableArrayAllocateWithData,     \
     0x192ac0e1)                                                                \
@@ -711,16 +711,16 @@ namespace dart {
 // (factory-name-symbol, class-name-string, constructor-name-string,
 //  result-cid, fingerprint).
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
-  V(_ListFactory, CoreLibrary, _List, ., kArrayCid, 0x4c802222)                \
-  V(_ListFilledFactory, CoreLibrary, _List, .filled, kArrayCid, 0x9266de51)    \
+  V(_ListFactory, CoreLibrary, _List, ., kArrayCid, 0x4c8025e3)                \
+  V(_ListFilledFactory, CoreLibrary, _List, .filled, kArrayCid, 0x9266e212)    \
   V(_ListGenerateFactory, CoreLibrary, _List, .generate, kArrayCid,            \
-    0x42760cee)                                                                \
+    0x427610af)                                                                \
   V(_GrowableListFactory, CoreLibrary, _GrowableList, .,                       \
-    kGrowableObjectArrayCid, 0x3c81d48d)                                       \
+    kGrowableObjectArrayCid, 0x3c81d84e)                                       \
   V(_GrowableListFilledFactory, CoreLibrary, _GrowableList, .filled,           \
-    kGrowableObjectArrayCid, 0xead2ffd1)                                       \
+    kGrowableObjectArrayCid, 0xead30392)                                       \
   V(_GrowableListGenerateFactory, CoreLibrary, _GrowableList, .generate,       \
-    kGrowableObjectArrayCid, 0x7bd60e6e)                                       \
+    kGrowableObjectArrayCid, 0x7bd6122f)                                       \
   V(_GrowableListWithData, CoreLibrary, _GrowableList, ._withData,             \
     kGrowableObjectArrayCid, 0x192ac0e1)                                       \
   V(_Int8ArrayFactory, TypedDataLibrary, Int8List, ., kTypedDataInt8ArrayCid,  \

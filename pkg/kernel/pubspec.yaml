@@ -6,7 +6,9 @@ name: kernel
 publish_to: none
 
 environment:
-  sdk: ^3.0.0
+  sdk: ^3.6.0
+
+resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:

@@ -10,8 +10,8 @@ import 'dart:_internal'
         Since,
         valueOfNonNullableParamWithDefault,
         HttpStatus;
-import 'dart:async';
 import 'dart:async' as dart_async show runZoned;
+import 'dart:async';
 import 'dart:collection'
     show
         HashMap,
@@ -532,21 +532,13 @@ abstract interface class HttpHeaders {
   ///
   /// The current case of the a header name is that of the name used by
   /// the last [set] or [add] call for that header.
-  void add(
-    String name,
-    Object value, {
-    @Since("2.8") bool preserveHeaderCase = false,
-  });
+  void add(String name, Object value, {bool preserveHeaderCase = false});
 
   /// Sets the header [name] to [value].
   ///
   /// Removes all existing values for the header named [name] and
   /// then [add]s [value] to it.
-  void set(
-    String name,
-    Object value, {
-    @Since("2.8") bool preserveHeaderCase = false,
-  });
+  void set(String name, Object value, {bool preserveHeaderCase = false});
 
   /// Removes a specific value for a header name.
   ///
@@ -1144,7 +1136,7 @@ abstract interface class HttpResponse implements IOSink {
   /// socket is detached the HTTP server will no longer perform any
   /// operations on it.
   ///
-  /// This is normally used when a HTTP upgrade request is received
+  /// This is normally used when an HTTP upgrade request is received
   /// and the communication should continue with a different protocol.
   ///
   /// If [writeHeaders] is `true`, the status line and [headers] will be written
@@ -1359,7 +1351,7 @@ abstract interface class HttpClient {
     return overrides.createHttpClient(context);
   }
 
-  /// Opens a HTTP connection.
+  /// Opens an HTTP connection.
   ///
   /// The HTTP method to use is specified in [method], the server is
   /// specified using [host] and [port], and the path (including
@@ -1381,7 +1373,7 @@ abstract interface class HttpClient {
     String path,
   );
 
-  /// Opens a HTTP connection.
+  /// Opens an HTTP connection.
   ///
   /// The HTTP method is specified in [method] and the URL to use in
   /// [url].
@@ -1396,7 +1388,7 @@ abstract interface class HttpClient {
   /// the overall documentation for the class [HttpClient].
   Future<HttpClientRequest> openUrl(String method, Uri url);
 
-  /// Opens a HTTP connection using the GET method.
+  /// Opens an HTTP connection using the GET method.
   ///
   /// The server is specified using [host] and [port], and the path
   /// (including a possible query) is specified using
@@ -1405,14 +1397,14 @@ abstract interface class HttpClient {
   /// See [open] for details.
   Future<HttpClientRequest> get(String host, int port, String path);
 
-  /// Opens a HTTP connection using the GET method.
+  /// Opens an HTTP connection using the GET method.
   ///
   /// The URL to use is specified in [url].
   ///
   /// See [openUrl] for details.
   Future<HttpClientRequest> getUrl(Uri url);
 
-  /// Opens a HTTP connection using the POST method.
+  /// Opens an HTTP connection using the POST method.
   ///
   /// The server is specified using [host] and [port], and the path
   /// (including a possible query) is specified using
@@ -1421,14 +1413,14 @@ abstract interface class HttpClient {
   /// See [open] for details.
   Future<HttpClientRequest> post(String host, int port, String path);
 
-  /// Opens a HTTP connection using the POST method.
+  /// Opens an HTTP connection using the POST method.
   ///
   /// The URL to use is specified in [url].
   ///
   /// See [openUrl] for details.
   Future<HttpClientRequest> postUrl(Uri url);
 
-  /// Opens a HTTP connection using the PUT method.
+  /// Opens an HTTP connection using the PUT method.
   ///
   /// The server is specified using [host] and [port], and the path
   /// (including a possible query) is specified using [path].
@@ -1436,14 +1428,14 @@ abstract interface class HttpClient {
   /// See [open] for details.
   Future<HttpClientRequest> put(String host, int port, String path);
 
-  /// Opens a HTTP connection using the PUT method.
+  /// Opens an HTTP connection using the PUT method.
   ///
   /// The URL to use is specified in [url].
   ///
   /// See [openUrl] for details.
   Future<HttpClientRequest> putUrl(Uri url);
 
-  /// Opens a HTTP connection using the DELETE method.
+  /// Opens an HTTP connection using the DELETE method.
   ///
   /// The server is specified using [host] and [port], and the path
   /// (including a possible query) is specified using [path].
@@ -1451,14 +1443,14 @@ abstract interface class HttpClient {
   /// See [open] for details.
   Future<HttpClientRequest> delete(String host, int port, String path);
 
-  /// Opens a HTTP connection using the DELETE method.
+  /// Opens an HTTP connection using the DELETE method.
   ///
   /// The URL to use is specified in [url].
   ///
   /// See [openUrl] for details.
   Future<HttpClientRequest> deleteUrl(Uri url);
 
-  /// Opens a HTTP connection using the PATCH method.
+  /// Opens an HTTP connection using the PATCH method.
   ///
   /// The server is specified using [host] and [port], and the path
   /// (including a possible query) is specified using [path].
@@ -1466,14 +1458,14 @@ abstract interface class HttpClient {
   /// See [open] for details.
   Future<HttpClientRequest> patch(String host, int port, String path);
 
-  /// Opens a HTTP connection using the PATCH method.
+  /// Opens an HTTP connection using the PATCH method.
   ///
   /// The URL to use is specified in [url].
   ///
   /// See [openUrl] for details.
   Future<HttpClientRequest> patchUrl(Uri url);
 
-  /// Opens a HTTP connection using the HEAD method.
+  /// Opens an HTTP connection using the HEAD method.
   ///
   /// The server is specified using [host] and [port], and the path
   /// (including a possible query) is specified using [path].
@@ -1481,7 +1473,7 @@ abstract interface class HttpClient {
   /// See [open] for details.
   Future<HttpClientRequest> head(String host, int port, String path);
 
-  /// Opens a HTTP connection using the HEAD method.
+  /// Opens an HTTP connection using the HEAD method.
   ///
   /// The URL to use is specified in [url].
   ///
@@ -1564,7 +1556,7 @@ abstract interface class HttpClient {
   );
 
   /// Sets the function used to resolve the proxy server to be used for
-  /// opening a HTTP connection to the specified `url`. If this
+  /// opening an HTTP connection to the specified `url`. If this
   /// function is not set, direct connections will always be used.
   ///
   /// The string returned by [f] must be in the format used by browser
@@ -1588,7 +1580,7 @@ abstract interface class HttpClient {
   /// variables.
   void set findProxy(String Function(Uri url)? f);
 
-  /// Function for resolving the proxy server to be used for a HTTP
+  /// Function for resolving the proxy server to be used for an HTTP
   /// connection from the proxy configuration specified through
   /// environment variables.
   ///
@@ -1682,7 +1674,7 @@ abstract interface class HttpClient {
   /// with a server certificate that cannot be authenticated by any of our
   /// trusted root certificates.
   ///
-  /// When an secure HTTP request if made, using this HttpClient, and the
+  /// When a secure HTTP request is made, using this HttpClient, and the
   /// server returns a server certificate that cannot be authenticated, the
   /// callback is called asynchronously with the [X509Certificate] object and
   /// the server's hostname and port.  If the value of [badCertificateCallback]
@@ -1897,7 +1889,6 @@ abstract interface class HttpClientRequest implements IOSink {
   ///   // If abort() called before response is available, onError will fire.
   /// });
   /// ```
-  @Since("2.10")
   void abort([Object? exception, StackTrace? stackTrace]);
 }
 
@@ -1946,7 +1937,6 @@ abstract interface class HttpClientResponse implements Stream<List<int>> {
   /// This specifies whether the response bytes were compressed when they were
   /// received across the wire and whether callers will receive compressed
   /// or uncompressed bytes when they listed to this response's byte stream.
-  @Since("2.4")
   HttpClientResponseCompressionState get compressionState;
 
   /// Gets the persistent connection state returned by the server.
@@ -1997,7 +1987,7 @@ abstract interface class HttpClientResponse implements Stream<List<int>> {
   /// socket is detached the HTTP client will no longer perform any
   /// operations on it.
   ///
-  /// This is normally used when a HTTP upgrade is negotiated and the
+  /// This is normally used when an HTTP upgrade is negotiated and the
   /// communication should continue with a different protocol.
   Future<Socket> detachSocket();
 
@@ -2023,7 +2013,6 @@ abstract interface class HttpClientResponse implements Stream<List<int>> {
 ///  * Does the caller need to manually decompress the response's byte stream?
 ///
 /// This enum is accessed via the [HttpClientResponse.compressionState] value.
-@Since("2.4")
 enum HttpClientResponseCompressionState {
   /// The body of the HTTP response was received and remains in an uncompressed
   /// state.
@@ -2056,19 +2045,36 @@ enum HttpClientResponseCompressionState {
   compressed,
 }
 
+/// Represents credentials for authentication in [HttpClient].
+///
+/// Subtypes of [HttpClientCredentials] can be passed to
+/// [HttpClient.addCredentials] or [HttpClient.addProxyCredentials].
 abstract interface class HttpClientCredentials {}
 
 /// Represents credentials for basic authentication.
+///
+/// See https://datatracker.ietf.org/doc/html/rfc7617
 abstract final class HttpClientBasicCredentials
     implements HttpClientCredentials {
   factory HttpClientBasicCredentials(String username, String password) =>
       _HttpClientBasicCredentials(username, password);
 }
 
-/// Represents credentials for digest authentication. Digest
-/// authentication is only supported for servers using the MD5
-/// algorithm and quality of protection (qop) of either "none" or
-/// "auth".
+/// Represents credentials for bearer token authentication.
+///
+/// See https://datatracker.ietf.org/doc/html/rfc6750
+abstract final class HttpClientBearerCredentials
+    implements HttpClientCredentials {
+  factory HttpClientBearerCredentials(String token) =>
+      _HttpClientBearerCredentials(token);
+}
+
+/// Represents credentials for digest authentication.
+///
+/// Digest authentication is only supported for servers using the MD5 algorithm
+/// and quality of protection (qop) of either "none" or "auth".
+///
+/// See https://datatracker.ietf.org/doc/html/rfc7616
 abstract final class HttpClientDigestCredentials
     implements HttpClientCredentials {
   factory HttpClientDigestCredentials(String username, String password) =>

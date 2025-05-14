@@ -133,6 +133,7 @@ bail
 balance
 bang
 bar
+bars
 basename
 basically
 basis
@@ -225,6 +226,7 @@ canonicalizer
 canonicalizing
 cant
 cardinality
+carefully
 caret
 carets
 carriage
@@ -584,6 +586,7 @@ enumerates
 enuum
 env
 eof
+eol
 epoch
 eq
 equally
@@ -756,6 +759,7 @@ googlesource
 goto
 gotos
 gradually
+grand
 granted
 granularity
 graphs
@@ -855,6 +859,7 @@ increasing
 incrementally
 incremented
 incrementing
+indentations
 independently
 indexer
 indexing
@@ -891,6 +896,7 @@ inst
 instanceof
 instantiable
 instantiator
+instructed
 instrument
 integrate
 intel
@@ -920,6 +926,7 @@ interval
 intervals
 intervening
 intl
+introduction
 introductory
 introspect
 introspectable
@@ -1099,8 +1106,11 @@ mimic
 min
 mini
 minutes
+misaligned
 misc
+misinterpreted
 miss
+misses
 mistakes
 misuse
 mixers
@@ -1154,6 +1164,7 @@ nk
 nm
 nnbd
 node's
+noise
 noisy
 nomenclature
 nominality
@@ -1269,6 +1280,7 @@ payload
 payloads
 pdf
 pedantic
+peeked
 per
 percentages
 perf
@@ -1297,6 +1309,7 @@ pm
 pn
 pointed
 pointwise
+pollute
 polluted
 polymorphism
 pool
@@ -1452,6 +1465,7 @@ recognizing
 recompilation
 recompile
 recompiled
+recompiles
 recompiling
 recompute
 recomputed
@@ -1465,6 +1479,7 @@ red
 redeclared
 redefine
 redirectee
+redirections
 redirector
 redo
 reevaluation
@@ -1533,6 +1548,7 @@ resource
 respond
 response
 responses
+restart
 restoring
 restriction
 restricts
@@ -1541,6 +1557,7 @@ ret
 retrieval
 reusage
 reversible
+reviewed
 rewinding
 rewinds
 rework
@@ -1602,6 +1619,7 @@ scrutinee's
 sdk's
 seconds
 sections
+seemingly
 segment
 selectively
 selectors
@@ -1640,6 +1658,7 @@ shifts
 ship
 shl
 shortening
+shortest
 showing
 shr
 shrinking
@@ -1706,7 +1725,9 @@ speeding
 spend
 spent
 spin
+spite
 splitting
+spots
 spuriously
 sq
 sra
@@ -1756,6 +1777,7 @@ stub
 stubs
 stx
 sub
+subdirectories
 subdirectory
 subdivide
 subdivided
@@ -1767,6 +1789,7 @@ subgraph
 subname
 subnode
 subnodes
+subpart
 subpatterns
 subproperties
 subscription
@@ -1891,6 +1914,7 @@ token's
 tokenize
 tokenized
 tokenizer
+tokenizing
 tolerant
 tolerate
 tolerated
@@ -1963,6 +1987,7 @@ undergoes
 undermine
 undo
 undoable
+unduly
 unequal
 unescape
 unexact
@@ -2040,6 +2065,7 @@ usual
 usually
 util
 utilizes
+utilizing
 utils
 uuid
 v
@@ -2070,6 +2096,7 @@ visitors
 visits
 visualize
 vm's
+vmservice
 vn
 vs
 vtab

@@ -2044,6 +2044,32 @@ suggestions
 ''');
   }
 
+  Future<void> test_yaml_analysisOptions_formatter() async {
+    await _configureWithWorkspaceRoot();
+
+    var path = convertPath('$testPackageRootPath/analysis_options.yaml');
+    var response = await _getCodeSuggestions(
+      path: path,
+      content: '''
+formatter:
+  ^
+''',
+    );
+
+    printerConfiguration
+      ..filter = ((_) => true)
+      ..withIsNotImported = false
+      ..withLibraryUri = false;
+
+    assertResponseText(response, r'''
+suggestions
+  |page_width: |
+    kind: identifier
+  |trailing_commas: |
+    kind: identifier
+''');
+  }
+
   Future<void> test_yaml_analysisOptions_root() async {
     await _configureWithWorkspaceRoot();
 

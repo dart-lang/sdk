@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryNullChecksTest);
   });
@@ -18,7 +18,8 @@ class UnnecessaryNullChecksTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_this;
 
   test_closureInMethod() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   void m1(List<int> list) {
     list.forEach((e) {
@@ -27,26 +28,28 @@ class A {
   }
   void m2(int x) {}
 }
-''', [
-      lint(67, 4),
-    ]);
+''',
+      [lint(67, 4)],
+    );
   }
 
   test_constructorBody_assignment() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   num x = 0;
   A.named(num a) {
     this.x = a;
   }
 }
-''', [
-      lint(46, 4),
-    ]);
+''',
+      [lint(46, 4)],
+    );
   }
 
   test_constructorBody_methodCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A.named() {
     this.m();
@@ -54,9 +57,9 @@ class A {
 
   void m() {}
 }
-''', [
-      lint(28, 4),
-    ]);
+''',
+      [lint(28, 4)],
+    );
   }
 
   test_constructorBody_shadowedParameters() async {
@@ -71,15 +74,16 @@ class A {
   }
 
   test_constructorInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   num x = 0;
   A.c1(num x)
       : this.x = x;
 }
-''', [
-      lint(45, 4),
-    ]);
+''',
+      [lint(45, 4)],
+    );
   }
 
   test_extension_getter() async {
@@ -99,23 +103,25 @@ extension E on int? {
   }
 
   test_extensionType_inConstructorInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type E(int i) {
   E.e(int i) : this.i = i.hashCode;
 }
-''', [
-      lint(41, 4),
-    ]);
+''',
+      [lint(41, 4)],
+    );
   }
 
   test_extensionType_inMethod() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type E(Object o) {
   String m()=> this.toString();
 }
-''', [
-      lint(44, 4),
-    ]);
+''',
+      [lint(44, 4)],
+    );
   }
 
   test_initializingFormalParameter() async {
@@ -143,7 +149,8 @@ class A {
   }
 
   test_localFunctionPresent_outOfScope() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   void m1() {
     if (true) {
@@ -154,9 +161,9 @@ class A {
   }
   void m2() {}
 }
-''', [
-      lint(101, 4),
-    ]);
+''',
+      [lint(101, 4)],
+    );
   }
 
   test_shadowInMethodBody() async {
@@ -242,7 +249,8 @@ class C {
   }
 
   test_subclass_noShadowing() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int x = 0;
 }
@@ -251,9 +259,9 @@ class D extends C {
     this.x = a;
   }
 }
-''', [
-      lint(67, 4),
-    ]);
+''',
+      [lint(67, 4)],
+    );
   }
 
   test_subclass_shadowedTopLevelVariable() async {

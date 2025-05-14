@@ -24,34 +24,13 @@ enum TypeParameterKind {
 
 sealed class TypeParameterBuilder extends TypeDeclarationBuilderImpl
     implements TypeDeclarationBuilder {
-  @override
-  final int fileOffset;
+  abstract TypeBuilder? bound;
 
-  @override
-  final String name;
+  abstract TypeBuilder? defaultType;
 
-  TypeBuilder? bound;
+  bool get isWildcard;
 
-  TypeBuilder? defaultType;
-
-  TypeParameterBuilder? get actualOrigin;
-
-  final TypeParameterKind kind;
-
-  final bool isWildcard;
-
-  @override
-  final Uri? fileUri;
-
-  final List<MetadataBuilder>? metadata;
-
-  TypeParameterBuilder(this.name, this.fileOffset, this.fileUri,
-      {this.bound,
-      this.defaultType,
-      required this.kind,
-      Variance? variableVariance,
-      this.metadata,
-      this.isWildcard = false});
+  TypeParameterKind get kind;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -73,10 +52,6 @@ sealed class TypeParameterBuilder extends TypeDeclarationBuilderImpl
     sb.write(')');
     return sb.toString();
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  TypeParameterBuilder get origin => actualOrigin ?? this;
 
   Variance get variance;
 
@@ -193,78 +168,20 @@ sealed class TypeParameterBuilder extends TypeDeclarationBuilderImpl
   }
 }
 
-class NominalParameterBuilder extends TypeParameterBuilder {
+abstract class NominalParameterBuilder extends TypeParameterBuilder {
   /// Sentinel value used to indicate that the variable has no name. This is
   /// used for error recovery.
   static const String noNameSentinel = 'no name sentinel';
 
-  final TypeParameter actualParameter;
-
-  @override
-  NominalParameterBuilder? actualOrigin;
-
-  /// [NominalParameterBuilder] overrides ==/hashCode in terms of
-  /// [actualParameter] making it vulnerable to use in sets and maps. This
-  /// fields tracks the first access to [hashCode] when asserts are enabled, to
-  /// signal if the [hashCode] is used before updates to [actualParameter].
-  StackTrace? _hasHashCode;
-
-  NominalParameterBuilder(String name, int charOffset, Uri? fileUri,
-      {TypeBuilder? bound,
-      required TypeParameterKind kind,
-      Variance? variableVariance,
-      List<MetadataBuilder>? metadata,
-      super.isWildcard = false})
-      : actualParameter =
-            new TypeParameter(name == noNameSentinel ? null : name, null)
-              ..fileOffset = charOffset
-              ..variance = variableVariance,
-        _varianceCalculationValue = new VarianceCalculationValue.fromVariance(
-            variableVariance ?? Variance.covariant),
-        super(name, charOffset, fileUri,
-            bound: bound,
-            kind: kind,
-            variableVariance: variableVariance,
-            metadata: metadata);
-
-  /// Restores a [NominalParameterBuilder] from kernel
-  ///
-  /// The [loader] parameter is supposed to be passed by the clients and be not
-  /// null. It is needed to restore [bound] and [defaultType] of the type
-  /// variable from dill. The null value of this parameter is used only once in
-  /// [TypeBuilderComputer] to break the infinite loop of recovering type
-  /// variables of some recursive declarations, like the declaration of `A` in
-  /// the example below.
-  ///
-  ///   class A<X extends A<X>> {}
-  NominalParameterBuilder.fromKernel(TypeParameter parameter,
-      {required Loader? loader, super.isWildcard = false})
-      : actualParameter = parameter,
-        // TODO(johnniwinther): Do we need to support synthesized type
-        //  parameters from kernel?
-        _varianceCalculationValue =
-            new VarianceCalculationValue.fromVariance(parameter.variance),
-        super(parameter.name ?? "", parameter.fileOffset, null,
-            kind: TypeParameterKind.fromKernel,
-            bound: loader?.computeTypeBuilder(parameter.bound),
-            defaultType: loader?.computeTypeBuilder(parameter.defaultType)) {
-    _nullabilityFromParameterBound = parameter.computeNullabilityFromBound();
+  NominalParameterBuilder(
+      {Variance? variableVariance, Nullability? nullability})
+      : _varianceCalculationValue = new VarianceCalculationValue.fromVariance(
+            variableVariance ?? Variance.covariant) {
+    _nullabilityFromParameterBound = nullability;
   }
-
-  @override
-  NominalParameterBuilder get origin => actualOrigin ?? this;
 
   /// The [TypeParameter] built by this builder.
-  TypeParameter get parameter => origin.actualParameter;
-
-  @override
-  void applyAugmentation(covariant NominalParameterBuilder augmentation) {
-    assert(
-        _hasHashCode == null,
-        "Cannot apply augmentation since to $this since hashCode has already "
-        "been computed from $actualParameter @\n$_hasHashCode");
-    augmentation.actualOrigin = this;
-  }
+  TypeParameter get parameter;
 
   VarianceCalculationValue? _varianceCalculationValue;
 
@@ -315,20 +232,6 @@ class NominalParameterBuilder extends TypeParameterBuilder {
   @override
   void set parameterDefaultType(DartType defaultType) {
     parameter.defaultType = defaultType;
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is NominalParameterBuilder && parameter == other.parameter;
-  }
-
-  @override
-  int get hashCode {
-    assert(() {
-      _hasHashCode ??= StackTrace.current;
-      return true;
-    }());
-    return parameter.hashCode;
   }
 
   @override
@@ -385,19 +288,9 @@ class NominalParameterBuilder extends TypeParameterBuilder {
     return type;
   }
 
-  void buildOutlineExpressions(
-      SourceLibraryBuilder libraryBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      ClassHierarchy classHierarchy,
-      LookupScope scope) {
-    MetadataBuilder.buildAnnotations(parameter, metadata, bodyBuilderContext,
-        libraryBuilder, fileUri!, scope);
-  }
-
   @override
   void finish(SourceLibraryBuilder library, ClassBuilder object,
       TypeBuilder dynamicType) {
-    if (isAugmenting) return;
     DartType objectType = object.buildAliasedType(
         library,
         const NullabilityBuilder.nullable(),
@@ -423,14 +316,6 @@ class NominalParameterBuilder extends TypeParameterBuilder {
               ? objectType
               : dynamicType.build(library, TypeUse.typeParameterDefaultType));
     }
-  }
-
-  static List<TypeParameter>? typeParametersFromBuilders(
-      List<NominalParameterBuilder>? builders) {
-    if (builders == null) return null;
-    return new List<TypeParameter>.generate(
-        builders.length, (int i) => builders[i].parameter,
-        growable: true);
   }
 }
 
@@ -482,9 +367,6 @@ void _sortAllTypeParametersTopologicallyFromRoot(TypeBuilder root,
         case ExtensionBuilder():
         case BuiltinTypeDeclarationBuilder():
         case InvalidTypeDeclarationBuilder():
-        // Coverage-ignore(suite): Not run.
-        // TODO(johnniwinther): How should we handle this case?
-        case OmittedTypeDeclarationBuilder():
         case null:
       }
     case FunctionTypeBuilder(
@@ -552,40 +434,16 @@ void _sortAllTypeParametersTopologicallyFromRoot(TypeBuilder root,
   }
 }
 
-class StructuralParameterBuilder extends TypeParameterBuilder {
+abstract class StructuralParameterBuilder extends TypeParameterBuilder {
   /// Sentinel value used to indicate that the variable has no name. This is
   /// used for error recovery.
   static const String noNameSentinel = 'no name sentinel';
 
-  final StructuralParameter actualParameter;
-
-  @override
-  StructuralParameterBuilder? actualOrigin;
-
-  StructuralParameterBuilder(String name, int charOffset, Uri? fileUri,
-      {TypeBuilder? bound,
-      Variance? parameterVariance,
-      List<MetadataBuilder>? metadata,
-      super.isWildcard = false})
-      : actualParameter =
-            new StructuralParameter(name == noNameSentinel ? null : name, null)
-              ..fileOffset = charOffset
-              ..variance = parameterVariance,
-        super(name, charOffset, fileUri,
-            bound: bound,
-            kind: TypeParameterKind.function,
-            variableVariance: parameterVariance,
-            metadata: metadata);
-
-  StructuralParameterBuilder.fromKernel(StructuralParameter parameter,
-      {super.isWildcard = false})
-      : actualParameter = parameter,
-        // TODO(johnniwinther): Do we need to support synthesized type
-        //  parameters from kernel?
-        super(parameter.name ?? "", parameter.fileOffset, null,
-            kind: TypeParameterKind.fromKernel) {
-    _nullabilityFromParameterBound = parameter.computeNullabilityFromBound();
+  StructuralParameterBuilder({Nullability? nullability}) {
+    _nullabilityFromParameterBound = nullability;
   }
+
+  StructuralParameter get parameter;
 
   @override
   bool get isTypeParameter => true;
@@ -632,12 +490,6 @@ class StructuralParameterBuilder extends TypeParameterBuilder {
 
   @override
   int get hashCode => parameter.hashCode;
-
-  @override
-  StructuralParameterBuilder get origin => actualOrigin ?? this;
-
-  /// The [StructuralParameter] built by this builder.
-  StructuralParameter get parameter => origin.actualParameter;
 
   @override
   DartType buildAliasedType(
@@ -697,7 +549,6 @@ class StructuralParameterBuilder extends TypeParameterBuilder {
   @override
   void finish(
       LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
-    if (isAugmenting) return;
     DartType objectType = object.buildAliasedType(
         library,
         const NullabilityBuilder.nullable(),
@@ -724,12 +575,6 @@ class StructuralParameterBuilder extends TypeParameterBuilder {
               ? objectType
               : dynamicType.build(library, TypeUse.typeParameterDefaultType));
     }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void applyAugmentation(covariant StructuralParameterBuilder augmentation) {
-    augmentation.actualOrigin = this;
   }
 }
 

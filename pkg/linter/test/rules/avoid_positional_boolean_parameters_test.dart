@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidPositionalBooleanParametersTest);
   });
@@ -85,14 +85,15 @@ class C {
   }
 
   test_constructor_fieldFormalParameter_positional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   bool p;
   C.named(this.p);
 }
-''', [
-      lint(30, 6),
-    ]);
+''',
+      [lint(30, 6)],
+    );
   }
 
   test_constructor_named_withDefault() async {
@@ -105,14 +106,15 @@ class C {
   }
 
   test_constructor_positional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C.named(bool a) {
   }
 }
-''', [
-      lint(20, 6),
-    ]);
+''',
+      [lint(20, 6)],
+    );
   }
 
   test_constructorPrivate_positionalOptional() async {
@@ -125,24 +127,26 @@ class C {
   }
 
   test_extensionMethod() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension Ext on int {
   void f([bool p = false]) {}
 }
-''', [
-      lint(33, 14),
-    ]);
+''',
+      [lint(33, 14)],
+    );
   }
 
   test_extensionMethod_unnamed() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension on int {
   // ignore: unused_element, unused_element_parameter
   void f([bool p = false]) {}
 }
-''', [
-      lint(83, 14),
-    ]);
+''',
+      [lint(83, 14)],
+    );
   }
 
   test_instanceMethod_named() async {
@@ -157,7 +161,8 @@ class C {
     // TODO(srawlins): Test where the parameter in the override is _not found_
     // in the parent interface.
     // TODO(srawlins): Test where the parameter is renamed.
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m([bool p = false]) {}
 }
@@ -165,13 +170,14 @@ class D extends C {
   @override
   void m([bool p = false]) {}
 }
-''', [
-      lint(20, 14),
-    ]);
+''',
+      [lint(20, 14)],
+    );
   }
 
   test_instanceMethod_overrideImplements_positionalOptional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m([bool p = false]) {}
 }
@@ -179,29 +185,31 @@ abstract class D implements C {
   @override
   void m([bool p = false]) {}
 }
-''', [
-      lint(20, 14),
-    ]);
+''',
+      [lint(20, 14)],
+    );
   }
 
   test_instanceMethod_positional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   void m(bool p) {}
 }
-''', [
-      lint(19, 6),
-    ]);
+''',
+      [lint(19, 6)],
+    );
   }
 
   test_instanceMethod_positionalOptional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m([bool p = false]) {}
 }
-''', [
-      lint(20, 14),
-    ]);
+''',
+      [lint(20, 14)],
+    );
   }
 
   test_instanceSetter() async {
@@ -246,13 +254,14 @@ class B {
   }
 
   test_staticMethod_positional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class B {
   static void m(bool p) {}
 }
-''', [
-      lint(26, 6),
-    ]);
+''',
+      [lint(26, 6)],
+    );
   }
 
   test_topLevel_namedParameter() async {
@@ -268,11 +277,12 @@ void f({bool p = false}) {}
   }
 
   test_topLevel_positionalParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(bool p) {}
-''', [
-      lint(7, 6),
-    ]);
+''',
+      [lint(7, 6)],
+    );
   }
 
   test_topLevelPrivate() async {
@@ -289,10 +299,11 @@ typedef T = Function({bool p});
   }
 
   test_typedef_positional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 typedef T = Function(bool p);
-''', [
-      lint(21, 6),
-    ]);
+''',
+      [lint(21, 6)],
+    );
   }
 }

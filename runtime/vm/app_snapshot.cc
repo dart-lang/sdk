@@ -9412,6 +9412,8 @@ void Deserializer::ReadInstructions(CodePtr code, bool deferred) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (deferred) {
     uword entry_point = StubCode::NotLoaded().EntryPoint();
+    // There are no serialized RawInstructions objects in this mode.
+    code->untag()->instructions_ = Instructions::null();
     code->untag()->entry_point_ = entry_point;
     code->untag()->unchecked_entry_point_ = entry_point;
     code->untag()->monomorphic_entry_point_ = entry_point;

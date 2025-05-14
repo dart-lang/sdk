@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EolAtEndOfFileTest);
   });
@@ -18,19 +18,21 @@ class EolAtEndOfFileTest extends LintRuleTest {
   String get lintRule => LintNames.eol_at_end_of_file;
 
   test_hasEol() async {
-    await assertDiagnostics(r'''
-class A {}''', [
-      lint(10, 1),
-    ]);
+    await assertDiagnostics(
+      r'''
+class A {}''',
+      [lint(10, 1)],
+    );
   }
 
   test_hasMultipleNewlines() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {}
 
-''', [
-      lint(10, 1),
-    ]);
+''',
+      [lint(10, 1)],
+    );
   }
 
   test_hasNoEol() async {

@@ -12,20 +12,20 @@ import 'package:collection/collection.dart';
 ///
 /// Elements with [Fragment]s or Elements with `null` names anywhere in the
 /// chain are not representable.
-class ElementLocation2 {
+class ElementLocation {
   /// The library that this element belongs to.
   final String _libraryUri;
 
   /// The [Element2.lookupName] for this element, or the containing element if
-  /// this location is a [_MemberElementLocation2].
+  /// this location is a [_MemberElementLocation].
   final String _topLevelName;
 
-  factory ElementLocation2.decode(String encoded) {
+  factory ElementLocation.decode(String encoded) {
     var components = encoded.split(';');
     return switch (components) {
-      [String library, String topName] => ElementLocation2._(library, topName),
+      [String library, String topName] => ElementLocation._(library, topName),
       [String library, String topName, String memberName] =>
-        _MemberElementLocation2._(library, topName, memberName),
+        _MemberElementLocation._(library, topName, memberName),
       _ =>
         throw ArgumentError.value(
           encoded,
@@ -35,11 +35,11 @@ class ElementLocation2 {
     };
   }
 
-  ElementLocation2._(this._libraryUri, this._topLevelName);
+  ElementLocation._(this._libraryUri, this._topLevelName);
 
   String get encoding => '$_libraryUri;$_topLevelName';
 
-  /// Locates the [Element2] represented by this [ElementLocation2] in
+  /// Locates the [Element2] represented by this [ElementLocation] in
   /// [session].
   ///
   /// Returns `null` if the [Element2] cannot be located.
@@ -52,11 +52,11 @@ class ElementLocation2 {
     );
   }
 
-  /// Gets an [ElementLocation2] for this element.
+  /// Gets an [ElementLocation] for this element.
   ///
   /// Returns `null` if this element is neither a top level element or a
   /// member of a top level element, or if either do not have a `lookupName`.
-  static ElementLocation2? forElement(Element2 element) {
+  static ElementLocation? forElement(Element2 element) {
     var library = element.library2;
     if (library == null) return null;
     var libraryUri = library.uri.toString();
@@ -64,13 +64,13 @@ class ElementLocation2 {
     if (element.enclosingElement2 == library) {
       var topName = element.lookupName;
 
-      return topName != null ? ElementLocation2._(libraryUri, topName) : null;
+      return topName != null ? ElementLocation._(libraryUri, topName) : null;
     } else if (element.enclosingElement2?.enclosingElement2 == library) {
       var memberName = element.lookupName;
       var topName = element.enclosingElement2?.lookupName;
 
       return topName != null && memberName != null
-          ? _MemberElementLocation2._(libraryUri, topName, memberName)
+          ? _MemberElementLocation._(libraryUri, topName, memberName)
           : null;
     } else {
       return null;
@@ -78,11 +78,11 @@ class ElementLocation2 {
   }
 }
 
-class _MemberElementLocation2 extends ElementLocation2 {
+class _MemberElementLocation extends ElementLocation {
   /// The [Element2.lookupName] for this member within [_topLevelName].
   final String _memberName;
 
-  _MemberElementLocation2._(
+  _MemberElementLocation._(
     super.libraryUri,
     super.topLevelName,
     this._memberName,
@@ -91,7 +91,7 @@ class _MemberElementLocation2 extends ElementLocation2 {
   @override
   String get encoding => '${super.encoding};$_memberName';
 
-  /// Locates the [Element2] represented by this [_MemberElementLocation2] in
+  /// Locates the [Element2] represented by this [_MemberElementLocation] in
   /// [session].
   ///
   /// Returns `null` if the [Element2] cannot be located.

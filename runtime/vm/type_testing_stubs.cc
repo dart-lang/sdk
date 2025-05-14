@@ -223,7 +223,7 @@ static CodePtr RetryCompilationWithFarBranches(
   volatile intptr_t far_branch_level = 0;
   while (true) {
     LongJumpScope jump;
-    if (setjmp(*jump.Set()) == 0) {
+    if (DART_SETJMP(*jump.Set()) == 0) {
       // To use the already-defined __ Macro !
       compiler::Assembler assembler(nullptr, far_branch_level);
       return fun(assembler);
@@ -735,11 +735,17 @@ void TypeTestingStubGenerator::BuildOptimizedRecordSubtypeRangeCheck(
 
     field_type_class = field_type.type_class();
     ASSERT(!field_type_class.IsNull());
+    const bool null_is_assignable = Instance::NullIsAssignableTo(field_type);
 
-    const CidRangeVector& ranges = hi->SubtypeRangesForClass(
-        field_type_class,
-        /*include_abstract=*/false,
-        /*exclude_null=*/!Instance::NullIsAssignableTo(field_type));
+    if (null_is_assignable) {
+      __ CompareObject(TTSInternalRegs::kScratchReg, Object::null_object());
+      __ BranchIf(EQUAL, &next);
+    }
+
+    const CidRangeVector& ranges =
+        hi->SubtypeRangesForClass(field_type_class,
+                                  /*include_abstract=*/false,
+                                  /*exclude_null=*/!null_is_assignable);
 
     const bool smi_is_ok = smi_type.IsSubtypeOf(field_type, Heap::kNew);
     __ BranchIfSmi(TTSInternalRegs::kScratchReg,

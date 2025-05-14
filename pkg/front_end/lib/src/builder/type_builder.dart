@@ -300,10 +300,6 @@ enum TypeUse {
   ///   prefix.X field;
   ///
   deferredTypeError,
-
-  /// A type used as a type argument in the construction of a type through the
-  /// macro API.
-  macroTypeArgument,
 }
 
 // TODO(johnniwinther): Change from sealed to abstract.
@@ -604,9 +600,11 @@ class PredefinedTypeName implements TypeName {
   const PredefinedTypeName(this.name);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String? get qualifier => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get nameOffset => TreeNode.noOffset;
 
   @override

@@ -11,16 +11,16 @@ const int _versionMinor = 0;
 const String _tcpSocket = 'tcp';
 const String _udpSocket = 'udp';
 
-// Creates a Map conforming to the HttpProfileRequest type defined in the
-// dart:io service extension spec from an element of dart:developer's
-// [_developerProfilingData].
-Future<Map<String, dynamic>> _createHttpProfileRequestFromProfileMap(
+/// Creates a Map conforming to the `HttpProfileRequest` type defined in the
+/// dart:io service extension spec from an element of dart:developer's
+/// `_developerProfilingData`.
+Map<String, Object?> _createHttpProfileRequestFromProfileMap(
   Map<String, dynamic> requestProfile, {
   required bool ref,
-}) async {
+}) {
   final responseData = requestProfile['responseData'] as Map<String, dynamic>;
 
-  return <String, dynamic>{
+  return {
     'type': '${ref ? '@' : ''}HttpProfileRequest',
     'id': requestProfile['id']!,
     'isolateId': requestProfile['isolateId']!,
@@ -39,7 +39,7 @@ Future<Map<String, dynamic>> _createHttpProfileRequestFromProfileMap(
   };
 }
 
-@pragma('vm:entry-point', !const bool.fromEnvironment("dart.vm.product"))
+@pragma('vm:entry-point', !bool.fromEnvironment("dart.vm.product"))
 abstract class _NetworkProfiling {
   // Http relative RPCs
   static const _kHttpEnableTimelineLogging =
@@ -58,7 +58,7 @@ abstract class _NetworkProfiling {
   // if more methods added to dart:io,
   static const _kGetVersionRPC = 'ext.dart.io.getVersion';
 
-  @pragma('vm:entry-point', !const bool.fromEnvironment("dart.vm.product"))
+  @pragma('vm:entry-point', !bool.fromEnvironment("dart.vm.product"))
   static void _registerServiceExtension() {
     registerExtension(_kHttpEnableTimelineLogging, _serviceExtensionHandler);
     registerExtension(_kGetSocketProfileRPC, _serviceExtensionHandler);
@@ -70,6 +70,9 @@ abstract class _NetworkProfiling {
     registerExtension(_kClearHttpProfileRPC, _serviceExtensionHandler);
   }
 
+  // Note this function only returns a `Future` because that is required by the
+  // signature of `registerExtension`. We might be able to change the signature
+  // of ServiceExtensionHandler to use `FutureOr` instead of `Future`.
   static Future<ServiceExtensionResponse> _serviceExtensionHandler(
     String method,
     Map<String, String> parameters,
@@ -93,23 +96,21 @@ abstract class _NetworkProfiling {
             'timestamp': DateTime.now().microsecondsSinceEpoch,
             'requests': [
               ...HttpProfiler.serializeHttpProfileRequests(updatedSince),
-              ...await Future.wait(
-                getHttpClientProfilingData()
-                    .where(
-                      (final Map<String, dynamic> p) =>
-                          updatedSince == null ||
-                          (p['_lastUpdateTime'] as int) >= updatedSince,
-                    )
-                    .map(
-                      (p) =>
-                          _createHttpProfileRequestFromProfileMap(p, ref: true),
-                    ),
-              ),
+              ...getHttpClientProfilingData()
+                  .where(
+                    (final Map<String, dynamic> p) =>
+                        updatedSince == null ||
+                        (p['_lastUpdateTime'] as int) >= updatedSince,
+                  )
+                  .map(
+                    (p) =>
+                        _createHttpProfileRequestFromProfileMap(p, ref: true),
+                  ),
             ],
           });
           break;
         case _kGetHttpProfileRequestRPC:
-          responseJson = await _getHttpProfileRequest(parameters);
+          responseJson = _getHttpProfileRequest(parameters);
           break;
         case _kClearHttpProfileRPC:
           HttpProfiler.clear();
@@ -174,12 +175,12 @@ String _setHttpEnableTimelineLogging(Map<String, String> parameters) {
   return _success();
 }
 
-Future<String> _getHttpProfileRequest(Map<String, String> parameters) async {
-  if (!parameters.containsKey('id')) {
+String _getHttpProfileRequest(Map<String, String> parameters) {
+  final id = parameters['id'];
+  if (id == null) {
     throw _missingArgument('id');
   }
-  final id = parameters['id']!;
-  final request;
+  final Map<String, Object?>? request;
   if (id.startsWith('from_package/')) {
     final profileMap = getHttpClientProfilingData().elementAtOrNull(
       int.parse(id.substring('from_package/'.length)) - 1,
@@ -187,10 +188,7 @@ Future<String> _getHttpProfileRequest(Map<String, String> parameters) async {
     request =
         profileMap == null
             ? null
-            : await _createHttpProfileRequestFromProfileMap(
-              profileMap,
-              ref: false,
-            );
+            : _createHttpProfileRequestFromProfileMap(profileMap, ref: false);
   } else {
     request = HttpProfiler.getHttpProfileRequest(id)?.toJson(ref: false);
   }
@@ -244,50 +242,42 @@ abstract class _SocketProfile {
     InternetAddress addr,
     int port,
   ) {
-    _SocketProfile.collectStatistic(id, _SocketProfileType.startTime);
-    _SocketProfile.collectStatistic(id, _SocketProfileType.socketType, type);
-    _SocketProfile.collectStatistic(id, _SocketProfileType.address, addr);
-    _SocketProfile.collectStatistic(id, _SocketProfileType.port, port);
+    if (!_enableSocketProfiling) {
+      return;
+    }
+    // TODO(srawlins): Assert that `_idToSocketStatistic` does not contain
+    // `id.toString()`?
+    final address =
+        (addr.type == InternetAddress.anyIPv6 ||
+                addr.type == InternetAddress.loopbackIPv6)
+            ? '[${addr.address}]'
+            : addr.address;
+    _idToSocketStatistic[id.toString()] = _SocketStatistic(
+      id.toString(),
+      startTime: Timeline.now,
+      socketType: type,
+      address: address,
+      port: port,
+    );
   }
 
   static void collectStatistic(
     int id,
     _SocketProfileType type, [
-    dynamic object,
+    Object? object,
   ]) {
     final idKey = id.toString();
     if (!_enableSocketProfiling) {
       return;
     }
-    // Skip socket that started before _enableSocketProfiling turned on.
-    if (!_idToSocketStatistic.containsKey(idKey) &&
-        type != _SocketProfileType.startTime)
-      return;
-    _SocketStatistic stats =
-        _idToSocketStatistic[idKey] ??= _SocketStatistic(idKey);
+    // Skip any socket that started before `_enableSocketProfiling` was turned
+    // on.
+    final stats = _idToSocketStatistic[idKey];
+    assert(stats != null, '"$idKey" not found in "_idToSocketStatistic" map');
+    if (stats == null) return;
     switch (type) {
-      case _SocketProfileType.startTime:
-        stats.startTime = Timeline.now;
-        break;
       case _SocketProfileType.endTime:
         stats.endTime = Timeline.now;
-        break;
-      case _SocketProfileType.address:
-        assert(object is InternetAddress);
-        final internetAddress = object as InternetAddress;
-        stats.address =
-            (internetAddress.type == InternetAddress.anyIPv6 ||
-                    internetAddress.type == InternetAddress.loopbackIPv6)
-                ? '[${internetAddress.address}]'
-                : internetAddress.address;
-        break;
-      case _SocketProfileType.port:
-        assert(object is int);
-        stats.port = object;
-        break;
-      case _SocketProfileType.socketType:
-        assert(object is String);
-        stats.socketType = object;
         break;
       case _SocketProfileType.readBytes:
         if (object == null) return;
@@ -299,8 +289,13 @@ abstract class _SocketProfile {
         stats.writeBytes += object as int;
         stats.lastWriteTime = Timeline.now;
         break;
-      default:
-        throw ArgumentError('type ${type} does not exist');
+      case _SocketProfileType.startTime:
+      case _SocketProfileType.socketType:
+      case _SocketProfileType.address:
+      case _SocketProfileType.port:
+        throw ArgumentError(
+          'The "${type}" type can only be set on initialization',
+        );
     }
   }
 
@@ -336,25 +331,34 @@ enum _SocketProfileType {
 /// Socket statistic
 class _SocketStatistic {
   final String id;
-  int? startTime;
+  final int startTime;
   int? endTime;
-  String? address;
-  int? port;
-  String? socketType;
+  final String address;
+  final int port;
+  final String socketType;
   int readBytes = 0;
   int writeBytes = 0;
   int? lastWriteTime;
   int? lastReadTime;
 
-  _SocketStatistic(this.id);
+  _SocketStatistic(
+    this.id, {
+    required this.startTime,
+    required this.socketType,
+    required this.address,
+    required this.port,
+  });
 
   Map<String, dynamic> toMap() {
-    final map = <String, dynamic>{'id': id};
-    _setIfNotNull(map, 'startTime', startTime);
+    final map = <String, Object>{
+      'id': id,
+      'startTime': startTime,
+      'address': address,
+      'port': port,
+      'socketType': socketType,
+    };
+    // TODO(srawlins): Replace with null-aware elements.
     _setIfNotNull(map, 'endTime', endTime);
-    _setIfNotNull(map, 'address', address);
-    _setIfNotNull(map, 'port', port);
-    _setIfNotNull(map, 'socketType', socketType);
     _setIfNotNull(map, 'readBytes', readBytes);
     _setIfNotNull(map, 'writeBytes', writeBytes);
     _setIfNotNull(map, 'lastWriteTime', lastWriteTime);

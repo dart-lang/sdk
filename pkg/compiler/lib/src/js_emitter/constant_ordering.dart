@@ -250,11 +250,9 @@ class _DartTypeKindVisitor implements DartTypeVisitor<int, Null> {
   @override
   int visitFutureOrType(FutureOrType type, _) => 9;
   @override
-  int visitLegacyType(LegacyType type, _) => 10;
+  int visitNullableType(NullableType type, _) => 10;
   @override
-  int visitNullableType(NullableType type, _) => 11;
-  @override
-  int visitRecordType(RecordType type, _) => 12;
+  int visitRecordType(RecordType type, _) => 11;
 }
 
 class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
@@ -275,10 +273,6 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
     _root = null;
     return r;
   }
-
-  @override
-  int visitLegacyType(covariant LegacyType type, covariant LegacyType other) =>
-      compare(type.baseType, other.baseType);
 
   @override
   int visitNullableType(

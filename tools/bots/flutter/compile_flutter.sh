@@ -78,7 +78,6 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
     dart:core \
     -Ddart.vm.product=false \
     -Ddart.isVM=true \
-    --nnbd-strong \
     --single-root-scheme=org-dartlang-sdk \
     --single-root-base=$checkout/ \
     org-dartlang-sdk:///sdk/lib/libraries.json \
@@ -89,7 +88,6 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
 $checkout/tools/sdks/dart-sdk/bin/dart \
     --packages=$checkout/.dart_tool/package_config.json \
     $checkout/pkg/front_end/tool/compile_platform.dart \
-    --nnbd-strong \
     --target=flutter \
     dart:core \
     --single-root-scheme=org-dartlang-sdk \

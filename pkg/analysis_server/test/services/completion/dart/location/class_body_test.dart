@@ -634,8 +634,9 @@ mixin OverrideTestCases on AbstractCompletionDriverTest {
         return switch (suggestion.kind) {
           CompletionSuggestionKind.IDENTIFIER =>
             suggestion.completion == 'override',
-          CompletionSuggestionKind.OVERRIDE =>
-            suggestion.completion.contains('foo0'),
+          CompletionSuggestionKind.OVERRIDE => suggestion.completion.contains(
+            'foo0',
+          ),
           _ => false,
         };
       },
@@ -857,8 +858,9 @@ class A {
       return switch (suggestion.kind) {
         CompletionSuggestionKind.IDENTIFIER =>
           suggestion.completion == 'override',
-        CompletionSuggestionKind.OVERRIDE =>
-          suggestion.completion.contains('=='),
+        CompletionSuggestionKind.OVERRIDE => suggestion.completion.contains(
+          '==',
+        ),
         _ => false,
       };
     };

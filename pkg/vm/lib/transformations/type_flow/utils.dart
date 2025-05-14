@@ -14,26 +14,34 @@ import 'package:kernel/src/printer.dart';
 
 String nodeToText(Node node) => node.toText(astTextStrategyForTesting);
 
-const bool kPrintTrace =
-    const bool.fromEnvironment('global.type.flow.print.trace');
+const bool kPrintTrace = const bool.fromEnvironment(
+  'global.type.flow.print.trace',
+);
 
-const bool kPrintDebug =
-    const bool.fromEnvironment('global.type.flow.print.debug');
+const bool kPrintDebug = const bool.fromEnvironment(
+  'global.type.flow.print.debug',
+);
 
-const bool kPrintTimings =
-    const bool.fromEnvironment('global.type.flow.print.timings');
+const bool kPrintTimings = const bool.fromEnvironment(
+  'global.type.flow.print.timings',
+);
 
-bool printStats = bool.fromEnvironment('global.type.flow.print.stats') ||
+bool printStats =
+    bool.fromEnvironment('global.type.flow.print.stats') ||
     Platform.environment['DART_TFA_PRINT_STATS'] == '1';
 
-const bool kRemoveAsserts =
-    const bool.fromEnvironment('global.type.flow.remove.asserts');
+const bool kRemoveAsserts = const bool.fromEnvironment(
+  'global.type.flow.remove.asserts',
+);
 
-const bool kScopeTrace =
-    const bool.fromEnvironment('global.type.flow.scope.trace');
+const bool kScopeTrace = const bool.fromEnvironment(
+  'global.type.flow.scope.trace',
+);
 
-const int kScopeIndent =
-    const int.fromEnvironment('global.type.flow.scope.indent', defaultValue: 1);
+const int kScopeIndent = const int.fromEnvironment(
+  'global.type.flow.scope.indent',
+  defaultValue: 1,
+);
 
 abstract class _Logger {
   log(Object message, [int scopeChange = 0]);
@@ -57,8 +65,10 @@ class _ScopedLogger implements _Logger {
   List<String> _scopePrefixes = <String>[""];
 
   _print(Object message) {
-    print(_scopePrefixes[_scope] +
-        message.toString().replaceAll("\n", "\n" + _scopePrefixes[_scope]));
+    print(
+      _scopePrefixes[_scope] +
+          message.toString().replaceAll("\n", "\n" + _scopePrefixes[_scope]),
+    );
   }
 
   log(Object message, [int scopeChange = 0]) {
@@ -66,7 +76,8 @@ class _ScopedLogger implements _Logger {
     _scope += scopeChange;
     while (_scopePrefixes.length < _scope + 1) {
       final start = _scopePrefixes[_scopePrefixes.length - 1];
-      final column = _colors[(_scope + 1) % _colors.length] +
+      final column =
+          _colors[(_scope + 1) % _colors.length] +
           _scopeDelimiter +
           _reset +
           " " * _scopeIndent;
@@ -113,9 +124,10 @@ bool hasReceiverArg(Member member) =>
 // generic classes at the moment.
 //
 // TODO(sjindel/tfa): Extend support to normal generic functions.
-int numTypeParams(Member member) => member is Procedure && member.isFactory
-    ? member.function.typeParameters.length
-    : 0;
+int numTypeParams(Member member) =>
+    member is Procedure && member.isFactory
+        ? member.function.typeParameters.length
+        : 0;
 
 /// Returns true if elements in [list] are in strictly increasing order.
 /// List with duplicates is considered not sorted.
@@ -142,10 +154,12 @@ class Histogram<K> {
 
   void printTop(String title, int n) {
     print(
-        '-------------------------------------------------------------------');
+      '-------------------------------------------------------------------',
+    );
     print(title);
     print(
-        '-------------------------------------------------------------------');
+      '-------------------------------------------------------------------',
+    );
     List<K> keys = values.keys.toList();
     keys.sort((k1, k2) => values[k1]!.compareTo(values[k2]!));
     final cut = keys.length < n ? 0 : keys.length - n;
@@ -154,7 +168,8 @@ class Histogram<K> {
       print("${values[k].toString().padLeft(9)}   $k");
     }
     print(
-        '-------------------------------------------------------------------');
+      '-------------------------------------------------------------------',
+    );
   }
 }
 
@@ -253,13 +268,17 @@ class Statistics {
   static void print(String caption) {
     if (kPrintTimings) {
       numSummaryApplications.printTop(
-          "Top summaries by number of times analyzed", 1000);
+        "Top summaries by number of times analyzed",
+        1000,
+      );
       dirtySummaryAnalysisTime.printTop(
-          "Top summaries by dirty analysis time (including callees), in microseconds",
-          1000);
+        "Top summaries by dirty analysis time (including callees), in microseconds",
+        1000,
+      );
       pureSummaryAnalysisTime.printTop(
-          "Top summaries by pure analysis time (excluding callees), in microseconds",
-          1000);
+        "Top summaries by pure analysis time (excluding callees), in microseconds",
+        1000,
+      );
     }
     statPrint("""${caption}:
     ${summariesCreated} summaries created
@@ -341,7 +360,7 @@ class UnionFind {
   final List<int> _elements;
 
   UnionFind([int initialSize = 0])
-      : _elements = List<int>.filled(initialSize, -1, growable: true);
+    : _elements = List<int>.filled(initialSize, -1, growable: true);
 
   /// Add a new singleton set.
   int add() {

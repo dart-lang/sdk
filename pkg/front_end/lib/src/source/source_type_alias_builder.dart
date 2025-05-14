@@ -6,8 +6,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/problems.dart' show unhandled;
-import '../base/scope.dart';
-import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/invalid_type_builder.dart';
@@ -27,6 +25,7 @@ import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart';
+import 'source_type_parameter_builder.dart';
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
@@ -92,8 +91,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       super.libraryBuilder as SourceLibraryBuilder;
 
   @override
-  List<NominalParameterBuilder>? get typeParameters =>
-      _introductory.typeParameters;
+  List<SourceNominalParameterBuilder>? get typeParameters =>
+      _introductory.typeParameters?.builders;
 
   @override
   bool get fromDill => false;
@@ -107,7 +106,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     if (_hasCheckedForCyclicDependency) return;
     _typedef = new Typedef(name, null,
         typeParameters:
-            NominalParameterBuilder.typeParametersFromBuilders(typeParameters),
+            SourceNominalParameterBuilder.typeParametersFromBuilders(
+                typeParameters),
         fileUri: fileUri,
         reference: _reference)
       ..fileOffset = fileOffset;
@@ -216,7 +216,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             case InvalidTypeDeclarationBuilder():
-            case OmittedTypeDeclarationBuilder():
             case ExtensionBuilder():
             case TypeParameterBuilder():
           }
@@ -375,14 +374,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         createBodyBuilderContext(),
         libraryBuilder,
         fileUri,
-        libraryBuilder.scope);
+        _introductory.enclosingScope);
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(
-            libraryBuilder,
-            createBodyBuilderContext(),
-            classHierarchy,
-            computeTypeParameterScope(libraryBuilder.scope));
+            libraryBuilder, createBodyBuilderContext(), classHierarchy);
       }
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
@@ -399,15 +395,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         inErrorRecovery: hasErrors);
     context.recursivelyReportGenericFunctionTypesAsBoundsForType(type);
     return count;
-  }
-
-  LookupScope computeTypeParameterScope(LookupScope parent) {
-    if (typeParameters == null) return parent;
-    Map<String, Builder> local = <String, Builder>{};
-    for (NominalParameterBuilder variable in typeParameters!) {
-      local[variable.name] = variable;
-    }
-    return new TypeParameterScope(parent, local);
   }
 
   Map<Procedure, Member>? _tearOffDependencies;
@@ -535,9 +522,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       case ExtensionBuilder():
       case InvalidTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():
-      // Coverage-ignore(suite): Not run.
-      // TODO(johnniwinther): How should we handle this case?
-      case OmittedTypeDeclarationBuilder():
       case null:
     }
 

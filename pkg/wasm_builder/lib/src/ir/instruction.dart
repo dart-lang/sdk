@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of 'instructions.dart';
+import '../serialize/serialize.dart';
+import 'ir.dart';
 
 abstract class Instruction implements Serializable {
   /// The [ValueType] types referenced by this instruction. Used to determine
@@ -198,10 +199,10 @@ class BeginFunctionTry extends Instruction {
   }
 }
 
-class Catch extends Instruction {
+class CatchLegacy extends Instruction {
   final Tag tag;
 
-  Catch(this.tag);
+  CatchLegacy(this.tag);
 
   @override
   void serialize(Serializer s) {
@@ -210,8 +211,8 @@ class Catch extends Instruction {
   }
 }
 
-class CatchAll extends SingleByteInstruction {
-  const CatchAll() : super(0x19);
+class CatchAllLegacy extends SingleByteInstruction {
+  const CatchAllLegacy() : super(0x19);
 }
 
 class Throw extends Instruction {
@@ -223,6 +224,15 @@ class Throw extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0x08);
     s.writeUnsigned(tag.index);
+  }
+}
+
+class ThrowRef extends Instruction {
+  const ThrowRef();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0x0a);
   }
 }
 
@@ -1754,5 +1764,115 @@ class I64TruncSatF64U extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFC);
     s.writeByte(0x07);
+  }
+}
+
+class BeginNoEffectTryTable extends Instruction {
+  final List<TryTableCatch> catches;
+
+  BeginNoEffectTryTable(this.catches);
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0x1F);
+    s.writeByte(0x40);
+    s.writeUnsigned(catches.length);
+    for (final catch_ in catches) {
+      catch_.serialize(s);
+    }
+  }
+}
+
+class BeginOneOutputTryTable extends Instruction {
+  final ValueType type;
+  final List<TryTableCatch> catches;
+
+  BeginOneOutputTryTable(this.type, this.catches);
+
+  @override
+  List<ValueType> get usedValueTypes => [type];
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0x1F);
+    s.write(type);
+    s.writeUnsigned(catches.length);
+    for (final catch_ in catches) {
+      catch_.serialize(s);
+    }
+  }
+}
+
+class BeginFunctionTryTable extends Instruction {
+  final FunctionType type;
+  final List<TryTableCatch> catches;
+
+  BeginFunctionTryTable(this.type, this.catches);
+
+  @override
+  List<DefType> get usedDefTypes => [type];
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0x1F);
+    s.write(type);
+    s.writeUnsigned(catches.length);
+    for (final catch_ in catches) {
+      catch_.serialize(s);
+    }
+  }
+}
+
+abstract class TryTableCatch {
+  final int labelIndex;
+
+  TryTableCatch(this.labelIndex);
+
+  void serialize(Serializer s);
+}
+
+class Catch extends TryTableCatch {
+  final Tag tag;
+
+  Catch(this.tag, super.labelIndex);
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0x00);
+    s.writeUnsigned(tag.index);
+    s.writeUnsigned(labelIndex);
+  }
+}
+
+class CatchRef extends TryTableCatch {
+  final Tag tag;
+
+  CatchRef(this.tag, super.labelIndex);
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0x01);
+    s.writeUnsigned(tag.index);
+    s.writeUnsigned(labelIndex);
+  }
+}
+
+class CatchAll extends TryTableCatch {
+  CatchAll(super.labelIndex);
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0x02);
+    s.writeUnsigned(labelIndex);
+  }
+}
+
+class CatchAllRef extends TryTableCatch {
+  CatchAllRef(super.labelIndex);
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0x03);
+    s.writeUnsigned(labelIndex);
   }
 }

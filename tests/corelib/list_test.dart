@@ -8,6 +8,7 @@
 import "dart:collection";
 import "dart:typed_data";
 import "package:expect/expect.dart";
+import "package:expect/config.dart";
 
 void main() {
   // Typed lists - fixed length and can only contain integers.
@@ -87,11 +88,18 @@ void testErrors() {
     } on RangeError catch (actualError) {
       Expect.isNotNull(realError, "$name should not fail");
       Expect.isTrue(actualError is RangeError, "$name is-error: $actualError");
-      Expect.equals(realError.name, actualError.name, "$name name");
-      Expect.equals(realError.invalidValue, actualError.invalidValue,
-          "$name[0:l+1] value");
-      Expect.equals(realError.start, actualError.start, "$name[0:l+1] start");
-      Expect.equals(realError.end, actualError.end, "$name[0:l+1] end");
+      // Dart2Wasm uses slightly different errors. For example for
+      // `[].sublist(1, 2)` normally we get
+      //   "RangeError (start): Invalid value: Only valid value is 0: 1"
+      // but dart2wasm emit
+      //   "RangeError (end): Invalid value: Valid value range is empty: 2"
+      if (!isDart2WasmConfiguration) {
+        Expect.equals(realError.name, actualError.name, "$name name");
+        Expect.equals(realError.invalidValue, actualError.invalidValue,
+            "$name[0:l+1] value");
+        Expect.equals(realError.start, actualError.start, "$name[0:l+1] start");
+        Expect.equals(realError.end, actualError.end, "$name[0:l+1] end");
+      }
       return;
     }
     // Didn't throw.

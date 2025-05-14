@@ -639,8 +639,11 @@ static intptr_t CommonSuffixLength(const char* a, const char* b) {
 }
 
 static ObjectPtr AcceptCompilation(Thread* thread) {
-  TransitionVMToNative transition(thread);
-  Dart_KernelCompilationResult result = KernelIsolate::AcceptCompilation();
+  Dart_KernelCompilationResult result;
+  {
+    TransitionVMToNative transition(thread);
+    result = KernelIsolate::AcceptCompilation();
+  }
   if (result.status != Dart_KernelCompilationStatus_Ok) {
     if (result.status != Dart_KernelCompilationStatus_MsgFailed) {
       FATAL(
@@ -1218,7 +1221,7 @@ ObjectPtr ProgramReloadContext::ReloadPhase2LoadKernel(
   Thread* thread = Thread::Current();
 
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
     if (tmp.IsError()) {
       return tmp.ptr();
@@ -2275,6 +2278,14 @@ class FieldInvalidator {
         continue;  // Already guarding.
       }
       const intptr_t field_id = field.field_id();
+      if (field.is_shared()) {
+        auto field_table = thread->isolate_group()->shared_field_table();
+        value_ = field_table->At(field_id);
+        if (value_.ptr() != Object::sentinel().ptr()) {
+          CheckValueType(value_, field);
+        }
+        continue;
+      }
       thread->isolate_group()->ForEachIsolate([&](Isolate* isolate) {
         auto field_table = isolate->field_table();
         // The isolate might've just been created and is now participating in

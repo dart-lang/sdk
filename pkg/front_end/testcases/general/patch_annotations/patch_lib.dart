@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@pragma('patch-library')
-library;
-
 // ignore: import_internal_library
 import 'dart:_internal';
 
@@ -18,4 +15,12 @@ class Class<@pragma('patch-class-type-variable') T> {
   @patch
   @pragma('patch-procedure')
   external void method<@pragma('patch-method-type-variable') S>();
+}
+
+@patch
+@pragma('patch-extension')
+extension Extension<@pragma('patch-extension-type-variable') T> on int {
+  @patch
+  @pragma('patch-extension-method')
+  external void method<@pragma('patch-extension-method-type-variable') S>();
 }

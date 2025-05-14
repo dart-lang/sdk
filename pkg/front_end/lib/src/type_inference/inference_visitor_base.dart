@@ -27,8 +27,8 @@ import '../base/instrumentation.dart'
         InstrumentationValueForMember,
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
-import '../base/nnbd_mode.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
+import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../codes/cfe_codes.dart';
@@ -37,12 +37,10 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show hasAnyTypeParameters;
-import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import '../source/source_member_builder.dart';
 import '../testing/id_extractor.dart';
-import '../testing/id_testing_utils.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'external_ast_helper.dart';
@@ -154,7 +152,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   InferenceDataForTesting? get dataForTesting => _inferrer.dataForTesting;
 
   FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
-      SharedTypeView<DartType>> get flowAnalysis => _inferrer.flowAnalysis;
+      SharedTypeView> get flowAnalysis => _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
   /// [isAssignable] and for caching types.
@@ -172,10 +170,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   @pragma("vm:prefer-inline")
   SourceLibraryBuilder get libraryBuilder => _inferrer.libraryBuilder;
 
+  LookupScope get extensionScope => _inferrer.extensionScope;
+
   bool get isInferenceUpdate1Enabled =>
       libraryBuilder.isInferenceUpdate1Enabled;
-
-  NnbdMode get nnbdMode => libraryBuilder.loader.nnbdMode;
 
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
@@ -213,7 +211,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// promoted, to be used when reporting an error for a larger expression
   /// containing [receiver].  [node] is the containing tree node.
   List<LocatedMessage>? getWhyNotPromotedContext(
-      Map<SharedTypeView<DartType>, NonPromotionReason>? whyNotPromoted,
+      Map<SharedTypeView, NonPromotionReason>? whyNotPromoted,
       TreeNode node,
       bool Function(DartType) typeFilter) {
     List<LocatedMessage>? context;
@@ -221,7 +219,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Coverage-ignore-block(suite): Not run.
       _WhyNotPromotedVisitor whyNotPromotedVisitor =
           new _WhyNotPromotedVisitor(this);
-      for (MapEntry<SharedTypeView<DartType>, NonPromotionReason> entry
+      for (MapEntry<SharedTypeView, NonPromotionReason> entry
           in whyNotPromoted.entries) {
         if (!typeFilter(entry.key.unwrapTypeView())) continue;
         List<LocatedMessage> messages =
@@ -232,11 +230,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           if (whyNotPromotedVisitor.propertyReference != null) {
             Id id = computeMemberId(whyNotPromotedVisitor.propertyReference!);
             args.add('target: $id');
-          }
-          if (whyNotPromotedVisitor.propertyType != null) {
-            String typeText = typeToText(whyNotPromotedVisitor.propertyType!,
-                TypeRepresentation.analyzerNonNullableByDefault);
-            args.add('type: $typeText');
           }
           if (args.isNotEmpty) {
             nonPromotionReasonText += '(${args.join(', ')})';
@@ -272,7 +265,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Returns `true` if exceptions should be thrown in paths reachable only due
   /// to unsoundness in flow analysis in mixed mode.
-  bool get shouldThrowUnsoundnessException => nnbdMode != NnbdMode.Strong;
+  // TODO(johnniwinther): Remove this.
+  bool get shouldThrowUnsoundnessException => false;
 
   void registerIfUnreachableForTesting(TreeNode node, {bool? isReachable}) {
     if (dataForTesting == null) return;
@@ -295,37 +289,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Ensures that all parameter types of [constructor] have been inferred.
   void _inferConstructorParameterTypes(Member target) {
-    SourceConstructorBuilder? constructorBuilder = engine.beingInferred[target];
-    if (constructorBuilder != null) {
-      // There is a cyclic dependency where inferring the types of the
-      // initializing formals of a constructor required us to infer the
-      // corresponding field type which required us to know the type of the
-      // constructor.
-      String name = constructorBuilder.declarationBuilder.name;
-      if (target.name.text.isNotEmpty) {
-        // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
-        // instead. However, `inferrer.helper` may be null.
-        name += ".${target.name.text}";
+    InferableMember? inferableMember = engine.beingInferred[target];
+    if (inferableMember != null) {
+      inferableMember.reportCyclicDependency();
+    } else {
+      inferableMember = engine.toBeInferred.remove(target);
+      if (inferableMember != null) {
+        engine.beingInferred[target] = inferableMember;
+        inferableMember.inferMemberTypes(hierarchyBuilder);
+        engine.beingInferred.remove(target);
       }
-      constructorBuilder.libraryBuilder.addProblem(
-          templateCantInferTypeDueToCircularity.withArguments(name),
-          target.fileOffset,
-          name.length,
-          target.fileUri);
-      // TODO(johnniwinther): Is this needed? VariableDeclaration.type is
-      // non-nullable so the loops have no effect.
-      /*for (VariableDeclaration declaration
-          in target.function.positionalParameters) {
-        declaration.type ??= const InvalidType();
-      }
-      for (VariableDeclaration declaration in target.function.namedParameters) {
-        declaration.type ??= const InvalidType();
-      }*/
-    } else if ((constructorBuilder = engine.toBeInferred[target]) != null) {
-      engine.toBeInferred.remove(target);
-      engine.beingInferred[target] = constructorBuilder!;
-      constructorBuilder.inferFormalTypes(hierarchyBuilder);
-      engine.beingInferred.remove(target);
     }
   }
 
@@ -381,8 +354,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           nullabilityNullTypeErrorTemplate,
       Template<Message Function(DartType, DartType, DartType, DartType)>?
           nullabilityPartErrorTemplate,
-      Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
-          whyNotPromoted}) {
+      Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
     return ensureAssignableResult(expectedType,
             new ExpressionInferenceResult(expressionType, expression),
             fileOffset: fileOffset,
@@ -496,8 +468,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           nullabilityNullTypeErrorTemplate,
       Template<Message Function(DartType, DartType, DartType, DartType)>?
           nullabilityPartErrorTemplate,
-      Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
-          whyNotPromoted}) {
+      Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
     // [errorTemplate], [nullabilityErrorTemplate], and
     // [nullabilityPartErrorTemplate] should be provided together.
     assert((errorTemplate == null) == (nullabilityErrorTemplate == null) &&
@@ -657,8 +628,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           nullabilityNullTypeErrorTemplate,
       Template<Message Function(DartType, DartType, DartType, DartType)>?
           nullabilityPartErrorTemplate,
-      Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
-          whyNotPromoted}) {
+      Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
     if (coerceExpression) {
       ExpressionInferenceResult? coercionResult = coerceExpressionForAssignment(
           contextType, inferenceResult,
@@ -974,9 +944,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   ObjectAccessTarget? _findExtensionTypeMember(DartType receiverType,
       ExtensionType extensionType, Name name, int fileOffset,
-      {required bool isSetter, required bool hasNonObjectMemberAccess}) {
-    ClassMember? classMember = _getExtensionTypeMember(
-        extensionType.extensionTypeDeclaration, name, isSetter);
+      {required bool isSetter,
+      required bool hasNonObjectMemberAccess,
+      bool isDotShorthand = false}) {
+    ClassMember? classMember = isDotShorthand
+        ? _getExtensionTypeStaticMember(
+            extensionType.extensionTypeDeclaration, name, false)
+        : _getExtensionTypeMember(
+            extensionType.extensionTypeDeclaration, name, isSetter);
     if (classMember == null) {
       return null;
     }
@@ -1040,7 +1015,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool otherIsSetter = descriptor.complementaryIsSetter;
     ExtensionAccessCandidate? bestSoFar;
     List<ExtensionAccessCandidate> noneMoreSpecific = [];
-    libraryBuilder.forEachExtensionInScope((ExtensionBuilder extensionBuilder) {
+    extensionScope.forEachExtension((ExtensionBuilder extensionBuilder) {
       MemberBuilder? thisBuilder = extensionBuilder
           .lookupLocalMemberByName(name, setter: setter) as MemberBuilder?;
       MemberBuilder? otherBuilder = extensionBuilder.lookupLocalMemberByName(
@@ -1172,6 +1147,29 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return defaultTarget;
   }
 
+  /// Finds a constructor of [type] called [name].
+  Member? findConstructor(TypeDeclarationType type, Name name, int fileOffset,
+      {bool isTearoff = false}) {
+    // TODO(Dart Model team): Seems like an abstraction level issue to require
+    // going from `Class` objects back to builders to find a `Member`.
+    DeclarationBuilder builder;
+    switch (type) {
+      case InterfaceType():
+        builder = engine.hierarchyBuilder.loader
+            .computeClassBuilderFromTargetClass(type.classNode);
+      case ExtensionType():
+        builder = engine.hierarchyBuilder.loader
+            .computeExtensionTypeBuilderFromTargetExtensionType(
+                type.extensionTypeDeclaration);
+    }
+
+    MemberBuilder? constructorBuilder = builder.findConstructorOrFactory(
+        name.text, fileOffset, helper.uri, libraryBuilder);
+    return isTearoff
+        ? constructorBuilder?.readTarget
+        : constructorBuilder?.invokeTarget;
+  }
+
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation using [fileOffset].
   ///
@@ -1267,6 +1265,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     return target;
+  }
+
+  /// Finds a static member of [type] called [name].
+  Member? findStaticMember(DartType type, Name name, int fileOffset) {
+    if (type is! TypeDeclarationType) return null;
+    switch (type) {
+      case InterfaceType():
+        return _getStaticMember(type.classNode, name, false);
+      case ExtensionType():
+        ObjectAccessTarget? target = _findExtensionTypeMember(
+            type, type, name, fileOffset,
+            isSetter: false,
+            hasNonObjectMemberAccess: type.hasNonObjectMemberAccess,
+            isDotShorthand: true);
+        return target?.member;
+    }
   }
 
   /// If target is missing on a non-dynamic receiver, an error is reported
@@ -1705,7 +1719,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       return visitor.inferExpression(argumentExpression, inferredFormalType);
     }
 
-    List<ExpressionInfo<SharedTypeView<DartType>>?>? identicalInfo =
+    List<ExpressionInfo<SharedTypeView>?>? identicalInfo =
         isIdentical && arguments.positional.length == 2 ? [] : null;
     int positionalIndex = 0;
     int namedIndex = 0;
@@ -2996,8 +3010,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       receiver = _hoist(receiver, receiverType, hoistedExpressions);
     }
 
-    Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
-        whyNotPromoted;
+    Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted;
     if (target.isNullable) {
       // We won't report the error until later (after we have an
       // invocationResult), but we need to gather "why not promoted" info now,
@@ -3739,6 +3752,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
   }
 
+  Member? _getStaticMember(Class class_, Name name, bool setter) {
+    Member? member =
+        engine.membersBuilder.getStaticMember(class_, name, setter: setter);
+    return TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
+  }
+
   ClassMember? _getExtensionTypeMember(
       ExtensionTypeDeclaration extensionTypeDeclaration,
       Name name,
@@ -3746,6 +3765,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     ClassMember? member = engine.membersBuilder.getExtensionTypeClassMember(
         extensionTypeDeclaration, name,
         setter: setter);
+    TypeInferenceEngine.resolveInferenceNode(
+        member?.getMember(engine.membersBuilder), hierarchyBuilder);
+    return member;
+  }
+
+  ClassMember? _getExtensionTypeStaticMember(
+      ExtensionTypeDeclaration extensionTypeDeclaration,
+      Name name,
+      bool setter) {
+    ClassMember? member = engine.membersBuilder
+        .getExtensionTypeStaticClassMember(extensionTypeDeclaration, name,
+            setter: setter);
     TypeInferenceEngine.resolveInferenceNode(
         member?.getMember(engine.membersBuilder), hierarchyBuilder);
     return member;
@@ -3970,8 +4001,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType? readType,
       required DartType? promotedReadType,
       required bool isThisReceiver,
-      Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
-          whyNotPromoted}) {
+      Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
     Expression read;
     ExpressionInferenceResult? readResult;
 
@@ -4376,12 +4406,10 @@ FunctionType replaceReturnType(FunctionType functionType, DartType returnType) {
 class _WhyNotPromotedVisitor
     implements
         NonPromotionReasonVisitor<List<LocatedMessage>, Node,
-            VariableDeclaration, SharedTypeView<DartType>> {
+            VariableDeclaration> {
   final InferenceVisitorBase inferrer;
 
   Member? propertyReference;
-
-  DartType? propertyType;
 
   _WhyNotPromotedVisitor(this.inferrer);
 
@@ -4403,16 +4431,14 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitPropertyNotPromotedForNonInherentReason(
-      PropertyNotPromotedForNonInherentReason<SharedTypeView<DartType>>
-          reason) {
+      PropertyNotPromotedForNonInherentReason reason) {
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
-        this.inferrer.libraryBuilder.fieldNonPromotabilityInfo;
+        inferrer.libraryBuilder.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
-      // `fieldPromotabilityInfo` is computed for all library builders except
-      // those for augmentation libraries.
-      assert(this.inferrer.libraryBuilder.isAugmenting);
-      // "why not promoted" functionality is not supported in augmentation
-      // libraries, so just don't generate a context message.
+      assert(
+          false,
+          "Missing field non-promotability info for "
+          "${inferrer.libraryBuilder}.");
       return const [];
     }
     FieldNameNonPromotabilityInfo<Class, SourceMemberBuilder,
@@ -4460,7 +4486,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitPropertyNotPromotedForInherentReason(
-      PropertyNotPromotedForInherentReason<SharedTypeView<DartType>> reason) {
+      PropertyNotPromotedForInherentReason reason) {
     Object? member = reason.propertyMember;
     if (member is Member) {
       if (member case Procedure(:var stubTarget?)) {
@@ -4469,7 +4495,6 @@ class _WhyNotPromotedVisitor
         member = stubTarget;
       }
       propertyReference = member;
-      propertyType = reason.staticType.unwrapTypeView();
       Template<Message Function(String, String)> template =
           switch (reason.whyNotPromotable) {
         PropertyNonPromotabilityReason.isNotField =>
@@ -4507,8 +4532,7 @@ class _WhyNotPromotedVisitor
   }
 
   void _addFieldPromotionUnavailableMessage(
-      PropertyNotPromoted<SharedTypeView<DartType>> reason,
-      List<LocatedMessage> messages) {
+      PropertyNotPromoted reason, List<LocatedMessage> messages) {
     Object? member = reason.propertyMember;
     if (member is Member) {
       messages.add(templateFieldNotPromotedBecauseNotEnabled

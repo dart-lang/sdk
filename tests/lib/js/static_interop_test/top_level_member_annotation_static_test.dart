@@ -5,9 +5,6 @@
 // Test that top-level external members need an @JS annotation even if the
 // library has one when using dart:js_interop.
 
-@JS()
-library top_level_member_annotation_static_test;
-
 import 'dart:js_interop';
 
 external int field;

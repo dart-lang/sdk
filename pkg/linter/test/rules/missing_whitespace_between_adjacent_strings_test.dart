@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingWhitespaceBetweenAdjacentStringsTest);
   });
@@ -31,14 +31,17 @@ var x = RegExp('(\n)+' '(\n)+' '(\n)+');
   }
 
   test_extraPositionalArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   new Unresolved('aaa' 'bbb');
 }
-''', [
-      // No lint
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
-    ]);
+''',
+      [
+        // No lint
+        error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
+      ],
+    );
   }
 
   test_firstPartEndsWithCarriageReturn() async {
@@ -98,20 +101,22 @@ var x = 'longLineWithoutSpaceCouldBe' 'AnURL';
   }
 
   test_noSpacesBetweenStringParts() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = 'long line' 'is long';
-''', [
-      lint(8, 11),
-    ]);
+''',
+      [lint(8, 11)],
+    );
   }
 
   test_noSpacesBetweenStringParts_leftHasInterpolation() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var f = 1;
 var x = 'long $f line' 'is long';
-''', [
-      lint(19, 14),
-    ]);
+''',
+      [lint(19, 14)],
+    );
   }
 
   test_rightPartStartsWithInterpolation() async {

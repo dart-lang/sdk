@@ -26,9 +26,7 @@ num Function(A<num>) producingFunctionA() => ((A<num> a) => 0);
 test2() =>
     acceptingFunctionET1(producingFunctionA()).expectStaticType<Exactly<num>>();
 
-enum E<X> {
-  element<String>();
-}
+enum E<X> { element<String>() }
 
 extension type ET2<Y>(E<Y> it) implements E<Y> {}
 
@@ -39,7 +37,8 @@ ET2<T> producingET2<T>() => ET2<T>(producingE<T>());
 // In type constraint generation, ET2<T> is compared against E<String>,
 // yielding the constraint T <: String.
 test3() => context<E<String>>(
-    producingET2()..expectStaticType<Exactly<ET2<String>>>());
+  producingET2()..expectStaticType<Exactly<ET2<String>>>(),
+);
 
 T acceptingFunctionET2<T>(T Function(ET2<T>) f) => f(ET2<T>(producingE<T>()));
 
@@ -47,8 +46,10 @@ String Function(E<String>) producingFunctionE() => ((E<String> e) => "");
 
 // In type constraint generation, E<String> is compared against ET2<T>,
 // yielding the constraint String <: T.
-test4() => acceptingFunctionET2(producingFunctionE())
-    .expectStaticType<Exactly<String>>();
+test4() =>
+    acceptingFunctionET2(
+      producingFunctionE(),
+    ).expectStaticType<Exactly<String>>();
 
 extension type ET3<Y>(A<Y> it) implements ET1<Y> {}
 
@@ -73,14 +74,17 @@ ET4<T> producingET4<T>() => ET4<T>(producingE<T>());
 // In type constraint generation, ET4<T> is compared against E<String>,
 // yielding the constraint T <: String.
 test7() => context<E<String>>(
-    producingET4()..expectStaticType<Exactly<ET4<String>>>());
+  producingET4()..expectStaticType<Exactly<ET4<String>>>(),
+);
 
 T acceptingFunctionET4<T>(Function(ET4<T>) f) => f(ET4<T>(producingE<T>()));
 
 // In type constraint generation, E<String> is compared against ET4<T>,
 // yielding the constraint String <: T.
-test8() => acceptingFunctionET4(producingFunctionE())
-    .expectStaticType<Exactly<String>>();
+test8() =>
+    acceptingFunctionET4(
+      producingFunctionE(),
+    ).expectStaticType<Exactly<String>>();
 
 main() {
   test1();

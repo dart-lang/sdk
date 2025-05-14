@@ -4,7 +4,6 @@
 
 // File is compiled with checked in SDK, update [FfiNative]s to [Native] when
 // SDK is rolled.
-// ignore_for_file: deprecated_member_use
 
 import 'dart:typed_data';
 

@@ -30,7 +30,7 @@ class StaticTypeAnalyzer {
   late TypeSystemImpl _typeSystem;
 
   /// The type representing the type 'dynamic'.
-  late DartType _dynamicType;
+  late TypeImpl _dynamicType;
 
   /// Initialize a newly created static type analyzer to analyze types for the
   /// [_resolver] based on the
@@ -82,7 +82,7 @@ class StaticTypeAnalyzer {
   }
 
   void visitConditionalExpression(covariant ConditionalExpressionImpl node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     // A conditional expression `E` of the form `b ? e1 : e2` with context type
     // `K` is analyzed as follows:
     //
@@ -178,7 +178,7 @@ class StaticTypeAnalyzer {
   /// same contexttype
   /// </blockquote>
   void visitIntegerLiteral(IntegerLiteralImpl node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var strictCasts = _resolver.analysisOptions.strictCasts;
     if (_typeSystem.isAssignableTo(_typeProvider.intType, contextType,
             strictCasts: strictCasts) ||

@@ -23,6 +23,8 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart' as watcher;
 
+import '../../support/sdk_paths.dart';
+
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BuiltInPluginInfoTest);
@@ -171,12 +173,7 @@ class DiscoveredPluginInfoTest with ResourceProviderMixin, _ContextRoot {
 
   Future<void> test_start_running() async {
     plugin.currentSession = PluginSession(plugin);
-    try {
-      await plugin.start('', '');
-      fail('Expected a StateError');
-    } on StateError {
-      // Expected.
-    }
+    expect(() => plugin.start('', ''), throwsStateError);
   }
 
   void test_stop_notRunning() {
@@ -739,10 +736,12 @@ class PluginSessionTest with ResourceProviderMixin {
     expect(session.pluginStoppedCompleter.isCompleted, isTrue);
   }
 
-  @failingTest
   void test_handleOnError() {
     session.handleOnError(<String>['message', 'trace']);
-    fail('The method handleOnError is not implemented');
+    expect(
+      notificationManager.pluginErrors.first,
+      'An error occurred while executing an analyzer plugin: message\ntrace',
+    );
   }
 
   Future<void> test_handleResponse() async {
@@ -760,6 +759,32 @@ class PluginSessionTest with ResourceProviderMixin {
     expect(session.pendingRequests, hasLength(0));
     var result = await future;
     expect(result, same(response));
+  }
+
+  Future<void> test_handleResponse_withError() async {
+    TestServerCommunicationChannel(session);
+    var response = Response(
+      '0' /* id */,
+      1 /* requestTime */,
+      error: RequestError(
+        RequestErrorCode.PLUGIN_ERROR,
+        'exception',
+        stackTrace: 'some stackTrace',
+      ),
+    );
+
+    var responseFuture = session.sendRequest(
+      PluginVersionCheckParams('', '', ''),
+    );
+    session.handleResponse(response);
+    await responseFuture;
+    expect(
+      notificationManager.pluginErrors,
+      equals([
+        'An error occurred while executing an analyzer plugin: exception\n'
+            'some stackTrace',
+      ]),
+    );
   }
 
   void test_nextRequestId() {
@@ -781,16 +806,18 @@ class PluginSessionTest with ResourceProviderMixin {
       await session.start(path.join(pluginPath, 'byteStore'), sdkPath),
       isFalse,
     );
+    expect(
+      notificationManager.pluginErrors.first,
+      startsWith(
+        'An error occurred while executing an analyzer plugin: Plugin is not '
+        'compatible.',
+      ),
+    );
   }
 
   Future<void> test_start_running() async {
     TestServerCommunicationChannel(session);
-    try {
-      await session.start('', '');
-      fail('Expected a StateError to be thrown');
-    } on StateError {
-      // Expected behavior
-    }
+    expect(() => session.start('', ''), throwsStateError);
   }
 
   void test_stop_notRunning() {
@@ -851,19 +878,6 @@ class MinimalPlugin extends ServerPlugin {
 }
 ''';
 
-  /// The path to the package config file in the root of the Dart SDK.
-  static String get _sdkPackageConfigPath {
-    var filePath = io.Platform.script.toFilePath();
-    // Walk up the directory structure from this script file to the
-    // 'analysis_server' root directory.
-    while (filePath.isNotEmpty &&
-        path.basename(filePath) != 'analysis_server') {
-      filePath = path.dirname(filePath);
-    }
-    filePath = path.dirname(path.dirname(filePath));
-    return path.join(filePath, '.dart_tool', 'package_config.json');
-  }
-
   late PhysicalResourceProvider resourceProvider;
 
   late TestNotificationManager notificationManager;
@@ -905,7 +919,7 @@ class MinimalPlugin extends ServerPlugin {
         path.join(pluginDartToolPath, 'package_config.json'),
       );
       packageConfigFile.writeAsStringSync(
-        io.File(_sdkPackageConfigPath).readAsStringSync(),
+        io.File(sdkPackageConfigPath).readAsStringSync(),
       );
       //
       // Create the 'bin' directory.
@@ -932,6 +946,13 @@ class TestNotificationManager implements AbstractNotificationManager {
 
   Map<String, Map<String, List<AnalysisError>>> recordedErrors =
       <String, Map<String, List<AnalysisError>>>{};
+
+  List<String> pluginErrors = [];
+
+  @override
+  void handlePluginError(String message) {
+    pluginErrors.add(message);
+  }
 
   @override
   void handlePluginNotification(String pluginId, Notification notification) {

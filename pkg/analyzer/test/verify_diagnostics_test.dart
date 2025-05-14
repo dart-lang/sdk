@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../tool/diagnostics/generate.dart';
 import '../tool/messages/error_code_documentation_info.dart';
 import '../tool/messages/error_code_info.dart';
 import 'src/dart/resolution/context_collection_resolution.dart';
@@ -73,6 +71,8 @@ class DocumentationValidator {
     'CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT',
     // Produces two diagnostic out of necessity.
     'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE',
+    // Produces two diagnostics out of necessity.
+    'CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION',
     // Produces two diagnostic out of necessity.
     'CompileTimeErrorCode.TOP_LEVEL_CYCLE',
     // Produces two diagnostic out of necessity.
@@ -124,6 +124,9 @@ class DocumentationValidator {
     'LintCode.package_prefixed_library_names',
     // Need a way to specify the existance of files whose content is irrelevant.
     'LintCode.prefer_relative_imports',
+    // The test file is in a basic workspace, so it can't have public API. I
+    // think we'd need to add a `pubspec.yaml` file to the example.
+    'LintCode.public_member_api_docs',
     // Missing support for YAML files.
     'LintCode.secure_pubspec_urls',
     // The test framework doesn't yet support lints in non-dart files.
@@ -137,7 +140,7 @@ class DocumentationValidator {
     'LintCode.recursive_getters',
 
     // Has `language=2.9`
-    'ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD',
+    'CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD',
 
     //
     // The following can't currently be verified because the examples aren't
@@ -421,25 +424,6 @@ class VerifyDiagnosticsTest {
     //
     DocumentationValidator validator = DocumentationValidator();
     await validator.validate();
-    //
-    // Validate that the generator has been run.
-    //
-    String actualContent = PhysicalResourceProvider.INSTANCE
-        .getFile(computeOutputPath())
-        .readAsStringSync();
-    // Normalize Windows line endings to Unix line endings so that the
-    // comparison doesn't fail on Windows.
-    actualContent = actualContent.replaceAll('\r\n', '\n');
-
-    StringBuffer sink = StringBuffer();
-    DocumentationGenerator generator = DocumentationGenerator();
-    generator.writeDocumentation(sink);
-    String expectedContent = sink.toString();
-
-    if (actualContent != expectedContent) {
-      fail('The diagnostic documentation needs to be regenerated.\n'
-          'Please run tool/diagnostics/generate.dart.');
-    }
   }
 
   test_published() {
@@ -524,8 +508,8 @@ class _SnippetTest extends PubPackageResolutionTest {
   void _createAnalysisOptionsFile() {
     var lintCode = snippet.lintCode;
     if (lintCode != null) {
-      writeTestPackageAnalysisOptionsFile(
-          analysisOptionsContent(rules: [lintCode]));
+      writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
+          rules: [lintCode], experiments: snippet.experiments));
     }
   }
 

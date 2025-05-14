@@ -10,9 +10,9 @@
 /// interact with the browser and the DOM (Document Object Model).
 ///
 /// > [!Note]
-/// > New projects should prefer to use
-/// > [package:web](https://pub.dev/packages/web). For existing projects, see
-/// > our [migration guide](https://dart.dev/go/package-web).
+/// > This core library is deprecated, and scheduled for removal in late 2025.
+/// > It has been replaced by [package:web](https://pub.dev/packages/web).
+/// > The [migration guide](https://dart.dev/go/package-web) has more details.
 ///
 /// This library includes DOM element types, CSS styling, local storage,
 /// media, speech, events, and more.
@@ -129,13 +129,6 @@ Future<Map<String, dynamic>$NULLABLE> promiseToFutureAsMap(jsPromise) =>
 @Native("HTMLElement")
 class HtmlElement extends Element implements NoncedElement {
   factory HtmlElement() { throw new UnsupportedError("Not supported"); }
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  HtmlElement.created() : super.created();
 
   // From NoncedElement
   String$NULLABLE get nonce native;

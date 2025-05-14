@@ -74,6 +74,28 @@ void f() {
 }
 ''');
 
+  Future<void> test_formalParameters_closure() => _testMarkedContent('''
+void f(void Function(int) _) {}
+
+void g() => f((/*[0*/^variable/*0]*/) {
+  print(/*[1*/variable/*1]*/);
+});
+''');
+
+  Future<void> test_formalParameters_function() => _testMarkedContent('''
+void f(int /*[0*/^parameter/*0]*/) {
+  print(/*[1*/parameter/*1]*/);
+}
+''');
+
+  Future<void> test_formalParameters_method() => _testMarkedContent('''
+class C {
+  void m(int /*[0*/^parameter/*0]*/) {
+    print(/*[1*/parameter/*1]*/);
+  }
+}
+''');
+
   Future<void> test_functions() => _testMarkedContent('''
 /*[0*/main/*0]*/() {
   /*[1*/mai^n/*1]*/();
@@ -105,45 +127,6 @@ void f() {
   /*[2*/foo/*2]*/ = 2;
 }
 ''');
-
-  Future<void> test_macroGenerated() async {
-    setDartTextDocumentContentProviderSupport();
-    addMacros([declareInTypeMacro()]);
-
-    const content = '''
-import 'macros.dart';
-
-@DeclareInType('void f() { f(); }')
-class A {}
-''';
-    newFile(mainFilePath, content);
-    await Future.wait([waitForAnalysisComplete(), initialize()]);
-
-    // Fetch the content and locate the two references to `f` we will test.
-    var generatedFile = await getDartTextDocumentContent(mainFileMacroUri);
-    var generatedContent = generatedFile!.content!;
-    var functionDefinitionOffset = generatedContent.indexOf('f() {');
-    var functionCallOffset = generatedContent.indexOf('f();');
-    var functionDefinitionPosition = positionFromOffset(
-      functionDefinitionOffset,
-      generatedContent,
-    );
-    var functionCallOffsetPosition = positionFromOffset(
-      functionCallOffset,
-      generatedContent,
-    );
-
-    // Request document highlights on one occurrence of `f`.
-    var highlights = await getDocumentHighlights(
-      mainFileMacroUri,
-      functionDefinitionPosition,
-    );
-
-    // Ensure we got back both.
-    expect(highlights, hasLength(2));
-    expect(highlights![0].range.start, functionDefinitionPosition);
-    expect(highlights[1].range.start, functionCallOffsetPosition);
-  }
 
   Future<void> test_method_underscore() => _testMarkedContent('''
 class C {
@@ -191,6 +174,21 @@ void f() {
 }
 ''');
 
+  Future<void> test_prefix() => _testMarkedContent('''
+import '' as /*[0*/p/*0]*/;
+
+class A {
+  void m() {
+    /*[1*/p/*1]*/.foo();
+    print(/*[2*/p/*2]*/.a);
+  }
+}
+
+void foo() {}
+
+/*[3*/p^/*3]*/.A? a;
+''');
+
   Future<void> test_prefixed() => _testMarkedContent('''
 import '' as p;
 
@@ -235,6 +233,34 @@ void f() {
   /*[2*/^_/*2]*/ = '';
 }
 ''');
+
+  Future<void> test_type_class_constructors() async {
+    await _testMarkedContent('''
+class /*[0*/A^/*0]*/ {
+  A(); // Unnamed constructor is own entity
+  /*[1*/A/*1]*/.named();
+}
+
+/*[2*/A/*2]*/ a = A(); // Unnamed constructor is own entity
+var b = /*[3*/A/*3]*/.new();
+var c = /*[4*/A/*4]*/.new;
+''');
+  }
+
+  /// The type name in unnamed constructors are their own entity and not
+  /// part of the type name.
+  Future<void> test_type_class_constructors_unnamed() async {
+    await _testMarkedContent('''
+class A {
+  /*[0*/A^/*0]*/();
+  A.named();
+}
+
+A a = /*[1*/A/*1]*/();
+var b = A./*[2*/new/*2]*/();
+var c = A./*[3*/new/*3]*/;
+''');
+  }
 
   Future<void> test_typeAlias_class_declaration() => _testMarkedContent('''
 class MyClass {}

@@ -18,7 +18,7 @@ class IgnoredDiagnosticComment implements IgnoredElement {
   IgnoredDiagnosticComment(this.text, this.offset);
 
   @override
-  bool matches(ErrorCode errorCode) => false;
+  bool _matches(ErrorCode errorCode, {String? pluginName}) => false;
 }
 
 /// The name and location of a diagnostic name in an ignore comment.
@@ -26,12 +26,18 @@ class IgnoredDiagnosticName implements IgnoredElement {
   /// The name of the diagnostic being ignored.
   final String name;
 
+  final String? pluginName;
+
   final int offset;
 
-  IgnoredDiagnosticName(String name, this.offset) : name = name.toLowerCase();
+  IgnoredDiagnosticName(String name, this.offset, {this.pluginName})
+      : name = name.toLowerCase();
 
   @override
-  bool matches(ErrorCode errorCode) {
+  bool _matches(ErrorCode errorCode, {String? pluginName}) {
+    if (this.pluginName != pluginName) {
+      return false;
+    }
     if (name == errorCode.name.toLowerCase()) {
       return true;
     }
@@ -56,7 +62,8 @@ class IgnoredDiagnosticType implements IgnoredElement {
       : type = type.toLowerCase();
 
   @override
-  bool matches(ErrorCode errorCode) {
+  bool _matches(ErrorCode errorCode, {String? pluginName}) {
+    // Ignore 'pluginName'; it is irrelevant in an IgnoredDiagnosticType.
     return switch (errorCode.type) {
       ErrorType.HINT => type == 'hint',
       ErrorType.LINT => type == 'lint',
@@ -69,7 +76,7 @@ class IgnoredDiagnosticType implements IgnoredElement {
 
 sealed class IgnoredElement {
   /// Returns whether this matches the given [errorCode].
-  bool matches(ErrorCode errorCode);
+  bool _matches(ErrorCode errorCode, {String? pluginName});
 }
 
 /// Information about analysis `//ignore:` and `//ignore_for_file:` comments
@@ -178,24 +185,27 @@ class IgnoreInfo {
     return ignoredOnLine;
   }
 
-  bool ignored(AnalysisError error) {
+  /// Whether [error] is ignored via an inline "ignore" comment.
+  bool ignored(AnalysisError error, {String? pluginName}) {
     var line = _lineInfo.getLocation(error.offset).lineNumber;
-    return ignoredAt(error.errorCode, line);
+    return _ignoredAt(error.errorCode, line, pluginName: pluginName);
   }
 
   /// Returns whether the [errorCode] is ignored at the given [line].
-  bool ignoredAt(ErrorCode errorCode, int line) {
+  bool _ignoredAt(ErrorCode errorCode, int line, {String? pluginName}) {
     var ignoredDiagnostics = _ignoredOnLine[line];
     if (ignoredForFile.isEmpty && ignoredDiagnostics == null) {
       return false;
     }
-    if (ignoredForFile.any((name) => name.matches(errorCode))) {
+    if (ignoredForFile
+        .any((name) => name._matches(errorCode, pluginName: pluginName))) {
       return true;
     }
     if (ignoredDiagnostics == null) {
       return false;
     }
-    return ignoredDiagnostics.any((name) => name.matches(errorCode));
+    return ignoredDiagnostics
+        .any((name) => name._matches(errorCode, pluginName: pluginName));
   }
 }
 
@@ -259,8 +269,8 @@ extension CommentTokenExtension on CommentToken {
         // Parse diagnostic type.
         skipPastWhitespace();
         if (offset == lexeme.length) return;
-        var equalSign = lexeme.codeUnitAt(offset);
-        if (equalSign != 0x3D) return;
+        var nextChar = lexeme.codeUnitAt(offset);
+        if (!nextChar.isEqual) return;
         offset++;
         skipPastWhitespace();
         if (offset == lexeme.length) return;
@@ -293,6 +303,30 @@ extension CommentTokenExtension on CommentToken {
         yield IgnoredDiagnosticType(
             type, this.offset + wordOffset, offset - wordOffset);
       } else {
+        String? pluginName;
+        if (offset < lexeme.length) {
+          var nextChar = lexeme.codeUnitAt(offset);
+          if (nextChar.isSlash) {
+            // We may be looking at a plugin-name-prefixed code, like
+            // 'plugin_one/foo'.
+            pluginName = word;
+            offset++;
+            if (offset == lexeme.length) return;
+            var nameOffset = offset;
+            readWord();
+            word = lexeme.substring(nameOffset, offset);
+            if (nameOffset == offset) {
+              // There is a non-word (other characters) at `offset`.
+              if (hasIgnoredElements) {
+                yield IgnoredDiagnosticComment(
+                  lexeme.substring(offset),
+                  this.offset + nameOffset,
+                );
+              }
+              return;
+            }
+          }
+        }
         if (offset < lexeme.length) {
           var nextChar = lexeme.codeUnitAt(offset);
           if (!nextChar.isSpace && !nextChar.isComma) {
@@ -306,7 +340,8 @@ extension CommentTokenExtension on CommentToken {
           }
         }
         hasIgnoredElements = true;
-        yield IgnoredDiagnosticName(word, this.offset + wordOffset);
+        yield IgnoredDiagnosticName(word, this.offset + wordOffset,
+            pluginName: pluginName);
       }
 
       if (offset == lexeme.length) return;

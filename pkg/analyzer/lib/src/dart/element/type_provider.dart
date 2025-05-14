@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -85,7 +82,7 @@ const Set<String> _nonSubtypableDartTypedDataClassNames = {
 abstract class TypeProviderBase implements TypeProvider {
   @override
   bool isObjectGetter(String id) {
-    var element = objectType.element.getGetter(id);
+    var element = objectType.element3.getGetter2(id);
     return element != null && !element.isStatic;
   }
 
@@ -96,7 +93,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   bool isObjectMethod(String id) {
-    var element = objectType.element.getMethod(id);
+    var element = objectType.element3.getMethod2(id);
     return element != null && !element.isStatic;
   }
 }
@@ -108,23 +105,27 @@ class TypeProviderImpl extends TypeProviderBase {
   bool _hasEnumElement = false;
   bool _hasEnumType = false;
 
-  ClassElementImpl? _boolElement;
-  ClassElementImpl? _doubleElement;
-  ClassElementImpl? _enumElement;
-  ClassElementImpl? _futureElement;
-  ClassElementImpl? _futureOrElement;
-  ClassElementImpl? _intElement;
-  ClassElementImpl? _iterableElement;
-  ClassElementImpl? _listElement;
-  ClassElementImpl? _mapElement;
-  ClassElementImpl? _nullElement;
-  ClassElementImpl? _numElement;
-  ClassElementImpl? _objectElement;
-  ClassElementImpl? _recordElement;
-  ClassElementImpl? _setElement;
-  ClassElementImpl? _streamElement;
-  ClassElementImpl? _stringElement;
-  ClassElementImpl? _symbolElement;
+  ClassElementImpl2? _boolElement;
+  ClassElementImpl2? _deprecatedElement;
+  ClassElementImpl2? _doubleElement;
+  ClassElementImpl2? _enumElement;
+  ClassElementImpl2? _functionElement;
+  ClassElementImpl2? _futureElement;
+  ClassElementImpl2? _futureOrElement;
+  ClassElementImpl2? _intElement;
+  ClassElementImpl2? _iterableElement;
+  ClassElementImpl2? _listElement;
+  ClassElementImpl2? _mapElement;
+  ClassElementImpl2? _nullElement;
+  ClassElementImpl2? _numElement;
+  ClassElementImpl2? _objectElement;
+  ClassElementImpl2? _recordElement;
+  ClassElementImpl2? _setElement;
+  ClassElementImpl2? _stackTraceElement;
+  ClassElementImpl2? _streamElement;
+  ClassElementImpl2? _stringElement;
+  ClassElementImpl2? _symbolElement;
+  ClassElementImpl2? _typeElement;
 
   InterfaceTypeImpl? _boolType;
   InterfaceTypeImpl? _deprecatedType;
@@ -160,19 +161,23 @@ class TypeProviderImpl extends TypeProviderBase {
   })  : _coreLibrary = coreLibrary,
         _asyncLibrary = asyncLibrary;
 
+  @Deprecated('Use boolElement2 instead')
   @override
   ClassElementImpl get boolElement {
-    return _boolElement ??= _getClassElement(_coreLibrary, 'bool');
+    return boolElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get boolElement2 {
-    return boolElement.element;
+    return _boolElement ??= _getClassElement(_coreLibrary, 'bool');
   }
 
   @override
   InterfaceTypeImpl get boolType {
-    return _boolType ??= _getType(_coreLibrary, "bool");
+    return _boolType ??= boolElement2.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   @override
@@ -180,24 +185,35 @@ class TypeProviderImpl extends TypeProviderBase {
     return NeverTypeImpl.instance;
   }
 
-  @override
-  InterfaceTypeImpl get deprecatedType {
-    return _deprecatedType ??= _getType(_coreLibrary, "Deprecated");
+  ClassElementImpl2 get deprecatedElement2 {
+    return _deprecatedElement ??= _getClassElement(_coreLibrary, 'Deprecated');
   }
 
   @override
+  InterfaceTypeImpl get deprecatedType {
+    return _deprecatedType ??= deprecatedElement2.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  @Deprecated('Use doubleElement2 instead')
+  @override
   ClassElementImpl get doubleElement {
-    return _doubleElement ??= _getClassElement(_coreLibrary, "double");
+    return doubleElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get doubleElement2 {
-    return doubleElement.element;
+    return _doubleElement ??= _getClassElement(_coreLibrary, "double");
   }
 
   @override
   InterfaceTypeImpl get doubleType {
-    return _doubleType ??= _getType(_coreLibrary, "double");
+    return _doubleType ??= doubleElement2.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   InterfaceTypeImpl get doubleTypeQuestion => _doubleTypeQuestion ??=
@@ -206,28 +222,28 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   TypeImpl get dynamicType => DynamicTypeImpl.instance;
 
+  @Deprecated('Use enumElement2 instead')
   @override
   ClassElementImpl? get enumElement {
-    if (!_hasEnumElement) {
-      _hasEnumElement = true;
-      _enumElement = _coreLibrary.getClass('Enum');
-    }
-    return _enumElement;
+    return enumElement2?.asElement;
   }
 
   @override
   ClassElementImpl2? get enumElement2 {
-    return enumElement?.element;
+    if (!_hasEnumElement) {
+      _hasEnumElement = true;
+      _enumElement = _getClassElement(_coreLibrary, 'Enum');
+    }
+    return _enumElement;
   }
 
   @override
   InterfaceTypeImpl? get enumType {
     if (!_hasEnumType) {
       _hasEnumType = true;
-      var element = enumElement;
+      var element = enumElement2;
       if (element != null) {
-        _enumType = InterfaceTypeImpl(
-          element: element,
+        _enumType = element.instantiateImpl(
           typeArguments: const [],
           nullabilitySuffix: NullabilitySuffix.none,
         );
@@ -236,71 +252,81 @@ class TypeProviderImpl extends TypeProviderBase {
     return _enumType;
   }
 
+  ClassElementImpl2 get functionElement2 {
+    return _functionElement ??= _getClassElement(_coreLibrary, 'Function');
+  }
+
   @override
   InterfaceTypeImpl get functionType {
-    return _functionType ??= _getType(_coreLibrary, "Function");
+    return _functionType ??= functionElement2.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   @override
   InterfaceTypeImpl get futureDynamicType {
-    return _futureDynamicType ??= InterfaceTypeImpl(
-      element: futureElement,
+    return _futureDynamicType ??= futureElement2.instantiateImpl(
       typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
+  @Deprecated('Use futureElement2 instead')
   @override
   ClassElementImpl get futureElement {
-    return _futureElement ??= _getClassElement(_asyncLibrary, 'Future');
+    return futureElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get futureElement2 {
-    return futureElement.element;
+    return _futureElement ??= _getClassElement(_asyncLibrary, 'Future');
   }
 
   @override
   InterfaceTypeImpl get futureNullType {
-    return _futureNullType ??= InterfaceTypeImpl(
-      element: futureElement,
+    return _futureNullType ??= futureElement2.instantiateImpl(
       typeArguments: fixedTypeList(nullType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
+  @Deprecated('Use futureOrElement2 instead')
   @override
   ClassElementImpl get futureOrElement {
-    return _futureOrElement ??= _getClassElement(_asyncLibrary, 'FutureOr');
+    return futureOrElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get futureOrElement2 {
-    return futureOrElement.element;
+    return _futureOrElement ??= _getClassElement(_asyncLibrary, 'FutureOr');
   }
 
   @override
   InterfaceTypeImpl get futureOrNullType {
-    return _futureOrNullType ??= InterfaceTypeImpl(
-      element: futureOrElement,
+    return _futureOrNullType ??= futureOrElement2.instantiateImpl(
       typeArguments: fixedTypeList(nullType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
+  @Deprecated('Use intElement2 instead')
   @override
   ClassElementImpl get intElement {
-    return _intElement ??= _getClassElement(_coreLibrary, "int");
+    return intElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get intElement2 {
-    return intElement.element;
+    return _intElement ??= _getClassElement(_coreLibrary, "int");
   }
 
   @override
   InterfaceTypeImpl get intType {
-    return _intType ??= _getType(_coreLibrary, "int");
+    return _intType ??= intElement2.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   InterfaceTypeImpl get intTypeQuestion =>
@@ -308,56 +334,56 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get iterableDynamicType {
-    return _iterableDynamicType ??= InterfaceTypeImpl(
-      element: iterableElement,
+    return _iterableDynamicType ??= iterableElement2.instantiateImpl(
       typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
+  @Deprecated('Use iterableElement2 instead')
   @override
   ClassElementImpl get iterableElement {
-    return _iterableElement ??= _getClassElement(_coreLibrary, 'Iterable');
+    return iterableElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get iterableElement2 {
-    return iterableElement.element;
+    return _iterableElement ??= _getClassElement(_coreLibrary, 'Iterable');
   }
 
   @override
   InterfaceTypeImpl get iterableObjectType {
-    return _iterableObjectType ??= InterfaceTypeImpl(
-      element: iterableElement,
+    return _iterableObjectType ??= iterableElement2.instantiateImpl(
       typeArguments: fixedTypeList(objectType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
+  @Deprecated('Use listElement2 instead')
   @override
   ClassElementImpl get listElement {
-    return _listElement ??= _getClassElement(_coreLibrary, 'List');
+    return listElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get listElement2 {
-    return listElement.element;
+    return _listElement ??= _getClassElement(_coreLibrary, 'List');
   }
 
+  @Deprecated('Use mapElement2 instead')
   @override
   ClassElementImpl get mapElement {
-    return _mapElement ??= _getClassElement(_coreLibrary, 'Map');
+    return mapElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get mapElement2 {
-    return mapElement.element;
+    return _mapElement ??= _getClassElement(_coreLibrary, 'Map');
   }
 
   @override
   InterfaceTypeImpl get mapObjectObjectType {
-    return _mapObjectObjectType ??= InterfaceTypeImpl(
-      element: mapElement,
+    return _mapObjectObjectType ??= mapElement2.instantiateImpl(
       typeArguments: fixedTypeList(objectType, objectType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -366,52 +392,61 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   NeverTypeImpl get neverType => NeverTypeImpl.instance;
 
+  @Deprecated('Use nullElement2 instead')
   @override
   ClassElementImpl get nullElement {
-    return _nullElement ??= _getClassElement(_coreLibrary, 'Null');
+    return nullElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get nullElement2 {
-    return nullElement.element;
+    return _nullElement ??= _getClassElement(_coreLibrary, 'Null');
   }
 
   @override
   InterfaceTypeImpl get nullType {
-    return _nullType ??= _getType(_coreLibrary, "Null");
+    return _nullType ??= nullElement2.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
+  @Deprecated('Use numElement2 instead')
   @override
   ClassElementImpl get numElement {
-    return _numElement ??= _getClassElement(_coreLibrary, 'num');
+    return numElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get numElement2 {
-    return numElement.element;
+    return _numElement ??= _getClassElement(_coreLibrary, 'num');
   }
 
   @override
   InterfaceTypeImpl get numType {
-    return _numType ??= _getType(_coreLibrary, "num");
+    return _numType ??= numElement2.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   InterfaceTypeImpl get numTypeQuestion =>
       _numTypeQuestion ??= numType.withNullability(NullabilitySuffix.question);
 
+  @Deprecated('Use objectElement2 instead')
   @override
   ClassElementImpl get objectElement {
-    return _objectElement ??= _getClassElement(_coreLibrary, 'Object');
+    return objectElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get objectElement2 {
-    return objectElement.element;
+    return _objectElement ??= _getClassElement(_coreLibrary, 'Object');
   }
 
   @override
   InterfaceTypeImpl get objectQuestionType {
-    return _objectQuestionType ??= objectElement.instantiate(
+    return _objectQuestionType ??= objectElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.question,
     );
@@ -419,121 +454,147 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get objectType {
-    return _objectType ??= objectElement.instantiate(
+    return _objectType ??= objectElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
+  @Deprecated('Use recordElement2 instead')
   @override
   ClassElementImpl get recordElement {
-    return _recordElement ??= _getClassElement(_coreLibrary, 'Record');
+    return recordElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get recordElement2 {
-    return recordElement.element;
+    return _recordElement ??= _getClassElement(_coreLibrary, 'Record');
   }
 
   @override
   InterfaceTypeImpl get recordType {
-    return _recordType ??= recordElement.instantiate(
+    return _recordType ??= recordElement2.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  @Deprecated('Use setElement2 instead')
+  @override
+  ClassElementImpl get setElement {
+    return setElement2.asElement;
+  }
+
+  @override
+  ClassElementImpl2 get setElement2 {
+    return _setElement ??= _getClassElement(_coreLibrary, 'Set');
+  }
+
+  ClassElementImpl2 get stackTraceElement2 {
+    return _stackTraceElement ??= _getClassElement(_coreLibrary, 'StackTrace');
+  }
+
+  @override
+  InterfaceTypeImpl get stackTraceType {
+    return _stackTraceType ??= stackTraceElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   @override
-  ClassElementImpl get setElement {
-    return _setElement ??= _getClassElement(_coreLibrary, 'Set');
-  }
-
-  @override
-  ClassElementImpl2 get setElement2 {
-    return setElement.element;
-  }
-
-  @override
-  InterfaceTypeImpl get stackTraceType {
-    return _stackTraceType ??= _getType(_coreLibrary, "StackTrace");
-  }
-
-  @override
   InterfaceTypeImpl get streamDynamicType {
-    return _streamDynamicType ??= InterfaceTypeImpl(
-      element: streamElement,
+    return _streamDynamicType ??= streamElement2.instantiateImpl(
       typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
+  @Deprecated('Use streamElement2 instead')
   @override
   ClassElementImpl get streamElement {
-    return _streamElement ??= _getClassElement(_asyncLibrary, 'Stream');
+    return streamElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get streamElement2 {
-    return streamElement.element;
+    return _streamElement ??= _getClassElement(_asyncLibrary, 'Stream');
   }
 
+  @Deprecated('Use stringElement2 instead')
   @override
   ClassElementImpl get stringElement {
-    return _stringElement ??= _getClassElement(_coreLibrary, 'String');
+    return stringElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get stringElement2 {
-    return stringElement.element;
+    return _stringElement ??= _getClassElement(_coreLibrary, 'String');
   }
 
   @override
   InterfaceTypeImpl get stringType {
-    return _stringType ??= _getType(_coreLibrary, "String");
+    return _stringType ??= stringElement2.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
+  @Deprecated('Use symbolElement2 instead')
   @override
   ClassElementImpl get symbolElement {
-    return _symbolElement ??= _getClassElement(_coreLibrary, 'Symbol');
+    return symbolElement2.asElement;
   }
 
   @override
   ClassElementImpl2 get symbolElement2 {
-    return symbolElement.element;
+    return _symbolElement ??= _getClassElement(_coreLibrary, 'Symbol');
   }
 
   @override
   InterfaceTypeImpl get symbolType {
-    return _symbolType ??= _getType(_coreLibrary, "Symbol");
+    return _symbolType ??= symbolElement2.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  ClassElementImpl2 get typeElement2 {
+    return _typeElement ??= _getClassElement(_coreLibrary, 'Type');
   }
 
   @override
   InterfaceTypeImpl get typeType {
-    return _typeType ??= _getType(_coreLibrary, "Type");
+    return _typeType ??= typeElement2.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   @override
   VoidTypeImpl get voidType => VoidTypeImpl.instance;
 
   @override
-  InterfaceTypeImpl futureOrType(DartType valueType) {
-    return futureOrElement.instantiate(
+  InterfaceTypeImpl futureOrType(covariant TypeImpl valueType) {
+    return futureOrElement2.instantiateImpl(
       typeArguments: fixedTypeList(valueType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   @override
-  InterfaceTypeImpl futureType(DartType valueType) {
-    return futureElement.instantiate(
+  InterfaceTypeImpl futureType(covariant TypeImpl valueType) {
+    return futureElement2.instantiateImpl(
       typeArguments: fixedTypeList(valueType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
+  @Deprecated('Use isNonSubtypableClass2() instead')
   @override
   bool isNonSubtypableClass(InterfaceElement element) {
-    return isNonSubtypableClass2(element.asElement2);
+    element as InterfaceElementImpl;
+    return isNonSubtypableClass2(element.element);
   }
 
   @override
@@ -548,40 +609,43 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  InterfaceTypeImpl iterableType(DartType elementType) {
-    return iterableElement.instantiate(
+  InterfaceTypeImpl iterableType(covariant TypeImpl elementType) {
+    return iterableElement2.instantiateImpl(
       typeArguments: fixedTypeList(elementType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   @override
-  InterfaceTypeImpl listType(DartType elementType) {
-    return listElement.instantiate(
+  InterfaceTypeImpl listType(covariant TypeImpl elementType) {
+    return listElement2.instantiateImpl(
       typeArguments: fixedTypeList(elementType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   @override
-  InterfaceTypeImpl mapType(DartType keyType, DartType valueType) {
-    return mapElement.instantiate(
+  InterfaceTypeImpl mapType(
+    covariant TypeImpl keyType,
+    covariant TypeImpl valueType,
+  ) {
+    return mapElement2.instantiateImpl(
       typeArguments: fixedTypeList(keyType, valueType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   @override
-  InterfaceTypeImpl setType(DartType elementType) {
-    return setElement.instantiate(
+  InterfaceTypeImpl setType(covariant TypeImpl elementType) {
+    return setElement2.instantiateImpl(
       typeArguments: fixedTypeList(elementType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   @override
-  InterfaceTypeImpl streamType(DartType elementType) {
-    return streamElement.instantiate(
+  InterfaceTypeImpl streamType(covariant TypeImpl elementType) {
+    return streamElement2.instantiateImpl(
       typeArguments: fixedTypeList(elementType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -589,34 +653,11 @@ class TypeProviderImpl extends TypeProviderBase {
 
   /// Return the class with the given [name] from the given [library], or
   /// throw a [StateError] if there is no class with the given name.
-  ClassElementImpl _getClassElement(LibraryElementImpl library, String name) {
-    var element = library.getClass(name);
+  ClassElementImpl2 _getClassElement(LibraryElementImpl library, String name) {
+    var element = library.getClass2(name);
     if (element == null) {
       throw StateError('No definition of type $name');
     }
     return element;
-  }
-
-  /// Return the type with the given [name] from the given [library], or
-  /// throw a [StateError] if there is no class with the given name.
-  InterfaceTypeImpl _getType(LibraryElementImpl library, String name) {
-    var element = _getClassElement(library, name);
-
-    var typeArguments = const <DartType>[];
-    var typeParameters = element.typeParameters;
-    if (typeParameters.isNotEmpty) {
-      typeArguments = typeParameters.map((e) {
-        return TypeParameterTypeImpl(
-          element: e,
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
-      }).toList(growable: false);
-    }
-
-    return InterfaceTypeImpl(
-      element: element,
-      typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
   }
 }

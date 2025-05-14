@@ -43,13 +43,9 @@ abstract class NameSpace {
   /// Only members of type [T] are included. If [parent] is provided, on members
   /// declared in [parent] are included. If [includeDuplicates] is `true`, all
   /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included. If [includeAugmentations] is `true`, both
-  /// original and augmenting/patching members are included, otherwise, only
-  /// original members are included.
+  /// declared member is included.
   Iterator<T> filteredIterator<T extends Builder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations});
+      {required bool includeDuplicates});
 
   /// Returns a filtered iterator of members and setters mapped in this name
   /// space.
@@ -57,16 +53,12 @@ abstract class NameSpace {
   /// Only members of type [T] are included. If [parent] is provided, on members
   /// declared in [parent] are included. If [includeDuplicates] is `true`, all
   /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included. If [includeAugmentations] is `true`, both
-  /// original and augmenting/patching members are included, otherwise, only
-  /// original members are included.
+  /// declared member is included.
   ///
   /// Compared to [filteredIterator] this iterator also gives access to the
   /// name that the builders are mapped to.
   NameIterator<T> filteredNameIterator<T extends Builder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations});
+      {required bool includeDuplicates});
 }
 
 abstract class DeclarationNameSpace implements NameSpace {
@@ -92,29 +84,21 @@ abstract class DeclarationNameSpace implements NameSpace {
   /// Only members of type [T] are included. If [parent] is provided, on members
   /// declared in [parent] are included. If [includeDuplicates] is `true`, all
   /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included. If [includeAugmentations] is `true`, both
-  /// original and augmenting/patching members are included, otherwise, only
-  /// original members are included.
+  /// declared member is included.
   Iterator<T> filteredConstructorIterator<T extends MemberBuilder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations});
+      {required bool includeDuplicates});
 
   /// Returns a filtered iterator of constructors mapped in this scope.
   ///
   /// Only members of type [T] are included. If [parent] is provided, on members
   /// declared in [parent] are included. If [includeDuplicates] is `true`, all
   /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included. If [includeAugmentations] is `true`, both
-  /// original and augmenting/patching members are included, otherwise, only
-  /// original members are included.
+  /// declared member is included.
   ///
   /// Compared to [filteredConstructorIterator] this iterator also gives access
   /// to the name that the builders are mapped to.
   NameIterator<T> filteredConstructorNameIterator<T extends MemberBuilder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations});
+      {required bool includeDuplicates});
 }
 
 class NameSpaceImpl implements NameSpace {
@@ -146,24 +130,16 @@ class NameSpaceImpl implements NameSpace {
 
   @override
   Iterator<T> filteredIterator<T extends Builder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations}) {
+      {required bool includeDuplicates}) {
     return new FilteredIterator<T>(unfilteredIterator,
-        parent: parent,
-        includeDuplicates: includeDuplicates,
-        includeAugmentations: includeAugmentations);
+        includeDuplicates: includeDuplicates);
   }
 
   @override
   NameIterator<T> filteredNameIterator<T extends Builder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations}) {
+      {required bool includeDuplicates}) {
     return new FilteredNameIterator<T>(unfilteredNameIterator,
-        parent: parent,
-        includeDuplicates: includeDuplicates,
-        includeAugmentations: includeAugmentations);
+        includeDuplicates: includeDuplicates);
   }
 
   @override
@@ -172,6 +148,7 @@ class NameSpaceImpl implements NameSpace {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void forEachLocalMember(void Function(String name, Builder member) f) {
     if (_getables != null) {
       for (MapEntry<String, Builder> entry in _getables!.entries) {
@@ -181,6 +158,7 @@ class NameSpaceImpl implements NameSpace {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void forEachLocalSetter(void Function(String name, MemberBuilder member) f) {
     if (_setables != null) {
       for (MapEntry<String, MemberBuilder> entry in _setables!.entries) {
@@ -241,24 +219,16 @@ class DeclarationNameSpaceImpl extends NameSpaceImpl
 
   @override
   Iterator<T> filteredConstructorIterator<T extends MemberBuilder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations}) {
+      {required bool includeDuplicates}) {
     return new FilteredIterator<T>(unfilteredConstructorIterator,
-        parent: parent,
-        includeDuplicates: includeDuplicates,
-        includeAugmentations: includeAugmentations);
+        includeDuplicates: includeDuplicates);
   }
 
   @override
   NameIterator<T> filteredConstructorNameIterator<T extends MemberBuilder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations}) {
+      {required bool includeDuplicates}) {
     return new FilteredNameIterator<T>(unfilteredConstructorNameIterator,
-        parent: parent,
-        includeDuplicates: includeDuplicates,
-        includeAugmentations: includeAugmentations);
+        includeDuplicates: includeDuplicates);
   }
 
   @override

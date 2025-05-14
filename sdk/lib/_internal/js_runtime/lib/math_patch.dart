@@ -10,17 +10,19 @@ import 'dart:typed_data' show ByteData;
 
 @patch
 T min<T extends num>(T a, T b) => JS(
-    'returns:num;depends:none;effects:none;gvn:true',
-    r'Math.min(#, #)',
-    checkNum(a),
-    checkNum(b));
+  'returns:num;depends:none;effects:none;gvn:true',
+  r'Math.min(#, #)',
+  checkNum(a),
+  checkNum(b),
+);
 
 @patch
 T max<T extends num>(T a, T b) => JS(
-    'returns:num;depends:none;effects:none;gvn:true',
-    r'Math.max(#, #)',
-    checkNum(a),
-    checkNum(b));
+  'returns:num;depends:none;effects:none;gvn:true',
+  r'Math.max(#, #)',
+  checkNum(a),
+  checkNum(b),
+);
 
 @patch
 double sqrt(num x) => JS('num', r'Math.sqrt(#)', checkNum(x));
@@ -257,13 +259,17 @@ class _JSSecureRandom implements Random {
       }
     }
     throw UnsupportedError(
-        'No source of cryptographically secure random numbers available.');
+      'No source of cryptographically secure random numbers available.',
+    );
   }
 
   /// Fill _buffer from [start] to `start + length` with random bytes.
   void _getRandomBytes(int start, int length) {
-    JS('void', 'crypto.getRandomValues(#)',
-        _buffer.buffer.asUint8List(start, length));
+    JS(
+      'void',
+      'crypto.getRandomValues(#)',
+      _buffer.buffer.asUint8List(start, length),
+    );
   }
 
   bool nextBool() {

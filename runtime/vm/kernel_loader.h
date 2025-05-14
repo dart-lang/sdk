@@ -238,8 +238,12 @@ class KernelLoader : public ValueObject {
   using SharedPragma = BitField<uint32_t, bool, FfiNativePragma::kNextBit>;
   using DynModuleExtendablePragma =
       BitField<uint32_t, bool, SharedPragma::kNextBit>;
-  using DynModuleCanBeOverriddenPragma =
+  using DynModuleImplicitlyExtendablePragma =
       BitField<uint32_t, bool, DynModuleExtendablePragma::kNextBit>;
+  using DynModuleCanBeOverriddenPragma =
+      BitField<uint32_t, bool, DynModuleImplicitlyExtendablePragma::kNextBit>;
+  using DynModuleCanBeOverriddenImplicitlyPragma =
+      BitField<uint32_t, bool, DynModuleCanBeOverriddenPragma::kNextBit>;
 
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,
@@ -269,7 +273,7 @@ class KernelLoader : public ValueObject {
   intptr_t library_offset(intptr_t index) {
     kernel::Reader reader(program_->binary());
     return reader.ReadFromIndexNoReset(reader.size(),
-                                       LibraryCountFieldCountFromEnd + 1,
+                                       KernelFixedFieldsAfterLibraries,
                                        program_->library_count() + 1, index);
   }
 

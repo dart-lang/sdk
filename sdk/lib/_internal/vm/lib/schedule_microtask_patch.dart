@@ -10,7 +10,7 @@ class _AsyncRun {
   static void _scheduleImmediate(void callback()) {
     final closure = _ScheduleImmediate._closure;
     if (closure == null) {
-      throw new UnsupportedError("Microtasks are not supported");
+      throw UnsupportedError("Microtasks are not supported");
     }
     closure(callback);
   }

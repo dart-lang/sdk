@@ -23,28 +23,42 @@ final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 
 class TestDiagnosticReporter extends DiagnosticReporter<Object, Object> {
   @override
-  void report(Object message, int charOffset, int length, Uri? fileUri,
-      {List<Object>? context}) {/* nop */}
+  void report(
+    Object message,
+    int charOffset,
+    int length,
+    Uri? fileUri, {
+    List<Object>? context,
+  }) {
+    /* nop */
+  }
 }
 
 runTestCaseJit(Uri source) async {
   final target = VmTarget(TargetFlags());
 
-  Component component = await compileTestCaseToKernelProgram(source,
-      target: target, experimentalFlags: []);
+  Component component = await compileTestCaseToKernelProgram(
+    source,
+    target: target,
+    experimentalFlags: [],
+  );
 
   final coreTypes = CoreTypes(component);
 
   transformLibraries(
-      component,
-      coreTypes,
-      ClassHierarchy(component, coreTypes),
-      component.libraries,
-      TestDiagnosticReporter(),
-      /*referenceFromIndex=*/ null);
+    component,
+    coreTypes,
+    ClassHierarchy(component, coreTypes),
+    component.libraries,
+    TestDiagnosticReporter(),
+    /*referenceFromIndex=*/ null,
+  );
 
   verifyComponent(
-      target, VerificationStage.afterModularTransformations, component);
+    target,
+    VerificationStage.afterModularTransformations,
+    component,
+  );
 
   final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 
@@ -54,23 +68,30 @@ runTestCaseJit(Uri source) async {
 runTestCaseAot(Uri source) async {
   final target = VmTarget(TargetFlags(supportMirrors: false));
 
-  Component component = await compileTestCaseToKernelProgram(source,
-      target: target, experimentalFlags: []);
+  Component component = await compileTestCaseToKernelProgram(
+    source,
+    target: target,
+    experimentalFlags: [],
+  );
 
   final nopErrorDetector = ErrorDetector();
   runGlobalTransformations(
-      target,
-      component,
-      nopErrorDetector,
-      KernelCompilationArguments(
-        useGlobalTypeFlowAnalysis: true,
-        enableAsserts: false,
-        useProtobufTreeShakerV2: true,
-        treeShakeWriteOnlyFields: true,
-      ));
+    target,
+    component,
+    nopErrorDetector,
+    KernelCompilationArguments(
+      useGlobalTypeFlowAnalysis: true,
+      enableAsserts: false,
+      useProtobufTreeShakerV2: true,
+      treeShakeWriteOnlyFields: true,
+    ),
+  );
 
   verifyComponent(
-      target, VerificationStage.afterGlobalTransformations, component);
+    target,
+    VerificationStage.afterGlobalTransformations,
+    component,
+  );
 
   final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 
@@ -87,9 +108,10 @@ void main(List<String> args) {
   group('ffi-transformations', () {
     final testCasesDir = Directory(pkgVmDir + 'testcases/transformations/ffi');
 
-    for (var entry in testCasesDir
-        .listSync(recursive: true, followLinks: false)
-        .reversed) {
+    for (var entry
+        in testCasesDir
+            .listSync(recursive: true, followLinks: false)
+            .reversed) {
       if (entry.path.endsWith(".dart") &&
           (filter == null || entry.path.contains(filter))) {
         test(entry.path, () => runTestCaseJit(entry.uri));

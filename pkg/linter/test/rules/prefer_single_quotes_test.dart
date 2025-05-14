@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferSingleQuotesTest);
   });
@@ -18,19 +18,21 @@ class PreferSingleQuotesTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_single_quotes;
 
   test_doubleQuotes() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = "no quote";
-''', [
-      lint(8, 10),
-    ]);
+''',
+      [lint(8, 10)],
+    );
   }
 
   test_doubleQuotes_import() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import "dart:core";
-''', [
-      lint(7, 11),
-    ]);
+''',
+      [lint(7, 11)],
+    );
   }
 
   test_doubleQuotes_innerSingleQuote() async {
@@ -48,13 +50,14 @@ void f(String p) {
   }
 
   test_doubleQuotes_interpolation() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(String p) {
   "no quote $p";
 }
-''', [
-      lint(21, 13),
-    ]);
+''',
+      [lint(21, 13)],
+    );
   }
 
   test_doubleQuotes_interpolationWithSingleQuote() async {
@@ -64,11 +67,12 @@ var x = "foo ${1 == 'x'} bar";
   }
 
   test_doubleQuotes_raw() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = r"no quote";
-''', [
-      lint(8, 11),
-    ]);
+''',
+      [lint(8, 11)],
+    );
   }
 
   test_doubleQuotes_raw_innerSingleQuote() async {
@@ -78,11 +82,12 @@ var x = r"has quote '";
   }
 
   test_doubleQuotes_triple() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = r"""no quote""";
-''', [
-      lint(8, 15),
-    ]);
+''',
+      [lint(8, 15)],
+    );
   }
 
   test_doubleQuotes_triple_innerSingleQuote() async {

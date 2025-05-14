@@ -621,12 +621,11 @@ class Assembler : public AssemblerBase {
   void TransitionNativeToGenerated(Register scratch0,
                                    Register scratch1,
                                    bool exit_safepoint,
-                                   bool ignore_unwind_in_progress = false,
                                    bool set_tag = true);
+  void VerifyInGenerated(Register scratch);
+  void VerifyNotInGenerated(Register scratch);
   void EnterFullSafepoint(Register scratch0, Register scratch1);
-  void ExitFullSafepoint(Register scratch0,
-                         Register scratch1,
-                         bool ignore_unwind_in_progress);
+  void ExitFullSafepoint(Register scratch0, Register scratch1);
 
   // Miscellaneous instructions.
   void clrex();

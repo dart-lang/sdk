@@ -11,26 +11,21 @@ import 'package:reload_test/reload_test_utils.dart';
 var retained;
 
 helper() {
-  try {
-    return retained();
-  } catch (e) {
-    return e.toString();
-  }
+  return retained();
 }
 
 Future<void> main() async {
   Expect.equals('hello', helper());
-  Expect.equals(0, hotReloadGeneration);
-
   await hotReload();
 
-  Expect.contains('NoSuchMethodError', helper());
-  Expect.contains('deleted', helper());
-  Expect.equals(1, hotReloadGeneration);
+  Expect.throws<NoSuchMethodError>(
+    helper,
+    (error) => error.toString().contains('deleted'),
+  );
 }
+
 /** DIFF **/
 /*
-@@ -8,15 +8,14 @@
  // Adapted from:
  // https://github.com/dart-lang/sdk/blob/bf2fba78e006ce4feac43e514c0b8f3ea9e9fbb8/runtime/vm/isolate_reload_test.cc#L2597
  
@@ -42,13 +37,7 @@ Future<void> main() async {
  
  helper() {
 -  retained = () => deleted();
--  return retained();
-+  try {
-+    return retained();
-+  } catch (e) {
-+    return e.toString();
-+  }
+   return retained();
  }
  
- Future<void> main() async {
 */

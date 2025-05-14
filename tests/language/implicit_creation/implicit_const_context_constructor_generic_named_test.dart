@@ -19,7 +19,7 @@ class C<T> {
 const topConst = C<int>.named(42);
 
 main() {
-  const c0 = const C<int>.named(42);  // Explicit const.
+  const c0 = const C<int>.named(42); // Explicit const.
 
   // RHS of const local variable.
   const c1 = C<int>.named(42);
@@ -40,8 +40,10 @@ main() {
 
   // Switch case parenthesized const expression.
   switch (c0) {
-    case const (C<int>.named(42)): break;
-    default: Expect.fail("Didn't match constant");
+    case const (C<int>.named(42)):
+      break;
+    default:
+      Expect.fail("Didn't match constant");
   }
 
   // Annotation argument.

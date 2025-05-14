@@ -8,7 +8,7 @@ part of "core_patch.dart";
 class _GrowableList<T> extends ListBase<T> {
   void insert(int index, T element) {
     if ((index < 0) || (index > length)) {
-      throw new RangeError.range(index, 0, length);
+      throw RangeError.range(index, 0, length);
     }
     int oldLength = this.length;
     add(element);
@@ -41,7 +41,7 @@ class _GrowableList<T> extends ListBase<T> {
 
   void insertAll(int index, Iterable<T> iterable) {
     if (index < 0 || index > length) {
-      throw new RangeError.range(index, 0, length);
+      throw RangeError.range(index, 0, length);
     }
     // TODO(floitsch): we can probably detect more cases.
     if (iterable is! List && iterable is! Set && iterable is! SubListIterable) {
@@ -84,18 +84,19 @@ class _GrowableList<T> extends ListBase<T> {
     final int actualEnd = RangeError.checkValidRange(start, end, this.length);
     int length = actualEnd - start;
     if (length == 0) return <T>[];
-    final list = new _List(length);
+    final list = _List(length);
     for (int i = 0; i < length; i++) {
       list[i] = this[start + i];
     }
-    final result = new _GrowableList<T>._withData(list);
+    final result = _GrowableList<T>._withData(list);
     result._setLength(length);
     return result;
   }
 
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList(int length) {
     var data = _allocateData(length);
-    var result = new _GrowableList<T>._withData(data);
+    var result = _GrowableList<T>._withData(data);
     if (length > 0) {
       result._setLength(length);
     }
@@ -104,12 +105,13 @@ class _GrowableList<T> extends ListBase<T> {
 
   factory _GrowableList.withCapacity(int capacity) {
     var data = _allocateData(capacity);
-    return new _GrowableList<T>._withData(data);
+    return _GrowableList<T>._withData(data);
   }
 
   // Specialization of List.empty constructor for growable == true.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   @pragma("vm:prefer-inline")
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList.empty() {
     // Specialization of `return _GrowableList(0);`.
     return _GrowableList<T>._withData(_emptyList);
@@ -117,6 +119,7 @@ class _GrowableList<T> extends ListBase<T> {
 
   // Specialization of List.filled constructor for growable == true.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList.filled(int length, T fill) {
     final result = _GrowableList<T>(length);
     if (fill != null) {
@@ -130,6 +133,7 @@ class _GrowableList<T> extends ListBase<T> {
   // Specialization of List.generate constructor for growable == true.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   @pragma("vm:prefer-inline")
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList.generate(int length, T generator(int index)) {
     final result = _GrowableList<T>(length);
     for (int i = 0; i < result.length; ++i) {
@@ -310,7 +314,7 @@ class _GrowableList<T> extends ListBase<T> {
       }
       if (isVMList) {
         if (identical(iterable, this)) {
-          throw new ConcurrentModificationError(this);
+          throw ConcurrentModificationError(this);
         }
         this._setLength(newLen);
         final ListBase<T> iterableAsList = iterable as ListBase<T>;
@@ -328,7 +332,7 @@ class _GrowableList<T> extends ListBase<T> {
         this._setLength(newLen);
         this[len] = it.current;
         if (!it.moveNext()) return;
-        if (this.length != newLen) throw new ConcurrentModificationError(this);
+        if (this.length != newLen) throw ConcurrentModificationError(this);
         len = newLen;
       }
       _growToNextCapacity();
@@ -360,7 +364,7 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   // Shared array used as backing for new empty growable arrays.
-  static final _List _emptyList = new _List(0);
+  static final _List _emptyList = _List(0);
 
   static _List _allocateData(int capacity) {
     if (capacity == 0) {
@@ -419,7 +423,7 @@ class _GrowableList<T> extends ListBase<T> {
     int initialLength = length;
     for (int i = 0; i < length; i++) {
       f(this[i]);
-      if (length != initialLength) throw new ConcurrentModificationError(this);
+      if (length != initialLength) throw ConcurrentModificationError(this);
     }
   }
 
@@ -454,7 +458,7 @@ class _GrowableList<T> extends ListBase<T> {
       }
 
       // Not all elements are strings, so allocate a new backing array.
-      final list = new _List(length);
+      final list = _List(length);
       for (int copyIndex = 0; copyIndex < i; copyIndex++) {
         list[copyIndex] = this[copyIndex];
       }
@@ -481,7 +485,7 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   String _joinWithSeparator(String separator) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write(this[0]);
     for (int i = 1; i < this.length; i++) {
       buffer.write(separator);
@@ -508,7 +512,7 @@ class _GrowableList<T> extends ListBase<T> {
 
   @pragma("vm:prefer-inline")
   Iterator<T> get iterator {
-    return new ListIterator<T>(this);
+    return ListIterator<T>(this);
   }
 
   List<T> toList({bool growable = true}) {
@@ -523,18 +527,18 @@ class _GrowableList<T> extends ListBase<T> {
     final length = this.length;
     if (growable) {
       if (length > 0) {
-        final data = new _List(_adjustedCapacity(length));
+        final data = _List(_adjustedCapacity(length));
         for (int i = 0; i < length; i++) {
           data[i] = this[i];
         }
-        final result = new _GrowableList<T>._withData(data);
+        final result = _GrowableList<T>._withData(data);
         result._setLength(length);
         return result;
       }
       return <T>[];
     } else {
       if (length > 0) {
-        final list = new _List<T>(length);
+        final list = _List<T>(length);
         for (int i = 0; i < length; i++) {
           list[i] = this[i];
         }
@@ -545,58 +549,63 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   Set<T> toSet() {
-    return new Set<T>.of(this);
+    return Set<T>.of(this);
   }
 
   // Factory constructing a mutable List from a parser generated List literal.
   // [elements] contains elements that are already type checked.
   @pragma("vm:entry-point", "call")
   factory _GrowableList._literal(_List elements) {
-    final result = new _GrowableList<T>._withData(elements);
+    final result = _GrowableList<T>._withData(elements);
     result._setLength(elements.length);
     return result;
   }
 
   // Specialized list literal constructors.
   // Used by pkg/vm/lib/transformations/list_literals_lowering.dart.
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal1(T e0) {
     _List elements = _List(1);
     elements[0] = e0;
-    final result = new _GrowableList<T>._withData(elements);
+    final result = _GrowableList<T>._withData(elements);
     result._setLength(1);
     return result;
   }
 
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal2(T e0, T e1) {
     _List elements = _List(2);
     elements[0] = e0;
     elements[1] = e1;
-    final result = new _GrowableList<T>._withData(elements);
+    final result = _GrowableList<T>._withData(elements);
     result._setLength(2);
     return result;
   }
 
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal3(T e0, T e1, T e2) {
     _List elements = _List(3);
     elements[0] = e0;
     elements[1] = e1;
     elements[2] = e2;
-    final result = new _GrowableList<T>._withData(elements);
+    final result = _GrowableList<T>._withData(elements);
     result._setLength(3);
     return result;
   }
 
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal4(T e0, T e1, T e2, T e3) {
     _List elements = _List(4);
     elements[0] = e0;
     elements[1] = e1;
     elements[2] = e2;
     elements[3] = e3;
-    final result = new _GrowableList<T>._withData(elements);
+    final result = _GrowableList<T>._withData(elements);
     result._setLength(4);
     return result;
   }
 
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal5(T e0, T e1, T e2, T e3, T e4) {
     _List elements = _List(5);
     elements[0] = e0;
@@ -604,11 +613,12 @@ class _GrowableList<T> extends ListBase<T> {
     elements[2] = e2;
     elements[3] = e3;
     elements[4] = e4;
-    final result = new _GrowableList<T>._withData(elements);
+    final result = _GrowableList<T>._withData(elements);
     result._setLength(5);
     return result;
   }
 
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal6(T e0, T e1, T e2, T e3, T e4, T e5) {
     _List elements = _List(6);
     elements[0] = e0;
@@ -617,11 +627,12 @@ class _GrowableList<T> extends ListBase<T> {
     elements[3] = e3;
     elements[4] = e4;
     elements[5] = e5;
-    final result = new _GrowableList<T>._withData(elements);
+    final result = _GrowableList<T>._withData(elements);
     result._setLength(6);
     return result;
   }
 
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal7(T e0, T e1, T e2, T e3, T e4, T e5, T e6) {
     _List elements = _List(7);
     elements[0] = e0;
@@ -631,11 +642,12 @@ class _GrowableList<T> extends ListBase<T> {
     elements[4] = e4;
     elements[5] = e5;
     elements[6] = e6;
-    final result = new _GrowableList<T>._withData(elements);
+    final result = _GrowableList<T>._withData(elements);
     result._setLength(7);
     return result;
   }
 
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal8(
     T e0,
     T e1,
@@ -655,7 +667,7 @@ class _GrowableList<T> extends ListBase<T> {
     elements[5] = e5;
     elements[6] = e6;
     elements[7] = e7;
-    final result = new _GrowableList<T>._withData(elements);
+    final result = _GrowableList<T>._withData(elements);
     result._setLength(8);
     return result;
   }

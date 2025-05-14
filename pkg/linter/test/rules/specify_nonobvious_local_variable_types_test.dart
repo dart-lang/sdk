@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SpecifyNonObviousLocalVariableTypesTest);
   });
@@ -46,26 +46,28 @@ class A {
   }
 
   test_forEach_inferredList() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   for (var i in [1, 2, 'Hello'.length]) {
     print(i);
   }
 }
-''', [
-      lint(13, 5),
-    ]);
+''',
+      [lint(13, 5)],
+    );
   }
 
   test_forEach_listWithNonObviousElement() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   int j = "Hello".length;
   for (var i in [j, 1, j + 1]) { }
 }
-''', [
-      lint(39, 5),
-    ]);
+''',
+      [lint(39, 5)],
+    );
   }
 
   test_forEach_noDeclaredType() async {
@@ -94,16 +96,17 @@ f() {
   }
 
   test_genericInvocation_paramIsType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 String f() {
   final h = bar('');
   return h;
 }
 
 T bar<T>(T d) => d;
-''', [
-      lint(15, 17),
-    ]);
+''',
+      [lint(15, 17)],
+    );
   }
 
   test_genericInvocation_paramIsType_ok() async {
@@ -118,16 +121,17 @@ T bar<T>(T d) => d;
   }
 
   test_genericInvocation_typeNeededForInference() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   var h = bar('');
   return h;
 }
 
 T bar<T>(dynamic d) => d;
-''', [
-      lint(8, 15),
-    ]);
+''',
+      [lint(8, 15)],
+    );
   }
 
   test_genericInvocation_typeNeededForInference_ok() async {
@@ -142,16 +146,17 @@ T bar<T>(dynamic d) => d;
   }
 
   test_genericInvocation_typeParamProvided() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 String f() {
   var h = bar<String>('');
   return h;
 }
 
 T bar<T>(dynamic d) => d;
-''', [
-      lint(15, 23),
-    ]);
+''',
+      [lint(15, 23)],
+    );
   }
 
   test_genericInvocation_typeParamProvided_ok() async {
@@ -166,7 +171,8 @@ T bar<T>(dynamic d) => d;
   }
 
   test_instanceCreation_generic() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   var a = A(1);
 }
@@ -174,9 +180,9 @@ f() {
 class A<X> {
   A(X x);
 }
-''', [
-      lint(8, 12),
-    ]);
+''',
+      [lint(8, 12)],
+    );
   }
 
   test_instanceCreation_generic_ok1() async {
@@ -225,6 +231,14 @@ f() {
 ''');
   }
 
+  test_literal_double_negated() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var d = -1.5;
+}
+''');
+  }
+
   // The type is not obvious.
   test_literal_doubleTypedInt() async {
     await assertNoDiagnostics(r'''
@@ -238,6 +252,14 @@ f() {
     await assertNoDiagnostics(r'''
 f() {
   int i = 1;
+}
+''');
+  }
+
+  test_literal_int_negated() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var i = -1;
 }
 ''');
   }
@@ -268,14 +290,14 @@ f() {
   }
 
   test_local_multiple() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   var a = 'a' + 'a', b = 'b' * 2;
 }
-''', [
-      lint(12, 13),
-      lint(27, 11),
-    ]);
+''',
+      [lint(12, 13), lint(27, 11)],
+    );
   }
 
   test_local_multiple_ok() async {
@@ -297,16 +319,17 @@ f() {
   }
 
   test_local_promotion() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   num local = 2;
   if (local is! int) return;
   var x = local;
   return x;
 }
-''', [
-      lint(54, 13),
-    ]);
+''',
+      [lint(54, 13)],
+    );
   }
 
   test_pattern_list_destructured() async {

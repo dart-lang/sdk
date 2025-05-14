@@ -25,7 +25,10 @@ class _LoadingUnitBuilder {
 
   LoadingUnit asLoadingUnit() {
     return new LoadingUnit(
-        id, parentId, members.map((l) => l.importUri.toString()).toList());
+      id,
+      parentId,
+      members.map((l) => l.importUri.toString()).toList(),
+    );
   }
 
   String toString() =>
@@ -76,7 +79,9 @@ class HasEntryPointVisitor extends RecursiveVisitor {
 }
 
 List<LoadingUnit> computeLoadingUnits(
-    Component component, HasEntryPointVisitor visitor) {
+  Component component,
+  HasEntryPointVisitor visitor,
+) {
   // 1. Build the dominator tree for the library import graph.
   final map = <Library, _LibraryVertex>{};
   for (final lib in component.libraries) {
@@ -172,11 +177,15 @@ List<LoadingUnit> computeLoadingUnits(
 }
 
 Component transformComponent(
-    Component component, CoreTypes coreTypes, Target target) {
+  Component component,
+  CoreTypes coreTypes,
+  Target target,
+) {
   final parser = ConstantPragmaAnnotationParser(coreTypes, target);
   final visitor = HasEntryPointVisitor(parser);
-  final metadata =
-      new LoadingUnitsMetadata(computeLoadingUnits(component, visitor));
+  final metadata = new LoadingUnitsMetadata(
+    computeLoadingUnits(component, visitor),
+  );
   final repo = new LoadingUnitsMetadataRepository();
   component.addMetadataRepository(repo);
   repo.mapping[component] = metadata;

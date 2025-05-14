@@ -18,8 +18,11 @@ class TestTypeHierarchy extends TypeHierarchy {
   int classIdCounter = 0;
 
   TestTypeHierarchy(
-      CoreTypes coreTypes, Target target, this.classes, this.specializations)
-      : super(coreTypes, target);
+    CoreTypes coreTypes,
+    Target target,
+    this.classes,
+    this.specializations,
+  ) : super(coreTypes, target);
 
   @override
   Type specializeTypeCone(TFClass base, {required bool allowWideCone}) {
@@ -63,9 +66,10 @@ main() {
   test('types-builder', () {
     final Class c1 = new Class(name: 'C1', fileUri: dummyUri);
     final Class c2 = new Class(
-        name: 'C2',
-        typeParameters: [new TypeParameter('E')],
-        fileUri: dummyUri);
+      name: 'C2',
+      typeParameters: [new TypeParameter('E')],
+      fileUri: dummyUri,
+    );
 
     final TypesBuilder tb = new TestTypeHierarchy(coreTypes, target, {}, {});
     final tfc1 = tb.getTFClass(c1);
@@ -74,16 +78,26 @@ main() {
 
     final InterfaceType t1 = new InterfaceType(c1, Nullability.nullable);
     final InterfaceType t2Raw = new InterfaceType(c2, Nullability.nullable);
-    final InterfaceType t2Generic =
-        new InterfaceType(c2, Nullability.nullable, [t1]);
+    final InterfaceType t2Generic = new InterfaceType(
+      c2,
+      Nullability.nullable,
+      [t1],
+    );
     final DartType t3 = const NullType();
-    final FunctionType f1 =
-        new FunctionType([t1], const VoidType(), Nullability.nullable);
+    final FunctionType f1 = new FunctionType(
+      [t1],
+      const VoidType(),
+      Nullability.nullable,
+    );
 
-    expect(tb.fromStaticType(const NeverType.nonNullable(), false),
-        equals(emptyType));
     expect(
-        tb.fromStaticType(const DynamicType(), true), equals(nullableAnyType));
+      tb.fromStaticType(const NeverType.nonNullable(), false),
+      equals(emptyType),
+    );
+    expect(
+      tb.fromStaticType(const DynamicType(), true),
+      equals(nullableAnyType),
+    );
     expect(tb.fromStaticType(const VoidType(), true), equals(nullableAnyType));
 
     expect(tb.fromStaticType(t1, false), equals(tfc1.coneType));
@@ -95,7 +109,9 @@ main() {
     expect(tb.fromStaticType(t1, true), equals(tfc1.coneType.nullable()));
     expect(tb.fromStaticType(t2Raw, true), equals(tfc2.coneType.nullable()));
     expect(
-        tb.fromStaticType(t2Generic, true), equals(tfc2.coneType.nullable()));
+      tb.fromStaticType(t2Generic, true),
+      equals(tfc2.coneType.nullable()),
+    );
     expect(tb.fromStaticType(t3, true), equals(nullableEmptyType));
     expect(tb.fromStaticType(f1, true), equals(tfFunction.coneType.nullable()));
 
@@ -240,7 +256,7 @@ main() {
         nullableConcreteT1,
         nullableConcreteT1,
         nullableConcreteT1,
-        nullableConcreteT1
+        nullableConcreteT1,
       ],
       [nullableConcreteT1, nullableConcreteT2, nullableSetT12, nullableEmpty],
       [nullableConcreteT1, nullableConeT1, nullableConeT1, nullableConcreteT1],
@@ -262,22 +278,13 @@ main() {
     ];
 
     final hierarchy = new TestTypeHierarchy(
-        coreTypes,
-        target,
-        // classes
-        {
-          c1: tfc1,
-          c2: tfc2,
-          c3: tfc3,
-          c4: tfc4,
-        },
-        // specializations
-        {
-          c1: concreteT1,
-          c2: concreteT2,
-          c3: setT123,
-          c4: concreteT4
-        });
+      coreTypes,
+      target,
+      // classes
+      {c1: tfc1, c2: tfc2, c3: tfc3, c4: tfc4},
+      // specializations
+      {c1: concreteT1, c2: concreteT2, c3: setT123, c4: concreteT4},
+    );
 
     for (List testCase in testCases) {
       Type a = testCase[0] as Type;
@@ -285,14 +292,26 @@ main() {
       Type union = testCase[2] as Type;
       Type intersection = testCase[3] as Type;
 
-      expect(a.union(b, hierarchy), equals(union),
-          reason: "Test case: UNION($a, $b) = $union");
-      expect(b.union(a, hierarchy), equals(union),
-          reason: "Test case: UNION($b, $a) = $union");
-      expect(a.intersection(b, hierarchy), equals(intersection),
-          reason: "Test case: INTERSECTION($a, $b) = $intersection");
-      expect(b.intersection(a, hierarchy), equals(intersection),
-          reason: "Test case: INTERSECTION($b, $a) = $intersection");
+      expect(
+        a.union(b, hierarchy),
+        equals(union),
+        reason: "Test case: UNION($a, $b) = $union",
+      );
+      expect(
+        b.union(a, hierarchy),
+        equals(union),
+        reason: "Test case: UNION($b, $a) = $union",
+      );
+      expect(
+        a.intersection(b, hierarchy),
+        equals(intersection),
+        reason: "Test case: INTERSECTION($a, $b) = $intersection",
+      );
+      expect(
+        b.intersection(a, hierarchy),
+        equals(intersection),
+        reason: "Test case: INTERSECTION($b, $a) = $intersection",
+      );
     }
   });
 
@@ -311,16 +330,22 @@ main() {
 
     void eq(dynamic a, dynamic b) {
       expect(a == b, isTrue, reason: "Test case: $a == $b");
-      expect(a.hashCode == b.hashCode, isTrue,
-          reason: "Test case: ${a}.hashCode == ${b}.hashCode");
+      expect(
+        a.hashCode == b.hashCode,
+        isTrue,
+        reason: "Test case: ${a}.hashCode == ${b}.hashCode",
+      );
     }
 
     void ne(dynamic a, dynamic b) {
       expect(a == b, isFalse, reason: "Test case: $a != $b");
 
       // Hash codes can be the same, but it is unlikely.
-      expect(a.hashCode == b.hashCode, isFalse,
-          reason: "Test case: ${a}.hashCode != ${b}.hashCode");
+      expect(
+        a.hashCode == b.hashCode,
+        isFalse,
+        reason: "Test case: ${a}.hashCode != ${b}.hashCode",
+      );
     }
 
     eq(t1a, t1b);
@@ -351,15 +376,25 @@ main() {
     ne(tfc1.coneType, SetType([tfc1.concreteType, tfc2.concreteType]));
     ne(tfc1.coneType, tfc1.coneType.nullable());
 
-    eq(SetType([tfc1.concreteType, tfc2.concreteType]),
-        SetType([tfc1.concreteType, tfc2.concreteType]));
-    eq(SetType([tfc1.concreteType, tfc2.concreteType, tfc3.concreteType]),
-        SetType([tfc1.concreteType, tfc2.concreteType, tfc3.concreteType]));
-    ne(SetType([tfc1.concreteType, tfc2.concreteType]),
-        SetType([tfc1.concreteType, tfc2.concreteType, tfc3.concreteType]));
-    ne(SetType([tfc1.concreteType, tfc2.concreteType]),
-        SetType([tfc1.concreteType, tfc3.concreteType]));
-    ne(SetType([tfc1.concreteType, tfc2.concreteType]),
-        SetType([tfc1.concreteType, tfc2.concreteType]).nullable());
+    eq(
+      SetType([tfc1.concreteType, tfc2.concreteType]),
+      SetType([tfc1.concreteType, tfc2.concreteType]),
+    );
+    eq(
+      SetType([tfc1.concreteType, tfc2.concreteType, tfc3.concreteType]),
+      SetType([tfc1.concreteType, tfc2.concreteType, tfc3.concreteType]),
+    );
+    ne(
+      SetType([tfc1.concreteType, tfc2.concreteType]),
+      SetType([tfc1.concreteType, tfc2.concreteType, tfc3.concreteType]),
+    );
+    ne(
+      SetType([tfc1.concreteType, tfc2.concreteType]),
+      SetType([tfc1.concreteType, tfc3.concreteType]),
+    );
+    ne(
+      SetType([tfc1.concreteType, tfc2.concreteType]),
+      SetType([tfc1.concreteType, tfc2.concreteType]).nullable(),
+    );
   });
 }

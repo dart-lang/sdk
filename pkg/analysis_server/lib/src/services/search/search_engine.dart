@@ -151,7 +151,7 @@ class SearchEngineCache {
 /// [SearchEngine].
 abstract class SearchMatch {
   /// Return the element containing the match.
-  Element2 get element2;
+  Element2 get element;
 
   /// The absolute path of the file containing the match.
   String get file;
@@ -166,7 +166,7 @@ abstract class SearchMatch {
   MatchKind get kind;
 
   /// Return the library element for the [file].
-  LibraryElement2 get libraryElement2;
+  LibraryElement2 get libraryElement;
 
   /// The library [Source] of the reference.
   Source get librarySource;

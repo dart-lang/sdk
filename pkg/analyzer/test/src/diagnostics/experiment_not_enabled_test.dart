@@ -32,6 +32,18 @@ main() {
     ]);
   }
 
+  test_dotShorthands_disabled() async {
+    await assertErrorsInCode(r'''
+void main() {
+  Object c = .hash;
+  print(c);
+}
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 27, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 28, 4),
+    ]);
+  }
+
   test_nonFunctionTypeAliases_disabled() async {
     await assertErrorsInCode(r'''
 // @dart = 2.12

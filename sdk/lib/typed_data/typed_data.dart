@@ -15,7 +15,6 @@ library dart.typed_data;
 
 import "dart:_internal" show Since, UnmodifiableListBase;
 
-@Since("2.10")
 export "dart:_internal" show BytesBuilder;
 
 /// A sequence of bytes underlying a typed data object.
@@ -403,10 +402,10 @@ final class Endian {
   final bool _littleEndian;
   const Endian._(this._littleEndian);
 
-  static const Endian big = const Endian._(false);
-  static const Endian little = const Endian._(true);
+  static const Endian big = Endian._(false);
+  static const Endian little = Endian._(true);
   static final Endian host =
-      (new ByteData.view(new Uint16List.fromList([1]).buffer)).getInt8(0) == 1
+      (ByteData.view(Uint16List.fromList([1]).buffer)).getInt8(0) == 1
           ? little
           : big;
 }
@@ -504,7 +503,6 @@ abstract final class ByteData implements TypedData {
   /// is the same as the [List.length] of a typed data list.
   ///
   /// If omitted, [start] defaults to zero and [end] to *elementCount*.
-  @Since("2.8")
   factory ByteData.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -813,7 +811,6 @@ abstract final class Int8List implements _TypedIntList {
   /// is the same as the [List.length] of a typed data list.
   ///
   /// If omitted, [start] defaults to zero and [end] to *elementCount*.
-  @Since("2.8")
   factory Int8List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -938,7 +935,6 @@ abstract final class Uint8List implements _TypedIntList {
   /// is the same as the [List.length] of a typed data list.
   ///
   /// If omitted, [start] defaults to zero and [end] to *elementCount*.
-  @Since("2.8")
   factory Uint8List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -1207,7 +1203,6 @@ abstract final class Int16List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of two.
-  @Since("2.8")
   factory Int16List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -1347,7 +1342,6 @@ abstract final class Uint16List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of two.
-  @Since("2.8")
   factory Uint16List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -1486,7 +1480,6 @@ abstract final class Int32List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of four.
-  @Since("2.8")
   factory Int32List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -1626,7 +1619,6 @@ abstract final class Uint32List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of four.
-  @Since("2.8")
   factory Uint32List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -1765,7 +1757,6 @@ abstract final class Int64List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of eight.
-  @Since("2.8")
   factory Int64List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -1905,7 +1896,6 @@ abstract final class Uint64List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of eight.
-  @Since("2.8")
   factory Uint64List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -2045,7 +2035,6 @@ abstract final class Float32List implements _TypedFloatList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of four.
-  @Since("2.8")
   factory Float32List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -2178,7 +2167,6 @@ abstract final class Float64List implements _TypedFloatList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of eight.
-  @Since("2.8")
   factory Float64List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -2311,7 +2299,6 @@ abstract final class Float32x4List
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of sixteen.
-  @Since("2.8")
   factory Float32x4List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -2452,7 +2439,6 @@ abstract final class Int32x4List implements TypedDataList<Int32x4>, TypedData {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of sixteen.
-  @Since("2.8")
   factory Int32x4List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -2603,7 +2589,6 @@ abstract final class Float64x2List
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of sixteen.
-  @Since("2.8")
   factory Float64x2List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -2660,381 +2645,1682 @@ abstract final class Float64x2List
   static const int bytesPerElement = 16;
 }
 
-/// Float32x4 immutable value type and operations.
+/// Four 32-bit floating point values.
 ///
-/// Float32x4 stores 4 32-bit floating point values in "lanes".
-/// The lanes are "x", "y", "z", and "w" respectively.
+/// Float32x4 stores four 32-bit floating point values in "lanes".
+/// The lanes are named [x], [y], [z], and [w] respectively.
 ///
-/// It is a compile-time error for a class to attempt to extend or implement
-/// `Float32x4`.
+/// Single operations can be performed on the multiple values of one or
+/// more `Float32x4`s, which will perform the corresponding operation
+/// for each lane of the operands, and provide a new `Float32x4` (or similar
+/// multi-value) result with the results from each lane.
+///
+/// The `Float32x4` class cannot be extended or implemented.
 abstract final class Float32x4 {
+  /// Creates a `Float32x4` containing the 32-bit float values of the arguments.
+  ///
+  /// The created value has [Float32x4.x], [Float32x4.y], [Float32x4.z]
+  /// and [Float32x4.w] values that are the 32-bit floating point values
+  /// created from the [x], [y], [z] and [w] arguments by conversion
+  /// from 64-bit floating point to 32-bit floating point values.
+  ///
+  /// The conversion from 64-bit float to 32-bit float loses significant
+  /// precision, and may become zero or infinite even if the original 64-bit
+  /// floating point value was non-zero and finite.
   external factory Float32x4(double x, double y, double z, double w);
-  external factory Float32x4.splat(double v);
+
+  /// Creates a `Float32x4` with the same 32-bit float value four times.
+  ///
+  /// The created value has the same [Float32x4.x], [Float32x4.y], [Float32x4.z]
+  /// and [Float32x4.w] value, which is the 32-bit floating point value
+  /// created by converting the 64-bit floating point [value] to a
+  /// 32-bit floating point value.
+  ///
+  /// The conversion from 64-bit float to 32-bit float loses significant
+  /// precision, and may become zero or infinite even if the original 64-bit
+  /// floating point value was non-zero and finite.
+  external factory Float32x4.splat(double value);
+
+  /// Creates a `Float32x4` with all values being zero.
+  ///
+  /// The created value has the same [Float32x4.x], [Float32x4.y], [Float32x4.z]
+  /// and [Float32x4.w] value, which is the 32-bit floating point zero value.
   external factory Float32x4.zero();
-  external factory Float32x4.fromInt32x4Bits(Int32x4 x);
 
-  /// Sets the x and y lanes to their respective values in [v] and sets the z
-  /// and w lanes to 0.0.
-  external factory Float32x4.fromFloat64x2(Float64x2 v);
+  /// Creates a `Float32x4` with 32-bit float values from the provided bits.
+  ///
+  /// The created value has [Float32x4.x], [Float32x4.y], [Float32x4.z]
+  /// and [Float32x4.w] values, which are the 32-bit floating point values
+  /// of the bit-representations of the corresponding lanes of [bits].
+  ///
+  /// The conversion is performed using the *platform endianness* for both
+  /// 32-bit integers and 32-bit floating point numbers.
+  external factory Float32x4.fromInt32x4Bits(Int32x4 bits);
 
-  /// Addition operator.
+  /// Creates a `Float32x4` with its [x] and [y] lanes set to values from [xy].
+  ///
+  /// The created value has [Float32x4.x] and [Float32x4.y] values
+  /// which are the conversions of the [Float64x2.x] and [Float64x2.y] lanes
+  /// of [xy] to 32-bit floating point values.
+  /// The [Float32x4.z] and [Float32x4.w] lanes are set to the zero value.
+  external factory Float32x4.fromFloat64x2(Float64x2 xy);
+
+  /// Lane-wise addition.
+  ///
+  /// Adds the value of each lane of this value
+  /// to the value of the corresponding lane of [other].
+  ///
+  /// Returns the result for each lane.
   Float32x4 operator +(Float32x4 other);
 
-  /// Negate operator.
+  /// Lane-wise negation.
+  ///
+  /// Returns a result where each lane is the negation of the corresponding
+  /// lane of this value.
   Float32x4 operator -();
 
-  /// Subtraction operator.
+  /// Lane-wise subtraction.
+  ///
+  /// Subtracts the value of each lane of [other]
+  /// from the value of the corresponding lane of this value.
+  ///
+  /// Returns the result for each lane.
   Float32x4 operator -(Float32x4 other);
 
-  /// Multiplication operator.
+  /// Lane-wise multiplication.
+  ///
+  /// Multiplies the value of each lane of this value
+  /// with the value of the corresponding lane of [other].
+  ///
+  /// Returns the result for each lane.
   Float32x4 operator *(Float32x4 other);
 
-  /// Division operator.
+  /// Lane-wise division.
+  ///
+  /// Divides the value of each lane of this value
+  /// with the value of the corresponding lane of [other].
+  ///
+  /// Returns the result for each lane.
   Float32x4 operator /(Float32x4 other);
 
-  /// Relational less than.
+  /// Lane-wise less-than comparison.
+  ///
+  /// Compares the 32-bit floating point value of each lane of this
+  /// to the value of the corresponding lane of [other],
+  /// using 32-bit floating point comparison.
+  /// _For floating point comparisons, a comparison with a NaN value is
+  /// always false, and -0.0 (negative zero) is considered equal to 0.0
+  /// (positive zero), and not less strictly than it._
+  /// The result for a lane is a 32-bit signed integer which is -1
+  /// (all bits set) if the value from this object is *less than*
+  /// the value from [other], and the result is 0 (all bits cleared) if not,
+  /// including if either value is a NaN value.
+  ///
+  /// Returns four values that are always either 0 or -1.
   Int32x4 lessThan(Float32x4 other);
 
-  /// Relational less than or equal.
+  /// Lane-wise less-than-or-equal comparison.
+  ///
+  /// Compares the 32-bit floating point value of each lane of this
+  /// to the value of the corresponding lane of [other],
+  /// using 32-bit floating point comparison.
+  /// _For floating point comparisons, a comparison with a NaN value is
+  /// always false, and -0.0 (negative zero) is considered equal to 0.0
+  /// (positive zero), and not less strictly than it._
+  /// The result for a lane is a 32-bit signed integer which is -1
+  /// (all bits set) if the value from this object is *less than or equal to*
+  /// the value from [other], and the result is 0 (all bits cleared) if not,
+  /// including if either value is a NaN value.
+  ///
+  /// Returns four values that are always either 0 or -1.
   Int32x4 lessThanOrEqual(Float32x4 other);
 
-  /// Relational greater than.
+  /// Lane-wise greater-than comparison.
+  ///
+  /// Compares the 32-bit floating point value of each lane of this
+  /// to the value of the corresponding lane of [other],
+  /// using 32-bit floating point comparison.
+  /// _For floating point comparisons, a comparison with a NaN value is
+  /// always false, and -0.0 (negative zero) is considered equal to 0.0
+  /// (positive zero), and not less strictly than it._
+  /// The result for a lane is a 32-bit signed integer which is -1
+  /// (all bits set) if the value from this object is *greater than*
+  /// the value from [other], and the result is 0 (all bits cleared) if not,
+  /// including if either value is a NaN value.
+  ///
+  /// Returns four values that are always either 0 or -1.
   Int32x4 greaterThan(Float32x4 other);
 
-  /// Relational greater than or equal.
+  /// Lane-wise greater-than-or-equal comparison.
+  ///
+  /// Compares the 32-bit floating point value of each lane of this
+  /// to the value of the corresponding lane of [other],
+  /// using 32-bit floating point comparison.
+  /// _For floating point comparisons, a comparison with a NaN value is
+  /// always false, and -0.0 (negative zero) is considered equal to 0.0
+  /// (positive zero), and not less strictly than it._
+  /// The result for a lane is a 32-bit signed integer which is -1
+  /// (all bits set) if the value from this object is *greater than or equal to*
+  /// the value from [other], and the result is 0 (all bits cleared) if not,
+  /// including if either value is a NaN value.
+  ///
+  /// Returns four values that are always either 0 or -1.
   Int32x4 greaterThanOrEqual(Float32x4 other);
 
-  /// Relational equal.
+  /// Lane-wise equals comparison.
+  ///
+  /// Compares the 32-bit floating point value of each lane of this
+  /// to the value of the corresponding lane of [other],
+  /// using 32-bit floating point comparison.
+  /// _For floating point comparisons, a comparison with a NaN value is
+  /// always false, and -0.0 (negative zero) is considered equal to 0.0
+  /// (positive zero), and not less strictly than it._
+  /// The result for a lane is a 32-bit signed integer which is -1
+  /// (all bits set) if the value from this object is *equal to*
+  /// the value from [other], and the result is 0 (all bits cleared) if not,
+  /// including if either value is a NaN value.
+  ///
+  /// Returns four values that are always either 0 or -1.
   Int32x4 equal(Float32x4 other);
 
-  /// Relational not-equal.
+  /// Lane-wise not-equals comparison.
+  ///
+  /// Compares the 32-bit floating point value of each lane of this
+  /// to the value of the corresponding lane of [other],
+  /// using 32-bit floating point comparison.
+  /// _For floating point comparisons, a comparison with a NaN value is
+  /// always false, and -0.0 (negative zero) is considered equal to 0.0
+  /// (positive zero), and not less strictly than it._
+  /// The result for a lane is a 32-bit signed integer which is -1
+  /// (all bits set) if the value from this object is *not equal to*
+  /// the value from [other], and the result is 0 (all bits cleared) if not,
+  /// including if either value is a NaN value.
+  ///
+  /// Returns four values that are always either 0 or -1.
   Int32x4 notEqual(Float32x4 other);
 
-  /// Returns a copy of this [Float32x4] each lane being scaled by [s].
-  /// Equivalent to this * new Float32x4.splat(s)
-  Float32x4 scale(double s);
+  /// Lane-wise multiplication by [scale].
+  ///
+  /// Returns a result where each lane is the result of multiplying the
+  /// corresponding lane of this value with [scale].
+  /// This can happen either by converting the lane value to a 64-bit
+  /// floating point value, multiplying it with [scale] and converting
+  /// the result back to a 32-bit floating point value,
+  /// or by converting [scale] to a 32-bit floating point value
+  /// and performing a 32-bit floating point multiplication.
+  ///
+  /// In the latter case it is equivalent to `thisValue * Float32x4.splat(s)`.
+  Float32x4 scale(double scale);
 
-  /// The lane-wise absolute value of this [Float32x4].
+  /// Lane-wise conversion to absolute value.
+  ///
+  /// Converts each lane's value to a non-negative value
+  /// by negating the value if it is negative,
+  /// and keeping the original value if it is not negative.
+  ///
+  /// Returns the result for each lane.
   Float32x4 abs();
 
-  /// Lane-wise clamp this [Float32x4] to be in the range
-  /// [lowerLimit]-[upperLimit].
+  /// Lane-wise clamp to a range.
+  ///
+  /// Clamps the value of each lane to a minimum value
+  /// of the corresponding lane of [lowerLimit]
+  ///  and a maximum value of the corresponding lane of [upperLimit].
+  /// If the original value is lower than the minimum value, the result is
+  /// the minimum value, and if original value is greater than the maximum
+  /// value, the result is the maximum value.
+  /// The result is unspecified if the maximum value is lower than the minimum
+  /// value, or if any of the three values is a NaN value, other than that
+  /// the result will be one of those three values, or possibly a different
+  /// NaN value if any value is a NaN value.
+  ///
+  /// Returns the result for each lane.
   Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit);
 
-  /// Extracted x value.
+  /// The value of the "x" lane.
   double get x;
 
-  /// Extracted y value.
+  /// The value of the "y" lane.
   double get y;
 
-  /// Extracted z value.
+  /// The value of the "z" lane.
   double get z;
 
-  /// Extracted w value.
+  /// The value of the "w" lane.
   double get w;
 
-  /// Extract the sign bits from each lane return them in the first 4 bits.
-  /// "x" lane is bit 0.
-  /// "y" lane is bit 1.
-  /// "z" lane is bit 2.
-  /// "w" lane is bit 3.
+  /// The sign bits of each lane as single bits.
+  ///
+  /// The sign bits of each lane's 32-bit floating point value
+  /// are stored in the low four bits of this value:
+  /// - The [x] lane in bit 0.
+  /// - The [y] lane in bit 1.
+  /// - The [z] lane in bit 2.
+  /// - The [w] lane in bit 3.
   int get signMask;
 
-  /// Mask passed to [shuffle] or [shuffleMix].
+  // Masks passed to [shuffle] or [shuffleMix].
+
+  /// Shuffle mask "xxxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxxx = 0x00;
+
+  /// Shuffle mask "xxxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxxy = 0x40;
+
+  /// Shuffle mask "xxxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxxz = 0x80;
+
+  /// Shuffle mask "xxxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxxw = 0xC0;
+
+  /// Shuffle mask "xxyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxyx = 0x10;
+
+  /// Shuffle mask "xxyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxyy = 0x50;
+
+  /// Shuffle mask "xxyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxyz = 0x90;
+
+  /// Shuffle mask "xxyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxyw = 0xD0;
+
+  /// Shuffle mask "xxzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxzx = 0x20;
+
+  /// Shuffle mask "xxzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxzy = 0x60;
+
+  /// Shuffle mask "xxzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxzz = 0xA0;
+
+  /// Shuffle mask "xxzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxzw = 0xE0;
+
+  /// Shuffle mask "xxwx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxwx = 0x30;
+
+  /// Shuffle mask "xxwy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxwy = 0x70;
+
+  /// Shuffle mask "xxwz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxwz = 0xB0;
+
+  /// Shuffle mask "xxww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xxww = 0xF0;
+
+  /// Shuffle mask "xyxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xyxx = 0x04;
+
+  /// Shuffle mask "xyxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xyxy = 0x44;
+
+  /// Shuffle mask "xyxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xyxz = 0x84;
+
+  /// Shuffle mask "xyxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xyxw = 0xC4;
+
+  /// Shuffle mask "xyyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xyyx = 0x14;
+
+  /// Shuffle mask "xyyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xyyy = 0x54;
+
+  /// Shuffle mask "xyyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xyyz = 0x94;
+
+  /// Shuffle mask "xyyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xyyw = 0xD4;
+
+  /// Shuffle mask "xyzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xyzx = 0x24;
+
+  /// Shuffle mask "xyzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xyzy = 0x64;
+
+  /// Shuffle mask "xyzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xyzz = 0xA4;
+
+  /// Shuffle mask "xyzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xyzw = 0xE4;
+
+  /// Shuffle mask "xywx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xywx = 0x34;
+
+  /// Shuffle mask "xywy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xywy = 0x74;
+
+  /// Shuffle mask "xywz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xywz = 0xB4;
+
+  /// Shuffle mask "xyww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xyww = 0xF4;
+
+  /// Shuffle mask "xzxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzxx = 0x08;
+
+  /// Shuffle mask "xzxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzxy = 0x48;
+
+  /// Shuffle mask "xzxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzxz = 0x88;
+
+  /// Shuffle mask "xzxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzxw = 0xC8;
+
+  /// Shuffle mask "xzyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzyx = 0x18;
+
+  /// Shuffle mask "xzyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzyy = 0x58;
+
+  /// Shuffle mask "xzyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzyz = 0x98;
+
+  /// Shuffle mask "xzyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzyw = 0xD8;
+
+  /// Shuffle mask "xzzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzzx = 0x28;
+
+  /// Shuffle mask "xzzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzzy = 0x68;
+
+  /// Shuffle mask "xzzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzzz = 0xA8;
+
+  /// Shuffle mask "xzzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzzw = 0xE8;
+
+  /// Shuffle mask "xzwx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzwx = 0x38;
+
+  /// Shuffle mask "xzwy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzwy = 0x78;
+
+  /// Shuffle mask "xzwz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzwz = 0xB8;
+
+  /// Shuffle mask "xzww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xzww = 0xF8;
+
+  /// Shuffle mask "xwxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwxx = 0x0C;
+
+  /// Shuffle mask "xwxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwxy = 0x4C;
+
+  /// Shuffle mask "xwxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwxz = 0x8C;
+
+  /// Shuffle mask "xwxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwxw = 0xCC;
+
+  /// Shuffle mask "xwyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwyx = 0x1C;
+
+  /// Shuffle mask "xwyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwyy = 0x5C;
+
+  /// Shuffle mask "xwyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwyz = 0x9C;
+
+  /// Shuffle mask "xwyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwyw = 0xDC;
+
+  /// Shuffle mask "xwzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwzx = 0x2C;
+
+  /// Shuffle mask "xwzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwzy = 0x6C;
+
+  /// Shuffle mask "xwzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwzz = 0xAC;
+
+  /// Shuffle mask "xwzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwzw = 0xEC;
+
+  /// Shuffle mask "xwwx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwwx = 0x3C;
+
+  /// Shuffle mask "xwwy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwwy = 0x7C;
+
+  /// Shuffle mask "xwwz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwwz = 0xBC;
+
+  /// Shuffle mask "xwww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int xwww = 0xFC;
+
+  /// Shuffle mask "yxxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxxx = 0x01;
+
+  /// Shuffle mask "yxxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxxy = 0x41;
+
+  /// Shuffle mask "yxxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxxz = 0x81;
+
+  /// Shuffle mask "yxxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxxw = 0xC1;
+
+  /// Shuffle mask "yxyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxyx = 0x11;
+
+  /// Shuffle mask "yxyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxyy = 0x51;
+
+  /// Shuffle mask "yxyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxyz = 0x91;
+
+  /// Shuffle mask "yxyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxyw = 0xD1;
+
+  /// Shuffle mask "yxzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxzx = 0x21;
+
+  /// Shuffle mask "yxzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxzy = 0x61;
+
+  /// Shuffle mask "yxzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxzz = 0xA1;
+
+  /// Shuffle mask "yxzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxzw = 0xE1;
+
+  /// Shuffle mask "yxwx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxwx = 0x31;
+
+  /// Shuffle mask "yxwy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxwy = 0x71;
+
+  /// Shuffle mask "yxwz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxwz = 0xB1;
+
+  /// Shuffle mask "yxww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yxww = 0xF1;
+
+  /// Shuffle mask "yyxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yyxx = 0x05;
+
+  /// Shuffle mask "yyxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yyxy = 0x45;
+
+  /// Shuffle mask "yyxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yyxz = 0x85;
+
+  /// Shuffle mask "yyxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yyxw = 0xC5;
+
+  /// Shuffle mask "yyyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yyyx = 0x15;
+
+  /// Shuffle mask "yyyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yyyy = 0x55;
+
+  /// Shuffle mask "yyyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yyyz = 0x95;
+
+  /// Shuffle mask "yyyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yyyw = 0xD5;
+
+  /// Shuffle mask "yyzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yyzx = 0x25;
+
+  /// Shuffle mask "yyzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yyzy = 0x65;
+
+  /// Shuffle mask "yyzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yyzz = 0xA5;
+
+  /// Shuffle mask "yyzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yyzw = 0xE5;
+
+  /// Shuffle mask "yywx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yywx = 0x35;
+
+  /// Shuffle mask "yywy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yywy = 0x75;
+
+  /// Shuffle mask "yywz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yywz = 0xB5;
+
+  /// Shuffle mask "yyww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yyww = 0xF5;
+
+  /// Shuffle mask "yzxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzxx = 0x09;
+
+  /// Shuffle mask "yzxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzxy = 0x49;
+
+  /// Shuffle mask "yzxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzxz = 0x89;
+
+  /// Shuffle mask "yzxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzxw = 0xC9;
+
+  /// Shuffle mask "yzyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzyx = 0x19;
+
+  /// Shuffle mask "yzyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzyy = 0x59;
+
+  /// Shuffle mask "yzyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzyz = 0x99;
+
+  /// Shuffle mask "yzyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzyw = 0xD9;
+
+  /// Shuffle mask "yzzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzzx = 0x29;
+
+  /// Shuffle mask "yzzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzzy = 0x69;
+
+  /// Shuffle mask "yzzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzzz = 0xA9;
+
+  /// Shuffle mask "yzzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzzw = 0xE9;
+
+  /// Shuffle mask "yzwx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzwx = 0x39;
+
+  /// Shuffle mask "yzwy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzwy = 0x79;
+
+  /// Shuffle mask "yzwz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzwz = 0xB9;
+
+  /// Shuffle mask "yzww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int yzww = 0xF9;
+
+  /// Shuffle mask "ywxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywxx = 0x0D;
+
+  /// Shuffle mask "ywxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywxy = 0x4D;
+
+  /// Shuffle mask "ywxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywxz = 0x8D;
+
+  /// Shuffle mask "ywxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywxw = 0xCD;
+
+  /// Shuffle mask "ywyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywyx = 0x1D;
+
+  /// Shuffle mask "ywyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywyy = 0x5D;
+
+  /// Shuffle mask "ywyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywyz = 0x9D;
+
+  /// Shuffle mask "ywyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywyw = 0xDD;
+
+  /// Shuffle mask "ywzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywzx = 0x2D;
+
+  /// Shuffle mask "ywzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywzy = 0x6D;
+
+  /// Shuffle mask "ywzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywzz = 0xAD;
+
+  /// Shuffle mask "ywzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywzw = 0xED;
+
+  /// Shuffle mask "ywwx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywwx = 0x3D;
+
+  /// Shuffle mask "ywwy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywwy = 0x7D;
+
+  /// Shuffle mask "ywwz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywwz = 0xBD;
+
+  /// Shuffle mask "ywww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int ywww = 0xFD;
+
+  /// Shuffle mask "zxxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxxx = 0x02;
+
+  /// Shuffle mask "zxxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxxy = 0x42;
+
+  /// Shuffle mask "zxxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxxz = 0x82;
+
+  /// Shuffle mask "zxxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxxw = 0xC2;
+
+  /// Shuffle mask "zxyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxyx = 0x12;
+
+  /// Shuffle mask "zxyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxyy = 0x52;
+
+  /// Shuffle mask "zxyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxyz = 0x92;
+
+  /// Shuffle mask "zxyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxyw = 0xD2;
+
+  /// Shuffle mask "zxzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxzx = 0x22;
+
+  /// Shuffle mask "zxzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxzy = 0x62;
+
+  /// Shuffle mask "zxzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxzz = 0xA2;
+
+  /// Shuffle mask "zxzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxzw = 0xE2;
+
+  /// Shuffle mask "zxwx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxwx = 0x32;
+
+  /// Shuffle mask "zxwy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxwy = 0x72;
+
+  /// Shuffle mask "zxwz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxwz = 0xB2;
+
+  /// Shuffle mask "zxww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zxww = 0xF2;
+
+  /// Shuffle mask "zyxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zyxx = 0x06;
+
+  /// Shuffle mask "zyxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zyxy = 0x46;
+
+  /// Shuffle mask "zyxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zyxz = 0x86;
+
+  /// Shuffle mask "zyxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zyxw = 0xC6;
+
+  /// Shuffle mask "zyyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zyyx = 0x16;
+
+  /// Shuffle mask "zyyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zyyy = 0x56;
+
+  /// Shuffle mask "zyyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zyyz = 0x96;
+
+  /// Shuffle mask "zyyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zyyw = 0xD6;
+
+  /// Shuffle mask "zyzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zyzx = 0x26;
+
+  /// Shuffle mask "zyzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zyzy = 0x66;
+
+  /// Shuffle mask "zyzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zyzz = 0xA6;
+
+  /// Shuffle mask "zyzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zyzw = 0xE6;
+
+  /// Shuffle mask "zywx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zywx = 0x36;
+
+  /// Shuffle mask "zywy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zywy = 0x76;
+
+  /// Shuffle mask "zywz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zywz = 0xB6;
+
+  /// Shuffle mask "zyww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zyww = 0xF6;
+
+  /// Shuffle mask "zzxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzxx = 0x0A;
+
+  /// Shuffle mask "zzxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzxy = 0x4A;
+
+  /// Shuffle mask "zzxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzxz = 0x8A;
+
+  /// Shuffle mask "zzxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzxw = 0xCA;
+
+  /// Shuffle mask "zzyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzyx = 0x1A;
+
+  /// Shuffle mask "zzyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzyy = 0x5A;
+
+  /// Shuffle mask "zzyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzyz = 0x9A;
+
+  /// Shuffle mask "zzyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzyw = 0xDA;
+
+  /// Shuffle mask "zzzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzzx = 0x2A;
+
+  /// Shuffle mask "zzzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzzy = 0x6A;
+
+  /// Shuffle mask "zzzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzzz = 0xAA;
+
+  /// Shuffle mask "zzzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzzw = 0xEA;
+
+  /// Shuffle mask "zzwx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzwx = 0x3A;
+
+  /// Shuffle mask "zzwy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzwy = 0x7A;
+
+  /// Shuffle mask "zzwz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzwz = 0xBA;
+
+  /// Shuffle mask "zzww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zzww = 0xFA;
+
+  /// Shuffle mask "zwxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwxx = 0x0E;
+
+  /// Shuffle mask "zwxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwxy = 0x4E;
+
+  /// Shuffle mask "zwxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwxz = 0x8E;
+
+  /// Shuffle mask "zwxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwxw = 0xCE;
+
+  /// Shuffle mask "zwyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwyx = 0x1E;
+
+  /// Shuffle mask "zwyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwyy = 0x5E;
+
+  /// Shuffle mask "zwyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwyz = 0x9E;
+
+  /// Shuffle mask "zwyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwyw = 0xDE;
+
+  /// Shuffle mask "zwzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwzx = 0x2E;
+
+  /// Shuffle mask "zwzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwzy = 0x6E;
+
+  /// Shuffle mask "zwzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwzz = 0xAE;
+
+  /// Shuffle mask "zwzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwzw = 0xEE;
+
+  /// Shuffle mask "zwwx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwwx = 0x3E;
+
+  /// Shuffle mask "zwwy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwwy = 0x7E;
+
+  /// Shuffle mask "zwwz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwwz = 0xBE;
+
+  /// Shuffle mask "zwww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int zwww = 0xFE;
+
+  /// Shuffle mask "wxxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxxx = 0x03;
+
+  /// Shuffle mask "wxxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxxy = 0x43;
+
+  /// Shuffle mask "wxxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxxz = 0x83;
+
+  /// Shuffle mask "wxxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxxw = 0xC3;
+
+  /// Shuffle mask "wxyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxyx = 0x13;
+
+  /// Shuffle mask "wxyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxyy = 0x53;
+
+  /// Shuffle mask "wxyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxyz = 0x93;
+
+  /// Shuffle mask "wxyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxyw = 0xD3;
+
+  /// Shuffle mask "wxzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxzx = 0x23;
+
+  /// Shuffle mask "wxzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxzy = 0x63;
+
+  /// Shuffle mask "wxzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxzz = 0xA3;
+
+  /// Shuffle mask "wxzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxzw = 0xE3;
+
+  /// Shuffle mask "wxwx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxwx = 0x33;
+
+  /// Shuffle mask "wxwy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxwy = 0x73;
+
+  /// Shuffle mask "wxwz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxwz = 0xB3;
+
+  /// Shuffle mask "wxww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wxww = 0xF3;
+
+  /// Shuffle mask "wyxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wyxx = 0x07;
+
+  /// Shuffle mask "wyxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wyxy = 0x47;
+
+  /// Shuffle mask "wyxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wyxz = 0x87;
+
+  /// Shuffle mask "wyxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wyxw = 0xC7;
+
+  /// Shuffle mask "wyyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wyyx = 0x17;
+
+  /// Shuffle mask "wyyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wyyy = 0x57;
+
+  /// Shuffle mask "wyyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wyyz = 0x97;
+
+  /// Shuffle mask "wyyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wyyw = 0xD7;
+
+  /// Shuffle mask "wyzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wyzx = 0x27;
+
+  /// Shuffle mask "wyzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wyzy = 0x67;
+
+  /// Shuffle mask "wyzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wyzz = 0xA7;
+
+  /// Shuffle mask "wyzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wyzw = 0xE7;
+
+  /// Shuffle mask "wywx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wywx = 0x37;
+
+  /// Shuffle mask "wywy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wywy = 0x77;
+
+  /// Shuffle mask "wywz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wywz = 0xB7;
+
+  /// Shuffle mask "wyww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wyww = 0xF7;
+
+  /// Shuffle mask "wzxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzxx = 0x0B;
+
+  /// Shuffle mask "wzxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzxy = 0x4B;
+
+  /// Shuffle mask "wzxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzxz = 0x8B;
+
+  /// Shuffle mask "wzxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzxw = 0xCB;
+
+  /// Shuffle mask "wzyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzyx = 0x1B;
+
+  /// Shuffle mask "wzyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzyy = 0x5B;
+
+  /// Shuffle mask "wzyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzyz = 0x9B;
+
+  /// Shuffle mask "wzyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzyw = 0xDB;
+
+  /// Shuffle mask "wzzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzzx = 0x2B;
+
+  /// Shuffle mask "wzzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzzy = 0x6B;
+
+  /// Shuffle mask "wzzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzzz = 0xAB;
+
+  /// Shuffle mask "wzzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzzw = 0xEB;
+
+  /// Shuffle mask "wzwx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzwx = 0x3B;
+
+  /// Shuffle mask "wzwy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzwy = 0x7B;
+
+  /// Shuffle mask "wzwz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzwz = 0xBB;
+
+  /// Shuffle mask "wzww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wzww = 0xFB;
+
+  /// Shuffle mask "wwxx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwxx = 0x0F;
+
+  /// Shuffle mask "wwxy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwxy = 0x4F;
+
+  /// Shuffle mask "wwxz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwxz = 0x8F;
+
+  /// Shuffle mask "wwxw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwxw = 0xCF;
+
+  /// Shuffle mask "wwyx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwyx = 0x1F;
+
+  /// Shuffle mask "wwyy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwyy = 0x5F;
+
+  /// Shuffle mask "wwyz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwyz = 0x9F;
+
+  /// Shuffle mask "wwyw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwyw = 0xDF;
+
+  /// Shuffle mask "wwzx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwzx = 0x2F;
+
+  /// Shuffle mask "wwzy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwzy = 0x6F;
+
+  /// Shuffle mask "wwzz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwzz = 0xAF;
+
+  /// Shuffle mask "wwzw".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwzw = 0xEF;
+
+  /// Shuffle mask "wwwx".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwwx = 0x3F;
+
+  /// Shuffle mask "wwwy".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwwy = 0x7F;
+
+  /// Shuffle mask "wwwz".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwwz = 0xBF;
+
+  /// Shuffle mask "wwww".
+  ///
+  /// Used by [shuffle] and [shuffleMix].
   static const int wwww = 0xFF;
 
-  /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
+  /// Shuffle the lane values based on the [mask].
+  ///
+  /// The [mask] must be one of the 256 shuffle masks from [xxxx] to [wwww].
+  ///
+  /// Creates a new [Float32x4] whose lane values are taken from the
+  /// lanes of this value based on the lanes of the shuffle mask,
+  /// with the result's [x] lane being taken from the lane of the first
+  /// letter of the shuffle mask's name, the [y] lane from the second letter,
+  /// [z] lane from the third letter and [w] lane from the fourth letter.
+  ///
+  /// For example, the shuffle mask [wxyz] creates a new `Float32x4`
+  /// whose [x] lane is the [w] lane of this value, because the first letter
+  /// of the shuffle mask's name, `wxyz` is "w". Then the `y`, `z` and `w`
+  /// lanes of the result are the values of the `x`, `y` and `z` lanes
+  /// of this value.
+  ///
+  /// The [xyzw] "identity shuffle" mask gives a result with the same lanes
+  /// as the original.
+  ///
+  /// Some masks preserve the values of all lanes, but may permute them.
+  /// Other masks duplicates some lanes and discards the values of others.
+  ///
+  /// For example, doing `v1.shuffle(yyyy)` is equivalent to
+  /// `Float32x4.splat(v1.y)`.
   Float32x4 shuffle(int mask);
 
-  /// Shuffle the lane values in this [Float32x4] and [other]. The returned
-  /// Float32x4 will have XY lanes from this [Float32x4] and ZW lanes from
-  /// [other].  Uses the same [mask] as [shuffle].
+  /// Mixes lanes chosen from two [Float32x4] values using a [mask].
+  ///
+  /// Creates a new [Float32x4] where the [x] and [y] lanes are chosen
+  /// from the lanes of this value selected by the first two letters of the
+  /// [mask]'s name, and the [z] and [w] lanes are the lanes of [other]
+  /// selected by the last two letters of the `mask`'s name.
+  ///
+  /// For example, `v1.shuffleMix(v2, Float32x4.xyzw)` is equivalent
+  /// to `Float32x4(v1.x, v1.y, v2.z, v2.w)`.
+  ///
+  /// If [other] is the same value as this `Float32x4`, this function
+  /// is the same as [shuffle]. That is, doing
+  /// `v1.shuffleMix(v1, mask)` is equivalent to `v1.shuffle(mask)`.
   Float32x4 shuffleMix(Float32x4 other, int mask);
 
-  /// Returns a new [Float32x4] copied from this [Float32x4] with a new x
-  /// value.
+  /// This value, but with the value of the [Float32x4.x] lane set to [x].
+  ///
+  /// Returns a new [Float32x4] with the same values for the [y], [z]
+  /// and [w] lanes as this value, and with a [Float32x4.x] lane
+  /// having the value [x] converted to a 32-bit floating point number.
   Float32x4 withX(double x);
 
-  /// Returns a new [Float32x4] copied from this [Float32x4] with a new y
-  /// value.
+  /// This value, but with the value of the [Float32x4.y] lane set to [y].
+  ///
+  /// Returns a new [Float32x4] with the same values for the [x], [z]
+  /// and [w] lanes as this value, and with a [Float32x4.y] lane
+  /// having the value [y] converted to a 32-bit floating point number.
   Float32x4 withY(double y);
 
-  /// Returns a new [Float32x4] copied from this [Float32x4] with a new z
-  /// value.
+  /// This value, but with the value of the [Float32x4.z] lane set to [z].
+  ///
+  /// Returns a new [Float32x4] with the same values for the [x], [y]
+  /// and [w] lanes as this value, and with a [Float32x4.z] lane
+  /// having the value [z] converted to a 32-bit floating point number.
   Float32x4 withZ(double z);
 
-  /// Returns a new [Float32x4] copied from this [Float32x4] with a new w
-  /// value.
+  /// This value, but with the value of the [Float32x4.w] lane set to [w].
+  ///
+  /// Returns a new [Float32x4] with the same values for the [x], [y]
+  /// and [z] lanes as this value, and with a [Float32x4.w] lane
+  /// having the value [w] converted to a 32-bit floating point number.
   Float32x4 withW(double w);
 
-  /// The lane-wise minimum value in this [Float32x4] or [other].
+  /// Lane-wise minimum.
+  ///
+  /// For each lane select the lesser of the lane value of this and [other].
+  ///
+  /// The result is the lesser of the two lane values if either is lesser.
+  /// The result is unspecified if either lane contains a NaN value or
+  /// if the values are -0.0 and 0.0, so that neither value is smaller
+  /// or greater than the other.
+  /// Different platforms may give different results in those cases,
+  /// but always one of the lane values.
+  ///
+  /// Returns the result for each lane.
   Float32x4 min(Float32x4 other);
 
-  /// The lane-wise maximum value in this [Float32x4] or [other].
+  /// Lane-wise maximum.
+  ///
+  /// For each lane select the greater of the lane value of this and [other].
+  ///
+  /// The result is the greater of the two lane values if either is greater.
+  /// The result is unspecified if either lane contains a NaN value or
+  /// if the values are -0.0 and 0.0, so that neither value is smaller
+  /// or greater than the other.
+  /// Different platforms may give different results in those cases,
+  /// but always one of the lane values.
+  ///
+  /// Returns the result for each lane.
   Float32x4 max(Float32x4 other);
 
-  /// The square root of this [Float32x4].
+  /// Lane-wise square root.
+  ///
+  /// For each lane compute the 32-bit floating point square root of the
+  /// lane's value.
+  ///
+  /// The result for a lane is a NaN value if the original value
+  /// is less than zero or if it is a NaN value.
+  /// The result for a negative zero, -0.0, is the same value again.
+  /// The result for positive infinity is positive infinity.
+  /// Otherwise the result is a positive value which approximates
+  /// the mathematical square root of the original value.
+  ///
+  /// Returns the result for each lane.
   Float32x4 sqrt();
 
-  /// The reciprocal of this [Float32x4].
+  /// Lane-wise reciprocal.
+  ///
+  /// For each lane compute the result of dividing 1.0 by the lane's value.
+  ///
+  /// If the value is a NaN value, so is the result.
+  /// If the value is infinite, the result is a zero value with the same sign.
+  /// If the value is zero, the result is infinite with the same sign.
+  /// Otherwise the result is an approximation of the mathematical result
+  /// of dividing 1 by the (finite, non-zero) value of the lane.
+  ///
+  /// Returns the result for each lane.
   Float32x4 reciprocal();
 
-  /// The square root of the reciprocal of this [Float32x4].
+  /// Lane-wise approximation of reciprocal square root.
+  ///
+  /// Approximates the same result as [reciprocal] followed by [sqrt],
+  /// or [sqrt] followed by [reciprocal],
+  /// but may be more precise and/or efficient due to computing the result
+  /// directly, rather than not creating a an intermediate result,
+  /// and possibly by working entirely at a reduced precision.
+  ///
+  /// The result can differ between platforms due to differences in
+  /// approximation and precision, and for values where the order of [sqrt] and
+  /// [reciprocal] makes a difference.
+  /// The latter applies specifically to `-0.0`
+  /// where `sqrt(-0.0)` is defined to be -0.0,
+  /// and `reciprocal` of that is -Infinity.
+  /// In the opposite order it computes `sqrt` of -Infinity which is NaN.
   Float32x4 reciprocalSqrt();
 }
 

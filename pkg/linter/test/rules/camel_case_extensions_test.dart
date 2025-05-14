@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CamelCaseExtensionsTest);
   });
@@ -32,19 +32,21 @@ augment extension e { }
   }
 
   test_lowerCase() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension fooBar on Object {}
-''', [
-      lint(10, 6),
-    ]);
+''',
+      [lint(10, 6)],
+    );
   }
 
   test_underscore() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension Foo_Bar on Object { }
-''', [
-      lint(10, 7),
-    ]);
+''',
+      [lint(10, 7)],
+    );
   }
 
   test_unnamed() async {

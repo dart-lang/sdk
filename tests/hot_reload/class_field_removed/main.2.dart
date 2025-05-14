@@ -26,9 +26,9 @@ Future<void> main() async {
   Expect.isNotNull(Foo());
   Expect.equals(2, hotReloadGeneration);
 }
+
 /** DIFF **/
 /*
-@@ -10,7 +10,6 @@
  
  class Foo {
    var x;

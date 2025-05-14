@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -30,9 +27,9 @@ class NamedTypeBuilder extends TypeBuilder {
   final TypeSystemImpl typeSystem;
 
   @override
-  final Element element;
+  final Element2 element3;
 
-  final List<DartType> arguments;
+  final List<TypeImpl> arguments;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -46,9 +43,9 @@ class NamedTypeBuilder extends TypeBuilder {
   ///
   /// When [build] is called, the type is built, stored into this field,
   /// and set for the [node].
-  DartType? _type;
+  TypeImpl? _type;
 
-  NamedTypeBuilder(this.linker, this.typeSystem, this.element, this.arguments,
+  NamedTypeBuilder(this.linker, this.typeSystem, this.element3, this.arguments,
       this.nullabilitySuffix,
       {this.node});
 
@@ -56,15 +53,15 @@ class NamedTypeBuilder extends TypeBuilder {
     Linker linker,
     TypeSystemImpl typeSystem,
     NamedTypeImpl node,
-    Element element,
+    Element2 element,
     NullabilitySuffix nullabilitySuffix,
   ) {
-    List<DartType> arguments;
+    List<TypeImpl> arguments;
     var argumentList = node.typeArguments;
     if (argumentList != null) {
       arguments = argumentList.arguments.map((n) => n.typeOrThrow).toList();
     } else {
-      arguments = <DartType>[];
+      arguments = <TypeImpl>[];
     }
 
     return NamedTypeBuilder(
@@ -72,9 +69,27 @@ class NamedTypeBuilder extends TypeBuilder {
         node: node);
   }
 
+  factory NamedTypeBuilder.v2({
+    required Linker linker,
+    required TypeSystemImpl typeSystem,
+    required Element2 element,
+    required List<TypeImpl> arguments,
+    required NullabilitySuffix nullabilitySuffix,
+    NamedTypeImpl? node,
+  }) {
+    return NamedTypeBuilder(
+      linker,
+      typeSystem,
+      element,
+      arguments,
+      nullabilitySuffix,
+      node: node,
+    );
+  }
+
   // TODO(scheglov): Only when enabled both in the element, and target?
   bool get _isNonFunctionTypeAliasesEnabled {
-    return element.library!.featureSet.isEnabled(
+    return element3.library2!.featureSet.isEnabled(
       Feature.nonfunction_type_aliases,
     );
   }
@@ -90,33 +105,33 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   @override
-  DartType build() {
+  TypeImpl build() {
     if (_type != null) {
       return _type!;
     }
 
-    var element = this.element;
-    if (element is InterfaceElement) {
-      var parameters = element.typeParameters;
+    var element3 = this.element3;
+    if (element3 is InterfaceElementImpl2) {
+      var parameters = element3.typeParameters2;
       var arguments = _buildArguments(parameters);
-      _type = element.instantiate(
+      _type = element3.instantiateImpl(
         typeArguments: arguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-    } else if (element is TypeAliasElementImpl) {
-      var aliasedType = _getAliasedType(element);
-      var parameters = element.typeParameters;
+    } else if (element3 is TypeAliasElementImpl2) {
+      var aliasedType = _getAliasedType(element3);
+      var parameters = element3.typeParameters2;
       var arguments = _buildArguments(parameters);
-      element.aliasedType = aliasedType;
-      _type = element.instantiate(
+      element3.aliasedType = aliasedType;
+      _type = element3.instantiateImpl(
         typeArguments: arguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-    } else if (element is NeverElementImpl) {
+    } else if (element3 is NeverElementImpl2) {
       _type = NeverTypeImpl.instance.withNullability(nullabilitySuffix);
-    } else if (element is TypeParameterElement) {
+    } else if (element3 is TypeParameterElementImpl2) {
       _type = TypeParameterTypeImpl(
-        element: element,
+        element3: element3,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {
@@ -130,7 +145,7 @@ class NamedTypeBuilder extends TypeBuilder {
   @override
   String toString() {
     var buffer = StringBuffer();
-    buffer.write(element.displayName);
+    buffer.write(element3.displayName);
     if (arguments.isNotEmpty) {
       buffer.write('<');
       buffer.write(arguments.join(', '));
@@ -146,11 +161,11 @@ class NamedTypeBuilder extends TypeBuilder {
     }
 
     return NamedTypeBuilder(
-        linker, typeSystem, element, arguments, nullabilitySuffix,
+        linker, typeSystem, element3, arguments, nullabilitySuffix,
         node: node);
   }
 
-  DartType _buildAliasedType(TypeAnnotation? node) {
+  TypeImpl _buildAliasedType(TypeAnnotation? node) {
     if (_isNonFunctionTypeAliasesEnabled) {
       if (node != null) {
         return _buildType(node.typeOrThrow);
@@ -161,9 +176,9 @@ class NamedTypeBuilder extends TypeBuilder {
       if (node is GenericFunctionType) {
         return _buildType(node.typeOrThrow);
       } else {
-        return FunctionTypeImpl(
-          typeFormals: const <TypeParameterElement>[],
-          parameters: const <ParameterElement>[],
+        return FunctionTypeImpl.v2(
+          typeParameters: const <TypeParameterElementImpl2>[],
+          formalParameters: const <FormalParameterElementMixin>[],
           returnType: _dynamicType,
           nullabilitySuffix: NullabilitySuffix.none,
         );
@@ -172,9 +187,9 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   /// Build arguments that correspond to the type [parameters].
-  List<DartType> _buildArguments(List<TypeParameterElement> parameters) {
+  List<TypeImpl> _buildArguments(List<TypeParameterElement2> parameters) {
     if (parameters.isEmpty) {
-      return const <DartType>[];
+      return const <TypeImpl>[];
     } else if (arguments.isNotEmpty) {
       if (arguments.length == parameters.length) {
         return List.generate(arguments.length, (index) {
@@ -186,33 +201,33 @@ class NamedTypeBuilder extends TypeBuilder {
       }
     } else {
       return List.generate(parameters.length, (index) {
-        var parameter = parameters[index] as TypeParameterElementImpl;
+        var parameter = parameters[index] as TypeParameterElementImpl2;
         var defaultType = parameter.defaultType!;
         return _buildType(defaultType);
       }, growable: false);
     }
   }
 
-  DartType _buildFormalParameterType(FormalParameter node) {
+  TypeImpl _buildFormalParameterType(FormalParameter node) {
     if (node is DefaultFormalParameter) {
       return _buildFormalParameterType(node.parameter);
-    } else if (node is FunctionTypedFormalParameter) {
+    } else if (node is FunctionTypedFormalParameterImpl) {
       return _buildFunctionType(
         typeParameterList: node.typeParameters,
         returnTypeNode: node.returnType,
         parameterList: node.parameters,
         hasQuestion: node.question != null,
       );
-    } else if (node is SimpleFormalParameter) {
+    } else if (node is SimpleFormalParameterImpl) {
       return _buildNodeType(node.type);
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');
     }
   }
 
-  FunctionType _buildFunctionType({
-    required TypeParameterList? typeParameterList,
-    required TypeAnnotation? returnTypeNode,
+  FunctionTypeImpl _buildFunctionType({
+    required TypeParameterListImpl? typeParameterList,
+    required TypeAnnotationImpl? returnTypeNode,
     required FormalParameterList parameterList,
     required bool hasQuestion,
   }) {
@@ -220,15 +235,15 @@ class NamedTypeBuilder extends TypeBuilder {
     var typeParameters = _typeParameters(typeParameterList);
     var formalParameters = _formalParameters(parameterList);
 
-    return FunctionTypeImpl(
-      typeFormals: typeParameters,
-      parameters: formalParameters,
+    return FunctionTypeImpl.v2(
+      typeParameters: typeParameters,
+      formalParameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: _getNullabilitySuffix(hasQuestion),
     );
   }
 
-  DartType _buildNodeType(TypeAnnotation? node) {
+  TypeImpl _buildNodeType(TypeAnnotationImpl? node) {
     if (node == null) {
       return _dynamicType;
     } else {
@@ -236,9 +251,9 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
-  List<ParameterElementImpl> _formalParameters(FormalParameterList node) {
+  List<FormalParameterElementImpl> _formalParameters(FormalParameterList node) {
     return node.parameters.asImpl.map((parameter) {
-      return ParameterElementImpl.synthetic(
+      return FormalParameterElementImpl.synthetic(
         parameter.name?.lexeme ?? '',
         _buildFormalParameterType(parameter),
         parameter.kind,
@@ -246,8 +261,8 @@ class NamedTypeBuilder extends TypeBuilder {
     }).toFixedList();
   }
 
-  DartType _getAliasedType(TypeAliasElementImpl element) {
-    var typedefNode = linker.getLinkingNode(element);
+  TypeImpl _getAliasedType(TypeAliasElementImpl2 element) {
+    var typedefNode = linker.getLinkingNode2(element.firstFragment);
 
     // If the element is not being linked, the types have already been built.
     if (typedefNode == null) {
@@ -262,7 +277,7 @@ class NamedTypeBuilder extends TypeBuilder {
       element.aliasedType = _dynamicType;
     }
 
-    if (typedefNode is FunctionTypeAlias) {
+    if (typedefNode is FunctionTypeAliasImpl) {
       var result = _buildFunctionType(
         typeParameterList: null,
         returnTypeNode: typedefNode.returnType,
@@ -290,7 +305,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   /// If the [type] is a [TypeBuilder], build it; otherwise return as is.
-  static DartType _buildType(DartType type) {
+  static TypeImpl _buildType(TypeImpl type) {
     if (type is TypeBuilder) {
       return type.build();
     } else {
@@ -298,17 +313,18 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
-  static List<DartType> _listOfDynamic(int length) {
-    return List<DartType>.filled(length, _dynamicType);
+  static List<TypeImpl> _listOfDynamic(int length) {
+    return List<TypeImpl>.filled(length, _dynamicType);
   }
 
-  static List<TypeParameterElement> _typeParameters(TypeParameterList? node) {
+  static List<TypeParameterElementImpl2> _typeParameters(
+      TypeParameterListImpl? node) {
     if (node != null) {
       return node.typeParameters
-          .map<TypeParameterElement>((p) => p.declaredElement!)
+          .map((p) => p.declaredFragment!.element)
           .toFixedList();
     } else {
-      return const <TypeParameterElement>[];
+      return const <TypeParameterElementImpl2>[];
     }
   }
 }

@@ -18,23 +18,23 @@ extension type ExtensionTypeMap<K, V>(Map<K, V> it) implements Map<K, V> {
 
 nonExhaustiveSealedSubtype(ExtensionTypeList<A> list) {
   return switch (list) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
-  //             ^
-  // [cfe] The type 'ExtensionTypeList<A>' is not exhaustively matched by the switch cases since it doesn't match '[B(), C()]'.
-      [] => 0,
-      [_] => 1,
-      [_, B()] => 2,
-      [_, _, _, ...] => 3,
-    };
+    //   ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+    //           ^
+    // [cfe] The type 'ExtensionTypeList<A>' is not exhaustively matched by the switch cases since it doesn't match '[B(), C()]'.
+    [] => 0,
+    [_] => 1,
+    [_, B()] => 2,
+    [_, _, _, ...] => 3,
+  };
 }
 
 nonExhaustiveMapExtensionType1(ExtensionTypeMap<int, A> map) {
   var a = switch (map) {
-  //      ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
-  //              ^
-  // [cfe] The type 'ExtensionTypeMap<int, A>' is not exhaustively matched by the switch cases since it doesn't match 'Map<int, A>(isEmpty: false)'.
+    //    ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+    //            ^
+    // [cfe] The type 'ExtensionTypeMap<int, A>' is not exhaustively matched by the switch cases since it doesn't match 'Map<int, A>(isEmpty: false)'.
     Map(isEmpty: true) => 0,
     {0: B b, 1: _} => 4,
     {0: C c, 1: _} => 5,
@@ -47,52 +47,54 @@ nonExhaustiveMapExtensionType1(ExtensionTypeMap<int, A> map) {
 }
 
 nonExhaustiveMapExtensionType2(ExtensionTypeMap<int, A> map) {
- var c = switch (map) {
- //      ^^^^^^
- // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
- //              ^
- // [cfe] The type 'ExtensionTypeMap<int, A>' is not exhaustively matched by the switch cases since it doesn't match 'Map<int, A>()'.
+  var c = switch (map) {
+    //    ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+    //            ^
+    // [cfe] The type 'ExtensionTypeMap<int, A>' is not exhaustively matched by the switch cases since it doesn't match 'Map<int, A>()'.
     Map<int, B>() => 0,
   };
 }
 
 nonExhaustiveMapMethod(ExtensionTypeMap<int, A> map) {
   return switch (map) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
-  //             ^
-  // [cfe] The type 'ExtensionTypeMap<int, A>' is not exhaustively matched by the switch cases since it doesn't match 'Map<int, A>(method: A Function(int) _)'.
+    //   ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+    //           ^
+    // [cfe] The type 'ExtensionTypeMap<int, A>' is not exhaustively matched by the switch cases since it doesn't match 'Map<int, A>(method: A Function(int) _)'.
     ExtensionTypeMap(:B Function(int) method) => 0,
   };
 }
 
 nonExhaustiveMapGetter(ExtensionTypeMap<int, A> map) {
   return switch (map) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
-  //             ^
-  // [cfe] The type 'ExtensionTypeMap<int, A>' is not exhaustively matched by the switch cases since it doesn't match 'Map<int, A>(getter: C())'.
+    //   ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+    //           ^
+    // [cfe] The type 'ExtensionTypeMap<int, A>' is not exhaustively matched by the switch cases since it doesn't match 'Map<int, A>(getter: C())'.
     ExtensionTypeMap(:B getter) => 0,
   };
 }
 
 nonExhaustiveMapGenericMethod(ExtensionTypeMap<int, A> map) {
   return switch (map) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
-  //             ^
-  // [cfe] The type 'ExtensionTypeMap<int, A>' is not exhaustively matched by the switch cases since it doesn't match 'Map<int, A>(genericMethod: void Function<T>(int, A, void Function<T>(T)) _)'.
+    //   ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+    //           ^
+    // [cfe] The type 'ExtensionTypeMap<int, A>' is not exhaustively matched by the switch cases since it doesn't match 'Map<int, A>(genericMethod: void Function<T>(int, A, void Function<T>(T)) _)'.
     ExtensionTypeMap(
-        :void Function<X>(int, B, void Function(X)) genericMethod) => 0,
+      :void Function<X>(int, B, void Function(X)) genericMethod,
+    ) =>
+      0,
   };
 }
 
 nonExhaustiveMapField(ExtensionTypeMap<int, A> map) {
   return switch (map) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
-  //             ^
-  // [cfe] The type 'ExtensionTypeMap<int, A>' is not exhaustively matched by the switch cases since it doesn't match 'Map<int, A>(it: Map<int, A>())'.
+    //   ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+    //           ^
+    // [cfe] The type 'ExtensionTypeMap<int, A>' is not exhaustively matched by the switch cases since it doesn't match 'Map<int, A>(it: Map<int, A>())'.
     ExtensionTypeMap(:Map<int, B> it) => 0,
   };
 }

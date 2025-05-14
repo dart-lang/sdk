@@ -301,9 +301,6 @@ class BatchCompiler {
     incrementalCompilerOptions.rawOptionsForTesting.onDiagnostic =
         _onDiagnostic;
 
-    // This is a weird one, but apparently this is how it's done.
-    incrementalCompilerOptions.reportNullSafetyCompilationModeInfo();
-
     assert(options.omitPlatform,
         "Platform must be omitted for the batch compiler.");
     assert(!options.hasAdditionalDills,
@@ -397,8 +394,7 @@ Future<Uri> _emitComponent(ProcessedOptions options, Component component,
     Component userCode = new Component(
         nameRoot: component.root,
         uriToSource: new Map<Uri, Source>.from(component.uriToSource));
-    userCode.setMainMethodAndMode(
-        component.mainMethodName, true, component.mode);
+    userCode.setMainMethodAndMode(component.mainMethodName, true);
     for (Library library in component.libraries) {
       if (!library.importUri.isScheme("dart")) {
         userCode.libraries.add(library);

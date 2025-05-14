@@ -19,9 +19,8 @@ class CreateSetter extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_setterName];
@@ -83,7 +82,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
       return;
     }
     // prepare target declaration
-    var targetDeclarationResult = await sessionHelper.getElementDeclaration(
+    var targetDeclarationResult = await sessionHelper.getFragmentDeclaration(
       targetFragment,
     );
     if (targetDeclarationResult == null) {

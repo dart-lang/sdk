@@ -15,23 +15,114 @@ typedef Args4(Never a, Never b, Never c, Never d);
 typedef Args5(Never a, Never b, Never c, Never d, Never e);
 typedef Args6(Never a, Never b, Never c, Never d, Never e, Never f);
 typedef Args7(Never a, Never b, Never c, Never d, Never e, Never f, Never g);
-typedef Args8(Never a, Never b, Never c, Never d, Never e, Never f, Never g,
-    Never h);
+typedef Args8(
+  Never a,
+  Never b,
+  Never c,
+  Never d,
+  Never e,
+  Never f,
+  Never g,
+  Never h,
+);
 typedef Args9(
-    Never a, Never b, Never c, Never d, Never e, Never f, Never g, Never h,
-    Never i);
-typedef Args10(Never a, Never b, Never c, Never d, Never e, Never f, Never g,
-    Never h, Never i, Never j);
-typedef Args11(Never a, Never b, Never c, Never d, Never e, Never f, Never g,
-    Never h, Never i, Never j, Never k);
-typedef Args12(Never a, Never b, Never c, Never d, Never e, Never f, Never g,
-    Never h, Never i, Never j, Never k, Never l);
-typedef Args13(Never a, Never b, Never c, Never d, Never e, Never f, Never g,
-    Never h, Never i, Never j, Never k, Never l, Never m);
-typedef Args14(Never a, Never b, Never c, Never d, Never e, Never f, Never g,
-    Never h, Never i, Never j, Never k, Never l, Never m, Never n);
-typedef Args15(Never a, Never b, Never c, Never d, Never e, Never f, Never g,
-    Never h, Never i, Never j, Never k, Never l, Never m, Never n, Never o);
+  Never a,
+  Never b,
+  Never c,
+  Never d,
+  Never e,
+  Never f,
+  Never g,
+  Never h,
+  Never i,
+);
+typedef Args10(
+  Never a,
+  Never b,
+  Never c,
+  Never d,
+  Never e,
+  Never f,
+  Never g,
+  Never h,
+  Never i,
+  Never j,
+);
+typedef Args11(
+  Never a,
+  Never b,
+  Never c,
+  Never d,
+  Never e,
+  Never f,
+  Never g,
+  Never h,
+  Never i,
+  Never j,
+  Never k,
+);
+typedef Args12(
+  Never a,
+  Never b,
+  Never c,
+  Never d,
+  Never e,
+  Never f,
+  Never g,
+  Never h,
+  Never i,
+  Never j,
+  Never k,
+  Never l,
+);
+typedef Args13(
+  Never a,
+  Never b,
+  Never c,
+  Never d,
+  Never e,
+  Never f,
+  Never g,
+  Never h,
+  Never i,
+  Never j,
+  Never k,
+  Never l,
+  Never m,
+);
+typedef Args14(
+  Never a,
+  Never b,
+  Never c,
+  Never d,
+  Never e,
+  Never f,
+  Never g,
+  Never h,
+  Never i,
+  Never j,
+  Never k,
+  Never l,
+  Never m,
+  Never n,
+);
+typedef Args15(
+  Never a,
+  Never b,
+  Never c,
+  Never d,
+  Never e,
+  Never f,
+  Never g,
+  Never h,
+  Never i,
+  Never j,
+  Never k,
+  Never l,
+  Never m,
+  Never n,
+  Never o,
+);
 
 void args0() {}
 void args1(int a) {}
@@ -44,17 +135,92 @@ void args7(int a, int b, int c, int d, int e, int f, int g) {}
 void args8(int a, int b, int c, int d, int e, int f, int g, int h) {}
 void args9(int a, int b, int c, int d, int e, int f, int g, int h, int i) {}
 void args10(
-    int a, int b, int c, int d, int e, int f, int g, int h, int i, int j) {}
-void args11(int a, int b, int c, int d, int e, int f, int g, int h, int i,
-    int j, int k) {}
-void args12(int a, int b, int c, int d, int e, int f, int g, int h, int i,
-    int j, int k, int l) {}
-void args13(int a, int b, int c, int d, int e, int f, int g, int h, int i,
-    int j, int k, int l, int m) {}
-void args14(int a, int b, int c, int d, int e, int f, int g, int h, int i,
-    int j, int k, int l, int m, int n) {}
-void args15(int a, int b, int c, int d, int e, int f, int g, int h, int i,
-    int j, int k, int l, int m, int n, int o) {}
+  int a,
+  int b,
+  int c,
+  int d,
+  int e,
+  int f,
+  int g,
+  int h,
+  int i,
+  int j,
+) {}
+void args11(
+  int a,
+  int b,
+  int c,
+  int d,
+  int e,
+  int f,
+  int g,
+  int h,
+  int i,
+  int j,
+  int k,
+) {}
+void args12(
+  int a,
+  int b,
+  int c,
+  int d,
+  int e,
+  int f,
+  int g,
+  int h,
+  int i,
+  int j,
+  int k,
+  int l,
+) {}
+void args13(
+  int a,
+  int b,
+  int c,
+  int d,
+  int e,
+  int f,
+  int g,
+  int h,
+  int i,
+  int j,
+  int k,
+  int l,
+  int m,
+) {}
+void args14(
+  int a,
+  int b,
+  int c,
+  int d,
+  int e,
+  int f,
+  int g,
+  int h,
+  int i,
+  int j,
+  int k,
+  int l,
+  int m,
+  int n,
+) {}
+void args15(
+  int a,
+  int b,
+  int c,
+  int d,
+  int e,
+  int f,
+  int g,
+  int h,
+  int i,
+  int j,
+  int k,
+  int l,
+  int m,
+  int n,
+  int o,
+) {}
 
 main() {
   Expect.isTrue(args0 is Args0);

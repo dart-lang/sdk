@@ -43,10 +43,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   SourceLibraryBuilder? _libraryBuilder;
 
-  /// The object used as the root for creating augmentation libraries.
-  // TODO(johnniwinther): Remove this once parts support augmentations.
-  final SourceCompilationUnit? _augmentationRoot;
-
   // TODO(johnniwinther): Can we avoid this?
   final bool? _referenceIsPartOwner;
 
@@ -54,6 +50,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   final LibraryBuilder? _nameOrigin;
 
   final LookupScope? _parentScope;
+
+  SourceCompilationUnit? _parentCompilationUnit;
 
   /// Map used to find objects created in the [OutlineBuilder] from within
   /// the [DietListener].
@@ -97,6 +95,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   final NameSpace _importNameSpace;
 
+  late final LookupScope _importScope;
+
+  final NameSpace _prefixNameSpace;
+
+  late final LookupScope _prefixScope;
+
   LibraryFeatures? _libraryFeatures;
 
   @override
@@ -111,12 +115,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   final bool isUnsupported;
 
-  late final LookupScope _scope;
+  late final LookupScope _compilationUnitScope;
 
   @override
   final bool mayImplementRestrictedTypes;
-
-  final Map<String, Builder>? _omittedTypeDeclarationBuilders;
 
   factory SourceCompilationUnitImpl(
       {required Uri importUri,
@@ -139,6 +141,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     LibraryNameSpaceBuilder libraryNameSpaceBuilder =
         new LibraryNameSpaceBuilder();
     NameSpace importNameSpace = new NameSpaceImpl();
+    NameSpace prefixNameSpace = new NameSpaceImpl();
     return new SourceCompilationUnitImpl._(libraryNameSpaceBuilder,
         importUri: importUri,
         fileUri: fileUri,
@@ -146,9 +149,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         packageLanguageVersion: packageLanguageVersion,
         originImportUri: originImportUri,
         indexedLibrary: indexedLibrary,
-        omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders,
         parentScope: parentScope,
         importNameSpace: importNameSpace,
+        prefixNameSpace: prefixNameSpace,
         forAugmentationLibrary: forAugmentationLibrary,
         augmentationRoot: augmentationRoot,
         nameOrigin: nameOrigin,
@@ -167,9 +170,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required this.packageLanguageVersion,
       required this.originImportUri,
       required this.indexedLibrary,
-      Map<String, Builder>? omittedTypeDeclarationBuilders,
       LookupScope? parentScope,
       required NameSpace importNameSpace,
+      required NameSpace prefixNameSpace,
       required this.forAugmentationLibrary,
       required SourceCompilationUnit? augmentationRoot,
       required LibraryBuilder? nameOrigin,
@@ -183,14 +186,19 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         _packageUri = packageUri,
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _importNameSpace = importNameSpace,
-        _augmentationRoot = augmentationRoot,
+        _prefixNameSpace = prefixNameSpace,
         _nameOrigin = nameOrigin,
         _parentScope = parentScope,
         _referenceIsPartOwner = referenceIsPartOwner,
-        _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders,
         _problemReporting = new LibraryProblemReporting(loader, fileUri) {
-    _scope = new SourceLibraryBuilderScope(
-        this, ScopeKind.typeParameters, 'library');
+    LookupScope scope =
+        _importScope = new CompilationUnitImportScope(this, _importNameSpace);
+    _prefixScope = new CompilationUnitPrefixScope(
+        prefixNameSpace, ScopeKind.prefix, 'prefix',
+        parent: scope);
+    _compilationUnitScope = new CompilationUnitScope(
+        this, ScopeKind.compilationUnit, 'compilation-unit',
+        parent: _prefixScope);
 
     // TODO(johnniwinther): Create these in [createOutlineBuilder].
     _builderFactoryResult = _builderFactory = new BuilderFactoryImpl(
@@ -198,9 +206,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         augmentationRoot: augmentationRoot ?? this,
         libraryNameSpaceBuilder: libraryNameSpaceBuilder,
         problemReporting: _problemReporting,
-        scope: _scope,
-        indexedLibrary: indexedLibrary,
-        omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders);
+        scope: _compilationUnitScope,
+        indexedLibrary: indexedLibrary);
   }
 
   SourceCompilationUnitState get state => _state;
@@ -250,6 +257,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   bool get isDartLibrary =>
       originImportUri.isScheme("dart") || fileUri.isScheme("org-dartlang-sdk");
 
+  @override
+  bool get isPatch => forPatchLibrary;
+
   /// Returns the map of objects created in the [OutlineBuilder].
   ///
   /// This should only be called once.
@@ -267,6 +277,16 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         "Library builder for $this has not been computed yet.");
     return _libraryBuilder!;
   }
+
+  List<CompilationUnit>? _augmentations;
+
+  @override
+  void registerAugmentation(CompilationUnit augmentation) {
+    (_augmentations ??= []).add(augmentation);
+  }
+
+  @override
+  SourceCompilationUnit? get parentCompilationUnit => _parentCompilationUnit;
 
   @override
   void addExporter(CompilationUnit exporter,
@@ -462,7 +482,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             packageLanguageVersion: packageLanguageVersion,
             loader: loader,
             nameOrigin: _nameOrigin,
-            origin: _augmentationRoot?.libraryBuilder,
             target: library,
             indexedLibrary: indexedLibrary,
             referenceIsPartOwner: _referenceIsPartOwner,
@@ -471,8 +490,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             isPatch: forPatchLibrary,
             parentScope: _parentScope,
             importNameSpace: _importNameSpace,
-            libraryNameSpaceBuilder: _libraryNameSpaceBuilder,
-            omittedTypes: _omittedTypeDeclarationBuilders);
+            libraryNameSpaceBuilder: _libraryNameSpaceBuilder);
     _problemReporting.registerLibrary(libraryBuilder.library);
     if (isPart) {
       // Coverage-ignore-block(suite): Not run.
@@ -525,7 +543,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           import.prefixFragment?.builder.dependency != null) {
         libraryDependency = import.prefixFragment!.builder.dependency!;
       } else {
-        LibraryBuilder imported = import.importedLibraryBuilder!.origin;
+        LibraryBuilder imported = import.importedLibraryBuilder!;
         Library targetLibrary = imported.library;
         libraryDependency = new LibraryDependency.import(targetLibrary,
             name: import.prefix, combinators: toCombinators(import.combinators))
@@ -551,7 +569,16 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   Uri? get partOfUri => _builderFactoryResult.partOfUri;
 
   @override
-  LookupScope get scope => _scope;
+  LookupScope get compilationUnitScope => _compilationUnitScope;
+
+  // Coverage-ignore(suite): Not run.
+  LookupScope get importScope => _importScope;
+
+  @override
+  LookupScope get prefixScope => _prefixScope;
+
+  @override
+  NameSpace get prefixNameSpace => _prefixNameSpace;
 
   @override
   void takeMixinApplications(
@@ -560,17 +587,25 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  void includeParts(SourceLibraryBuilder libraryBuilder,
+  void includeParts(
       List<SourceCompilationUnit> includedParts, Set<Uri> usedParts) {
+    _includeParts(
+        libraryBuilder: libraryBuilder,
+        libraryNameSpaceBuilder: _libraryNameSpaceBuilder,
+        includedParts: includedParts,
+        usedParts: usedParts);
+  }
+
+  void _includeParts(
+      {required SourceLibraryBuilder libraryBuilder,
+      required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+      required List<SourceCompilationUnit> includedParts,
+      required Set<Uri> usedParts}) {
     Set<Uri> seenParts = new Set<Uri>();
-    int index = 0;
-    while (index < _builderFactoryResult.parts.length) {
-      Part part = _builderFactoryResult.parts[index];
-      bool keepPart = true;
+    for (Part part in _builderFactoryResult.parts) {
       // TODO(johnniwinther): Use [part.offset] in messages.
       if (part.compilationUnit == this) {
         addProblem(messagePartOfSelf, -1, noLength, fileUri);
-        keepPart = false;
       } else if (seenParts.add(part.compilationUnit.fileUri)) {
         if (part.compilationUnit.partOfLibrary != null) {
           addProblem(messagePartOfTwoLibraries, -1, noLength,
@@ -581,11 +616,17 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                 messagePartOfTwoLibrariesContext.withLocation(
                     fileUri, -1, noLength)
               ]);
-          keepPart = false;
         } else {
           usedParts.add(part.compilationUnit.importUri);
-          keepPart = _includePart(libraryBuilder, this, includedParts,
-              part.compilationUnit, usedParts, part.offset);
+          _includePartIfValid(
+              libraryBuilder: libraryBuilder,
+              libraryNameSpaceBuilder: libraryNameSpaceBuilder,
+              parentCompilationUnit: this,
+              includedParts: includedParts,
+              part: part.compilationUnit,
+              usedParts: usedParts,
+              partOffset: part.fileOffset,
+              partUri: fileUri);
         }
       } else {
         addProblem(
@@ -593,66 +634,69 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             -1,
             noLength,
             fileUri);
-        keepPart = false;
       }
-      if (keepPart) {
-        index++;
-      } else {
-        // TODO(johnniwinther): Stop removing parts.
-        _builderFactoryResult.parts.removeAt(index);
+    }
+    if (_augmentations != null) {
+      for (CompilationUnit augmentation in _augmentations!) {
+        switch (augmentation) {
+          case SourceCompilationUnit():
+            _includePart(libraryBuilder, libraryNameSpaceBuilder, this,
+                includedParts, augmentation, usedParts,
+                partOffset: -1,
+                partUri: augmentation.fileUri,
+                allowPartInParts: true);
+          // Coverage-ignore(suite): Not run.
+          case DillCompilationUnit():
+            // TODO(johnniwinther): Report an error here.
+            throw new UnsupportedError("Unexpected augmentation $augmentation");
+        }
       }
     }
   }
 
-  bool _includePart(
-      SourceLibraryBuilder libraryBuilder,
-      SourceCompilationUnit parentCompilationUnit,
-      List<SourceCompilationUnit> includedParts,
-      CompilationUnit part,
-      Set<Uri> usedParts,
-      int partOffset) {
+  void _includePartIfValid(
+      {required SourceLibraryBuilder libraryBuilder,
+      required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+      required SourceCompilationUnit parentCompilationUnit,
+      required List<SourceCompilationUnit> includedParts,
+      required CompilationUnit part,
+      required Set<Uri> usedParts,
+      required Uri partUri,
+      required int partOffset}) {
     switch (part) {
       case SourceCompilationUnit():
         if (part.partOfUri != null) {
           if (isNotMalformedUriScheme(part.partOfUri!) &&
               part.partOfUri != parentCompilationUnit.importUri) {
-            // This is an error, but the part is not removed from the list of
-            // parts, so that metadata annotations can be associated with it.
             parentCompilationUnit.addProblem(
                 templatePartOfUriMismatch.withArguments(part.fileUri,
                     parentCompilationUnit.importUri, part.partOfUri!),
                 partOffset,
                 noLength,
                 parentCompilationUnit.fileUri);
-            return false;
+            return;
           }
         } else if (part.partOfName != null) {
           if (parentCompilationUnit.name != null) {
             if (part.partOfName != parentCompilationUnit.name) {
-              // This is an error, but the part is not removed from the list of
-              // parts, so that metadata annotations can be associated with it.
               parentCompilationUnit.addProblem(
                   templatePartOfLibraryNameMismatch.withArguments(part.fileUri,
                       parentCompilationUnit.name!, part.partOfName!),
                   partOffset,
                   noLength,
                   parentCompilationUnit.fileUri);
-              return false;
+              return;
             }
           } else {
-            // This is an error, but the part is not removed from the list of
-            // parts, so that metadata annotations can be associated with it.
             parentCompilationUnit.addProblem(
                 templatePartOfUseUri.withArguments(part.fileUri,
                     parentCompilationUnit.fileUri, part.partOfName!),
                 partOffset,
                 noLength,
                 parentCompilationUnit.fileUri);
-            return false;
+            return;
           }
         } else {
-          // This is an error, but the part is not removed from the list of
-          // parts, so that metadata annotations can be associated with it.
           assert(!part.isPart);
           if (isNotMalformedUriScheme(part.fileUri)) {
             parentCompilationUnit.addProblem(
@@ -661,40 +705,14 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                 noLength,
                 parentCompilationUnit.fileUri);
           }
-          return false;
+          return;
         }
-
-        // Language versions have to match. Except if (at least) one of them is
-        // invalid in which case we've already gotten an error about this.
-        if (parentCompilationUnit.languageVersion != part.languageVersion &&
-            // Coverage-ignore(suite): Not run.
-            parentCompilationUnit.languageVersion.valid &&
-            // Coverage-ignore(suite): Not run.
-            part.languageVersion.valid) {
-          // Coverage-ignore-block(suite): Not run.
-          // This is an error, but the part is not removed from the list of
-          // parts, so that metadata annotations can be associated with it.
-          List<LocatedMessage> context = <LocatedMessage>[];
-          if (parentCompilationUnit.languageVersion.isExplicit) {
-            context.add(messageLanguageVersionLibraryContext.withLocation(
-                parentCompilationUnit.languageVersion.fileUri!,
-                parentCompilationUnit.languageVersion.charOffset,
-                parentCompilationUnit.languageVersion.charCount));
-          }
-          if (part.languageVersion.isExplicit) {
-            context.add(messageLanguageVersionPartContext.withLocation(
-                part.languageVersion.fileUri!,
-                part.languageVersion.charOffset,
-                part.languageVersion.charCount));
-          }
-          parentCompilationUnit.addProblem(messageLanguageVersionMismatchInPart,
-              partOffset, noLength, parentCompilationUnit.fileUri,
-              context: context);
-        }
-
-        part.validatePart(libraryBuilder, _libraryNameSpaceBuilder, usedParts);
-        includedParts.add(part);
-        return true;
+        _includePart(libraryBuilder, libraryNameSpaceBuilder,
+            parentCompilationUnit, includedParts, part, usedParts,
+            partOffset: partOffset,
+            partUri: partUri,
+            allowPartInParts:
+                parentCompilationUnit.libraryFeatures.enhancedParts.isEnabled);
       case DillCompilationUnit():
         // Trying to add a dill library builder as a part means that it exists
         // as a stand-alone library in the dill file.
@@ -710,8 +728,68 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
               noLength,
               parentCompilationUnit.fileUri);
         }
-        return false;
     }
+  }
+
+  void _includePart(
+      SourceLibraryBuilder libraryBuilder,
+      LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+      SourceCompilationUnit parentCompilationUnit,
+      List<SourceCompilationUnit> includedParts,
+      SourceCompilationUnit part,
+      Set<Uri> usedParts,
+      {required int partOffset,
+      required Uri partUri,
+      required bool allowPartInParts}) {
+    // Language versions have to match. Except if (at least) one of them is
+    // invalid in which case we've already gotten an error about this.
+    if (parentCompilationUnit.languageVersion != part.languageVersion &&
+        // Coverage-ignore(suite): Not run.
+        parentCompilationUnit.languageVersion.valid &&
+        // Coverage-ignore(suite): Not run.
+        part.languageVersion.valid) {
+      // Coverage-ignore-block(suite): Not run.
+      // This is an error, but the part is not removed from the list of
+      // parts, so that metadata annotations can be associated with it.
+      List<LocatedMessage> context = <LocatedMessage>[];
+      if (parentCompilationUnit.languageVersion.isExplicit) {
+        context.add(messageLanguageVersionLibraryContext.withLocation(
+            parentCompilationUnit.languageVersion.fileUri!,
+            parentCompilationUnit.languageVersion.charOffset,
+            parentCompilationUnit.languageVersion.charCount));
+      }
+
+      if (part.isPatch) {
+        if (part.languageVersion.isExplicit) {
+          // Patches are implicitly include, so if we have an explicit language
+          // version, then point to this instead of the top of the file.
+          partOffset = part.languageVersion.charOffset;
+          partUri = part.languageVersion.fileUri!;
+          context.add(messageLanguageVersionPatchContext.withLocation(
+              part.languageVersion.fileUri!,
+              part.languageVersion.charOffset,
+              part.languageVersion.charCount));
+        }
+        parentCompilationUnit.addProblem(messageLanguageVersionMismatchInPatch,
+            partOffset, noLength, partUri,
+            context: context);
+      } else {
+        if (part.languageVersion.isExplicit) {
+          context.add(messageLanguageVersionPartContext.withLocation(
+              part.languageVersion.fileUri!,
+              part.languageVersion.charOffset,
+              part.languageVersion.charCount));
+        }
+        parentCompilationUnit.addProblem(
+            messageLanguageVersionMismatchInPart, partOffset, noLength, partUri,
+            context: context);
+      }
+    }
+
+    includedParts.add(part);
+    part.becomePart(libraryBuilder, libraryNameSpaceBuilder,
+        parentCompilationUnit, includedParts, usedParts,
+        allowPartInParts: allowPartInParts);
   }
 
   void _becomePart(SourceLibraryBuilder libraryBuilder,
@@ -759,24 +837,52 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  void validatePart(SourceLibraryBuilder libraryBuilder,
-      LibraryNameSpaceBuilder libraryNameSpaceBuilder, Set<Uri>? usedParts) {
+  void becomePart(
+      SourceLibraryBuilder libraryBuilder,
+      LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+      SourceCompilationUnit parentCompilationUnit,
+      List<SourceCompilationUnit> includedParts,
+      Set<Uri> usedParts,
+      {required bool allowPartInParts}) {
+    assert(
+        _libraryBuilder == null,
+        "Compilation unit $this is already part of library $_libraryBuilder. "
+        "Trying to include it in $libraryBuilder.");
     _libraryBuilder = libraryBuilder;
     _partOfLibrary = libraryBuilder;
-    if (_builderFactoryResult.parts.isNotEmpty) {
-      List<LocatedMessage> context = <LocatedMessage>[
-        messagePartInPartLibraryContext.withLocation(
-            libraryBuilder.fileUri, -1, 1),
-      ];
-      for (Part part in _builderFactoryResult.parts) {
-        addProblem(messagePartInPart, part.offset, noLength, fileUri,
-            context: context);
-        // Mark this part as used so we don't report it as orphaned.
-        usedParts!.add(part.compilationUnit.importUri);
+    _parentCompilationUnit = parentCompilationUnit;
+    if (!allowPartInParts) {
+      if (_builderFactoryResult.parts.isNotEmpty) {
+        List<LocatedMessage> context = <LocatedMessage>[
+          messagePartInPartLibraryContext.withLocation(
+              libraryBuilder.fileUri, -1, 1),
+        ];
+        for (Part part in _builderFactoryResult.parts) {
+          addProblem(messagePartInPart, part.fileOffset, noLength, fileUri,
+              context: context);
+          // Mark this part as used so we don't report it as orphaned.
+          usedParts.add(part.compilationUnit.importUri);
+        }
       }
+      _clearPartsAndReportExporters();
+      _becomePart(libraryBuilder, libraryNameSpaceBuilder);
+    } else {
+      _becomePart(libraryBuilder, libraryNameSpaceBuilder);
+      _includeParts(
+          libraryBuilder: libraryBuilder,
+          libraryNameSpaceBuilder: libraryNameSpaceBuilder,
+          includedParts: includedParts,
+          usedParts: usedParts);
     }
-    _clearPartsAndReportExporters();
-    _becomePart(libraryBuilder, libraryNameSpaceBuilder);
+  }
+
+  @override
+  void buildOutlineExpressions(
+      Annotatable annotatable, BodyBuilderContext bodyBuilderContext,
+      {required bool createFileUriExpression}) {
+    MetadataBuilder.buildAnnotations(annotatable, metadata, bodyBuilderContext,
+        libraryBuilder, fileUri, compilationUnitScope,
+        createFileUriExpression: createFileUriExpression);
   }
 
   @override
@@ -833,10 +939,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       }
       import.finalizeImports(this);
     }
-    if (!hasCoreImport) {
+    if (parentCompilationUnit == null && !hasCoreImport) {
+      // 'dart:core' should only be implicitly imported into the root
+      // compilation unit. Parts without imports will have access to 'dart:core'
+      // from the parent compilation unit.
+
+      // TODO(johnniwinther): Can we create the core import as a parent scope
+      //  instead of copying it everywhere?
       NameIterator<Builder> iterator = loader.coreLibrary.exportNameSpace
-          .filteredNameIterator(
-              includeDuplicates: false, includeAugmentations: false);
+          .filteredNameIterator(includeDuplicates: false);
       while (iterator.moveNext()) {
         addImportedBuilderToScope(
             name: iterator.name, builder: iterator.current, charOffset: -1);
@@ -872,17 +983,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   @override
   void buildOutlineNode(Library library) {
-    library.setLanguageVersion(_languageVersion.version);
-    switch (loader.nnbdMode) {
-      case NnbdMode.Weak:
-        library.nonNullableByDefaultCompiledMode =
-            NonNullableByDefaultCompiledMode.Weak;
-        break;
-      case NnbdMode.Strong:
-        library.nonNullableByDefaultCompiledMode =
-            NonNullableByDefaultCompiledMode.Strong;
-        break;
-    }
     for (LibraryPart libraryPart in _builderFactoryResult.libraryParts) {
       library.addPart(libraryPart);
     }
@@ -1028,8 +1128,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   bool addPrefixFragment(
       String name, PrefixFragment prefixFragment, int charOffset) {
-    Builder? existing =
-        libraryBuilder.prefixNameSpace.lookupLocalMember(name, setter: false);
+    Builder? existing = prefixNameSpace.lookupLocalMember(name, setter: false);
     existing ??=
         libraryBuilder.libraryNameSpace.lookupLocalMember(name, setter: false);
     if (existing is PrefixBuilder) {
@@ -1071,10 +1170,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                     existing.fileUri!, existing.fileOffset, fullName.length)
           ]);
     }
-    // TODO(johnniwinther): For enhanced parts, this should be the prefix name
-    //  space for the compilation unit.
-    libraryBuilder.prefixNameSpace.addLocalMember(
-        name, prefixFragment.createPrefixBuilder(),
+    prefixNameSpace.addLocalMember(name, prefixFragment.createPrefixBuilder(),
         setter: false);
     return true;
   }

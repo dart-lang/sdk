@@ -5,7 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/constants.dart' // ignore: implementation_imports
+    show ExpressionExtension;
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -14,17 +15,19 @@ const _desc = r'Avoid redundant argument values.';
 
 class AvoidRedundantArgumentValues extends LintRule {
   AvoidRedundantArgumentValues()
-      : super(
-          name: LintNames.avoid_redundant_argument_values,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_redundant_argument_values,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_redundant_argument_values;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addEnumConstantArguments(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
@@ -133,7 +136,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       FormalParameterElement? param;
       if (arg is NamedExpression) {
         param = parameters.firstWhereOrNull(
-            (p) => p.isNamed && p.name3 == arg.name.label.name);
+          (p) => p.isNamed && p.name3 == arg.name.label.name,
+        );
       } else {
         // Count which positional argument we're at.
         var positionalCount =

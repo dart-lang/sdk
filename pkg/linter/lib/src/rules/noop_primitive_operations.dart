@@ -12,10 +12,7 @@ const _desc = r'Noop primitive operations.';
 
 class NoopPrimitiveOperations extends LintRule {
   NoopPrimitiveOperations()
-      : super(
-          name: LintNames.noop_primitive_operations,
-          description: _desc,
-        );
+    : super(name: LintNames.noop_primitive_operations, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.noop_primitive_operations;
@@ -77,8 +74,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // int invariant methods
     if (type.isDartCoreInt &&
-        ['toInt', 'round', 'ceil', 'floor', 'truncate']
-            .contains(node.methodName.name)) {
+        [
+          'toInt',
+          'round',
+          'ceil',
+          'floor',
+          'truncate',
+        ].contains(node.methodName.name)) {
       rule.reportLint(node.methodName);
       return;
     }

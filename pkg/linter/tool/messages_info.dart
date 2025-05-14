@@ -46,7 +46,8 @@ final Map<String, RuleInfo> messagesRuleInfo = () {
   var lintCodes = messagesYaml['LintCode'] as YamlMap?;
   if (lintCodes == null) {
     throw StateError(
-        "The '_messagesFileName' file does not have a 'LintCode' section.");
+      "The '_messagesFileName' file does not have a 'LintCode' section.",
+    );
   }
 
   {
@@ -54,8 +55,10 @@ final Map<String, RuleInfo> messagesRuleInfo = () {
     var lintCodeKeysSorted = lintCodeKeys.sorted();
     for (var i = 0; i < lintCodeKeys.length; i++) {
       if (lintCodeKeys[i] != lintCodeKeysSorted[i]) {
-        throw StateError("The LintCode entries in '_messagesFileName' "
-            "are not sorted alphabetically, starting at '${lintCodeKeys[i]}'.");
+        throw StateError(
+          "The LintCode entries in '_messagesFileName' "
+          "are not sorted alphabetically, starting at '${lintCodeKeys[i]}'.",
+        );
       }
     }
   }
@@ -83,8 +86,11 @@ class CodeInfo {
   final String problemMessage;
   final String? correctionMessage;
 
-  CodeInfo(this.uniqueName,
-      {required this.problemMessage, this.correctionMessage});
+  CodeInfo(
+    this.uniqueName, {
+    required this.problemMessage,
+    this.correctionMessage,
+  });
 }
 
 class RuleInfo {
@@ -114,16 +120,10 @@ class RuleInfo {
 class _RuleBuilder {
   final String sharedName;
   final List<
-      ({
-        String uniqueName,
-        String? problemMessage,
-        String? correctionMessage
-      })> _codes = [];
-  List<
-      ({
-        String name,
-        Version version,
-      })>? _stateEntries;
+    ({String uniqueName, String? problemMessage, String? correctionMessage})
+  >
+  _codes = [];
+  List<({String name, Version version})>? _stateEntries;
   Set<String>? _categories;
   bool? _hasPublishedDocs;
   String? _documentation;
@@ -145,22 +145,28 @@ class _RuleBuilder {
   }
 
   RuleInfo build() => RuleInfo(
-        name: sharedName,
-        codes: _validateCodes(),
-        states: _validateStates(),
-        categories: _requireSpecified('categories', _categories,
-            ifNotRemovedFallback: const {}),
-        hasPublishedDocs: _hasPublishedDocs ?? false,
-        documentation: _documentation,
-        deprecatedDetails:
-            _requireSpecified('deprecatedDetails', _deprecatedDetails),
-        removed: _wasRemoved,
-      );
+    name: sharedName,
+    codes: _validateCodes(),
+    states: _validateStates(),
+    categories: _requireSpecified(
+      'categories',
+      _categories,
+      ifNotRemovedFallback: const {},
+    ),
+    hasPublishedDocs: _hasPublishedDocs ?? false,
+    documentation: _documentation,
+    deprecatedDetails: _requireSpecified(
+      'deprecatedDetails',
+      _deprecatedDetails,
+    ),
+    removed: _wasRemoved,
+  );
 
   void _addCode(String name, Map<Object?, Object?> data) {
     if (_codes.map((code) => code.uniqueName).any((n) => n == name)) {
       _throwLintError(
-          "Has more than one LintCode with '$name' as its 'uniqueName'.");
+        "Has more than one LintCode with '$name' as its 'uniqueName'.",
+      );
     }
 
     String? problemMessage;
@@ -170,20 +176,23 @@ class _RuleBuilder {
 
     String? correctionMessage;
     if (data.containsKey('correctionMessage')) {
-      correctionMessage =
-          _requireType('correctionMessage', data['correctionMessage']);
+      correctionMessage = _requireType(
+        'correctionMessage',
+        data['correctionMessage'],
+      );
     }
 
     _codes.add((
       uniqueName: name,
       problemMessage: problemMessage,
-      correctionMessage: correctionMessage
+      correctionMessage: correctionMessage,
     ));
   }
 
   Never _alreadySpecified(String propertyName) {
     _throwLintError(
-        "More than one LintCode specified the '$propertyName' property.");
+      "More than one LintCode specified the '$propertyName' property.",
+    );
   }
 
   void _requireNotEmpty(String propertyName, String value) {
@@ -192,8 +201,11 @@ class _RuleBuilder {
     }
   }
 
-  T _requireSpecified<T extends Object>(String propertyName, T? value,
-      {T? ifNotRemovedFallback}) {
+  T _requireSpecified<T extends Object>(
+    String propertyName,
+    T? value, {
+    T? ifNotRemovedFallback,
+  }) {
     if (value == null) {
       if (_wasRemoved && ifNotRemovedFallback != null) {
         return ifNotRemovedFallback;
@@ -213,11 +225,15 @@ class _RuleBuilder {
   }
 
   Iterable<T> _requireTypeForItems<T extends Object?>(
-      String propertyName, Iterable<Object?> items) {
+    String propertyName,
+    Iterable<Object?> items,
+  ) {
     for (var item in items) {
       if (item is! T) {
-        _throwLintError("The items in the '$propertyName' collection must "
-            "each be of type '$T'.");
+        _throwLintError(
+          "The items in the '$propertyName' collection must "
+          "each be of type '$T'.",
+        );
       }
     }
 
@@ -232,8 +248,10 @@ class _RuleBuilder {
     if (_categories != null) _alreadySpecified(propertyName);
 
     var categoryValues = _requireType<Iterable<Object?>>(propertyName, value);
-    var categoryStrings =
-        _requireTypeForItems<String>(propertyName, categoryValues);
+    var categoryStrings = _requireTypeForItems<String>(
+      propertyName,
+      categoryValues,
+    );
 
     var countWithDuplicates = categoryStrings.length;
     var categoriesSet = categoryStrings.toSet();
@@ -292,25 +310,28 @@ class _RuleBuilder {
 
     var stateValue = _requireType<Map<Object?, Object?>>(propertyName, value);
 
-    _stateEntries = stateValue.entries.map((state) {
-      var stateName = state.key;
-      var version = state.value;
-      if (stateName is! String || version is! String) {
-        _throwLintError('Each state key and value must be a string.');
-      }
+    _stateEntries =
+        stateValue.entries.map((state) {
+          var stateName = state.key;
+          var version = state.value;
+          if (stateName is! String || version is! String) {
+            _throwLintError('Each state key and value must be a string.');
+          }
 
-      if (!_stateNames.contains(stateName)) {
-        _throwLintError('$stateName is not a valid state name.');
-      }
+          if (!_stateNames.contains(stateName)) {
+            _throwLintError('$stateName is not a valid state name.');
+          }
 
-      try {
-        var parsedVersion = Version.parse('$version.0');
-        return (name: stateName, version: parsedVersion);
-      } on Exception {
-        _throwLintError('The state versions must be in '
-            "'major.minor' format, but found '$version'.");
-      }
-    }).toList();
+          try {
+            var parsedVersion = Version.parse('$version.0');
+            return (name: stateName, version: parsedVersion);
+          } on Exception {
+            _throwLintError(
+              'The state versions must be in '
+              "'major.minor' format, but found '$version'.",
+            );
+          }
+        }).toList();
   }
 
   Never _throwLintError(String message) {
@@ -329,7 +350,8 @@ class _RuleBuilder {
       var problemMessage = code.problemMessage;
       if (problemMessage == null) {
         _throwLintError(
-            "'LintCode.${code.uniqueName}' is missing a 'problemMessage'.");
+          "'LintCode.${code.uniqueName}' is missing a 'problemMessage'.",
+        );
       }
 
       // TODO(parlough): Eventually require that codes have a correction message.
@@ -338,9 +360,13 @@ class _RuleBuilder {
       //   _throwLintError("'LintCode.${code.uniqueName}' is missing a 'correctionMessage'.");
       // }
 
-      codeInfos.add(CodeInfo(code.uniqueName,
+      codeInfos.add(
+        CodeInfo(
+          code.uniqueName,
           problemMessage: problemMessage,
-          correctionMessage: code.correctionMessage));
+          correctionMessage: code.correctionMessage,
+        ),
+      );
     }
 
     return codeInfos;
@@ -353,14 +379,16 @@ class _RuleBuilder {
     }
 
     var sortedStates = states
-        .map((state) => switch (state.name) {
-              'experimental' => State.experimental(since: state.version),
-              'stable' => State.stable(since: state.version),
-              'internal' => State.internal(since: state.version),
-              'deprecated' => State.deprecated(since: state.version),
-              'removed' => State.removed(since: state.version),
-              _ => _throwLintError('Unexpected state name: ${state.name}.'),
-            })
+        .map(
+          (state) => switch (state.name) {
+            'experimental' => State.experimental(since: state.version),
+            'stable' => State.stable(since: state.version),
+            'internal' => State.internal(since: state.version),
+            'deprecated' => State.deprecated(since: state.version),
+            'removed' => State.removed(since: state.version),
+            _ => _throwLintError('Unexpected state name: ${state.name}.'),
+          },
+        )
         .sortedBy<VersionRange>((state) => state.since ?? Version.none);
 
     return sortedStates;

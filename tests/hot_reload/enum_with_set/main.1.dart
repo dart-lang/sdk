@@ -42,7 +42,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -8,6 +8,8 @@
  // Adapted from:
  // https://github.com/dart-lang/sdk/blob/be2aabd91c67f7f331c49cb74e18fe5e469f04db/runtime/vm/isolate_reload_test.cc#L6537
  
@@ -51,7 +50,7 @@ Future<void> main() async {
  enum Enum1 {
    member1({Enum2.member1, Enum2.member2}),
    member2({Enum2.member2}),
-@@ -20,13 +22,21 @@
+@@ -20,10 +22,17 @@ enum Enum1 {
    final Set<Enum2> set;
  }
  
@@ -72,8 +71,4 @@ Future<void> main() async {
  
  Future<void> main() async {
    retained = Enum1.member4;
-   await hotReload();
-   Expect.equals('d', helper(retained));
- }
-+
 */

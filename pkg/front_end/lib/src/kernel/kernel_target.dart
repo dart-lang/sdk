@@ -40,7 +40,6 @@ import '../base/messages.dart'
         templateFinalFieldNotInitializedByConstructor,
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
-import '../base/nnbd_mode.dart';
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/scope.dart' show AmbiguousBuilder;
 import '../base/ticker.dart' show Ticker;
@@ -53,7 +52,6 @@ import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
-import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_target.dart' show DillTarget;
 import '../source/class_declaration.dart';
@@ -66,12 +64,12 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart'
     show CompilationPhaseForProblemReporting, SourceLoader;
 import '../source/source_method_builder.dart';
+import '../source/source_property_builder.dart';
 import '../type_inference/type_schema.dart';
 import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'cfe_verifier.dart' show verifyComponent, verifyGetStaticType;
 import 'constant_evaluator.dart' as constants
     show
-        EvaluationMode,
         transformLibraries,
         transformProcedure,
         ConstantCoverage,
@@ -80,7 +78,7 @@ import 'constructor_tearoff_lowering.dart';
 import 'dynamic_module_validator.dart' as dynamic_module_validator;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
-import 'macro/macro.dart';
+import 'utils.dart';
 
 class KernelTarget {
   final Ticker ticker;
@@ -101,6 +99,14 @@ class KernelTarget {
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final NamedTypeBuilder dynamicType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("dynamic"), const NullabilityBuilder.inherent(),
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
+
+  final NamedTypeBuilder intType = new NamedTypeBuilderImpl(
+      const PredefinedTypeName("int"), const NullabilityBuilder.omitted(),
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
+
+  final NamedTypeBuilder stringType = new NamedTypeBuilderImpl(
+      const PredefinedTypeName("String"), const NullabilityBuilder.omitted(),
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   final NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
@@ -335,12 +341,13 @@ class KernelTarget {
 
   bool _hasComputedNeededPrecompilations = false;
 
-  Future<NeededPrecompilations?> computeNeededPrecompilations() async {
+  // TODO(johnniwinther): Remove this.
+  Future<void> computeNeededPrecompilations() async {
     assert(!_hasComputedNeededPrecompilations,
         "Needed precompilations have already been computed.");
     _hasComputedNeededPrecompilations = true;
     if (loader.roots.isEmpty) return null;
-    return await withCrashReporting<NeededPrecompilations?>(() async {
+    return await withCrashReporting<void>(() async {
       benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_kernelBuildOutlines);
@@ -368,16 +375,7 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
-      NeededPrecompilations? result =
-          context.options.globalFeatures.macros.isEnabled
-              ? loader.computeMacroDeclarations()
-              : null;
-
-      benchmarker
-          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.unknownComputeNeededPrecompilations);
-      return result;
     }, () => loader.currentUriForCrashReporting);
   }
 
@@ -400,82 +398,9 @@ class KernelTarget {
       Iterable<SourceLibraryBuilder> libraryBuilders) {
     loader.computeLibraryScopes(libraryBuilders);
     loader.resolveTypes(libraryBuilders);
+    loader.computeSupertypes(libraryBuilders);
     loader.computeDefaultTypes(
         libraryBuilders, dynamicType, nullType, bottomType, objectClassBuilder);
-  }
-
-  // Coverage-ignore(suite): Not run.
-  /// Builds [augmentationLibraries] to the state expected after applying phase
-  /// 1 macros.
-  Future<void> _buildForPhase1(MacroApplications macroApplications,
-      Iterable<SourceLibraryBuilder> augmentationLibraries) async {
-    await loader.buildOutlines();
-    if (augmentationLibraries.isNotEmpty) {
-      buildSyntheticLibrariesUntilBuildScopes(augmentationLibraries);
-      // Normally augmentation libraries are applied in
-      // [SourceLoader.resolveParts]. For macro-generated augmentation libraries
-      // we instead apply them directly here.
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.applyAugmentations();
-      }
-      buildSyntheticLibrariesUntilComputeDefaultTypes(augmentationLibraries);
-
-      await loader.computeAdditionalMacroApplications(
-          macroApplications, augmentationLibraries);
-    }
-  }
-
-  // Coverage-ignore(suite): Not run.
-  /// Builds [augmentationLibraries] to the state expected after applying phase
-  /// 2 macros.
-  void _buildForPhase2(List<SourceLibraryBuilder> augmentationLibraries) {
-    benchmarker?.enterPhase(BenchmarkPhases.outline_computeVariances);
-    loader.computeVariances(augmentationLibraries);
-
-    loader.finishTypeParameters(
-        augmentationLibraries, objectClassBuilder, dynamicType);
-    for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-      augmentationLibrary.buildOutlineNodes(loader.coreLibrary);
-    }
-    loader.resolveConstructors(augmentationLibraries);
-  }
-
-  // Coverage-ignore(suite): Not run.
-  Future<void> _applyMacroPhase2(
-      MacroApplications macroApplications,
-      List<SourceClassBuilder> sortedSourceClassBuilders,
-      List<SourceExtensionTypeDeclarationBuilder>
-          sortedSourceExtensionTypeBuilders) async {
-    benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);
-    macroApplications.enterDeclarationsMacroPhase(loader.hierarchyBuilder);
-
-    Future<void> applyDeclarationMacros() async {
-      await macroApplications.applyDeclarationsMacros(
-          sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders,
-          (SourceLibraryBuilder augmentationLibrary) async {
-        List<SourceLibraryBuilder> augmentationLibraries = [
-          augmentationLibrary
-        ];
-        // TODO(johnniwinther): How should we use the benchmarker here?
-        benchmarker?.enterPhase(
-            BenchmarkPhases.outline_buildMacroDeclarationsForPhase1);
-        await _buildForPhase1(macroApplications, augmentationLibraries);
-        benchmarker?.enterPhase(
-            BenchmarkPhases.outline_buildMacroDeclarationsForPhase2);
-        _buildForPhase2(augmentationLibraries);
-
-        await applyDeclarationMacros();
-      });
-    }
-
-    await applyDeclarationMacros();
-  }
-
-  // Coverage-ignore(suite): Not run.
-  /// Builds [augmentationLibraries] to the state expected after applying phase
-  /// 3 macros.
-  void _buildForPhase3(List<SourceLibraryBuilder> augmentationLibraries) {
-    // Currently there nothing to do here. The method is left in for symmetry.
   }
 
   Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
@@ -486,18 +411,7 @@ class KernelTarget {
     return await withCrashReporting<BuildResult>(() async {
       if (!_hasComputedNeededPrecompilations) {
         // Coverage-ignore-block(suite): Not run.
-        NeededPrecompilations? neededPrecompilations =
-            await computeNeededPrecompilations();
-        // To support macros, the needed macro libraries must be compiled be
-        // they are applied. Any supporting pipeline must therefore call
-        // [computeNeededPrecompilations] before calling [buildOutlines] in
-        // order to perform any need compilation in advance.
-        //
-        // If [neededPrecompilations] is non-null here, it means that macro
-        // compilation was needed but not performed.
-        if (neededPrecompilations != null) {
-          throw new UnsupportedError('Macro precompilation is not supported.');
-        }
+        await computeNeededPrecompilations();
       }
 
       benchmarker
@@ -517,9 +431,12 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeSupertypes);
+      loader.computeSupertypes(loader.sourceLibraryBuilders);
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_computeMacroApplications);
-      MacroApplications? macroApplications =
-          await loader.computeMacroApplications();
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -531,17 +448,6 @@ class KernelTarget {
           ?.enterPhase(BenchmarkPhases.outline_computeDefaultTypes);
       loader.computeDefaultTypes(loader.sourceLibraryBuilders, dynamicType,
           nullType, bottomType, objectClassBuilder);
-
-      if (macroApplications != null) {
-        // Coverage-ignore-block(suite): Not run.
-        benchmarker?.enterPhase(BenchmarkPhases.outline_applyTypeMacros);
-        macroApplications.enterTypeMacroPhase();
-        List<SourceLibraryBuilder> augmentationLibraries =
-            await macroApplications.applyTypeMacros();
-        benchmarker
-            ?.enterPhase(BenchmarkPhases.outline_buildMacroTypesForPhase1);
-        await _buildForPhase1(macroApplications, augmentationLibraries);
-      }
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -600,12 +506,6 @@ class KernelTarget {
           enumClass,
           underscoreEnumClass);
 
-      if (macroApplications != null) {
-        // Coverage-ignore-block(suite): Not run.
-        await _applyMacroPhase2(macroApplications, sortedSourceClassBuilders,
-            sortedSourceExtensionTypeBuilders);
-      }
-
       benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_installSyntheticConstructors);
@@ -643,12 +543,21 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_prepareTopLevelInference);
+      loader.prepareTopLevelInference();
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(
               BenchmarkPhases.outline_performRedirectingFactoryInference);
       // TODO(johnniwinther): Add an interface for registering delayed actions.
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners = [];
-      loader.inferRedirectingFactories(
-          loader.hierarchy, delayedDefaultValueCloners);
+      loader.inferRedirectingFactories(delayedDefaultValueCloners);
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeMemberTypes);
+      loader.computeMemberTypes();
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -714,8 +623,7 @@ class KernelTarget {
       // library builders. To avoid it we null it out here.
       sortedSourceClassBuilders = null;
 
-      return new BuildResult(
-          component: component, macroApplications: macroApplications);
+      return new BuildResult(component: component);
     }, () => loader.currentUriForCrashReporting);
   }
 
@@ -728,32 +636,14 @@ class KernelTarget {
   /// If [verify], run the default kernel verification on the resulting
   /// component.
   Future<BuildResult> buildComponent(
-      {required MacroApplications? macroApplications,
-      bool verify = false,
+      {bool verify = false,
       bool allowVerificationErrorForTesting = false}) async {
     if (loader.roots.isEmpty) {
       // Coverage-ignore-block(suite): Not run.
-      return new BuildResult(macroApplications: macroApplications);
+      return new BuildResult();
     }
     return await withCrashReporting<BuildResult>(() async {
       ticker.logMs("Building component");
-
-      if (macroApplications != null) {
-        // Coverage-ignore-block(suite): Not run.
-        benchmarker?.enterPhase(BenchmarkPhases.body_applyDefinitionMacros);
-        macroApplications.enterDefinitionMacroPhase();
-        List<SourceLibraryBuilder> augmentationLibraries =
-            await macroApplications.applyDefinitionMacros();
-        benchmarker
-            ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase1);
-        await _buildForPhase1(macroApplications, augmentationLibraries);
-        benchmarker
-            ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase2);
-        _buildForPhase2(augmentationLibraries);
-        benchmarker
-            ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase3);
-        _buildForPhase3(augmentationLibraries);
-      }
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -813,16 +703,6 @@ class KernelTarget {
           ?.enterPhase(BenchmarkPhases.body_runBuildTransformations);
       runBuildTransformations();
 
-      if (loader.macroClass != null) {
-        // Coverage-ignore-block(suite): Not run.
-        checkMacroApplications(loader.hierarchy, loader.macroClass!,
-            loader.sourceLibraryBuilders, macroApplications);
-      }
-      if (macroApplications != null) {
-        // Coverage-ignore-block(suite): Not run.
-        macroApplications.buildMergedAugmentationLibraries(component!);
-      }
-
       if (verify) {
         benchmarker
             // Coverage-ignore(suite): Not run.
@@ -852,8 +732,7 @@ class KernelTarget {
           // Coverage-ignore(suite): Not run.
           ?.onBuildComponentComplete(component!);
 
-      return new BuildResult(
-          component: component, macroApplications: macroApplications);
+      return new BuildResult(component: component);
     }, () => loader.currentUriForCrashReporting);
   }
 
@@ -881,23 +760,6 @@ class KernelTarget {
     Component component = backendTarget.configureComponent(new Component(
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));
 
-    NonNullableByDefaultCompiledMode? compiledMode = null;
-    if (globalFeatures.nonNullable.isEnabled) {
-      switch (loader.nnbdMode) {
-        case NnbdMode.Weak:
-          compiledMode = NonNullableByDefaultCompiledMode.Weak;
-          break;
-        case NnbdMode.Strong:
-          compiledMode = NonNullableByDefaultCompiledMode.Strong;
-          break;
-      }
-    } else {
-      compiledMode = NonNullableByDefaultCompiledMode.Weak;
-    }
-    if (loader.hasInvalidNnbdModeLibrary) {
-      compiledMode = NonNullableByDefaultCompiledMode.Invalid;
-    }
-
     Reference? mainReference;
 
     LibraryBuilder? firstRoot = loader.rootLibrary;
@@ -917,80 +779,10 @@ class KernelTarget {
         mainReference = declaration.invokeTarget.reference;
       }
     }
-    component.setMainMethodAndMode(mainReference, true, compiledMode);
-
-    assert(_getLibraryNnbdModeError(component) == null,
-        "Got error: ${_getLibraryNnbdModeError(component)}");
+    component.setMainMethodAndMode(mainReference, true);
 
     ticker.logMs("Linked component");
     return component;
-  }
-
-  String? _getLibraryNnbdModeError(Component component) {
-    if (loader.hasInvalidNnbdModeLibrary) {
-      // At least 1 library should be invalid or there should be a mix of strong
-      // and weak. For libraries we've just compiled it will be marked as
-      // invalid, but for libraries loaded from dill they have their original
-      // value (i.e. either strong or weak).
-      bool foundInvalid = false;
-      bool foundStrong = false;
-      bool foundWeak = false;
-      for (Library library in component.libraries) {
-        if (library.nonNullableByDefaultCompiledMode ==
-            NonNullableByDefaultCompiledMode.Invalid) {
-          foundInvalid = true;
-          break;
-        } else if (!foundWeak &&
-            library.nonNullableByDefaultCompiledMode ==
-                NonNullableByDefaultCompiledMode.Weak) {
-          foundWeak = true;
-          if (foundStrong) break;
-        } else if (!foundStrong &&
-            library.nonNullableByDefaultCompiledMode ==
-                NonNullableByDefaultCompiledMode.Strong) {
-          foundStrong = true;
-          if (foundWeak) break;
-        }
-      }
-      if (!foundInvalid && !(foundStrong && foundWeak)) {
-        return "hasInvalidNnbdModeLibrary is true, but no library was invalid "
-            "and there was no weak/strong mix.";
-      }
-      if (component.mode != NonNullableByDefaultCompiledMode.Invalid) {
-        return "Component mode is not invalid as expected";
-      }
-    } else {
-      // No libraries are allowed to be invalid, and should all be compatible
-      // with the component nnbd mode setting.
-      if (component.mode == NonNullableByDefaultCompiledMode.Invalid) {
-        return "Component mode is invalid which was not expected";
-      }
-      if (component.modeRaw == null) {
-        return "Component mode not set at all";
-      }
-      for (Library library in component.libraries) {
-        if (component.mode == NonNullableByDefaultCompiledMode.Strong) {
-          if (library.nonNullableByDefaultCompiledMode !=
-              NonNullableByDefaultCompiledMode.Strong) {
-            // Coverage-ignore-block(suite): Not run.
-            return "Expected library ${library.importUri} to be strong, "
-                "but was ${library.nonNullableByDefaultCompiledMode}";
-          }
-        }
-        // Coverage-ignore(suite): Not run.
-        else if (component.mode == NonNullableByDefaultCompiledMode.Weak) {
-          if (library.nonNullableByDefaultCompiledMode !=
-              NonNullableByDefaultCompiledMode.Weak) {
-            return "Expected library ${library.importUri} to be weak, "
-                "but was ${library.nonNullableByDefaultCompiledMode}";
-          }
-        } else {
-          return "Expected component mode to be either strong, "
-              "weak or agnostic but was ${component.mode}";
-        }
-      }
-    }
-    return null;
   }
 
   void installDefaultSupertypes() {
@@ -1004,10 +796,8 @@ class KernelTarget {
   void installSyntheticConstructors(List<SourceClassBuilder> builders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
-      if (builder.cls != objectClass && !builder.isAugmenting) {
-        if (builder.isAugmenting ||
-            builder.isMixinDeclaration ||
-            builder.isExtension) {
+      if (builder.cls != objectClass) {
+        if (builder.isMixinDeclaration || builder.isExtension) {
           continue;
         }
         if (builder.isMixinApplication) {
@@ -1159,9 +949,6 @@ class KernelTarget {
       case ExtensionTypeDeclarationBuilder():
       case InvalidTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():
-      // Coverage-ignore(suite): Not run.
-      // TODO(johnniwinther): How should we handle this case?
-      case OmittedTypeDeclarationBuilder():
       case null:
         builder.addSyntheticConstructor(_makeDefaultConstructor(
             builder, constructorReference, tearOffReference));
@@ -1286,7 +1073,8 @@ class KernelTarget {
             definingConstructor: superConstructorBuilder,
             delayedDefaultValueCloner: delayedDefaultValueCloner,
             typeDependency: typeDependency);
-    loader.registerConstructorToBeInferred(constructor, constructorBuilder);
+    loader.registerConstructorToBeInferred(
+        new InferableConstructor(constructor, constructorBuilder));
     return constructorBuilder;
   }
 
@@ -1373,29 +1161,15 @@ class KernelTarget {
   }
 
   void setupTopAndBottomTypes() {
-    objectType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("Object", required: true)
-            as TypeDeclarationBuilder);
-    dynamicType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("dynamic", required: true)
-            as TypeDeclarationBuilder);
-    ClassBuilder nullClassBuilder = loader.coreLibrary
-        .lookupLocalMember("Null", required: true) as ClassBuilder;
-    nullType.bind(loader.coreLibrary, nullClassBuilder..isNullClass = true);
-    bottomType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("Never", required: true)
-            as TypeDeclarationBuilder);
-    enumType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("Enum", required: true)
-            as TypeDeclarationBuilder);
-    underscoreEnumType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("_Enum", required: true)
-            as TypeDeclarationBuilder);
+    LibraryBuilder coreLibrary = loader.coreLibrary;
+    bindCoreType(coreLibrary, objectType);
+    bindCoreType(coreLibrary, stringType);
+    bindCoreType(coreLibrary, intType);
+    bindCoreType(coreLibrary, dynamicType);
+    bindCoreType(coreLibrary, nullType, isNullClass: true);
+    bindCoreType(coreLibrary, bottomType);
+    bindCoreType(coreLibrary, enumType);
+    bindCoreType(coreLibrary, underscoreEnumType);
   }
 
   void computeCoreTypes() {
@@ -1458,7 +1232,6 @@ class KernelTarget {
   /// Ensure constructors of [classBuilder] have the correct initializers and
   /// other requirements.
   void finishConstructors(SourceClassBuilder classBuilder) {
-    if (classBuilder.isAugmenting) return;
     Class cls = classBuilder.cls;
 
     Constructor? superTarget;
@@ -1527,19 +1300,19 @@ class KernelTarget {
     _finishConstructors(extensionTypeDeclaration);
   }
 
-  void _finishConstructors(ClassDeclaration classDeclaration) {
+  void _finishConstructors(ClassDeclarationBuilder classDeclaration) {
     SourceLibraryBuilder libraryBuilder = classDeclaration.libraryBuilder;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
-    List<PropertyBuilder> uninitializedFields = [];
-    List<PropertyBuilder> nonFinalFields = [];
-    List<PropertyBuilder> lateFinalFields = [];
+    List<SourcePropertyBuilder> uninitializedFields = [];
+    List<SourcePropertyBuilder> nonFinalFields = [];
+    List<SourcePropertyBuilder> lateFinalFields = [];
 
-    Iterator<PropertyBuilder> fieldIterator =
-        classDeclaration.fullMemberIterator<PropertyBuilder>();
+    Iterator<SourcePropertyBuilder> fieldIterator =
+        classDeclaration.fullMemberIterator<SourcePropertyBuilder>();
     while (fieldIterator.moveNext()) {
-      PropertyBuilder fieldBuilder = fieldIterator.current;
+      SourcePropertyBuilder fieldBuilder = fieldIterator.current;
       if (!fieldBuilder.isField) {
         continue;
       }
@@ -1561,15 +1334,16 @@ class KernelTarget {
       }
     }
 
-    Map<ConstructorDeclaration, Set<PropertyBuilder>>
+    Map<ConstructorDeclarationBuilder, Set<SourcePropertyBuilder>>
         constructorInitializedFields = new Map.identity();
-    Set<PropertyBuilder>? initializedFieldBuilders = null;
-    Set<PropertyBuilder>? uninitializedInstanceFields;
+    Set<SourcePropertyBuilder>? initializedFieldBuilders = null;
+    Set<SourcePropertyBuilder>? uninitializedInstanceFields;
 
-    Iterator<ConstructorDeclaration> constructorIterator =
-        classDeclaration.fullConstructorIterator<ConstructorDeclaration>();
+    Iterator<ConstructorDeclarationBuilder> constructorIterator =
+        classDeclaration
+            .fullConstructorIterator<ConstructorDeclarationBuilder>();
     while (constructorIterator.moveNext()) {
-      ConstructorDeclaration constructor = constructorIterator.current;
+      ConstructorDeclarationBuilder constructor = constructorIterator.current;
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
         classDeclaration.addProblem(messageConstConstructorNonFinalField,
@@ -1581,7 +1355,7 @@ class KernelTarget {
         nonFinalFields.clear();
       }
       if (constructor.isConst && lateFinalFields.isNotEmpty) {
-        for (PropertyBuilder field in lateFinalFields) {
+        for (SourcePropertyBuilder field in lateFinalFields) {
           classDeclaration.addProblem(
               messageConstConstructorLateFinalFieldError,
               field.fileOffset,
@@ -1597,23 +1371,24 @@ class KernelTarget {
         // Assume that an external constructor initializes all uninitialized
         // instance fields.
         uninitializedInstanceFields ??= uninitializedFields
-            .where((PropertyBuilder fieldBuilder) => !fieldBuilder.isStatic)
+            .where(
+                (SourcePropertyBuilder fieldBuilder) => !fieldBuilder.isStatic)
             .toSet();
         constructorInitializedFields[constructor] = uninitializedInstanceFields;
-        (initializedFieldBuilders ??= new Set<PropertyBuilder>.identity())
+        (initializedFieldBuilders ??= new Set<SourcePropertyBuilder>.identity())
             .addAll(uninitializedInstanceFields);
       } else {
-        Set<PropertyBuilder> fields =
+        Set<SourcePropertyBuilder> fields =
             constructor.takeInitializedFields() ?? const {};
         constructorInitializedFields[constructor] = fields;
-        (initializedFieldBuilders ??= new Set<PropertyBuilder>.identity())
+        (initializedFieldBuilders ??= new Set<SourcePropertyBuilder>.identity())
             .addAll(fields);
       }
     }
 
     // Run through all fields that aren't initialized by any constructor, and
     // set their initializer to `null`.
-    for (PropertyBuilder fieldBuilder in uninitializedFields) {
+    for (SourcePropertyBuilder fieldBuilder in uninitializedFields) {
       if (fieldBuilder.isExtensionTypeDeclaredInstanceField) continue;
       if (initializedFieldBuilders == null ||
           !initializedFieldBuilders.contains(fieldBuilder)) {
@@ -1653,11 +1428,12 @@ class KernelTarget {
 
     // Run through all fields that are initialized by some constructor, and
     // make sure that all other constructors also initialize them.
-    for (MapEntry<ConstructorDeclaration, Set<PropertyBuilder>> entry
+    for (MapEntry<ConstructorDeclarationBuilder,
+            Set<SourcePropertyBuilder>> entry
         in constructorInitializedFields.entries) {
-      ConstructorDeclaration constructorBuilder = entry.key;
-      Set<PropertyBuilder> fieldBuilders = entry.value;
-      for (PropertyBuilder fieldBuilder
+      ConstructorDeclarationBuilder constructorBuilder = entry.key;
+      Set<SourcePropertyBuilder> fieldBuilders = entry.value;
+      for (SourcePropertyBuilder fieldBuilder
           in initializedFieldBuilders!.difference(fieldBuilders)) {
         if (fieldBuilder.isExtensionTypeDeclaredInstanceField) continue;
         if (!fieldBuilder.hasInitializer && !fieldBuilder.isLate) {
@@ -1730,7 +1506,6 @@ class KernelTarget {
 
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
-    constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
 
     constants.ConstantEvaluationData constantEvaluationData =
         constants.transformLibraries(
@@ -1740,7 +1515,6 @@ class KernelTarget {
             environmentDefines,
             environment,
             new KernelConstantErrorReporter(loader),
-            evaluationMode,
             evaluateAnnotations: true,
             enableTripleShift: globalFeatures.tripleShift.isEnabled,
             enableConstFunctions: globalFeatures.constFunctions.isEnabled,
@@ -1783,8 +1557,6 @@ class KernelTarget {
   void runProcedureTransformations(Procedure procedure) {
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
-    constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
-
     constants.transformProcedure(
       procedure,
       backendTarget,
@@ -1792,7 +1564,6 @@ class KernelTarget {
       environmentDefines,
       environment,
       new KernelConstantErrorReporter(loader),
-      evaluationMode,
       evaluateAnnotations: true,
       enableTripleShift: globalFeatures.tripleShift.isEnabled,
       enableConstFunctions: globalFeatures.constFunctions.isEnabled,
@@ -1804,22 +1575,6 @@ class KernelTarget {
     backendTarget.performTransformationsOnProcedure(
         loader.coreTypes, loader.hierarchy, procedure, environmentDefines,
         logger: (String msg) => ticker.logMs(msg));
-  }
-
-  constants.EvaluationMode getConstantEvaluationModeForTesting() =>
-      _getConstantEvaluationMode();
-
-  constants.EvaluationMode _getConstantEvaluationMode() {
-    // If nnbd is not enabled we will use weak evaluation mode. This is needed
-    // because the SDK might be agnostic and therefore needs to be weakened
-    // for legacy mode.
-    assert(
-        globalFeatures.nonNullable.isEnabled ||
-            // Coverage-ignore(suite): Not run.
-            loader.nnbdMode == NnbdMode.Weak,
-        "Non-weak nnbd mode found without experiment enabled: "
-        "${loader.nnbdMode}.");
-    return constants.EvaluationMode.fromNnbdMode(loader.nnbdMode);
   }
 
   void _verify({required bool allowVerificationErrorForTesting}) {
@@ -1859,12 +1614,12 @@ class KernelTarget {
     List<Uri>? patches = uriTranslator.getDartPatches(originImportUri.path);
     if (patches != null) {
       for (Uri patch in patches) {
-        loader.read(patch, -1,
+        compilationUnit.registerAugmentation(loader.read(patch, -1,
             fileUri: patch,
             originImportUri: originImportUri,
             origin: compilationUnit,
             accessor: compilationUnit,
-            isPatch: true);
+            isPatch: true));
       }
     }
   }
@@ -1910,9 +1665,6 @@ class KernelDiagnosticReporter
 
 class BuildResult {
   final Component? component;
-  final NeededPrecompilations? neededPrecompilations;
-  final MacroApplications? macroApplications;
 
-  BuildResult(
-      {this.component, this.macroApplications, this.neededPrecompilations});
+  BuildResult({this.component});
 }

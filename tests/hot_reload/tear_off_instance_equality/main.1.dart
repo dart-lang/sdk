@@ -28,9 +28,9 @@ Future<void> main() async {
   // VM. This behavior is not guaranteed by the spec.
   Expect.notIdentical(f1, f2);
 }
+
 /** DIFF **/
 /*
-@@ -9,13 +9,12 @@
  // https://github.com/dart-lang/sdk/blob/f34a2ed99fc1b34cedbd974a5801f8d922121126/runtime/vm/isolate_reload_test.cc#L1618
  
  class C {

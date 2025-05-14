@@ -133,7 +133,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
             element.kind.displayName,
             name,
           );
-          result.addError(message, newLocation_fromElement2(element));
+          result.addError(message, newLocation_fromElement(element));
         }
       }
     }

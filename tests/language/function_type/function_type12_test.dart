@@ -103,7 +103,7 @@ class U12<T> {
   late void Function<A>(A x) Function() x23;
 
   U12({this.tIsBool = false, this.tIsInt = false})
-      : tIsDynamic = !tIsBool && !tIsInt;
+    : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0([Function x = _voidFunction]) => throw 'uncalled';
   List<Function> m1(int x) => throw 'uncalled';
@@ -463,7 +463,8 @@ class U12<T> {
 
     Expect.isTrue(m10 is F10<T>);
     Expect.isTrue(
-        m10 is List<Function> Function(int y, [List<Function> x]) Function());
+      m10 is List<Function> Function(int y, [List<Function> x]) Function(),
+    );
     Expect.isTrue(confuse(m10) is F10<T>);
     // In checked mode, verifies the type.
     x10 = m10;

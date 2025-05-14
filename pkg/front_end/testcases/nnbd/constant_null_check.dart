@@ -16,11 +16,13 @@ class Class {
 const Class e = const Class(a);
 const Class f = const Class(c);
 
-main() {
+test() {
   expect(42, a);
   expect(42, b);
   expect(42, e.y);
 }
+
+main() {}
 
 expect(expected, actual) {
   if (expected != actual) throw 'Expected $expected, actual $actual';

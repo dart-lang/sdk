@@ -46,6 +46,31 @@ class Test {
 ''');
   }
 
+  Future<void> test_class_flutter() async {
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class Test extends StatelessWidget {
+  final int _a;
+}
+''');
+    await assertHasFix(
+      '''
+import 'package:flutter/widgets.dart';
+
+class Test extends StatelessWidget {
+  final int _a;
+
+  const Test({super.key, required int a}) : _a = a;
+}
+''',
+      errorFilter: (error) {
+        return error.message.contains("'_a' must be initialized");
+      },
+    );
+  }
+
   Future<void> test_class_hasSuperClass_withOptionalNamed() async {
     await resolveTestCode('''
 class A {
@@ -553,6 +578,33 @@ class MyWidget extends StatelessWidget {
 ''',
       errorFilter: (error) {
         return error.message.contains("'a'");
+      },
+    );
+  }
+
+  Future<void> test_class_flutter_private_field() async {
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int _a;
+  final int b;
+}
+''');
+    await assertHasFix(
+      '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int _a;
+  final int b;
+
+  const MyWidget({Key? key, required int a, required this.b}) : _a = a, super(key: key);
+}
+''',
+      errorFilter: (error) {
+        return error.message.contains("'b'");
       },
     );
   }

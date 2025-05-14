@@ -26,44 +26,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            foo @16
-              reference: <testLibraryFragment>::@class::C::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: int
-              shouldUseTypeForInitializerInference: true
-              nonSynthetic: <testLibraryFragment>::@class::C::@field::foo
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              nonSynthetic: <testLibraryFragment>::@class::C
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@class::C::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int
-              nonSynthetic: <testLibraryFragment>::@class::C::@field::foo
-            synthetic set foo= @-1
-              reference: <testLibraryFragment>::@class::C::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-                  nonSynthetic: <testLibraryFragment>::@class::C::@field::foo
-              returnType: void
-              nonSynthetic: <testLibraryFragment>::@class::C::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -91,7 +53,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::foo
               element: <testLibraryFragment>::@class::C::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_foo#element
   classes
     class C
@@ -126,34 +88,6 @@ class C {
 ''');
     configuration.withNonSynthetic = true;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@class::C::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: int
-              nonSynthetic: <testLibraryFragment>::@class::C::@getter::foo
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              nonSynthetic: <testLibraryFragment>::@class::C
-          accessors
-            get foo @20
-              reference: <testLibraryFragment>::@class::C::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int
-              nonSynthetic: <testLibraryFragment>::@class::C::@getter::foo
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -203,38 +137,6 @@ class C {
 ''');
     configuration.withNonSynthetic = true;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@class::C::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: int
-              nonSynthetic: <testLibraryFragment>::@class::C::@setter::foo
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              nonSynthetic: <testLibraryFragment>::@class::C
-          accessors
-            set foo= @16
-              reference: <testLibraryFragment>::@class::C::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional value @24
-                  type: int
-                  nonSynthetic: <testLibraryFragment>::@class::C::@setter::foo::@parameter::value
-              returnType: void
-              nonSynthetic: <testLibraryFragment>::@class::C::@setter::foo
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -292,101 +194,6 @@ enum E {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      enums
-        enum E @5
-          reference: <testLibraryFragment>::@enum::E
-          enclosingElement3: <testLibraryFragment>
-          supertype: Enum
-          fields
-            static const enumConstant a @11
-              reference: <testLibraryFragment>::@enum::E::@field::a
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-              nonSynthetic: <testLibraryFragment>::@enum::E::@field::a
-            static const enumConstant b @14
-              reference: <testLibraryFragment>::@enum::E::@field::b
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-              nonSynthetic: <testLibraryFragment>::@enum::E::@field::b
-            synthetic static const values @-1
-              reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: List<E>
-              constantInitializer
-                ListLiteral
-                  leftBracket: [ @0
-                  elements
-                    SimpleIdentifier
-                      token: a @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::a
-                      element: <testLibraryFragment>::@enum::E::@getter::a#element
-                      staticType: E
-                    SimpleIdentifier
-                      token: b @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::b
-                      element: <testLibraryFragment>::@enum::E::@getter::b#element
-                      staticType: E
-                  rightBracket: ] @0
-                  staticType: List<E>
-              nonSynthetic: <testLibraryFragment>::@enum::E
-          constructors
-            synthetic const @-1
-              reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              nonSynthetic: <testLibraryFragment>::@enum::E
-          accessors
-            synthetic static get a @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::a
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-              nonSynthetic: <testLibraryFragment>::@enum::E::@field::a
-            synthetic static get b @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::b
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-              nonSynthetic: <testLibraryFragment>::@enum::E::@field::b
-            synthetic static get values @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: List<E>
-              nonSynthetic: <testLibraryFragment>::@enum::E
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -398,14 +205,52 @@ library
             hasInitializer a @11
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::a
             hasInitializer b @14
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
+              initializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::b
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
+              initializer: expression_2
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: a @-1
+                      element: <testLibraryFragment>::@enum::E::@getter::a#element
+                      staticType: E
+                    SimpleIdentifier
+                      token: b @-1
+                      element: <testLibraryFragment>::@enum::E::@getter::b#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
             synthetic const new
@@ -431,14 +276,23 @@ library
         static const enumConstant hasInitializer a
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::a
+            expression: expression_0
           getter: <testLibraryFragment>::@enum::E::@getter::a#element
         static const enumConstant hasInitializer b
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::b
+            expression: expression_1
           getter: <testLibraryFragment>::@enum::E::@getter::b#element
         synthetic static const values
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
           type: List<E>
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::values
+            expression: expression_2
           getter: <testLibraryFragment>::@enum::E::@getter::values#element
       constructors
         synthetic const new
@@ -463,41 +317,6 @@ mixin M {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          fields
-            foo @16
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: int
-              shouldUseTypeForInitializerInference: true
-              nonSynthetic: <testLibraryFragment>::@mixin::M::@field::foo
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@mixin::M::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              returnType: int
-              nonSynthetic: <testLibraryFragment>::@mixin::M::@field::foo
-            synthetic set foo= @-1
-              reference: <testLibraryFragment>::@mixin::M::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-                  nonSynthetic: <testLibraryFragment>::@mixin::M::@field::foo
-              returnType: void
-              nonSynthetic: <testLibraryFragment>::@mixin::M::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -520,7 +339,7 @@ library
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
               element: <testLibraryFragment>::@mixin::M::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_foo#element
   mixins
     mixin M
@@ -554,31 +373,6 @@ mixin M {
 ''');
     configuration.withNonSynthetic = true;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: int
-              nonSynthetic: <testLibraryFragment>::@mixin::M::@getter::foo
-          accessors
-            get foo @20
-              reference: <testLibraryFragment>::@mixin::M::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              returnType: int
-              nonSynthetic: <testLibraryFragment>::@mixin::M::@getter::foo
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -622,35 +416,6 @@ mixin M {
 ''');
     configuration.withNonSynthetic = true;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: int
-              nonSynthetic: <testLibraryFragment>::@mixin::M::@setter::foo
-          accessors
-            set foo= @16
-              reference: <testLibraryFragment>::@mixin::M::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              parameters
-                requiredPositional value @24
-                  type: int
-                  nonSynthetic: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::value
-              returnType: void
-              nonSynthetic: <testLibraryFragment>::@mixin::M::@setter::foo
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -700,25 +465,6 @@ int get foo => 0;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        synthetic static foo @-1
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          nonSynthetic: <testLibraryFragment>::@getter::foo
-      accessors
-        static get foo @8
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-          nonSynthetic: <testLibraryFragment>::@getter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -750,34 +496,6 @@ set foo(int value) {}
 ''');
     configuration.withNonSynthetic = true;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        synthetic static foo @-1
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          nonSynthetic: <testLibraryFragment>::@getter::foo
-      accessors
-        static get foo @8
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-          nonSynthetic: <testLibraryFragment>::@getter::foo
-        static set foo= @22
-          reference: <testLibraryFragment>::@setter::foo
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional value @30
-              type: int
-              nonSynthetic: <testLibraryFragment>::@setter::foo::@parameter::value
-          returnType: void
-          nonSynthetic: <testLibraryFragment>::@setter::foo
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -827,29 +545,6 @@ set foo(int value) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        synthetic static foo @-1
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          nonSynthetic: <testLibraryFragment>::@setter::foo
-      accessors
-        static set foo= @4
-          reference: <testLibraryFragment>::@setter::foo
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional value @12
-              type: int
-              nonSynthetic: <testLibraryFragment>::@setter::foo::@parameter::value
-          returnType: void
-          nonSynthetic: <testLibraryFragment>::@setter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -888,35 +583,6 @@ int foo = 0;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static foo @4
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: true
-          nonSynthetic: <testLibraryFragment>::@topLevelVariable::foo
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-          nonSynthetic: <testLibraryFragment>::@topLevelVariable::foo
-        synthetic static set foo= @-1
-          reference: <testLibraryFragment>::@setter::foo
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _foo @-1
-              type: int
-              nonSynthetic: <testLibraryFragment>::@topLevelVariable::foo
-          returnType: void
-          nonSynthetic: <testLibraryFragment>::@topLevelVariable::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -935,7 +601,7 @@ library
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
-            <null-name>
+            _foo
               element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
   topLevelVariables
     hasInitializer foo

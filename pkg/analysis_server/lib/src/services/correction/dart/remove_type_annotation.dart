@@ -55,7 +55,10 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
           parameters: node.parameters,
         );
       }
-      if (node is TypeAnnotation && diagnostic != null) {
+      if (node case TypeAnnotation(:var parent) when diagnostic != null) {
+        if (parent is VariableDeclarationList) {
+          return _removeFromDeclarationList(builder, parent);
+        }
         return _removeTypeAnnotation(builder, node);
       }
       if (node is VariableDeclarationList) {
@@ -75,11 +78,11 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
     }
     // ignore if an incomplete variable declaration
     if (declarationList.variables.length == 1 &&
-        declarationList.variables[0].name.isSynthetic) {
+        declarationList.variables.first.name.isSynthetic) {
       return;
     }
     // must be not after the name of the variable
-    var firstVariable = declarationList.variables[0];
+    var firstVariable = declarationList.variables.first;
     if (selectionOffset > firstVariable.name.end) {
       return;
     }
@@ -129,10 +132,10 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
     var keyword = declarationList.keyword;
     await builder.addDartFileEdit(file, (builder) {
       var typeRange = range.startStart(type, firstVariable);
-      if (keyword != null && keyword.lexeme != 'var') {
+      if (keyword != null && keyword.lexeme != Keyword.VAR.lexeme) {
         builder.addSimpleReplacement(typeRange, '');
       } else {
-        builder.addSimpleReplacement(typeRange, 'var ');
+        builder.addSimpleReplacement(typeRange, '${Keyword.VAR.lexeme} ');
       }
       if (typeArgumentsText != null && typeArgumentsOffset != null) {
         builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
@@ -152,10 +155,10 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
     var variableName = declaration.name;
     await builder.addDartFileEdit(file, (builder) {
       var typeRange = range.startStart(typeNode, variableName);
-      if (keyword != null && keyword.lexeme != 'var') {
+      if (keyword != null && keyword.lexeme != Keyword.VAR.lexeme) {
         builder.addSimpleReplacement(typeRange, '');
       } else {
-        builder.addSimpleReplacement(typeRange, 'var ');
+        builder.addSimpleReplacement(typeRange, '${Keyword.VAR.lexeme} ');
       }
     });
   }

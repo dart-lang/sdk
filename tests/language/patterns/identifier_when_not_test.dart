@@ -52,14 +52,17 @@ main() {
 
   {
     // Switch expression: const in scope
-    (switch (1) { one when !false => 0, _ => throw 'Should have matched' });
+    (switch (1) {
+      one when !false => 0,
+      _ => throw 'Should have matched',
+    });
   }
 
   {
     // Switch expression: prefixed identifier
     (switch (1) {
       self.one when !false => 0,
-      _ => throw 'Should have matched'
+      _ => throw 'Should have matched',
     });
   }
 
@@ -67,7 +70,7 @@ main() {
     // Switch expression: static const
     (switch (1) {
       Values.one when !false => 0,
-      _ => throw 'Should have matched'
+      _ => throw 'Should have matched',
     });
   }
 
@@ -75,7 +78,7 @@ main() {
     // Switch expression: prefixed static const
     (switch (1) {
       self.Values.one when !false => 0,
-      _ => throw 'Should have matched'
+      _ => throw 'Should have matched',
     });
   }
 
@@ -114,91 +117,107 @@ main() {
   {
     // If-case in list: const in scope
     Expect.listEquals(
-        [''], [if (1 case one when !false) '' else 'Should have matched']);
+      [''],
+      [if (1 case one when !false) '' else 'Should have matched'],
+    );
   }
 
   {
     // If-case in list: prefixed identifier
     Expect.listEquals(
-        [''], [if (1 case self.one when !false) '' else 'Should have matched']);
+      [''],
+      [if (1 case self.one when !false) '' else 'Should have matched'],
+    );
   }
 
   {
     // If-case in list: static const
-    Expect.listEquals([''],
-        [if (1 case Values.one when !false) '' else 'Should have matched']);
+    Expect.listEquals(
+      [''],
+      [if (1 case Values.one when !false) '' else 'Should have matched'],
+    );
   }
 
   {
     // If-case in list: prefixed static const
-    Expect.listEquals([
-      ''
-    ], [
-      if (1 case self.Values.one when !false) '' else 'Should have matched'
-    ]);
+    Expect.listEquals(
+      [''],
+      [if (1 case self.Values.one when !false) '' else 'Should have matched'],
+    );
   }
 
   {
     // If-case in map: const in scope
-    Expect.mapEquals({'': ''},
-        {if (1 case one when !false) '': '' else '': 'Should have matched'});
+    Expect.mapEquals(
+      {'': ''},
+      {if (1 case one when !false) '': '' else '': 'Should have matched'},
+    );
   }
 
   {
     // If-case in map: prefixed identifier
-    Expect.mapEquals({
-      '': ''
-    }, {
-      if (1 case self.one when !false) '': '' else '': 'Should have matched'
-    });
+    Expect.mapEquals(
+      {'': ''},
+      {if (1 case self.one when !false) '': '' else '': 'Should have matched'},
+    );
   }
 
   {
     // If-case in map: static const
-    Expect.mapEquals({
-      '': ''
-    }, {
-      if (1 case Values.one when !false) '': '' else '': 'Should have matched'
-    });
+    Expect.mapEquals(
+      {'': ''},
+      {
+        if (1 case Values.one when !false)
+          '': ''
+        else
+          '': 'Should have matched',
+      },
+    );
   }
 
   {
     // If-case in map: prefixed static const
-    Expect.mapEquals({
-      '': ''
-    }, {
-      if (1 case self.Values.one when !false)
-        '': ''
-      else
-        '': 'Should have matched'
-    });
+    Expect.mapEquals(
+      {'': ''},
+      {
+        if (1 case self.Values.one when !false)
+          '': ''
+        else
+          '': 'Should have matched',
+      },
+    );
   }
 
   {
     // If-case in set: const in scope
     Expect.setEquals(
-        {''}, {if (1 case one when !false) '' else 'Should have matched'});
+      {''},
+      {if (1 case one when !false) '' else 'Should have matched'},
+    );
   }
 
   {
     // If-case in set: prefixed identifier
     Expect.setEquals(
-        {''}, {if (1 case self.one when !false) '' else 'Should have matched'});
+      {''},
+      {if (1 case self.one when !false) '' else 'Should have matched'},
+    );
   }
 
   {
     // If-case in set: static const
-    Expect.setEquals({''},
-        {if (1 case Values.one when !false) '' else 'Should have matched'});
+    Expect.setEquals(
+      {''},
+      {if (1 case Values.one when !false) '' else 'Should have matched'},
+    );
   }
 
   {
     // If-case in set: prefixed static const
-    Expect.setEquals({
-      ''
-    }, {
-      if (1 case self.Values.one when !false) '' else 'Should have matched'
-    });
+    Expect.setEquals(
+      {''},
+      {if (1 case self.Values.one when !false) '' else 'Should have matched'},
+    );
   }
 }
 

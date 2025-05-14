@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidWebLibrariesInFlutterTest);
   });
@@ -67,9 +67,7 @@ flutter:
 // ignore: unused_import
 import 'dart:html';
 ''');
-    await assertDiagnosticsInFile(mainFile.path, [
-      lint(25, 19),
-    ]);
+    await assertDiagnosticsInFile(mainFile.path, [lint(25, 19)]);
   }
 
   test_noPubspec() async {

@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidUnusedConstructorParametersTest);
   });
@@ -24,15 +24,16 @@ part 'test.dart';
 class A { }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment class A {
   A(int a);
 }
-''', [
-      lint(41, 5),
-    ]);
+''',
+      [lint(41, 5)],
+    );
   }
 
   test_augmentedConstructor() async {
@@ -88,13 +89,14 @@ class C {
   }
 
   test_namedParameter_hasDefault() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C({int c = 0});
 }
-''', [
-      lint(15, 9),
-    ]);
+''',
+      [lint(15, 9)],
+    );
   }
 
   test_noParameters() async {
@@ -106,14 +108,15 @@ class C {
   }
 
   test_redirectingConstructor1() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C.named(int p);
   factory C(int p) = C.named;
 }
-''', [
-      lint(20, 5),
-    ]);
+''',
+      [lint(20, 5)],
+    );
   }
 
   test_redirectingConstructor2() async {
@@ -140,23 +143,25 @@ class B extends A {
   }
 
   test_unused_optionalPositional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C([int p = 0]) {}
 }
-''', [
-      lint(15, 9),
-    ]);
+''',
+      [lint(15, 9)],
+    );
   }
 
   test_unused_requiredPositional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C(int p);
 }
-''', [
-      lint(14, 5),
-    ]);
+''',
+      [lint(14, 5)],
+    );
   }
 
   test_usedInConstructorBody() async {

@@ -15,6 +15,7 @@
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -22,6 +23,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 
+@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')
 const List<ErrorCode> errorCodeValues = [
   AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
   AnalysisOptionsErrorCode.PARSE_ERROR,
@@ -208,6 +210,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
   CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
   CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
+  CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
   CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
   CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
   CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
@@ -312,7 +315,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
   CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER,
   CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE,
-  CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
   CompileTimeErrorCode.INVALID_OVERRIDE,
@@ -334,19 +336,16 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
   CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
   CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
-  CompileTimeErrorCode.MACRO_APPLICATION_ARGUMENT_ERROR,
-  CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
-  CompileTimeErrorCode.MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE,
-  CompileTimeErrorCode.MACRO_ERROR,
-  CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION,
-  CompileTimeErrorCode.MACRO_NOT_ALLOWED_DECLARATION,
+  CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
   CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE,
   CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS,
   CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
   CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION,
   CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP,
   CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+  CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY,
   CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+  CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY,
   CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
   CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL,
   CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL,
@@ -506,6 +505,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
   CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
+  CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
   CompileTimeErrorCode.SHARED_DEFERRED_PREFIX,
   CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
@@ -651,7 +651,6 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
   HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
   HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
-  HintCode.MACRO_INFO,
   HintCode.UNNECESSARY_IMPORT,
   ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE,
   ManifestWarningCode.NON_RESIZABLE_ACTIVITY,
@@ -739,7 +738,6 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE,
   ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER,
   ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
-  ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
   ParserErrorCode.EXTENSION_TYPE_EXTENDS,
   ParserErrorCode.EXTENSION_TYPE_WITH,
   ParserErrorCode.EXTERNAL_CLASS,
@@ -1001,7 +999,9 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS,
   WarningCode.DOC_DIRECTIVE_UNKNOWN,
   WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED,
+  WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS,
   WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS,
+  WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX,
   WarningCode.DUPLICATE_EXPORT,
   WarningCode.DUPLICATE_HIDDEN_NAME,
   WarningCode.DUPLICATE_IGNORE,
@@ -1046,13 +1046,13 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.INVALID_VISIBILITY_ANNOTATION,
   WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION,
   WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION,
-  WarningCode.MACRO_WARNING,
   WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE,
   WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS,
   WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO,
   WarningCode.MISSING_REQUIRED_PARAM,
   WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
   WarningCode.MIXIN_ON_SEALED_CLASS,
+  WarningCode.MULTIPLE_COMBINATORS,
   WarningCode.MUST_BE_IMMUTABLE,
   WarningCode.MUST_CALL_SUPER,
   WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER,
@@ -1090,7 +1090,6 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.UNNECESSARY_CAST,
   WarningCode.UNNECESSARY_CAST_PATTERN,
   WarningCode.UNNECESSARY_FINAL,
-  WarningCode.UNNECESSARY_IGNORE,
   WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE,
   WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE,
   WarningCode.UNNECESSARY_NO_SUCH_METHOD,

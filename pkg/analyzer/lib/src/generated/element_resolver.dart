@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/comment_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -16,7 +15,6 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// An object used by instances of [ResolverVisitor] to resolve references
 /// within the AST structure to the elements being referenced. The requirements
@@ -27,47 +25,47 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 ///    * An identifier within the declaration of that name should resolve to the
 ///      element being declared.
 ///    * An identifier denoting a prefix should resolve to the element
-///      representing the import that defines the prefix (an [LibraryImportElement]).
+///      representing the import that defines the prefix (an [LibraryImport]).
 ///    * An identifier denoting a variable should resolve to the element
-///      representing the variable (a [VariableElement]).
+///      representing the variable (a [VariableElement2]).
 ///    * An identifier denoting a parameter should resolve to the element
-///      representing the parameter (a [ParameterElement]).
+///      representing the parameter (a [FormalParameterElement]).
 ///    * An identifier denoting a field should resolve to the element
 ///      representing the getter or setter being invoked (a
-///      [PropertyAccessorElement]).
+///      [PropertyAccessorElement2]).
 ///    * An identifier denoting the name of a method or function being invoked
 ///      should resolve to the element representing the method or function (an
-///      [ExecutableElement]).
+///      [ExecutableElement2]).
 ///    * An identifier denoting a label should resolve to the element
-///      representing the label (a [LabelElement]).
+///      representing the label (a [LabelElement2]).
 ///    The identifiers within directives are exceptions to this rule and are
 ///    covered below.
 /// 2. Every node containing a token representing an operator that can be
 ///    overridden ( [BinaryExpression], [PrefixExpression], [PostfixExpression])
 ///    should resolve to the element representing the method invoked by that
-///    operator (a [MethodElement]).
+///    operator (a [MethodElement2]).
 /// 3. Every [FunctionExpressionInvocation] should resolve to the element
-///    representing the function being invoked (a [FunctionElement]). This will
-///    be the same element as that to which the name is resolved if the function
-///    has a name, but is provided for those cases where an unnamed function is
-///    being invoked.
+///    representing the function being invoked (a [ExecutableElement2]). This
+///    will be the same element as that to which the name is resolved if the
+///    function has a name, but is provided for those cases where an unnamed
+///    function is being invoked.
 /// 4. Every [LibraryDirective] and [PartOfDirective] should resolve to the
 ///    element representing the library being specified by the directive (a
-///    [LibraryElement]) unless, in the case of a part-of directive, the
+///    [LibraryElement2]) unless, in the case of a part-of directive, the
 ///    specified library does not exist.
 /// 5. Every [ImportDirective] and [ExportDirective] should resolve to the
 ///    element representing the library being specified by the directive unless
-///    the specified library does not exist (an [LibraryImportElement] or
-///    [LibraryExportElement]).
+///    the specified library does not exist (an [LibraryImport] or
+///    [LibraryExport]).
 /// 6. The identifier representing the prefix in an [ImportDirective] should
-///    resolve to the element representing the prefix (a [PrefixElement]).
+///    resolve to the element representing the prefix (a [PrefixElement2]).
 /// 7. The identifiers in the hide and show combinators in [ImportDirective]s
 ///    and [ExportDirective]s should resolve to the elements that are being
 ///    hidden or shown, respectively, unless those names are not defined in the
 ///    specified library (or the specified library does not exist).
 /// 8. Every [PartDirective] should resolve to the element representing the
 ///    compilation unit being specified by the string unless the specified
-///    compilation unit does not exist (a [CompilationUnitElement]).
+///    compilation unit does not exist (a [LibraryFragment]).
 ///
 /// Note that AST nodes that would represent elements that are not defined are
 /// not resolved to anything. This includes such things as references to
@@ -79,7 +77,7 @@ class ElementResolver {
   final ResolverVisitor _resolver;
 
   /// The element for the library containing the compilation unit being visited.
-  final LibraryElement _definingLibrary;
+  final LibraryElementImpl _definingLibrary;
 
   final MethodInvocationResolver _methodInvocationResolver;
 
@@ -99,7 +97,7 @@ class ElementResolver {
   /// declaration.
   bool get isInConstConstructor {
     var function = _resolver.enclosingFunction;
-    if (function is ConstructorElement) {
+    if (function is ConstructorElementImpl2) {
       return function.isConst;
     }
     return false;
@@ -121,25 +119,23 @@ class ElementResolver {
     _commentReferenceResolver.resolve(node);
   }
 
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    ConstructorElement element = node.declaredElement!;
-    if (element is ConstructorElementImpl) {
-      var redirectedNode = node.redirectedConstructor;
-      if (redirectedNode != null) {
-        // set redirected factory constructor
-        var redirectedElement = redirectedNode.staticElement;
-        element.redirectedConstructor = redirectedElement;
-      } else {
-        // set redirected generative constructor
-        for (ConstructorInitializer initializer in node.initializers) {
-          if (initializer is RedirectingConstructorInvocation) {
-            var redirectedElement = initializer.staticElement;
-            element.redirectedConstructor = redirectedElement;
-          }
+  void visitConstructorDeclaration(ConstructorDeclarationImpl node) {
+    var element = node.declaredFragment!.element;
+    var redirectedNode = node.redirectedConstructor;
+    if (redirectedNode != null) {
+      // set redirected factory constructor
+      var redirectedElement = redirectedNode.element;
+      element.redirectedConstructor2 = redirectedElement;
+    } else {
+      // set redirected generative constructor
+      for (ConstructorInitializer initializer in node.initializers) {
+        if (initializer is RedirectingConstructorInvocationImpl) {
+          var redirectedElement = initializer.element;
+          element.redirectedConstructor2 = redirectedElement;
         }
       }
-      _resolveAnnotations(node.metadata);
     }
+    _resolveAnnotations(node.metadata);
   }
 
   void visitConstructorName(covariant ConstructorNameImpl node) {
@@ -149,17 +145,17 @@ class ElementResolver {
     }
     if (type is DynamicType) {
       // Nothing to do.
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceTypeImpl) {
       // look up ConstructorElement
-      ConstructorElement? constructor;
+      ConstructorElementMixin2? constructor;
       var name = node.name;
       if (name == null) {
-        constructor = type.lookUpConstructor(null, _definingLibrary);
+        constructor = type.lookUpConstructor2(null, _definingLibrary);
       } else {
-        constructor = type.lookUpConstructor(name.name, _definingLibrary);
-        name.staticElement = constructor;
+        constructor = type.lookUpConstructor2(name.name, _definingLibrary);
+        name.element = constructor;
       }
-      node.staticElement = constructor;
+      node.element = constructor;
     }
   }
 
@@ -175,13 +171,13 @@ class ElementResolver {
     _resolveAnnotations(node.metadata);
   }
 
-  void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element;
+  void visitExportDirective(ExportDirectiveImpl node) {
+    var exportElement = node.libraryExport;
     if (exportElement != null) {
       // The element is null when the URI is invalid
       // TODO(brianwilkerson): Figure out whether the element can ever be
       // something other than an ExportElement
-      _resolveCombinators(exportElement.exportedLibrary, node.combinators);
+      _resolveCombinators(exportElement.exportedLibrary2, node.combinators);
       _resolveAnnotations(node.metadata);
     }
   }
@@ -222,17 +218,17 @@ class ElementResolver {
     var prefixNode = node.prefix;
     if (prefixNode != null) {
       String prefixName = prefixNode.name;
-      var prefixes = _resolver.libraryFragment.libraryImportPrefixes;
+      var prefixes = _resolver.libraryFragment.prefixes;
       int count = prefixes.length;
       for (int i = 0; i < count; i++) {
-        PrefixElement prefixElement = prefixes[i];
+        var prefixElement = prefixes[i];
         if (prefixElement.displayName == prefixName) {
-          prefixNode.staticElement = prefixElement;
+          prefixNode.element = prefixElement;
           break;
         }
       }
     }
-    var importElement = node.element;
+    var importElement = node.libraryImport;
     if (importElement != null) {
       // The element is null when the URI is invalid
       var library = importElement.importedLibrary;
@@ -245,12 +241,12 @@ class ElementResolver {
 
   void visitInstanceCreationExpression(
       covariant InstanceCreationExpressionImpl node) {
-    var invokedConstructor = node.constructorName.staticElement;
+    var invokedConstructor = node.constructorName.element;
     var argumentList = node.argumentList;
     var parameters =
         _resolveArgumentsToFunction(argumentList, invokedConstructor);
     if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
+      argumentList.correspondingStaticParameters2 = parameters;
     }
   }
 
@@ -268,7 +264,7 @@ class ElementResolver {
   /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocationImpl? visitMethodInvocation(MethodInvocation node,
       {List<WhyNotPromotedGetter>? whyNotPromotedArguments,
-      required DartType contextType}) {
+      required TypeImpl contextType}) {
     whyNotPromotedArguments ??= [];
     return _methodInvocationResolver.resolve(
         node as MethodInvocationImpl, whyNotPromotedArguments,
@@ -302,17 +298,16 @@ class ElementResolver {
   void visitRedirectingConstructorInvocation(
       covariant RedirectingConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElement) {
+    if (enclosingClass is! InterfaceElementImpl2) {
       // TODO(brianwilkerson): Report this error.
       return;
     }
-    var enclosingAugmented = enclosingClass.augmented;
-    ConstructorElement? element;
+    ConstructorElementImpl2? element;
     var name = node.constructorName;
     if (name == null) {
-      element = enclosingAugmented.unnamedConstructor;
+      element = enclosingClass.unnamedConstructor2;
     } else {
-      element = enclosingAugmented.getNamedConstructor(name.name);
+      element = enclosingClass.getNamedConstructor2(name.name);
     }
     if (element == null) {
       // TODO(brianwilkerson): Report this error and decide what element to
@@ -320,13 +315,13 @@ class ElementResolver {
       return;
     }
     if (name != null) {
-      name.staticElement = element;
+      name.element = element;
     }
-    node.staticElement = element;
+    node.element = element;
     var argumentList = node.argumentList;
     var parameters = _resolveArgumentsToFunction(argumentList, element);
     if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
+      argumentList.correspondingStaticParameters2 = parameters;
     }
   }
 
@@ -341,7 +336,7 @@ class ElementResolver {
   void visitSuperConstructorInvocation(
       covariant SuperConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElement) {
+    if (enclosingClass is! InterfaceElementImpl2) {
       // TODO(brianwilkerson): Report this error.
       return;
     }
@@ -352,8 +347,8 @@ class ElementResolver {
     }
     var name = node.constructorName;
     var superName = name?.name;
-    var element = superType.lookUpConstructor(superName, _definingLibrary);
-    if (element == null || !element.isAccessibleIn(_definingLibrary)) {
+    var element = superType.lookUpConstructor2(superName, _definingLibrary);
+    if (element == null || !element.isAccessibleIn2(_definingLibrary)) {
       if (name != null) {
         _errorReporter.atNode(
           node,
@@ -371,7 +366,7 @@ class ElementResolver {
     } else {
       if (element.isFactory &&
           // Check if we've reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
-          !element.enclosingElement3.constructors
+          !element.enclosingElement2.constructors2
               .every((constructor) => constructor.isFactory)) {
         _errorReporter.atNode(
           node,
@@ -381,9 +376,9 @@ class ElementResolver {
       }
     }
     if (name != null) {
-      name.staticElement = element;
+      name.element = element;
     }
-    node.staticElement = element;
+    node.element = element;
     // TODO(brianwilkerson): Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
@@ -400,7 +395,7 @@ class ElementResolver {
       enclosingConstructor: node.thisOrAncestorOfType<ConstructorDeclaration>(),
     );
     if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
+      argumentList.correspondingStaticParameters2 = parameters;
     }
   }
 
@@ -443,9 +438,9 @@ class ElementResolver {
   /// the list of arguments. An error will be reported if any of the arguments
   /// cannot be matched to a parameter. Return the parameters that correspond to
   /// the arguments, or `null` if no correspondence could be computed.
-  List<ParameterElement?>? _resolveArgumentsToFunction(
+  List<FormalParameterElementMixin?>? _resolveArgumentsToFunction(
     ArgumentList argumentList,
-    ExecutableElement? executableElement, {
+    ExecutableElement2? executableElement, {
     ConstructorDeclaration? enclosingConstructor,
   }) {
     if (executableElement == null) {
@@ -453,7 +448,7 @@ class ElementResolver {
     }
     return ResolverVisitor.resolveArgumentsToParameters(
       argumentList: argumentList,
-      parameters: executableElement.parameters,
+      formalParameters: executableElement.formalParameters,
       errorReporter: _errorReporter,
       enclosingConstructor: enclosingConstructor,
     );
@@ -462,7 +457,7 @@ class ElementResolver {
   /// Resolve the names in the given [combinators] in the scope of the given
   /// [library].
   void _resolveCombinators(
-      LibraryElement? library, NodeList<Combinator> combinators) {
+      LibraryElementImpl? library, NodeList<Combinator> combinators) {
     if (library == null) {
       //
       // The library will be null if the directive containing the combinators
@@ -471,7 +466,7 @@ class ElementResolver {
       return;
     }
     Namespace namespace =
-        NamespaceBuilder().createExportNamespaceForLibrary(library.asElement2);
+        NamespaceBuilder().createExportNamespaceForLibrary(library);
     for (Combinator combinator in combinators) {
       NodeList<SimpleIdentifier> names;
       if (combinator is HideCombinator) {
@@ -482,14 +477,14 @@ class ElementResolver {
       for (var name in names) {
         name as SimpleIdentifierImpl;
         String nameStr = name.name;
-        var element = namespace.get(nameStr) ?? namespace.get("$nameStr=");
+        var element = namespace.get2(nameStr) ?? namespace.get2("$nameStr=");
         if (element != null) {
           // Ensure that the name always resolves to a top-level variable
           // rather than a getter or setter
-          if (element is PropertyAccessorElement) {
-            name.staticElement = element.variable2;
+          if (element is PropertyAccessorElement2) {
+            name.element = element.variable3;
           } else {
-            name.staticElement = element;
+            name.element = element;
           }
         }
       }
@@ -502,31 +497,13 @@ class ElementResolver {
     _resolveAnnotations(node.metadata);
   }
 
-  /// Checks whether the given [expression] is a reference to a class. If it is
-  /// then the element representing the class is returned, otherwise `null` is
-  /// returned.
-  static InterfaceElement? getTypeReference(Expression expression) {
-    if (expression is Identifier) {
-      var element = expression.staticElement;
-      if (element is InterfaceElement) {
-        return element;
-      } else if (element is TypeAliasElement) {
-        var aliasedType = element.aliasedType;
-        if (aliasedType is InterfaceType) {
-          return aliasedType.element;
-        }
-      }
-    }
-    return null;
-  }
-
   /// Resolve each of the annotations in the given list of [annotations].
   static void _resolveAnnotations(NodeList<Annotation> annotations) {
     for (Annotation annotation in annotations) {
       var elementAnnotation =
           annotation.elementAnnotation as ElementAnnotationImpl?;
       if (elementAnnotation != null) {
-        elementAnnotation.element = annotation.element;
+        elementAnnotation.element2 = annotation.element2;
       }
     }
   }

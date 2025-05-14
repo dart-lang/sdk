@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidSettersWithoutGettersTest);
   });
@@ -60,13 +60,14 @@ class B extends A {
   }
 
   test_class_setter_noGetter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   set x(int value) {}
 }
-''', [
-      lint(16, 1),
-    ]);
+''',
+      [lint(16, 1)],
+    );
   }
 
   test_class_static_getter_setter() async {
@@ -79,23 +80,25 @@ class A {
   }
 
   test_enum() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 enum A {
   a,b,c;
   set x(int x) {}
 }
-''', [
-      lint(24, 1),
-    ]);
+''',
+      [lint(24, 1)],
+    );
   }
 
   test_extensionType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type B(int a) {
   set i(int i) {}
 }
-''', [
-      lint(32, 1),
-    ]);
+''',
+      [lint(32, 1)],
+    );
   }
 }

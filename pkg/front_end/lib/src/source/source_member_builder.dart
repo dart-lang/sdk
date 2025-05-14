@@ -20,6 +20,10 @@ import 'source_library_builder.dart';
 typedef BuildNodesCallback = void Function(
     {required Member member, Member? tearOff, required BuiltMemberKind kind});
 
+/// [BuildNodesCallback] that doesn't add the member nodes.
+void noAddBuildNodesCallback(
+    {required Member member, Member? tearOff, required BuiltMemberKind kind}) {}
+
 abstract class SourceMemberBuilder implements MemberBuilder {
   MemberDataForTesting? get dataForTesting;
 
@@ -139,6 +143,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void set isConflictingAugmentationMember(bool value) {
     assert(_isConflictingAugmentationMember == null,
         '$this.isConflictingAugmentationMember has already been fixed.');
@@ -155,9 +160,6 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
     StringBuffer sb = new StringBuffer();
     sb.write(runtimeType);
     sb.write('(');
-    if (isAugmenting) {
-      sb.write('augmentation ');
-    }
     if (isClassMember) {
       sb.write(classBuilder!.name);
       sb.write('.');
@@ -201,6 +203,7 @@ class MemberDataForTesting {
   final InferenceDataForTesting inferenceData = new InferenceDataForTesting();
 }
 
+// Coverage-ignore(suite): Not run.
 class AugmentSuperTarget {
   final SourceMemberBuilder declaration;
   final Member? readTarget;

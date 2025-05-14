@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -48,22 +45,24 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateElement] reuses a name
   /// already used by [originalElement].
-  AnalysisError duplicateDefinition(ErrorCode code, Element duplicateElement,
-      Element originalElement, List<Object> arguments) {
-    var duplicate = duplicateElement.nonSynthetic;
-    var original = originalElement.nonSynthetic;
+  AnalysisError duplicateDefinition(ErrorCode code, Element2 duplicateElement,
+      Element2 originalElement, List<Object> arguments) {
+    var duplicate = duplicateElement.nonSynthetic2;
+    var duplicateFragment = duplicate.firstFragment;
+    var original = originalElement.nonSynthetic2;
+    var originalFragment = original.firstFragment;
     return AnalysisError.tmp(
-      source: duplicate.source!,
-      offset: duplicate.nameOffset,
-      length: duplicate.nameLength,
+      source: duplicateFragment.libraryFragment!.source,
+      offset: duplicateFragment.nameOffset2 ?? -1,
+      length: duplicate.name3!.length,
       errorCode: code,
       arguments: arguments,
       contextMessages: [
         DiagnosticMessageImpl(
-          filePath: original.source!.fullName,
+          filePath: originalFragment.libraryFragment!.source.fullName,
           message: "The first definition of this name.",
-          offset: original.nameOffset,
-          length: original.nameLength,
+          offset: originalFragment.nameOffset2 ?? -1,
+          length: original.name3!.length,
           url: null,
         ),
       ],
@@ -294,12 +293,13 @@ class DiagnosticFactory {
       Source source,
       ErrorCode errorCode,
       SyntacticEntity errorNode,
-      ExecutableElement member,
-      ExecutableElement superMember,
+      ExecutableElement2 member,
+      ExecutableElement2 superMember,
       String memberName) {
     // Elements enclosing members that can participate in overrides are always
     // named, so we can safely assume `_thisMember.enclosingElement3.name` and
     // `superMember.enclosingElement3.name` are non-`null`.
+    var superFragment = superMember.nonSynthetic2.firstFragment;
     return AnalysisError.tmp(
       source: source,
       offset: errorNode.offset,
@@ -307,9 +307,9 @@ class DiagnosticFactory {
       errorCode: errorCode,
       arguments: [
         memberName,
-        member.enclosingElement3.name!,
+        member.enclosingElement2!.name3,
         member.type,
-        superMember.enclosingElement3.name!,
+        superMember.enclosingElement2!.name3,
         superMember.type,
       ],
       contextMessages: [
@@ -320,18 +320,18 @@ class DiagnosticFactory {
         // concrete).
         if (errorCode == CompileTimeErrorCode.INVALID_OVERRIDE)
           DiagnosticMessageImpl(
-            filePath: superMember.source.fullName,
+            filePath: superFragment.libraryFragment!.source.fullName,
             message: "The member being overridden.",
-            offset: superMember.nonSynthetic.nameOffset,
-            length: superMember.nonSynthetic.nameLength,
+            offset: superFragment.nameOffset2 ?? -1,
+            length: superFragment.name2!.length,
             url: null,
           ),
         if (errorCode == CompileTimeErrorCode.INVALID_OVERRIDE_SETTER)
           DiagnosticMessageImpl(
-            filePath: superMember.source.fullName,
+            filePath: superFragment.libraryFragment!.source.fullName,
             message: "The setter being overridden.",
-            offset: superMember.nonSynthetic.nameOffset,
-            length: superMember.nonSynthetic.nameLength,
+            offset: superFragment.nameOffset2 ?? -1,
+            length: superFragment.name2!.length,
             url: null,
           )
       ],
@@ -343,18 +343,18 @@ class DiagnosticFactory {
   AnalysisError referencedBeforeDeclaration(
     Source source, {
     required Token nameToken,
-    required Element element,
+    required Element2 element2,
   }) {
     String name = nameToken.lexeme;
     List<DiagnosticMessage>? contextMessages;
-    int declarationOffset = element.nameOffset;
+    int declarationOffset = element2.firstFragment.nameOffset2 ?? -1;
     if (declarationOffset >= 0) {
       contextMessages = [
         DiagnosticMessageImpl(
             filePath: source.fullName,
             message: "The declaration of '$name' is here.",
             offset: declarationOffset,
-            length: element.nameLength,
+            length: name.length,
             url: null)
       ];
     }

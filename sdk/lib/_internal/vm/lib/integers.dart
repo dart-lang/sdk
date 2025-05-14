@@ -264,10 +264,10 @@ abstract final class _IntegerImplementation implements int {
   num clamp(num lowerLimit, num upperLimit) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (lowerLimit == null) {
-      throw new ArgumentError.notNull("lowerLimit");
+      throw ArgumentError.notNull("lowerLimit");
     }
     if (upperLimit == null) {
-      throw new ArgumentError.notNull("upperLimit");
+      throw ArgumentError.notNull("upperLimit");
     }
     // Special case for integers.
     if (lowerLimit is int && upperLimit is int && lowerLimit <= upperLimit) {
@@ -277,7 +277,7 @@ abstract final class _IntegerImplementation implements int {
     }
     // Generic case involving doubles, and invalid integer ranges.
     if (lowerLimit.compareTo(upperLimit) > 0) {
-      throw new ArgumentError(lowerLimit);
+      throw ArgumentError(lowerLimit);
     }
     if (lowerLimit.isNaN) return lowerLimit;
     // Note that we don't need to care for -0.0 for the lower limit.
@@ -293,7 +293,7 @@ abstract final class _IntegerImplementation implements int {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Double)
   double toDouble() {
-    return new _Double.fromInteger(this);
+    return _Double.fromInteger(this);
   }
 
   String toStringAsFixed(int fractionDigits) {
@@ -312,7 +312,7 @@ abstract final class _IntegerImplementation implements int {
 
   String toRadixString(int radix) {
     if (radix < 2 || 36 < radix) {
-      throw new RangeError.range(radix, 2, 36, "radix");
+      throw RangeError.range(radix, 2, 36, "radix");
     }
     if (radix & (radix - 1) == 0) {
       return _toPow2String(radix);
@@ -395,13 +395,13 @@ abstract final class _IntegerImplementation implements int {
   int modPow(int e, int m) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (e == null) {
-      throw new ArgumentError.notNull("exponent");
+      throw ArgumentError.notNull("exponent");
     }
     if (m == null) {
-      throw new ArgumentError.notNull("modulus");
+      throw ArgumentError.notNull("modulus");
     }
-    if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
-    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
+    if (e < 0) throw RangeError.range(e, 0, null, "exponent");
+    if (m <= 0) throw RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
 
     // This is floor(sqrt(2^63)).
@@ -486,7 +486,7 @@ abstract final class _IntegerImplementation implements int {
     } while (u != 0);
     if (!inv) return v << s;
     if (v != 1) {
-      throw new Exception("Not coprime");
+      throw Exception("Not coprime");
     }
     if (d < 0) {
       d += x;
@@ -502,15 +502,15 @@ abstract final class _IntegerImplementation implements int {
   int modInverse(int m) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (m == null) {
-      throw new ArgumentError.notNull("modulus");
+      throw ArgumentError.notNull("modulus");
     }
-    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
+    if (m <= 0) throw RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
     int t = this;
     if ((t < 0) || (t >= m)) t %= m;
     if (t == 1) return 1;
     if ((t == 0) || (t.isEven && m.isEven)) {
-      throw new Exception("Not coprime");
+      throw Exception("Not coprime");
     }
     return _binaryGcd(m, t, true);
   }
@@ -519,7 +519,7 @@ abstract final class _IntegerImplementation implements int {
   int gcd(int other) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (other == null) {
-      throw new ArgumentError.notNull("other");
+      throw ArgumentError.notNull("other");
     }
     int x = this.abs();
     int y = other.abs();
@@ -558,7 +558,7 @@ final class _Smi extends _IntegerImplementation {
    * Get the digits of `n`, with `0 <= n < 100`, as
    * `_digitTable[n * 2]` and `_digitTable[n * 2 + 1]`.
    */
-  static const _digitTable = const [
+  static const _digitTable = [
     0x30, 0x30, 0x30, 0x31, 0x30, 0x32, 0x30, 0x33, //
     0x30, 0x34, 0x30, 0x35, 0x30, 0x36, 0x30, 0x37, //
     0x30, 0x38, 0x30, 0x39, 0x31, 0x30, 0x31, 0x31, //
@@ -589,7 +589,7 @@ final class _Smi extends _IntegerImplementation {
   /**
    * Result of int.toString for -99, -98, ..., 98, 99.
    */
-  static const _smallLookupTable = const [
+  static const _smallLookupTable = [
     "-99", "-98", "-97", "-96", "-95", "-94", "-93", "-92", "-91", "-90", //
     "-89", "-88", "-87", "-86", "-85", "-84", "-83", "-82", "-81", "-80", //
     "-79", "-78", "-77", "-76", "-75", "-74", "-73", "-72", "-71", "-70", //

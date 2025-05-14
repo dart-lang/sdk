@@ -74,7 +74,7 @@ class _SinkTransformerStreamSubscription<S, T>
   /// error.
   void _addError(Object error, StackTrace stackTrace) {
     if (_isClosed) {
-      throw new StateError("Stream is already closed");
+      throw StateError("Stream is already closed");
     }
     super._addError(error, stackTrace);
   }
@@ -86,7 +86,7 @@ class _SinkTransformerStreamSubscription<S, T>
   /// error.
   void _close() {
     if (_isClosed) {
-      throw new StateError("Stream is already closed");
+      throw StateError("Stream is already closed");
     }
     super._close();
   }
@@ -153,7 +153,7 @@ class _StreamSinkTransformer<S, T> extends StreamTransformerBase<S, T> {
   const _StreamSinkTransformer(this._sinkMapper);
 
   Stream<T> bind(Stream<S> stream) =>
-      new _BoundSinkStream<S, T>(stream, _sinkMapper);
+      _BoundSinkStream<S, T>(stream, _sinkMapper);
 }
 
 /// The result of binding a [StreamTransformer] for [Sink]-mappers.
@@ -269,7 +269,7 @@ class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {
     void handleError(Object error, StackTrace stackTrace, EventSink<T> sink)?,
     void handleDone(EventSink<T> sink)?,
   }) : super((EventSink<T> outputSink) {
-         return new _HandlerEventSink<S, T>(
+         return _HandlerEventSink<S, T>(
            handleData,
            handleError,
            handleDone,
@@ -312,7 +312,7 @@ class _StreamSubscriptionTransformer<S, T> extends StreamTransformerBase<S, T> {
   const _StreamSubscriptionTransformer(this._onListen);
 
   Stream<T> bind(Stream<S> stream) =>
-      new _BoundSubscriptionStream<S, T>(stream, _onListen);
+      _BoundSubscriptionStream<S, T>(stream, _onListen);
 }
 
 /// A stream transformed by a [_StreamSubscriptionTransformer].

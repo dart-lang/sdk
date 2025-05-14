@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 main() {
   int i = 0;
-  for (;; i++) {
+  for (; ; i++) {
     if (i == 0) break;
     Expect.fail("Should not enter here");
   }

@@ -82,7 +82,7 @@ def list_imports(uri, exec_root, package_config):
         ]:
             continue
         # Imports must happen before definitions.
-        if tokens[0] in ['const', 'class', 'enum']:
+        if tokens[0] in ['const', 'class', 'enum', 'final']:
             break
         if 2 <= len(tokens
                    ) and tokens[0] == 'if' and tokens[1] == '(dart.library.io)':
@@ -577,6 +577,7 @@ trace to find the place to insert the appropriate support.
                     '--no-embed-sources',
                     '--no-link-platform',
                     '--enable-asserts',
+                    '--link-platform',
             ]:
                 pass
             elif self.get_option(['--depfile']):

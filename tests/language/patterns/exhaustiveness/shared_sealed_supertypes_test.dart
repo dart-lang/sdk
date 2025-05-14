@@ -66,10 +66,10 @@ test(A a) {
 
   // Missing leaf.
   switch (a) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'D()'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'D()'.
     case E _:
       print('E');
     case F _:
@@ -77,10 +77,10 @@ test(A a) {
   }
 
   switch (a) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'E()'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'E()'.
     case D _:
       print('D');
     case F _:
@@ -88,10 +88,10 @@ test(A a) {
   }
 
   switch (a) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'F()'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'F()'.
     case D _:
       print('D');
     case E _:
@@ -103,12 +103,12 @@ test(A a) {
     case B _:
       print('B');
     case D _:
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('D');
     case E _:
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('E');
     case F _:
       print('F');

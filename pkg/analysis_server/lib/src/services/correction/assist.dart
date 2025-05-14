@@ -2,47 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
-import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
-import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-
-/// The implementation of [DartAssistContext].
-class DartAssistContextImpl implements DartAssistContext {
-  @override
-  final InstrumentationService instrumentationService;
-
-  @override
-  final ChangeWorkspace workspace;
-
-  @override
-  final ResolvedLibraryResult libraryResult;
-
-  @override
-  final ResolvedUnitResult unitResult;
-
-  @override
-  final Map<ProducerGenerator, Set<LintCode>> producerGeneratorsForLintRules;
-
-  @override
-  final int selectionOffset;
-
-  @override
-  final int selectionLength;
-
-  DartAssistContextImpl(
-    this.instrumentationService,
-    this.workspace,
-    this.libraryResult,
-    this.unitResult,
-    this.producerGeneratorsForLintRules,
-    this.selectionOffset,
-    this.selectionLength,
-  );
-}
 
 /// An enumeration of possible assist kinds.
 abstract final class DartAssistKind {
@@ -124,7 +84,7 @@ abstract final class DartAssistKind {
   static const CONVERT_INTO_GETTER = AssistKind(
     'dart.assist.convert.finalFieldToGetter',
     DartAssistKindPriority.DEFAULT,
-    'Convert to getter',
+    "Convert '{0}' to a getter",
   );
   static const CONVERT_INTO_IS_NOT = AssistKind(
     'dart.assist.convert.isNot',
@@ -301,6 +261,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
     'Wrap with Flexible',
   );
+  static const FLUTTER_WRAP_FUTURE_BUILDER = AssistKind(
+    'dart.assist.flutter.wrap.futureBuilder',
+    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    'Wrap with FutureBuilder',
+  );
   static const FLUTTER_WRAP_PADDING = AssistKind(
     'dart.assist.flutter.wrap.padding',
     DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
@@ -320,6 +285,11 @@ abstract final class DartAssistKind {
     'dart.assist.flutter.wrap.streamBuilder',
     DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
     'Wrap with StreamBuilder',
+  );
+  static const FLUTTER_WRAP_VALUE_LISTENABLE_BUILDER = AssistKind(
+    'dart.assist.flutter.wrap.valueListenableBuilder',
+    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    'Wrap with ValueListenableBuilder',
   );
   static const FLUTTER_SWAP_WITH_CHILD = AssistKind(
     'dart.assist.flutter.swap.withChild',

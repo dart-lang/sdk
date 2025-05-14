@@ -15,7 +15,9 @@ X evaluate<X>(X x) {
 }
 
 void runAndCheckEvaluationOrder(
-    List<Object?> expectedArguments, void Function() functionToRun) {
+  List<Object?> expectedArguments,
+  void Function() functionToRun,
+) {
   arguments.clear();
   functionToRun();
   Expect.listEquals(expectedArguments, arguments);
@@ -30,19 +32,19 @@ class A {
   }
 
   A.redir1()
-      : this(evaluate(1), evaluate("2"), z: evaluate(false), w: evaluate(3.14));
+    : this(evaluate(1), evaluate("2"), z: evaluate(false), w: evaluate(3.14));
 
   A.redir2()
-      : this(evaluate(1), z: evaluate(false), evaluate("2"), w: evaluate(3.14));
+    : this(evaluate(1), z: evaluate(false), evaluate("2"), w: evaluate(3.14));
 
   A.redir3()
-      : this(z: evaluate(false), evaluate(1), evaluate("2"), w: evaluate(3.14));
+    : this(z: evaluate(false), evaluate(1), evaluate("2"), w: evaluate(3.14));
 
   A.redir4()
-      : this(w: evaluate(3.14), evaluate(1), evaluate("2"), z: evaluate(false));
+    : this(w: evaluate(3.14), evaluate(1), evaluate("2"), z: evaluate(false));
 
   A.redir5()
-      : this(evaluate(1), w: evaluate(3.14), evaluate("2"), z: evaluate(false));
+    : this(evaluate(1), w: evaluate(3.14), evaluate("2"), z: evaluate(false));
 
   A.redir6() : this(evaluate(1), w: evaluate(3.14), evaluate("2"));
 
@@ -212,24 +214,44 @@ test(dynamic d, Function f, A a) {
 
   // InstanceGetterInvocation.
   runAndCheckEvaluationOrder([1, "2", false, 3.14], () {
-    a.property(evaluate(1), evaluate("2"),
-        z: evaluate(false), w: evaluate(3.14));
+    a.property(
+      evaluate(1),
+      evaluate("2"),
+      z: evaluate(false),
+      w: evaluate(3.14),
+    );
   });
   runAndCheckEvaluationOrder([1, false, "2", 3.14], () {
     a.property(
-        evaluate(1), z: evaluate(false), evaluate("2"), w: evaluate(3.14));
+      evaluate(1),
+      z: evaluate(false),
+      evaluate("2"),
+      w: evaluate(3.14),
+    );
   });
   runAndCheckEvaluationOrder([false, 1, "2", 3.14], () {
     a.property(
-        z: evaluate(false), evaluate(1), evaluate("2"), w: evaluate(3.14));
+      z: evaluate(false),
+      evaluate(1),
+      evaluate("2"),
+      w: evaluate(3.14),
+    );
   });
   runAndCheckEvaluationOrder([3.14, 1, "2", false], () {
     a.property(
-        w: evaluate(3.14), evaluate(1), evaluate("2"), z: evaluate(false));
+      w: evaluate(3.14),
+      evaluate(1),
+      evaluate("2"),
+      z: evaluate(false),
+    );
   });
   runAndCheckEvaluationOrder([1, 3.14, "2", false], () {
     a.property(
-        evaluate(1), w: evaluate(3.14), evaluate("2"), z: evaluate(false));
+      evaluate(1),
+      w: evaluate(3.14),
+      evaluate("2"),
+      z: evaluate(false),
+    );
   });
   runAndCheckEvaluationOrder([1, 3.14, "2"], () {
     a.property(evaluate(1), w: evaluate(3.14), evaluate("2"));
@@ -237,24 +259,29 @@ test(dynamic d, Function f, A a) {
 
   // InstanceInvocation.
   runAndCheckEvaluationOrder([a, 1, "2", false, 3.14], () {
-    evaluate(a)
-        .bar(evaluate(1), evaluate("2"), z: evaluate(false), w: evaluate(3.14));
+    evaluate(
+      a,
+    ).bar(evaluate(1), evaluate("2"), z: evaluate(false), w: evaluate(3.14));
   });
   runAndCheckEvaluationOrder([a, 1, false, "2", 3.14], () {
-    evaluate(a)
-        .bar(evaluate(1), z: evaluate(false), evaluate("2"), w: evaluate(3.14));
+    evaluate(
+      a,
+    ).bar(evaluate(1), z: evaluate(false), evaluate("2"), w: evaluate(3.14));
   });
   runAndCheckEvaluationOrder([a, false, 1, "2", 3.14], () {
-    evaluate(a)
-        .bar(z: evaluate(false), evaluate(1), evaluate("2"), w: evaluate(3.14));
+    evaluate(
+      a,
+    ).bar(z: evaluate(false), evaluate(1), evaluate("2"), w: evaluate(3.14));
   });
   runAndCheckEvaluationOrder([a, 3.14, 1, "2", false], () {
-    evaluate(a)
-        .bar(w: evaluate(3.14), evaluate(1), evaluate("2"), z: evaluate(false));
+    evaluate(
+      a,
+    ).bar(w: evaluate(3.14), evaluate(1), evaluate("2"), z: evaluate(false));
   });
   runAndCheckEvaluationOrder([a, 1, 3.14, "2", false], () {
-    evaluate(a)
-        .bar(evaluate(1), w: evaluate(3.14), evaluate("2"), z: evaluate(false));
+    evaluate(
+      a,
+    ).bar(evaluate(1), w: evaluate(3.14), evaluate("2"), z: evaluate(false));
   });
   runAndCheckEvaluationOrder([a, 1, 3.14, "2"], () {
     evaluate(a).bar(evaluate(1), w: evaluate(3.14), evaluate("2"));
@@ -302,24 +329,44 @@ test(dynamic d, Function f, A a) {
 
   // Redirecting factory constructors.
   runAndCheckEvaluationOrder([1, "2", false, 3.14], () {
-    A.redirFactory(evaluate(1), evaluate("2"),
-        z: evaluate(false), w: evaluate(3.14));
+    A.redirFactory(
+      evaluate(1),
+      evaluate("2"),
+      z: evaluate(false),
+      w: evaluate(3.14),
+    );
   });
   runAndCheckEvaluationOrder([1, false, "2", 3.14], () {
     A.redirFactory(
-        evaluate(1), z: evaluate(false), evaluate("2"), w: evaluate(3.14));
+      evaluate(1),
+      z: evaluate(false),
+      evaluate("2"),
+      w: evaluate(3.14),
+    );
   });
   runAndCheckEvaluationOrder([false, 1, "2", 3.14], () {
     A.redirFactory(
-        z: evaluate(false), evaluate(1), evaluate("2"), w: evaluate(3.14));
+      z: evaluate(false),
+      evaluate(1),
+      evaluate("2"),
+      w: evaluate(3.14),
+    );
   });
   runAndCheckEvaluationOrder([3.14, 1, "2", false], () {
     A.redirFactory(
-        w: evaluate(3.14), evaluate(1), evaluate("2"), z: evaluate(false));
+      w: evaluate(3.14),
+      evaluate(1),
+      evaluate("2"),
+      z: evaluate(false),
+    );
   });
   runAndCheckEvaluationOrder([1, 3.14, "2", false], () {
     A.redirFactory(
-        evaluate(1), w: evaluate(3.14), evaluate("2"), z: evaluate(false));
+      evaluate(1),
+      w: evaluate(3.14),
+      evaluate("2"),
+      z: evaluate(false),
+    );
   });
   runAndCheckEvaluationOrder([1, 3.14, "2"], () {
     A.redirFactory(evaluate(1), w: evaluate(3.14), evaluate("2"));
@@ -370,42 +417,57 @@ class Test extends A {
   Test() : super(1, "2", z: false, w: 3.14);
 
   Test.super1()
-      : super(evaluate(1), evaluate("2"),
-            z: evaluate(false), w: evaluate(3.14));
+    : super(evaluate(1), evaluate("2"), z: evaluate(false), w: evaluate(3.14));
   Test.super2()
-      : super(
-            evaluate(1), z: evaluate(false), evaluate("2"), w: evaluate(3.14));
+    : super(evaluate(1), z: evaluate(false), evaluate("2"), w: evaluate(3.14));
   Test.super3()
-      : super(
-            z: evaluate(false), evaluate(1), evaluate("2"), w: evaluate(3.14));
+    : super(z: evaluate(false), evaluate(1), evaluate("2"), w: evaluate(3.14));
   Test.super4()
-      : super(
-            w: evaluate(3.14), evaluate(1), evaluate("2"), z: evaluate(false));
+    : super(w: evaluate(3.14), evaluate(1), evaluate("2"), z: evaluate(false));
   Test.super5()
-      : super(
-            evaluate(1), w: evaluate(3.14), evaluate("2"), z: evaluate(false));
+    : super(evaluate(1), w: evaluate(3.14), evaluate("2"), z: evaluate(false));
   Test.super6() : super(evaluate(1), w: evaluate(3.14), evaluate("2"));
 
   test() {
     runAndCheckEvaluationOrder([1, "2", false, 3.14], () {
-      super.bar(evaluate(1), evaluate("2"),
-          z: evaluate(false), w: evaluate(3.14));
+      super.bar(
+        evaluate(1),
+        evaluate("2"),
+        z: evaluate(false),
+        w: evaluate(3.14),
+      );
     });
     runAndCheckEvaluationOrder([1, false, "2", 3.14], () {
       super.bar(
-          evaluate(1), z: evaluate(false), evaluate("2"), w: evaluate(3.14));
+        evaluate(1),
+        z: evaluate(false),
+        evaluate("2"),
+        w: evaluate(3.14),
+      );
     });
     runAndCheckEvaluationOrder([false, 1, "2", 3.14], () {
       super.bar(
-          z: evaluate(false), evaluate(1), evaluate("2"), w: evaluate(3.14));
+        z: evaluate(false),
+        evaluate(1),
+        evaluate("2"),
+        w: evaluate(3.14),
+      );
     });
     runAndCheckEvaluationOrder([3.14, 1, "2", false], () {
       super.bar(
-          w: evaluate(3.14), evaluate(1), evaluate("2"), z: evaluate(false));
+        w: evaluate(3.14),
+        evaluate(1),
+        evaluate("2"),
+        z: evaluate(false),
+      );
     });
     runAndCheckEvaluationOrder([1, 3.14, "2", false], () {
       super.bar(
-          evaluate(1), w: evaluate(3.14), evaluate("2"), z: evaluate(false));
+        evaluate(1),
+        w: evaluate(3.14),
+        evaluate("2"),
+        z: evaluate(false),
+      );
     });
     runAndCheckEvaluationOrder([1, 3.14, "2"], () {
       super.bar(evaluate(1), w: evaluate(3.14), evaluate("2"));

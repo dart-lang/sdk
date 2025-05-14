@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NoLogicInCreateStateTest);
   });
@@ -54,7 +54,8 @@ class MyState extends State {
   }
 
   test_arrowBody_returnsState_passingArguments() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
@@ -69,13 +70,14 @@ class MyState extends State {
   late BuildContext context;
   bool get mounted => false;
 }
-''', [
-      lint(119, 10),
-    ]);
+''',
+      [lint(119, 10)],
+    );
   }
 
   test_arrowBody_returnsState_withCascade() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
@@ -89,13 +91,14 @@ class MyState extends State {
   late BuildContext context;
   bool get mounted => false;
 }
-''', [
-      lint(119, 20),
-    ]);
+''',
+      [lint(119, 20)],
+    );
   }
 
   test_blockBodyWithSingleStatement_returnsInstanceField() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
@@ -112,9 +115,9 @@ class MyState extends State {
   late BuildContext context;
   bool get mounted => false;
 }
-''', [
-      lint(161, 8),
-    ]);
+''',
+      [lint(161, 8)],
+    );
   }
 
   test_blockBodyWithSingleStatement_returnsState() async {
@@ -138,7 +141,8 @@ class MyState extends State {
   }
 
   test_blockBodyWithSingleStatement_returnsState_withCascade() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
@@ -154,13 +158,14 @@ class MyState extends State {
   late BuildContext context;
   bool get mounted => false;
 }
-''', [
-      lint(129, 20),
-    ]);
+''',
+      [lint(129, 20)],
+    );
   }
 
   test_instantiateTopLevel_returnTopLevel() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 class MyStatefulBad extends StatefulWidget {
@@ -179,8 +184,8 @@ class MyState extends State {
 }
 
 var global = MyState();
-''', [
-      lint(121, 48),
-    ]);
+''',
+      [lint(121, 48)],
+    );
   }
 }

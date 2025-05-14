@@ -15,6 +15,7 @@ main() {
 
 @reflectiveTest
 class SimpleIdentifierResolutionTest extends PubPackageResolutionTest {
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augment_topLevel_function_with_function() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -42,6 +43,7 @@ SimpleIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augment_topLevel_getter_with_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -69,6 +71,7 @@ SimpleIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augment_topLevel_setter_with_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -97,7 +100,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo::@parameter::_
+    parameter: <testLibraryFragment>::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readElement2: <null>
@@ -111,6 +114,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augment_topLevel_variable_with_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -138,6 +142,7 @@ SimpleIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augment_topLevel_variable_with_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -178,7 +183,6 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: dynamic
-  staticElement: dynamic@-1
   element: dynamic
   staticType: Type
 ''');
@@ -199,7 +203,6 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: dynamic
-  staticElement: <null>
   element: <null>
   staticType: InvalidType
 ''');
@@ -216,7 +219,6 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: dynamic
-  staticElement: dynamic@-1
   element: dynamic
   staticType: Type
 ''');
@@ -236,8 +238,7 @@ enum E<T> {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: T
-  staticElement: T@7
-  element: <not-implemented>
+  element: T@7
   staticType: Type
 ''');
   }
@@ -255,7 +256,6 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: <testLibraryFragment>::@getter::a
   element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
@@ -278,7 +278,6 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: <testLibraryFragment>::@getter::a
   element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
@@ -301,7 +300,6 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: <testLibraryFragment>::@getter::a
   element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
@@ -322,8 +320,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  parameter: <testLibraryFragment>::@function::foo::@parameter::a
-  staticElement: <testLibraryFragment>::@getter::a
+  correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::a#element
   element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
@@ -344,7 +341,6 @@ int Function() foo(A a) {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  staticElement: <testLibraryFragment>::@function::foo::@parameter::a
   element: <testLibraryFragment>::@function::foo::@parameter::a#element
   staticType: A
 ''');
@@ -367,7 +363,6 @@ int Function() foo(A? a) {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  staticElement: <testLibraryFragment>::@function::foo::@parameter::a
   element: <testLibraryFragment>::@function::foo::@parameter::a#element
   staticType: A?
 ''');
@@ -391,12 +386,12 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <testLibraryFragment>::@class::A::@getter::foo
   element: <testLibraryFragment>::@class::A::@getter::foo#element
   staticType: int
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inClass_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -440,7 +435,6 @@ extension E on int Function(double) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: call
-  staticElement: <null>
   element: <null>
   staticType: int Function(double)
 ''');
@@ -459,7 +453,6 @@ extension E on int Function<T>(T) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: call
-  staticElement: <null>
   element: <null>
   staticType: int Function(double)
   tearOffTypeArgumentTypes
@@ -480,7 +473,6 @@ extension E<T extends ({int foo})> on T {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');
@@ -499,7 +491,6 @@ extension E<T extends (int, String)> on T {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $1
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');
@@ -518,7 +509,6 @@ extension E on ({int foo}) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');
@@ -539,7 +529,6 @@ extension E on ({int foo}) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: bar
-  staticElement: <testLibraryFragment>::@extension::E::@getter::bar
   element: <testLibraryFragment>::@extension::E::@getter::bar#element
   staticType: bool
 ''');
@@ -560,7 +549,6 @@ extension E on ({int foo}) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: bar
-  staticElement: <null>
   element: <null>
   staticType: InvalidType
 ''');
@@ -579,7 +567,6 @@ extension E on (int, String) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $1
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');
@@ -598,7 +585,6 @@ extension E on (int, String) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $2
-  staticElement: <null>
   element: <null>
   staticType: String
 ''');
@@ -619,7 +605,6 @@ extension E on (int, String) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $3
-  staticElement: <testLibraryFragment>::@extension::E::@getter::$3
   element: <testLibraryFragment>::@extension::E::@getter::$3#element
   staticType: bool
 ''');
@@ -640,7 +625,6 @@ extension E on (int, String) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $3
-  staticElement: <null>
   element: <null>
   staticType: InvalidType
 ''');
@@ -661,7 +645,6 @@ extension type A(int it) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <testLibraryFragment>::@extensionType::A::@getter::foo
   element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   staticType: int
 ''');
@@ -686,12 +669,12 @@ extension type X(B it) implements A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <testLibraryFragment>::@class::A::@getter::foo
   element: <testLibraryFragment>::@class::A::@getter::foo#element
   staticType: int
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inMixin_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -736,7 +719,6 @@ class C<T> {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: f
-  staticElement: f@50
   element: f@50
   staticType: void Function<U>(S, U)
 ''');
@@ -753,7 +735,6 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: Never
-  staticElement: Never@-1
   element: Never
   staticType: Type
 ''');
@@ -772,7 +753,6 @@ main() {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <testLibraryFragment>::@function::foo
   element: <testLibrary>::@function::foo
   staticType: void Function(int)
 ''');
@@ -793,7 +773,6 @@ class A {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <testLibraryFragment>::@class::A::@method::foo
   element: <testLibraryFragment>::@class::A::@method::foo#element
   staticType: void Function(int)
 ''');

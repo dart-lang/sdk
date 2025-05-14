@@ -23,7 +23,7 @@ void forLoopAssignInCondition(Object x) {
 void forLoopAssignInUpdater(Object x) {
   if (x is int) {
     print(x.isEven); // Verify that promotion occurred
-    for (;; x = 0) {
+    for (; ; x = 0) {
       // The assignment to x does de-promote because it happens after the top of
       // the loop, so flow analysis cannot check that the assigned value is an
       // int at the time de-promotion occurs.

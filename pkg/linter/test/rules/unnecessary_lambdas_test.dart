@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryLambdasTest);
   });
@@ -45,13 +45,14 @@ var x = [].map((e) => C.new(e));
     newFile('$testPackageLibPath/b.dart', r'''
 class C {}
 ''');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'b.dart' as b;
 
 var x = [() => b.C()];
-''', [
-      lint(32, 11),
-    ]);
+''',
+      [lint(32, 11)],
+    );
   }
 
   test_constructorCall_importedDeferred() async {
@@ -84,12 +85,13 @@ var x = [].map((e) => C.named(e));
   }
 
   test_constructorCall_noArgs() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {}
 var x = [() => C()];
-''', [
-      lint(20, 9),
-    ]);
+''',
+      [lint(20, 9)],
+    );
   }
 
   test_constructorCall_noParameter_oneArg() async {
@@ -151,22 +153,24 @@ var x = [() => f<int>()];
   }
 
   test_functionCall_matchingArg() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = [].forEach((x) => print(x));
-''', [
-      lint(19, 15),
-    ]);
+''',
+      [lint(19, 15)],
+    );
   }
 
   test_functionCall_singleStatement() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 final f = () {};
 final l = () {
   f();
 };
-''', [
-      lint(27, 13),
-    ]);
+''',
+      [lint(27, 13)],
+    );
   }
 
   test_functionTearoff() async {
@@ -179,15 +183,16 @@ var x = [].forEach(print);
     newFile('$testPackageLibPath/b.dart', r'''
 bool isB(Object o) => true;
 ''');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'b.dart' as b;
 
 void f() {
   [].where((o) => b.isB(o));
 }
-''', [
-      lint(45, 15),
-    ]);
+''',
+      [lint(45, 15)],
+    );
   }
 
   test_importedFunction_deferred() async {
@@ -268,14 +273,15 @@ void f() {
   }
 
   test_methodCallOnFinalLocal_matchingArg() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final l = [];
   [].where((e) => l.contains(e));
 }
-''', [
-      lint(38, 20),
-    ]);
+''',
+      [lint(38, 20)],
+    );
   }
 
   test_methodCallOnLateFinalLocal_matchingArg() async {
@@ -327,7 +333,8 @@ void f() {
   }
 
   test_noParameter_targetIsFinalField() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   final f = 1;
   Function m() {
@@ -336,9 +343,9 @@ class C {
     };
   }
 }
-''', [
-      lint(53, 30),
-    ]);
+''',
+      [lint(53, 30)],
+    );
   }
 
   test_noParameter_targetIsGetter() async {
@@ -356,13 +363,14 @@ class C {
   }
 
   test_targetIsFinalParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<String> list) {
   list.where((final e) => ((a) => e.contains(a))(e));
 }
-''', [
-      lint(55, 20),
-    ]);
+''',
+      [lint(55, 20)],
+    );
   }
 
   test_targetIsVarParameter() async {

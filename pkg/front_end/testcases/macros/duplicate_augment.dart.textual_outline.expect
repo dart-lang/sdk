@@ -1,8 +1,0 @@
-import augment 'duplicate_augment_lib.dart';
-
-void augmentedTopLevelMethod() {}
-
-class AugmentedClass {
-  void augmentedInstanceMethod() {}
-  static void augmentedStaticMethod() {}
-}

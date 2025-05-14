@@ -964,7 +964,7 @@ enum TypeUseKind {
   parameterCheck,
   rtiValue,
   typeArgument,
-  namedTypeVariableNewRti,
+  namedTypeVariable,
   typeVariableBoundCheck,
 }
 
@@ -1041,7 +1041,7 @@ class TypeUse {
       case TypeUseKind.typeArgument:
         sb.write('typeArg:');
         break;
-      case TypeUseKind.namedTypeVariableNewRti:
+      case TypeUseKind.namedTypeVariable:
         sb.write('named:');
         break;
       case TypeUseKind.typeVariableBoundCheck:
@@ -1141,8 +1141,8 @@ class TypeUse {
   }
 
   /// [type] used as a named type variable in a recipe.
-  factory TypeUse.namedTypeVariableNewRti(TypeVariableType type) =>
-      TypeUse.internal(type, TypeUseKind.namedTypeVariableNewRti);
+  factory TypeUse.namedTypeVariable(TypeVariableType type) =>
+      TypeUse.internal(type, TypeUseKind.namedTypeVariable);
 
   /// [type] used as a bound on a type variable.
   factory TypeUse.typeVariableBoundCheck(DartType type) =>

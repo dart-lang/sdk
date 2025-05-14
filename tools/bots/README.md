@@ -54,9 +54,9 @@ an `options` field.
     "options": {
       "compiler": "dartk",
       "mode": "release",
-}},
+  }
+},
 ```
-
 
 ### Builder Configurations
 
@@ -89,7 +89,7 @@ Inside arguments, the following variables will be expanded to values extracted
 from the builder name:
 - `${mode}`: the mode in which to run the tests; e.g., `release`, `debug`
 - `${arch}`: architecture to run the tests on; e.g., `ia32`, `x64`
-- `$[system}`: the system on which to run the tests; e.g., `win`, `linux`, `mac`
+- `${system}`: the system on which to run the tests; e.g., `win`, `linux`, `mac`
 - `${runtime}`: the runtime to use to run the tests; e.g., `vm`, `chrome`, `d8`
 
 ```json
@@ -130,6 +130,19 @@ The builder names are split by '-' and each part is then examined if it is an
 option. Options can be runtimes (e.g. "chrome"), architectures (e.g. x64) and
 operating system families (e.g. win). For each valid option, additional
 arguments are passed to the `tools/build.py` script.
+
+Parsing of builder names is done in [1]. A name like
+"front-end-nnbd-win-release-x64" is parsed into variables:
+
+- `info`: `"front-end-nnbd"`
+- `system`: `"win"`
+- `mode`: `"release"`
+- `arch`: `"x64"`
+
+Valid values of these variables are defined in [2].
+
+[1]: https://dart.googlesource.com/recipes/+/535cf6e8ef1e11449acfc13c7bc61a530b765bd8/recipe_modules/dart/api.py#886
+[2]: https://dart.googlesource.com/recipes/+/535cf6e8ef1e11449acfc13c7bc61a530b765bd8/recipe_modules/dart/__init__.py
 
 ### Adding a new builder
 To add a builder:

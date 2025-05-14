@@ -1095,7 +1095,6 @@ class Types with StandardBounds {
   bool isTop(DartType type) {
     return type is DynamicType ||
         type is VoidType ||
-        type == hierarchy.coreTypes.objectLegacyRawType ||
         type == hierarchy.coreTypes.objectNullableRawType;
   }
 

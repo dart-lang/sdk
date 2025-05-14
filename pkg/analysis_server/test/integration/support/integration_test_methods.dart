@@ -132,13 +132,27 @@ abstract class IntegrationTest {
   ///
   ///   LSP notifications are automatically enabled when the client sets this
   ///   capability.
+  ///
+  /// lspCapabilities: object (optional)
+  ///
+  ///   LSP capabilities of the client as defined by the Language Server
+  ///   Protocol specification.
+  ///
+  ///   If custom LSP capabilities are to be used, the setClientCapabilities
+  ///   request should be called before any LSP requests are made to the
+  ///   server.
+  ///
+  ///   If LSP capabilities are not provided or no setClientCapabilities
+  ///   request is made, a very basic set of capabilities will be assumed.
   Future<void> sendServerSetClientCapabilities(
     List<String> requests, {
     bool? supportsUris,
+    Object? lspCapabilities,
   }) async {
     var params = ServerSetClientCapabilitiesParams(
       requests,
       supportsUris: supportsUris,
+      lspCapabilities: lspCapabilities,
     ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('server.setClientCapabilities', params);
     outOfTestExpect(result, isNull);
@@ -275,6 +289,24 @@ abstract class IntegrationTest {
 
   /// Stream controller for [onServerError].
   final _onServerError = StreamController<ServerErrorParams>(sync: true);
+
+  /// Reports that an unexpected error has occurred while setting up an
+  /// analyzer plugin, or during a plugin's execution.
+  ///
+  /// It is not possible to subscribe to or unsubscribe from this notification.
+  ///
+  /// Parameters
+  ///
+  /// message: String
+  ///
+  ///   The error message indicating what kind of error was encountered.
+  late final Stream<ServerPluginErrorParams> onServerPluginError =
+      _onServerPluginError.stream.asBroadcastStream();
+
+  /// Stream controller for [onServerPluginError].
+  final _onServerPluginError = StreamController<ServerPluginErrorParams>(
+    sync: true,
+  );
 
   /// The stream of entries describing events happened in the server.
   ///
@@ -2989,6 +3021,11 @@ abstract class IntegrationTest {
 
   /// Call an LSP handler. Message can be requests or notifications.
   ///
+  /// This request can be called in either direction, either by the client to
+  /// the server, or by the server to the client. The server will only call the
+  /// client if the client has indicated it supports the associated LSP request
+  /// via `lspCapabilities` in the `setClientCapabilities` request.
+  ///
   /// Parameters
   ///
   /// lspMessage: object
@@ -3048,6 +3085,16 @@ abstract class IntegrationTest {
         outOfTestExpect(params, isServerErrorParams);
         _onServerError.add(
           ServerErrorParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
+      case 'server.pluginError':
+        outOfTestExpect(params, isServerPluginErrorParams);
+        _onServerPluginError.add(
+          ServerPluginErrorParams.fromJson(
             decoder,
             'params',
             params,

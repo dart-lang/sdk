@@ -23,10 +23,13 @@ class FixProcessorMapTest {
     'prefer_collection_literals',
     'prefer_const_constructors',
     'prefer_inlined_adds',
+    'omit_local_variable_types',
+    'omit_obvious_local_variable_types',
+    'omit_obvious_property_types',
   ];
 
   void setUp() {
-    registerBuiltInProducers();
+    registerBuiltInFixGenerators();
   }
 
   void test_lintProducerMap() {

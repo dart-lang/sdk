@@ -163,6 +163,34 @@ abstract class Interface2 extends core::Object {
   get implementedSetterImplementedGetter() → core::String
     return "";
 }
+abstract class Class extends self::_Class&Super&Mixin implements self::Interface1, self::Interface2 {
+  field core::int extendedGetterDeclaredField = 0;
+  final field core::String extendedSetterDeclaredField = "";
+  field core::int mixedInGetterDeclaredField = 0;
+  final field core::String mixedInSetterDeclaredField = "";
+  field core::int implementedGetterDeclaredField = 0;
+  final field core::String implementedSetterDeclaredField = "";
+  final field core::String declaredFieldDeclaredSetter = "";
+  synthetic constructor •() → self::Class
+    : super self::_Class&Super&Mixin::•()
+    ;
+  set extendedGetterDeclaredSetter(core::int value) → void {}
+  set extendedFieldDeclaredSetter(core::int value) → void {}
+  get extendedSetterDeclaredGetter() → core::String
+    return "";
+  set mixedInGetterDeclaredSetter(core::int value) → void {}
+  set mixedInFieldDeclaredSetter(core::int value) → void {}
+  get mixedInSetterDeclaredGetter() → core::String
+    return "";
+  set implementedGetterDeclaredSetter(core::int value) → void {}
+  set implementedFieldDeclaredSetter(core::int value) → void {}
+  get implementedSetterDeclaredGetter() → core::String
+    return "";
+  get declaredGetterDeclaredSetter() → core::String
+    return "";
+  set declaredGetterDeclaredSetter(core::int value) → void {}
+  set declaredFieldDeclaredSetter(core::int value) → void {}
+}
 abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class&Super&Mixin
     : super self::Super::•()
@@ -199,33 +227,5 @@ abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMi
     return super.{self::Mixin::mixedInSetterImplementedField} = value;
   mixin-super-stub set mixedInSetterImplementedGetter(core::int value) → void
     return super.{self::Mixin::mixedInSetterImplementedGetter} = value;
-}
-abstract class Class extends self::_Class&Super&Mixin implements self::Interface1, self::Interface2 {
-  field core::int extendedGetterDeclaredField = 0;
-  final field core::String extendedSetterDeclaredField = "";
-  field core::int mixedInGetterDeclaredField = 0;
-  final field core::String mixedInSetterDeclaredField = "";
-  field core::int implementedGetterDeclaredField = 0;
-  final field core::String implementedSetterDeclaredField = "";
-  final field core::String declaredFieldDeclaredSetter = "";
-  synthetic constructor •() → self::Class
-    : super self::_Class&Super&Mixin::•()
-    ;
-  set extendedGetterDeclaredSetter(core::int value) → void {}
-  set extendedFieldDeclaredSetter(core::int value) → void {}
-  get extendedSetterDeclaredGetter() → core::String
-    return "";
-  set mixedInGetterDeclaredSetter(core::int value) → void {}
-  set mixedInFieldDeclaredSetter(core::int value) → void {}
-  get mixedInSetterDeclaredGetter() → core::String
-    return "";
-  set implementedGetterDeclaredSetter(core::int value) → void {}
-  set implementedFieldDeclaredSetter(core::int value) → void {}
-  get implementedSetterDeclaredGetter() → core::String
-    return "";
-  get declaredGetterDeclaredSetter() → core::String
-    return "";
-  set declaredGetterDeclaredSetter(core::int value) → void {}
-  set declaredFieldDeclaredSetter(core::int value) → void {}
 }
 static method main() → dynamic {}

@@ -18,7 +18,7 @@ main() {
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
     // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
-    _ => false
+    _ => false,
   });
 
   if (false case bool x when x = true) {
@@ -33,7 +33,7 @@ main() {
       //                       ^
       // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
       // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
-      x
+      x,
   ]);
 
   // Error even if assignment is nested inside closure.
@@ -58,7 +58,7 @@ main() {
           // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
         })() =>
       x,
-    _ => false
+    _ => false,
   });
 
   if (false case var x
@@ -79,7 +79,7 @@ main() {
           // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
           // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
         })())
-      x
+      x,
   ]);
 
   // Not an error to assign to other variables.
@@ -102,7 +102,7 @@ main() {
   }
 
   print([
-    if (false case var x when local = true) x // No error.
+    if (false case var x when local = true) x, // No error.
   ]);
 
   // Not an error to assign to pattern variables from other pattern.
@@ -126,7 +126,7 @@ main() {
       }
 
       print([
-        if (false case bool y when x = true) x // No error.
+        if (false case bool y when x = true) x, // No error.
       ]);
   }
 }

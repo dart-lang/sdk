@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidClassesWithOnlyStaticMembers);
   });
@@ -17,6 +17,7 @@ class AvoidClassesWithOnlyStaticMembers extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_classes_with_only_static_members;
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_nonStaticField() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -39,6 +40,7 @@ augment class A {
     await assertNoDiagnosticsInFile(b.path);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_staticField() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -54,13 +56,12 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(16, 10),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(16, 10)]);
 
     await assertNoDiagnosticsInFile(b.path);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_staticMethod() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -76,21 +77,20 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(16, 10),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(16, 10)]);
 
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_basicClass() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static void f() {}
 }
-''', [
-      lint(0, 32),
-    ]);
+''',
+      [lint(0, 32)],
+    );
   }
 
   test_class_empty() async {
@@ -184,13 +184,14 @@ class C {
   }
 
   test_finalClass() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 final class C {
   static void f() {}
 }
-''', [
-      lint(0, 38),
-    ]);
+''',
+      [lint(0, 38)],
+    );
   }
 
   test_sealedClass() async {

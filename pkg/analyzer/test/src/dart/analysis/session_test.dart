@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
@@ -125,7 +123,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
     var session = contextFor(file).currentSession;
     var result = await session.getUnitElementValid(file);
     expect(result.path, file.path);
-    expect(result.element.classes, hasLength(1));
+    expect(result.fragment.classes2, hasLength(1));
     expect(result.uri.toString(), 'package:dart.my/a.dart');
   }
 }
@@ -266,10 +264,10 @@ class B {}
 
     var session = contextFor(testFile).currentSession;
     var result = await session.getLibraryByUriValid('package:test/test.dart');
-    var library = result.element;
-    expect(library.getClass('A'), isNotNull);
-    expect(library.getClass('B'), isNotNull);
-    expect(library.getClass('C'), isNull);
+    var library = result.element2;
+    expect(library.getClass2('A'), isNotNull);
+    expect(library.getClass2('B'), isNotNull);
+    expect(library.getClass2('C'), isNull);
   }
 
   test_getLibraryByUri_inconsistent() async {
@@ -330,8 +328,8 @@ class B {}
     );
     var parsedLibrary = session.getParsedLibraryValid(testFile);
 
-    var element = libraryResult.element.getClass('A')!;
-    var declaration = parsedLibrary.getElementDeclaration(element)!;
+    var element = libraryResult.element2.getClass2('A')!;
+    var declaration = parsedLibrary.getFragmentDeclaration(element.firstFragment)!;
     var node = declaration.node as ClassDeclaration;
     expect(node.name.lexeme, 'A');
     expect(node.offset, 0);
@@ -345,12 +343,12 @@ class B {}
     var resolvedUnit =
         await session.getResolvedUnit(testFile.path) as ResolvedUnitResult;
     var typeProvider = resolvedUnit.typeProvider;
-    var intClass = typeProvider.intType.element;
+    var intClass = typeProvider.intType.element3;
 
     var parsedLibrary = session.getParsedLibraryValid(testFile);
 
     expect(() {
-      parsedLibrary.getElementDeclaration(intClass);
+      parsedLibrary.getFragmentDeclaration(intClass.firstFragment);
     }, throwsArgumentError);
   }
 
@@ -363,19 +361,19 @@ int foo = 0;
     var parsedLibrary = session.getParsedLibraryValid(testFile);
 
     var unitResult = await session.getUnitElementValid(testFile);
-    var fooElement = unitResult.element.topLevelVariables[0];
-    expect(fooElement.name, 'foo');
+    var fooElement = unitResult.fragment.topLevelVariables2[0];
+    expect(fooElement.name2, 'foo');
 
     // We can get the variable element declaration.
-    var fooDeclaration = parsedLibrary.getElementDeclaration(fooElement)!;
+    var fooDeclaration = parsedLibrary.getFragmentDeclaration(fooElement)!;
     var fooNode = fooDeclaration.node as VariableDeclaration;
     expect(fooNode.name.lexeme, 'foo');
     expect(fooNode.offset, 4);
     expect(fooNode.length, 7);
 
     // Synthetic elements don't have nodes.
-    expect(parsedLibrary.getElementDeclaration(fooElement.getter!), isNull);
-    expect(parsedLibrary.getElementDeclaration(fooElement.setter!), isNull);
+    expect(parsedLibrary.getFragmentDeclaration(fooElement.getter2!), isNull);
+    expect(parsedLibrary.getFragmentDeclaration(fooElement.setter2!), isNull);
   }
 
   test_getParsedLibrary_inconsistent() async {
@@ -477,7 +475,7 @@ class C3 {}
     var libraryResult = await session.getLibraryByUriValid(
       'package:test/test.dart',
     );
-    var element = libraryResult.element;
+    var element = libraryResult.element2;
 
     var parsedLibrary = session.getParsedLibraryByElementValid(element);
     expect(parsedLibrary.session, session);
@@ -498,12 +496,12 @@ class C3 {}
     var libraryResult = await session.getLibraryByUriValid(
       'package:test/test.dart',
     );
-    var element = libraryResult.element;
+    var element = libraryResult.element2;
 
     var aaaFile = getFile('$workspaceRootPath/aaa/lib/a.dart');
     var aaaSession = contextFor(aaaFile).currentSession;
 
-    var result = aaaSession.getParsedLibraryByElement(element);
+    var result = aaaSession.getParsedLibraryByElement2(element);
     expect(result, isA<NotElementOfThisSessionResult>());
   }
 
@@ -558,13 +556,13 @@ class B2 extends X {}
     expect(resolvedLibrary.session, session);
 
     var typeProvider = resolvedLibrary.typeProvider;
-    expect(typeProvider.intType.element.name, 'int');
+    expect(typeProvider.intType.element3.name3, 'int');
 
-    var libraryElement = resolvedLibrary.element;
+    var libraryElement = resolvedLibrary.element2;
 
-    var aClass = libraryElement.getClass('A')!;
+    var aClass = libraryElement.getClass2('A')!;
 
-    var bClass = libraryElement.getClass('B')!;
+    var bClass = libraryElement.getClass2('B')!;
 
     var aUnitResult = resolvedLibrary.units[0];
     expect(aUnitResult.path, a.path);
@@ -584,19 +582,19 @@ class B2 extends X {}
     expect(bUnitResult.unit.declarations, hasLength(2));
     expect(bUnitResult.errors, isNotEmpty);
 
-    var aDeclaration = resolvedLibrary.getElementDeclaration(aClass)!;
+    var aDeclaration = resolvedLibrary.getFragmentDeclaration(aClass.firstFragment)!;
     var aNode = aDeclaration.node as ClassDeclaration;
     expect(aNode.name.lexeme, 'A');
     expect(aNode.offset, 16);
     expect(aNode.length, 16);
-    expect(aNode.declaredElement!.name, 'A');
+    expect(aNode.declaredFragment!.name2, 'A');
 
-    var bDeclaration = resolvedLibrary.getElementDeclaration(bClass)!;
+    var bDeclaration = resolvedLibrary.getFragmentDeclaration(bClass.firstFragment)!;
     var bNode = bDeclaration.node as ClassDeclaration;
     expect(bNode.name.lexeme, 'B');
     expect(bNode.offset, 19);
     expect(bNode.length, 16);
-    expect(bNode.declaredElement!.name, 'B');
+    expect(bNode.declaredFragment!.name2, 'B');
   }
 
   test_getResolvedLibrary_getElementDeclaration_notThisLibrary() async {
@@ -606,8 +604,8 @@ class B2 extends X {}
     var resolvedLibrary = await session.getResolvedLibraryValid(testFile);
 
     expect(() {
-      var intClass = resolvedLibrary.typeProvider.intType.element;
-      resolvedLibrary.getElementDeclaration(intClass);
+      var intClass = resolvedLibrary.typeProvider.intType.element3;
+      resolvedLibrary.getFragmentDeclaration(intClass.firstFragment);
     }, throwsArgumentError);
   }
 
@@ -618,22 +616,22 @@ int foo = 0;
 
     var session = contextFor(testFile).currentSession;
     var resolvedLibrary = await session.getResolvedLibraryValid(testFile);
-    var unitElement = resolvedLibrary.element.definingCompilationUnit;
+    var unitElement = resolvedLibrary.element2.firstFragment;
 
-    var fooElement = unitElement.topLevelVariables[0];
-    expect(fooElement.name, 'foo');
+    var fooElement = unitElement.topLevelVariables2[0];
+    expect(fooElement.name2, 'foo');
 
     // We can get the variable element declaration.
-    var fooDeclaration = resolvedLibrary.getElementDeclaration(fooElement)!;
+    var fooDeclaration = resolvedLibrary.getFragmentDeclaration(fooElement)!;
     var fooNode = fooDeclaration.node as VariableDeclaration;
     expect(fooNode.name.lexeme, 'foo');
     expect(fooNode.offset, 4);
     expect(fooNode.length, 7);
-    expect(fooNode.declaredElement!.name, 'foo');
+    expect(fooNode.declaredFragment!.name2, 'foo');
 
     // Synthetic elements don't have nodes.
-    expect(resolvedLibrary.getElementDeclaration(fooElement.getter!), isNull);
-    expect(resolvedLibrary.getElementDeclaration(fooElement.setter!), isNull);
+    expect(resolvedLibrary.getFragmentDeclaration(fooElement.getter2!), isNull);
+    expect(resolvedLibrary.getFragmentDeclaration(fooElement.setter2!), isNull);
   }
 
   test_getResolvedLibrary_inconsistent() async {
@@ -684,14 +682,14 @@ part 'c.dart';
     var libraryResult = await session.getLibraryByUriValid(
       'package:test/test.dart',
     );
-    var element = libraryResult.element;
+    var element = libraryResult.element2;
 
     var result = await session.getResolvedLibraryByElementValid(element);
     expect(result.session, session);
     expect(result.units, hasLength(1));
     expect(result.units[0].path, test.path);
     expect(result.units[0].uri, Uri.parse('package:test/test.dart'));
-    expect(result.units[0].unit.declaredElement, isNotNull);
+    expect(result.units[0].unit.declaredFragment, isNotNull);
   }
 
   test_getResolvedLibraryByElement_differentSession() async {
@@ -701,12 +699,12 @@ part 'c.dart';
     var libraryResult = await session.getLibraryByUriValid(
       'package:test/test.dart',
     );
-    var element = libraryResult.element;
+    var element = libraryResult.element2;
 
     var aaaFile = getFile('$workspaceRootPath/aaa/lib/a.dart');
     var aaaSession = contextFor(aaaFile).currentSession;
 
-    var result = await aaaSession.getResolvedLibraryByElement(element);
+    var result = await aaaSession.getResolvedLibraryByElement2(element);
     expect(result, isA<NotElementOfThisSessionResult>());
   }
 
@@ -724,7 +722,7 @@ class B {}
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));
     expect(unitResult.unit.declarations, hasLength(2));
     expect(unitResult.typeProvider, isNotNull);
-    expect(unitResult.libraryElement, isNotNull);
+    expect(unitResult.libraryElement2, isNotNull);
   }
 
   test_getResolvedUnit_inconsistent() async {
@@ -906,13 +904,13 @@ unitElementResult
 
       sink.writelnWithIndent('element');
       sink.withIndent(() {
-        var element = result.element as CompilationUnitElementImpl;
+        var element = result.fragment as CompilationUnitElementImpl;
         sink.writelnWithIndent('reference: ${element.reference}');
 
-        var library = element.library;
+        var library = (element as LibraryFragment).element as LibraryElementImpl;
         sink.writelnWithIndent('library: ${library.reference}');
 
-        var classListStr = element.classes.map((e) => e.name).join(', ');
+        var classListStr = element.classes2.map((e) => e.name2).join(', ');
         sink.writelnWithIndent('classes: $classListStr');
       });
     });
@@ -934,8 +932,8 @@ extension on AnalysisSession {
     return await getLibraryByUri(uriStr) as LibraryElementResult;
   }
 
-  ParsedLibraryResult getParsedLibraryByElementValid(LibraryElement element) {
-    return getParsedLibraryByElement(element) as ParsedLibraryResult;
+  ParsedLibraryResult getParsedLibraryByElementValid(LibraryElement2 element) {
+    return getParsedLibraryByElement2(element) as ParsedLibraryResult;
   }
 
   ParsedLibraryResult getParsedLibraryValid(File file) {
@@ -947,8 +945,8 @@ extension on AnalysisSession {
   }
 
   Future<ResolvedLibraryResult> getResolvedLibraryByElementValid(
-      LibraryElement element) async {
-    return await getResolvedLibraryByElement(element) as ResolvedLibraryResult;
+      LibraryElement2 element) async {
+    return await getResolvedLibraryByElement2(element) as ResolvedLibraryResult;
   }
 
   Future<ResolvedLibraryResult> getResolvedLibraryValid(File file) async {

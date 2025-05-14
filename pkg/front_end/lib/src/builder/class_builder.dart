@@ -98,15 +98,10 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   /// The type in the `implements` clause of a class or mixin declaration.
   List<TypeBuilder>? get interfaceBuilders;
 
-  /// The types in the `on` clause of an extension or mixin declaration.
-  List<TypeBuilder>? get onTypes;
-
   @override
   Uri get fileUri;
 
   bool get isAbstract;
-
-  bool get isMacro;
 
   bool get isSealed;
 
@@ -126,7 +121,7 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   bool get isAnonymousMixinApplication;
 
-  abstract TypeBuilder? mixedInTypeBuilder;
+  TypeBuilder? get mixedInTypeBuilder;
 
   bool get isFutureOr;
 
@@ -137,9 +132,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   /// Reference for the class built by this builder.
   Reference get reference;
-
-  @override
-  ClassBuilder get origin;
 
   abstract bool isNullClass;
 
@@ -192,24 +184,24 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Builder? findStaticBuilder(
       String name, int fileOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter = false}) {
-    if (accessingLibrary.nameOriginBuilder.origin !=
-            libraryBuilder.nameOriginBuilder.origin &&
+    if (accessingLibrary.nameOriginBuilder !=
+            libraryBuilder.nameOriginBuilder &&
         name.startsWith("_")) {
       return null;
     }
-    Builder? declaration = normalizeLookup(
-        getable: nameSpace.lookupLocalMember(name, setter: false),
-        setable: nameSpace.lookupLocalMember(name, setter: true),
-        name: name,
-        charOffset: fileOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: this.name,
-        isSetter: isSetter,
-        forStaticAccess: true);
-    if (declaration == null && isAugmenting) {
-      return origin.findStaticBuilder(
-          name, fileOffset, fileUri, accessingLibrary,
-          isSetter: isSetter);
+    Builder? getable = nameSpace.lookupLocalMember(name, setter: false);
+    Builder? setable = nameSpace.lookupLocalMember(name, setter: true);
+    Builder? declaration;
+    if (getable != null || setable != null) {
+      declaration = normalizeLookup(
+          getable: getable,
+          setable: setable,
+          name: name,
+          charOffset: fileOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: this.name,
+          isSetter: isSetter,
+          forStaticAccess: true);
     }
     return declaration;
   }
@@ -218,10 +210,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
     Builder? builder = nameSpace.lookupLocalMember(name, setter: setter);
-    if (builder == null && isAugmenting) {
-      // Coverage-ignore-block(suite): Not run.
-      builder = origin.nameSpace.lookupLocalMember(name, setter: setter);
-    }
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(
@@ -230,23 +218,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           null);
     }
     return builder;
-  }
-
-  /// Find the first member of this class with [name]. This method isn't
-  /// suitable for scope lookups as it will throw an error if the name isn't
-  /// declared. The [scope] should be used for that. This method is used to
-  /// find a member that is known to exist and it will pick the first
-  /// declaration if the name is ambiguous.
-  ///
-  /// For example, this method is convenient for use when building synthetic
-  /// members, such as those of an enum.
-  MemberBuilder? firstMemberNamed(String name) {
-    MemberBuilder declaration =
-        lookupLocalMember(name, required: true) as MemberBuilder;
-    while (declaration.next != null) {
-      declaration = declaration.next as MemberBuilder;
-    }
-    return declaration;
   }
 
   @override
@@ -390,11 +361,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   Supertype buildMixedInType(
       LibraryBuilder library, List<TypeBuilder>? arguments) {
-    Class cls = isAugmenting
-        ?
-        // Coverage-ignore(suite): Not run.
-        origin.cls
-        : this.cls;
     if (arguments != null) {
       List<DartType> typeArguments =
           buildAliasedTypeArguments(library, arguments, /* hierarchy = */ null);
@@ -421,26 +387,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter = false, bool isSuper = false}) {
     Class? instanceClass = cls;
-    if (isAugmenting) {
-      // Coverage-ignore-block(suite): Not run.
-      assert(identical(instanceClass, origin.cls),
-          "Found ${origin.cls} expected $instanceClass");
-      if (isSuper) {
-        // The super class is only correctly found through the origin class.
-        instanceClass = origin.cls;
-      } else {
-        Member? member =
-            hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
-        if (member?.parent == instanceClass) {
-          // Only if the member is found in the augmentation can we use it.
-          return member;
-        } else {
-          // Otherwise, we need to keep searching in the origin class.
-          instanceClass = origin.cls;
-        }
-      }
-    }
-
     if (isSuper) {
       instanceClass = instanceClass.superclass;
       if (instanceClass == null) return null;

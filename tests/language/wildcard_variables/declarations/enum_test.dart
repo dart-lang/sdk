@@ -4,8 +4,6 @@
 
 // Tests the usage of wildcards in enum constructors and fields.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'package:expect/expect.dart';
 
 enum A { _ }

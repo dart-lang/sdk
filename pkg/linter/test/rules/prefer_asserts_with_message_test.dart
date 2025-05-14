@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferAssertsWithMessageTest);
   });
@@ -26,13 +26,14 @@ class A {
   }
 
   test_assertInitializer_noMessage() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A() : assert(true);
 }
-''', [
-      lint(18, 12),
-    ]);
+''',
+      [lint(18, 12)],
+    );
   }
 
   test_assertStatement_message() async {
@@ -44,12 +45,13 @@ void f() {
   }
 
   test_assertStatement_noMessage() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   assert(true);
 }
-''', [
-      lint(13, 13),
-    ]);
+''',
+      [lint(13, 13)],
+    );
   }
 }

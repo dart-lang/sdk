@@ -14,8 +14,7 @@ import 'package:kernel/binary/ast_from_binary.dart'
         CompilationModeError,
         InvalidKernelSdkVersionError,
         InvalidKernelVersionError,
-        SubComponentView,
-        mergeCompilationModeOrThrow;
+        SubComponentView;
 import 'package:kernel/canonical_name.dart'
     show CanonicalNameError, CanonicalNameSdkError;
 import 'package:kernel/class_hierarchy.dart'
@@ -39,7 +38,6 @@ import 'package:kernel/kernel.dart'
         Name,
         NamedNode,
         Node,
-        NonNullableByDefaultCompiledMode,
         Procedure,
         ProcedureKind,
         Reference,
@@ -55,7 +53,6 @@ import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
-import 'package:macros/src/executor/multi_executor.dart' as macros;
 import 'package:package_config/package_config.dart' show Package, PackageConfig;
 
 import '../api_prototype/experimental_flags.dart';
@@ -68,8 +65,6 @@ import '../api_prototype/incremental_kernel_generator.dart'
 import '../api_prototype/lowering_predicates.dart'
     show isExtensionThisName, syntheticThisName;
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
-import '../base/nnbd_mode.dart';
-import '../base/processed_options.dart' show ProcessedOptions;
 import '../builder/builder.dart' show Builder;
 import '../builder/declaration_builders.dart'
     show ClassBuilder, ExtensionBuilder, ExtensionTypeDeclarationBuilder;
@@ -86,8 +81,6 @@ import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
-import '../kernel/macro/macro.dart' show NeededPrecompilations;
-import '../kernel_generator_impl.dart' show precompileMacros;
 import '../source/source_extension_builder.dart';
 import '../source/source_library_builder.dart'
     show
@@ -143,12 +136,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   // This will be set if the right environment variable is set
   // (enableIncrementalCompilerBenchmarking).
   Benchmarker? _benchmarker;
-
-  /// Map by library [Uri] to the [macros.ExecutorFactoryToken]s that was
-  /// retrieved when registering the compiled macro executor for that library.
-  ///
-  /// This is primarily used for invalidation.
-  final Map<Uri, macros.ExecutorFactoryToken> macroExecutorFactoryTokens = {};
 
   RecorderForTesting? get recorderForTesting => null;
 
@@ -317,12 +304,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       _rewriteEntryPointsIfPart(
           entryPoints, reusedResult, experimentalInvalidation != null);
 
-      _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_invalidatePrecompiledMacros);
-      await _invalidatePrecompiledMacros(
-          c.options, reusedResult.notReusedLibraries);
-
       // Cleanup: After (potentially) removing builders we have stuff to cleanup
       // to not leak, and we might need to re-create the dill target.
       _benchmarker
@@ -357,46 +338,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // to be setup, and in the case of experimental invalidation some of the
       // builders needs to be patched up.
       IncrementalKernelTarget currentKernelTarget;
-      while (true) {
-        _benchmarker
-            // Coverage-ignore(suite): Not run.
-            ?.enterPhase(BenchmarkPhases.incremental_setupInLoop);
-        currentKernelTarget = _setupNewKernelTarget(c, uriTranslator, hierarchy,
-            reusedLibraries, experimentalInvalidation, entryPoints);
-        Map<DillLibraryBuilder, CompilationUnit>? rebuildBodiesMap =
-            _experimentalInvalidationCreateRebuildBodiesBuilders(
-                currentKernelTarget, experimentalInvalidation, uriTranslator);
-        entryPoints = currentKernelTarget.setEntryPoints(entryPoints);
 
-        // TODO(johnniwinther,jensj): Ensure that the internal state of the
-        // incremental compiler is consistent across 1 or more macro
-        // precompilations.
-        _benchmarker
-            // Coverage-ignore(suite): Not run.
-            ?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
-        NeededPrecompilations? neededPrecompilations =
-            await currentKernelTarget.computeNeededPrecompilations();
-        _benchmarker
-            // Coverage-ignore(suite): Not run.
-            ?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
-        if (context.options.globalFeatures.macros.isEnabled) {
-          Map<Uri, macros.ExecutorFactoryToken>? precompiled =
-              await precompileMacros(neededPrecompilations, c.options);
-          if (precompiled != null) {
-            // Coverage-ignore-block(suite): Not run.
-            macroExecutorFactoryTokens.addAll(precompiled);
-            continue;
-          }
-        }
-        _benchmarker
-            // Coverage-ignore(suite): Not run.
-            ?.enterPhase(BenchmarkPhases
-                .incremental_experimentalInvalidationPatchUpScopes);
-        _experimentalInvalidationPatchUpScopes(
-            experimentalInvalidation, rebuildBodiesMap);
-        rebuildBodiesMap = null;
-        break;
-      }
+      _benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.incremental_setupInLoop);
+      currentKernelTarget = _setupNewKernelTarget(c, uriTranslator, hierarchy,
+          reusedLibraries, experimentalInvalidation, entryPoints);
+      Map<DillLibraryBuilder, CompilationUnit>? rebuildBodiesMap =
+          _experimentalInvalidationCreateRebuildBodiesBuilders(
+              currentKernelTarget, experimentalInvalidation, uriTranslator);
+      entryPoints = currentKernelTarget.setEntryPoints(entryPoints);
+
+      _benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
+      await currentKernelTarget.computeNeededPrecompilations();
+      _benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases
+              .incremental_experimentalInvalidationPatchUpScopes);
+      _experimentalInvalidationPatchUpScopes(
+          experimentalInvalidation, rebuildBodiesMap);
+      rebuildBodiesMap = null;
 
       // Checkpoint: Build the actual outline.
       // Note that the [Component] is not the "full" component.
@@ -410,14 +373,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       if (!outlineOnly) {
         // Checkpoint: Build the actual bodies.
-        buildResult = await currentKernelTarget.buildComponent(
-            macroApplications: buildResult.macroApplications,
-            verify: c.options.verify);
+        buildResult =
+            await currentKernelTarget.buildComponent(verify: c.options.verify);
         componentWithDill = buildResult.component;
       }
-      buildResult.macroApplications
-          // Coverage-ignore(suite): Not run.
-          ?.close();
 
       _benchmarker
           // Coverage-ignore(suite): Not run.
@@ -531,14 +490,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           data.component?.mainMethod
           : componentWithDill.mainMethod;
       // ignore: unnecessary_null_comparison
-      NonNullableByDefaultCompiledMode? compiledMode = componentWithDill == null
-          ?
-          // Coverage-ignore(suite): Not run.
-          data.component?.mode
-          : componentWithDill.mode;
       Component result = context.options.target.configureComponent(
           new Component(libraries: outputLibraries, uriToSource: uriToSource))
-        ..setMainMethodAndMode(mainMethod?.reference, true, compiledMode!)
+        ..setMainMethodAndMode(mainMethod?.reference, true)
         ..problemsAsJson = problemsAsJson;
 
       // Copy the metadata *just created*. This will likely not contain metadata
@@ -983,39 +937,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     _dillLoadedData!.loader.currentSourceLoader = kernelTarget.loader;
 
     // Re-use the libraries we've deemed re-usable.
-    List<bool> seenModes = [false, false, false, false];
     for (DillLibraryBuilder library in reusedLibraries) {
-      seenModes[library.library.nonNullableByDefaultCompiledMode.index] = true;
       kernelTarget.loader.registerLoadedDillLibraryBuilder(library);
-    }
-    // Check compilation mode up against what we've seen here and set
-    // `hasInvalidNnbdModeLibrary` accordingly.
-    if (c.options.globalFeatures.nonNullable.isEnabled) {
-      switch (c.options.nnbdMode) {
-        case NnbdMode.Weak:
-          // Coverage-ignore(suite): Not run.
-          // Don't expect strong or invalid.
-          if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
-              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-            kernelTarget.loader.hasInvalidNnbdModeLibrary = true;
-          }
-          break;
-        case NnbdMode.Strong:
-          // Don't expect weak or invalid.
-          if (seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
-              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-            // Coverage-ignore-block(suite): Not run.
-            kernelTarget.loader.hasInvalidNnbdModeLibrary = true;
-          }
-          break;
-      }
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      // Don't expect strong or invalid.
-      if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
-          seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-        kernelTarget.loader.hasInvalidNnbdModeLibrary = true;
-      }
     }
 
     // The entry point(s) has to be set first for loader.firstUri to be setup
@@ -1188,25 +1111,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return null;
     }
 
-    if (context.options.globalFeatures.macros.isEnabled) {
-      /// TODO(johnniwinther): Add a [hasMacro] property to [LibraryBuilder].
-      for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
-        // TODO(johnniwinther): Should this include non-local (i.e. injected)
-        // members?
-        Iterator<ClassBuilder> iterator = builder.localMembersIteratorOfType();
-        while (iterator.moveNext()) {
-          ClassBuilder childBuilder = iterator.current;
-          if (childBuilder.isMacro) {
-            // Changes to a library with macro classes can affect any class that
-            // depends on it.
-            recorderForTesting?.recordAdvancedInvalidationResult(
-                AdvancedInvalidationResult.macroChange);
-            return null;
-          }
-        }
-      }
-    }
-
     // Figure out if the file(s) have changed outline, or we can just
     // rebuild the bodies.
     for (DillLibraryBuilder builder in reusedResult.directlyInvalidated) {
@@ -1238,8 +1142,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 context.options.globalFeatures.tripleShift.isEnabled);
         bool enablePatterns =
             builder.languageVersion >= ExperimentalFlag.patterns.enabledVersion;
+        bool enableEnhancedParts = builder.languageVersion >=
+            ExperimentalFlag.enhancedParts.enabledVersion;
         String? before = textualOutline(previousSource, scannerConfiguration,
-            performModelling: true, enablePatterns: enablePatterns);
+            performModelling: true,
+            enablePatterns: enablePatterns,
+            enableEnhancedParts: enableEnhancedParts);
         if (before == null) {
           // Coverage-ignore-block(suite): Not run.
           recorderForTesting?.recordAdvancedInvalidationResult(
@@ -1250,7 +1158,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         FileSystemEntity entity = c.options.fileSystem.entityForUri(uri);
         if (await entity.exists()) {
           now = textualOutline(await entity.readAsBytes(), scannerConfiguration,
-              performModelling: true, enablePatterns: enablePatterns);
+              performModelling: true,
+              enablePatterns: enablePatterns,
+              enableEnhancedParts: enableEnhancedParts);
         }
         if (before != now) {
           recorderForTesting?.recordAdvancedInvalidationResult(
@@ -1338,7 +1248,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Set<Uri> seenUris = new Set<Uri>();
     for (DillLibraryBuilder builder in reusedResult.notReusedLibraries) {
       if (builder.isPart) continue;
-      if (builder.isAugmenting) continue;
       if (rebuildBodies!.contains(builder)) continue;
       if (!seenUris.add(builder.importUri)) continue;
       reusedResult.reusedLibraries.add(builder);
@@ -1506,24 +1415,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           neededDillLibraries.add(builder.library);
         }
       }
-    }
-  }
-
-  /// Removes the precompiled macros whose libraries cannot be reused.
-  Future<void> _invalidatePrecompiledMacros(ProcessedOptions processedOptions,
-      Set<LibraryBuilder> notReusedLibraries) async {
-    if (notReusedLibraries.isEmpty) {
-      return;
-    }
-    if (macroExecutorFactoryTokens.isNotEmpty) {
-      // Coverage-ignore-block(suite): Not run.
-      await Future.wait(notReusedLibraries
-          .map((library) => library.importUri)
-          .where(macroExecutorFactoryTokens.containsKey)
-          .map((importUri) => processedOptions.macroExecutor
-              .unregisterExecutorFactory(
-                  macroExecutorFactoryTokens.remove(importUri)!,
-                  libraries: {importUri})));
     }
   }
 
@@ -1704,7 +1595,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Library> removedLibraries = <Library>[];
     bool removedDillBuilders = false;
     for (Uri uri in potentiallyReferencedLibraries.keys) {
-      // Coverage-ignore-block(suite): Not run.
       if (uri.isScheme("package")) continue;
       LibraryBuilder? builder =
           currentKernelTarget.loader.deregisterLoadedLibraryBuilder(uri);
@@ -1724,12 +1614,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         _componentProblems.removeLibrary(lib, uriTranslator, partsUsed);
 
         // Technically this isn't necessary as the uri is not a package-uri.
-        _incrementalSerializer?.invalidate(builder.fileUri);
+        _incrementalSerializer
+            // Coverage-ignore(suite): Not run.
+            ?.invalidate(builder.fileUri);
       }
     }
     hierarchy.applyTreeChanges(removedLibraries, const [], const []);
     if (removedDillBuilders) {
-      // Coverage-ignore-block(suite): Not run.
       _makeDillLoaderLibrariesUpToDateWithBuildersMap();
     }
 
@@ -1762,7 +1653,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       [Map<Uri, Source>? uriToSourceExtra,
       Set<Uri?>? partsUsed]) {
     uriToSource.remove(builder.fileUri);
-    // Coverage-ignore(suite): Not run.
     uriToSourceExtra?.remove(builder.fileUri);
     Library lib = builder.library;
     for (LibraryPart part in lib.parts) {
@@ -2047,6 +1937,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         debugLibrary.addImportsToScope();
         _ticker.logMs("Added imports");
       }
+      SourceCompilationUnit? orgCompilationUnit = debugCompilationUnit;
       debugCompilationUnit = new SourceCompilationUnitImpl(
           importUri: libraryUri,
           fileUri: debugExprUri,
@@ -2055,7 +1946,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               new ImplicitLanguageVersion(libraryBuilder.languageVersion),
           loader: lastGoodKernelTarget.loader,
           nameOrigin: libraryBuilder,
-          parentScope: debugLibrary.scope,
+          parentScope: debugCompilationUnit.compilationUnitScope,
           isUnsupported: libraryBuilder.isUnsupported,
           forAugmentationLibrary: false,
           forPatchLibrary: false,
@@ -2067,25 +1958,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           mayImplementRestrictedTypes: false);
       debugCompilationUnit.markLanguageVersionFinal();
 
-      SourceLibraryBuilder? orgDebugLibrary = debugLibrary;
       debugLibrary = debugCompilationUnit.createLibrary();
 
       // Copy over the prefix namespace for extensions
       // (`forEachExtensionInScope`) to be found when imported via prefixes.
-      // TODO(johnniwinther): Extensions should be available through
-      // [parentScope].
-      orgDebugLibrary.prefixNameSpace.forEachLocalMember((name, member) {
-        debugLibrary.prefixNameSpace
+      // TODO(johnniwinther): Do we still need these with the new scope
+      //  structure?
+      orgCompilationUnit.prefixNameSpace.forEachLocalMember((name, member) {
+        debugCompilationUnit.prefixNameSpace
             .addLocalMember(name, member, setter: false);
       });
       // Does a prefix namespace ever have anything but locals?
-      orgDebugLibrary.prefixNameSpace.forEachLocalSetter((name, member) {
-        debugLibrary.prefixNameSpace.addLocalMember(name, member, setter: true);
+      orgCompilationUnit.prefixNameSpace.forEachLocalSetter((name, member) {
+        debugCompilationUnit.prefixNameSpace
+            .addLocalMember(name, member, setter: true);
       });
-      orgDebugLibrary.prefixNameSpace.forEachLocalExtension((member) {
-        debugLibrary.prefixNameSpace.addExtension(member);
+      orgCompilationUnit.prefixNameSpace.forEachLocalExtension((member) {
+        debugCompilationUnit.prefixNameSpace.addExtension(member);
       });
-      orgDebugLibrary = null;
+      orgCompilationUnit = null;
 
       HybridFileSystem hfs =
           lastGoodKernelTarget.fileSystem as HybridFileSystem;
@@ -2321,9 +2212,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // builder can exist multiple times in the values list.
     for (DillLibraryBuilder builder in builders.values) {
       if (builder.isPart) continue;
-      // TODO(jensj/ahe): This line can probably go away once
-      // https://dart-review.googlesource.com/47442 lands.
-      if (builder.isAugmenting) continue;
       if (!seenUris.add(builder.importUri)) continue;
       reusedLibraries.add(builder);
     }
@@ -2573,8 +2461,7 @@ class _InitializationFromComponent extends _InitializationStrategy {
               .mainMethod
               // Coverage-ignore(suite): Not run.
               ?.reference,
-          true,
-          componentToInitializeFrom.mode);
+          true);
     componentProblems.saveComponentProblems(component);
 
     bool foundDartCore = false;
@@ -2703,21 +2590,6 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
             .readComponent(data.component!,
                 checkCanonicalNames: true, createView: true)!;
 
-        // Compute "output nnbd mode".
-        NonNullableByDefaultCompiledMode compiledMode;
-        if (context.options.globalFeatures.nonNullable.isEnabled) {
-          switch (context.options.nnbdMode) {
-            case NnbdMode.Weak:
-              compiledMode = NonNullableByDefaultCompiledMode.Weak;
-              break;
-            case NnbdMode.Strong:
-              compiledMode = NonNullableByDefaultCompiledMode.Strong;
-              break;
-          }
-        } else {
-          compiledMode = NonNullableByDefaultCompiledMode.Weak;
-        }
-
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).
         // Also verify NNBD settings.
@@ -2730,16 +2602,6 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
             // TODO(jensj): Anything that doesn't depend on it can be kept.
             // For now just don't initialize from this dill.
             throw const PackageChangedError();
-          }
-          // Note: If a library has a NonNullableByDefaultCompiledMode.invalid
-          // we will throw and we won't initialize from it.
-          // That's wanted behavior.
-          if (compiledMode !=
-              mergeCompilationModeOrThrow(
-                  compiledMode, lib.nonNullableByDefaultCompiledMode)) {
-            throw new CompilationModeError(
-                "Can't compile to $compiledMode with library with mode "
-                "${lib.nonNullableByDefaultCompiledMode}.");
           }
         }
 
@@ -2873,10 +2735,6 @@ enum AdvancedInvalidationResult {
 
   /// Package config has been updated, advanced invalidation is not supported.
   packageUpdate,
-
-  /// Change to (dependency of) macro library, advanced invalidation is not
-  /// supported.
-  macroChange,
 
   /// Problems in invalidated library, advanced invalidation is not supported.
   problemsInLibrary,

@@ -9,6 +9,7 @@ import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
 import 'dispatch_table.dart';
+import 'dynamic_modules.dart';
 import 'reference_extensions.dart';
 import 'translator.dart';
 
@@ -22,10 +23,9 @@ class FunctionCollector {
   final Map<Reference, w.BaseFunction> _functions = {};
   // Wasm function for each function expression and local function.
   final Map<Lambda, w.BaseFunction> _lambdas = {};
-  // Names of exported functions
-  final Map<Reference, String> _exports = {};
   // Selector IDs that are invoked via GDT.
   final Set<int> _calledSelectors = {};
+  final Set<int> _calledUncheckedSelectors = {};
   // Class IDs for classes that are allocated somewhere in the program
   final Set<int> _allocatedClasses = {};
   // For each class ID, which functions should be added to the compilation queue
@@ -35,16 +35,19 @@ class FunctionCollector {
   FunctionCollector(this.translator);
 
   void _collectImportsAndExports() {
+    final isDynamicModule = translator.isDynamicModule;
     for (Library library in translator.libraries) {
+      if (isDynamicModule && library.isFromMainModule(translator.coreTypes)) {
+        continue;
+      }
       library.procedures.forEach(_importOrExport);
-      library.fields.forEach(_importOrExport);
       for (Class cls in library.classes) {
         cls.procedures.forEach(_importOrExport);
       }
     }
   }
 
-  void _importOrExport(Member member) {
+  void _importOrExport(Procedure member) {
     String? importName =
         translator.getPragma(member, "wasm:import", member.name.text);
     if (importName != null) {
@@ -53,59 +56,37 @@ class FunctionCollector {
         assert(!member.isInstanceMember);
         String module = importName.substring(0, dot);
         String name = importName.substring(dot + 1);
-        if (member is Procedure) {
-          w.FunctionType ftype = _makeFunctionType(
-              translator, member.reference, null,
-              isImportOrExport: true);
-          _functions[member.reference] = translator
-              .moduleForReference(member.reference)
-              .functions
-              .import(module, name, ftype, "$importName (import)");
-        }
+        final ftype = _makeFunctionType(translator, member.reference, null,
+            isImportOrExport: true);
+        _functions[member.reference] = translator
+            .moduleForReference(member.reference)
+            .functions
+            .import(module, name, ftype, "$importName (import)");
       }
     }
+
+    // Ensure any procedures marked as exported are enqueued.
     String? exportName =
         translator.getPragma(member, "wasm:export", member.name.text);
     if (exportName != null) {
-      if (member is Procedure) {
-        _makeFunctionType(translator, member.reference, null,
-            isImportOrExport: true);
-      }
-      _exports[member.reference] = exportName;
+      getFunction(member.reference);
     }
   }
 
   /// If the member with the reference [target] is exported, get the export
   /// name.
-  String? getExportName(Reference target) => _exports[target];
+  String? getExportName(Reference target) {
+    final member = target.asMember;
+    if (member.reference == target) {
+      final text = member.name.text;
+      return translator.getPragma(member, "wasm:export", text) ??
+          translator.getPragma(member, "wasm:weak-export", text);
+    }
+    return null;
+  }
 
   void initialize() {
     _collectImportsAndExports();
-
-    // Add exports to the module and add exported functions to the
-    // compilationQueue.
-    for (var export in _exports.entries) {
-      Reference target = export.key;
-      Member node = target.asMember;
-      if (node is Procedure) {
-        assert(!node.isInstanceMember);
-        assert(!node.isGetter);
-        w.FunctionType ftype =
-            _makeFunctionType(translator, target, null, isImportOrExport: true);
-        final module = translator.moduleForReference(target);
-        w.FunctionBuilder function = module.functions.define(ftype, "$node");
-        _functions[target] = function;
-        module.exports.export(export.value, function);
-        translator.compilationQueue.add(AstCompilationTask(function,
-            getMemberCodeGenerator(translator, function, target), target));
-      } else if (node is Field) {
-        final module = translator.moduleForReference(target);
-        w.Table? table = translator.getTable(module, node);
-        if (table != null) {
-          module.exports.export(export.value, table);
-        }
-      }
-    }
 
     // Value classes are always implicitly allocated.
     recordClassAllocation(
@@ -122,13 +103,90 @@ class FunctionCollector {
 
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
+      final member = target.asMember;
+
+      // If this function is a `@pragma('wasm:import', '<module>:<name>')` we
+      // import the function and return it.
+      if (member.reference == target && member.annotations.isNotEmpty) {
+        final importName =
+            translator.getPragma(member, 'wasm:import', member.name.text);
+        if (importName != null) {
+          assert(!member.isInstanceMember);
+          int dot = importName.indexOf('.');
+          if (dot != -1) {
+            final module = importName.substring(0, dot);
+            final name = importName.substring(dot + 1);
+            final ftype = _makeFunctionType(translator, member.reference, null,
+                isImportOrExport: true);
+            return _functions[member.reference] = translator
+                .moduleForReference(member.reference)
+                .functions
+                .import(module, name, ftype, "$importName (import)");
+          }
+        }
+      }
+
       final module = translator.moduleForReference(target);
-      final function = module.functions.define(
-          translator.signatureForDirectCall(target), getFunctionName(target));
+      if (translator.isDynamicModule && module == translator.mainModule) {
+        return _importFunctionToDynamicModule(target);
+      }
+
+      // If this function is exported via
+      //   * `@pragma('wasm:export', '<name>')` or
+      //   * `@pragma('wasm:weak-export', '<name>')`
+      // we export it under the given `<name>`
+      String? exportName;
+      if (member.reference == target && member.annotations.isNotEmpty) {
+        exportName = translator.getPragma(
+                member, 'wasm:export', member.name.text) ??
+            translator.getPragma(member, 'wasm:weak-export', member.name.text);
+        assert(exportName == null || member is Procedure && member.isStatic);
+      }
+
+      final w.FunctionType ftype = exportName != null
+          ? _makeFunctionType(translator, target, null, isImportOrExport: true)
+          : translator.signatureForDirectCall(target);
+
+      final function = module.functions.define(ftype, getFunctionName(target));
+      if (exportName != null) module.exports.export(exportName, function);
+
+      // Export the function from the main module if it is callable from dynamic
+      // modules.
+      if (translator.dynamicModuleSupportEnabled &&
+          !translator.isDynamicModule) {
+        final callableReferenceId =
+            translator.dynamicModuleInfo?.metadata.callableReferenceIds[target];
+        if (callableReferenceId != null) {
+          translator.mainModule.exports.export(
+              _generateDynamicCallableName(callableReferenceId), function);
+        }
+      }
+
       translator.compilationQueue.add(AstCompilationTask(function,
           getMemberCodeGenerator(translator, function, target), target));
       return function;
     });
+  }
+
+  String _generateDynamicCallableName(int key) => '#dc$key';
+
+  w.BaseFunction _importFunctionToDynamicModule(Reference target) {
+    assert(translator.isDynamicModule);
+
+    // Export the function from the main module if it is callable from dynamic
+    // modules.
+    final dynamicModuleCallableReferenceId =
+        translator.dynamicModuleInfo?.metadata.callableReferenceIds[target];
+    if (dynamicModuleCallableReferenceId == null) {
+      throw StateError(
+          'Cannot invoke ${target.asMember} since it is not labeled as '
+          'callable in the dynamic interface.');
+    }
+    return translator.dynamicModule.functions.import(
+        translator.mainModule.moduleName,
+        _generateDynamicCallableName(dynamicModuleCallableReferenceId),
+        translator.signatureForMainModule(target),
+        getFunctionName(target));
   }
 
   w.BaseFunction getLambdaFunction(
@@ -157,6 +215,14 @@ class FunctionCollector {
 
   w.FunctionType _getFunctionType(Reference target) {
     final Member member = target.asMember;
+
+    if (target.isBodyReference) {
+      // This is the function body that is always called directly (never via
+      // dispatch table) and with checked arguments. That means we can make a
+      // precise function type signature based on that member's argument types.
+      return makeFunctionTypeForBody(translator, member);
+    }
+
     if (target.isTypeCheckerReference) {
       if (member is Field || (member is Procedure && member.isSetter)) {
         return translator.dynamicSetForwarderFunctionType;
@@ -167,9 +233,9 @@ class FunctionCollector {
 
     if (target.isTearOffReference) {
       assert(!translator.dispatchTable
-          .selectorForTarget(target)
-          .targetSet
-          .contains(target));
+              .selectorForTarget(target)
+              .containsTarget(target) ||
+          translator.dynamicModuleSupportEnabled);
       return translator.signatureForDirectCall(target);
     }
 
@@ -177,12 +243,23 @@ class FunctionCollector {
   }
 
   String getFunctionName(Reference target) {
-    if (target.isTearOffReference) {
-      return "${target.asMember} tear-off";
-    }
-
     final Member member = target.asMember;
     String memberName = member.toString();
+
+    if (target.isTearOffReference) {
+      return "$memberName tear-off";
+    }
+
+    if (target.isCheckedEntryReference) {
+      return "$memberName (checked entry)";
+    }
+    if (target.isUncheckedEntryReference) {
+      return "$memberName (unchecked entry)";
+    }
+    if (target.isBodyReference) {
+      return "$memberName (body)";
+    }
+
     if (memberName.endsWith('.')) {
       memberName = memberName.substring(0, memberName.length - 1);
     }
@@ -196,7 +273,10 @@ class FunctionCollector {
     }
 
     if (member is Field) {
-      return '$memberName initializer';
+      if (target.isImplicitSetter) {
+        return '$memberName= implicit setter';
+      }
+      return '$memberName implicit getter';
     }
 
     if (target.isInitializerReference) {
@@ -210,26 +290,37 @@ class FunctionCollector {
     }
   }
 
-  void recordSelectorUse(SelectorInfo selector) {
-    if (_calledSelectors.add(selector.id)) {
-      for (final (:range, :target) in selector.targetRanges) {
+  void recordSelectorUse(SelectorInfo selector, bool useUncheckedEntry) {
+    final set =
+        useUncheckedEntry ? _calledUncheckedSelectors : _calledSelectors;
+    if (set.add(selector.id)) {
+      for (final (:range, :target)
+          in selector.targets(unchecked: useUncheckedEntry).targetRanges) {
         for (int classId = range.start; classId <= range.end; ++classId) {
-          if (_allocatedClasses.contains(classId)) {
-            // Class declaring or inheriting member is allocated somewhere.
-            getFunction(target);
-          } else {
-            // Remember the member in case an allocation is encountered later.
-            _pendingAllocation.putIfAbsent(classId, () => []).add(target);
-          }
+          recordClassTargetUse(classId, target);
         }
       }
     }
   }
 
-  void recordClassAllocation(int classId) {
-    if (_allocatedClasses.add(classId)) {
+  void recordClassTargetUse(int classId, Reference target) {
+    if (_allocatedClasses.contains(classId)) {
+      // Class declaring or inheriting member is allocated somewhere.
+      getFunction(target);
+    } else {
+      // Remember the member in case an allocation is encountered later.
+      _pendingAllocation.putIfAbsent(classId, () => []).add(target);
+    }
+  }
+
+  void recordClassAllocation(ClassId classId) {
+    final id = switch (classId) {
+      RelativeClassId() => classId.relativeValue,
+      AbsoluteClassId() => classId.value,
+    };
+    if (_allocatedClasses.add(id)) {
       // Schedule all members that were pending allocation of this class.
-      for (Reference target in _pendingAllocation[classId] ?? const []) {
+      for (Reference target in _pendingAllocation[id] ?? const []) {
         getFunction(target);
       }
     }
@@ -253,8 +344,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     }
     assert(!translator.dispatchTable
         .selectorForTarget(target)
-        .targetSet
-        .contains(target));
+        .containsTarget(target));
 
     final receiverType = target.asMember.enclosingClass!
         .getThisType(translator.coreTypes, Nullability.nonNullable);
@@ -264,15 +354,16 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
 
   @override
   w.FunctionType visitProcedure(Procedure node, Reference target) {
-    assert(!node.isAbstract);
+    // Compilations for dynamic modules can contain interface calls to methods
+    // that are not implemented yet.
+    assert(!node.isAbstract || translator.dynamicModuleSupportEnabled);
     if (!node.isInstanceMember) {
       return _makeFunctionType(translator, target, null);
     }
 
     assert(!translator.dispatchTable
         .selectorForTarget(target)
-        .targetSet
-        .contains(target));
+        .containsTarget(target));
 
     final receiverType = target.asMember.enclosingClass!
         .getThisType(translator.coreTypes, Nullability.nonNullable);
@@ -469,6 +560,39 @@ List<w.ValueType> _getInputTypes(
   return inputs;
 }
 
+// Functions that get checked & unchecked variants will run the actual body by
+// calling a body function. This builds the signature of such body functions.
+//
+// Implicit setters also support checked/unchecked entries, but those will not
+// call a shared body but have such body (which is trivial) in the checked &
+// unchecked functions directly.
+w.FunctionType makeFunctionTypeForBody(Translator translator, Member member) {
+  assert(member.isInstanceMember);
+  assert(member is Procedure);
+  final function = member.function!;
+
+  final receiverType = member.enclosingClass!
+      .getThisType(translator.coreTypes, Nullability.nonNullable);
+
+  final inputs = <w.ValueType>[
+    translator.translateType(receiverType),
+    for (final _ in function.typeParameters)
+      translator.translateType(translator.types.typeType),
+    for (final p in function.positionalParameters)
+      translator.translateType(translator.typeOfCheckedParameterVariable(p)),
+    for (final p in function.namedParameters)
+      translator.translateType(translator.typeOfCheckedParameterVariable(p)),
+  ];
+
+  final isSetter = member is Procedure && member.isSetter;
+  final outputs = [
+    if (!isSetter)
+      translator.translateReturnType(translator.typeOfReturnValue(member)),
+  ];
+
+  return translator.typesBuilder.defineFunction(inputs, outputs);
+}
+
 w.FunctionType _makeFunctionType(
     Translator translator, Reference target, w.ValueType? receiverType,
     {bool isImportOrExport = false}) {
@@ -490,25 +614,26 @@ w.FunctionType _makeFunctionType(
   w.ValueType translateType(DartType type) => isImportOrExport
       ? translator.translateExternalType(type)
       : translator.translateType(type);
+  w.ValueType translateReturnType(DartType type) => isImportOrExport
+      ? translator.translateExternalType(type)
+      : translator.translateReturnType(type);
 
   final List<w.ValueType> inputs = _getInputTypes(
       translator, target, receiverType, isImportOrExport, translateType);
-
-  // Setters don't have an output with the exception of static implicit setters.
-  final bool emptyOutputList =
-      (member is Field && member.setterReference == target) ||
-          (member is Procedure && member.isSetter);
 
   bool isVoidType(DartType t) =>
       (isImportOrExport && t is VoidType) ||
       (t is InterfaceType && t.classNode == translator.wasmVoidClass);
 
   final List<w.ValueType> outputs;
-  if (emptyOutputList) {
+  if (target.isSetter) {
+    // Setters are the only functions without any returned values. All other
+    // functions can either return values (even `void` returning functions)
     outputs = const [];
   } else {
     final DartType returnType = translator.typeOfReturnValue(member);
-    outputs = !isVoidType(returnType) ? [translateType(returnType)] : const [];
+    outputs =
+        !isVoidType(returnType) ? [translateReturnType(returnType)] : const [];
   }
 
   return translator.typesBuilder.defineFunction(inputs, outputs);

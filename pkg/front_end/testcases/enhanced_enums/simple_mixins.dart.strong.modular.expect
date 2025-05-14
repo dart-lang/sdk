@@ -15,22 +15,42 @@ abstract class M3 extends core::Object /*isMixinDeclaration*/  {
     f(){() → void};
   }
 }
+class E1 extends self::_E1&_Enum&M1 /*isEnum*/  {
+  enum-element static const field self::E1 one = #C3;
+  enum-element static const field self::E1 two = #C6;
+  static const field core::List<self::E1> values = #C7;
+  const synthetic constructor •(core::int #index, core::String #name) → self::E1
+    : super self::_E1&_Enum&M1::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends self::_E2&_Enum&M1&M2 /*isEnum*/  {
+  enum-element static const field self::E2 one = #C8;
+  enum-element static const field self::E2 two = #C9;
+  static const field core::List<self::E2> values = #C10;
+  const synthetic constructor •(core::int #index, core::String #name) → self::E2
+    : super self::_E2&_Enum&M1&M2::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3 extends self::_E3&_Enum&M3 /*isEnum*/  {
+  enum-element static const field self::E3 one = #C11;
+  enum-element static const field self::E3 two = #C12;
+  static const field core::List<self::E3> values = #C13;
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3
+    : super self::_E3&_Enum&M3::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
 abstract class _E1&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E1&_Enum&M1
     : super core::_Enum::•(index, _name)
     ;
   mixin-super-stub get foo() → core::String
     return super.{self::M1::foo};
-}
-class E1 extends self::_E1&_Enum&M1 /*isEnum*/  {
-  static const field core::List<self::E1> values = #C7;
-  enum-element static const field self::E1 one = #C3;
-  enum-element static const field self::E1 two = #C6;
-  const synthetic constructor •(core::int #index, core::String #name) → self::E1
-    : super self::_E1&_Enum&M1::•(#index, #name)
-    ;
-  method _enumToString() → core::String
-    return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E2&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E2&_Enum&M1
@@ -46,32 +66,12 @@ abstract class _E2&_Enum&M1&M2 = self::_E2&_Enum&M1 with self::M2 /*isAnonymousM
   mixin-super-stub method bar() → core::int
     return super.{self::M2::bar}();
 }
-class E2 extends self::_E2&_Enum&M1&M2 /*isEnum*/  {
-  static const field core::List<self::E2> values = #C10;
-  enum-element static const field self::E2 one = #C8;
-  enum-element static const field self::E2 two = #C9;
-  const synthetic constructor •(core::int #index, core::String #name) → self::E2
-    : super self::_E2&_Enum&M1&M2::•(#index, #name)
-    ;
-  method _enumToString() → core::String
-    return "E2.${this.{core::_Enum::_name}{core::String}}";
-}
 abstract class _E3&_Enum&M3 = core::_Enum with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E3&_Enum&M3
     : super core::_Enum::•(index, _name)
     ;
   mixin-super-stub set callOnAssignment(() → void f) → void
     return super.{self::M3::callOnAssignment} = f;
-}
-class E3 extends self::_E3&_Enum&M3 /*isEnum*/  {
-  static const field core::List<self::E3> values = #C13;
-  enum-element static const field self::E3 one = #C11;
-  enum-element static const field self::E3 two = #C12;
-  const synthetic constructor •(core::int #index, core::String #name) → self::E3
-    : super self::_E3&_Enum&M3::•(#index, #name)
-    ;
-  method _enumToString() → core::String
-    return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {
   if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {

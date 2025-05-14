@@ -7,7 +7,6 @@
 // inference.  This test makes sure that the type argument information is
 // appropriately preserved.
 
-
 void f(List<int>? x) {
   if (x == null) {
     // If x were promoted to `Null`, inference would not know that `[]` should

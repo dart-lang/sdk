@@ -200,12 +200,149 @@ mixin M {
 useFunction(int g(double a, String b)) {}
 ''');
   }
+
+  Future<void> test_main_part() async {
+    var partPath = join(testPackageLibPath, 'part.dart');
+    newFile(partPath, '''
+part of 'test.dart';
+
+mixin M {
+}
+''');
+    await resolveTestCode('''
+part 'part.dart';
+
+void foo(M a) {
+  a.myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+part of 'test.dart';
+
+mixin M {
+  void myUndefinedMethod() {}
+}
+''', target: partPath);
+  }
+
+  Future<void> test_part_main() async {
+    var mainPath = join(testPackageLibPath, 'main.dart');
+    newFile(mainPath, '''
+part 'test.dart';
+
+mixin M {
+}
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(M a) {
+  a.myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+part 'test.dart';
+
+mixin M {
+  void myUndefinedMethod() {}
+}
+''', target: mainPath);
+  }
+
+  Future<void> test_part_sibling() async {
+    var part1Path = join(testPackageLibPath, 'part1.dart');
+    newFile(part1Path, '''
+part of 'main.dart';
+
+mixin M {
+}
+''');
+    newFile(join(testPackageLibPath, 'main.dart'), '''
+part 'part1.dart';
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(M a) {
+  a.myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+part of 'main.dart';
+
+mixin M {
+  void myUndefinedMethod() {}
+}
+''', target: part1Path);
+  }
 }
 
 @reflectiveTest
 class CreateMethodTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_METHOD;
+
+  Future<void> test_await_expression_statement() async {
+    await resolveTestCode('''
+class A {
+  Future<void> f() async {
+    await myUndefinedFunction();
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<void> f() async {
+    await myUndefinedFunction();
+  }
+
+  Future<void> myUndefinedFunction() async {}
+}
+''');
+  }
+
+  Future<void> test_await_field_assignment() async {
+    await resolveTestCode('''
+class A {
+  int x = 1;
+  Future<void> f() async {
+    x = await myUndefinedFunction();
+    print(x);
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int x = 1;
+  Future<void> f() async {
+    x = await myUndefinedFunction();
+    print(x);
+  }
+
+  Future<int> myUndefinedFunction() async {}
+}
+''');
+  }
+
+  Future<void> test_await_infer_from_parent() async {
+    await resolveTestCode('''
+class A {
+  Future<void> f() async {
+    if (await myUndefinedFunction()) {}
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<void> f() async {
+    if (await myUndefinedFunction()) {}
+  }
+
+  Future<bool> myUndefinedFunction() async {}
+}
+''');
+  }
 
   Future<void> test_createQualified_emptyClassBody() async {
     await resolveTestCode('''
@@ -1115,6 +1252,30 @@ extension E on String {
 ''');
   }
 
+  Future<void> test_main_part() async {
+    var partPath = join(testPackageLibPath, 'part.dart');
+    newFile(partPath, '''
+part of 'test.dart';
+
+class A {
+}
+''');
+    await resolveTestCode('''
+part 'part.dart';
+
+void foo(A a) {
+  a.myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+part of 'test.dart';
+
+class A {
+  void myUndefinedMethod() {}
+}
+''', target: partPath);
+  }
+
   Future<void> test_override() async {
     await resolveTestCode('''
 extension E on String {}
@@ -1190,6 +1351,100 @@ class D {
 
 class E {}
 ''', target: '$testPackageLibPath/test2.dart');
+  }
+
+  Future<void> test_part_main() async {
+    var mainPath = join(testPackageLibPath, 'main.dart');
+    newFile(mainPath, '''
+part 'test.dart';
+
+class A {
+}
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(A a) {
+  a.myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+part 'test.dart';
+
+class A {
+  void myUndefinedMethod() {}
+}
+''', target: mainPath);
+  }
+
+  Future<void> test_part_sibling() async {
+    var part1Path = join(testPackageLibPath, 'part1.dart');
+    newFile(part1Path, '''
+part of 'main.dart';
+
+class A {
+}
+''');
+    newFile(join(testPackageLibPath, 'main.dart'), '''
+part 'part1.dart';
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(A a) {
+  a.myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+part of 'main.dart';
+
+class A {
+  void myUndefinedMethod() {}
+}
+''', target: part1Path);
+  }
+
+  Future<void> test_returnType_closure_expression() async {
+    await resolveTestCode('''
+class A {
+  void m(List<A> list) {
+    list.where((a) => a.myMethod());
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  void m(List<A> list) {
+    list.where((a) => a.myMethod());
+  }
+
+  bool myMethod() {}
+}
+''');
+  }
+
+  Future<void> test_returnType_closure_return() async {
+    await resolveTestCode('''
+class A {
+  void m(List<A> list) {
+    list.where((a) {
+      return a.myMethod();
+    });
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  void m(List<A> list) {
+    list.where((a) {
+      return a.myMethod();
+    });
+  }
+
+  bool myMethod() {}
+}
+''');
   }
 
   Future<void> test_static() async {

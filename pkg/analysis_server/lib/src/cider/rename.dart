@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -12,7 +10,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/change_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
@@ -41,27 +39,28 @@ class CanRenameResponse {
 
   CheckNameResponse? checkNewName(String name) {
     var element = refactoringElement.element;
-    _flutterWidgetState = _findFlutterStateClass(element, name);
 
     RefactoringStatus? status;
-    if (element is ParameterElement) {
+    if (element is FormalParameterElement) {
       status = validateParameterName(name);
-    } else if (element is VariableElement) {
+    } else if (element is VariableElement2) {
       status = validateVariableName(name);
-    } else if (element is FunctionElement) {
+    } else if (element is LocalFunctionElement ||
+        element is TopLevelFunctionElement) {
       status = validateFunctionName(name);
-    } else if (element is FieldElement) {
+    } else if (element is FieldElement2) {
       status = validateFieldName(name);
-    } else if (element is MethodElement) {
+    } else if (element is MethodElement2) {
       status = validateMethodName(name);
-    } else if (element is TypeAliasElement) {
+    } else if (element is TypeAliasElement2) {
       status = validateTypeAliasName(name);
-    } else if (element is InterfaceElement) {
+    } else if (element is InterfaceElement2) {
       status = validateClassName(name);
-    } else if (element is ConstructorElement) {
+      _flutterWidgetState = _findFlutterStateClass(element, name);
+    } else if (element is ConstructorElement2) {
       status = validateConstructorName(name);
       _analyzePossibleConflicts(element, status, name);
-    } else if (element is LibraryImportElement) {
+    } else if (element is MockLibraryImportElement) {
       status = validateImportPrefixName(name);
     }
 
@@ -72,44 +71,41 @@ class CanRenameResponse {
   }
 
   void _analyzePossibleConflicts(
-    ConstructorElement element,
+    ConstructorElement2 element,
     RefactoringStatus result,
     String newName,
   ) {
-    var parentClass = element.enclosingElement3;
+    var parentClass = element.enclosingElement2;
     // Check if the "newName" is the name of the enclosing class.
-    if (parentClass.name == newName) {
+    if (parentClass.name3 == newName) {
       result.addError(
         'The constructor should not have the same name '
         'as the name of the enclosing class.',
       );
     }
     // check if there are members with "newName" in the same ClassElement
-    for (var newNameMember in getChildren(parentClass.asElement2, newName)) {
+    for (var newNameMember in getChildren(parentClass, newName)) {
       var message = format(
         "Class '{0}' already declares {1} with name '{2}'.",
         parentClass.displayName,
         getElementKindName(newNameMember),
         newName,
       );
-      result.addError(
-        message,
-        newLocation_fromElement(newNameMember.asElement),
-      );
+      result.addError(message, newLocation_fromElement(newNameMember));
     }
   }
 
-  FlutterWidgetState? _findFlutterStateClass(Element element, String newName) {
-    if (element is ClassElement &&
-        element.asElement2.isStatefulWidgetDeclaration) {
+  FlutterWidgetState? _findFlutterStateClass(Element2 element, String newName) {
+    if (element is ClassElement2 && element.isStatefulWidgetDeclaration) {
       var oldStateName = '${element.displayName}State';
-      var library = element.library;
+      var library = element.library2;
       var state =
-          library.getClass(oldStateName) ?? library.getClass('_$oldStateName');
+          library.getClass2(oldStateName) ??
+          library.getClass2('_$oldStateName');
       if (state != null) {
         var flutterWidgetStateNewName = '${newName}State';
         // If the State was private, ensure that it stays private.
-        if (state.name.startsWith('_') &&
+        if (state.name3!.startsWith('_') &&
             !flutterWidgetStateNewName.startsWith('_')) {
           flutterWidgetStateNewName = '_$flutterWidgetStateNewName';
         }
@@ -132,12 +128,12 @@ class CheckNameResponse {
   String get oldName => canRename.refactoringElement.element.displayName;
 
   Future<RenameResponse?> computeRenameRanges2() async {
-    var elements = <Element>[];
+    var elements = <Element2>[];
     var element = canRename.refactoringElement.element;
-    if (element is PropertyInducingElement && element.isSynthetic) {
+    if (element is PropertyInducingElement2 && element.isSynthetic) {
       var property = element;
-      var getter = property.getter;
-      var setter = property.setter;
+      var getter = property.getter2;
+      var setter = property.setter2;
       elements.addIfNotNull(getter);
       elements.addIfNotNull(setter);
     } else {
@@ -146,14 +142,14 @@ class CheckNameResponse {
     var fileResolver = canRename._fileResolver;
     var matches = <CiderSearchMatch>[];
     for (var element in elements) {
-      matches.addAll(await fileResolver.findReferences2(element));
+      matches.addAll(await fileResolver.findReferences(element));
     }
     FlutterWidgetRename? flutterRename;
     if (canRename._flutterWidgetState != null) {
       flutterRename = await _computeFlutterStateName();
     }
     var replaceMatches = <CiderReplaceMatch>[];
-    if (element is ConstructorElement) {
+    if (element is ConstructorElement2) {
       for (var match in matches) {
         var replaceInfo = <ReplaceInfo>[];
         for (var ref in match.references) {
@@ -178,7 +174,7 @@ class CheckNameResponse {
           replaceMatches.addMatch(result.path, result.matches.toList());
         }
       }
-    } else if (element is LibraryImportElement) {
+    } else if (element is MockLibraryImportElement) {
       var replaceInfo = <ReplaceInfo>[];
       for (var match in matches) {
         for (var ref in match.references) {
@@ -206,7 +202,7 @@ class CheckNameResponse {
           }
         }
         replaceMatches.addMatch(match.path, replaceInfo);
-        var sourcePath = element.source.fullName;
+        var sourcePath = element.libraryFragment.source.fullName;
         var infos = await _addElementDeclaration(element, sourcePath);
         replaceMatches.addMatch(sourcePath, infos);
       }
@@ -222,7 +218,7 @@ class CheckNameResponse {
         );
       }
       // add element declaration
-      var sourcePath = element.source!.fullName;
+      var sourcePath = element.library2!.firstFragment.source.fullName;
       var infos = await _addElementDeclaration(element, sourcePath);
       replaceMatches.addMatch(sourcePath, infos);
     }
@@ -235,32 +231,36 @@ class CheckNameResponse {
   }
 
   Future<List<ReplaceInfo>> _addElementDeclaration(
-    Element element,
+    Element2 element,
     String sourcePath,
   ) async {
     var infos = <ReplaceInfo>[];
-    if (element is PropertyInducingElement && element.isSynthetic) {
-      if (element.getter != null) {
+    if (element is PropertyInducingElement2 && element.isSynthetic) {
+      var getter = element.getter2;
+      if (getter != null) {
         infos.add(
           ReplaceInfo(
             newName,
-            lineInfo.getLocation(element.getter!.nameOffset),
-            element.getter!.nameLength,
+            lineInfo.getLocation(getter.firstFragment.nameOffset2!),
+            getter.name3!.length,
           ),
         );
       }
-      if (element.setter != null) {
+      var setter = element.setter2;
+      if (setter != null) {
         infos.add(
           ReplaceInfo(
             newName,
-            lineInfo.getLocation(element.setter!.nameOffset),
-            element.setter!.nameLength,
+            lineInfo.getLocation(setter.firstFragment.nameOffset2!),
+            setter.name3!.length,
           ),
         );
       }
-    } else if (element is LibraryImportElement) {
+    } else if (element is MockLibraryImportElement) {
       var unit = (await canRename._fileResolver.resolve(path: sourcePath)).unit;
-      var index = element.enclosingElement3.libraryImports.indexOf(element);
+      var index = element.libraryFragment.libraryImports2.indexOf(
+        element.import,
+      );
       var node = unit.directives.whereType<ImportDirective>().elementAt(index);
       var prefixNode = node.prefix;
       if (newName.isEmpty) {
@@ -291,8 +291,8 @@ class CheckNameResponse {
     } else {
       var location = (await canRename._fileResolver.resolve(
         path: sourcePath,
-      )).lineInfo.getLocation(element.nameOffset);
-      infos.add(ReplaceInfo(newName, location, element.nameLength));
+      )).lineInfo.getLocation(element.firstFragment.nameOffset2!);
+      infos.add(ReplaceInfo(newName, location, element.name3!.length));
     }
     return infos;
   }
@@ -301,15 +301,17 @@ class CheckNameResponse {
     var flutterState = canRename._flutterWidgetState;
     var stateClass = flutterState!.state;
     var stateName = flutterState.newName;
-    var match = await canRename._fileResolver.findReferences2(stateClass);
-    var sourcePath = stateClass.source.fullName;
-    var location = stateClass.enclosingElement3.lineInfo.getLocation(
-      stateClass.nameOffset,
+    var match = await canRename._fileResolver.findReferences(stateClass);
+    var firstFragment = stateClass.firstFragment;
+    var libraryFragment = firstFragment.libraryFragment;
+    var sourcePath = libraryFragment.source.fullName;
+    var location = libraryFragment.lineInfo.getLocation(
+      firstFragment.nameOffset2!,
     );
     CiderSearchMatch ciderMatch;
     var searchInfo = CiderSearchInfo(
       location,
-      stateClass.nameLength,
+      stateClass.name3!.length,
       MatchKind.DECLARATION,
     );
     try {
@@ -328,7 +330,7 @@ class CheckNameResponse {
                       (p) => ReplaceInfo(
                         stateName,
                         p.startPosition,
-                        stateClass.nameLength,
+                        stateClass.name3!.length,
                       ),
                     )
                     .toList(),
@@ -361,12 +363,14 @@ class CheckNameResponse {
 
   Future<CiderReplaceMatch?> _replaceSyntheticConstructor() async {
     var element = canRename.refactoringElement.element;
-    var interfaceElement = element.enclosingElement3;
+    var interfaceElement = element.enclosingElement2!;
 
     var fileResolver = canRename._fileResolver;
-    var libraryPath = interfaceElement!.library!.source.fullName;
+    var libraryPath = interfaceElement.library2!.firstFragment.source.fullName;
     var resolvedLibrary = await fileResolver.resolveLibrary2(path: libraryPath);
-    var result = resolvedLibrary.getElementDeclaration(interfaceElement);
+    var result = resolvedLibrary.getFragmentDeclaration(
+      interfaceElement.firstFragment,
+    );
     if (result == null) {
       return null;
     }
@@ -385,7 +389,7 @@ class CheckNameResponse {
       resolvedUnit: resolvedUnit,
       session: fileResolver.contextObjects!.analysisSession,
       (builder) => builder.writeConstructorDeclaration(
-        interfaceElement.name!,
+        interfaceElement.name3!,
         constructorName: newName,
         isConst: node is EnumDeclaration,
       ),
@@ -421,19 +425,19 @@ class CiderRenameComputer {
     var offset = lineInfo.getOffsetOfLine(line) + column;
 
     var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-    var element = getElementOfNode(node);
+    var element = getElementOfNode2(node);
 
     if (node == null || element == null) {
       return null;
     }
-    if (element.library?.isInSdk == true) {
+    if (element.library2?.isInSdk == true) {
       return null;
     }
-    if (element is MethodElement && element.isOperator) {
+    if (element is MethodElement2 && element.isOperator) {
       return null;
     }
-    if (element is PropertyAccessorElement) {
-      element = element.variable2;
+    if (element is PropertyAccessorElement2) {
+      element = element.variable3;
       if (element == null) {
         return null;
       }
@@ -448,20 +452,20 @@ class CiderRenameComputer {
     return null;
   }
 
-  bool _canRenameElement(Element element) {
-    var enclosingElement = element.enclosingElement3;
-    if (element is ConstructorElement) {
+  bool _canRenameElement(Element2 element) {
+    var enclosingElement = element.enclosingElement2;
+    if (element is ConstructorElement2) {
       return true;
     }
-    if (element is LibraryImportElement) {
+    if (element is MockLibraryImportElement) {
       return true;
     }
-    if (element is LabelElement || element is LocalElement) {
+    if (element is LabelElement2 || element is LocalElement2) {
       return true;
     }
-    if (enclosingElement is InterfaceElement ||
-        enclosingElement is ExtensionElement ||
-        enclosingElement is CompilationUnitElement) {
+    if (enclosingElement is InterfaceElement2 ||
+        enclosingElement is ExtensionElement2 ||
+        enclosingElement is LibraryElement2) {
       return true;
     }
     return false;
@@ -488,7 +492,7 @@ class FlutterWidgetRename {
 
 /// The corresponding `State` declaration of a  Flutter `StatefulWidget`.
 class FlutterWidgetState {
-  ClassElement state;
+  ClassElement2 state;
   String newName;
 
   FlutterWidgetState(this.state, this.newName);

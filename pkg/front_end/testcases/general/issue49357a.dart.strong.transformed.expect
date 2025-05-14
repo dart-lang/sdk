@@ -2,9 +2,9 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue49357a.dart:11:9: Error: Can't find '}' to match '{'.
-// class C {
-//         ^
+// pkg/front_end/testcases/general/issue49357a.dart:13:33: Error: Can't find '}' to match '{'.
+//     for (final element in list) {
+//                                 ^
 //
 // pkg/front_end/testcases/general/issue49357a.dart:5:26: Error: Type 'B' not found.
 // abstract class A extends B {

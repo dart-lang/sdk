@@ -1,0 +1,109 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+source_set("engine_jit_set") {
+  include_dirs = [
+    ".",
+    "..",
+    "//third_party/boringssl/src/include",
+    "//third_party",
+  ]
+
+  sources = [
+    "../bin/dart_embedder_api_impl.cc",
+    "../bin/vmservice_impl.cc",
+    "../bin/vmservice_impl.h",
+    "dart_engine_impl.cc",
+    "engine.cc",
+    "engine.h",
+  ]
+
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_os_config",
+  ]
+
+  deps = [
+    "..:libdart_jit",
+    "../bin:dart_io_api",
+    "../bin:dart_kernel_platform_cc",
+    "../bin:libdart_builtin",
+  ]
+}
+
+source_set("engine_aot_set") {
+  include_dirs = [
+    ".",
+    "..",
+    "//third_party/boringssl/src/include",
+    "//third_party",
+  ]
+
+  sources = [
+    "../bin/dart_embedder_api_impl.cc",
+    "../bin/vmservice_impl.cc",
+    "../bin/vmservice_impl.h",
+    "dart_engine_impl.cc",
+    "engine.cc",
+    "engine.h",
+  ]
+
+  configs += [
+    "..:dart_aotruntime_config",
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_os_config",
+  ]
+
+  deps = [
+    "..:libdart_aotruntime",
+    "../bin:dart_io_api",
+    "../bin:libdart_builtin",
+  ]
+}
+
+shared_library("dart_engine_jit_shared") {
+  deps = [ ":engine_jit_set" ]
+
+  if (is_mac) {
+    ldflags = [ "-Wl,-install_name,@rpath/libdart_engine_jit_shared.dylib" ]
+  }
+
+  if (is_win) {
+    ldflags = [ "/EXPORT:Dart_True" ]
+
+    libs = [
+      "ole32.lib",
+      "iphlpapi.lib",
+      "psapi.lib",
+      "ws2_32.lib",
+      "Rpcrt4.lib",
+      "shlwapi.lib",
+      "winmm.lib",
+    ]
+  }
+}
+
+shared_library("dart_engine_aot_shared") {
+  deps = [ ":engine_aot_set" ]
+
+  if (is_mac) {
+    ldflags = [ "-Wl,-install_name,@rpath/libdart_engine_aot_shared.dylib" ]
+  }
+
+  if (is_win) {
+    ldflags = [ "/EXPORT:Dart_True" ]
+
+    libs = [
+      "ole32.lib",
+      "iphlpapi.lib",
+      "psapi.lib",
+      "ws2_32.lib",
+      "Rpcrt4.lib",
+      "shlwapi.lib",
+      "winmm.lib",
+    ]
+  }
+}

@@ -11,9 +11,9 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 
 class LeastGreatestClosureHelper extends ReplacementVisitor {
   final TypeSystemImpl typeSystem;
-  final DartType topType;
-  final DartType topFunctionType;
-  final DartType bottomType;
+  final TypeImpl topType;
+  final TypeImpl topFunctionType;
+  final TypeImpl bottomType;
   final Set<TypeParameterElementImpl2> eliminationTargets;
 
   late final bool _isLeastClosure;
@@ -27,14 +27,14 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
     required this.eliminationTargets,
   });
 
-  DartType get _functionReplacement {
+  TypeImpl get _functionReplacement {
     return _isLeastClosure && _isCovariant ||
             (!_isLeastClosure && !_isCovariant)
         ? bottomType
         : topFunctionType;
   }
 
-  DartType get _typeParameterReplacement {
+  TypeImpl get _typeParameterReplacement {
     return _isLeastClosure && _isCovariant ||
             (!_isLeastClosure && !_isCovariant)
         ? bottomType
@@ -47,21 +47,21 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
   }
 
   /// Returns a supertype of [type] for all values of [eliminationTargets].
-  DartType eliminateToGreatest(DartType type) {
+  TypeImpl eliminateToGreatest(TypeImpl type) {
     _isCovariant = true;
     _isLeastClosure = false;
     return type.accept(this) ?? type;
   }
 
   /// Returns a subtype of [type] for all values of [eliminationTargets].
-  DartType eliminateToLeast(DartType type) {
+  TypeImpl eliminateToLeast(TypeImpl type) {
     _isCovariant = true;
     _isLeastClosure = true;
     return type.accept(this) ?? type;
   }
 
   @override
-  DartType? visitFunctionType(FunctionType node) {
+  TypeImpl? visitFunctionType(FunctionType node) {
     // - if `S` is
     //   `T Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn,
     //       [Tn+1 xn+1, ..., Tm xm])`
@@ -81,9 +81,9 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
   }
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType type) {
+  TypeImpl? visitTypeParameterType(TypeParameterType type) {
     if (eliminationTargets.contains(type.element3)) {
-      var replacement = _typeParameterReplacement as TypeImpl;
+      var replacement = _typeParameterReplacement;
       return replacement.withNullability(
         uniteNullabilities(
           replacement.nullabilitySuffix,
@@ -111,13 +111,13 @@ class PatternGreatestClosureHelper extends ReplacementVisitor {
   }
 
   /// Returns a supertype of [type] for all values of type parameters.
-  DartType eliminateToGreatest(DartType type) {
+  TypeImpl eliminateToGreatest(TypeImpl type) {
     _isCovariant = true;
     return type.accept(this) ?? type;
   }
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType type) {
+  TypeImpl? visitTypeParameterType(TypeParameterType type) {
     var replacement = _isCovariant ? topType : bottomType;
     return replacement.withNullability(
       uniteNullabilities(

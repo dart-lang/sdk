@@ -9,12 +9,12 @@ class A {
   // This should cause an error because `x` is final when accessed as an
   // initializing formal.
   A(this.x)
-      : y = (() {
-          x = 3;
-//        ^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
-// [cfe] Can't assign to the final variable 'x'.
-        });
+    : y = (() {
+        x = 3;
+        // [error column 9, length 1]
+        // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+        // [cfe] Can't assign to the final variable 'x'.
+      });
 }
 
 main() {}

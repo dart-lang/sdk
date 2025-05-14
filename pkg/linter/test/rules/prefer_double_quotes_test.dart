@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferDoubleQuotesTest);
   });
@@ -50,11 +50,12 @@ var s = "foo ${x == 'x'} bar";
   }
 
   test_singleQuote() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var s = 'no quote';
-''', [
-      lint(8, 10),
-    ]);
+''',
+      [lint(8, 10)],
+    );
   }
 
   test_singleQuote_hasDoubleQuote_withInterpolation() async {
@@ -71,11 +72,12 @@ var s = 'has double quote "';
   }
 
   test_singleQuote_raw() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var s = r'no double quote';
-''', [
-      lint(8, 18),
-    ]);
+''',
+      [lint(8, 18)],
+    );
   }
 
   test_singleQuote_raw_hasDoubleQuotes() async {
@@ -85,11 +87,12 @@ var s = r'has double quote "';
   }
 
   test_singleQuote_triple_raw() async {
-    await assertDiagnostics(r"""
+    await assertDiagnostics(
+      r"""
 var s = r'''no double quote''';
-""", [
-      lint(8, 22),
-    ]);
+""",
+      [lint(8, 22)],
+    );
   }
 
   test_singleQuote_triple_raw_hasDouble() async {
@@ -99,12 +102,13 @@ var s = r'''has double quote "''';
   }
 
   test_singleQuote_withInterpolation() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = "x";
 var s = 'no double quote $x';
-''', [
-      lint(21, 20),
-    ]);
+''',
+      [lint(21, 20)],
+    );
   }
 
   test_singleQuote_withInterpolationWithDoubleQuotes() async {

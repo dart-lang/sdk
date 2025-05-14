@@ -19,7 +19,7 @@ Future<void> main() async {
   Stopwatch stopwatch = new Stopwatch()..start();
   Component component = await normalCompileToComponent(dart2jsUrl,
       options: getOptions()
-        ..target = new VmTarget(new TargetFlags(soundNullSafety: false))
+        ..target = new VmTarget(new TargetFlags())
         ..omitPlatform = false);
   print("Compiled dart2js in ${stopwatch.elapsedMilliseconds} ms");
 
@@ -31,8 +31,7 @@ Future<void> main() async {
     Component libComponent = new Component(nameRoot: component.root);
     libComponent.libraries.add(lib);
     libComponent.uriToSource.addAll(component.uriToSource);
-    libComponent.setMainMethodAndMode(
-        component.mainMethodName, true, component.mode);
+    libComponent.setMainMethodAndMode(component.mainMethodName, true);
     libComponents.add(serializeComponent(libComponent));
   }
   print("Serialized ${libComponents.length} separate library components "

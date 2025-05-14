@@ -6,7 +6,7 @@
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
-const Version defaultLanguageVersion = const Version(3, 7);
+const Version defaultLanguageVersion = const Version(3, 8);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
@@ -59,6 +59,13 @@ enum ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 6),
       experimentReleasedVersion: const Version(3, 6)),
 
+  dotShorthands(
+      name: 'dot-shorthands',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
+
   enhancedEnums(
       name: 'enhanced-enums',
       isEnabledByDefault: true,
@@ -72,13 +79,6 @@ enum ExperimentalFlag {
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
       experimentReleasedVersion: const Version(3, 6)),
-
-  enumShorthands(
-      name: 'enum-shorthands',
-      isEnabledByDefault: false,
-      isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
 
   extensionMethods(
       name: 'extension-methods',
@@ -132,7 +132,7 @@ enum ExperimentalFlag {
   inferenceUsingBounds(
       name: 'inference-using-bounds',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 7),
       experimentReleasedVersion: const Version(3, 7)),
 
@@ -180,10 +180,10 @@ enum ExperimentalFlag {
 
   nullAwareElements(
       name: 'null-aware-elements',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentEnabledVersion: const Version(3, 8),
+      experimentReleasedVersion: const Version(3, 8)),
 
   patterns(
       name: 'patterns',
@@ -219,6 +219,13 @@ enum ExperimentalFlag {
       isExpired: true,
       experimentEnabledVersion: const Version(2, 0),
       experimentReleasedVersion: const Version(2, 0)),
+
+  soundFlowAnalysis(
+      name: 'sound-flow-analysis',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
 
   spreadCollections(
       name: 'spread-collections',
@@ -272,7 +279,7 @@ enum ExperimentalFlag {
   wildcardVariables(
       name: 'wildcard-variables',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 7),
       experimentReleasedVersion: const Version(3, 7)),
   ;

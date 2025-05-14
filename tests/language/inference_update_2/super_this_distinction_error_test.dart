@@ -20,53 +20,53 @@ class Base {
 class DerivedClassThatOverridesBaseMembers extends Base {
   final void Function()? _f;
   DerivedClassThatOverridesBaseMembers(this._f, void Function()? superF)
-      : super(superF);
+    : super(superF);
 
   void invokedVariableGet() {
     _f();
-//  ^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//    ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+    // [error column 5, length 2]
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    //^
+    // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
     this._f();
-//  ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//         ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+    // [error column 5, length 7]
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    //     ^
+    // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
     super._f();
-//  ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//          ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+    // [error column 5, length 8]
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    //      ^
+    // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
     if (_f != null) {
       _f();
       this._f();
       super._f();
-//    ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//            ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+      // [error column 7, length 8]
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      //      ^
+      // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
     }
     if (this._f != null) {
       _f();
       this._f();
       super._f();
-//    ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//            ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+      // [error column 7, length 8]
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      //      ^
+      // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
     }
     if (super._f != null) {
       _f();
-//    ^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//      ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+      // [error column 7, length 2]
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      //^
+      // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
       this._f();
-//    ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//           ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+      // [error column 7, length 7]
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      //     ^
+      // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
       super._f();
     }
   }
@@ -80,49 +80,49 @@ class DerivedClassThatOverridesNothing extends Base {
 
   void invokedVariableGet() {
     _f();
-//  ^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//    ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+    // [error column 5, length 2]
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    //^
+    // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
     this._f();
-//  ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//         ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+    // [error column 5, length 7]
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    //     ^
+    // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
     super._f();
-//  ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//          ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+    // [error column 5, length 8]
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    //      ^
+    // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
     if (_f != null) {
       _f();
       this._f();
       super._f();
-//    ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//            ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+      // [error column 7, length 8]
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      //      ^
+      // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
     }
     if (this._f != null) {
       _f();
       this._f();
       super._f();
-//    ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//            ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+      // [error column 7, length 8]
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      //      ^
+      // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
     }
     if (super._f != null) {
       _f();
-//    ^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//      ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+      // [error column 7, length 2]
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      //^
+      // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
       this._f();
-//    ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//           ^
-// [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+      // [error column 7, length 7]
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      //     ^
+      // [cfe] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
       super._f();
     }
   }

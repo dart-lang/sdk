@@ -12,17 +12,16 @@ const _desc = r'Missing conditional import.';
 
 class ConditionalUriDoesNotExist extends LintRule {
   ConditionalUriDoesNotExist()
-      : super(
-          name: LintNames.conditional_uri_does_not_exist,
-          description: _desc,
-        );
+    : super(name: LintNames.conditional_uri_does_not_exist, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.conditional_uri_does_not_exist;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConfiguration(this, visitor);
   }

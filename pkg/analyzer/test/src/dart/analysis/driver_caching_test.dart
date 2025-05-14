@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -11,12 +10,9 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/stream.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../summary/macros_environment.dart';
 import '../resolution/context_collection_resolution.dart';
 
 main() {
@@ -41,7 +37,6 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
 
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
-      macrosEnvironment: MacrosEnvironment.instance,
     );
   }
 
@@ -345,264 +340,6 @@ void f() {
     _assertNoLinkedCycles();
   }
 
-  test_macro_libraryElement_changeMacroCode() async {
-    var macroFile = _newFileWithFixedNameMacro('MacroA');
-
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-import 'my_macro.dart';
-
-@MyMacro()
-class A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-export 'a.dart';
-''');
-
-    var analysisContext = contextFor(macroFile);
-
-    Future<LibraryElement2> getLibrary(String uriStr) async {
-      var result = await analysisContext.currentSession.getLibraryByUri(uriStr)
-          as LibraryElementResult;
-      return result.element2;
-    }
-
-    // This macro generates `MacroA`, but not `MacroB`.
-    {
-      var libraryA = await getLibrary('package:test/a.dart');
-      expect(libraryA.getClass2('MacroA'), isNotNull);
-      expect(libraryA.getClass2('MacroB'), isNull);
-      // This propagates transitively.
-      var libraryB = await getLibrary('package:test/b.dart');
-      expect(libraryB.exportNamespace.get2('MacroA'), isNotNull);
-      expect(libraryB.exportNamespace.get2('MacroB'), isNull);
-    }
-
-    _assertContainsLinkedCycle({a});
-    _assertContainsLinkedCycle({b}, andClear: true);
-
-    // The macro will generate `MacroB`.
-    _newFileWithFixedNameMacro('MacroB');
-
-    // Notify about changes.
-    analysisContext.changeFile(macroFile.path);
-    await analysisContext.applyPendingFileChanges();
-
-    // This macro generates `MacroB`, but not `MacroA`.
-    {
-      var libraryA = await getLibrary('package:test/a.dart');
-      expect(libraryA.getClass2('MacroA'), isNull);
-      expect(libraryA.getClass2('MacroB'), isNotNull);
-      // This propagates transitively.
-      var libraryB = await getLibrary('package:test/b.dart');
-      expect(libraryB.exportNamespace.get2('MacroA'), isNull);
-      expect(libraryB.exportNamespace.get2('MacroB'), isNotNull);
-    }
-
-    _assertContainsLinkedCycle({a});
-    _assertContainsLinkedCycle({b}, andClear: true);
-  }
-
-  test_macro_reanalyze_errors_changeCodeUsedByMacro_importedLibrary() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-String getClassName() => 'MacroA';
-''');
-
-    newFile('$testPackageLibPath/my_macro.dart', r'''
-import 'package:macros/macros.dart';
-import 'a.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  const MyMacro();
-
-  buildTypesForClass(clazz, builder) {
-    final className = getClassName();
-    builder.declareType(
-      '$className',
-      DeclarationCode.fromString('class $className {}'),
-    );
-  }
-}
-''');
-
-    var user = newFile('$testPackageLibPath/user.dart', r'''
-import 'my_macro.dart';
-
-@MyMacro()
-class A {}
-
-void f(MacroA a) {}
-''');
-
-    var analysisContext = contextFor(a);
-    var analysisDriver = driverFor(a);
-
-    // TODO(scheglov): use text expectations
-    var userErrors = _createUnitQueueOfStream(user);
-
-    // We get errors when the file is added.
-    analysisDriver.addFile(user.path);
-    assertErrorsInList((await userErrors.removeFirstAsync()).errors, []);
-
-    // The macro will generate `MacroB`.
-    newFile('$testPackageLibPath/a.dart', r'''
-String getClassName() => 'MacroB';
-''');
-
-    // Notify about changes.
-    analysisContext.changeFile(a.path);
-    await analysisContext.applyPendingFileChanges();
-
-    // The change to the macro cause re-analysis of the user file.
-    assertErrorsInList((await userErrors.removeFirstAsync()).errors, [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 55, 6),
-    ]);
-  }
-
-  test_macro_reanalyze_errors_changeCodeUsedByMacro_part() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'my_macro.dart';
-String getClassName() => 'MacroA';
-''');
-
-    newFile('$testPackageLibPath/my_macro.dart', r'''
-import 'package:macros/macros.dart';
-part 'a.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  const MyMacro();
-
-  buildTypesForClass(clazz, builder) {
-    final className = getClassName();
-    builder.declareType(
-      '$className',
-      DeclarationCode.fromString('class $className {}'),
-    );
-  }
-}
-''');
-
-    var user = newFile('$testPackageLibPath/user.dart', r'''
-import 'my_macro.dart';
-
-@MyMacro()
-class A {}
-
-void f(MacroA a) {}
-''');
-
-    var analysisContext = contextFor(a);
-    var analysisDriver = driverFor(a);
-
-    // TODO(scheglov): use text expectations
-    var userErrors = _createUnitQueueOfStream(user);
-
-    // We get errors when the file is added.
-    analysisDriver.addFile(user.path);
-    assertErrorsInList((await userErrors.removeFirstAsync()).errors, []);
-
-    // The macro will generate `MacroB`.
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'my_macro.dart';
-String getClassName() => 'MacroB';
-''');
-
-    // Notify about changes.
-    analysisContext.changeFile(a.path);
-    await analysisContext.applyPendingFileChanges();
-
-    // The change to the macro cause re-analysis of the user file.
-    assertErrorsInList((await userErrors.removeFirstAsync()).errors, [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 55, 6),
-    ]);
-  }
-
-  test_macro_reanalyze_errors_changeMacroCode() async {
-    var macroFile = _newFileWithFixedNameMacro('MacroA');
-
-    var user = newFile('$testPackageLibPath/user.dart', r'''
-import 'my_macro.dart';
-
-@MyMacro()
-class A {}
-
-void f(MacroA a) {}
-''');
-
-    var analysisContext = contextFor(user);
-    var analysisDriver = driverFor(user);
-
-    // TODO(scheglov): use text expectations
-    var userErrors = _createUnitQueueOfStream(user);
-
-    // We get errors when the file is added.
-    analysisDriver.addFile(user.path);
-    assertErrorsInList((await userErrors.removeFirstAsync()).errors, []);
-
-    // The macro will generate `MacroB`.
-    _newFileWithFixedNameMacro('MacroB');
-
-    // Notify about changes.
-    analysisContext.changeFile(macroFile.path);
-    await analysisContext.applyPendingFileChanges();
-
-    // The change to the macro cause re-analysis of the user file.
-    assertErrorsInList((await userErrors.removeFirstAsync()).errors, [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 55, 6),
-    ]);
-  }
-
-  test_macro_resolvedUnit_changeCodeUsedByMacro() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-String getClassName() => 'MacroA';
-''');
-
-    newFile('$testPackageLibPath/my_macro.dart', r'''
-import 'dart:async';
-import 'package:macros/macros.dart';
-import 'a.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  const MyMacro();
-
-  FutureOr<void> buildTypesForClass(clazz, builder) {
-    final className = getClassName();
-    builder.declareType(
-      '$className',
-      DeclarationCode.fromString('class $className {}'),
-    );
-  }
-}
-''');
-
-    // The macro will generate `MacroA`, so no errors.
-    await assertNoErrorsInCode('''
-import 'my_macro.dart';
-
-@MyMacro()
-class A {}
-
-void f(MacroA a) {}
-''');
-
-    // The macro will generate `MacroB`.
-    newFile(a.path, r'''
-String getClassName() => 'MacroB';
-''');
-
-    // Notify about changes.
-    var analysisContext = contextFor(a);
-    analysisContext.changeFile(a.path);
-    await analysisContext.applyPendingFileChanges();
-
-    // Resolve the test file, it still references `MacroA`, but the macro
-    // generates `MacroB` now, so we have an error.
-    await resolveTestFile();
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 55, 6),
-    ]);
-  }
-
   void _assertContainsLinkedCycle(Set<File> expectedFiles,
       {bool andClear = false}) {
     var expected = expectedFiles.map((file) => file.path).toSet();
@@ -636,48 +373,10 @@ String getClassName() => 'MacroB';
         .getErrors(testFile.path) as ErrorsResult;
     return errorsResult.errors;
   }
-
-  ListQueue<ResolvedUnitResult> _createUnitQueueOfStream(File file) {
-    var queue = ListQueue<ResolvedUnitResult>();
-    analysisContextCollection.scheduler.events
-        .whereType<ResolvedUnitResult>()
-        .where((event) => event.path == file.path)
-        .listen(queue.add);
-    return queue;
-  }
-
-  File _newFileWithFixedNameMacro(String className) {
-    return newFile('$testPackageLibPath/my_macro.dart', '''
-import 'package:macros/macros.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  const MyMacro();
-
-  buildTypesForClass(clazz, builder) {
-    builder.declareType(
-      '$className',
-      DeclarationCode.fromString('class $className {}'),
-    );
-  }
-}
-''');
-  }
 }
 
 extension on AnalysisDriver {
   bool isValidLibraryElement(LibraryElement2 element) {
     return identical(element.session, currentSession);
-  }
-}
-
-extension<T> on ListQueue<T> {
-  Future<T> removeFirstAsync() async {
-    while (true) {
-      var result = removeFirstOrNull();
-      if (result != null) {
-        return result;
-      }
-      await pumpEventQueue();
-    }
   }
 }

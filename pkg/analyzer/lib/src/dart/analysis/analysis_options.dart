@@ -20,6 +20,7 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
@@ -109,14 +110,26 @@ final class AnalysisOptionsBuilder {
 
   void _applyFormatterOptions(YamlNode? formatter) {
     int? pageWidth;
+    TrailingCommas? trailingCommas;
     if (formatter is YamlMap) {
-      var formatNode = formatter.valueAt(AnalysisOptionsFile.pageWidth);
-      var formatValue = formatNode?.value;
-      if (formatValue is int && formatValue > 0) {
-        pageWidth = formatValue;
+      var pageWidthNode = formatter.valueAt(AnalysisOptionsFile.pageWidth);
+      var pageWidthValue = pageWidthNode?.value;
+      if (pageWidthValue is int && pageWidthValue > 0) {
+        pageWidth = pageWidthValue;
       }
+
+      var trailingCommasNode = formatter.valueAt(
+        AnalysisOptionsFile.trailingCommas,
+      );
+      var trailingCommasValue = trailingCommasNode?.value;
+      trailingCommas = TrailingCommas.values.firstWhereOrNull(
+        (item) => item.name == trailingCommasValue,
+      );
     }
-    formatterOptions = FormatterOptions(pageWidth: pageWidth);
+    formatterOptions = FormatterOptions(
+      pageWidth: pageWidth,
+      trailingCommas: trailingCommas,
+    );
   }
 
   void _applyLanguageOptions(YamlNode? configs) {
@@ -524,25 +537,27 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
       // Append error processors.
       buffer.addInt(errorProcessors.length);
-      for (ErrorProcessor processor in errorProcessors) {
+      for (ErrorProcessor processor
+          in errorProcessors.sortedBy((processor) => processor.description)) {
         buffer.addString(processor.description);
       }
 
       // Append lints.
       buffer.addInt(lintRules.length);
-      for (var lintRule in lintRules) {
+      for (var lintRule in lintRules.sortedBy((lintRule) => lintRule.name)) {
         buffer.addString(lintRule.name);
       }
 
       // Append legacy plugin names.
       buffer.addInt(enabledLegacyPluginNames.length);
-      for (var enabledLegacyPluginName in enabledLegacyPluginNames) {
+      for (var enabledLegacyPluginName in enabledLegacyPluginNames.sorted()) {
         buffer.addString(enabledLegacyPluginName);
       }
 
       // Append plugin configurations.
       buffer.addInt(pluginConfigurations.length);
-      for (var pluginConfiguration in pluginConfigurations) {
+      for (var pluginConfiguration in pluginConfigurations
+          .sortedBy((pluginConfiguration) => pluginConfiguration.name)) {
         buffer.addString(pluginConfiguration.name);
         buffer.addBool(pluginConfiguration.isEnabled);
         buffer.addInt(pluginConfiguration.diagnosticConfigs.length);

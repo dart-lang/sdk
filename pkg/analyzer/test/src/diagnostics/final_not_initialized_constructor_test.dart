@@ -52,6 +52,7 @@ class A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_augmentsConstructor2_2of2() async {
     newFile(testFile.path, r'''
 part 'a.dart';
@@ -90,6 +91,7 @@ augment class A {
     assertNoErrorsInResult();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_augmentsConstructor_1of1() async {
     newFile(testFile.path, r'''
 part 'a.dart';
@@ -115,6 +117,7 @@ augment class A {
     assertNoErrorsInResult();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_augmentsConstructor_1of2() async {
     newFile(testFile.path, r'''
 part 'a.dart';
@@ -148,6 +151,7 @@ augment class A {
     assertNoErrorsInResult();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_augmentsConstructor_noInitializers() async {
     newFile(testFile.path, r'''
 part 'a.dart';
@@ -173,6 +177,7 @@ augment class A {
     assertNoErrorsInResult();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_declaresConstructor_noInitializers() async {
     newFile(testFile.path, r'''
 part 'a.dart';

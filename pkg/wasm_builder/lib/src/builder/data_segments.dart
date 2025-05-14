@@ -7,8 +7,6 @@ import 'dart:typed_data';
 import '../ir/ir.dart' as ir;
 import 'builder.dart';
 
-part 'data_segment.dart';
-
 /// The interface for building data segments in a module.
 class DataSegmentsBuilder with Builder<ir.DataSegments> {
   final _dataSegmentBuilders = <DataSegmentBuilder>[];

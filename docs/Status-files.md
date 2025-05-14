@@ -13,7 +13,7 @@ and runtimes we maintain and support.
 We have tens of thousands of tests and a single test may be run across a
 combinatorial explosion of configurations. Does the static analyzer report any
 errors on it? In strong mode? Does it run on the standalone VM? Can dart2js
-compile it? Does the resulting code run in Chrome? Firefox? IE? In checked mode?
+compile it? Does the resulting code run in Chrome? Firefox? In checked mode?
 With minification on? You get the idea.
 
 Many tests are only meaningful for certain combinations of configurations. A

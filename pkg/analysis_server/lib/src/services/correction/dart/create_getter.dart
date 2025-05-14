@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
@@ -67,7 +68,7 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
     }
 
     var matchedType = objectPattern.type.typeOrThrow;
-    if (matchedType is! InterfaceType) {
+    if (matchedType is! InterfaceTypeImpl) {
       return;
     }
 
@@ -90,9 +91,8 @@ class CreateGetter extends CreateFieldOrGetter {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_getterName];
@@ -198,7 +198,7 @@ class CreateGetter extends CreateFieldOrGetter {
       return;
     }
     // prepare target declaration
-    var targetDeclarationResult = await sessionHelper.getElementDeclaration(
+    var targetDeclarationResult = await sessionHelper.getFragmentDeclaration(
       targetFragment,
     );
     if (targetDeclarationResult == null) {

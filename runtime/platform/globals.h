@@ -297,6 +297,15 @@ struct simd128_value_t {
 #error Automatic compiler detection failed.
 #endif
 
+#if defined(__APPLE__)
+// Avoid expensive saving of sigmask in setjmp/longjmp.
+#define DART_SETJMP _setjmp
+#define DART_LONGJMP _longjmp
+#else
+#define DART_SETJMP setjmp
+#define DART_LONGJMP longjmp
+#endif
+
 #if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_X64) &&                  \
     !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_ARM64) &&               \
     !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)

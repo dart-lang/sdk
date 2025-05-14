@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
+import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
@@ -28,7 +29,6 @@ import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:yaml/yaml.dart';
@@ -60,10 +60,6 @@ class EditGetFixesHandler extends LegacyHandler
 
     if (!server.isAnalyzed(file)) {
       server.sendResponse(Response.getFixesInvalidFile(request));
-      return;
-    }
-    if (isMacroGenerated(file)) {
-      sendResult(EditGetFixesResult([]));
       return;
     }
 
@@ -163,7 +159,6 @@ class EditGetFixesHandler extends LegacyHandler
           uri: optionsFile.toUri(),
           lineInfo: lineInfo,
           isLibrary: true,
-          isMacroPart: false,
           isPart: false,
           errors: errors,
           analysisOptions: analysisOptions,
@@ -207,7 +202,22 @@ class EditGetFixesHandler extends LegacyHandler
 
           List<Fix> fixes;
           try {
-            fixes = await computeFixes(context);
+            var performanceTracker = FixPerformance();
+            fixes = await computeFixes(
+              context,
+              performance: performanceTracker,
+            );
+
+            server.recentPerformance.getFixes.add(
+              GetFixesPerformance(
+                performance: performance,
+                path: file,
+                content: unitResult.content,
+                offset: offset,
+                requestLatency: performanceTracker.computeTime!.inMilliseconds,
+                producerTimings: performanceTracker.producerTimings,
+              ),
+            );
           } on InconsistentAnalysisException {
             fixes = [];
           } catch (exception, stackTrace) {
@@ -299,7 +309,6 @@ error.errorCode: ${error.errorCode}
           uri: pubspecFile.toUri(),
           lineInfo: lineInfo,
           isLibrary: true,
-          isMacroPart: false,
           isPart: false,
           errors: errors,
           analysisOptions: analysisOptions,

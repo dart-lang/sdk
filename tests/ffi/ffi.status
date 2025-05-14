@@ -54,6 +54,7 @@ vmspecific_native_finalizer_isolate_groups_test: Skip # SpawnUri not available o
 [ $system == fuchsia ]
 async_void_function_callbacks_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 ffi_induce_a_crash_test/*: Skip # Test harness doesn't support multitest with Fuchsia
+function_callbacks_leaf_test: SkipByDesign # Needs access to Dart executable
 function_callbacks_many_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 function_callbacks_structs_by_value_generated_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 function_callbacks_structs_by_value_native_callable_generated_test/*: Skip # Test harness doesn't support multitest with Fuchsia
@@ -71,9 +72,10 @@ vmspecific_pointer_load_il_test: SkipByDesign # Not bloating the Fuchsia test pa
 regress_47594_test: Skip # DynamicLibrary.process() is not available on Windows.
 
 [ $qemu ]
+function_callbacks_leaf_test: SkipByDesign # Needs access to Dart executable
 native_assets/*: SkipByDesign # Only intended to run on host oses with AOT binaries available, not available on QEMU.
 
-[ $simulator ]
+[ $arch != simarm64_arm64 && $simulator ]
 *: Skip # FFI not yet supported on the arm simulator.
 
 [ $compiler != dart2analyzer && $compiler != fasta && $runtime != dart_precompiled && $runtime != vm ]

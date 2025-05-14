@@ -29,12 +29,7 @@ class ReplaceWithInterpolation extends ResolvedCorrectionProducer {
     //
     // Validate the fix.
     //
-    BinaryExpression? binary;
-    AstNode? candidate = node;
-    while (candidate is BinaryExpression && _isStringConcatenation(candidate)) {
-      binary = candidate;
-      candidate = candidate.parent;
-    }
+    var binary = _computeTarget();
     if (binary == null) {
       return;
     }
@@ -50,10 +45,19 @@ class ReplaceWithInterpolation extends ResolvedCorrectionProducer {
     //
     // Build the edit.
     //
-    var binary_final = binary;
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(range.node(binary_final), interpolation);
+      builder.addSimpleReplacement(range.node(binary), interpolation);
     });
+  }
+
+  BinaryExpression? _computeTarget() {
+    BinaryExpression? binary;
+    AstNode? candidate = node;
+    while (candidate is BinaryExpression && _isStringConcatenation(candidate)) {
+      binary = candidate;
+      candidate = candidate.parent;
+    }
+    return binary;
   }
 
   _StringStyle _extractComponentsInto(
@@ -108,8 +112,7 @@ class ReplaceWithInterpolation extends ResolvedCorrectionProducer {
     return _StringStyle.unknown;
   }
 
-  bool _isStringConcatenation(AstNode node) =>
-      node is BinaryExpression &&
+  bool _isStringConcatenation(BinaryExpression node) =>
       node.operator.type == TokenType.PLUS &&
       node.leftOperand.typeOrThrow.isDartCoreString &&
       node.rightOperand.typeOrThrow.isDartCoreString;

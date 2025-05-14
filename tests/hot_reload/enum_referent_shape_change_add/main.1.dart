@@ -43,7 +43,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -10,19 +10,22 @@
  
  class Box {
    final x;
@@ -76,9 +75,4 @@ Future<void> main() async {
  
    const Fruit(this.name, this.initial);
    final String name;
-@@ -37,3 +40,4 @@
-   await hotReload();
-   Expect.equals('Fruit.Apple', retained.toString());
- }
-+
 */

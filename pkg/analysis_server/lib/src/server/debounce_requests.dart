@@ -12,10 +12,17 @@ import 'package:analysis_server/src/channel/channel.dart';
 /// Return the stream of requests that is filtered to exclude requests for
 /// which the client does not need actual responses.
 ///
-/// If there is one completion request, and then another completion request,
-/// then most probably the user continued typing, and there is no need to
-/// compute results for the first request. But we will have to respond, an
-/// empty response is enough.
+/// If there is a request (for example for completion), and then another request
+/// of the same kind, then most probably the user continued typing, and there is
+/// no need to compute results for the first request. But we will have to
+/// respond, an empty response is enough.
+///
+/// Debounced requests include:
+///
+/// * `getAssists`
+/// * `getCompletions`
+/// * `getFixes`
+/// * `getHover`
 ///
 /// Discarded requests are reported into [discardedRequests].
 Stream<RequestOrResponse> debounceRequests(
@@ -44,7 +51,7 @@ class _DebounceRequests {
           // quickly get all of them. So, even 1 ms should be enough.
           timer ??= Timer(const Duration(milliseconds: 1), () {
             timer = null;
-            var filtered = _filterCompletion(buffer);
+            var filtered = _filterRequests(buffer);
             buffer = [];
             for (var request in filtered) {
               sink.add(request);
@@ -55,15 +62,18 @@ class _DebounceRequests {
     );
   }
 
-  List<RequestOrResponse> _filterCompletion(List<RequestOrResponse> requests) {
+  List<RequestOrResponse> _filterRequests(List<RequestOrResponse> requests) {
     var reversed = <RequestOrResponse>[];
     var abortCompletionRequests = false;
+    var abortHoverRequests = false;
+    var abortAssistsRequests = false;
+    var abortFixesRequests = false;
     for (var requestOrResponse in requests.reversed) {
       if (requestOrResponse is Request) {
         if (requestOrResponse.method == ANALYSIS_REQUEST_UPDATE_CONTENT) {
           abortCompletionRequests = true;
-        }
-        if (requestOrResponse.method == COMPLETION_REQUEST_GET_SUGGESTIONS2) {
+        } else if (requestOrResponse.method ==
+            COMPLETION_REQUEST_GET_SUGGESTIONS2) {
           if (abortCompletionRequests) {
             discardedRequests.add(requestOrResponse);
             var params = CompletionGetSuggestions2Params.fromRequest(
@@ -84,6 +94,51 @@ class _DebounceRequests {
             continue;
           } else {
             abortCompletionRequests = true;
+          }
+        } else if (requestOrResponse.method == ANALYSIS_REQUEST_GET_HOVER) {
+          if (abortHoverRequests) {
+            discardedRequests.add(requestOrResponse);
+            channel.sendResponse(
+              AnalysisGetHoverResult([]).toResponse(
+                requestOrResponse.id,
+                // We can use a null converter here because we're not sending
+                // any path.
+                clientUriConverter: null,
+              ),
+            );
+            continue;
+          } else {
+            abortHoverRequests = true;
+          }
+        } else if (requestOrResponse.method == EDIT_REQUEST_GET_ASSISTS) {
+          if (abortAssistsRequests) {
+            discardedRequests.add(requestOrResponse);
+            channel.sendResponse(
+              EditGetAssistsResult([]).toResponse(
+                requestOrResponse.id,
+                // We can use a null converter here because we're not sending
+                // any path.
+                clientUriConverter: null,
+              ),
+            );
+            continue;
+          } else {
+            abortAssistsRequests = true;
+          }
+        } else if (requestOrResponse.method == EDIT_REQUEST_GET_FIXES) {
+          if (abortFixesRequests) {
+            discardedRequests.add(requestOrResponse);
+            channel.sendResponse(
+              EditGetFixesResult([]).toResponse(
+                requestOrResponse.id,
+                // We can use a null converter here because we're not sending
+                // any path.
+                clientUriConverter: null,
+              ),
+            );
+            continue;
+          } else {
+            abortFixesRequests = true;
           }
         }
       }

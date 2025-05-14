@@ -206,7 +206,7 @@ class TypeEnvironment {
     return compiler.frontendClosedWorldForTesting!;
   }
 
-  String printType(DartType type) => type.toStructuredText(types, options);
+  String printType(DartType type) => type.toStructuredText(types);
 
   List<String> printTypes(List<DartType> types) =>
       types.map(printType).toList();

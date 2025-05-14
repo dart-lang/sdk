@@ -28,15 +28,15 @@ RESULT: _T {}
 %this = _Parameter #0 [_T (#lib::TestEnum)+]
 t1 = _Call virtual get [dart.core::_Enum._name] (%this)
 RESULT: _T (dart.core::String)+
------------- TestEnum.values ------------
-
-RESULT: _T (dart.core::_ImmutableList, const <#lib::TestEnum>[const #lib::TestEnum{dart.core::_Enum.index: 0, dart.core::_Enum._name: "v1"}, const #lib::TestEnum{dart.core::_Enum.index: 1, dart.core::_Enum._name: "v2"}])
 ------------ TestEnum.v1 ------------
 
 RESULT: _T (#lib::TestEnum, const #lib::TestEnum{dart.core::_Enum.index: 0, dart.core::_Enum._name: "v1"})
 ------------ TestEnum.v2 ------------
 
 RESULT: _T (#lib::TestEnum, const #lib::TestEnum{dart.core::_Enum.index: 1, dart.core::_Enum._name: "v2"})
+------------ TestEnum.values ------------
+
+RESULT: _T (dart.core::_ImmutableList, const <#lib::TestEnum>[const #lib::TestEnum{dart.core::_Enum.index: 0, dart.core::_Enum._name: "v1"}, const #lib::TestEnum{dart.core::_Enum.index: 1, dart.core::_Enum._name: "v2"}])
 ------------ foo ------------
 %x = _Parameter #0 [_T ANY?]
 RESULT: _T {}?
@@ -337,6 +337,15 @@ t1 = _TypeCheck (%x against #lib::C1) (for x as #lib::C1)
 t2 = _Call direct [#lib::foo] (t1)
 t3 = _Call direct [#lib::bar] (t1)
 RESULT: _T {}?
+------------ never1 ------------
+%cond = _Parameter #0 [_T (dart.core::bool)+]
+t1 = _Call direct [#lib::returnNever] () {%cond}
+t2 = Not (%cond)
+t3 = _Call direct [#lib::foo] (_T (dart.core::_Smi, 1)) {t2}
+RESULT: _T {}?
+------------ returnNever ------------
+
+RESULT: _T {}
 ------------ main ------------
 
 RESULT: _T {}?

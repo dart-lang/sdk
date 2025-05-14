@@ -7,7 +7,7 @@ part of "core_patch.dart";
 typedef Uri _UriBaseClosure();
 
 Uri _unsupportedUriBase() {
-  throw new UnsupportedError("'Uri.base' is not supported");
+  throw UnsupportedError("'Uri.base' is not supported");
 }
 
 // _uriBaseClosure can be overwritten by the embedder to supply a different
@@ -57,7 +57,7 @@ class _Uri {
 
     // Encode the string into bytes then generate an ASCII only string
     // by percent encoding selected bytes.
-    StringBuffer result = new StringBuffer();
+    StringBuffer result = StringBuffer();
     for (int j = 0; j < i; j++) {
       result.writeCharCode(text.codeUnitAt(j));
     }

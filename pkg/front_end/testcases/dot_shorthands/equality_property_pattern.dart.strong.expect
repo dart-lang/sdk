@@ -1,0 +1,39 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Color extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Color red = #C3;
+  enum-element static const field self::Color blue = #C6;
+  static const field core::List<self::Color> values = #C7;
+  const synthetic constructor •(core::int #index, core::String #name) → self::Color
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Color.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → void {
+  self::Color c = #C3;
+  {
+    final synthesized self::Color #0#0 = c;
+    if(#0#0 =={core::Object::==}{(core::Object) → core::bool} #C6)
+      core::print("ok");
+  }
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "red"
+  #C3 = self::Color {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "blue"
+  #C6 = self::Color {index:#C4, _name:#C5}
+  #C7 = <self::Color>[#C3, #C6]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///equality_property_pattern.dart:
+- Color. (from org-dartlang-testcase:///equality_property_pattern.dart:5:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

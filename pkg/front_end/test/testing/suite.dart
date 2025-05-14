@@ -19,13 +19,9 @@ import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    show ConstantEvaluator, ErrorReporter, EvaluationMode;
+    show ConstantEvaluator, ErrorReporter;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show
-        AllowedExperimentalFlags,
-        ExperimentalFlag,
-        LibraryFeatures,
-        isExperimentEnabled;
+    show AllowedExperimentalFlags, ExperimentalFlag, LibraryFeatures;
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
@@ -35,7 +31,6 @@ import 'package:front_end/src/base/crash.dart';
 import 'package:front_end/src/base/incremental_compiler.dart'
     show AdvancedInvalidationResult, IncrementalCompiler;
 import 'package:front_end/src/base/messages.dart' show LocatedMessage;
-import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/problems.dart';
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -73,7 +68,6 @@ import 'package:kernel/ast.dart'
         LibraryPart,
         Member,
         Node,
-        NonNullableByDefaultCompiledMode,
         RecursiveVisitor,
         Reference,
         TreeNode,
@@ -220,7 +214,6 @@ class FastaContext extends ChainContext with MatchContext {
   final bool skipVm;
   final bool semiFuzz;
   final bool verify;
-  final bool soundNullSafety;
   final Uri platformBinaries;
   final Map<Uri, Uri?> _librariesJson = {};
   final SuiteFolderOptions suiteFolderOptions;
@@ -265,25 +258,19 @@ class FastaContext extends ChainContext with MatchContext {
       this.skipVm,
       this.semiFuzz,
       this.compileMode,
-      this.verify,
-      this.soundNullSafety)
+      this.verify)
       : steps = <Step>[
           new Outline(compileMode, updateComments: updateComments),
-          new ErrorCommentChecker(compileMode),
           const Print(),
           new Verify(compileMode == CompileMode.full
               ? VerificationStage.afterConstantEvaluation
-              : VerificationStage.outline)
+              : VerificationStage.outline),
+          new ErrorCommentChecker(compileMode),
         ],
         suiteFolderOptions = new SuiteFolderOptions(baseUri),
         suiteTestOptions = new SuiteTestOptions() {
-    String prefix;
+    String prefix = '.strong';
     String infix;
-    if (soundNullSafety) {
-      prefix = '.strong';
-    } else {
-      prefix = '.weak';
-    }
     switch (compileMode) {
       case CompileMode.outline:
         infix = '.outline';
@@ -369,24 +356,23 @@ class FastaContext extends ChainContext with MatchContext {
 
   Expectation get verificationError => expectationSet["VerificationError"];
 
-  Uri _getPlatformUri(Target target, NnbdMode nnbdMode) {
+  Uri _getPlatformUri(Target target) {
     String fileName = computePlatformDillName(
         target,
-        nnbdMode,
         () => throw new UnsupportedError(
-            "No platform dill for target '${target.name}' with $nnbdMode."))!;
+            "No platform dill for target '${target.name}'."))!;
     return platformBinaries.resolve(fileName);
   }
 
-  Component loadPlatform(Target target, NnbdMode nnbdMode) {
-    Uri uri = _getPlatformUri(target, nnbdMode);
+  Component loadPlatform(Target target) {
+    Uri uri = _getPlatformUri(target);
     return _platforms.putIfAbsent(uri, () {
       return loadComponentFromBytes(new File.fromUri(uri).readAsBytesSync());
     });
   }
 
-  void clearPlatformCache(Target target, NnbdMode nnbdMode) {
-    Uri uri = _getPlatformUri(target, nnbdMode);
+  void clearPlatformCache(Target target) {
+    Uri uri = _getPlatformUri(target);
     _platforms.remove(uri);
   }
 
@@ -435,7 +421,6 @@ class FastaContext extends ChainContext with MatchContext {
   static Future<FastaContext> create(
       Chain suite, Map<String, String> environment) {
     const Set<String> knownEnvironmentKeys = {
-      EnvironmentKeys.soundNullSafety,
       EnvironmentKeys.ignoreExpectations,
       EnvironmentKeys.updateExpectations,
       EnvironmentKeys.updateComments,
@@ -453,8 +438,6 @@ class FastaContext extends ChainContext with MatchContext {
     Map<ExperimentalFlag, bool> experimentalFlags =
         SuiteFolderOptions.computeForcedExperimentalFlags(environment);
 
-    bool soundNullSafety =
-        environment[EnvironmentKeys.soundNullSafety] == "true";
     bool ignoreExpectations =
         environment[EnvironmentKeys.ignoreExpectations] == "true";
     bool updateExpectations =
@@ -480,8 +463,7 @@ class FastaContext extends ChainContext with MatchContext {
         skipVm,
         semiFuzz,
         compileModeFromName(environment[EnvironmentKeys.compilationMode]),
-        verify,
-        soundNullSafety));
+        verify));
   }
 }
 
@@ -518,22 +500,6 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
               await StdioProcess.run(context.vm.toFilePath(), args);
           print(process.output);
           Result<int> runResult = process.toResult();
-          if (result.component.mode ==
-              NonNullableByDefaultCompiledMode.Invalid) {
-            // In this case we expect and want a runtime error.
-            if (runResult.outcome ==
-                ExpectationSet.defaultExpectations["RuntimeError"]) {
-              // We convert this to pass because that's exactly what we'd
-              // expect.
-              return pass(result);
-            } else {
-              // Different outcome - that's a failure!
-              return new Result<ComponentResult>(
-                  result,
-                  ExpectationSet.defaultExpectations["MissingRuntimeError"],
-                  runResult.error);
-            }
-          }
           return new Result<ComponentResult>(
               result, runResult.outcome, runResult.error);
         case "none":
@@ -574,7 +540,6 @@ class StressConstantEvaluatorStep
       environment,
       !target.backendTarget.supportsSetLiterals,
       result.options.errorOnUnevaluatedConstant,
-      target.getConstantEvaluationModeForTesting(),
     );
     for (Library lib in result.component.libraries) {
       if (!result.isUserLibrary(lib)) continue;
@@ -613,8 +578,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
       bool enableTripleShift,
       TypeEnvironment typeEnvironment,
       bool desugarSets,
-      bool errorOnUnevaluatedConstant,
-      EvaluationMode evaluationMode) {
+      bool errorOnUnevaluatedConstant) {
     constantEvaluator = new ConstantEvaluator(
         target.dartLibrarySupport,
         target.constantsBackend,
@@ -623,8 +587,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
         typeEnvironment,
         this,
         enableTripleShift: enableTripleShift,
-        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
-        evaluationMode: evaluationMode);
+        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     constantEvaluatorWithEmptyEnvironment = new ConstantEvaluator(
         target.dartLibrarySupport,
         target.constantsBackend,
@@ -633,8 +596,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
         typeEnvironment,
         this,
         enableTripleShift: enableTripleShift,
-        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
-        evaluationMode: evaluationMode);
+        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
   }
 
   Library? currentLibrary;
@@ -752,7 +714,6 @@ class CompilationSetup {
   final ProcessedOptions options;
   final List<Iterable<String>> errors;
   final CompilerOptions Function(
-      NnbdMode nnbdMode,
       AllowedExperimentalFlags? allowedExperimentalFlags,
       Map<ExperimentalFlag, Version>? experimentEnabledVersion,
       Map<ExperimentalFlag, Version>? experimentReleasedVersion,
@@ -786,15 +747,9 @@ CompilationSetup createCompilationSetup(
       context.suiteFolderOptions.computeFolderOptions(description);
   Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
       .computeExplicitExperimentalFlags(context.forcedExperimentalFlags);
-  NnbdMode nnbdMode = !context.soundNullSafety ||
-          !isExperimentEnabled(ExperimentalFlag.nonNullable,
-              explicitExperimentalFlags: experimentalFlags)
-      ? NnbdMode.Weak
-      : NnbdMode.Strong;
   List<Uri> inputs = <Uri>[description.uri];
 
   CompilerOptions createCompilerOptions(
-      NnbdMode nnbdMode,
       AllowedExperimentalFlags? allowedExperimentalFlags,
       Map<ExperimentalFlag, Version>? experimentEnabledVersion,
       Map<ExperimentalFlag, Version>? experimentReleasedVersion,
@@ -807,7 +762,6 @@ CompilationSetup createCompilationSetup(
           folderOptions.enableUnscheduledExperiments ?? false
       ..environmentDefines = folderOptions.defines
       ..explicitExperimentalFlags = experimentalFlags
-      ..nnbdMode = nnbdMode
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowedExperimentalFlagsForTesting = allowedExperimentalFlags
       ..experimentEnabledVersionForTesting = experimentEnabledVersion
@@ -828,7 +782,7 @@ CompilationSetup createCompilationSetup(
       compilerOptions.verify = forceVerifyTo;
     }
     compilerOptions.sdkSummary =
-        context._getPlatformUri(compilerOptions.target!, nnbdMode);
+        context._getPlatformUri(compilerOptions.target!);
     if (folderOptions.overwriteCurrentSdkVersion != null) {
       compilerOptions.currentSdkVersion =
           folderOptions.overwriteCurrentSdkVersion!;
@@ -845,14 +799,12 @@ CompilationSetup createCompilationSetup(
   colors.enableColors = false;
 
   CompilerOptions compilerOptions = createCompilerOptions(
-      nnbdMode,
       testOptions.allowedExperimentalFlags,
       testOptions.experimentEnabledVersion,
       testOptions.experimentReleasedVersion,
       testOptions.dynamicInterfaceSpecificationUri);
   ProcessedOptions options = createProcessedOptions(compilerOptions);
-  options.sdkSummaryComponent =
-      context.loadPlatform(options.target, options.nnbdMode);
+  options.sdkSummaryComponent = context.loadPlatform(options.target);
   return new CompilationSetup(testOptions, folderOptions, compilerOptions,
       options, errors, createCompilerOptions, createProcessedOptions);
 }
@@ -885,8 +837,7 @@ class FuzzCompiles
       backendTarget.performModularTransformations = true;
     }
 
-    Component platform =
-        context.loadPlatform(backendTarget, compilationSetup.options.nnbdMode);
+    Component platform = context.loadPlatform(backendTarget);
 
     final bool hasErrors;
     {
@@ -1940,7 +1891,6 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
         folderOptions.forceNoExplicitGetterCalls,
     forceConstructorTearOffLoweringForTesting:
         folderOptions.forceConstructorTearOffLowering,
-    soundNullSafety: context.soundNullSafety,
     supportedDartLibraries: {'_supported.by.target'},
     unsupportedDartLibraries: {'unsupported.by.target'},
   );
@@ -2041,17 +1991,6 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         compilationSetup.testOptions.component == null) {
       // Compile linked dependency.
       ProcessedOptions linkOptions = compilationSetup.options;
-      if (compilationSetup.testOptions.nnbdMode != null) {
-        linkOptions = compilationSetup.createProcessedOptions(
-            compilationSetup.createCompilerOptions(
-                compilationSetup.testOptions.nnbdMode!,
-                compilationSetup.testOptions.allowedExperimentalFlags,
-                compilationSetup.testOptions.experimentEnabledVersion,
-                compilationSetup.testOptions.experimentReleasedVersion,
-                compilationSetup.testOptions.dynamicInterfaceSpecificationUri));
-        linkOptions.sdkSummaryComponent =
-            context.loadPlatform(linkOptions.target, linkOptions.nnbdMode);
-      }
       await CompilerContext.runWithOptions(linkOptions,
           (CompilerContext c) async {
         Target backendTarget = linkOptions.target;
@@ -2187,8 +2126,7 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
             backendTarget.performGlobalTransformations(sourceTarget, component);
         // Clear the currently cached platform since the global transformation
         // might have modified it.
-        context.clearPlatformCache(
-            backendTarget, result.compilationSetup.options.nnbdMode);
+        context.clearPlatformCache(backendTarget);
       }
 
       return pass(new ComponentResult(result.description, component,

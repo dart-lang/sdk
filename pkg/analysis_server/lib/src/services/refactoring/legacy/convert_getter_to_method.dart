@@ -13,7 +13,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// [ConvertMethodToGetterRefactoring] implementation.
@@ -82,7 +81,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
 
   /// Checks if [element] is valid to perform this refactor.
   RefactoringStatus _checkElement() {
-    if (!workspace.containsElement2(element)) {
+    if (!workspace.containsElement(element)) {
       return RefactoringStatus.fatal(
         'Only getters in your workspace can be converted.',
       );
@@ -106,14 +105,14 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     for (
       GetterFragment? fragment = element.firstFragment;
       fragment != null;
-      fragment = fragment.nextFragment as GetterFragment?
+      fragment = fragment.nextFragment
     ) {
       var nameRange = range.fragmentName(fragment);
       if (nameRange == null) {
         return;
       }
       var sessionHelper = AnalysisSessionHelper(session);
-      var result = await sessionHelper.getElementDeclaration(fragment);
+      var result = await sessionHelper.getFragmentDeclaration(fragment);
       var declaration = result?.node;
       if (declaration is MethodDeclaration) {
         getKeyword = declaration.propertyKeyword;
@@ -141,8 +140,6 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     for (var reference in references) {
-      // Don't update references in macro-generated files.
-      if (isMacroGenerated(reference.file)) continue;
       var refRange = reference.range;
       // insert "()"
       var edit = SourceEdit(refRange.end, 0, '()');

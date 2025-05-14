@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AwaitOnlyFuturesTest);
   });
@@ -38,16 +38,19 @@ void f() async {
   }
 
   test_extensionType_notImplementingFuture() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type E(int c) { }
 
 void f() async {
   await E(1);
 }
-''', [
-      // No lint.
-      error(CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE, 48, 5),
-    ]);
+''',
+      [
+        // No lint.
+        error(CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE, 48, 5),
+      ],
+    );
   }
 
   test_future() async {
@@ -77,13 +80,14 @@ abstract class MyFuture<T> implements Future<T> {}
   }
 
   test_int() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() async {
   await 23;
 }
-''', [
-      lint(19, 5),
-    ]);
+''',
+      [lint(19, 5)],
+    );
   }
 
   test_null() async {
@@ -95,11 +99,14 @@ void f() async {
   }
 
   test_undefinedClass() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Undefined f() async => await f();
-''', [
-      // No lint.
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 9),
-    ]);
+''',
+      [
+        // No lint.
+        error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 9),
+      ],
+    );
   }
 }

@@ -25,6 +25,18 @@ class MyWidget extends self::StatefulWidget {
   synthetic constructor •() → self::MyWidget
     ;
 }
+class MyWidgetState1 extends self::_MyWidgetState1&State&MyMixin {
+  synthetic constructor •() → self::MyWidgetState1
+    ;
+  method doSomething() → void
+    ;
+}
+class MyWidgetState2 extends self::_MyWidgetState2&State&MyMixinTypedef {
+  synthetic constructor •() → self::MyWidgetState2
+    ;
+  method doSomething() → void
+    ;
+}
 abstract class _MyWidgetState1&State&MyMixin = self::State<self::MyWidget> with self::MyMixin<core::String, self::MyWidget> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_MyWidgetState1&State&MyMixin
     : super self::State::•()
@@ -32,22 +44,10 @@ abstract class _MyWidgetState1&State&MyMixin = self::State<self::MyWidget> with 
   mixin-super-stub method listenToEvents(covariant-by-class asy::Stream<self::MyModel<core::String>> stream) → void
     return super.{self::MyMixin::listenToEvents}(stream);
 }
-class MyWidgetState1 extends self::_MyWidgetState1&State&MyMixin {
-  synthetic constructor •() → self::MyWidgetState1
-    ;
-  method doSomething() → void
-    ;
-}
 abstract class _MyWidgetState2&State&MyMixinTypedef = self::State<self::MyWidget> with self::MyMixin<core::String, self::MyWidget> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_MyWidgetState2&State&MyMixinTypedef
     : super self::State::•()
     ;
   mixin-super-stub method listenToEvents(covariant-by-class asy::Stream<self::MyModel<core::String>> stream) → void
     return super.{self::MyMixin::listenToEvents}(stream);
-}
-class MyWidgetState2 extends self::_MyWidgetState2&State&MyMixinTypedef {
-  synthetic constructor •() → self::MyWidgetState2
-    ;
-  method doSomething() → void
-    ;
 }

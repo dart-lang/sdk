@@ -22,6 +22,18 @@ class Response<T extends core::Object? = dynamic> extends core::Object {
   constructor •(self::Response::T% data) → self::Response<self::Response::T%>
     ;
 }
+class Class1 extends self::_Class1&Object&TestMixin {
+  synthetic constructor •() → self::Class1
+    ;
+  method _test() → dynamic
+    ;
+}
+class Class2 extends self::_Class2&Object&TestMixin {
+  synthetic constructor •() → self::Class2
+    ;
+  method _test() → dynamic
+    ;
+}
 abstract class _Class1&Object&TestMixin = core::Object with self::TestMixin<self::Response<core::String>, core::String> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class1&Object&TestMixin
     : super core::Object::•()
@@ -29,24 +41,12 @@ abstract class _Class1&Object&TestMixin = core::Object with self::TestMixin<self
   mixin-super-stub method test(covariant-by-class asy::Future<self::Response<core::String>> fetch) → asy::Future<core::String>
     return super.{self::TestMixin::test}(fetch);
 }
-class Class1 extends self::_Class1&Object&TestMixin {
-  synthetic constructor •() → self::Class1
-    ;
-  method _test() → dynamic
-    ;
-}
 abstract class _Class2&Object&TestMixin = core::Object with self::TestMixin<self::PagingResponse<core::String>, core::String> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class2&Object&TestMixin
     : super core::Object::•()
     ;
   mixin-super-stub method test(covariant-by-class asy::Future<self::PagingResponse<core::String>> fetch) → asy::Future<core::String>
     return super.{self::TestMixin::test}(fetch);
-}
-class Class2 extends self::_Class2&Object&TestMixin {
-  synthetic constructor •() → self::Class2
-    ;
-  method _test() → dynamic
-    ;
 }
 static method main() → dynamic
   ;

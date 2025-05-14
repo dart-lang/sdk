@@ -141,7 +141,7 @@ class TypeHierarchySubtypesHandler
         );
       }
 
-      var location = ElementLocation2.decode(data.ref);
+      var location = ElementLocation.decode(data.ref);
       var calls = await computer.findSubtypes(location, server.searchEngine);
       var results = calls != null ? _convertItems(unit, calls) : null;
       return success(results);
@@ -189,7 +189,7 @@ class TypeHierarchySupertypesHandler
         );
       }
 
-      var location = ElementLocation2.decode(data.ref);
+      var location = ElementLocation.decode(data.ref);
       var anchor = _toServerAnchor(data);
       var calls = await computer.findSupertypes(location, anchor: anchor);
       var results = calls != null ? _convertItems(unit, calls) : null;
@@ -205,7 +205,7 @@ class TypeHierarchySupertypesHandler
     var anchor = data.anchor;
     return anchor != null
         ? type_hierarchy.TypeHierarchyAnchor(
-          location: ElementLocation2.decode(anchor.ref),
+          location: ElementLocation.decode(anchor.ref),
           path: anchor.path,
         )
         : null;

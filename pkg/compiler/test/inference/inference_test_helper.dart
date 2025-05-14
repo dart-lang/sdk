@@ -110,8 +110,8 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
     }
   }
 
-  String? getParameterValue(Local parameter) {
-    return getTypeMaskValue(results.resultOfParameter(parameter));
+  String? getParameterValue(Local parameter, MemberEntity? member) {
+    return getTypeMaskValue(results.resultOfParameter(parameter, member));
   }
 
   String? getTypeMaskValue(AbstractValue? typeMask) {
@@ -145,7 +145,7 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.VariableDeclaration && node.parent is ir.FunctionNode) {
       Local parameter = _localsMap.getLocalVariable(node);
-      return getParameterValue(parameter);
+      return getParameterValue(parameter, null);
     } else if (node is ir.FunctionExpression ||
         node is ir.FunctionDeclaration) {
       ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(

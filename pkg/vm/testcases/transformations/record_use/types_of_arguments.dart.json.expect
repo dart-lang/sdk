@@ -73,7 +73,7 @@
         "id": 0,
         "@": {
           "uri": 0,
-          "line": 22,
+          "line": 24,
           "column": 17
         },
         "loadingUnit": "1"
@@ -150,8 +150,8 @@
           "loadingUnit": "1",
           "@": {
             "uri": 0,
-            "line": 12,
-            "column": 19
+            "line": 13,
+            "column": 15
           }
         },
         {
@@ -165,7 +165,7 @@
           "loadingUnit": "1",
           "@": {
             "uri": 0,
-            "line": 17,
+            "line": 19,
             "column": 19
           }
         }

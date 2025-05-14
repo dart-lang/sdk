@@ -30,7 +30,6 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object
   caseClause: CaseClause
@@ -65,7 +64,6 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@getter::x
     element: <testLibraryFragment>::@getter::x#element
     staticType: int
   caseClause: CaseClause
@@ -80,7 +78,6 @@ IfElement
   rightParenthesis: )
   thenElement: SimpleIdentifier
     token: a
-    staticElement: a@40
     element: a@40
     staticType: int
 ''');
@@ -117,7 +114,6 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object
   caseClause: CaseClause
@@ -129,7 +125,6 @@ IfElement
           DeclaredVariablePattern
             type: NamedType
               name: int
-              element: dart:core::<fragment>::@class::int
               element2: dart:core::@class::int
               type: int
             name: a
@@ -140,10 +135,8 @@ IfElement
             operator: ==
             operand: SimpleIdentifier
               token: a
-              staticElement: a@56
               element: a@56
               staticType: int
-            element: dart:core::<fragment>::@class::Object::@method::==
             element2: dart:core::<fragment>::@class::Object::@method::==#element
             matchedValueType: Object?
         rightBracket: ]
@@ -154,28 +147,24 @@ IfElement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            staticElement: a@56
             element: a@56
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
+            correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
             staticType: int
-          staticElement: dart:core::<fragment>::@class::num::@method::>
           element: dart:core::<fragment>::@class::num::@method::>#element
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
   thenElement: SimpleIdentifier
     token: a
-    staticElement: a@56
     element: a@56
     staticType: int
   elseKeyword: else
   elseElement: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@getter::a
     element: <testLibraryFragment>::@getter::a#element
     staticType: int
 ''');
@@ -202,7 +191,6 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object
   caseClause: CaseClause
@@ -211,7 +199,6 @@ IfElement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
         name: a
@@ -223,28 +210,24 @@ IfElement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            staticElement: a@42
             element: a@42
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
+            correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
             staticType: int
-          staticElement: dart:core::<fragment>::@class::num::@method::>
           element: dart:core::<fragment>::@class::num::@method::>#element
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
   thenElement: SimpleIdentifier
     token: a
-    staticElement: a@42
     element: a@42
     staticType: int
   elseKeyword: else
   elseElement: SimpleIdentifier
     token: a
-    staticElement: <null>
     element: <null>
     staticType: InvalidType
 ''');
@@ -299,7 +282,6 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object
   caseClause: CaseClause
@@ -311,10 +293,8 @@ IfElement
           constructorName: ConstructorName
             type: NamedType
               name: A
-              element: <testLibraryFragment>::@class::A
               element2: <testLibrary>::@class::A
               type: A
-            staticElement: <testLibraryFragment>::@class::A::@constructor::new
             element: <testLibraryFragment>::@class::A::@constructor::new#element
           argumentList: ArgumentList
             leftParenthesis: (
@@ -343,13 +323,11 @@ IfElement
   expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::f::@parameter::a
       element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: bool Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticElement: <null>
     element: <null>
     staticInvokeType: bool Function()
     staticType: bool
@@ -375,13 +353,11 @@ IfElement
   expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::f::@parameter::a
       element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticElement: <null>
     element: <null>
     staticInvokeType: int Function()
     staticType: int
@@ -414,7 +390,6 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object
   caseClause: CaseClause
@@ -430,13 +405,11 @@ IfElement
         expression: FunctionExpressionInvocation
           function: SimpleIdentifier
             token: a
-            staticElement: <testLibraryFragment>::@function::f::@parameter::a
             element: <testLibraryFragment>::@function::f::@parameter::a#element
             staticType: bool Function()
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          staticElement: <null>
           element: <null>
           staticInvokeType: bool Function()
           staticType: bool
@@ -461,7 +434,6 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object
   caseClause: CaseClause

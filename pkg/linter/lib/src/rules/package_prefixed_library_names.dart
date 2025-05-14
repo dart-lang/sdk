@@ -17,17 +17,16 @@ bool matchesOrIsPrefixedBy(String name, String prefix) =>
 
 class PackagePrefixedLibraryNames extends LintRule {
   PackagePrefixedLibraryNames()
-      : super(
-          name: LintNames.package_prefixed_library_names,
-          description: _desc,
-        );
+    : super(name: LintNames.package_prefixed_library_names, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.package_prefixed_library_names;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addLibraryDirective(this, visitor);
   }
@@ -39,7 +38,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  // ignore: prefer_expression_function_bodies
   void visitLibraryDirective(LibraryDirective node) {
     // Project info is not being set.
     //See: https://github.com/dart-lang/linter/issues/3395

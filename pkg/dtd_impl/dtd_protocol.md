@@ -661,7 +661,7 @@ If _uri_ does not have a 'file' scheme, the 143 (File scheme expected on uri)
 
 ### IDE Workspace Roots
 
-The IDE workspace roots are used to ensure the the `FileSystem` service methods
+The IDE workspace roots are used to ensure the `FileSystem` service methods
 do not perform file operations in areas outside of the IDE workspace roots.
 
 When the Dart Tooling Daemon is started, a secret is generated and presented to
@@ -905,7 +905,7 @@ code | message | meaning
 142 | Permission denied | Permission has been denied for the requested action.
 143 | File scheme expected on uri | The uri parameter should be passed as a uri with a file scheme.
 
- Success Responses
+### Success Responses
 
 Methods that respond with `Success` do so with the following RPC.
 

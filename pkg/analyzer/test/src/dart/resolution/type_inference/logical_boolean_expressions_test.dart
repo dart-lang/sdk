@@ -31,7 +31,6 @@ BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::a
       element: <testLibrary>::@function::a
       staticType: T Function<T>()
     argumentList: ArgumentList
@@ -45,17 +44,14 @@ BinaryExpression
   rightOperand: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: b
-      staticElement: <testLibraryFragment>::@function::f::@parameter::b
       element: <testLibraryFragment>::@function::f::@parameter::b#element
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticElement: <null>
     element: <null>
     staticInvokeType: dynamic
     staticType: dynamic
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: bool
@@ -75,17 +71,14 @@ void f(bool a, bool b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: bool
   operator: &&
   rightOperand: SimpleIdentifier
     token: b
-    parameter: <null>
-    staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    correspondingParameter: <null>
     element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: bool
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: bool
@@ -111,7 +104,6 @@ BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::a
       element: <testLibrary>::@function::a
       staticType: T Function<T>()
     argumentList: ArgumentList
@@ -125,17 +117,14 @@ BinaryExpression
   rightOperand: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: b
-      staticElement: <testLibraryFragment>::@function::f::@parameter::b
       element: <testLibraryFragment>::@function::f::@parameter::b#element
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticElement: <null>
     element: <null>
     staticInvokeType: dynamic
     staticType: dynamic
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: bool
@@ -155,17 +144,14 @@ void f(bool a, bool b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: bool
   operator: ||
   rightOperand: SimpleIdentifier
     token: b
-    parameter: <null>
-    staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    correspondingParameter: <null>
     element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: bool
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: bool

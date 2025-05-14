@@ -119,9 +119,9 @@ void testPotentiallyUnassignedWrites<T>(bool b, T t) {
       x = y;
     }
     x = y;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   // Ok: not final.
@@ -152,9 +152,9 @@ void testPotentiallyUnassignedWrites<T>(bool b, T t) {
       x = y;
     }
     x = y;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   // Error: final.
@@ -165,9 +165,9 @@ void testPotentiallyUnassignedWrites<T>(bool b, T t) {
       x = y;
     }
     x = y;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   // Error: final.
@@ -178,9 +178,9 @@ void testPotentiallyUnassignedWrites<T>(bool b, T t) {
       x = y;
     }
     x = y;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   // Ok: late.
@@ -290,10 +290,9 @@ void testDefinitelyAssignedWrites<T>(T t) {
     int y = 3;
     x = y;
     x = y;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
-
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   // Ok: not final, not late.
@@ -318,9 +317,9 @@ void testDefinitelyAssignedWrites<T>(T t) {
     int y = 3;
     x = y;
     x = y;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   // Error: final.
@@ -329,9 +328,9 @@ void testDefinitelyAssignedWrites<T>(T t) {
     int y = 3;
     x = y;
     x = y;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   // Error: final.
@@ -340,9 +339,9 @@ void testDefinitelyAssignedWrites<T>(T t) {
     T y = t;
     x = y;
     x = y;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   // Ok: not final.
@@ -383,9 +382,9 @@ void testDefinitelyAssignedWrites<T>(T t) {
     int y = 3;
     x = y;
     x = y;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.LATE_FINAL_LOCAL_ALREADY_ASSIGNED
+    // [cfe] Late final variable 'x' definitely assigned.
   }
 
   // Error: final and late.
@@ -394,10 +393,9 @@ void testDefinitelyAssignedWrites<T>(T t) {
     int y = 3;
     x = y;
     x = y;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
-
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.LATE_FINAL_LOCAL_ALREADY_ASSIGNED
+    // [cfe] Late final variable 'x' definitely assigned.
   }
 
   // Error: final and late.
@@ -406,9 +404,9 @@ void testDefinitelyAssignedWrites<T>(T t) {
     int y = 3;
     x = y;
     x = y;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.LATE_FINAL_LOCAL_ALREADY_ASSIGNED
+    // [cfe] Late final variable 'x' definitely assigned.
   }
 
   // Error: final and late.
@@ -417,9 +415,9 @@ void testDefinitelyAssignedWrites<T>(T t) {
     T y = t;
     x = y;
     x = y;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.LATE_FINAL_LOCAL_ALREADY_ASSIGNED
+    // [cfe] Late final variable 'x' definitely assigned.
   }
 }
 
@@ -442,36 +440,36 @@ void testDefinitelyUnassignedWriteForms() {
     final dynamic x;
     // Should be a read error only
     x++;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     // Should be a read error only
     ++x;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     // Should be a read error only
     x += 3;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     // Should be a read error only
     x ??= 3;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 }
 
@@ -485,9 +483,9 @@ void testPotentiallyUnassignedWriteForms(bool b) {
       x = 3;
     }
     x = 3;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
@@ -496,9 +494,9 @@ void testPotentiallyUnassignedWriteForms(bool b) {
       x = 3;
     }
     use(x = 3);
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
@@ -508,9 +506,11 @@ void testPotentiallyUnassignedWriteForms(bool b) {
     }
     // Expect both a read and write error
     x++;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -520,9 +520,11 @@ void testPotentiallyUnassignedWriteForms(bool b) {
     }
     // Expect both a read and write error
     ++x;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -532,9 +534,11 @@ void testPotentiallyUnassignedWriteForms(bool b) {
     }
     // Expect both a read and write error
     x += 3;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -544,9 +548,11 @@ void testPotentiallyUnassignedWriteForms(bool b) {
     }
     // Expect both a read and write error
     x ??= 3;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 }
 
@@ -558,54 +564,54 @@ void testDefinitelyAssignedWriteForms() {
     final dynamic x;
     x = 3;
     x = 3;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
     final dynamic x;
     x = 3;
     use(x = 3);
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
     final dynamic x;
     x = 3;
     x++;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
     final dynamic x;
     x = 3;
     ++x;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
     final dynamic x;
     x = 3;
     x += 3;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
     final dynamic x;
     x = 3;
     x ??= 3;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 }
 

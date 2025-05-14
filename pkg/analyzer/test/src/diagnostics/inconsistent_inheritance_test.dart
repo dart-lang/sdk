@@ -15,6 +15,7 @@ main() {
 
 @reflectiveTest
 class InconsistentInheritanceTest extends PubPackageResolutionTest {
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentWithInterface_augmentWithMixin() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -50,6 +51,7 @@ augment abstract class C with A {}
     await assertErrorsInFile2(c, []);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentWithMixin_augmentWithInterface() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -265,6 +267,7 @@ enum E implements A, B {v}
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_returnType_augmentation() async {
     await assertErrorsInCode(r'''
 abstract class A {

@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@JS()
-library external_static_member_lowerings_test;
-
 import 'dart:js_interop';
-
-import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/expect.dart';
 
 import 'external_static_member_lowerings_with_namespaces.dart' as namespace;
 
@@ -18,8 +14,9 @@ external void eval(String code);
 @staticInterop
 class ExternalStatic {
   external factory ExternalStatic(String initialValue);
-  external factory ExternalStatic.named(
-      [String initialValue = 'uninitialized']);
+  external factory ExternalStatic.named([
+    String initialValue = 'uninitialized',
+  ]);
   // External redirecting factories are not allowed.
 
   external static String field;
@@ -69,48 +66,48 @@ external String renamedMethod();
 
 void testClassStaticMembers() {
   // Fields.
-  expect(ExternalStatic.field, 'field');
+  Expect.equals('field', ExternalStatic.field);
   ExternalStatic.field = 'modified';
-  expect(ExternalStatic.field, 'modified');
-  expect(ExternalStatic.renamedField, 'modified');
+  Expect.equals('modified', ExternalStatic.field);
+  Expect.equals('modified', ExternalStatic.renamedField);
   ExternalStatic.renamedField = 'renamedField';
-  expect(ExternalStatic.renamedField, 'renamedField');
-  expect(ExternalStatic.finalField, 'finalField');
+  Expect.equals('renamedField', ExternalStatic.renamedField);
+  Expect.equals('finalField', ExternalStatic.finalField);
 
   // Getters and setters.
-  expect(ExternalStatic.getSet, 'getSet');
+  Expect.equals('getSet', ExternalStatic.getSet);
   ExternalStatic.getSet = 'modified';
-  expect(ExternalStatic.getSet, 'modified');
-  expect(ExternalStatic.renamedGetSet, 'modified');
+  Expect.equals('modified', ExternalStatic.getSet);
+  Expect.equals('modified', ExternalStatic.renamedGetSet);
   ExternalStatic.renamedGetSet = 'renamedGetSet';
-  expect(ExternalStatic.renamedGetSet, 'renamedGetSet');
+  Expect.equals('renamedGetSet', ExternalStatic.renamedGetSet);
 
   // Methods.
-  expect(ExternalStatic.method(), 'method');
-  expect(ExternalStatic.renamedMethod(), 'method');
+  Expect.equals('method', ExternalStatic.method());
+  Expect.equals('method', ExternalStatic.renamedMethod());
 }
 
 void testTopLevelMembers() {
   // Fields.
-  expect(field, 'field');
+  Expect.equals('field', field);
   field = 'modified';
-  expect(field, 'modified');
-  expect(renamedField, 'modified');
+  Expect.equals('modified', field);
+  Expect.equals('modified', renamedField);
   renamedField = 'renamedField';
-  expect(renamedField, 'renamedField');
-  expect(finalField, 'finalField');
+  Expect.equals('renamedField', renamedField);
+  Expect.equals('finalField', finalField);
 
   // Getters and setters.
-  expect(getSet, 'getSet');
+  Expect.equals('getSet', getSet);
   getSet = 'modified';
-  expect(getSet, 'modified');
-  expect(renamedGetSet, 'modified');
+  Expect.equals('modified', getSet);
+  Expect.equals('modified', renamedGetSet);
   renamedGetSet = 'renamedGetSet';
-  expect(renamedGetSet, 'renamedGetSet');
+  Expect.equals('renamedGetSet', renamedGetSet);
 
   // Methods.
-  expect(method(), 'method');
-  expect(renamedMethod(), 'method');
+  Expect.equals('method', method());
+  Expect.equals('method', renamedMethod());
 }
 
 void testFactories() {
@@ -118,55 +115,55 @@ void testFactories() {
   var initialized = 'initialized';
 
   var externalStatic = ExternalStatic(initialized);
-  expect(externalStatic.initialValue, initialized);
+  Expect.equals(initialized, externalStatic.initialValue);
   externalStatic = ExternalStatic.named();
-  expect(externalStatic.initialValue, null);
+  Expect.isNull(externalStatic.initialValue);
 }
 
 void testNamespacedClassStaticMembers() {
   // Fields.
-  expect(namespace.ExternalStatic.field, 'field');
+  Expect.equals('field', namespace.ExternalStatic.field);
   namespace.ExternalStatic.field = 'modified';
-  expect(namespace.ExternalStatic.field, 'modified');
-  expect(namespace.ExternalStatic.renamedField, 'modified');
+  Expect.equals('modified', namespace.ExternalStatic.field);
+  Expect.equals('modified', namespace.ExternalStatic.renamedField);
   namespace.ExternalStatic.renamedField = 'renamedField';
-  expect(namespace.ExternalStatic.renamedField, 'renamedField');
-  expect(namespace.ExternalStatic.finalField, 'finalField');
+  Expect.equals('renamedField', namespace.ExternalStatic.renamedField);
+  Expect.equals('finalField', namespace.ExternalStatic.finalField);
 
   // Getters and setters.
-  expect(namespace.ExternalStatic.getSet, 'getSet');
+  Expect.equals('getSet', namespace.ExternalStatic.getSet);
   namespace.ExternalStatic.getSet = 'modified';
-  expect(namespace.ExternalStatic.getSet, 'modified');
-  expect(namespace.ExternalStatic.renamedGetSet, 'modified');
+  Expect.equals('modified', namespace.ExternalStatic.getSet);
+  Expect.equals('modified', namespace.ExternalStatic.renamedGetSet);
   namespace.ExternalStatic.renamedGetSet = 'renamedGetSet';
-  expect(namespace.ExternalStatic.renamedGetSet, 'renamedGetSet');
+  Expect.equals('renamedGetSet', namespace.ExternalStatic.renamedGetSet);
 
   // Methods.
-  expect(namespace.ExternalStatic.method(), 'method');
-  expect(namespace.ExternalStatic.renamedMethod(), 'method');
+  Expect.equals('method', namespace.ExternalStatic.method());
+  Expect.equals('method', namespace.ExternalStatic.renamedMethod());
 }
 
 void testNamespacedTopLevelMembers() {
   // Fields.
-  expect(namespace.field, 'field');
+  Expect.equals('field', namespace.field);
   namespace.field = 'modified';
-  expect(namespace.field, 'modified');
-  expect(namespace.renamedField, 'modified');
+  Expect.equals('modified', namespace.field);
+  Expect.equals('modified', namespace.renamedField);
   namespace.renamedField = 'renamedField';
-  expect(namespace.renamedField, 'renamedField');
-  expect(namespace.finalField, 'finalField');
+  Expect.equals('renamedField', namespace.renamedField);
+  Expect.equals('finalField', namespace.finalField);
 
   // Getters and setters.
-  expect(namespace.getSet, 'getSet');
+  Expect.equals('getSet', namespace.getSet);
   namespace.getSet = 'modified';
-  expect(namespace.getSet, 'modified');
-  expect(namespace.renamedGetSet, 'modified');
+  Expect.equals('modified', namespace.getSet);
+  Expect.equals('modified', namespace.renamedGetSet);
   namespace.renamedGetSet = 'renamedGetSet';
-  expect(namespace.renamedGetSet, 'renamedGetSet');
+  Expect.equals('renamedGetSet', namespace.renamedGetSet);
 
   // Methods.
-  expect(namespace.method(), 'method');
-  expect(namespace.renamedMethod(), 'method');
+  Expect.equals('method', namespace.method());
+  Expect.equals('method', namespace.renamedMethod());
 }
 
 void testNamespacedFactories() {
@@ -174,9 +171,9 @@ void testNamespacedFactories() {
   var initialized = 'initialized';
 
   var externalStatic = namespace.ExternalStatic(initialized);
-  expect(externalStatic.initialValue, initialized);
+  Expect.equals(initialized, externalStatic.initialValue);
   externalStatic = namespace.ExternalStatic.named();
-  expect(externalStatic.initialValue, null);
+  Expect.isNull(externalStatic.initialValue);
 }
 
 void main() {

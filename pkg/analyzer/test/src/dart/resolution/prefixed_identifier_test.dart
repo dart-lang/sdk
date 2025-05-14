@@ -31,16 +31,13 @@ void f(A a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <testLibraryFragment>::@class::A::@getter::foo
     element: <testLibraryFragment>::@class::A::@getter::foo#element
     staticType: int
-  staticElement: <testLibraryFragment>::@class::A::@getter::foo
   element: <testLibraryFragment>::@class::A::@getter::foo#element
   staticType: int
 ''');
@@ -62,16 +59,13 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@class::A
     element: <testLibrary>::@class::A
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <testLibraryFragment>::@class::A::@method::foo
     element: <testLibraryFragment>::@class::A::@method::foo#element
     staticType: void Function<U>(int, U)
-  staticElement: <testLibraryFragment>::@class::A::@method::foo
   element: <testLibraryFragment>::@class::A::@method::foo#element
   staticType: void Function<U>(int, U)
 ''');
@@ -93,16 +87,13 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@class::A
     element: <testLibrary>::@class::A
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <testLibraryFragment>::@class::A::@method::foo
     element: <testLibraryFragment>::@class::A::@method::foo#element
     staticType: void Function(int)
-  staticElement: <testLibraryFragment>::@class::A::@method::foo
   element: <testLibraryFragment>::@class::A::@method::foo#element
   staticType: void Function(int)
 ''');
@@ -126,16 +117,13 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: p
-    staticElement: <testLibraryFragment>::@prefix::p
     element: <testLibraryFragment>::@prefix2::p
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: A
-    staticElement: package:test/a.dart::<fragment>::@typeAlias::A
     element: package:test/a.dart::@typeAlias::A
     staticType: Type
-  staticElement: package:test/a.dart::<fragment>::@typeAlias::A
   element: package:test/a.dart::@typeAlias::A
   staticType: Type
 ''');
@@ -158,30 +146,24 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::f::@parameter::a
       element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: <null>
       element: <null>
       staticType: null
-    staticElement: <null>
     element: <null>
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
     staticType: int
-  readElement: <testLibraryFragment>::@class::A::@getter::foo
   readElement2: <testLibraryFragment>::@class::A::@getter::foo#element
   readType: int
-  writeElement: <testLibraryFragment>::@class::A::@setter::foo
   writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
   writeType: int
-  staticElement: dart:core::<fragment>::@class::num::@method::+
   element: dart:core::<fragment>::@class::num::@method::+#element
   staticType: int
 ''');
@@ -204,30 +186,24 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::f::@parameter::a
       element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: <null>
       element: <null>
       staticType: null
-    staticElement: <null>
     element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo
+    correspondingParameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     staticType: int
-  readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: <testLibraryFragment>::@class::A::@setter::foo
   writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
   writeType: int
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');
@@ -247,16 +223,13 @@ main() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: mycore
-    staticElement: <testLibraryFragment>::@prefix::mycore
     element: <testLibraryFragment>::@prefix2::mycore
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: dynamic
-    staticElement: dynamic@-1
     element: dynamic
     staticType: Type
-  staticElement: dynamic@-1
   element: dynamic
   staticType: Type
 ''');
@@ -279,16 +252,13 @@ void f(E e) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: e
-    staticElement: <testLibraryFragment>::@function::f::@parameter::e
     element: <testLibraryFragment>::@function::f::@parameter::e#element
     staticType: E
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <testLibraryFragment>::@enum::E::@getter::foo
     element: <testLibraryFragment>::@enum::E::@getter::foo#element
     staticType: int
-  staticElement: <testLibraryFragment>::@enum::E::@getter::foo
   element: <testLibraryFragment>::@enum::E::@getter::foo#element
   staticType: int
 ''');
@@ -312,30 +282,24 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: e
-      staticElement: <testLibraryFragment>::@function::f::@parameter::e
       element: <testLibraryFragment>::@function::f::@parameter::e#element
       staticType: E
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: <null>
       element: <null>
       staticType: null
-    staticElement: <null>
     element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: <testLibraryFragment>::@enum::E::@setter::foo::@parameter::_
+    correspondingParameter: <testLibraryFragment>::@enum::E::@setter::foo::@parameter::_#element
     staticType: int
-  readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: <testLibraryFragment>::@enum::E::@setter::foo
   writeElement2: <testLibraryFragment>::@enum::E::@setter::foo#element
   writeType: int
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');
@@ -353,16 +317,13 @@ void f(Function a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: Function
   period: .
   identifier: SimpleIdentifier
     token: call
-    staticElement: <null>
     element: <null>
     staticType: Function
-  staticElement: <null>
   element: <null>
   staticType: Function
 ''');
@@ -380,16 +341,13 @@ void f(int Function(String) a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int Function(String)
   period: .
   identifier: SimpleIdentifier
     token: call
-    staticElement: <null>
     element: <null>
     staticType: int Function(String)
-  staticElement: <null>
   element: <null>
   staticType: int Function(String)
 ''');
@@ -413,16 +371,13 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: B
-    staticElement: <testLibraryFragment>::@typeAlias::B
     element: <testLibrary>::@typeAlias::B
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <testLibraryFragment>::@class::A::@getter::foo
     element: <testLibraryFragment>::@class::A::@getter::foo#element
     staticType: int
-  staticElement: <testLibraryFragment>::@class::A::@getter::foo
   element: <testLibraryFragment>::@class::A::@getter::foo#element
   staticType: int
 ''');
@@ -448,7 +403,6 @@ int Function() foo() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: package:test/a.dart::<fragment>::@getter::a
   element: package:test/a.dart::<fragment>::@getter::a#element
   staticType: A
 ''');
@@ -476,7 +430,6 @@ int Function() foo() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: package:test/a.dart::<fragment>::@getter::a
   element: package:test/a.dart::<fragment>::@getter::a#element
   staticType: A?
 ''');
@@ -500,16 +453,13 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    staticElement: <testLibraryFragment>::@prefix::prefix
     element: <testLibraryFragment>::@prefix2::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: A
-    staticElement: package:test/a.dart::<fragment>::@class::A
     element: package:test/a.dart::@class::A
     staticType: Type
-  staticElement: package:test/a.dart::<fragment>::@class::A
   element: package:test/a.dart::@class::A
   staticType: Type
 ''');
@@ -533,16 +483,13 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    staticElement: <testLibraryFragment>::@prefix::prefix
     element: <testLibraryFragment>::@prefix2::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: F
-    staticElement: package:test/a.dart::<fragment>::@typeAlias::F
     element: package:test/a.dart::@typeAlias::F
     staticType: Type
-  staticElement: package:test/a.dart::<fragment>::@typeAlias::F
   element: package:test/a.dart::@typeAlias::F
   staticType: Type
 ''');
@@ -566,16 +513,13 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    staticElement: <testLibraryFragment>::@prefix::prefix
     element: <testLibraryFragment>::@prefix2::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::<fragment>::@function::foo
     element: package:test/a.dart::@function::foo
     staticType: void Function()
-  staticElement: package:test/a.dart::<fragment>::@function::foo
   element: package:test/a.dart::@function::foo
   staticType: void Function()
 ''');
@@ -599,16 +543,13 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    staticElement: <testLibraryFragment>::@prefix::prefix
     element: <testLibraryFragment>::@prefix2::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::<fragment>::@getter::foo
     element: package:test/a.dart::<fragment>::@getter::foo#element
     staticType: int
-  staticElement: package:test/a.dart::<fragment>::@getter::foo
   element: package:test/a.dart::<fragment>::@getter::foo#element
   staticType: int
 ''');
@@ -634,16 +575,13 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    staticElement: <testLibraryFragment>::@prefix::prefix
     element: <testLibraryFragment>::@prefix2::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <null>
     element: <null>
     staticType: InvalidType
-  staticElement: <null>
   element: <null>
   staticType: InvalidType
 ''');
@@ -667,21 +605,19 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    staticElement: <testLibraryFragment>::@prefix::prefix
     element: <testLibraryFragment>::@prefix2::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::<fragment>::@getter::foo
     element: package:test/a.dart::<fragment>::@getter::foo#element
     staticType: int
-  staticElement: package:test/a.dart::<fragment>::@getter::foo
   element: package:test/a.dart::<fragment>::@getter::foo#element
   staticType: int
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofClass_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -722,6 +658,7 @@ PrefixedIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofClass_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -760,6 +697,7 @@ PrefixedIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofClassName_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -800,6 +738,7 @@ PrefixedIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofClassName_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -838,6 +777,7 @@ PrefixedIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofClassName_augmentationDeclares_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -892,16 +832,13 @@ void f(A a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <testLibraryFragment>::@extensionType::A::@getter::foo
     element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
     staticType: int
-  staticElement: <testLibraryFragment>::@extensionType::A::@getter::foo
   element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   staticType: int
 ''');
@@ -923,16 +860,13 @@ void f(A a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <testLibraryFragment>::@extensionType::A::@getter::foo
     element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
     staticType: int
-  staticElement: <testLibraryFragment>::@extensionType::A::@getter::foo
   element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   staticType: int
 ''');
@@ -957,16 +891,13 @@ void f(A? a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <testLibraryFragment>::@extensionType::A::@getter::foo
     element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
     staticType: int
-  staticElement: <testLibraryFragment>::@extensionType::A::@getter::foo
   element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   staticType: int
 ''');
@@ -988,13 +919,11 @@ void f(A? a) {
 PropertyAccess
   target: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <testLibraryFragment>::@extensionType::A::@getter::foo
     element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
     staticType: int
   staticType: int?
@@ -1018,35 +947,30 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::f::@parameter::a
       element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: <null>
       element: <null>
       staticType: null
-    staticElement: <null>
     element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_
+    correspondingParameter: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_#element
     staticType: int
-  readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: <testLibraryFragment>::@extensionType::A::@setter::foo
   writeElement2: <testLibraryFragment>::@extensionType::A::@setter::foo#element
   writeType: int
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofMixin_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -1085,6 +1009,7 @@ PrefixedIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofMixinName_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -1123,6 +1048,7 @@ PrefixedIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofMixinName_augmentationDeclares_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -1173,16 +1099,13 @@ void f(dynamic a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: dynamic
   period: .
   identifier: SimpleIdentifier
     token: hashCode
-    staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
     element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
     staticType: int
-  staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
   element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
   staticType: int
 ''');
@@ -1200,16 +1123,13 @@ void f(dynamic a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: dynamic
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <null>
     element: <null>
     staticType: dynamic
-  staticElement: <null>
   element: <null>
   staticType: dynamic
 ''');
@@ -1229,16 +1149,13 @@ void f(int a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <null>
     element: <null>
     staticType: InvalidType
-  staticElement: <null>
   element: <null>
   staticType: InvalidType
 ''');
@@ -1262,16 +1179,13 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: p
-    staticElement: <testLibraryFragment>::@prefix::p
     element: <testLibraryFragment>::@prefix2::p
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: A
-    staticElement: package:test/a.dart::<fragment>::@typeAlias::A
     element: package:test/a.dart::@typeAlias::A
     staticType: Type
-  staticElement: package:test/a.dart::<fragment>::@typeAlias::A
   element: package:test/a.dart::@typeAlias::A
   staticType: Type
 ''');

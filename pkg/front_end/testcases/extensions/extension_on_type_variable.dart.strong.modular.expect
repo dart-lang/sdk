@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension GeneralGeneric<T extends core::Object? = dynamic> on T% {
+  method method = self::GeneralGeneric|method;
+  method tearoff method = self::GeneralGeneric|get#method;
+}
+static extension-member method GeneralGeneric|method<T extends core::Object? = dynamic>(lowered final self::GeneralGeneric|method::T% #this) → self::GeneralGeneric|method::T%
+  return #this;
+static extension-member method GeneralGeneric|get#method<T extends core::Object? = dynamic>(lowered final self::GeneralGeneric|get#method::T% #this) → () → self::GeneralGeneric|get#method::T%
+  return () → self::GeneralGeneric|get#method::T% => self::GeneralGeneric|method<self::GeneralGeneric|get#method::T%>(#this);
+static method main() → dynamic {}

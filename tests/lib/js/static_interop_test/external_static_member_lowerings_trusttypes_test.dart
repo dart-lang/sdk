@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@JS()
-library external_static_member_lowerings_trusttypes_test;
-
 import 'dart:js_interop';
-
-import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/expect.dart';
 import 'package:js/js.dart' show trustTypes;
 
 @JS()
@@ -42,9 +38,9 @@ void main() {
   ''');
 
   // Use wrong return type in conjunction with `@trustTypes`.
-  expect(confuse(ExternalStaticTrustType.field), 'field');
+  Expect.equals('field', confuse(ExternalStaticTrustType.field));
 
-  expect(confuse(ExternalStaticTrustType.getSet), 'getSet');
+  Expect.equals('getSet', confuse(ExternalStaticTrustType.getSet));
 
-  expect(confuse(ExternalStaticTrustType.method()), 'method');
+  Expect.equals('method', confuse(ExternalStaticTrustType.method()));
 }

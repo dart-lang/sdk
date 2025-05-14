@@ -4,7 +4,7 @@
 
 part of 'fragment.dart';
 
-class EnumFragment extends DeclarationFragment implements Fragment {
+class EnumFragment extends DeclarationFragmentImpl implements Fragment {
   @override
   final String name;
 
@@ -14,20 +14,31 @@ class EnumFragment extends DeclarationFragment implements Fragment {
 
   late final LookupScope compilationUnitScope;
   late final List<MetadataBuilder>? metadata;
-  late final MixinApplicationBuilder? supertypeBuilder;
+  late final Modifiers modifiers;
+  late final List<TypeBuilder>? mixins;
   late final List<TypeBuilder>? interfaces;
-  late final List<EnumConstantInfo?>? enumConstantInfos;
   late final List<ConstructorReferenceBuilder> constructorReferences;
   late final int startOffset;
   late final int endOffset;
 
-  EnumFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
-      super.typeParameterScope, super._nominalParameterNameSpace);
+  final List<EnumElementFragment> enumElements = [];
+
+  EnumFragment({
+    required this.name,
+    required super.fileUri,
+    required this.nameOffset,
+    required super.typeParameters,
+    required super.enclosingScope,
+    required super.typeParameterScope,
+    required super.nominalParameterNameSpace,
+    required super.enclosingCompilationUnit,
+  });
 
   @override
   int get fileOffset => nameOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   SourceEnumBuilder get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
@@ -36,6 +47,17 @@ class EnumFragment extends DeclarationFragment implements Fragment {
   void set builder(SourceEnumBuilder value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
+  }
+
+  @override
+  bool get isPatch =>
+      enclosingCompilationUnit.isPatch &&
+      // Coverage-ignore(suite): Not run.
+      modifiers.isAugment;
+
+  @override
+  void addEnumElement(EnumElementFragment fragment) {
+    enumElements.add(fragment);
   }
 
   @override

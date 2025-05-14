@@ -18,9 +18,9 @@ Future<void> main() async {
   await hotReload();
   Expect.equals(42, helper());
 }
+
 /** DIFF **/
 /*
-@@ -2,7 +2,6 @@
  // for details. All rights reserved. Use of this source code is governed by a
  // BSD-style license that can be found in the LICENSE file.
  

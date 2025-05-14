@@ -15,11 +15,11 @@ const _desc = r'No await no async.';
 
 class UnnecessaryAsync extends LintRule {
   UnnecessaryAsync()
-      : super(
-          name: LintNames.unnecessary_async,
-          description: _desc,
-          state: const State.experimental(),
-        );
+    : super(
+        name: LintNames.unnecessary_async,
+        description: _desc,
+        state: const State.experimental(),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_async;
@@ -116,20 +116,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var bodyContext = node.body.bodyContext;
 
-    _checkBody(
-      body: node.body,
-      returnType: bodyContext?.imposedType,
-    );
+    _checkBody(body: node.body, returnType: bodyContext?.imposedType);
   }
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     var element = node.declaredFragment!.element;
 
-    _checkBody(
-      body: node.body,
-      returnType: element.returnType,
-    );
+    _checkBody(body: node.body, returnType: element.returnType);
   }
 
   void _checkBody({

@@ -6,8 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/extensions.dart' // ignore: implementation_imports
+    show Element2Extension;
 
 import '../analyzer.dart';
 import '../util/scope.dart';
@@ -16,17 +16,16 @@ const _desc = r'Avoid types as parameter names.';
 
 class AvoidTypesAsParameterNames extends LintRule {
   AvoidTypesAsParameterNames()
-      : super(
-          name: LintNames.avoid_types_as_parameter_names,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_types_as_parameter_names, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_types_as_parameter_names;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addFormalParameterList(this, visitor);
     registry.addCatchClause(this, visitor);
@@ -63,8 +62,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isTypeName(AstNode scope, Token name) {
-    var result =
-        resolveNameInScope(name.lexeme, scope, shouldResolveSetter: false);
+    var result = resolveNameInScope(
+      name.lexeme,
+      scope,
+      shouldResolveSetter: false,
+    );
     if (result.isRequestedName) {
       var element = result.element;
       return element is ClassElement2 ||

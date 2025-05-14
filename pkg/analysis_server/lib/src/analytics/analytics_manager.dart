@@ -74,7 +74,7 @@ class AnalyticsManager {
   /// that have been handled.
   final Map<String, NotificationData> _completedNotifications = {};
 
-  /// A map from the name of a lint to the number of contexts in which the lint
+  /// A map from the name of a lint to the number of options files in which the lint
   /// was enabled.
   final Map<String, int> _lintUsageCounts = {};
 
@@ -102,10 +102,6 @@ class AnalyticsManager {
   /// number of unique transitive files.
   void analysisComplete({
     required int numberOfContexts,
-    required int contextsWithoutFiles,
-    required int contextsFromPackagesFiles,
-    required int contextsFromOptionsFiles,
-    required int contextsFromBothFiles,
     required int immediateFileCount,
     required int immediateFileLineCount,
     required int transitiveFileCount,
@@ -118,10 +114,6 @@ class AnalyticsManager {
     // analysis or keeping all of the data and sending back percentile.
     _contextStructure ??= ContextStructure(
       numberOfContexts: numberOfContexts,
-      contextsWithoutFiles: contextsWithoutFiles,
-      contextsFromPackagesFiles: contextsFromPackagesFiles,
-      contextsFromOptionsFiles: contextsFromOptionsFiles,
-      contextsFromBothFiles: contextsFromBothFiles,
       immediateFileCount: immediateFileCount,
       immediateFileLineCount: immediateFileLineCount,
       transitiveFileCount: transitiveFileCount,
@@ -227,6 +219,8 @@ class AnalyticsManager {
     var requestData = getRequestData(Method.initialized.toString());
     requestData.addValue(openWorkspacePathsKey, openWorkspacePaths.length);
   }
+
+  bool needsAnslysisCompleteCall() => _contextStructure == null;
 
   Future<void> sendMemoryUsage(MemoryUsageEvent event) async {
     var delta = event.delta;
@@ -451,18 +445,6 @@ class AnalyticsManager {
       h3('Analysis data');
       buffer.writeln('<ul>');
       li('numberOfContexts: ${json.encode(analysisData.numberOfContexts)}');
-      li(
-        'contextsWithoutFiles: ${json.encode(analysisData.contextsWithoutFiles)}',
-      );
-      li(
-        'contextsFromPackagesFiles: ${json.encode(analysisData.contextsFromPackagesFiles)}',
-      );
-      li(
-        'contextsFromOptionsFiles: ${json.encode(analysisData.contextsFromOptionsFiles)}',
-      );
-      li(
-        'contextsFromBothFiles: ${json.encode(analysisData.contextsFromBothFiles)}',
-      );
       li('immediateFileCount: ${json.encode(analysisData.immediateFileCount)}');
       li(
         'immediateFileLineCount: ${json.encode(analysisData.immediateFileLineCount)}',
@@ -516,10 +498,11 @@ class AnalyticsManager {
       analytics.send(
         Event.contextStructure(
           numberOfContexts: contextStructure.numberOfContexts,
-          contextsWithoutFiles: contextStructure.contextsWithoutFiles,
-          contextsFromPackagesFiles: contextStructure.contextsFromPackagesFiles,
-          contextsFromOptionsFiles: contextStructure.contextsFromOptionsFiles,
-          contextsFromBothFiles: contextStructure.contextsFromBothFiles,
+          // TODO(pq): remove context creation data if we can safely change report shape (https://github.com/dart-lang/sdk/issues/60411)
+          contextsWithoutFiles: 0,
+          contextsFromPackagesFiles: 0,
+          contextsFromOptionsFiles: 0,
+          contextsFromBothFiles: 0,
           immediateFileCount: contextStructure.immediateFileCount,
           immediateFileLineCount: contextStructure.immediateFileLineCount,
           transitiveFileCount: contextStructure.transitiveFileCount,

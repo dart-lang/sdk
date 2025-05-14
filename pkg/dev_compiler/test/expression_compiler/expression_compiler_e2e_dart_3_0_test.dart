@@ -17,24 +17,20 @@ void main(List<String> args) async {
       await driver.finish();
     });
 
-    group('(Sound null safety)', () {
-      group('(AMD module system)', () {
-        var setup = SetupCompilerOptions(
-          soundNullSafety: true,
-          moduleFormat: ModuleFormat.amd,
-          args: args,
-        );
-        runSharedTests(setup, driver);
-      });
+    group('(AMD module system)', () {
+      var setup = SetupCompilerOptions(
+        moduleFormat: ModuleFormat.amd,
+        args: args,
+      );
+      runSharedTests(setup, driver);
+    });
 
-      group('(DDC module system)', () {
-        var setup = SetupCompilerOptions(
-          soundNullSafety: true,
-          moduleFormat: ModuleFormat.ddc,
-          args: args,
-        );
-        runSharedTests(setup, driver);
-      });
+    group('(DDC module system)', () {
+      var setup = SetupCompilerOptions(
+        moduleFormat: ModuleFormat.ddc,
+        args: args,
+      );
+      runSharedTests(setup, driver);
     });
   });
 }

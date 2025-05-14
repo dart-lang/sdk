@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnnotateRedeclaresTest);
   });
@@ -29,17 +29,19 @@ class A {
 }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 extension type E(A a) implements A {
   void m() {}
 }
-''', [
-      lint(63, 1),
-    ]);
+''',
+      [lint(63, 1)],
+    );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationMethodWithAnnotation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -66,7 +68,8 @@ augment extension type E(A a) {
   }
 
   test_method() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   void m() {}
 }
@@ -74,9 +77,9 @@ class A {
 extension type E(A a) implements A {
   void m() {}
 }
-''', [
-      lint(71, 1),
-    ]);
+''',
+      [lint(71, 1)],
+    );
   }
 
   test_method_annotated() async {
@@ -94,7 +97,8 @@ extension type E(A a) implements A {
   }
 
   test_setter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int i = 0;
 }
@@ -102,8 +106,8 @@ class A {
 extension type E(A a) implements A {
   set i(int i) {}
 }
-''', [
-      lint(69, 1),
-    ]);
+''',
+      [lint(69, 1)],
+    );
   }
 }

@@ -16,17 +16,19 @@ const _desc =
 
 class UseSettersToChangeProperties extends LintRule {
   UseSettersToChangeProperties()
-      : super(
-          name: LintNames.use_setters_to_change_properties,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.use_setters_to_change_properties,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.use_setters_to_change_properties;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }

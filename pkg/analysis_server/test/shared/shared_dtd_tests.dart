@@ -139,7 +139,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     await dtdProcess.dispose();
   }
 
-  test_connectToDtd_failure_alreadyRegistered() async {
+  Future<void> test_connectToDtd_failure_alreadyRegistered() async {
     await initializeServer();
     await sendConnectToDtdRequest();
     await expectLater(
@@ -153,7 +153,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     );
   }
 
-  test_connectToDtd_failure_invalidUri() async {
+  Future<void> test_connectToDtd_failure_invalidUri() async {
     await initializeServer();
     await expectLater(
       sendConnectToDtdRequest(uri: invalidUri),
@@ -168,7 +168,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     );
   }
 
-  test_connectToDtd_success_afterFailureToConnect() async {
+  Future<void> test_connectToDtd_success_afterFailureToConnect() async {
     await initializeServer();
 
     // Perform a failed connection.
@@ -188,7 +188,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     await sendConnectToDtdRequest();
   }
 
-  test_connectToDtd_success_afterPreviousDtdShutdown() async {
+  Future<void> test_connectToDtd_success_afterPreviousDtdShutdown() async {
     await initializeServer();
 
     // Connect to the initial DTD.
@@ -205,6 +205,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     await sendConnectToDtdRequest();
   }
 
+  Future<void>
   test_connectToDtd_success_doesNotRegister_connectToDtdMethod() async {
     await initializeServer();
     await sendConnectToDtdRequest();
@@ -212,6 +213,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expectMethod(CustomMethods.connectToDtd, available: false);
   }
 
+  Future<void>
   test_connectToDtd_success_doesNotRegister_experimentalMethods() async {
     await initializeServer();
     await sendConnectToDtdRequest();
@@ -219,6 +221,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expectMethod(CustomMethods.experimentalEcho, available: false);
   }
 
+  Future<void>
   test_connectToDtd_success_doesNotRegister_fileStateMethods() async {
     await initializeServer();
     await sendConnectToDtdRequest();
@@ -230,6 +233,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expectMethod(Method.textDocument_didChange, available: false);
   }
 
+  Future<void>
   test_connectToDtd_success_doesNotRegister_initializationMethods() async {
     await initializeServer();
     await sendConnectToDtdRequest();
@@ -239,7 +243,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expectMethod(Method.initialized, available: false);
   }
 
-  test_connectToDtd_success_registers_experimentalMethods() async {
+  Future<void> test_connectToDtd_success_registers_experimentalMethods() async {
     await initializeServer();
     await sendConnectToDtdRequest(registerExperimentalHandlers: true);
 
@@ -247,7 +251,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
   }
 
   @SkippedTest(reason: 'Shared LSP methods are currently disabled')
-  test_connectToDtd_success_registers_standardLspMethods() async {
+  Future<void> test_connectToDtd_success_registers_standardLspMethods() async {
     await initializeServer();
     await sendConnectToDtdRequest();
 
@@ -260,7 +264,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
   }
 
   @SkippedTest(reason: 'Shared LSP methods are currently disabled')
-  test_service_failure_hover() async {
+  Future<void> test_service_failure_hover() async {
     await initializeServer();
     await sendConnectToDtdRequest();
 
@@ -291,7 +295,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     await expectLater(call, throwsA(expectedException));
   }
 
-  test_service_success_echo() async {
+  Future<void> test_service_success_echo() async {
     await initializeServer();
     await sendConnectToDtdRequest(registerExperimentalHandlers: true);
 
@@ -306,7 +310,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expect(result, equals({'a': 'b'}));
   }
 
-  test_service_success_echo_nullResponse() async {
+  Future<void> test_service_success_echo_nullResponse() async {
     await initializeServer();
     await sendConnectToDtdRequest(registerExperimentalHandlers: true);
 
@@ -322,7 +326,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
   }
 
   @SkippedTest(reason: 'Shared LSP methods are currently disabled')
-  test_service_success_hover() async {
+  Future<void> test_service_success_hover() async {
     var code = TestCode.parse('''
 /// A function.
 void [!myFun^ction!]() {}
@@ -361,7 +365,7 @@ void [!myFun^ction!]() {}
   }
 
   @SkippedTest(reason: 'Shared LSP methods are currently disabled')
-  test_service_unregisteredOnShutdown() async {
+  Future<void> test_service_unregisteredOnShutdown() async {
     await initializeServer();
     await sendConnectToDtdRequest();
 

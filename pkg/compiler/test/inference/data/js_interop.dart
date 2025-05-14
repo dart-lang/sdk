@@ -7,7 +7,7 @@ library js_interop;
 
 import 'package:js/js.dart';
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   anonymousClass();
   jsInteropClass();
@@ -16,37 +16,37 @@ main() {
 @JS()
 @anonymous
 class Class1 {
-  /*member: Class1.:[null|subclass=Object]*/
+  /*member: Class1.:[null|subclass=Object|powerset=1]*/
   external factory Class1({
-    /*[exact=JSUInt31]*/ a,
-    /*Value([exact=JSString], value: "")*/ b,
+    /*[exact=JSUInt31|powerset=0]*/ a,
+    /*Value([exact=JSString|powerset=0], value: "", powerset: 0)*/ b,
   });
 }
 
-/*member: anonymousClass:[subclass=LegacyJavaScriptObject]*/
+/*member: anonymousClass:[subclass=LegacyJavaScriptObject|powerset=0]*/
 anonymousClass() => Class1(a: 1, b: '');
 
 @JS()
 class JsInteropClass {
-  /*member: JsInteropClass.:[null|subclass=Object]*/
+  /*member: JsInteropClass.:[null|subclass=Object|powerset=1]*/
   external JsInteropClass();
 
-  /*member: JsInteropClass.getter:[null|subclass=Object]*/
+  /*member: JsInteropClass.getter:[null|subclass=Object|powerset=1]*/
   external int get getter;
 
-  external void set setter(int /*[subclass=JSInt]*/ value);
+  external void set setter(int /*[subclass=JSInt|powerset=0]*/ value);
 
-  /*member: JsInteropClass.method:[null|subclass=Object]*/
-  external int method(int /*[exact=JSUInt31]*/ a);
+  /*member: JsInteropClass.method:[null|subclass=Object|powerset=1]*/
+  external int method(int /*[exact=JSUInt31|powerset=0]*/ a);
 }
 
-/*member: jsInteropClass:[subclass=JSInt]*/
+/*member: jsInteropClass:[subclass=JSInt|powerset=0]*/
 jsInteropClass() {
   JsInteropClass cls = JsInteropClass();
-  return cls. /*update: [exact=JsInteropClass]*/ setter =
-      cls. /*[exact=JsInteropClass]*/ getter /*invoke: [subclass=JSInt]*/ +
-      cls. /*invoke: [exact=JsInteropClass]*/ method(
+  return cls. /*update: [exact=JsInteropClass|powerset=0]*/ setter =
+      cls. /*[exact=JsInteropClass|powerset=0]*/ getter /*invoke: [subclass=JSInt|powerset=0]*/ +
+      cls. /*invoke: [exact=JsInteropClass|powerset=0]*/ method(
         0,
-      ) /*invoke: [subclass=JSInt]*/ +
+      ) /*invoke: [subclass=JSInt|powerset=0]*/ +
       10;
 }

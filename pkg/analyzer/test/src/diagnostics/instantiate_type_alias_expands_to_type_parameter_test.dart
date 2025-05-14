@@ -118,10 +118,8 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element: <testLibraryFragment>::@typeAlias::B
       element2: <testLibrary>::@typeAlias::B
       type: InvalidType
-    staticElement: <null>
     element: <null>
   argumentList: ArgumentList
     leftParenthesis: (

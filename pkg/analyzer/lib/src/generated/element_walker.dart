@@ -2,132 +2,131 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
-/// Keeps track of the set of non-synthetic child elements of an element,
+/// Keeps track of the set of non-synthetic child fragments of a fragment,
 /// yielding them one at a time in response to "get" method calls.
 class ElementWalker {
-  /// The element whose child elements are being walked.
-  final Element element;
+  /// The fragment whose child fragments are being walked.
+  final ElementImpl fragment;
   String? libraryFilePath;
   String? unitFilePath;
 
-  List<PropertyAccessorElement>? _accessors;
+  List<PropertyAccessorElementImpl>? _accessors;
   int _accessorIndex = 0;
-  List<ClassElement>? _classes;
+  List<ClassElementImpl>? _classes;
   int _classIndex = 0;
-  List<ConstructorElement>? _constructors;
+  List<ConstructorElementImpl>? _constructors;
   int _constructorIndex = 0;
-  List<EnumElement>? _enums;
+  List<EnumElementImpl>? _enums;
   int _enumIndex = 0;
-  List<ExtensionElement>? _extensions;
+  List<ExtensionElementImpl>? _extensions;
   int _extensionIndex = 0;
-  List<ExtensionTypeElement>? _extensionTypes;
+  List<ExtensionTypeElementImpl>? _extensionTypes;
   int _extensionTypeIndex = 0;
-  List<ExecutableElement>? _functions;
+  List<ExecutableElementImpl>? _functions;
   int _functionIndex = 0;
-  List<MixinElement>? _mixins;
+  List<MixinElementImpl>? _mixins;
   int _mixinIndex = 0;
-  List<ParameterElement>? _parameters;
+  List<ParameterElementImpl>? _parameters;
   int _parameterIndex = 0;
-  List<TypeAliasElement>? _typedefs;
+  List<TypeAliasElementImpl>? _typedefs;
   int _typedefIndex = 0;
-  List<TypeParameterElement>? _typeParameters;
+  List<TypeParameterElementImpl>? _typeParameters;
   int _typeParameterIndex = 0;
-  List<VariableElement>? _variables;
+  List<VariableElementImpl>? _variables;
   int _variableIndex = 0;
 
   /// Creates an [ElementWalker] which walks the child elements of a class
   /// element.
-  ElementWalker.forClass(ClassElement this.element)
-      : _accessors = element.accessors.where(_isNotSynthetic).toList(),
-        _constructors = element.isMixinApplication
+  ElementWalker.forClass(ClassElementImpl this.fragment)
+      : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
+        _constructors = fragment.isMixinApplication
             ? null
-            : element.constructors.where(_isNotSynthetic).toList(),
-        _functions = element.methods,
-        _typeParameters = element.typeParameters,
-        _variables = element.fields.where(_isNotSynthetic).toList();
+            : fragment.constructors.where(_isNotSynthetic).toList(),
+        _functions = fragment.methods,
+        _typeParameters = fragment.typeParameters,
+        _variables = fragment.fields.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a compilation
   /// unit element.
-  ElementWalker.forCompilationUnit(CompilationUnitElementImpl this.element,
+  ElementWalker.forCompilationUnit(CompilationUnitElementImpl this.fragment,
       {this.libraryFilePath, this.unitFilePath})
-      : _accessors = element.accessors.where(_isNotSynthetic).toList(),
-        _classes = element.classes,
-        _enums = element.enums,
-        _extensions = element.extensions,
-        _extensionTypes = element.extensionTypes,
-        _functions = element.functions,
-        _mixins = element.mixins,
-        _typedefs = element.typeAliases,
-        _variables = element.topLevelVariables.where(_isNotSynthetic).toList();
+      : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
+        _classes = fragment.classes,
+        _enums = fragment.enums,
+        _extensions = fragment.extensions,
+        _extensionTypes = fragment.extensionTypes,
+        _functions = fragment.functions,
+        _mixins = fragment.mixins,
+        _typedefs = fragment.typeAliases,
+        _variables = fragment.topLevelVariables.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a enum
   /// element.
-  ElementWalker.forEnum(EnumElement this.element)
-      : _accessors = element.accessors.where(_isNotSynthetic).toList(),
-        _constructors = element.constructors.where(_isNotSynthetic).toList(),
-        _functions = element.methods,
-        _typeParameters = element.typeParameters,
-        _variables = element.fields.where(_isNotSynthetic).toList();
+  ElementWalker.forEnum(EnumElementImpl this.fragment)
+      : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
+        _constructors = fragment.constructors.where(_isNotSynthetic).toList(),
+        _functions = fragment.methods,
+        _typeParameters = fragment.typeParameters,
+        _variables = fragment.fields.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a compilation
   /// unit element.
-  ElementWalker.forExecutable(ExecutableElement this.element)
-      : _functions = const <ExecutableElement>[],
-        _parameters = element.parameters,
-        _typeParameters = element.typeParameters;
+  ElementWalker.forExecutable(ExecutableElementImpl this.fragment)
+      : _functions = const <ExecutableElementImpl>[],
+        _parameters = fragment.parameters,
+        _typeParameters = fragment.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of an extension
   /// element.
-  ElementWalker.forExtension(ExtensionElement this.element)
-      : _accessors = element.accessors.where(_isNotSynthetic).toList(),
-        _functions = element.methods,
-        _typeParameters = element.typeParameters,
-        _variables = element.fields.where(_isNotSynthetic).toList();
+  ElementWalker.forExtension(ExtensionElementImpl this.fragment)
+      : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
+        _functions = fragment.methods,
+        _typeParameters = fragment.typeParameters,
+        _variables = fragment.fields.where(_isNotSynthetic).toList();
 
-  ElementWalker.forExtensionType(ExtensionTypeElementImpl this.element)
-      : _accessors = element.accessors.where(_isNotSynthetic).toList(),
-        _constructors = element.constructors,
-        _functions = element.methods,
-        _typeParameters = element.typeParameters,
-        _variables = element.fields.where(_isNotSynthetic).toList();
+  ElementWalker.forExtensionType(ExtensionTypeElementImpl this.fragment)
+      : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
+        _constructors = fragment.constructors,
+        _functions = fragment.methods,
+        _typeParameters = fragment.typeParameters,
+        _variables = fragment.fields.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
-  ElementWalker.forGenericFunctionType(GenericFunctionTypeElement this.element)
-      : _parameters = element.parameters,
-        _typeParameters = element.typeParameters;
+  ElementWalker.forGenericFunctionType(
+      GenericFunctionTypeElementImpl this.fragment)
+      : _parameters = fragment.parameters,
+        _typeParameters = fragment.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element defined using a generic function type.
-  ElementWalker.forGenericTypeAlias(TypeAliasElement this.element)
-      : _typeParameters = element.typeParameters;
+  ElementWalker.forGenericTypeAlias(TypeAliasElementImpl this.fragment)
+      : _typeParameters = fragment.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of a mixin
   /// element.
-  ElementWalker.forMixin(MixinElement this.element)
-      : _accessors = element.accessors.where(_isNotSynthetic).toList(),
-        _constructors = element.constructors.where(_isNotSynthetic).toList(),
-        _functions = element.methods,
-        _typeParameters = element.typeParameters,
-        _variables = element.fields.where(_isNotSynthetic).toList();
+  ElementWalker.forMixin(MixinElementImpl this.fragment)
+      : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
+        _constructors = fragment.constructors.where(_isNotSynthetic).toList(),
+        _functions = fragment.methods,
+        _typeParameters = fragment.typeParameters,
+        _variables = fragment.fields.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a parameter
   /// element.
-  ElementWalker.forParameter(ParameterElement this.element)
-      : _parameters = element.parameters,
-        _typeParameters = element.typeParameters;
+  ElementWalker.forParameter(ParameterElementImpl this.fragment)
+      : _parameters = fragment.parameters,
+        _typeParameters = fragment.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
-  ElementWalker.forTypedef(TypeAliasElement this.element)
+  ElementWalker.forTypedef(TypeAliasElementImpl this.fragment)
       : _parameters =
-            (element.aliasedElement as GenericFunctionTypeElement).parameters,
-        _typeParameters = element.typeParameters;
+            (fragment.aliasedElement as GenericFunctionTypeElementImpl)
+                .parameters,
+        _typeParameters = fragment.typeParameters;
 
   void consumeLocalElements() {
     _functionIndex = _functions!.length;
@@ -137,109 +136,66 @@ class ElementWalker {
     _parameterIndex = _parameters!.length;
   }
 
-  /// Returns the next non-synthetic child of [element] which is an accessor;
+  /// Returns the next non-synthetic child of [fragment] which is an accessor;
   /// throws an [IndexError] if there are no more.
   PropertyAccessorElementImpl getAccessor() {
-    // TODO(scheglov): Remove after fixing.
-    // https://github.com/dart-lang/sdk/issues/46392
-    var accessors = _accessors;
-    if (accessors != null && _accessorIndex >= accessors.length) {
-      throw StateError(
-        '[_accessorIndex: $_accessorIndex]'
-        '[_accessors.length: ${accessors.length}]'
-        '[accessors: $accessors]'
-        '[element.source: ${element.source?.fullName}]'
-        '[libraryFilePath: $libraryFilePath]'
-        '[unitFilePath: $unitFilePath]',
-      );
-    }
-    return _accessors![_accessorIndex++] as PropertyAccessorElementImpl;
+    return _accessors![_accessorIndex++];
   }
 
-  /// Returns the next non-synthetic child of [element] which is a class; throws
-  /// an [IndexError] if there are no more.
+  /// Returns the next non-synthetic child of [fragment] which is a class;
+  /// throws an [IndexError] if there are no more.
   ClassElementImpl getClass() {
-    // TODO(scheglov): Remove after fixing.
-    // https://github.com/dart-lang/sdk/issues/46392
-    var classes = _classes;
-    if (classes != null && _classIndex >= classes.length) {
-      throw StateError(
-        '[_classIndex: $_classIndex]'
-        '[classes.length: ${classes.length}]'
-        '[classes: $classes]'
-        '[element.source: ${element.source?.fullName}]'
-        '[libraryFilePath: $libraryFilePath]'
-        '[unitFilePath: $unitFilePath]',
-      );
-    }
-    return _classes![_classIndex++] as ClassElementImpl;
+    return _classes![_classIndex++];
   }
 
-  /// Returns the next non-synthetic child of [element] which is a constructor;
+  /// Returns the next non-synthetic child of [fragment] which is a constructor;
   /// throws an [IndexError] if there are no more.
   ConstructorElementImpl getConstructor() =>
-      _constructors![_constructorIndex++] as ConstructorElementImpl;
+      _constructors![_constructorIndex++];
 
-  /// Returns the next non-synthetic child of [element] which is an enum; throws
-  /// an [IndexError] if there are no more.
-  EnumElementImpl getEnum() => _enums![_enumIndex++] as EnumElementImpl;
+  /// Returns the next non-synthetic child of [fragment] which is an enum;
+  /// throws an [IndexError] if there are no more.
+  EnumElementImpl getEnum() => _enums![_enumIndex++];
 
-  ExtensionElementImpl getExtension() =>
-      _extensions![_extensionIndex++] as ExtensionElementImpl;
+  ExtensionElementImpl getExtension() => _extensions![_extensionIndex++];
 
   ExtensionTypeElementImpl getExtensionType() =>
-      _extensionTypes![_extensionTypeIndex++] as ExtensionTypeElementImpl;
+      _extensionTypes![_extensionTypeIndex++];
 
-  /// Returns the next non-synthetic child of [element] which is a top level
+  /// Returns the next non-synthetic child of [fragment] which is a top level
   /// function, method, or local function; throws an [IndexError] if there are
   /// no more.
-  ExecutableElementImpl getFunction() =>
-      _functions![_functionIndex++] as ExecutableElementImpl;
+  ExecutableElementImpl getFunction() => _functions![_functionIndex++];
 
-  /// Returns the next non-synthetic child of [element] which is a mixin; throws
-  /// an [IndexError] if there are no more.
-  MixinElementImpl getMixin() => _mixins![_mixinIndex++] as MixinElementImpl;
-
-  /// Returns the next non-synthetic child of [element] which is a parameter;
+  /// Returns the next non-synthetic child of [fragment] which is a mixin;
   /// throws an [IndexError] if there are no more.
-  ParameterElementImpl getParameter() =>
-      _parameters![_parameterIndex++] as ParameterElementImpl;
+  MixinElementImpl getMixin() => _mixins![_mixinIndex++];
 
-  /// Returns the next non-synthetic child of [element] which is a typedef;
+  /// Returns the next non-synthetic child of [fragment] which is a parameter;
   /// throws an [IndexError] if there are no more.
-  TypeAliasElementImpl getTypedef() =>
-      _typedefs![_typedefIndex++] as TypeAliasElementImpl;
+  ParameterElementImpl getParameter() => _parameters![_parameterIndex++];
 
-  /// Returns the next non-synthetic child of [element] which is a type
+  /// Returns the next non-synthetic child of [fragment] which is a typedef;
+  /// throws an [IndexError] if there are no more.
+  TypeAliasElementImpl getTypedef() => _typedefs![_typedefIndex++];
+
+  /// Returns the next non-synthetic child of [fragment] which is a type
   /// parameter; throws an [IndexError] if there are no more.
   TypeParameterElementImpl getTypeParameter() =>
-      _typeParameters![_typeParameterIndex++] as TypeParameterElementImpl;
+      _typeParameters![_typeParameterIndex++];
 
-  /// Returns the next non-synthetic child of [element] which is a top level
+  /// Returns the next non-synthetic child of [fragment] which is a top level
   /// variable, field, or local variable; throws an [IndexError] if there are no
   /// more.
   VariableElementImpl getVariable() {
-    // TODO(scheglov): Remove after fixing.
-    // https://github.com/dart-lang/sdk/issues/46392
-    var variables = _variables;
-    if (variables != null && _variableIndex >= variables.length) {
-      throw StateError(
-        '[_variableIndex: $_variableIndex]'
-        '[_variables.length: ${variables.length}]'
-        '[variables: $variables]'
-        '[element.source: ${element.source?.fullName}]'
-        '[libraryFilePath: $libraryFilePath]'
-        '[unitFilePath: $unitFilePath]',
-      );
-    }
-    return _variables![_variableIndex++] as VariableElementImpl;
+    return _variables![_variableIndex++];
   }
 
-  /// Verifies that all non-synthetic children of [element] have been obtained
+  /// Verifies that all non-synthetic children of [fragment] have been obtained
   /// from their corresponding "get" method calls; if not, throws a
   /// [StateError].
   void validate() {
-    void check(List<Element>? elements, int index) {
+    void check(List<ElementImpl>? elements, int index) {
       if (elements != null && elements.length != index) {
         throw StateError(
             'Unmatched ${elements[index].runtimeType} ${elements[index]}');
@@ -257,5 +213,5 @@ class ElementWalker {
     check(_variables, _variableIndex);
   }
 
-  static bool _isNotSynthetic(Element e) => !e.isSynthetic;
+  static bool _isNotSynthetic(ElementImpl e) => !e.isSynthetic;
 }

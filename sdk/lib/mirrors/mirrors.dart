@@ -118,7 +118,6 @@ abstract class MirrorSystem {
   /**
    * A mirror on the [:Never:] type.
    */
-  @Since("2.8")
   TypeMirror get neverType;
 
   /**

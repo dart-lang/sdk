@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -25,14 +26,9 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'support/configuration_files.dart';
-import 'test_macros.dart';
 
 class AbstractContextTest
-    with
-        MockPackagesMixin,
-        ConfigurationFilesMixin,
-        ResourceProviderMixin,
-        TestMacros {
+    with MockPackagesMixin, ConfigurationFilesMixin, ResourceProviderMixin {
   static bool _lintRulesAreRegistered = false;
 
   static final ByteStore _byteStore = MemoryByteStore();
@@ -219,7 +215,8 @@ class AbstractContextTest
     if (!_lintRulesAreRegistered) {
       registerLintRules();
       _lintRulesAreRegistered = true;
-      registerBuiltInProducers();
+      registerBuiltInAssistGenerators();
+      registerBuiltInFixGenerators();
     }
 
     setupResourceProvider();

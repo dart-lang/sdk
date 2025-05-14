@@ -77,7 +77,7 @@ class LibraryProblemReporting implements ProblemReporting {
   }
 
   void registerLibrary(Library library) {
-    assert(_library == null, "Library has already been register for $this.");
+    assert(_library == null, "Library has already been registered for $this.");
     _library = library;
     if (_problemsAsJson != null) {
       (library.problemsAsJson ??= []).addAll(_problemsAsJson!);

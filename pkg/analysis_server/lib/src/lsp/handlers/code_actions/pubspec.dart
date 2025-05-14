@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generato
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:yaml/yaml.dart';
 
 /// Produces [CodeAction]s from Pubspec fixes.
@@ -29,10 +30,14 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
   String get name => 'ServerPubspecActionsComputer';
 
   @override
-  Future<List<CodeActionWithPriority>> getAssistActions() async => [];
+  Future<List<CodeActionWithPriority>> getAssistActions({
+    OperationPerformance? performance,
+  }) async => [];
 
   @override
-  Future<List<CodeActionWithPriority>> getFixActions() async {
+  Future<List<CodeActionWithPriority>> getFixActions(
+    OperationPerformance? performance,
+  ) async {
     var session = await server.getAnalysisSession(path);
     if (session == null) {
       return [];
@@ -76,7 +81,13 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
       var diagnostic = createDiagnostic(lineInfo, result, error);
       codeActions.addAll(
         fixes.map((fix) {
-          var action = createFixAction(fix.change, diagnostic, path, lineInfo);
+          var action = createFixAction(
+            fix.change,
+            fix.change.id,
+            diagnostic,
+            path,
+            lineInfo,
+          );
           return (action: action, priority: fix.kind.priority);
         }),
       );
@@ -86,7 +97,9 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions() async => [];
+  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+    OperationPerformance? performance,
+  ) async => [];
 
   @override
   Future<List<Either2<CodeAction, Command>>> getSourceActions() async => [];

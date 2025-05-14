@@ -19,6 +19,7 @@ import 'package:analysis_server/src/lsp/handlers/custom/handler_experimental_ech
 import 'package:analysis_server/src/lsp/handlers/custom/handler_imports.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_reanalyze.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_super.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/handler_update_diagnostic_information.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_call_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
@@ -42,6 +43,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_implementation.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_inlay_hint.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_inline_value.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_references.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_rename.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_selection_range.dart';
@@ -139,6 +141,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         ImportsHandler.new,
         ImplementationHandler.new,
         IncomingCallHierarchyHandler.new,
+        InlineValueHandler.new,
         OutgoingCallHierarchyHandler.new,
         PrepareCallHierarchyHandler.new,
         PrepareTypeHierarchyHandler.new,
@@ -147,6 +150,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         TypeDefinitionHandler.new,
         TypeHierarchySubtypesHandler.new,
         TypeHierarchySupertypesHandler.new,
+        UpdateDiagnosticInformationHandler.new,
         WillRenameFilesHandler.new,
         WorkspaceSymbolHandler.new,
       ];

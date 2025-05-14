@@ -12,7 +12,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '3.7.0';
+const _currentVersion = '3.8.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -24,9 +24,9 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.control_flow_collections:
       ExperimentalFeatures.control_flow_collections,
   EnableString.digit_separators: ExperimentalFeatures.digit_separators,
+  EnableString.dot_shorthands: ExperimentalFeatures.dot_shorthands,
   EnableString.enhanced_enums: ExperimentalFeatures.enhanced_enums,
   EnableString.enhanced_parts: ExperimentalFeatures.enhanced_parts,
-  EnableString.enum_shorthands: ExperimentalFeatures.enum_shorthands,
   EnableString.extension_methods: ExperimentalFeatures.extension_methods,
   EnableString.generic_metadata: ExperimentalFeatures.generic_metadata,
   EnableString.getter_setter_error: ExperimentalFeatures.getter_setter_error,
@@ -50,6 +50,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.records: ExperimentalFeatures.records,
   EnableString.sealed_class: ExperimentalFeatures.sealed_class,
   EnableString.set_literals: ExperimentalFeatures.set_literals,
+  EnableString.sound_flow_analysis: ExperimentalFeatures.sound_flow_analysis,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
   EnableString.super_parameters: ExperimentalFeatures.super_parameters,
   EnableString.test_experiment: ExperimentalFeatures.test_experiment,
@@ -84,14 +85,14 @@ class EnableString {
   /// String to enable the experiment "digit-separators"
   static const String digit_separators = 'digit-separators';
 
+  /// String to enable the experiment "dot-shorthands"
+  static const String dot_shorthands = 'dot-shorthands';
+
   /// String to enable the experiment "enhanced-enums"
   static const String enhanced_enums = 'enhanced-enums';
 
   /// String to enable the experiment "enhanced-parts"
   static const String enhanced_parts = 'enhanced-parts';
-
-  /// String to enable the experiment "enum-shorthands"
-  static const String enum_shorthands = 'enum-shorthands';
 
   /// String to enable the experiment "extension-methods"
   static const String extension_methods = 'extension-methods';
@@ -153,6 +154,9 @@ class EnableString {
   /// String to enable the experiment "set-literals"
   static const String set_literals = 'set-literals';
 
+  /// String to enable the experiment "sound-flow-analysis"
+  static const String sound_flow_analysis = 'sound-flow-analysis';
+
   /// String to enable the experiment "spread-collections"
   static const String spread_collections = 'spread-collections';
 
@@ -187,6 +191,7 @@ class ExperimentalFeatures {
     documentation: 'Augmentations - enhancing declarations from outside',
     experimentalReleaseVersion: Version.parse('3.6.0'),
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final class_modifiers = ExperimentalFeature(
@@ -197,6 +202,7 @@ class ExperimentalFeatures {
     documentation: 'Class modifiers',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final const_functions = ExperimentalFeature(
@@ -208,6 +214,7 @@ class ExperimentalFeatures {
         'Allow more of the Dart language to be executed in const expressions.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final constant_update_2018 = ExperimentalFeature(
@@ -218,6 +225,7 @@ class ExperimentalFeatures {
     documentation: 'Enhanced constant expressions',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final constructor_tearoffs = ExperimentalFeature(
@@ -229,6 +237,7 @@ class ExperimentalFeatures {
         'Allow constructor tear-offs and explicit generic instantiations.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.15.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final control_flow_collections = ExperimentalFeature(
@@ -239,6 +248,7 @@ class ExperimentalFeatures {
     documentation: 'Control Flow Collections',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final digit_separators = ExperimentalFeature(
@@ -249,36 +259,40 @@ class ExperimentalFeatures {
     documentation: 'Number literals with digit separators.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.6.0'),
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
+  static final dot_shorthands = ExperimentalFeature(
+    index: 7,
+    enableString: EnableString.dot_shorthands,
+    isEnabledByDefault: IsEnabledByDefault.dot_shorthands,
+    isExpired: IsExpired.dot_shorthands,
+    documentation: 'Shorter dot syntax for static accesses.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final enhanced_enums = ExperimentalFeature(
-    index: 7,
+    index: 8,
     enableString: EnableString.enhanced_enums,
     isEnabledByDefault: IsEnabledByDefault.enhanced_enums,
     isExpired: IsExpired.enhanced_enums,
     documentation: 'Enhanced Enums',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.17.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final enhanced_parts = ExperimentalFeature(
-    index: 8,
+    index: 9,
     enableString: EnableString.enhanced_parts,
     isEnabledByDefault: IsEnabledByDefault.enhanced_parts,
     isExpired: IsExpired.enhanced_parts,
     documentation: 'Generalize parts to be nested and have exports/imports.',
     experimentalReleaseVersion: Version.parse('3.6.0'),
     releaseVersion: null,
-  );
-
-  static final enum_shorthands = ExperimentalFeature(
-    index: 9,
-    enableString: EnableString.enum_shorthands,
-    isEnabledByDefault: IsEnabledByDefault.enum_shorthands,
-    isExpired: IsExpired.enum_shorthands,
-    documentation: 'Shorter dot syntax for enum values.',
-    experimentalReleaseVersion: null,
-    releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final extension_methods = ExperimentalFeature(
@@ -289,6 +303,7 @@ class ExperimentalFeatures {
     documentation: 'Extension Methods',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.6.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final generic_metadata = ExperimentalFeature(
@@ -300,6 +315,7 @@ class ExperimentalFeatures {
         'Allow annotations to accept type arguments; also allow generic function types as type arguments.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.14.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final getter_setter_error = ExperimentalFeature(
@@ -311,6 +327,7 @@ class ExperimentalFeatures {
         'Stop reporting errors about mismatching types in a getter/setter pair.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final inference_update_1 = ExperimentalFeature(
@@ -322,6 +339,7 @@ class ExperimentalFeatures {
         'Horizontal type inference for function expressions passed to generic invocations.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.18.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final inference_update_2 = ExperimentalFeature(
@@ -332,6 +350,7 @@ class ExperimentalFeatures {
     documentation: 'Type promotion for fields',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.2.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final inference_update_3 = ExperimentalFeature(
@@ -343,6 +362,7 @@ class ExperimentalFeatures {
         'Better handling of conditional expressions, and switch expressions.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.4.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final inference_update_4 = ExperimentalFeature(
@@ -353,6 +373,7 @@ class ExperimentalFeatures {
     documentation: 'A bundle of updates to type inference.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final inference_using_bounds = ExperimentalFeature(
@@ -364,6 +385,7 @@ class ExperimentalFeatures {
         'Use type parameter bounds more extensively in type inference.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.7.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final inline_class = ExperimentalFeature(
@@ -374,6 +396,7 @@ class ExperimentalFeatures {
     documentation: 'Extension Types',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.3.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final macros = ExperimentalFeature(
@@ -384,6 +407,7 @@ class ExperimentalFeatures {
     documentation: 'Static meta-programming',
     experimentalReleaseVersion: Version.parse('3.3.0'),
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final named_arguments_anywhere = ExperimentalFeature(
@@ -394,6 +418,7 @@ class ExperimentalFeatures {
     documentation: 'Named Arguments Anywhere',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.17.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final native_assets = ExperimentalFeature(
@@ -404,6 +429,7 @@ class ExperimentalFeatures {
     documentation: 'Compile and bundle native assets.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["main", "dev"],
   );
 
   static final non_nullable = ExperimentalFeature(
@@ -414,6 +440,7 @@ class ExperimentalFeatures {
     documentation: 'Non Nullable by default',
     experimentalReleaseVersion: Version.parse('2.10.0'),
     releaseVersion: Version.parse('2.12.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final nonfunction_type_aliases = ExperimentalFeature(
@@ -424,6 +451,7 @@ class ExperimentalFeatures {
     documentation: 'Type aliases define a <type>, not just a <functionType>',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.13.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final null_aware_elements = ExperimentalFeature(
@@ -433,7 +461,8 @@ class ExperimentalFeatures {
     isExpired: IsExpired.null_aware_elements,
     documentation: 'Null-aware elements and map entries in collections.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.8.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final patterns = ExperimentalFeature(
@@ -444,6 +473,7 @@ class ExperimentalFeatures {
     documentation: 'Patterns',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final record_use = ExperimentalFeature(
@@ -454,6 +484,7 @@ class ExperimentalFeatures {
     documentation: 'Output arguments used by static functions.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["main", "dev"],
   );
 
   static final records = ExperimentalFeature(
@@ -464,6 +495,7 @@ class ExperimentalFeatures {
     documentation: 'Records',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final sealed_class = ExperimentalFeature(
@@ -474,6 +506,7 @@ class ExperimentalFeatures {
     documentation: 'Sealed class',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final set_literals = ExperimentalFeature(
@@ -484,30 +517,45 @@ class ExperimentalFeatures {
     documentation: 'Set Literals',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
+  static final sound_flow_analysis = ExperimentalFeature(
+    index: 30,
+    enableString: EnableString.sound_flow_analysis,
+    isEnabledByDefault: IsEnabledByDefault.sound_flow_analysis,
+    isExpired: IsExpired.sound_flow_analysis,
+    documentation:
+        'Assume sound null safety when computing type promotion, reachability, and definite assignment.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 30,
+    index: 31,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
     documentation: 'Spread Collections',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 31,
+    index: 32,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
     documentation: 'Super-Initializer Parameters',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.17.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 32,
+    index: 33,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -515,50 +563,55 @@ class ExperimentalFeatures {
         'Has no effect. Can be used for testing the --enable-experiment command line functionality.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 33,
+    index: 34,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
     documentation: 'Triple-shift operator',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.14.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 34,
+    index: 35,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
     documentation: 'Unnamed libraries',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.19.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final unquoted_imports = ExperimentalFeature(
-    index: 35,
+    index: 36,
     enableString: EnableString.unquoted_imports,
     isEnabledByDefault: IsEnabledByDefault.unquoted_imports,
     isExpired: IsExpired.unquoted_imports,
     documentation: 'Shorter import syntax.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final variance = ExperimentalFeature(
-    index: 36,
+    index: 37,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
     documentation: 'Sound variance',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final wildcard_variables = ExperimentalFeature(
-    index: 37,
+    index: 38,
     enableString: EnableString.wildcard_variables,
     isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
     isExpired: IsExpired.wildcard_variables,
@@ -566,6 +619,7 @@ class ExperimentalFeatures {
         'Local declarations and parameters named `_` are non-binding.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.7.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 }
 
@@ -593,14 +647,14 @@ class IsEnabledByDefault {
   /// Default state of the experiment "digit-separators"
   static const bool digit_separators = true;
 
+  /// Default state of the experiment "dot-shorthands"
+  static const bool dot_shorthands = false;
+
   /// Default state of the experiment "enhanced-enums"
   static const bool enhanced_enums = true;
 
   /// Default state of the experiment "enhanced-parts"
   static const bool enhanced_parts = false;
-
-  /// Default state of the experiment "enum-shorthands"
-  static const bool enum_shorthands = false;
 
   /// Default state of the experiment "extension-methods"
   static const bool extension_methods = true;
@@ -645,7 +699,7 @@ class IsEnabledByDefault {
   static const bool nonfunction_type_aliases = true;
 
   /// Default state of the experiment "null-aware-elements"
-  static const bool null_aware_elements = false;
+  static const bool null_aware_elements = true;
 
   /// Default state of the experiment "patterns"
   static const bool patterns = true;
@@ -661,6 +715,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "set-literals"
   static const bool set_literals = true;
+
+  /// Default state of the experiment "sound-flow-analysis"
+  static const bool sound_flow_analysis = false;
 
   /// Default state of the experiment "spread-collections"
   static const bool spread_collections = true;
@@ -712,14 +769,14 @@ class IsExpired {
   /// Expiration status of the experiment "digit-separators"
   static const bool digit_separators = true;
 
+  /// Expiration status of the experiment "dot-shorthands"
+  static const bool dot_shorthands = false;
+
   /// Expiration status of the experiment "enhanced-enums"
   static const bool enhanced_enums = true;
 
   /// Expiration status of the experiment "enhanced-parts"
   static const bool enhanced_parts = false;
-
-  /// Expiration status of the experiment "enum-shorthands"
-  static const bool enum_shorthands = false;
 
   /// Expiration status of the experiment "extension-methods"
   static const bool extension_methods = true;
@@ -743,7 +800,7 @@ class IsExpired {
   static const bool inference_update_4 = false;
 
   /// Expiration status of the experiment "inference-using-bounds"
-  static const bool inference_using_bounds = false;
+  static const bool inference_using_bounds = true;
 
   /// Expiration status of the experiment "inline-class"
   static const bool inline_class = true;
@@ -781,6 +838,9 @@ class IsExpired {
   /// Expiration status of the experiment "set-literals"
   static const bool set_literals = true;
 
+  /// Expiration status of the experiment "sound-flow-analysis"
+  static const bool sound_flow_analysis = false;
+
   /// Expiration status of the experiment "spread-collections"
   static const bool spread_collections = true;
 
@@ -803,7 +863,7 @@ class IsExpired {
   static const bool variance = false;
 
   /// Expiration status of the experiment "wildcard-variables"
-  static const bool wildcard_variables = false;
+  static const bool wildcard_variables = true;
 }
 
 mixin _CurrentState {
@@ -831,14 +891,14 @@ mixin _CurrentState {
   /// Current state for the flag "digit-separators"
   bool get digit_separators => isEnabled(ExperimentalFeatures.digit_separators);
 
+  /// Current state for the flag "dot-shorthands"
+  bool get dot_shorthands => isEnabled(ExperimentalFeatures.dot_shorthands);
+
   /// Current state for the flag "enhanced-enums"
   bool get enhanced_enums => isEnabled(ExperimentalFeatures.enhanced_enums);
 
   /// Current state for the flag "enhanced-parts"
   bool get enhanced_parts => isEnabled(ExperimentalFeatures.enhanced_parts);
-
-  /// Current state for the flag "enum-shorthands"
-  bool get enum_shorthands => isEnabled(ExperimentalFeatures.enum_shorthands);
 
   /// Current state for the flag "extension-methods"
   bool get extension_methods =>
@@ -909,6 +969,10 @@ mixin _CurrentState {
 
   /// Current state for the flag "set-literals"
   bool get set_literals => isEnabled(ExperimentalFeatures.set_literals);
+
+  /// Current state for the flag "sound-flow-analysis"
+  bool get sound_flow_analysis =>
+      isEnabled(ExperimentalFeatures.sound_flow_analysis);
 
   /// Current state for the flag "spread-collections"
   bool get spread_collections =>

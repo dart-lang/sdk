@@ -12,17 +12,16 @@ const _desc = r'Sort child properties last in widget instance creations.';
 
 class SortChildPropertiesLast extends LintRule {
   SortChildPropertiesLast()
-      : super(
-          name: LintNames.sort_child_properties_last,
-          description: _desc,
-        );
+    : super(name: LintNames.sort_child_properties_last, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.sort_child_properties_last;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }
@@ -46,14 +45,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var onlyClosuresAfterChild = arguments.reversed
-        .takeWhile((argument) => !isChildArg(argument))
-        .toList()
-        .reversed
-        .where((element) =>
-            element is NamedExpression &&
-            element.expression is! FunctionExpression)
-        .isEmpty;
+    var onlyClosuresAfterChild =
+        arguments.reversed
+            .takeWhile((argument) => !isChildArg(argument))
+            .toList()
+            .reversed
+            .where(
+              (element) =>
+                  element is NamedExpression &&
+                  element.expression is! FunctionExpression,
+            )
+            .isEmpty;
     if (!onlyClosuresAfterChild) {
       var argument = arguments.firstWhere(isChildArg);
       var name = (argument as NamedExpression).name.label.name;

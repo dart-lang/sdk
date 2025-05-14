@@ -27,7 +27,6 @@ import self as self;
 import "dart:core" as core;
 
 class E extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E> values = const <self::E>[self::E::one, self::E::two, self::E::three, self::E::four];
   enum-element static const field self::E one = const self::E::•(0, "one");
   enum-element static const field self::E two = const self::E::named(1, "two");
   enum-element static const field self::E three = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:9: Error: Couldn't find constructor 'E.f'.
@@ -36,6 +35,7 @@ class E extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E four = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:9:8: Error: Couldn't find constructor 'E.f2'.
   four.f2(); // Error.
        ^^";
+  static const field core::List<self::E> values = const <self::E>[self::E::one, self::E::two, self::E::three, self::E::four];
   const constructor •(core::int #index, core::String #name) → self::E
     : super core::_Enum::•(#index, #name)
     ;
@@ -71,8 +71,8 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///constructor_calls.dart:5:6 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "one"})
-Evaluated: StaticGet @ org-dartlang-testcase:///constructor_calls.dart:5:6 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "two"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constructor_calls.dart:6:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "one"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constructor_calls.dart:7:3 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: StaticGet @ org-dartlang-testcase:///constructor_calls.dart:5:6 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: StaticGet @ org-dartlang-testcase:///constructor_calls.dart:5:6 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "two"})
 Extra constant evaluation: evaluated: 15, effectively constant: 4

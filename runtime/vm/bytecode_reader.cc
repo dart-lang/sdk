@@ -370,12 +370,12 @@ FunctionTypePtr BytecodeReaderHelper::ReadFunctionSignature(
     signature.SetParameterTypeAt(i, type);
   }
   if (has_parameter_flags) {
+    ASSERT(has_optional_named_params);
     intptr_t num_flags = reader_.ReadUInt();
     for (intptr_t i = 0; i < num_flags; ++i) {
       intptr_t flag = reader_.ReadUInt();
       if ((flag & Parameter::kIsRequiredFlag) != 0) {
-        RELEASE_ASSERT(kImplicitClosureParam + i >= num_required_params);
-        signature.SetIsRequiredAt(kImplicitClosureParam + i);
+        signature.SetIsRequiredAt(num_required_params + i);
       }
     }
   }
@@ -1075,10 +1075,12 @@ ObjectPtr BytecodeReaderHelper::ReadConstObject(intptr_t tag) {
       const Type& type = Type::CheckedHandle(Z, ReadObject());
       const Class& cls = Class::Handle(Z, type.type_class());
       const Instance& obj = Instance::Handle(Z, Instance::New(cls, Heap::kOld));
-      if (type.arguments() != TypeArguments::null()) {
-        const TypeArguments& type_args =
-            TypeArguments::Handle(Z, type.arguments());
+      if (cls.NumTypeArguments() > 0) {
+        auto& type_args = TypeArguments::Handle(Z, type.arguments());
+        type_args = cls.GetInstanceTypeArguments(thread_, type_args);
         obj.SetTypeArguments(type_args);
+      } else {
+        ASSERT(type.arguments() == TypeArguments::null());
       }
       const intptr_t num_fields = reader_.ReadUInt();
       Field& field = Field::Handle(Z);
@@ -1265,6 +1267,7 @@ ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
   const int kFlagHasOptionalNamedParams = 1 << 1;
   const int kFlagHasTypeParams = 1 << 2;
   const int kFlagHasEnclosingTypeParameters = 1 << 3;
+  const int kFlagHasParameterFlags = 1 << 4;
 
   switch (tag) {
     case kInvalid:
@@ -1355,7 +1358,7 @@ ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
           (flags & kFlagHasOptionalNamedParams) != 0,
           (flags & kFlagHasTypeParams) != 0,
           /* has_positional_param_names = */ false,
-          /* has_parameter_flags */ false);
+          (flags & kFlagHasParameterFlags) != 0);
     }
     case kRecordType: {
       const intptr_t num_positional = reader_.ReadUInt();
@@ -1549,6 +1552,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
                        (flags & kIsReflectableFlag) != 0, is_late, script_class,
                        type, position, end_position);
 
+    field.set_is_unboxed(false);
     field.set_has_pragma(has_pragma);
     field.set_is_covariant((flags & kIsCovariantFlag) != 0);
     field.set_is_generic_covariant_impl((flags & kIsCovariantByClassFlag) != 0);
@@ -1891,14 +1895,12 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     }
 
     if ((flags & kHasParameterFlagsFlag) != 0) {
+      RELEASE_ASSERT(function.HasOptionalNamedParameters());
       const intptr_t length = reader_.ReadUInt();
-      const intptr_t offset = function.NumImplicitParameters();
       for (intptr_t i = 0; i < length; i++) {
         const intptr_t param_flags = reader_.ReadUInt();
         if ((param_flags & Parameter::kIsRequiredFlag) != 0) {
-          RELEASE_ASSERT(function.HasOptionalNamedParameters());
-          RELEASE_ASSERT(i + offset >= function.num_fixed_parameters());
-          signature.SetIsRequiredAt(i + offset);
+          signature.SetIsRequiredAt(num_required_params + i);
         }
       }
     }

@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
-import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server_plugin/edit/assist/assist.dart';
+import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
+import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
-import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -29,10 +28,6 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   late SourceChange _change;
   late String _resultCode;
 
-  /// A mapping of [ProducerGenerator]s to the set of lint names with which they
-  /// are associated (can fix).
-  late Map<ProducerGenerator, Set<LintCode>> _producerGeneratorsForLintRules;
-
   /// Return the kind of assist expected by this class.
   AssistKind get kind;
 
@@ -44,28 +39,18 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   @override
   void addTestSource(String code) {
     code = normalizeSource(code);
-    var eol = code.contains('\r\n') ? '\r\n' : '\n';
-    var offset = code.indexOf('/*caret*/');
-    if (offset >= 0) {
-      var endOffset = offset + '/*caret*/'.length;
-      code = code.substring(0, offset) + code.substring(endOffset);
-      _offset = offset;
+    var parsedCode = TestCode.parse(code);
+    code = parsedCode.code;
+    if (parsedCode.positions.isNotEmpty) {
+      _offset = parsedCode.position.offset;
       _length = 0;
+    } else if (parsedCode.ranges.isNotEmpty) {
+      var range = parsedCode.range.sourceRange;
+      _offset = range.offset;
+      _length = range.length;
     } else {
-      var startOffset = code.indexOf('// start$eol');
-      var endOffset = code.indexOf('// end$eol');
-      if (startOffset >= 0 && endOffset >= 0) {
-        var startLength = '// start$eol'.length;
-        code =
-            code.substring(0, startOffset) +
-            code.substring(startOffset + startLength, endOffset) +
-            code.substring(endOffset + '// end$eol'.length);
-        _offset = startOffset;
-        _length = endOffset - startLength - _offset;
-      } else {
-        _offset = 0;
-        _length = 0;
-      }
+      _offset = 0;
+      _length = 0;
     }
     super.addTestSource(code);
   }
@@ -102,6 +87,9 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
             MapEntry(key, value.map(normalizeNewlinesForPlatform).toList()),
       );
     }
+    // Remove any marker in the expected code. We allow markers to prevent an
+    // otherwise empty line from having the leading whitespace be removed.
+    expected = TestCode.parse(expected).code;
     var assist = await _assertHasAssist();
     _change = assist.change;
     expect(_change.id, kind.id);
@@ -196,7 +184,6 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     useLineEndingsForPlatform = true;
-    _producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap();
   }
 
   /// Computes assists and verifies that there is an assist of the given kind.
@@ -215,17 +202,15 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     if (libraryResult == null) {
       return const [];
     }
-    var context = DartAssistContextImpl(
+    var context = DartAssistContext(
       TestInstrumentationService(),
       await workspace,
       libraryResult,
       testAnalysisResult,
-      _producerGeneratorsForLintRules,
       _offset,
       _length,
     );
-    var processor = AssistProcessor(context);
-    return await processor.compute();
+    return await computeAssists(context);
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {

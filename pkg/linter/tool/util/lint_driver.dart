@@ -7,11 +7,8 @@ import 'dart:io' as io;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-// ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-// ignore: implementation_imports
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-// ignore: implementation_imports
 import 'package:analyzer/src/lint/io.dart';
 import 'package:linter/src/test_utilities/analysis_error_info.dart';
 import 'package:linter/src/test_utilities/linter_options.dart';
@@ -37,15 +34,12 @@ class LintDriver {
       resourceProvider: _resourceProvider,
       sdkPath: _options.dartSdkPath,
       includedPaths: filesPaths,
-      updateAnalysisOptions2: ({
-        required analysisOptions,
-        required contextRoot,
-        required sdk,
-      }) {
+      updateAnalysisOptions3: ({required analysisOptions, required sdk}) {
         analysisOptions.lint = true;
         analysisOptions.warning = false;
-        analysisOptions.lintRules =
-            _options.enabledRules.toList(growable: false);
+        analysisOptions.lintRules = _options.enabledRules.toList(
+          growable: false,
+        );
       },
       enableLintRuleTiming: _options.enableTiming,
     );

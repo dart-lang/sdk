@@ -26,10 +26,6 @@ abstract class IOModularStep extends ModularStep {
   /// should be stored under `root.resolveUri(toUri(module, resultKind))`.
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags);
-
-  /// Whether this step should apply to [module]. Most steps apply to all
-  /// modules, but not all.
-  bool shouldExecute(Module module) => true;
 }
 
 class IOPipeline extends Pipeline<IOModularStep> {
@@ -104,9 +100,6 @@ class IOPipeline extends Pipeline<IOModularStep> {
   @override
   Future<void> runStep(IOModularStep step, Module module,
       Map<Module, Set<DataId>> visibleData, List<String> flags) async {
-    // Skip it if we aren't expected to run.
-    if (!step.shouldExecute(module)) return;
-
     final resultsFolderUri = _resultsFolderUri!;
     if (cacheSharedModules && module.isShared) {
       // If all expected outputs are already available, skip the step.
@@ -134,13 +127,8 @@ class IOPipeline extends Pipeline<IOModularStep> {
       for (var dataId in visibleData[module]!) {
         var assetUri = resultsFolderUri
             .resolve(_toFileName(module, dataId, configSpecific: true));
-        var originalFile = File.fromUri(assetUri);
-        // Some steps don't actually have an output, if they implement
-        // shouldExecute.
-        if (!(await originalFile.exists())) continue;
-        var newPath =
-            stepFolder.uri.resolve(_toFileName(module, dataId)).toFilePath();
-        await originalFile.copy(newPath);
+        await File.fromUri(assetUri).copy(
+            stepFolder.uri.resolve(_toFileName(module, dataId)).toFilePath());
       }
     }
     if (step.needsSources) {
@@ -163,10 +151,9 @@ class IOPipeline extends Pipeline<IOModularStep> {
             "Step '${step.runtimeType}' on module '${module.name}' didn't "
             "produce an output file");
       }
-      var newPath = resultsFolderUri
+      await outputFile.copy(resultsFolderUri
           .resolve(_toFileName(module, dataId, configSpecific: true))
-          .toFilePath();
-      await outputFile.copy(newPath);
+          .toFilePath());
     }
     await stepFolder.delete(recursive: true);
   }

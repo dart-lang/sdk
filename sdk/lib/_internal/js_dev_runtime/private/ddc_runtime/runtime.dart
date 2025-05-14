@@ -67,6 +67,7 @@ import 'dart:_rti'
         isGenericFunctionType,
         isRecordType,
         isSubtype,
+        isTopType,
         Rti,
         rtiToString,
         substitute;
@@ -262,13 +263,11 @@ void hotRestart() {
   resetFields.clear();
   for (var m in _cacheMaps) JS('', '#.clear()', m);
   _cacheMaps.clear();
-  // TODO(nshahan) Verify _nullComparisonSet isn't used with the new type system
-  // and delete.
-  JS('', '#.clear()', _nullComparisonSet);
   JS('', '#.clear()', constants);
   JS('', '#.clear()', constantLists);
   JS('', '#.clear()', constantSets);
   JS('', '#.clear()', constantMaps);
+  JS('', '#.clear()', tearoffCache);
 
   JS('', '#.forEach((value) => value.fill(void 0))', moduleConstCaches);
 

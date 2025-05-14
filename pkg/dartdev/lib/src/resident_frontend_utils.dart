@@ -89,7 +89,7 @@ Future<bool> isFileAppJitSnapshot(final File file) async {
 }
 
 Future<bool> isFileAotSnapshot(final File file) async {
-  // Check for any of the the magic numbers that can be found at the start of an
+  // Check for any of the magic numbers that can be found at the start of an
   // AOT snapshot.
 
   final bytes = await file.openRead(0, 4).expand((i) => i).toList();
@@ -167,7 +167,7 @@ String createCompileJitJson({
             .toList(),
       if (packages != null) packageString: packages,
       if (args.wasParsed(verbosityOption))
-        verbosityOption: args.flag(verbosityOption),
+        verbosityOption: args[verbosityOption],
     },
   );
 }

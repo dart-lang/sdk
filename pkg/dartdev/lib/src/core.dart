@@ -32,8 +32,7 @@ abstract class DartdevCommand extends Command<int> {
   final String _name;
   final String _description;
   final bool _verbose;
-
-  Project? _project;
+  final Project project = Project();
 
   @override
   final bool hidden;
@@ -70,8 +69,6 @@ abstract class DartdevCommand extends Command<int> {
   /// Subclasses can override this in order to create a customized ArgParser.
   ArgParser createArgParser() =>
       ArgParser(usageLineLength: dartdevUsageLineLength);
-
-  Project get project => _project ??= Project();
 }
 
 extension DartDevCommand on Command {
@@ -132,22 +129,6 @@ Future<int> runProcess(
   return exitCode;
 }
 
-Future<int> runProcessInheritStdio(
-  List<String> command, {
-  bool logToTrace = false,
-  void Function(String str)? listener,
-  String? cwd,
-}) async {
-  log.trace(command.join(' '));
-  final process = await Process.start(
-    command.first,
-    command.skip(1).toList(),
-    workingDirectory: cwd,
-    mode: ProcessStartMode.inheritStdio,
-  );
-  return await process.exitCode;
-}
-
 Future _streamLineTransform(
   Stream<List<int>> stream,
   Function(String line) handler,
@@ -163,8 +144,6 @@ Future _streamLineTransform(
 class Project {
   final Directory dir;
 
-  PackageConfig? _packageConfig;
-
   Project() : dir = Directory.current;
 
   Project.fromDirectory(this.dir);
@@ -173,37 +152,4 @@ class Project {
       FileSystemEntity.isFileSync(path.join(dir.path, 'pubspec.yaml'));
 
   File get pubspecFile => File(path.join(dir.path, 'pubspec.yaml'));
-
-  bool get hasPackageConfigFile => packageConfig != null;
-
-  PackageConfig? get packageConfig {
-    if (_packageConfig == null) {
-      File file =
-          File(path.join(dir.path, '.dart_tool', 'package_config.json'));
-
-      if (file.existsSync()) {
-        try {
-          dynamic contents = json.decode(file.readAsStringSync());
-          _packageConfig = PackageConfig(contents);
-        } catch (_) {}
-      }
-    }
-
-    return _packageConfig;
-  }
-}
-
-/// A simple representation of a `package_config.json` file.
-class PackageConfig {
-  final Map<String, dynamic> contents;
-
-  PackageConfig(this.contents);
-
-  List<Map<String, dynamic>?> get packages {
-    List<dynamic> packages = contents['packages'];
-    return packages.map<Map<String, dynamic>?>(castStringKeyedMap).toList();
-  }
-
-  bool hasDependency(String packageName) =>
-      packages.any((element) => element!['name'] == packageName);
 }

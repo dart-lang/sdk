@@ -74,10 +74,10 @@ class ConvertToRelativeImport extends ResolvedCorrectionProducer {
       from: path.dirname(sourceUri.path),
     );
 
-    var node_final = targetNode;
+    var uriNode = targetNode.uri;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-        range.node(node_final.uri).getExpanded(-1),
+        range.node(uriNode).getExpanded(-1),
         relativePath,
       );
     });

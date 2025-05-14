@@ -815,7 +815,7 @@ class JsNameConstantValue extends ConstantValue {
 
   @override
   String toDartText(DartTypes? dartTypes) {
-    if (name.isFinalized) 'js_name($name)';
+    if (name.isFinalized) return 'js_name($name)';
     return 'js_name(name.nonfinalizedDebugText())';
   }
 

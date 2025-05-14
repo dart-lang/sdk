@@ -119,6 +119,10 @@ class VirtualMemory {
   static uword page_size_;
   static VirtualMemory* compressed_heap_;
 
+#if defined(DART_HOST_OS_IOS) && !defined(DART_PRECOMPILED_RUNTIME)
+  static bool notify_debugger_about_rx_pages_;
+#endif
+
   DISALLOW_IMPLICIT_CONSTRUCTORS(VirtualMemory);
 };
 

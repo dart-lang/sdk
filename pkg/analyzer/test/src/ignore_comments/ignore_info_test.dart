@@ -35,6 +35,11 @@ class IgnoreInfoTest extends PubPackageResolutionTest {
     expect(ignoredElements, isEmpty);
   }
 
+  test_noIgnores_trailingSlash() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: /');
+    expect(ignoredElements, isEmpty);
+  }
+
   test_noIgnores_trailingWhitespace() async {
     var ignoredElements = await _parseIgnoredElements('// ignore: ');
     expect(ignoredElements, isEmpty);
@@ -59,6 +64,24 @@ class IgnoreInfoTest extends PubPackageResolutionTest {
     _expectIgnoredName(ignoredElements[0], name: 'foo', offset: 10);
   }
 
+  test_pluginName() async {
+    var ignoredElements =
+        await _parseIgnoredElements('// ignore: plugin_one/foo');
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredName(ignoredElements[0],
+        name: 'foo', offset: 11, pluginName: 'plugin_one');
+  }
+
+  test_pluginName_multiple() async {
+    var ignoredElements = await _parseIgnoredElements(
+        '// ignore: plugin_one/foo, plugin_two/bar');
+    expect(ignoredElements, hasLength(2));
+    _expectIgnoredName(ignoredElements[0],
+        name: 'foo', offset: 11, pluginName: 'plugin_one');
+    _expectIgnoredName(ignoredElements[1],
+        name: 'bar', offset: 27, pluginName: 'plugin_two');
+  }
+
   test_trailingComma() async {
     var ignoredElements = await _parseIgnoredElements('// ignore: foo,');
     expect(ignoredElements, hasLength(1));
@@ -76,6 +99,16 @@ class IgnoreInfoTest extends PubPackageResolutionTest {
     var ignoredElements = await _parseIgnoredElements('// ignore: foo, ');
     expect(ignoredElements, hasLength(1));
     _expectIgnoredName(ignoredElements[0], name: 'foo', offset: 11);
+  }
+
+  test_trailingSlash() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: foo/');
+    expect(ignoredElements, isEmpty);
+  }
+
+  test_trailingSlashAndSpace() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: foo/ ');
+    expect(ignoredElements, isEmpty);
   }
 
   test_trailingSpace() async {
@@ -135,12 +168,14 @@ class IgnoreInfoTest extends PubPackageResolutionTest {
     IgnoredElement element, {
     required String name,
     required int offset,
+    String? pluginName,
   }) =>
       expect(
         element,
         isA<IgnoredDiagnosticName>()
             .having((e) => e.name, 'name', name)
-            .having((e) => e.offset, 'offset', offset),
+            .having((e) => e.offset, 'offset', offset)
+            .having((e) => e.pluginName, 'pluginName', pluginName),
       );
 
   void _expectIgnoredType(

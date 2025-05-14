@@ -160,6 +160,9 @@ class AstBuilder extends StackListener {
   /// `true` if null-aware elements is enabled
   final bool enableNullAwareElements;
 
+  /// `true` if dot-shorthands is enabled
+  final bool enabledDotShorthands;
+
   /// `true` if digit-separators is enabled.
   final bool _enableDigitSeparators;
 
@@ -196,6 +199,7 @@ class AstBuilder extends StackListener {
         enableClassModifiers = _featureSet.isEnabled(Feature.class_modifiers),
         enableNullAwareElements =
             _featureSet.isEnabled(Feature.null_aware_elements),
+        enabledDotShorthands = _featureSet.isEnabled(Feature.dot_shorthands),
         _enableDigitSeparators =
             _featureSet.isEnabled(Feature.digit_separators),
         uri = uri ?? fileUri;
@@ -1490,6 +1494,19 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endConstDotShorthand(Token token) {
+    debugEvent("endConstDotShorthand");
+    if (!enabledDotShorthands) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.dot_shorthands,
+        startToken: token,
+      );
+    }
+
+    // TODO(kallentu): Handle dot shorthands.
+  }
+
+  @override
   void endConstExpression(Token constKeyword) {
     assert(optional('const', constKeyword));
     debugEvent("ConstExpression");
@@ -2088,7 +2105,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFunctionName(Token beginToken, Token token) {
+  void endFunctionName(
+      Token beginToken, Token token, bool isFunctionExpression) {
     debugEvent("FunctionName");
   }
 
@@ -2685,7 +2703,7 @@ class AstBuilder extends StackListener {
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
-    var macroKeyword = pop(NullValues.Token) as Token?;
+    pop(NullValues.Token) as Token?; // macroKeyword
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
@@ -2701,7 +2719,6 @@ class AstBuilder extends StackListener {
         typeParameters: typeParameters,
         equals: equalsToken,
         abstractKeyword: abstractKeyword,
-        macroKeyword: macroKeyword,
         sealedKeyword: sealedKeyword,
         baseKeyword: baseKeyword,
         interfaceKeyword: interfaceKeyword,
@@ -4037,6 +4054,32 @@ class AstBuilder extends StackListener {
         name: variable,
       ),
     );
+  }
+
+  @override
+  void handleDotShorthandContext(Token token) {
+    debugEvent("DotShorthandContext");
+    if (!enabledDotShorthands) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.dot_shorthands,
+        startToken: token,
+      );
+    }
+
+    // TODO(kallentu): Handle dot shorthands.
+  }
+
+  @override
+  void handleDotShorthandHead(Token token) {
+    debugEvent("DotShorthandHead");
+    if (!enabledDotShorthands) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.dot_shorthands,
+        startToken: token,
+      );
+    }
+
+    // TODO(kallentu): Handle dot shorthands.
   }
 
   @override

@@ -3,10 +3,15 @@ name: dynamic_modules
 publish_to: none
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: ^3.5.0
+
+resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   args: any
   expect: any
+  front_end: any
+  kernel: any
   lints: any
+  vm: any

@@ -68,21 +68,20 @@ import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
     show
-        SharedDynamicTypeStructure,
-        SharedFunctionTypeStructure,
-        SharedInvalidTypeStructure,
-        SharedNamedFunctionParameterStructure,
-        SharedNamedTypeStructure,
-        SharedNullTypeStructure,
-        SharedRecordTypeStructure,
-        SharedTypeParameterStructure,
-        SharedTypeStructure,
-        SharedVoidTypeStructure;
+        SharedDynamicType,
+        SharedFunctionType,
+        SharedInvalidType,
+        SharedNamedFunctionParameter,
+        SharedNamedType,
+        SharedNullType,
+        SharedRecordType,
+        SharedTypeParameter,
+        SharedType,
+        SharedVoidType;
 
 import 'src/extension_type_erasure.dart';
 import 'visitor.dart';

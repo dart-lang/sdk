@@ -17,6 +17,8 @@ import 'package:frontend_server/frontend_server.dart';
 import 'package:frontend_server/starter.dart';
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart' show VerificationStage, verifyComponent;
@@ -67,7 +69,8 @@ class _MockedCompiler implements CompilerInterface {
   }
 
   @override
-  Future<void> recompileDelta({String? entryPoint}) async {
+  Future<void> recompileDelta(
+      {String? entryPoint, bool recompileRestart = false}) async {
     verifyRecompileDelta(entryPoint);
   }
 
@@ -110,8 +113,12 @@ class _MockedIncrementalCompiler implements IncrementalCompiler {
 
   @override
   Future<IncrementalCompilerResult> compile({List<Uri>? entryPoints}) async {
+    Component component = new Component();
+    CoreTypes coreTypes = new CoreTypes(component);
+    ClassHierarchy classHierarchy = new ClassHierarchy(component, coreTypes);
     return new Future<IncrementalCompilerResult>.value(
-        new IncrementalCompilerResult(new Component()));
+        new IncrementalCompilerResult(component,
+            coreTypes: coreTypes, classHierarchy: classHierarchy));
   }
 
   @override
@@ -560,8 +567,6 @@ Future<void> main() async {
         computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
     final Uri ddcPlatformKernel =
         computePlatformBinariesLocation().resolve('ddc_outline.dill');
-    final Uri ddcPlatformKernelWeak =
-        computePlatformBinariesLocation().resolve('ddc_outline_unsound.dill');
     final Uri sdkRoot = computePlatformBinariesLocation();
 
     late Directory tempDir;
@@ -1772,11 +1777,6 @@ extension type Foo(int value) {
         }
       }
 
-      Uri registerKernelBlob(Uint8List bytes) {
-        bytes = new Uint8List.fromList(bytes);
-        return (Isolate.current as dynamic).createUriForKernelBlob(bytes);
-      }
-
       Future<void> runWithServer(
         Future<void> Function(RequestChannel) f,
       ) async {
@@ -1940,11 +1940,6 @@ void main(List<String> arguments, SendPort sendPort) {
             );
 
             expect(kernelBytes, hasLength(greaterThan(200)));
-            final Uri kernelUri = registerKernelBlob(kernelBytes);
-
-            final ReceivePort receivePort = new ReceivePort();
-            await Isolate.spawnUri(kernelUri, [], receivePort.sendPort);
-            expect(await receivePort.first, 42);
           });
         });
       });
@@ -2081,7 +2076,7 @@ void main(List<String> arguments, SendPort sendPort) {
         final List<String> args = <String>[
           '--sdk-root=${sdkRoot.toFilePath()}',
           '--incremental',
-          '--platform=${ddcPlatformKernelWeak.path}',
+          '--platform=${ddcPlatformKernel.path}',
           '--output-dill=${dillFile.path}',
           '--target=dartdevc',
           '--dartdevc-module-format=$moduleFormat',
@@ -2091,122 +2086,6 @@ void main(List<String> arguments, SendPort sendPort) {
         ];
 
         expect(await starter(args), 0);
-      }
-
-      test('AMD module format', () async {
-        await runTests(moduleFormat: 'amd');
-      });
-
-      test('DDC module format and canary', () async {
-        await runTests(moduleFormat: 'ddc', canary: true);
-      });
-    }, skip: 'https://github.com/dart-lang/sdk/issues/43959');
-
-    group('compile to JavaScript weak null safety', () {
-      Future<void> runTests(
-          {required String moduleFormat, bool canary = false}) async {
-        File file = new File('${tempDir.path}/foo.dart')..createSync();
-        file.writeAsStringSync("main() {\n}\n");
-        File packages =
-            new File('${tempDir.path}/.dart_tool/package_config.json')
-              ..createSync()
-              ..writeAsStringSync(jsonEncode({
-                "configVersion": 2,
-                "packages": [
-                  {
-                    "name": "hello",
-                    "rootUri": "${tempDir.uri}",
-                  },
-                ],
-              }));
-        File dillFile = new File('${tempDir.path}/app.dill');
-
-        expect(dillFile.existsSync(), false);
-
-        final List<String> args = <String>[
-          '--sdk-root=${sdkRoot.toFilePath()}',
-          '--incremental',
-          '--platform=${ddcPlatformKernelWeak.path}',
-          '--output-dill=${dillFile.path}',
-          '--target=dartdevc',
-          '--dartdevc-module-format=$moduleFormat',
-          if (canary) '--dartdevc-canary',
-          '--packages=${packages.path}',
-          'package:hello/foo.dart'
-        ];
-
-        expect(await starter(args), 0);
-      }
-
-      test('AMD module format', () async {
-        await runTests(moduleFormat: 'amd');
-      });
-
-      test('DDC module format and canary', () async {
-        await runTests(moduleFormat: 'ddc', canary: true);
-      });
-    }, skip: 'https://github.com/dart-lang/sdk/issues/43959');
-
-    group('compile to JavaScript weak null safety then nonexistent file', () {
-      Future<void> runTests(
-          {required String moduleFormat, bool canary = false}) async {
-        File file = new File('${tempDir.path}/foo.dart')..createSync();
-        file.writeAsStringSync("main() {\n}\n");
-        File packages =
-            new File('${tempDir.path}/.dart_tool/package_config.json')
-              ..createSync()
-              ..writeAsStringSync(jsonEncode({
-                "configVersion": 2,
-                "packages": [
-                  {
-                    "name": "hello",
-                    "rootUri": "${tempDir.uri}",
-                  },
-                ],
-              }));
-        File dillFile = new File('${tempDir.path}/app.dill');
-
-        expect(dillFile.existsSync(), false);
-
-        String library = 'package:hello/foo.dart';
-
-        final List<String> args = <String>[
-          '--sdk-root=${sdkRoot.toFilePath()}',
-          '--incremental',
-          '--platform=${ddcPlatformKernelWeak.path}',
-          '--output-dill=${dillFile.path}',
-          '--target=dartdevc',
-          '--dartdevc-module-format=$moduleFormat',
-          if (canary) '--dartdevc-canary',
-          '--packages=${packages.path}',
-        ];
-
-        FrontendServer frontendServer = new FrontendServer();
-        Future<int> result = frontendServer.open(args);
-        frontendServer.compile(library);
-        int count = 0;
-        frontendServer.listen((Result compiledResult) {
-          CompilationResult result =
-              new CompilationResult.parse(compiledResult.status);
-          count++;
-          if (count == 1) {
-            // First request is to 'compile', which results in full JavaScript
-            expect(result.errorsCount, equals(0));
-            expect(result.filename, dillFile.path);
-            frontendServer.accept();
-            frontendServer.compile('foo.bar');
-          } else {
-            expect(count, 2);
-            // Second request is to 'compile' nonexistent file, that should
-            // fail.
-            expect(result.errorsCount, greaterThan(0));
-            frontendServer.quit();
-          }
-        });
-
-        expect(await result, 0);
-        expect(count, 2);
-        frontendServer.close();
       }
 
       test('AMD module format', () async {
@@ -2388,7 +2267,9 @@ void main(List<String> arguments, SendPort sendPort) {
     // library bundle of a multi-bundle compilation.
     group('recompile to JavaScript with in-body change', () {
       Future<void> runTests(
-          {required String moduleFormat, bool canary = false}) async {
+          {required String moduleFormat,
+          bool canary = false,
+          bool recompileRestart = false}) async {
         // Five libraries, a to e, in two library bundles, {a, b} and {c, d, e}:
         //    (a <-> b) -> (c <-> d <-> e)
         // In body changes are performed on d and e. With advanced invalidation,
@@ -2526,7 +2407,8 @@ d() {
 """);
               // Trigger a recompile that invalidates 'd.dart'. The entry point
               // uri (a.dart) is passed explicitly.
-              frontendServer.recompile(fileD.uri, entryPoint: entryPoint);
+              frontendServer.recompile(fileD.uri,
+                  entryPoint: entryPoint, recompileRestart: recompileRestart);
               break;
             case 1:
               CompilationResult result =
@@ -2562,7 +2444,8 @@ e() {
 """);
               // Trigger a recompile that invalidates 'd.dart'. The entry point
               // uri (a.dart) is omitted.
-              frontendServer.recompile(fileE.uri);
+              frontendServer.recompile(fileE.uri,
+                  recompileRestart: recompileRestart);
               break;
             case 2:
               CompilationResult result =
@@ -2609,98 +2492,114 @@ e() {
       test('DDC module format and canary', () async {
         await runTests(moduleFormat: 'ddc', canary: true);
       });
-    });
 
-    group('compile to JavaScript all library bundles with unsound null safety',
-        () {
-      Future<void> runTests(
-          {required String moduleFormat, bool canary = false}) async {
-        File file = new File('${tempDir.path}/foo.dart')..createSync();
-        file.writeAsStringSync("import 'bar.dart'; "
-            "typedef myType = void Function(int); main() { fn is myType; }\n");
-        file = new File('${tempDir.path}/bar.dart')..createSync();
-        file.writeAsStringSync("void Function(int) fn = (int i) => null;\n");
-        String library = 'package:hello/foo.dart';
+      test('DDC module format and canary and recompile-restart', () async {
+        // Test that `recompile-restart` makes no difference for the given
+        // inputs.
+        await runTests(
+            moduleFormat: 'ddc', canary: true, recompileRestart: true);
+      });
 
-        File dillFile = new File('${tempDir.path}/app.dill');
-        File sourceFile = new File('${dillFile.path}.sources');
+      group(
+          'valid change that is invalid for hot reload fails with recompile, '
+          'but not recompile-restart', () {
+        Future<void> runTests({bool recompileRestart = false}) async {
+          // Making a const class non-const is not valid for a hot reload.
+          File fileA = new File('${tempDir.path}/a.dart')
+            ..createSync()
+            ..writeAsStringSync('''
+          class A {
+            const A();
+          }
 
-        File packageConfig =
-            new File('${tempDir.path}/.dart_tool/package_config.json')
-              ..createSync(recursive: true)
-              ..writeAsStringSync('''
-    {
-      "configVersion": 2,
-      "packages": [
-        {
-          "name": "hello",
-          "rootUri": "../",
-          "packageUri": "./",
-          "languageVersion": "2.9"
+          main() {}
+          ''');
+          File packageConfig =
+              new File('${tempDir.path}/.dart_tool/package_config.json')
+                ..createSync(recursive: true)
+                ..writeAsStringSync('''
+              {
+                "configVersion": 2,
+                "packages": [
+                  {
+                    "name": "a",
+                    "rootUri": "../",
+                    "packageUri": "./"
+                  }
+                ]
+              }
+              ''');
+
+          String entryPoint = 'package:a/a.dart';
+
+          File dillFile = new File('${tempDir.path}/app.dill');
+
+          expect(dillFile.existsSync(), false);
+
+          final List<String> args = <String>[
+            '--sdk-root=${sdkRoot.toFilePath()}',
+            '--incremental',
+            '--platform=${ddcPlatformKernel.path}',
+            '--output-dill=${dillFile.path}',
+            '--target=dartdevc',
+            // Errors are only emitted with the DDC library bundle format.
+            '--dartdevc-module-format=ddc',
+            '--dartdevc-canary',
+            '--packages=${packageConfig.path}',
+            '--emit-debug-symbols',
+          ];
+
+          FrontendServer frontendServer = new FrontendServer();
+          Future<int> result = frontendServer.open(args);
+          frontendServer.compile(entryPoint);
+          int count = 0;
+          frontendServer.listen((Result compiledResult) {
+            switch (count) {
+              case 0:
+                CompilationResult result =
+                    new CompilationResult.parse(compiledResult.status);
+                expect(result.errorsCount, equals(0));
+
+                frontendServer.accept();
+
+                fileA.writeAsStringSync('''
+                class A {
+                  A();
+                }
+
+                main() {}
+                ''');
+                frontendServer.recompile(fileA.uri,
+                    entryPoint: entryPoint, recompileRestart: recompileRestart);
+                break;
+              case 1:
+                CompilationResult result =
+                    new CompilationResult.parse(compiledResult.status);
+                expect(result.errorsCount, equals(recompileRestart ? 0 : 1));
+
+                frontendServer.accept();
+                frontendServer.quit();
+                break;
+              default:
+                break;
+            }
+            count++;
+          });
+
+          expect(await result, 0);
+          expect(count, 2);
+          frontendServer.close();
         }
-      ]
-    }
-    ''');
 
-        final List<String> args = <String>[
-          '--verbose',
-          '--no-sound-null-safety',
-          '--sdk-root=${sdkRoot.toFilePath()}',
-          '--incremental',
-          '--platform=${ddcPlatformKernelWeak.path}',
-          '--output-dill=${dillFile.path}',
-          '--target=dartdevc',
-          '--dartdevc-module-format=$moduleFormat',
-          if (canary) '--dartdevc-canary',
-          '--packages=${packageConfig.path}'
-        ];
-
-        FrontendServer frontendServer = new FrontendServer();
-        Future<int> result = frontendServer.open(args);
-        frontendServer.compile(library);
-        int count = 0;
-        Completer<bool> expectationCompleter = new Completer<bool>();
-        frontendServer.listen((Result compiledResult) {
-          CompilationResult result =
-              new CompilationResult.parse(compiledResult.status);
-          count++;
-          // Request to 'compile', which results in full JavaScript and no
-          // metadata.
-          expect(result.errorsCount, equals(0));
-          expect(sourceFile.existsSync(), equals(true));
-          expect(result.filename, dillFile.path);
-
-          String source = sourceFile.readAsStringSync();
-          // Split on the comment at the end of each library bundle.
-          List<String> jsLibraryBundles =
-              source.split(new RegExp("//# sourceMappingURL=.*.map"));
-
-          // Both library bundles should include the unsound null safety check.
-          expect(jsLibraryBundles[0],
-              contains('dart._checkModuleNullSafetyMode(false);'));
-          expect(jsLibraryBundles[1],
-              contains('dart._checkModuleNullSafetyMode(false);'));
-          frontendServer.accept();
-          frontendServer.quit();
-          expectationCompleter.complete(true);
+        test('recompile', () async {
+          await runTests(recompileRestart: false);
         });
 
-        await expectationCompleter.future;
-        expect(await result, 0);
-        expect(count, 1);
-        frontendServer.close();
-      }
-
-      test('AMD module format', () async {
-        await runTests(moduleFormat: 'amd');
+        test('recompile-restart', () async {
+          await runTests(recompileRestart: true);
+        });
       });
-
-      test('DDC module format and canary', () async {
-        await runTests(moduleFormat: 'ddc', canary: true);
-      });
-    },
-        timeout: Timeout.none,
-        skip: 'https://github.com/dart-lang/sdk/issues/52775');
+    });
 
     group('compile to JavaScript, all library bundles with sound null safety',
         () {
@@ -2760,17 +2659,13 @@ e() {
           expect(sourceFile.existsSync(), equals(true));
           expect(result.filename, dillFile.path);
 
-          String source = sourceFile.readAsStringSync();
+          String source = sourceFile.readAsStringSync().trim();
           // Split on the comment at the end of each library bundle.
           List<String> jsLibraryBundles =
               source.split(new RegExp("//# sourceMappingURL=.*.map"));
-
-          // Both library bundles should include the sound null safety
-          // validation.
-          expect(jsLibraryBundles[0],
-              contains('dart._checkModuleNullSafetyMode(true);'));
-          expect(jsLibraryBundles[1],
-              contains('dart._checkModuleNullSafetyMode(true);'));
+          // There should be two library bundles present.
+          expect(jsLibraryBundles.length, equals(3));
+          expect(jsLibraryBundles.last, isEmpty);
           frontendServer.accept();
           frontendServer.quit();
           expectationCompleter.complete(true);
@@ -3595,15 +3490,17 @@ class FrontendServer {
   void recompile(Uri? invalidatedUri,
       {String boundaryKey = 'abc',
       List<Uri>? invalidatedUris,
-      String? entryPoint}) {
+      String? entryPoint,
+      bool recompileRestart = false}) {
     invalidatedUris ??= [if (invalidatedUri != null) invalidatedUri];
     outputParser.expectSources = true;
-    inputStreamController.add('recompile '
-            '${entryPoint != null ? '$entryPoint ' : ''}'
-            '$boundaryKey\n'
-            '${invalidatedUris.map((uri) => '$uri\n').join()}'
-            '$boundaryKey\n'
-        .codeUnits);
+    inputStreamController
+        .add('${recompileRestart ? 'recompile-restart ' : 'recompile '}'
+                '${entryPoint != null ? '$entryPoint ' : ''}'
+                '$boundaryKey\n'
+                '${invalidatedUris.map((uri) => '$uri\n').join()}'
+                '$boundaryKey\n'
+            .codeUnits);
   }
 
   /// Compiles the native assets in isolation.

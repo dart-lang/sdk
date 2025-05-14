@@ -5,7 +5,6 @@
 // This test verifies that if a read is performed on a variable whose type is
 // `Never?`, the resulting code block is considered reachable by flow analysis.
 
-
 void explicitNeverQuestionType(Object x, bool b) {
   Never? y = null;
   if (x is! int) {
@@ -17,9 +16,9 @@ void explicitNeverQuestionType(Object x, bool b) {
   }
   // Since the read of `y` was reachable, `x` is not promoted to `int`.
   x.isEven;
-//  ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-// [cfe] unspecified
+  //^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
 }
 
 main() {

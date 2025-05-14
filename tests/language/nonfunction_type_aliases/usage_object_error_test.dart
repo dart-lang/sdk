@@ -11,7 +11,7 @@ typedef T = Object;
 class C {
   T? v10;
   final T v12;
-  C(): v12 = T();
+  C() : v12 = T();
   C.name1(this.v10, this.v12);
   factory C.name2(T arg1, T arg2) = C.name1;
 }
@@ -38,13 +38,13 @@ abstract class D4 = C with T;
 
 main() {
   T.named();
-//  ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] Member not found: 'Object.named'.
+  //^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [cfe] Member not found: 'Object.named'.
 
   T.staticMethod<T>();
-//  ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] A constructor invocation can't have type arguments after the constructor name.
-// [cfe] Member not found: 'Object.staticMethod'.
+  //^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
+  // [cfe] Member not found: 'Object.staticMethod'.
 }

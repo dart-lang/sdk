@@ -104,7 +104,7 @@ abstract interface class Timer {
   /// Timer.run(() => print('timer run'));
   /// ```
   static void run(void Function() callback) {
-    new Timer(Duration.zero, callback);
+    Timer(Duration.zero, callback);
   }
 
   /// Cancels the timer.

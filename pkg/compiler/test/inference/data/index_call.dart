@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   listIndexCall();
   listIndexExplicitCall();
@@ -13,78 +13,83 @@ main() {
   multiMapListIndexCall();
 }
 
-/*member: listIndexCall:[null|subclass=Object]*/
+/*member: listIndexCall:[null|subclass=Object|powerset=1]*/
 listIndexCall() {
-  var closure = /*[exact=JSUInt31]*/ ({/*[exact=JSUInt31]*/ a}) => a;
+  var closure = /*[exact=JSUInt31|powerset=0]*/
+      ({/*[exact=JSUInt31|powerset=0]*/ a}) => a;
   var a = [closure];
-  return a /*Container([exact=JSExtendableArray], element: [subclass=Closure], length: 1)*/ [0](
+  return a /*Container([exact=JSExtendableArray|powerset=0], element: [subclass=Closure|powerset=0], length: 1, powerset: 0)*/ [0](
     a: 0,
   );
 }
 
-/*member: listIndexExplicitCall:[null|subclass=Object]*/
+/*member: listIndexExplicitCall:[null|subclass=Object|powerset=1]*/
 listIndexExplicitCall() {
-  var closure = /*[exact=JSUInt31]*/ ({/*[exact=JSUInt31]*/ b}) => b;
+  var closure = /*[exact=JSUInt31|powerset=0]*/
+      ({/*[exact=JSUInt31|powerset=0]*/ b}) => b;
   var a = [closure];
-  return a /*Container([exact=JSExtendableArray], element: [subclass=Closure], length: 1)*/ [0]
+  return a /*Container([exact=JSExtendableArray|powerset=0], element: [subclass=Closure|powerset=0], length: 1, powerset: 0)*/ [0]
       .call(b: 0);
 }
 
-/*member: multiListIndex:[subclass=JSPositiveInt]*/
+/*member: multiListIndex:[subclass=JSPositiveInt|powerset=0]*/
 multiListIndex() {
   var a = [
     [0],
   ];
   return a
-      /*Container([exact=JSExtendableArray], element: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1), length: 1)*/
+      /*Container([exact=JSExtendableArray|powerset=0], element: Container([exact=JSExtendableArray|powerset=0], element: [exact=JSUInt31|powerset=0], length: 1, powerset: 0), length: 1, powerset: 0)*/
       [0]
-      /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
+      /*Container([exact=JSExtendableArray|powerset=0], element: [exact=JSUInt31|powerset=0], length: 1, powerset: 0)*/
       [0]
-      . /*invoke: [exact=JSUInt31]*/ abs();
+      . /*invoke: [exact=JSUInt31|powerset=0]*/ abs();
 }
 
-/*member: multiListIndexCall:[null|subclass=Object]*/
+/*member: multiListIndexCall:[null|subclass=Object|powerset=1]*/
 multiListIndexCall() {
-  var closure = /*[exact=JSUInt31]*/ ({/*[exact=JSUInt31]*/ c}) => c;
+  var closure = /*[exact=JSUInt31|powerset=0]*/
+      ({/*[exact=JSUInt31|powerset=0]*/ c}) => c;
   var a = [
     [closure],
   ];
   return a
-  /*Container([exact=JSExtendableArray], element: Container([exact=JSExtendableArray], element: [subclass=Closure], length: 1), length: 1)*/
+  /*Container([exact=JSExtendableArray|powerset=0], element: Container([exact=JSExtendableArray|powerset=0], element: [subclass=Closure|powerset=0], length: 1, powerset: 0), length: 1, powerset: 0)*/
   [0]
-  /*Container([exact=JSExtendableArray], element: [subclass=Closure], length: 1)*/
+  /*Container([exact=JSExtendableArray|powerset=0], element: [subclass=Closure|powerset=0], length: 1, powerset: 0)*/
   [0](c: 0);
 }
 
-/*member: multiMapIndex:[subclass=JSPositiveInt]*/
+/*member: multiMapIndex:[subclass=JSPositiveInt|powerset=0]*/
 multiMapIndex() {
   var a = {
     'a': {'b': 0},
   };
-  return a /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "a"), value: Dictionary([null|exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|exact=JSUInt31], map: {b: [exact=JSUInt31]}), map: {a: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|exact=JSUInt31], map: {b: [exact=JSUInt31]})})*/ ['a']!
-      /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|exact=JSUInt31], map: {b: [exact=JSUInt31]})*/
+  return a /*Dictionary([exact=JsLinkedHashMap|powerset=0], key: Value([exact=JSString|powerset=0], value: "a", powerset: 0), value: Dictionary([null|exact=JsLinkedHashMap|powerset=1], key: Value([exact=JSString|powerset=0], value: "b", powerset: 0), value: [null|exact=JSUInt31|powerset=1], map: {b: [exact=JSUInt31|powerset=0]}, powerset: 1), map: {a: Dictionary([exact=JsLinkedHashMap|powerset=0], key: Value([exact=JSString|powerset=0], value: "b", powerset: 0), value: [null|exact=JSUInt31|powerset=1], map: {b: [exact=JSUInt31|powerset=0]}, powerset: 0)}, powerset: 0)*/ ['a']!
+      /*Dictionary([exact=JsLinkedHashMap|powerset=0], key: Value([exact=JSString|powerset=0], value: "b", powerset: 0), value: [null|exact=JSUInt31|powerset=1], map: {b: [exact=JSUInt31|powerset=0]}, powerset: 0)*/
       ['b']!
-      . /*invoke: [exact=JSUInt31]*/ abs();
+      . /*invoke: [exact=JSUInt31|powerset=0]*/ abs();
 }
 
-/*member: multiMapIndexCall:[null|subclass=Object]*/
+/*member: multiMapIndexCall:[null|subclass=Object|powerset=1]*/
 multiMapIndexCall() {
-  var closure = /*[exact=JSUInt31]*/ ({/*[exact=JSUInt31]*/ d}) => d;
+  var closure = /*[exact=JSUInt31|powerset=0]*/
+      ({/*[exact=JSUInt31|powerset=0]*/ d}) => d;
   var a = {
     'a': {'b': closure},
   };
-  return a /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "a"), value: Dictionary([null|exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|subclass=Closure], map: {b: [subclass=Closure]}), map: {a: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|subclass=Closure], map: {b: [subclass=Closure]})})*/ ['a']!
-  /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|subclass=Closure], map: {b: [subclass=Closure]})*/
+  return a /*Dictionary([exact=JsLinkedHashMap|powerset=0], key: Value([exact=JSString|powerset=0], value: "a", powerset: 0), value: Dictionary([null|exact=JsLinkedHashMap|powerset=1], key: Value([exact=JSString|powerset=0], value: "b", powerset: 0), value: [null|subclass=Closure|powerset=1], map: {b: [subclass=Closure|powerset=0]}, powerset: 1), map: {a: Dictionary([exact=JsLinkedHashMap|powerset=0], key: Value([exact=JSString|powerset=0], value: "b", powerset: 0), value: [null|subclass=Closure|powerset=1], map: {b: [subclass=Closure|powerset=0]}, powerset: 0)}, powerset: 0)*/ ['a']!
+  /*Dictionary([exact=JsLinkedHashMap|powerset=0], key: Value([exact=JSString|powerset=0], value: "b", powerset: 0), value: [null|subclass=Closure|powerset=1], map: {b: [subclass=Closure|powerset=0]}, powerset: 0)*/
   ['b']!(d: 0);
 }
 
-/*member: multiMapListIndexCall:[null|subclass=Object]*/
+/*member: multiMapListIndexCall:[null|subclass=Object|powerset=1]*/
 multiMapListIndexCall() {
-  var closure = /*[exact=JSUInt31]*/ ({/*[exact=JSUInt31]*/ d}) => d;
+  var closure = /*[exact=JSUInt31|powerset=0]*/
+      ({/*[exact=JSUInt31|powerset=0]*/ d}) => d;
   var a = {
     'a': [closure],
   };
-  return a /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "a"), value: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1), map: {a: Container([exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/ ['a']!
-  /*Container([exact=JSExtendableArray], element: [subclass=Closure], length: 1)*/
+  return a /*Dictionary([exact=JsLinkedHashMap|powerset=0], key: Value([exact=JSString|powerset=0], value: "a", powerset: 0), value: Container([null|exact=JSExtendableArray|powerset=1], element: [subclass=Closure|powerset=0], length: 1, powerset: 1), map: {a: Container([exact=JSExtendableArray|powerset=0], element: [subclass=Closure|powerset=0], length: 1, powerset: 0)}, powerset: 0)*/ ['a']!
+  /*Container([exact=JSExtendableArray|powerset=0], element: [subclass=Closure|powerset=0], length: 1, powerset: 0)*/
   [0](d: 0);
 }

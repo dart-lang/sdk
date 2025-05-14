@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferForElementsToMapFromIterableTest);
   });
@@ -22,33 +22,36 @@ class PreferForElementsToMapFromIterableTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_for_elements_to_map_fromIterable;
 
   test_hasKeyAndValue_closuresAreSimple() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(Iterable<int> i) {
   Map.fromIterable(i, key: (k) => k * 2, value: (v) => 0);
 }
-''', [
-      lint(28, 55),
-    ]);
+''',
+      [lint(28, 55)],
+    );
   }
 
   test_hasKeyAndValue_closuresReferenceE() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(Iterable<int> i, int e) {
   Map.fromIterable(i, key: (k) => k * e, value: (v) => v + e);
 }
-''', [
-      lint(35, 59),
-    ]);
+''',
+      [lint(35, 59)],
+    );
   }
 
   test_hasKeyAndValue_closuresShadowVariable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(Iterable<int> i, int k) {
   Map.fromIterable(i, key: (k) => k * 2, value: (v) => k);
 }
-''', [
-      lint(35, 55),
-    ]);
+''',
+      [lint(35, 55)],
+    );
   }
 
   test_missingKey() async {

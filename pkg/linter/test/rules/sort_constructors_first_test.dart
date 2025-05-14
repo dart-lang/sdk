@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortConstructorsFirstTest);
   });
@@ -27,51 +27,54 @@ abstract class A {
   }
 
   test_fieldBeforeConstructor() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 abstract class A {
   final a = 0;
   A();
 }
-''', [
-      lint(36, 1),
-    ]);
+''',
+      [lint(36, 1)],
+    );
   }
 
   test_methodBeforeConstructor() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 abstract class A {
   void f();
   const A();
 }
-''', [
-      lint(39, 1),
-    ]);
+''',
+      [lint(39, 1)],
+    );
   }
 
   test_methodBeforeConstructor_extensionType() async {
     // Since the check logic is shared w/ classes and enums, one test should
     // provide sufficient coverage for extension types.
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type E(Object o) {
   void f() {}
   E.e(this.o);
 }
-''', [
-      lint(45, 1),
-    ]);
+''',
+      [lint(45, 1)],
+    );
   }
 
   test_methodBeforeConstructors() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 abstract class A {
   void f();
   A();
   A.named();
 }
-''', [
-      lint(33, 1),
-      lint(40, 1),
-    ]);
+''',
+      [lint(33, 1), lint(40, 1)],
+    );
   }
 
   test_ok() async {
@@ -85,25 +88,27 @@ enum A {
   }
 
   test_staticFieldBeforeConstructor() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 abstract class A {
   static final a = 0;
   A();
 }
-''', [
-      lint(43, 1),
-    ]);
+''',
+      [lint(43, 1)],
+    );
   }
 
   test_unsorted() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 enum A {
   a,b,c;
   int f() => 0;
   const A();
 }
-''', [
-      lint(42, 1),
-    ]);
+''',
+      [lint(42, 1)],
+    );
   }
 }

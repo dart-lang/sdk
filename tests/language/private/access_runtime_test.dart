@@ -10,11 +10,4 @@ import 'package:expect/expect.dart';
 import 'access_lib.dart';
 import 'access_lib.dart' as private;
 
-main() {
-
-
-
-
-
-
-}
+main() {}

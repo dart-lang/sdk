@@ -93,6 +93,9 @@ abstract class MemberBuilder implements Builder {
 
   bool get isAbstract;
 
+  /// Returns `true` if this member is declared by an enum element.
+  bool get isEnumElement;
+
   /// Returns `true` if this member is a setter that conflicts with the implicit
   /// setter of a field.
   bool get isConflictingSetter;
@@ -118,10 +121,6 @@ abstract class MemberBuilder implements Builder {
 
   /// The builder for the enclosing class, if any.
   ClassBuilder? get classBuilder;
-
-  /// Returns the [Annotatable] nodes that hold the annotations declared on this
-  /// member.
-  Iterable<Annotatable> get annotatables;
 
   /// Returns `true` is this member is a property, i.e. a field, getter or
   /// setter.

@@ -15,9 +15,6 @@ map_insert_remove_oom_test: Skip # Heap limit too low.
 [ $compiler == dartk && $mode == debug && $runtime == vm ]
 io/file_lock_test: Slow, Pass
 
-[ $compiler == dartk && $mode == debug && $hot_reload ]
-io/web_socket_ping_test: Crash
-
 [ $compiler == dartk && $runtime == vm ]
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
 
@@ -25,14 +22,6 @@ no_support_debugger_test: Skip # kernel-service snapshot not compatible with fla
 io/dart_std_io_pipe_test: Slow, Pass
 io/secure_builtin_roots_test: Skip # Issues 32137 and 32138.
 map_insert_remove_oom_test: Skip # Heap limit too low.
-
-[ $compiler == dartk && $hot_reload ]
-io/http_no_reason_phrase_test: Crash
-io/http_outgoing_size_test: Crash
-
-[ $compiler == dartk && $hot_reload_rollback ]
-io/directory_chdir_test: Skip # Timeout
-io/echo_server_stream_test: Slow, Pass
 
 # Enabling of dartk for sim{arm,arm64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -42,20 +31,6 @@ io/file_blocking_lock_test: Crash # Please triage.
 io/file_lock_test: Slow, Pass
 io/http_bind_test: Slow, Pass
 map_insert_remove_oom_test: Skip # Heap limit too low.
-
-[ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
-io/addlatexhash_test: Skip # Timeout
-io/http_advanced_test: Skip # Timeout
-io/http_auth_digest_test: Crash
-io/http_auth_test: Skip # Timeout
-io/http_proxy_advanced_test: Skip # Timeout
-io/http_read_test: Skip # Timeout
-io/pipe_server_test: Skip # Timeout
-io/socket_close_test: Skip # Timeout
-io/socket_many_connections_test: Skip # Timeout
-io/web_socket_compression_test: Skip # Timeout
-io/web_socket_test: Skip # Timeout
-regress_52715_test/measure: Skip # kernel-service interferes with measuring RSS
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
 io/raw_socket_test: Crash
@@ -92,3 +67,6 @@ check_for_aot_snapshot_jit_test: SkipByDesign # Test relies on paths, requires J
 
 [ $sanitizer == asan || $sanitizer == lsan || $sanitizer == msan || $sanitizer == tsan ]
 regress_52715_test/measure: Skip # Shadow memory and scudo quarantine interfere with measuring RSS
+
+[ $hot_reload || $hot_reload_rollback ]
+regress_52715_test/measure: Skip # kernel-service interferes with measuring RSS

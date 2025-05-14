@@ -75,10 +75,10 @@ class D {
   final int? _nonFinalWithInitializer;
   final int? _nonFinalWithoutInitializer;
   D(int? i)
-      : _finalWithInitializer = i,
-        _finalWithoutInitializer = i,
-        _nonFinalWithInitializer = i,
-        _nonFinalWithoutInitializer = i;
+    : _finalWithInitializer = i,
+      _finalWithoutInitializer = i,
+      _nonFinalWithInitializer = i,
+      _nonFinalWithoutInitializer = i;
 
   void testInterference() {
     // Late final fields do not interfere with other fields having the same name

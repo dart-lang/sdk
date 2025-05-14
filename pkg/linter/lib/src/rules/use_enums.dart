@@ -14,18 +14,16 @@ import '../extensions.dart';
 const _desc = r'Use enums rather than classes that behave like enums.';
 
 class UseEnums extends LintRule {
-  UseEnums()
-      : super(
-          name: LintNames.use_enums,
-          description: _desc,
-        );
+  UseEnums() : super(name: LintNames.use_enums, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.use_enums;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     if (!context.isEnabled(Feature.enhanced_enums)) return;
 
     var visitor = _Visitor(this, context);

@@ -1,3 +1,7 @@
+## 0.3.1-wip
+
+- Update SDK constraint to `^3.5.0`.
+
 ## 0.3.0
 
 - Make `InstanceConstant` a `Constant`.

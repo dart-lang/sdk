@@ -11,7 +11,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 
 class SuperHandler
@@ -65,8 +64,16 @@ class SuperHandler
 
   /// Returns whether [node] is something that can be considered to have a
   /// "super" (a class or a class member).
-  bool _canHaveSuper(AstNode node) =>
-      node is ClassDeclaration || node is ClassMember;
+  bool _canHaveSuper(AstNode node) {
+    AstNode? testNode = node;
+    if (testNode
+        case VariableDeclaration(parent: VariableDeclarationList list) ||
+            VariableDeclarationList list) {
+      // This says if the variable is a field or null if it isn't.
+      testNode = list.parent;
+    }
+    return testNode is ClassDeclaration || testNode is ClassMember;
+  }
 }
 
 class _SuperComputer {
@@ -97,7 +104,7 @@ class _SuperComputer {
 
     var inheritanceManager = session.inheritanceManager;
 
-    if (element is! ExecutableElement2) {
+    if (element is! ExecutableElement2 && element is! FieldElement2) {
       return null;
     }
 

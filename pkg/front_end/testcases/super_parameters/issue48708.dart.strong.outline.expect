@@ -13,13 +13,13 @@ abstract class B<D extends core::Object? = dynamic> extends core::Object {
   constructor •({required self::B::D% field}) → self::B<self::B::D%>
     ;
 }
+class C extends self::_C&B&Mixin {
+  constructor •({required self::A field}) → self::C
+    ;
+}
 abstract class _C&B&Mixin = self::B<self::A> with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •({required self::A field}) → self::_C&B&Mixin
     : super self::B::•(field: field)
-    ;
-}
-class C extends self::_C&B&Mixin {
-  constructor •({required self::A field}) → self::C
     ;
 }
 static method main() → dynamic

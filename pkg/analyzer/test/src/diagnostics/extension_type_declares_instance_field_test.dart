@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class ExtensionTypeDeclaresInstanceFieldTest extends PubPackageResolutionTest {
-  test_instance_field() async {
+  Future<void> test_instance_field() async {
     await assertErrorsInCode('''
 extension type E(int it) {
   final int foo = 0;
@@ -25,7 +25,7 @@ extension type E(int it) {
     ]);
   }
 
-  test_instance_field_external() async {
+  Future<void> test_instance_field_external() async {
     await assertNoErrorsInCode('''
 extension type E(int it) {
   external int foo;
@@ -33,7 +33,7 @@ extension type E(int it) {
 ''');
   }
 
-  test_instance_getter() async {
+  Future<void> test_instance_getter() async {
     await assertNoErrorsInCode('''
 extension type E(int it) {
   int get foo => 0;
@@ -41,7 +41,7 @@ extension type E(int it) {
 ''');
   }
 
-  test_instance_setter() async {
+  Future<void> test_instance_setter() async {
     await assertNoErrorsInCode('''
 extension type E(int it) {
   set foo(int _) {}
@@ -49,7 +49,19 @@ extension type E(int it) {
 ''');
   }
 
-  test_static_field() async {
+  Future<void> test_multiple() async {
+    await assertErrorsInCode('''
+extension type E(int it) {
+  String? one, two, three;
+}
+''', [
+      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD, 37, 3),
+      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD, 42, 3),
+      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD, 47, 5),
+    ]);
+  }
+
+  Future<void> test_static_field() async {
     await assertNoErrorsInCode('''
 extension type E(int it) {
   static final int foo = 0;

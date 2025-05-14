@@ -29,20 +29,116 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    var targetAndTypes = _computeTargetAndTypes();
+    if (targetAndTypes == null) {
+      return;
+    }
+
+    var (:target, :fromType, :toType) = targetAndTypes;
+
+    if (target is AsExpression) {
+      var type = target.type;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addReplacement(range.node(type), (builder) {
+          builder.writeType(toType);
+        });
+      });
+      return;
+    }
+
+    var needsParentheses = target.precedence < Precedence.postfix;
+    if (toType is InterfaceType &&
+        (fromType.isDartCoreIterable ||
+            fromType.isDartCoreList ||
+            fromType.isDartCoreSet) &&
+        (toType.isDartCoreList || toType.isDartCoreSet)) {
+      if (target is MethodInvocation && target.isCastMethodInvocation) {
+        var typeArguments = target.typeArguments;
+        if (typeArguments != null) {
+          await builder.addDartFileEdit(file, (builder) {
+            _replaceTypeArgument(builder, typeArguments, toType, 0);
+          });
+        }
+        return;
+      }
+      await builder.addDartFileEdit(file, (builder) {
+        if (needsParentheses) {
+          builder.addSimpleInsertion(target.offset, '(');
+        }
+        builder.addInsertion(target.end, (builder) {
+          if (needsParentheses) {
+            builder.write(')');
+          }
+          builder.write('.cast<');
+          builder.writeType(toType.typeArguments[0]);
+          builder.write('>()');
+        });
+      });
+    } else if (fromType.isDartCoreMap &&
+        toType is InterfaceType &&
+        toType.isDartCoreMap) {
+      if (target is MethodInvocation && target.isCastMethodInvocation) {
+        var typeArguments = target.typeArguments;
+        if (typeArguments != null) {
+          await builder.addDartFileEdit(file, (builder) {
+            _replaceTypeArgument(builder, typeArguments, toType, 0);
+            _replaceTypeArgument(builder, typeArguments, toType, 1);
+          });
+        }
+        return;
+      }
+      await builder.addDartFileEdit(file, (builder) {
+        if (needsParentheses) {
+          builder.addSimpleInsertion(target.offset, '(');
+        }
+        builder.addInsertion(target.end, (builder) {
+          if (needsParentheses) {
+            builder.write(')');
+          }
+          builder.write('.cast<');
+          builder.writeType(toType.typeArguments[0]);
+          builder.write(', ');
+          builder.writeType(toType.typeArguments[1]);
+          builder.write('>()');
+        });
+      });
+    } else {
+      await builder.addDartFileEdit(file, (builder) {
+        if (needsParentheses) {
+          builder.addSimpleInsertion(target.offset, '(');
+        }
+        builder.addInsertion(target.end, (builder) {
+          if (needsParentheses) {
+            builder.write(')');
+          }
+          builder.write(' as ');
+          builder.writeType(toType);
+        });
+      });
+    }
+  }
+
+  /// Computes the target [Expression], the "from" [DartType], and the "to"
+  /// [DartType] for various types of casts.
+  ///
+  /// A `null` return value means these values cannot be computed, and a
+  /// correction cannot be made.
+  ({Expression target, DartType fromType, DartType toType})?
+  _computeTargetAndTypes() {
     var target = coveringNode;
     if (target is! Expression) {
-      return;
+      return null;
     }
 
     var fromType = target.staticType;
     if (fromType == null) {
-      return;
+      return null;
     }
 
     if (fromType == typeProvider.nullType) {
       // There would only be a diagnostic if the `toType` is not nullable, in
       // which case a cast won't fix the problem.
-      return;
+      return null;
     }
     DartType toType;
     var parent = target.parent;
@@ -58,14 +154,14 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
       } else if (parent.declaredFragment case var declaredFragment?) {
         toType = declaredFragment.element.type;
       } else {
-        return;
+        return null;
       }
     } else if (parent is ArgumentList) {
       var staticType = target.correspondingParameter?.type;
-      if (staticType == null) return;
+      if (staticType == null) return null;
       toType = staticType;
     } else {
-      return;
+      return null;
     }
     if (typeSystem.isAssignableTo(
       toType,
@@ -74,10 +170,11 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
     )) {
       // The only reason that `fromType` can't be assigned to `toType` is
       // because it's nullable, in which case a cast won't fix the problem.
-      return;
+      return null;
     }
-    if (target.isToListMethodInvocation || target.isToSetMethodInvocation) {
-      var targetTarget = (target as MethodInvocation).target;
+    if (target is MethodInvocation &&
+        (target.isToListMethodInvocation || target.isToSetMethodInvocation)) {
+      var targetTarget = target.target;
       if (targetTarget != null) {
         var targetTargetType = targetTarget.typeOrThrow;
         if (targetTargetType.isDartCoreIterable ||
@@ -89,90 +186,8 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
         }
       }
     }
-    if (target is AsExpression) {
-      var type = target.type;
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addReplacement(range.node(type), (builder) {
-          builder.writeType(toType);
-        });
-      });
-      return;
-    }
 
-    var target_final = target;
-
-    var needsParentheses = target.precedence < Precedence.postfix;
-    if (toType is InterfaceType &&
-        (fromType.isDartCoreIterable ||
-            fromType.isDartCoreList ||
-            fromType.isDartCoreSet) &&
-        (toType.isDartCoreList || toType.isDartCoreSet)) {
-      var toType_final = toType;
-      if (target.isCastMethodInvocation) {
-        var typeArguments = (target as MethodInvocation).typeArguments;
-        if (typeArguments != null) {
-          await builder.addDartFileEdit(file, (builder) {
-            _replaceTypeArgument(builder, typeArguments, toType_final, 0);
-          });
-        }
-        return;
-      }
-      await builder.addDartFileEdit(file, (builder) {
-        if (needsParentheses) {
-          builder.addSimpleInsertion(target_final.offset, '(');
-        }
-        builder.addInsertion(target_final.end, (builder) {
-          if (needsParentheses) {
-            builder.write(')');
-          }
-          builder.write('.cast<');
-          builder.writeType(toType_final.typeArguments[0]);
-          builder.write('>()');
-        });
-      });
-    } else if (fromType.isDartCoreMap &&
-        toType is InterfaceType &&
-        toType.isDartCoreMap) {
-      var toType_final = toType;
-      if (target.isCastMethodInvocation) {
-        var typeArguments = (target as MethodInvocation).typeArguments;
-        if (typeArguments != null) {
-          await builder.addDartFileEdit(file, (builder) {
-            _replaceTypeArgument(builder, typeArguments, toType_final, 0);
-            _replaceTypeArgument(builder, typeArguments, toType_final, 1);
-          });
-        }
-        return;
-      }
-      await builder.addDartFileEdit(file, (builder) {
-        if (needsParentheses) {
-          builder.addSimpleInsertion(target_final.offset, '(');
-        }
-        builder.addInsertion(target_final.end, (builder) {
-          if (needsParentheses) {
-            builder.write(')');
-          }
-          builder.write('.cast<');
-          builder.writeType(toType_final.typeArguments[0]);
-          builder.write(', ');
-          builder.writeType(toType_final.typeArguments[1]);
-          builder.write('>()');
-        });
-      });
-    } else {
-      await builder.addDartFileEdit(file, (builder) {
-        if (needsParentheses) {
-          builder.addSimpleInsertion(target_final.offset, '(');
-        }
-        builder.addInsertion(target_final.end, (builder) {
-          if (needsParentheses) {
-            builder.write(')');
-          }
-          builder.write(' as ');
-          builder.writeType(toType);
-        });
-      });
-    }
+    return (target: target, fromType: fromType, toType: toType);
   }
 
   /// Replace the type argument of [typeArguments] at the specified [index]

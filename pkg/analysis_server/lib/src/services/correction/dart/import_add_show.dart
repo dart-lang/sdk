@@ -20,9 +20,8 @@ class ImportAddShow extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.IMPORT_ADD_SHOW;
@@ -43,7 +42,7 @@ class ImportAddShow extends ResolvedCorrectionProducer {
     if (importElement == null) {
       return;
     }
-    var namespace = getImportNamespace2(importElement);
+    var namespace = getImportNamespace(importElement);
     // prepare names of referenced elements (from this import)
     var visitor = _ReferenceFinder(namespace);
     unit.accept(visitor);

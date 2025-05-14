@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Scopes are used to resolve names to elements.
 ///
@@ -23,8 +22,13 @@ abstract class Scope {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ScopeLookupResult {
-  Element? get getter;
+  @Deprecated('Use getter2 instead')
+  Element? get getter => getter2?.asElement;
+
   Element2? get getter2;
-  Element? get setter;
+
+  @Deprecated('Use setter2 instead')
+  Element? get setter => setter2?.asElement;
+
   Element2? get setter2;
 }

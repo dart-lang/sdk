@@ -77,7 +77,7 @@ class StringBuffer {
   void writeCharCode(int charCode) {
     if (charCode <= 0xFFFF) {
       if (charCode < 0) {
-        throw new RangeError.range(charCode, 0, 0x10FFFF);
+        throw RangeError.range(charCode, 0, 0x10FFFF);
       }
       _ensureCapacity(1);
       final localBuffer = _buffer!;
@@ -85,7 +85,7 @@ class StringBuffer {
       _bufferCodeUnitMagnitude |= charCode;
     } else {
       if (charCode > 0x10FFFF) {
-        throw new RangeError.range(charCode, 0, 0x10FFFF);
+        throw RangeError.range(charCode, 0, 0x10FFFF);
       }
       _ensureCapacity(2);
       int bits = charCode - 0x10000;
@@ -140,7 +140,7 @@ class StringBuffer {
   void _ensureCapacity(int n) {
     final localBuffer = _buffer;
     if (localBuffer == null) {
-      _buffer = new Uint16List(_BUFFER_SIZE);
+      _buffer = Uint16List(_BUFFER_SIZE);
     } else if (_bufferPosition + n > localBuffer.length) {
       _consumeBuffer();
     }
@@ -171,7 +171,7 @@ class StringBuffer {
 
     if (localParts == null) {
       // Empirically this is a good capacity to minimize total bytes allocated.
-      _parts = new _GrowableList.withCapacity(10)..add(str);
+      _parts = _GrowableList.withCapacity(10)..add(str);
     } else {
       localParts.add(str);
       int partsSinceCompaction = localParts.length - _partsCompactionIndex;

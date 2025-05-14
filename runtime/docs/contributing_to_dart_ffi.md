@@ -89,7 +89,7 @@ Unit tests
 
 Integration tests
 
-- `tests/ffi/static_checks/(.*)_test.dart`. Prefer creating new tests with the “new style” `// [analyzer] ...`. The tests can be run with `$ tools/build.py -mrelease runtime create_platform_sdk && tools/test.py -cfasta -mrelease tests/ffi/static_checks/vmspecific_static_checks_array_test.dart`. These tests require rebuilding the SDK. These tests also can contain `// [cfe] ...` error expectations. Which makes them good for checking that the behavior is similar in the CFE and analyzer implementation. And because these test files are standalone Dart, you can easily pass them as an argument to the analyzer when running from source in the debugger.
+- `tests/ffi/static_checks/(.*)_test.dart`. Prefer creating new tests with the “new style” `// [analyzer] ...`. The tests can be run with `$ tools/build.py -mrelease runtime create_platform_sdk && tools/test.py -cfasta -cdart2analyzer -mrelease tests/ffi/static_checks/vmspecific_static_checks_array_test.dart`. These tests require rebuilding the SDK. These tests also can contain `// [cfe] ...` error expectations. Which makes them good for checking that the behavior is similar in the CFE and analyzer implementation. And because these test files are standalone Dart, you can easily pass them as an argument to the analyzer when running from source in the debugger.
 
 
 ## Running in the debugger
@@ -195,7 +195,7 @@ Running the CFE on a Dart file can be done with the following configuration.
 You can read more about kernel format in the [VM readme](https://github.com/dart-lang/sdk/blob/main/runtime/docs/README.md).
 
 
-# Contributing to the the Dart FFI implementation in the VM
+# Contributing to the Dart FFI implementation in the VM
 
 In order to be able to work on the VM implementation of Dart FFI, you first need to familiarize yourself with the Dart VM:
 

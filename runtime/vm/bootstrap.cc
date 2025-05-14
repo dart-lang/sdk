@@ -114,7 +114,7 @@ static ErrorPtr BootstrapFromKernelSingleProgram(
     std::unique_ptr<kernel::Program> program) {
   Zone* zone = thread->zone();
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     kernel::KernelLoader loader(program.get(), /*uri_to_source_table=*/nullptr);
 
     auto isolate_group = thread->isolate_group();

@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnawaitedFuturesTest);
   });
@@ -17,17 +17,42 @@ class UnawaitedFuturesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.unawaited_futures;
 
+  test_binaryExpression_unawaited() async {
+    await assertDiagnostics(
+      r'''
+void f(C a, C b) async {
+  a + b;
+}
+class C {
+  Future<int> operator +(C other) async => 7;
+}
+''',
+      [lint(27, 6)],
+    );
+  }
+
+  test_boundToFuture_unawaited() async {
+    // This behavior was not necessarily designed, but this test documents the
+    // current behavior.
+    await assertNoDiagnostics(r'''
+void f<T extends Future<void>>(T p) async {
+  p;
+}
+''');
+  }
+
   test_classImplementsFuture() async {
     // https://github.com/dart-lang/linter/issues/2211
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(Future2 p) async {
   g(p);
 }
 Future2 g(Future2 p) => p;
 abstract class Future2 implements Future {}
-''', [
-      lint(28, 5),
-    ]);
+''',
+      [lint(28, 5)],
+    );
   }
 
   test_functionCall_assigned() async {
@@ -60,14 +85,27 @@ Future<int> g() => Future.value(0);
   }
 
   test_functionCall_interpolated_unawaited() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() async {
   '${g()}';
 }
 Future<int> g() => Future.value(0);
-''', [
-      lint(22, 3),
-    ]);
+''',
+      [lint(22, 3)],
+    );
+  }
+
+  test_functionCall_nullableFuture_unawaited() async {
+    await assertDiagnostics(
+      r'''
+void f() async {
+  g();
+}
+Future<int>? g() => Future.value(0);
+''',
+      [lint(19, 4)],
+    );
   }
 
   test_functionCall_returnedWithFutureType() async {
@@ -80,14 +118,15 @@ Future<int> g() => Future.value(0);
   }
 
   test_functionCall_unawaited() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() async {
   g();
 }
 Future<int> g() => Future.value(0);
-''', [
-      lint(19, 4),
-    ]);
+''',
+      [lint(19, 4)],
+    );
   }
 
   test_functionCallInCascade_assignment() async {
@@ -103,16 +142,17 @@ class C {
   }
 
   test_functionCallInCascade_inAsync() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() async {
   C()..doAsync();
 }
 class C {
   Future<void> doAsync() async {}
 }
-''', [
-      lint(22, 11),
-    ]);
+''',
+      [lint(22, 11)],
+    );
   }
 
   test_functionCallInCascade_indexAssignment() async {
@@ -139,15 +179,57 @@ class C {
 ''');
   }
 
+  test_instanceProperty_unawaited() async {
+    await assertDiagnostics(
+      r'''
+void f(C c) async {
+  c.p;
+}
+abstract class C {
+  Future<int> get p;
+}
+''',
+      [lint(22, 4)],
+    );
+  }
+
+  test_parameter_unawaited() async {
+    await assertDiagnostics(
+      r'''
+void f(Future<int> p) async {
+  p;
+}
+''',
+      [lint(32, 2)],
+    );
+  }
+
+  test_unaryExpression_unawaited() async {
+    await assertDiagnostics(
+      r'''
+void f(C a) async {
+  -a;
+}
+class C {
+  Future<int> operator -() async => 7;
+}
+''',
+      [lint(22, 3)],
+    );
+  }
+
   test_undefinedIdentifier() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() async {
   Duration d = Duration();
   Future.delayed(d, bar);
 }
-''', [
-      // No lint
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 59, 3),
-    ]);
+''',
+      [
+        // No lint
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 59, 3),
+      ],
+    );
   }
 }

@@ -13,9 +13,8 @@ class ReplaceWithUnicodeEscape extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // Not predictably the correct action.
-          CorrectionApplicability
-          .singleLocation;
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_UNICODE_ESCAPE;

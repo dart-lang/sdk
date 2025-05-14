@@ -39,7 +39,6 @@
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
 #include "vm/os_thread.h"
-#include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
 #include "vm/reverse_pc_lookup_cache.h"
@@ -381,10 +380,17 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 {
   FlagsCopyFrom(api_flags);
   if (!is_vm_isolate) {
-    thread_pool_.reset(
-        new MutatorThreadPool(this, FLAG_disable_thread_pool_limit
-                                        ? 0
-                                        : Scavenger::MaxMutatorThreadCount()));
+    intptr_t max_worker_threads;
+    if (FLAG_disable_thread_pool_limit) {
+      max_worker_threads = 0;
+    } else {
+      // There needs to be at least one more thread than active mutators slots
+      // so that there is a thread waiting in IncreaseMutatorCount (instead of
+      // unscheduled task sitting in the thread pool's queue) to eventually
+      // timeout and trigger StealActiveMutators.
+      max_worker_threads = Scavenger::MaxMutatorThreadCount() + 2;
+    }
+    thread_pool_.reset(new MutatorThreadPool(this, max_worker_threads));
   }
   {
     WriteRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
@@ -415,6 +421,11 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 }
 
 IsolateGroup::~IsolateGroup() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  RELEASE_ASSERT(group_reload_context_ == nullptr);
+  RELEASE_ASSERT(program_reload_context_ == nullptr);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
   ASSERT(old_marking_stack_ == nullptr);
@@ -513,6 +524,11 @@ void IsolateGroup::Shutdown() {
     thread_pool_.reset();
   }
 
+  {
+    MonitorLocker ml(Isolate::isolate_creation_monitor_);
+    Isolate::pending_shutdowns_++;
+  }
+
   // Needs to happen before starting to destroy the heap so helper tasks like
   // the SampleBlockProcessor don't try to enter the group during this
   // tear-down.
@@ -554,8 +570,8 @@ void IsolateGroup::Shutdown() {
                    Dart::UptimeMillis(), name);
     }
     MonitorLocker ml(Isolate::isolate_creation_monitor_);
-    if (!Isolate::creation_enabled_ &&
-        !IsolateGroup::HasApplicationIsolateGroups()) {
+    Isolate::pending_shutdowns_--;
+    if (Isolate::pending_shutdowns_ == 0) {
       ml.Notify();
     }
     if (trace_shutdown) {
@@ -581,14 +597,14 @@ void IsolateGroup::set_saved_unlinked_calls(const Array& saved_unlinked_calls) {
   saved_unlinked_calls_ = saved_unlinked_calls.ptr();
 }
 
-void IsolateGroup::IncreaseMutatorCount(Isolate* mutator,
-                                        bool is_nested_reenter) {
-  ASSERT(mutator->group() == this);
+static constexpr intptr_t kActiveMutatorPreemptionTimeout = 120;
 
+void IsolateGroup::IncreaseMutatorCount(Thread* thread,
+                                        bool is_nested_reenter,
+                                        bool was_stolen) {
   // If the mutator was temporarily blocked on a worker thread, we have to
   // unblock the worker thread again.
-  if (is_nested_reenter) {
-    ASSERT(mutator->mutator_thread() != nullptr);
+  if (is_nested_reenter || was_stolen) {
     thread_pool()->MarkCurrentWorkerAsUnBlocked();
   }
 
@@ -602,10 +618,42 @@ void IsolateGroup::IncreaseMutatorCount(Isolate* mutator,
     ASSERT(active_mutators_ <= max_active_mutators_);
     while (active_mutators_ == max_active_mutators_) {
       waiting_mutators_++;
-      ml.Wait();
+      bool timed_out = false;
+      if (has_timeout_waiter_) {
+        if (was_stolen) {
+          ml.WaitWithSafepointCheck(thread);
+        } else {
+          ml.Wait();
+        }
+      } else {
+        has_timeout_waiter_ = true;
+        if (was_stolen) {
+          timed_out = ml.WaitWithSafepointCheck(
+                          thread, kActiveMutatorPreemptionTimeout) ==
+                      Monitor::kTimedOut;
+        } else {
+          timed_out =
+              ml.Wait(kActiveMutatorPreemptionTimeout) == Monitor::kTimedOut;
+        }
+        has_timeout_waiter_ = false;
+      }
       waiting_mutators_--;
+
+      if (timed_out) {
+        active_mutators_ -=
+            thread_registry()->StealActiveMutators(thread_pool());
+        ASSERT(active_mutators_ >= 0);
+      }
     }
     active_mutators_++;
+
+    // StealActiveMutators may cause multiple slots to become available, but
+    // does not do a NotifyAll to prevent the case of thousands of threads
+    // waking up to claim a ~dozen slots, so we keep notifying while there are
+    // both available slots and waiters.
+    if ((active_mutators_ != max_active_mutators_) && (waiting_mutators_ > 0)) {
+      ml.Notify();
+    }
   }
 }
 
@@ -626,6 +674,7 @@ void IsolateGroup::DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit) {
     // max_active_mutators) and only use monitors in the uncommon case.
     MonitorLocker ml(active_mutators_monitor_.get());
     ASSERT(active_mutators_ <= max_active_mutators_);
+    ASSERT(active_mutators_ > 0);
     active_mutators_--;
     if (waiting_mutators_ > 0) {
       ml.Notify();
@@ -1552,7 +1601,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     } else {
       const Object& exception_str =
           Object::Handle(zone, DartLibraryCalls::ToString(exception));
-      if (!exception_str.IsString()) {
+      if (exception_str.IsUnwindError()) {
+        return StoreError(T, UnwindError::Cast(exception_str));
+      } else if (!exception_str.IsString()) {
         exception_cstr = exception.ToCString();
       } else {
         exception_cstr = exception_str.ToCString();
@@ -1560,7 +1611,15 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     }
 
     const Instance& stacktrace = Instance::Handle(zone, uhe.stacktrace());
-    stacktrace_cstr = stacktrace.ToCString();
+    const Object& stacktrace_str =
+        Object::Handle(zone, DartLibraryCalls::ToString(stacktrace));
+    if (stacktrace_str.IsUnwindError()) {
+      return StoreError(T, UnwindError::Cast(stacktrace_str));
+    } else if (!stacktrace_str.IsString()) {
+      stacktrace_cstr = stacktrace.ToCString();
+    } else {
+      stacktrace_cstr = stacktrace_str.ToCString();
+    }
   } else {
     exception_cstr = result.ToErrorCString();
   }
@@ -1753,6 +1812,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
       mutex_(),
+      owner_thread_(OSThread::kInvalidThreadId),
       tag_table_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       spawn_count_monitor_(),
@@ -1772,11 +1832,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
 #undef REUSABLE_HANDLE_INITIALIZERS
 
 Isolate::~Isolate() {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  // TODO(32796): Re-enable assertion.
-  // RELEASE_ASSERT(program_reload_context_ == nullptr);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
 #if !defined(PRODUCT)
   delete debugger_;
   debugger_ = nullptr;
@@ -1815,8 +1870,6 @@ void Isolate::InitVM() {
   shutdown_callback_ = nullptr;
   cleanup_callback_ = nullptr;
   cleanup_group_callback_ = nullptr;
-  register_kernel_blob_callback_ = nullptr;
-  unregister_kernel_blob_callback_ = nullptr;
   if (isolate_creation_monitor_ == nullptr) {
     isolate_creation_monitor_ = new Monitor();
   }
@@ -2504,6 +2557,7 @@ void Isolate::LowLevelShutdown() {
         "\tisolate:    %s\n",
         name());
   }
+#endif  // !defined(PRODUCT)
   if (FLAG_print_metrics) {
     LogBlock lb;
     OS::PrintErr("Printing metrics for %s\n", name());
@@ -2511,13 +2565,14 @@ void Isolate::LowLevelShutdown() {
   OS::PrintErr("%s\n", isolate_group_->Get##variable##Metric()->ToString());
     ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_PRINT)
 #undef ISOLATE_GROUP_METRIC_PRINT
+#if !defined(PRODUCT)
 #define ISOLATE_METRIC_PRINT(type, variable, name, unit)                       \
   OS::PrintErr("%s\n", metric_##variable##_.ToString());
     ISOLATE_METRIC_LIST(ISOLATE_METRIC_PRINT)
 #undef ISOLATE_METRIC_PRINT
+#endif  // !defined(PRODUCT)
     OS::PrintErr("\n");
   }
-#endif  // !defined(PRODUCT)
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -2690,14 +2745,11 @@ Dart_IsolateGroupCreateCallback Isolate::create_group_callback_ = nullptr;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = nullptr;
 Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = nullptr;
 Dart_IsolateGroupCleanupCallback Isolate::cleanup_group_callback_ = nullptr;
-Dart_RegisterKernelBlobCallback Isolate::register_kernel_blob_callback_ =
-    nullptr;
-Dart_UnregisterKernelBlobCallback Isolate::unregister_kernel_blob_callback_ =
-    nullptr;
 
 Random* IsolateGroup::isolate_group_random_ = nullptr;
 Monitor* Isolate::isolate_creation_monitor_ = nullptr;
 bool Isolate::creation_enabled_ = false;
+intptr_t Isolate::pending_shutdowns_ = 0;
 
 RwLock* IsolateGroup::isolate_groups_rwlock_ = nullptr;
 IntrusiveDList<IsolateGroup>* IsolateGroup::isolate_groups_ = nullptr;
@@ -2804,6 +2856,15 @@ void Isolate::SetPrefixIsLoaded(const LibraryPrefix& prefix) {
       loaded_prefixes_set_storage_);
   loaded_prefixes_set.InsertOrGet(prefix);
   loaded_prefixes_set_storage_ = loaded_prefixes_set.Release().ptr();
+}
+
+bool Isolate::SetOwnerThread(ThreadId expected_old_owner, ThreadId new_owner) {
+  return owner_thread_.compare_exchange_strong(expected_old_owner, new_owner);
+}
+
+ThreadId Isolate::GetOwnerThread(PortMap::Locker* locker) {
+  ASSERT(Isolate::Current() == this || locker != nullptr);
+  return owner_thread_.load();
 }
 
 void IsolateGroup::EnableIncrementalBarrier(

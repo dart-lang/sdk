@@ -1,0 +1,47 @@
+# Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+if (is_linux) {
+  action("debian_package") {
+    version = exec_script("get_version.py", [], "trim string")
+    if (target_cpu == "x86" || target_cpu == "ia32") {
+      debian_arch = "i386"
+      lib_dir = "//buildtools/sysroot/linux/lib/i386-linux-gnu"
+    } else if (target_cpu == "x64") {
+      debian_arch = "amd64"
+      lib_dir = "//buildtools/sysroot/linux/lib/x86_64-linux-gnu"
+    } else if (target_cpu == "arm") {
+      debian_arch = "armhf"
+      lib_dir = "//buildtools/sysroot/linux/lib/arm-linux-gnueabihf"
+    } else if (target_cpu == "arm64") {
+      debian_arch = "arm64"
+      lib_dir = "//buildtools/sysroot/linux/lib/aarch64-linux-gnu"
+    } else if (target_cpu == "riscv64") {
+      debian_arch = "riscv64"
+      lib_dir = "//buildtools/sysroot/focal/lib/riscv64-linux-gnu/"
+    } else {
+      assert(false, "Don't know Debian name for $target_cpu")
+    }
+
+    deps = [ "../../sdk:create_sdk" ]
+    inputs = [
+      "create_debian_package.py",
+      "debian/compat",
+      "debian/control",
+      "debian/dart.install",
+      "debian/dart.links",
+      "debian/rules",
+      "debian/source/format",
+    ]
+    outputs = [ "$root_out_dir/dart_${version}-1_${debian_arch}.deb" ]
+    script = "../../build/gn_run_binary.py"
+    args = [
+      "compiled_action",
+      rebase_path("create_debian_package.py"),
+      "--version=$version",
+      "--arch=$debian_arch",
+      "--lib_dir=" + rebase_path(lib_dir),
+    ]
+  }
+}

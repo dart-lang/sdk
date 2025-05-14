@@ -48,8 +48,9 @@ void testNativeCallableIsolateLocalVoidClosure() {
 Pointer intToPointer(int i) => Pointer.fromAddress(i);
 
 void testNativeCallableIsolateLocalPointer() {
-  final callback =
-      NativeCallable<Pointer Function(Int32)>.isolateLocal(intToPointer);
+  final callback = NativeCallable<Pointer Function(Int32)>.isolateLocal(
+    intToPointer,
+  );
   print(callback.nativeFunction);
   callback.close();
 }
@@ -57,8 +58,9 @@ void testNativeCallableIsolateLocalPointer() {
 void testNativeCallableIsolateLocalPointerClosure() {
   int j = 123;
   Pointer closure(int i) => Pointer.fromAddress(i + j);
-  final callback =
-      NativeCallable<Pointer Function(Int32)>.isolateLocal(closure);
+  final callback = NativeCallable<Pointer Function(Int32)>.isolateLocal(
+    closure,
+  );
   print(callback.nativeFunction);
   callback.close();
 }
@@ -66,8 +68,10 @@ void testNativeCallableIsolateLocalPointerClosure() {
 int negateInt(int i) => -i;
 
 void testNativeCallableIsolateLocalInt() {
-  final callback = NativeCallable<Int Function(Int32)>.isolateLocal(negateInt,
-      exceptionalReturn: 123);
+  final callback = NativeCallable<Int Function(Int32)>.isolateLocal(
+    negateInt,
+    exceptionalReturn: 123,
+  );
   print(callback.nativeFunction);
   callback.close();
 }
@@ -75,8 +79,10 @@ void testNativeCallableIsolateLocalInt() {
 void testNativeCallableIsolateLocalIntClosure() {
   int j = 123;
   int closure(int i) => i + j;
-  final callback = NativeCallable<Int Function(Int32)>.isolateLocal(closure,
-      exceptionalReturn: 123);
+  final callback = NativeCallable<Int Function(Int32)>.isolateLocal(
+    closure,
+    exceptionalReturn: 123,
+  );
   print(callback.nativeFunction);
   callback.close();
 }

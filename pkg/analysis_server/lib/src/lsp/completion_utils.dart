@@ -182,6 +182,15 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
     label = filterText;
   }
 
+  // If this suggestion is an override, we always want to include "override" at
+  // the start of the label even if it's not there (which may be because the
+  // user has already typed it). We set this _after_ setting filterText because
+  // in that case, we do not want the client to rank this item badly because
+  // it starts "override" and the user is typing something different.
+  if (suggestion is OverrideSuggestion && !label.startsWith('override ')) {
+    label = 'override $label';
+  }
+
   // Trim any trailing comma from the (displayed) label.
   if (label.endsWith(',')) {
     label = label.substring(0, label.length - 1);
@@ -190,7 +199,7 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
   var colorPreviewHex =
       capabilities.completionItemKinds.contains(lsp.CompletionItemKind.Color) &&
               suggestion is ElementBasedSuggestion
-          ? server.getColorHexString2(element)
+          ? server.getColorHexString(element)
           : null;
 
   var completionKind =
@@ -204,6 +213,8 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
 
   var labelDetails = _getCompletionDetail(
     suggestion,
+    isCallable: isCallable,
+    isInvocation: isInvocation,
     supportsDeprecated:
         supportsCompletionDeprecatedFlag || supportsDeprecatedTag,
   );
@@ -516,6 +527,8 @@ List<lsp.CompletionItemKind> _elementToCompletionItemKind(
 CompletionDetail _getCompletionDetail(
   CandidateSuggestion suggestion, {
   required bool supportsDeprecated,
+  required bool isCallable,
+  required bool isInvocation,
 }) {
   String? returnType;
   if (suggestion is FunctionCall) {
@@ -528,20 +541,31 @@ CompletionDetail _getCompletionDetail(
           ? (suggestion as ElementBasedSuggestion).element
           : null;
 
+  // Usually getter/setters look the same in completion because they insert the
+  // same text. This is not the case for overrides because they will insert
+  // getter or setter stub code. To make this clear, we'll include get/set in
+  // the signature.
+  var isOverride = suggestion is OverrideSuggestion;
+  var isGetterOverride = false, isSetterOverride = false;
+  if (suggestion is OverrideSuggestion) {
+    isGetterOverride = element is GetterElement;
+    isSetterOverride = element is SetterElement;
+  }
+
   if (suggestion is NamedArgumentSuggestion) {
     element = suggestion.parameter;
   }
   String? parameters;
   if (element != null) {
-    parameters = getParametersString2(element);
+    parameters = getParametersString(element);
     // Prefer the element return type (because it may be more specific
-    // for overrides) and fall back to the parameter type or return type from the
-    // suggestion (handles records).
+    // for overrides) and fall back to the parameter type or return type from
+    // the suggestion (handles records).
     String? parameterType;
     if (element is FormalParameterElement) {
       parameterType = element.type.getDisplayString();
     }
-    returnType = server.getReturnTypeString2(element) ?? parameterType;
+    returnType = server.getReturnTypeString(element) ?? parameterType;
 
     // Extract the type from setters to be shown in the place a return type
     // would usually be shown.
@@ -558,19 +582,38 @@ CompletionDetail _getCompletionDetail(
     '()' => '()',
     _ => '(…)',
   };
-  var fullSignature = switch ((parameters, returnType)) {
-    (null, _) => returnType ?? '',
-    (var parameters?, null) => parameters,
-    (var parameters?, '') => parameters,
-    (var parameters?, _) => '$parameters → $returnType',
+  var fullSignature = switch ((
+    parameters,
+    returnType,
+    isGetterOverride,
+    isSetterOverride,
+  )) {
+    (_, var returnType?, true, _) => '$returnType get',
+    (_, var returnType?, _, true) => 'set ($returnType)',
+    (null, _, _, _) => returnType ?? '',
+    (var parameters?, null || '', _, _) => parameters,
+    (var parameters?, var returnType?, _, _) => '$parameters → $returnType',
   };
-  var truncatedSignature = switch ((parameters, returnType)) {
-    (null, null) => '',
+  var truncatedSignature = switch ((
+    parameters,
+    returnType,
+    isGetterOverride,
+    isSetterOverride,
+    // When not callable/invocation/override, signatures will have a leading
+    // space, so that they are not formatted like calls, but the signature is
+    // instead just informational.
+    (isCallable && isInvocation) || isOverride,
+  )) {
     // Include a leading space when no parameters so return type isn't right
     // against the completion label.
-    (null, var returnType?) => ' $returnType',
-    (_, null) || (_, '') => truncatedParameters,
-    (_, var returnType?) => '$truncatedParameters → $returnType',
+    (_, var returnType?, true, _, _) => ' $returnType get',
+    (_, var returnType?, _, true, _) => ' set ($returnType)',
+    (null, var returnType?, _, _, _) => ' $returnType',
+    (null || '', _, _, _, _) => '',
+    (_, null || '', _, _, true) => truncatedParameters,
+    (_, null || '', _, _, false) => ' $truncatedParameters',
+    (_, var returnType?, _, _, true) => '$truncatedParameters → $returnType',
+    (_, var returnType?, _, _, false) => ' $truncatedParameters → $returnType',
   };
 
   // Use the full signature in the details popup.

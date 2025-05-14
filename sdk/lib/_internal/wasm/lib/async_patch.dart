@@ -1,4 +1,4 @@
-import 'dart:_internal' show _AsyncCompleter, patch;
+import 'dart:_internal' show _AsyncCompleter, patch, exportWasmFunction;
 
 import 'dart:_js_helper' show JS;
 
@@ -83,6 +83,15 @@ _AsyncSuspendState _newAsyncSuspendState(
 
 @pragma("wasm:entry-point")
 _AsyncCompleter<T> _makeAsyncCompleter<T>() => _AsyncCompleter<T>();
+
+@patch
+@pragma("wasm:entry-point")
+class _AsyncCompleter<T> extends _Completer<T> {
+  @pragma("wasm:entry-point")
+  void _completeErrorWithCurrentStack(Object error) {
+    completeError(error, StackTrace.current);
+  }
+}
 
 @pragma("wasm:entry-point")
 void _awaitHelper(_AsyncSuspendState suspendState, Object? operand) {

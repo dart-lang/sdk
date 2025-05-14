@@ -928,6 +928,13 @@ DART_EXPORT intptr_t TestSimpleAddition(intptr_t (*add)(int, int)) {
   return 0;
 }
 
+DART_EXPORT intptr_t TestUnwindError(intptr_t (*add)(int, int)) {
+  const intptr_t result = add(10, 20);
+  printf("result %" PRIdPTR "\n", result);
+  CHECK_EQ(result, 42);
+  return 0;
+}
+
 //// Following tests are copied from above, with the role of Dart and C++ code
 //// reversed.
 

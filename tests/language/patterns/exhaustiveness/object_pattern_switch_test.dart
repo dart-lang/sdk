@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-enum E {a, b}
+enum E { a, b }
 
 sealed class A {
   final E a;
@@ -34,10 +34,10 @@ void exhaustiveSwitch(A r) {
 
 void nonExhaustiveSwitch1(A r) {
   switch (r) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'B(a: E.b, b: false)'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'B(a: E.b, b: false)'.
     case A(a: E.a, b: false):
       print('A(a, false)');
       break;
@@ -52,10 +52,10 @@ void nonExhaustiveSwitch1(A r) {
 
 void nonExhaustiveSwitch2(A r) {
   switch (r) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'B(a: E.a, b: false)'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'B(a: E.a, b: false)'.
     case A(a: E.b, b: false):
       print('A(b, false)');
       break;
@@ -101,10 +101,10 @@ void exhaustiveNullableSwitch(A? r) {
 
 void nonExhaustiveNullableSwitch1(A? r) {
   switch (r) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'A?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'A?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
     case A(a: E.a, b: false):
       print('A(a, false)');
       break;
@@ -122,10 +122,10 @@ void nonExhaustiveNullableSwitch1(A? r) {
 
 void nonExhaustiveNullableSwitch2(A? r) {
   switch (r) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'A?' is not exhaustively matched by the switch cases since it doesn't match 'B(a: E.b, b: false)'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'A?' is not exhaustively matched by the switch cases since it doesn't match 'B(a: E.b, b: false)'.
     case A(a: E.a, b: false):
       print('A(a, false)');
       break;
@@ -156,8 +156,8 @@ void unreachableCase1(A r) {
       print('A(b, true)');
       break;
     case A(a: E.a, b: false): // Unreachable
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('(a, false) #2');
       break;
   }
@@ -202,8 +202,8 @@ void unreachableCase3(A? r) {
       print('null #1');
       break;
     case null: // Unreachable
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('null #2');
       break;
   }
@@ -224,8 +224,8 @@ void unreachableDefault(A r) {
       print('A(b, true)');
       break;
     default: // Unreachable
-//  ^^^^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
+      // [error column 5, length 7]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
       print('default');
       break;
   }

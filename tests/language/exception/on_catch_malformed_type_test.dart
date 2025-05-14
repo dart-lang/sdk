@@ -14,9 +14,9 @@ catchUnresolvedBefore() {
   } on String catch (oks) {
     // This is tested before the catch block below.
   } on Unavailable catch (ex) {
-  //   ^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
-  // [cfe] 'Unavailable' isn't a type.
+    // ^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
+    // [cfe] 'Unavailable' isn't a type.
     Expect.fail("This code shouldn't be executed");
   }
 }
@@ -27,9 +27,9 @@ catchUnresolvedAfter() {
       throw "foo";
       Expect.fail("This code shouldn't be executed");
     } on Unavailable catch (ex) {
-    //   ^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
-    // [cfe] 'Unavailable' isn't a type.
+      // ^^^^^^^^^^^
+      // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
+      // [cfe] 'Unavailable' isn't a type.
 
       // This is tested before the catch block below.
       // In both production and checked mode the test causes a type error.

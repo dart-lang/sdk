@@ -11,7 +11,6 @@ import '../base/export.dart';
 import '../base/loader.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
-import '../base/scope.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
@@ -69,7 +68,7 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
   Uri get importUri => _dillLibraryBuilder.importUri;
 
   @override
-  bool get isAugmenting => _dillLibraryBuilder.isAugmenting;
+  bool get isAugmenting => false;
 
   @override
   bool get isPart => _dillLibraryBuilder.isPart;
@@ -97,8 +96,6 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
 }
 
 class DillLibraryBuilder extends LibraryBuilderImpl {
-  late final LookupScope _scope;
-
   late final DillLibraryNameSpace _nameSpace;
 
   late final DillExportNameSpace _exportScope;
@@ -131,12 +128,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   DillLibraryBuilder(this.library, this.loader) : super(library.fileUri) {
     _nameSpace = new DillLibraryNameSpace(this);
-    _scope = new NameSpaceLookupScope(_nameSpace, ScopeKind.library, 'top');
     _exportScope = new DillExportNameSpace(this);
   }
-
-  @override
-  LookupScope get scope => _scope;
 
   @override
   NameSpace get libraryNameSpace => _nameSpace;
@@ -146,9 +139,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   List<Export> get exporters => mainCompilationUnit.exporters;
-
-  @override
-  LibraryBuilder get origin => this;
 
   @override
   Null get partOfLibrary => null;
@@ -485,15 +475,13 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   // Coverage-ignore(suite): Not run.
   Iterator<T> fullMemberIterator<T extends Builder>() {
-    return libraryNameSpace.filteredIterator<T>(
-        includeDuplicates: false, includeAugmentations: false);
+    return libraryNameSpace.filteredIterator<T>(includeDuplicates: false);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   NameIterator<T> fullMemberNameIterator<T extends Builder>() {
-    return libraryNameSpace.filteredNameIterator(
-        includeDuplicates: false, includeAugmentations: false);
+    return libraryNameSpace.filteredNameIterator(includeDuplicates: false);
   }
 
   @override

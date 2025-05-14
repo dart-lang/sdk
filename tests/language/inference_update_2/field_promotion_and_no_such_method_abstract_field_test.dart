@@ -14,12 +14,7 @@ class A {
   final int? _f4;
   final int? _f5;
 
-  A(int? i)
-      : _f1 = i,
-        _f2 = i,
-        _f3 = i,
-        _f4 = i,
-        _f5 = i;
+  A(int? i) : _f1 = i, _f2 = i, _f3 = i, _f4 = i, _f5 = i;
 }
 
 abstract class B1 {

@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -20,7 +19,7 @@ class BoolExpressionVerifier {
   final ErrorReporter _errorReporter;
   final NullableDereferenceVerifier _nullableDereferenceVerifier;
 
-  final InterfaceType _boolType;
+  final InterfaceTypeImpl _boolType;
 
   BoolExpressionVerifier({
     required ResolverVisitor resolver,
@@ -36,7 +35,7 @@ class BoolExpressionVerifier {
   ///
   /// See [CompileTimeErrorCode.NON_BOOL_CONDITION].
   void checkForNonBoolCondition(Expression condition,
-      {required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+      {required Map<SharedTypeView, NonPromotionReason> Function()?
           whyNotPromoted}) {
     checkForNonBoolExpression(
       condition,
@@ -50,7 +49,7 @@ class BoolExpressionVerifier {
   void checkForNonBoolExpression(Expression expression,
       {required ErrorCode errorCode,
       List<Object> arguments = const [],
-      required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+      required Map<SharedTypeView, NonPromotionReason> Function()?
           whyNotPromoted}) {
     var type = expression.typeOrThrow;
     if (!_checkForUseOfVoidResult(expression) &&
@@ -75,7 +74,7 @@ class BoolExpressionVerifier {
 
   /// Checks to ensure that the given [expression] is assignable to bool.
   void checkForNonBoolNegationExpression(Expression expression,
-      {required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+      {required Map<SharedTypeView, NonPromotionReason> Function()?
           whyNotPromoted}) {
     checkForNonBoolExpression(
       expression,

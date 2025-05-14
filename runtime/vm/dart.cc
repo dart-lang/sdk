@@ -267,7 +267,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 #endif
 
 #if defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS)
-  char* error = CheckIsAtLeastMinRequiredMacOSVersion();
+  char* error = CheckIsAtLeastMinRequiredMacOSXVersion();
   if (error != nullptr) {
     return error;
   }
@@ -499,8 +499,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   Isolate::SetShutdownCallback(params->shutdown_isolate);
   Isolate::SetCleanupCallback(params->cleanup_isolate);
   Isolate::SetGroupCleanupCallback(params->cleanup_group);
-  Isolate::SetRegisterKernelBlobCallback(params->register_kernel_blob);
-  Isolate::SetUnregisterKernelBlobCallback(params->unregister_kernel_blob);
 
   return nullptr;
 }
@@ -591,7 +589,8 @@ void Dart::WaitForIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
   MonitorLocker ml(Isolate::isolate_creation_monitor_);
   intptr_t num_attempts = 0;
-  while (!IsolateGroup::HasOnlyVMIsolateGroup()) {
+  while (!IsolateGroup::HasOnlyVMIsolateGroup() ||
+         (Isolate::pending_shutdowns_ != 0)) {
     Monitor::WaitResult retval = ml.Wait(1000);
     if (retval == Monitor::kTimedOut) {
       num_attempts += 1;
@@ -969,10 +968,8 @@ ErrorPtr Dart::InitializeIsolate(Thread* T,
     I->field_table()->MarkReadyToUse();
   }
 
-  const auto& out_of_memory =
-      Object::Handle(IG->object_store()->out_of_memory());
-  const auto& error = Error::Handle(
-      Z, I->isolate_object_store()->PreallocateObjects(out_of_memory));
+  const auto& error =
+      Error::Handle(Z, I->isolate_object_store()->PreallocateObjects());
   if (!error.IsNull()) {
     return error.ptr();
   }

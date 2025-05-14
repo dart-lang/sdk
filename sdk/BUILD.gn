@@ -49,14 +49,15 @@ declare_args() {
 # ........dartdev.dart.snapshot (app-jit snapshot or kernel dill file)
 # ........dartdevc_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........dartdevc.dart.snapshot (JIT snapshot only on ia32)
-# ........dds.dart.snapshot
-# ........dart_tooling_daemon.dart.snapshot
+# ........dds_aot.dart.snapshot (AOT snapshot, if not on ia32)
+# ........dds.dart.snapshot (JIT snapshot only on ia32)
+# ........dart_tooling_daemon_aot.dart.snapshot (AOT snapshot, if not on ia32)
+# ........dart_tooling_daemon.dart.snapshot (JIT snapshot only on ia32)
 # ........frontend_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........frontend_server.dart.snapshot (JIT snapshot only on ia32)
 # ........gen_kernel_aot.dart.snapshot (if not on ia32)
 # ........kernel-service.dart.snapshot
-# ........kernel_worker_aot.dart.snapshot (JIT snapshot only on ia32)
-# ........kernel_worker.dart.snapshot (AOT snapshot, it not ia32)
+# ........kernel_worker_aot.dart.snapshot (AOT snapshot)
 # ......resources/
 # ........dartdoc/
 # ..........resources/
@@ -69,9 +70,7 @@ declare_args() {
 # ......libraries.json
 # ......_internal/
 # ........dart2js_platform.dill
-# ........dart2js_platform_unsound.dill
 # ........dart2js_server_platform.dill
-# ........dart2js_server_platform_unsound.dill
 # ........dart2wasm_outline.dill (if not on ia32)
 # ........dart2wasm_platform.dill (if not on ia32)
 # ........dart2wasm_js_compatibility_outline.dill (if not on ia32)
@@ -128,24 +127,38 @@ _platform_sdk_snapshots = [
     "../utils/dtd:dtd",
     "dart_tooling_daemon",
   ],
-  [
-    "dds",
-    "../utils/dds:dds",
-    "dds",
-  ],
 ]
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-  _platform_sdk_snapshots += [ [
-        "frontend_server_aot_product",
-        "../utils/kernel-service:frontend_server_aot_product",
-        "frontend_server_aot",
-      ] ]
+  _platform_sdk_snapshots += [
+    [
+      "frontend_server_aot_product",
+      "../utils/kernel-service:frontend_server_aot_product",
+      "frontend_server_aot",
+    ],
+    [
+      "dds_aot_product",
+      "../utils/dds:dds_aot",
+      "dds_aot",
+    ],
+    [
+      "dart_tooling_daemon_aot_product",
+      "../utils/dtd:dtd_aot",
+      "dart_tooling_daemon_aot",
+    ],
+  ]
 } else {
-  _platform_sdk_snapshots += [ [
-        "frontend_server",
-        "../utils/kernel-service:frontend_server",
-        "frontend_server",
-      ] ]
+  _platform_sdk_snapshots += [
+    [
+      "frontend_server",
+      "../utils/kernel-service:frontend_server",
+      "frontend_server",
+    ],
+    [
+      "dds",
+      "../utils/dds:dds",
+      "dds",
+    ],
+  ]
 }
 if (dart_snapshot_kind == "app-jit") {
   _platform_sdk_snapshots += [ [
@@ -190,11 +203,6 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
           "dartdevc",
           "../utils/ddc:dartdevc",
           "dartdevc",
-        ],
-        [
-          "kernel_worker",
-          "../utils/bazel:kernel_worker",
-          "kernel_worker",
         ],
       ]
 } else {
@@ -473,6 +481,13 @@ foreach(snapshot, _full_sdk_snapshots) {
   if (snapshot[0] == "frontend_server" ||
       snapshot[0] == "frontend_server_aot_product" ||
       snapshot[0] == "frontend_server_aot") {
+    root = root_out_dir
+  }
+
+  # The dds and dtd snapshots are output to root_out_dir in order to be
+  # compatible with the way the dart sdk is distributed internally.
+  if (snapshot[0] == "dds_aot_product" ||
+      snapshot[0] == "dart_tooling_daemon_aot_product") {
     root = root_out_dir
   }
   copy("copy_${snapshot[0]}_snapshot") {
@@ -839,6 +854,16 @@ group("create_full_sdk") {
     if (dart_include_wasm_opt) {
       public_deps += [ ":copy_wasm_opt" ]
     }
+  }
+
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86" &&
+      dart_target_arch != "arm") {
+    # Do not include gen_snapshot binaries for cross-compilation into
+    # SDK, but add them as a dependency, so that they are built.
+    public_deps += [
+      "../runtime/bin:gen_snapshot_product_linux_arm64",
+      "../runtime/bin:gen_snapshot_product_linux_x64",
+    ]
   }
 }
 

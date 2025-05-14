@@ -16,7 +16,7 @@ FunctionSymbol _symbolForDartFunction(ModuleSymbols symbols, String name) =>
         .single;
 
 void main() async {
-  var options = SetupCompilerOptions(soundNullSafety: true);
+  var options = SetupCompilerOptions();
   group('simple class debug symbols', () {
     late final TestDriver driver;
     late final ClassSymbol classSymbol;

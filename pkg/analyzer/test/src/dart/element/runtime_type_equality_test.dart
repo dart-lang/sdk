@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -38,25 +36,25 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
   test_functionType_parameters() {
     void check(
-      ParameterElement T1_parameter,
-      ParameterElement T2_parameter,
+      FormalParameterElementImpl T1_parameter,
+      FormalParameterElementImpl T2_parameter,
       bool expected,
     ) {
       var T1 = functionTypeNone(
         returnType: voidNone,
-        parameters: [T1_parameter],
+        formalParameters: [T1_parameter],
       );
       var T2 = functionTypeNone(
         returnType: voidNone,
-        parameters: [T2_parameter],
+        formalParameters: [T2_parameter],
       );
       _check(T1, T2, expected);
     }
 
     {
       void checkRequiredParameter(
-        DartType T1_type,
-        DartType T2_type,
+        TypeImpl T1_type,
+        TypeImpl T2_type,
         bool expected,
       ) {
         check(
@@ -152,8 +150,8 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
   test_functionType_returnType() {
     void check(
-      DartType T1_returnType,
-      DartType T2_returnType,
+      TypeImpl T1_returnType,
+      TypeImpl T2_returnType,
       bool expected,
     ) {
       var T1 = functionTypeNone(
@@ -174,7 +172,7 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
       var T1_T = typeParameter('T', bound: numNone);
       _check(
         functionTypeNone(
-          typeFormals: [T1_T],
+          typeParameters: [T1_T],
           returnType: voidNone,
         ),
         functionTypeNone(
@@ -189,11 +187,11 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
       var T2_U = typeParameter('U');
       _check(
         functionTypeNone(
-          typeFormals: [T1_T],
+          typeParameters: [T1_T],
           returnType: voidNone,
         ),
         functionTypeNone(
-          typeFormals: [T2_U],
+          typeParameters: [T2_U],
           returnType: voidNone,
         ),
         false,
@@ -205,18 +203,18 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
       var T2_U = typeParameter('U');
       _check(
         functionTypeNone(
-          typeFormals: [T1_T],
+          typeParameters: [T1_T],
           returnType: typeParameterTypeNone(T1_T),
-          parameters: [
+          formalParameters: [
             requiredParameter(
               type: typeParameterTypeNone(T1_T),
             )
           ],
         ),
         functionTypeNone(
-          typeFormals: [T2_U],
+          typeParameters: [T2_U],
           returnType: typeParameterTypeNone(T2_U),
-          parameters: [
+          formalParameters: [
             requiredParameter(
               type: typeParameterTypeNone(T2_U),
             )
@@ -238,11 +236,11 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
   }
 
   test_interfaceType_typeArguments() {
-    void equal(DartType T1, DartType T2) {
+    void equal(TypeImpl T1, TypeImpl T2) {
       _equal(listNone(T1), listNone(T2));
     }
 
-    void notEqual(DartType T1, DartType T2) {
+    void notEqual(TypeImpl T1, TypeImpl T2) {
       _notEqual(listNone(T1), listNone(T2));
     }
 
@@ -308,7 +306,7 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
     _notEqual(voidNone, neverQuestion);
   }
 
-  void _check(DartType T1, DartType T2, bool expected) {
+  void _check(TypeImpl T1, TypeImpl T2, bool expected) {
     bool result;
 
     result = typeSystem.runtimeTypesEqual(T1, T2);
@@ -330,7 +328,7 @@ T2: ${typeString(T2)}
     }
   }
 
-  void _equal(DartType T1, DartType T2) {
+  void _equal(TypeImpl T1, TypeImpl T2) {
     _check(T1, T2, true);
   }
 
@@ -341,7 +339,7 @@ T2: ${typeString(T2)}
     );
   }
 
-  void _notEqual(DartType T1, DartType T2) {
+  void _notEqual(TypeImpl T1, TypeImpl T2) {
     _check(T1, T2, false);
   }
 

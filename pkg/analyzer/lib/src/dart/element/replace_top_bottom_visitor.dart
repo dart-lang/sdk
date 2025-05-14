@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -15,8 +12,8 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 /// Replace every "bottom" type in a contravariant position with [_topType].
 class ReplaceTopBottomVisitor {
   final TypeSystemImpl _typeSystem;
-  final DartType _topType;
-  final DartType _bottomType;
+  final TypeImpl _topType;
+  final TypeImpl _bottomType;
 
   ReplaceTopBottomVisitor._(
     this._typeSystem,
@@ -24,7 +21,7 @@ class ReplaceTopBottomVisitor {
     this._bottomType,
   );
 
-  DartType process(DartType type, Variance variance) {
+  TypeImpl process(TypeImpl type, Variance variance) {
     if (variance.isContravariant) {
       // ...replacing every occurrence in `T` of a type `S` in a contravariant
       // position where `S <: Never` by `Object?`
@@ -42,18 +39,18 @@ class ReplaceTopBottomVisitor {
     var alias = type.alias;
     if (alias != null) {
       return _instantiatedTypeAlias(type, alias, variance);
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceTypeImpl) {
       return _interfaceType(type, variance);
-    } else if (type is FunctionType) {
+    } else if (type is FunctionTypeImpl) {
       return _functionType(type, variance);
     }
     return type;
   }
 
-  DartType _functionType(FunctionType type, Variance variance) {
+  TypeImpl _functionType(FunctionTypeImpl type, Variance variance) {
     var newReturnType = process(type.returnType, variance);
 
-    var newParameters = type.parameters.map((parameter) {
+    var newParameters = type.formalParameters.map((parameter) {
       return parameter.copyWith(
         type: process(
           parameter.type,
@@ -62,28 +59,28 @@ class ReplaceTopBottomVisitor {
       );
     }).toList();
 
-    return FunctionTypeImpl(
-      typeFormals: type.typeFormals,
-      parameters: newParameters,
+    return FunctionTypeImpl.v2(
+      typeParameters: type.typeParameters,
+      formalParameters: newParameters,
       returnType: newReturnType,
       nullabilitySuffix: type.nullabilitySuffix,
     );
   }
 
-  DartType _instantiatedTypeAlias(
+  TypeImpl _instantiatedTypeAlias(
     DartType type,
-    InstantiatedTypeAliasElement alias,
+    InstantiatedTypeAliasElementImpl alias,
     Variance variance,
   ) {
-    var aliasElement = alias.element;
+    var aliasElement = alias.element2;
     var aliasArguments = alias.typeArguments;
 
-    var typeParameters = aliasElement.typeParameters;
+    var typeParameters = aliasElement.typeParameters2;
     assert(typeParameters.length == aliasArguments.length);
 
-    var newTypeArguments = <DartType>[];
+    var newTypeArguments = <TypeImpl>[];
     for (var i = 0; i < typeParameters.length; i++) {
-      var typeParameter = typeParameters[i] as TypeParameterElementImpl;
+      var typeParameter = typeParameters[i];
       newTypeArguments.add(
         process(
           aliasArguments[i],
@@ -92,14 +89,14 @@ class ReplaceTopBottomVisitor {
       );
     }
 
-    return aliasElement.instantiate(
+    return aliasElement.instantiateImpl(
       typeArguments: newTypeArguments,
       nullabilitySuffix: type.nullabilitySuffix,
     );
   }
 
-  DartType _interfaceType(InterfaceType type, Variance variance) {
-    var typeParameters = type.element.typeParameters;
+  InterfaceTypeImpl _interfaceType(InterfaceTypeImpl type, Variance variance) {
+    var typeParameters = type.element3.typeParameters2;
     if (typeParameters.isEmpty) {
       return type;
     }
@@ -107,14 +104,14 @@ class ReplaceTopBottomVisitor {
     var typeArguments = type.typeArguments;
     assert(typeParameters.length == typeArguments.length);
 
-    var newTypeArguments = <DartType>[];
+    var newTypeArguments = <TypeImpl>[];
     for (var i = 0; i < typeArguments.length; i++) {
       var newTypeArgument = process(typeArguments[i], variance);
       newTypeArguments.add(newTypeArgument);
     }
 
     return InterfaceTypeImpl(
-      element: type.element,
+      element: type.element3,
       nullabilitySuffix: type.nullabilitySuffix,
       typeArguments: newTypeArguments,
     );
@@ -123,11 +120,11 @@ class ReplaceTopBottomVisitor {
   /// Runs an instance of the visitor on the given [type] and returns the
   /// resulting type.  If the type contains no instances of Top or Bottom, the
   /// original type object is returned to avoid unnecessary allocation.
-  static DartType run({
-    required DartType topType,
-    required DartType bottomType,
+  static TypeImpl run({
+    required TypeImpl topType,
+    required TypeImpl bottomType,
     required TypeSystemImpl typeSystem,
-    required DartType type,
+    required TypeImpl type,
   }) {
     var visitor = ReplaceTopBottomVisitor._(typeSystem, topType, bottomType);
     return visitor.process(type, Variance.covariant);

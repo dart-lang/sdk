@@ -24,9 +24,9 @@ Future<void> main() async {
   await hotReload();
   expectHelper();
 }
+
 /** DIFF **/
 /*
-@@ -12,14 +12,10 @@
  // any name collision between a class and a typedef class (which doesn't exist
  // anymore).
  

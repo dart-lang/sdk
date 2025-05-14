@@ -11,17 +11,16 @@ const _desc = r'Unnecessary raw string.';
 
 class UnnecessaryRawStrings extends LintRule {
   UnnecessaryRawStrings()
-      : super(
-          name: LintNames.unnecessary_raw_strings,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_raw_strings, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_raw_strings;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addSimpleStringLiteral(this, visitor);
   }

@@ -14,17 +14,19 @@ const _desc = r'Avoid using private types in public APIs.';
 
 class LibraryPrivateTypesInPublicApi extends LintRule {
   LibraryPrivateTypesInPublicApi()
-      : super(
-          name: LintNames.library_private_types_in_public_api,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.library_private_types_in_public_api,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.library_private_types_in_public_api;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
@@ -110,8 +112,9 @@ class Validator extends SimpleAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     if (node.isInvalidExtensionTypeField) return;
-    if (node.fields.variables
-        .any((field) => !Identifier.isPrivateName(field.name.lexeme))) {
+    if (node.fields.variables.any(
+      (field) => !Identifier.isPrivateName(field.name.lexeme),
+    )) {
       node.fields.type?.accept(this);
     }
   }
@@ -252,8 +255,9 @@ class Validator extends SimpleAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    if (node.variables.variables
-        .any((field) => !Identifier.isPrivateName(field.name.lexeme))) {
+    if (node.variables.variables.any(
+      (field) => !Identifier.isPrivateName(field.name.lexeme),
+    )) {
       node.variables.type?.accept(this);
     }
   }

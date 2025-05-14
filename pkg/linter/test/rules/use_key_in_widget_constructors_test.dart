@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseKeyInWidgetConstructorsTest);
   });
@@ -43,17 +43,19 @@ augment class W {
   }
 
   test_constNamedConstructor_missingKey() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 abstract class MyWidget extends StatelessWidget {
   const MyWidget.named();
 }
-''', [
-      lint(107, 5),
-    ]);
+''',
+      [lint(107, 5)],
+    );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_constructorInAugmentedClass() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
@@ -65,7 +67,8 @@ class W extends StatelessWidget {
 }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 import 'package:flutter/widgets.dart';
@@ -75,11 +78,12 @@ augment class W { }
 augment class W {
   const W({Key? key});
 }
-''', [
-      lint(106, 1),
-    ]);
+''',
+      [lint(106, 1)],
+    );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_constructorInAugmentedClass_noKeyParam() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
@@ -91,27 +95,29 @@ class W extends StatelessWidget {
 }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment class W {
   const W();
 }
-''', [
-      lint(45, 1),
-    ]);
+''',
+      [lint(45, 1)],
+    );
   }
 
   test_constUnnamedConstructor_missingKey() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 abstract class MyWidget extends StatelessWidget {
   const MyWidget();
 }
-''', [
-      lint(98, 8),
-    ]);
+''',
+      [lint(98, 8)],
+    );
   }
 
   test_factoryConstructor() async {
@@ -145,6 +151,7 @@ abstract class MyWidget extends StatelessWidget {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_keyUse_inAugmentedConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -169,25 +176,27 @@ class W extends StatelessWidget {
   }
 
   test_missingConstructor() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 abstract class NoConstructorWidget extends StatefulWidget {}
-''', [
-      lint(55, 19),
-    ]);
+''',
+      [lint(55, 19)],
+    );
   }
 
   test_missingKey() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 abstract class MyWidget extends StatelessWidget {
   MyWidget();
 }
-''', [
-      lint(92, 8),
-    ]);
+''',
+      [lint(92, 8)],
+    );
   }
 
   test_missingKey_keyPassedToSuper() async {
@@ -231,15 +240,16 @@ abstract class MyWidget extends StatelessWidget {
   }
 
   test_simpleFormalParameter_notPassedToSuper() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 abstract class MyWidget extends StatelessWidget {
   MyWidget.withKey({Key? key});
 }
-''', [
-      lint(101, 7),
-    ]);
+''',
+      [lint(101, 7)],
+    );
   }
 
   test_simpleFormalParameter_passedToSuper() async {

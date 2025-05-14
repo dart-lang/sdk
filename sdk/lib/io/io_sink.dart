@@ -31,7 +31,7 @@ abstract interface class IOSink implements StreamSink<List<int>>, StringSink {
   factory IOSink(
     StreamConsumer<List<int>> target, {
     Encoding encoding = utf8,
-  }) => new _IOSinkImpl(target, encoding);
+  }) => _IOSinkImpl(target, encoding);
 
   /// The [Encoding] used when writing strings.
   ///
@@ -139,7 +139,7 @@ abstract interface class IOSink implements StreamSink<List<int>>, StringSink {
 
 class _StreamSinkImpl<T> implements StreamSink<T> {
   final StreamConsumer<T> _target;
-  final Completer _doneCompleter = new Completer();
+  final Completer _doneCompleter = Completer();
   StreamController<T>? _controllerInstance;
   Completer? _controllerCompleter;
   bool _isClosed = false;
@@ -164,7 +164,7 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
 
   Future addStream(Stream<T> stream) {
     if (_isBound) {
-      throw new StateError("StreamSink is already bound to a stream");
+      throw StateError("StreamSink is already bound to a stream");
     }
     if (_hasError) return done;
 
@@ -186,9 +186,9 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
 
   Future flush() {
     if (_isBound) {
-      throw new StateError("StreamSink is bound to a stream");
+      throw StateError("StreamSink is bound to a stream");
     }
-    if (_controllerInstance == null) return new Future.value(this);
+    if (_controllerInstance == null) return Future.value(this);
     // Adding an empty stream-controller will return a future that will complete
     // when all data is done.
     _isBound = true;
@@ -201,7 +201,7 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
 
   Future close() {
     if (_isBound) {
-      throw new StateError("StreamSink is bound to a stream");
+      throw StateError("StreamSink is bound to a stream");
     }
     if (!_isClosed) {
       _isClosed = true;
@@ -235,14 +235,14 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
 
   StreamController<T> get _controller {
     if (_isBound) {
-      throw new StateError("StreamSink is bound to a stream");
+      throw StateError("StreamSink is bound to a stream");
     }
     if (_isClosed) {
-      throw new StateError("StreamSink is closed");
+      throw StateError("StreamSink is closed");
     }
     if (_controllerInstance == null) {
-      _controllerInstance = new StreamController<T>(sync: true);
-      _controllerCompleter = new Completer();
+      _controllerInstance = StreamController<T>(sync: true);
+      _controllerCompleter = Completer();
       _target
           .addStream(_controller.stream)
           .then(
@@ -285,7 +285,7 @@ class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
 
   void set encoding(Encoding value) {
     if (!_encodingMutable) {
-      throw new StateError("IOSink encoding is not mutable");
+      throw StateError("IOSink encoding is not mutable");
     }
     _encoding = value;
   }
@@ -317,6 +317,6 @@ class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
   }
 
   void writeCharCode(int charCode) {
-    write(new String.fromCharCode(charCode));
+    write(String.fromCharCode(charCode));
   }
 }

@@ -13,16 +13,17 @@ import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = 'Unreachable top-level members in executable libraries.';
 
 class UnreachableFromMain extends LintRule {
   UnreachableFromMain()
-      : super(
-          name: LintNames.unreachable_from_main,
-          description: _desc,
-          state: State.stable(since: Version(3, 1, 0)),
-        );
+    : super(
+        name: LintNames.unreachable_from_main,
+        description: _desc,
+        state: State.stable(since: Version(3, 1, 0)),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.unreachable_from_main;
@@ -44,9 +45,7 @@ class _DeclarationGatherer {
   /// All declarations which we may wish to report on.
   final Set<Declaration> declarations = {};
 
-  _DeclarationGatherer({
-    required this.linterContext,
-  });
+  _DeclarationGatherer({required this.linterContext});
 
   void addDeclarations(CompilationUnit node) {
     for (var declaration in node.declarations) {
@@ -69,15 +68,9 @@ class _DeclarationGatherer {
             members: declaration.members,
           );
         } else if (declaration is ExtensionDeclaration) {
-          _addMembers(
-            containerElement: null,
-            members: declaration.members,
-          );
+          _addMembers(containerElement: null, members: declaration.members);
         } else if (declaration is ExtensionTypeDeclaration) {
-          _addMembers(
-            containerElement: null,
-            members: declaration.members,
-          );
+          _addMembers(containerElement: null, members: declaration.members);
         } else if (declaration is MixinDeclaration) {
           _addMembers(
             containerElement: declaration.declaredFragment?.element,
@@ -130,7 +123,8 @@ class _DeclarationGatherer {
           var element = member.declaredFragment?.element;
           if (element != null && element.isPublic) {
             var rawName = member.name.lexeme;
-            var isTestMethod = rawName.startsWith('test_') ||
+            var isTestMethod =
+                rawName.startsWith('test_') ||
                 rawName.startsWith('solo_test_') ||
                 rawName == 'setUp' ||
                 rawName == 'tearDown';
@@ -181,8 +175,9 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     var element = node.declaredFragment?.element;
 
     if (element != null) {
-      var hasConstructors =
-          node.members.any((e) => e is ConstructorDeclaration);
+      var hasConstructors = node.members.any(
+        (e) => e is ConstructorDeclaration,
+      );
       if (!hasConstructors) {
         // The default constructor will have an implicit super-initializer to
         // the super-type's unnamed constructor.
@@ -193,14 +188,12 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
       // This for-loop style is copied from analyzer's `hasX` getters on
       // [Element].
       for (var i = 0; i < metadata.annotations.length; i++) {
-        var annotation = metadata.annotations[i].element2;
-        if (annotation is GetterElement &&
-            annotation.name3 == 'reflectiveTest' &&
-            annotation.library2.name3 == 'test_reflective_loader') {
+        if (metadata.annotations[i].isReflectiveTest) {
           // The class is instantiated through the use of mirrors in
           // 'test_reflective_loader'.
-          var unnamedConstructor = element.constructors2
-              .firstWhereOrNull((constructor) => constructor.name3 == 'new');
+          var unnamedConstructor = element.constructors2.firstWhereOrNull(
+            (constructor) => constructor.name3 == 'new',
+          );
           if (unnamedConstructor != null) {
             _addDeclaration(unnamedConstructor);
           }
@@ -225,8 +218,9 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     // If a constructor in a class declaration does not have an explicit
     // super-initializer (or redirection?) then it has an implicit
     // super-initializer to the super-type's unnamed constructor.
-    var hasSuperInitializer =
-        node.initializers.any((e) => e is SuperConstructorInvocation);
+    var hasSuperInitializer = node.initializers.any(
+      (e) => e is SuperConstructorInvocation,
+    );
     if (!hasSuperInitializer) {
       var enclosingClass = node.parent;
       if (enclosingClass is ClassDeclaration) {
@@ -281,17 +275,17 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
         node.thisOrAncestorOfType<TypeArgumentList>() != null;
 
     if (
-        // Any reference to a typedef marks it as reachable, since structural
-        // typing is used to match against objects.
-        node.type?.alias != null ||
-            // Any reference to an extension type marks it as reachable, since
-            // casting can be used to instantiate the type.
-            node.type?.element3 is ExtensionTypeElement2 ||
-            nodeIsInTypeArgument ||
-            // A reference to any type in an external variable declaration marks
-            // that type as reachable, since the external implementation can
-            // instantiate it.
-            node.isInExternalVariableTypeOrFunctionReturnType) {
+    // Any reference to a typedef marks it as reachable, since structural
+    // typing is used to match against objects.
+    node.type?.alias != null ||
+        // Any reference to an extension type marks it as reachable, since
+        // casting can be used to instantiate the type.
+        node.type?.element3 is ExtensionTypeElement2 ||
+        nodeIsInTypeArgument ||
+        // A reference to any type in an external variable declaration marks
+        // that type as reachable, since the external implementation can
+        // instantiate it.
+        node.isInExternalVariableTypeOrFunctionReturnType) {
       _addDeclaration(element);
     }
 
@@ -332,7 +326,8 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     var element = node.element;
     if (element != null) {
       _addDeclaration(element);
@@ -379,8 +374,10 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   /// or static method on a public top-level element.
   void _addDeclaration(Element2 element) {
     // First add the enclosing top-level declaration.
-    var enclosingTopLevelElement = element.thisOrAncestorMatching2((a) =>
-        a.enclosingElement2 == null || a.enclosingElement2 is LibraryElement2);
+    var enclosingTopLevelElement = element.thisOrAncestorMatching2(
+      (a) =>
+          a.enclosingElement2 == null || a.enclosingElement2 is LibraryElement2,
+    );
     var enclosingTopLevelDeclaration = declarationMap[enclosingTopLevelElement];
     if (enclosingTopLevelDeclaration != null) {
       declarations.add(enclosingTopLevelDeclaration);
@@ -410,8 +407,9 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     var classElement = class_.declaredFragment?.element;
     var supertype = classElement?.supertype;
     if (supertype != null) {
-      var unnamedConstructor =
-          supertype.constructors2.firstWhereOrNull((e) => e.name3 == 'new');
+      var unnamedConstructor = supertype.constructors2.firstWhereOrNull(
+        (e) => e.name3 == 'new',
+      );
       if (unnamedConstructor != null) {
         _addDeclaration(unnamedConstructor);
       }
@@ -520,20 +518,23 @@ class _Visitor extends SimpleAstVisitor<void> {
     unitDeclarationGatherer.addDeclarations(node);
     var unitDeclarations = unitDeclarationGatherer.declarations;
     var unusedDeclarations = unitDeclarations.difference(usedMembers);
-    var unusedMembers = unusedDeclarations.where((declaration) {
-      var element = declaration.declaredFragment?.element;
-      return element != null &&
-          element.isPublic &&
-          !element.hasVisibleForTesting;
-    }).toList();
+    var unusedMembers =
+        unusedDeclarations.where((declaration) {
+          var element = declaration.declaredFragment?.element;
+          return element != null &&
+              element.isPublic &&
+              !element.hasVisibleForTesting;
+        }).toList();
 
     for (var member in unusedMembers) {
       if (member is ConstructorDeclaration) {
         if (member.name == null) {
           rule.reportLint(member.returnType, arguments: [member.nameForError]);
         } else {
-          rule.reportLintForToken(member.name,
-              arguments: [member.nameForError]);
+          rule.reportLintForToken(
+            member.name,
+            arguments: [member.nameForError],
+          );
         }
       } else if (member is NamedCompilationUnitMember) {
         rule.reportLintForToken(member.name, arguments: [member.nameForError]);
@@ -570,9 +571,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on Element2 {
   bool get hasVisibleForTesting => switch (this) {
-        Annotatable(:var metadata2) => metadata2.hasVisibleForTesting,
-        _ => false,
-      };
+    Annotatable(:var metadata2) => metadata2.hasVisibleForTesting,
+    _ => false,
+  };
   bool get isPragma => (library2?.isDartCore ?? false) && name3 == 'pragma';
 }
 
@@ -625,11 +626,11 @@ extension on NamedType {
       case MethodDeclaration(:var externalKeyword, :var returnType):
         return externalKeyword != null && returnType == topTypeAnnotation;
       case VariableDeclarationList(
-          parent: FieldDeclaration(:var externalKeyword),
-        ):
+        parent: FieldDeclaration(:var externalKeyword),
+      ):
       case VariableDeclarationList(
-          parent: TopLevelVariableDeclaration(:var externalKeyword),
-        ):
+        parent: TopLevelVariableDeclaration(:var externalKeyword),
+      ):
         return externalKeyword != null;
     }
     return false;

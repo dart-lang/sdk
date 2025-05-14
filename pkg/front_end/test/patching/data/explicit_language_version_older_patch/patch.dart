@@ -9,5 +9,5 @@
 import 'dart:_internal';
 
 @patch
-/*member: method:patch*/
+/*member: method:*/
 int method() => 0;

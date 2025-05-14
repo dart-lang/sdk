@@ -4,9 +4,6 @@
 
 // Test that JS error types are interoperable.
 
-@JS()
-library native_error_test;
-
 import 'dart:js_interop';
 
 @JS()

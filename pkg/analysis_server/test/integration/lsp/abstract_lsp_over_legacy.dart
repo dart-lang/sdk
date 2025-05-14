@@ -25,6 +25,10 @@ abstract class AbstractLspOverLegacyTest
         ),
       );
 
+  @override
+  Stream<RequestMessage> get requestsFromServer =>
+      throw 'Reverse-requests not currently supported for LSP-over-Legacy integration tests';
+
   /// The URI for the macro-generated content for [testFileUri].
   Uri get testFileMacroUri =>
       Uri.file(testFile).replace(scheme: macroClientUriScheme);
@@ -64,5 +68,10 @@ abstract class AbstractLspOverLegacyTest
     } else {
       return fromJson(lspResponse.result as R);
     }
+  }
+
+  @override
+  void sendResponseToServer(ResponseMessage response) {
+    throw 'Reverse-requests not currently supported for LSP-over-Legacy integration tests';
   }
 }

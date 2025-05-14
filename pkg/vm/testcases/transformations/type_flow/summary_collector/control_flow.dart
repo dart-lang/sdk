@@ -324,4 +324,15 @@ void cast1(x) {
   bar(x);
 }
 
+void never1(bool cond) {
+  int i = 1;
+  if (cond) {
+    i = 2;
+    returnNever();
+  }
+  foo(i);
+}
+
+Never returnNever() => throw 'bye';
+
 main() {}

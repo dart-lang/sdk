@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:cli_config/cli_config.dart';
-import 'package:intl/intl.dart';
 
 class BisectionConfig {
   /// A way to identify this bisection.
@@ -41,7 +40,7 @@ class BisectionConfig {
   static const String _failureStringKey = 'failure_string';
 
   // This will likely be extended later to support regexes.
-  Pattern get failurePattern => failureString.toPattern();
+  Pattern get failurePattern => RegExp(RegExp.escape(failureString));
 
   /// The SDK checkout to use for bisecting.
   ///
@@ -64,7 +63,7 @@ class BisectionConfig {
   factory BisectionConfig.fromConfig(Config config) {
     final testCommands = config.stringList(_testCommandsKey);
     final name = config.optionalString(_nameKey) ??
-        '${DateFormat('yyyyMMdd').format(DateTime.now())}_'
+        '${yyyyMMdd(DateTime.now())}_'
             '${testCommands.last.split(' ').last.split('/').last}';
     final sdkPath = config.optionalPath(_sdkPathKey, mustExist: true) ??
         Directory.current.uri;
@@ -158,6 +157,11 @@ $descriptions
   }
 }
 
-extension on String {
-  RegExp toPattern() => RegExp(RegExp.escape(this));
+String yyyyMMdd(DateTime date) {
+  // DateFormat('yyyyMMdd').format(date)
+  return padZero(date.year, 4) + padZero(date.month, 2) + padZero(date.day, 2);
+}
+
+String padZero(int value, int width) {
+  return value.toString().padLeft(width, '0');
 }

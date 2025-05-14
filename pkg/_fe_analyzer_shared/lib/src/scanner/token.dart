@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
+
 /**
  * Defines the tokens that are produced by the scanner, used by the parser, and
  * referenced from the [AST structure](ast.dart).
@@ -68,6 +70,7 @@ class BeginToken extends SimpleToken {
 /**
  * A token representing a comment.
  */
+@AnalyzerPublicApi(message: 'exported by package:analyzer/dart/ast/token.dart')
 class CommentToken extends StringToken {
   /**
    * The token that contains this comment.
@@ -92,6 +95,7 @@ class DocumentationCommentToken extends CommentToken {
   DocumentationCommentToken(super.type, super.value, super.offset);
 }
 
+@AnalyzerPublicApi(message: 'exposed by Keyword.keywordStyle')
 enum KeywordStyle {
   reserved,
   builtIn,
@@ -103,6 +107,7 @@ enum KeywordStyle {
  *
  * Clients may not extend, implement or mix-in this class.
  */
+@AnalyzerPublicApi(message: 'exported by package:analyzer/dart/ast/token.dart')
 class Keyword extends TokenType {
   static const Keyword ABSTRACT = const Keyword(
       /* index = */ 82, "abstract", "ABSTRACT", KeywordStyle.builtIn,
@@ -501,6 +506,7 @@ class KeywordToken extends SimpleToken {
  * A specialized comment token representing a language version
  * (e.g. '// @dart = 2.1').
  */
+@AnalyzerPublicApi(message: 'exported by package:analyzer/dart/ast/token.dart')
 class LanguageVersionToken extends CommentToken {
   /**
    * The major language version.
@@ -520,6 +526,8 @@ class LanguageVersionToken extends CommentToken {
  * A token that was scanned from the input. Each token knows which tokens
  * precede and follow it, acting as a link in a doubly linked list of tokens.
  */
+@AnalyzerPublicApi(
+    message: 'exposed by CommentToken.parent and StringToken (superclass)')
 class SimpleToken implements Token {
   /**
    * The type of the token.
@@ -696,6 +704,7 @@ class SimpleToken implements Token {
    * Sets the `parent` property to `this` for the given [comment] and all the
    * next tokens.
    */
+  @pragma("vm:prefer-inline")
   void _setCommentParent(CommentToken? comment) {
     while (comment != null) {
       comment.parent = this;
@@ -707,6 +716,7 @@ class SimpleToken implements Token {
 /**
  * A token whose value is independent of it's type.
  */
+@AnalyzerPublicApi(message: 'exposed by CommentToken (superclass)')
 class StringToken extends SimpleToken {
   /**
    * The lexeme represented by this token.
@@ -835,6 +845,7 @@ class ReplacementToken extends SyntheticToken {
  *
  * Clients may not extend, implement or mix-in this class.
  */
+@AnalyzerPublicApi(message: 'exported by package:analyzer/dart/ast/token.dart')
 abstract class Token implements SyntacticEntity {
   /**
    * Initialize a newly created token to have the given [type] and [offset].
@@ -1225,6 +1236,7 @@ class TokenClass {
  *
  * Clients may not extend, implement or mix-in this class.
  */
+@AnalyzerPublicApi(message: 'exported by package:analyzer/dart/ast/token.dart')
 class TokenType {
   static const TokenType UNUSED = const TokenType(
       /* index = */ 255, '', 'UNUSED', NO_PRECEDENCE, EOF_TOKEN);

@@ -40,12 +40,12 @@ class E<T extends core::Object? = dynamic> extends self::B<self::E::T%> implemen
   synthetic constructor •() → self::E<self::E::T%>
     ;
 }
+class F<T extends core::Object? = dynamic> extends self::_F&Object&B implements self::C<self::F::T%> {
+  synthetic constructor •() → self::F<self::F::T%>
+    ;
+}
 abstract class _F&Object&B = core::Object with self::B<core::String> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_F&Object&B
     : super core::Object::•()
-    ;
-}
-class F<T extends core::Object? = dynamic> extends self::_F&Object&B implements self::C<self::F::T%> {
-  synthetic constructor •() → self::F<self::F::T%>
     ;
 }

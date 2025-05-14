@@ -1,7 +1,7 @@
 name: meta
 # Note, because version `2.0.0` was mistakenly released,
 # the next major version must be `3.x.y`.
-version: 1.16.0
+version: 1.16.1-wip
 description: >-
  Annotations used to express developer intentions that can't otherwise be
  deduced by statically analyzing source code.
@@ -11,7 +11,9 @@ topics:
  - static-analysis
 
 environment:
-  sdk: ">=2.12.0 <4.0.0"
+  sdk: ^3.5.0
+
+resolution: workspace
 
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the

@@ -5,7 +5,9 @@ description: A tool to validate pubspec files in pkg/.
 publish_to: none
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: '^3.5.0'
+
+resolution: workspace
 
 dependencies:
   cli_util: any

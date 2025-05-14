@@ -4,25 +4,22 @@
 
 var get;
 var get a;
-// [error line 6, column 1, length 3]
+// [error column 1, length 3]
 // [analyzer] SYNTACTIC_ERROR.VAR_RETURN_TYPE
 // [cfe] The return type can't be 'var'.
 //       ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_BODY
 // [cfe] Expected a function body or '=>'.
 var get b, c;
-// [error line 13, column 1, length 3]
+// [error column 1, length 3]
 // [analyzer] SYNTACTIC_ERROR.VAR_RETURN_TYPE
 // [cfe] The return type can't be 'var'.
 //       ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
-// [cfe] Expected '{' before this.
-//       ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_BODY
+// [cfe] Expected '{' before this.
 // [cfe] Expected a declaration, but got ','.
-//       ^
 // [cfe] Expected a function body, but got ','.
-//       ^
 // [cfe] Expected a function body, but got '{'.
 //         ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
@@ -30,35 +27,30 @@ var get b, c;
 
 var set;
 var set d;
-// [error line 32, column 1, length 3]
+// [error column 1, length 3]
 // [analyzer] SYNTACTIC_ERROR.VAR_RETURN_TYPE
 // [cfe] The return type can't be 'var'.
 //      ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
-// [cfe] A function declaration needs an explicit list of parameters.
-//      ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_PARAMETERS
+// [cfe] A function declaration needs an explicit list of parameters.
 //       ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_BODY
 // [cfe] A setter should have exactly one formal parameter.
-//       ^
 // [cfe] Expected a function body or '=>'.
 var set e, f;
-// [error line 46, column 1, length 3]
+// [error column 1, length 3]
 // [analyzer] SYNTACTIC_ERROR.VAR_RETURN_TYPE
 // [cfe] The return type can't be 'var'.
 //      ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
-// [cfe] A function declaration needs an explicit list of parameters.
-//      ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_PARAMETERS
+// [cfe] A function declaration needs an explicit list of parameters.
 //       ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
-// [cfe] A setter should have exactly one formal parameter.
-//       ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_BODY
+// [cfe] A setter should have exactly one formal parameter.
 // [cfe] Expected '{' before this.
-//       ^
 // [cfe] Expected a declaration, but got ','.
 //         ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
@@ -80,9 +72,8 @@ class C0 {
 // [cfe] The return type can't be 'var'.
 //         ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_CLASS_MEMBER
-// [cfe] Expected '{' before this.
-//         ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_BODY
+// [cfe] Expected '{' before this.
 // [cfe] Expected a class member, but got ','.
 //           ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
@@ -97,9 +88,8 @@ class C0 {
 // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 //        ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
-// [cfe] A method declaration needs an explicit list of parameters.
-//        ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_METHOD_PARAMETERS
+// [cfe] A method declaration needs an explicit list of parameters.
 //         ^
 // [cfe] A setter should have exactly one formal parameter.
   var set e, f;
@@ -108,16 +98,13 @@ class C0 {
 // [cfe] The return type can't be 'var'.
 //        ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
-// [cfe] A method declaration needs an explicit list of parameters.
-//        ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_METHOD_PARAMETERS
+// [cfe] A method declaration needs an explicit list of parameters.
 //         ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_CLASS_MEMBER
-// [cfe] A setter should have exactly one formal parameter.
-//         ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_BODY
+// [cfe] A setter should have exactly one formal parameter.
 // [cfe] Expected '{' before this.
-//         ^
 // [cfe] Expected a class member, but got ','.
 //           ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
@@ -130,9 +117,8 @@ class C1 {
   List? get b, c;
   //         ^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_CLASS_MEMBER
-  // [cfe] Expected '{' before this.
-  //         ^
   // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_BODY
+  // [cfe] Expected '{' before this.
   // [cfe] Expected a class member, but got ','.
   //           ^
   // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
@@ -142,14 +128,13 @@ class C1 {
   List set d;
 //^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
-// [cfe] The return type of the setter must be 'void' or absent.
 //^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+// [cfe] The return type of the setter must be 'void' or absent.
 //         ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
-// [cfe] A method declaration needs an explicit list of parameters.
-//         ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_METHOD_PARAMETERS
+// [cfe] A method declaration needs an explicit list of parameters.
 //          ^
 // [cfe] A setter should have exactly one formal parameter.
   List? set e, f;
@@ -158,16 +143,13 @@ class C1 {
 // [cfe] The return type of the setter must be 'void' or absent.
 //          ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
-// [cfe] A method declaration needs an explicit list of parameters.
-//          ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_METHOD_PARAMETERS
+// [cfe] A method declaration needs an explicit list of parameters.
 //           ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_CLASS_MEMBER
-// [cfe] A setter should have exactly one formal parameter.
-//           ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_BODY
+// [cfe] A setter should have exactly one formal parameter.
 // [cfe] Expected '{' before this.
-//           ^
 // [cfe] Expected a class member, but got ','.
 //             ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
@@ -180,9 +162,8 @@ class C2 {
   List<int>? get b, c;
   //              ^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_CLASS_MEMBER
-  // [cfe] Expected '{' before this.
-  //              ^
   // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_BODY
+  // [cfe] Expected '{' before this.
   // [cfe] Expected a class member, but got ','.
   //                ^
   // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
@@ -192,14 +173,13 @@ class C2 {
   List<int> set d;
 //^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
-// [cfe] The return type of the setter must be 'void' or absent.
 //^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+// [cfe] The return type of the setter must be 'void' or absent.
 //              ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
-// [cfe] A method declaration needs an explicit list of parameters.
-//              ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_METHOD_PARAMETERS
+// [cfe] A method declaration needs an explicit list of parameters.
 //               ^
 // [cfe] A setter should have exactly one formal parameter.
   List<int>? set e, f;
@@ -208,16 +188,13 @@ class C2 {
 // [cfe] The return type of the setter must be 'void' or absent.
 //               ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
-// [cfe] A method declaration needs an explicit list of parameters.
-//               ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_METHOD_PARAMETERS
+// [cfe] A method declaration needs an explicit list of parameters.
 //                ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_CLASS_MEMBER
-// [cfe] A setter should have exactly one formal parameter.
-//                ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_BODY
+// [cfe] A setter should have exactly one formal parameter.
 // [cfe] Expected '{' before this.
-//                ^
 // [cfe] Expected a class member, but got ','.
 //                  ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE

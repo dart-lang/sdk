@@ -14,17 +14,19 @@ const _desc = r'Avoid defining unused parameters in constructors.';
 
 class AvoidUnusedConstructorParameters extends LintRule {
   AvoidUnusedConstructorParameters()
-      : super(
-          name: LintNames.avoid_unused_constructor_parameters,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_unused_constructor_parameters,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_unused_constructor_parameters;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
@@ -35,19 +37,21 @@ class _ConstructorVisitor extends RecursiveAstVisitor<void> {
   final Set<FormalParameter> unusedParameters;
 
   _ConstructorVisitor(this.element)
-      : unusedParameters = element.parameters.parameters.where((p) {
-          var element = p.declaredFragment?.element;
-          return element != null &&
-              element is! FieldFormalParameterElement2 &&
-              element is! SuperFormalParameterElement2 &&
-              !element.metadata2.hasDeprecated &&
-              !(element.name3 ?? '').isJustUnderscores;
-        }).toSet();
+    : unusedParameters =
+          element.parameters.parameters.where((p) {
+            var element = p.declaredFragment?.element;
+            return element != null &&
+                element is! FieldFormalParameterElement2 &&
+                element is! SuperFormalParameterElement2 &&
+                !element.metadata2.hasDeprecated &&
+                !(element.name3 ?? '').isJustUnderscores;
+          }).toSet();
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    unusedParameters
-        .removeWhere((p) => node.element == p.declaredFragment?.element);
+    unusedParameters.removeWhere(
+      (p) => node.element == p.declaredFragment?.element,
+    );
   }
 }
 

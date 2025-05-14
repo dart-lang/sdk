@@ -16,8 +16,6 @@ abstract class Builder {
 
   int get fileOffset;
 
-  Builder get origin;
-
   String get fullNameForErrors;
 
   bool get hasProblem;
@@ -218,18 +216,6 @@ abstract class Builder {
 
   bool get isLocal;
 
-  /// Returns `true` if this builder is augmenting another builder.
-  ///
-  /// If `true`, the augmented builder is found through [origin] which is
-  /// a different builder than this builder.
-  ///
-  /// A class/member builder can be augmented through 'augment' modifier in
-  /// augmentation libraries or through the `@patch` annotation in patch
-  /// libraries. A library builder can be augmented through the augmentation
-  /// libraries feature, through macro generated augmentation libraries or
-  /// through patch libraries.
-  bool get isAugmenting;
-
   /// Returns `true` if the related declaration is marked `augment`
   bool get isAugment;
 
@@ -249,6 +235,10 @@ abstract class Builder {
 
   bool get isTypeParameter;
 
+  /// Adds [augmentation] to this declaration.
+  // TODO(johnniwinther): Remove this augmentations are based on fragments.
+  void addAugmentation(Builder augmentation);
+
   /// Applies [augmentation] to this declaration.
   void applyAugmentation(Builder augmentation);
 
@@ -264,9 +254,6 @@ abstract class BuilderImpl implements Builder {
   BuilderImpl();
 
   @override
-  Builder get origin => this;
-
-  @override
   bool get hasProblem => false;
 
   @override
@@ -274,7 +261,6 @@ abstract class BuilderImpl implements Builder {
   bool get isConst => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isConstructor => false;
 
   @override
@@ -321,9 +307,6 @@ abstract class BuilderImpl implements Builder {
   bool get isLocal => false;
 
   @override
-  bool get isAugmenting => this != origin;
-
-  @override
   bool get isAugment => false;
 
   @override
@@ -336,6 +319,7 @@ abstract class BuilderImpl implements Builder {
   bool get isSetter => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isStatic => false;
 
   @override
@@ -354,6 +338,12 @@ abstract class BuilderImpl implements Builder {
 
   @override
   bool get isTypeParameter => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void addAugmentation(Builder augmentation) {
+    unsupported("${runtimeType}.addAugmentation", fileOffset, fileUri);
+  }
 
   @override
   // Coverage-ignore(suite): Not run.

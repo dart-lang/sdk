@@ -57,18 +57,10 @@ class SetTypeMask extends AllocationTypeMask {
   }
 
   @override
-  SetTypeMask withSpecialValues({bool? isNullable, bool? hasLateSentinel}) {
-    isNullable ??= this.isNullable;
-    hasLateSentinel ??= this.hasLateSentinel;
-    if (isNullable == this.isNullable &&
-        hasLateSentinel == this.hasLateSentinel) {
-      return this;
-    }
+  SetTypeMask withPowerset(Bitset powerset, CommonMasks domain) {
+    if (powerset == this.powerset) return this;
     return SetTypeMask(
-      forwardTo.withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      ),
+      forwardTo.withPowerset(powerset, domain),
       allocationNode,
       allocationElement,
       elementType,
@@ -81,10 +73,9 @@ class SetTypeMask extends AllocationTypeMask {
   @override
   TypeMask? _unionSpecialCases(
     TypeMask other,
-    CommonMasks domain, {
-    required bool isNullable,
-    required bool hasLateSentinel,
-  }) {
+    CommonMasks domain,
+    Bitset powerset,
+  ) {
     if (other is SetTypeMask) {
       TypeMask newElementType = elementType.union(other.elementType, domain);
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
@@ -104,5 +95,7 @@ class SetTypeMask extends AllocationTypeMask {
   int get hashCode => Hashing.objectHash(elementType, super.hashCode);
 
   @override
-  String toString() => 'Set($forwardTo, element: $elementType)';
+  String toString() =>
+      'Set($forwardTo, element: $elementType, '
+      'powerset: ${TypeMask.powersetToString(powerset)})';
 }

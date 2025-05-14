@@ -52,6 +52,9 @@ DECLARE_FLAG(bool, generate_perf_jitdump);
 
 uword VirtualMemory::page_size_ = 0;
 VirtualMemory* VirtualMemory::compressed_heap_ = nullptr;
+#if defined(DART_HOST_OS_IOS) && !defined(DART_PRECOMPILED_RUNTIME)
+bool VirtualMemory::notify_debugger_about_rx_pages_ = false;
+#endif
 
 static void* Map(void* addr,
                  size_t length,
@@ -137,6 +140,125 @@ static MemoryRegion ClipToAlignedRegion(MemoryRegion region, size_t alignment) {
 }
 #endif  // LARGE_RESERVATIONS_MAY_FAIL
 
+#if defined(DART_HOST_OS_IOS) && !defined(DART_PRECOMPILED_RUNTIME)
+// The function NOTIFY_DEBUGGER_ABOUT_RX_PAGES is a hook point for the debugger.
+//
+// We expect that LLBD is configured to intercept calls to this function and
+// takes care of writing into all pages covered by [base, base+size) address
+// range.
+//
+// For example, you can define the following Python helper script:
+//
+// ```python
+// # rx_helper.py
+// import lldb
+//
+// def handle_new_rx_page(frame: lldb.SBFrame, bp_loc, extra_args, intern_dict):
+//     """Intercept NOTIFY_DEBUGGER_ABOUT_RX_PAGES and touch the pages."""
+//     base = frame.register["x0"].GetValueAsAddress()
+//     page_len = frame.register["x1"].GetValueAsUnsigned()
+
+//     # Note: NOTIFY_DEBUGGER_ABOUT_RX_PAGES will check contents of the
+//     # first page to see if handled it correctly. This makes diagnosing
+//     # misconfiguration (e.g. missing breakpoint) easier.
+//     data = bytearray(page_len)
+//     data[0:8] = b'IHELPED!';
+
+//     error = lldb.SBError()
+//     frame.GetThread().GetProcess().WriteMemory(base, data, error)
+//     if not error.Success():
+//         print(f'Failed to write into {base}[+{page_len}]', error)
+//         return
+//
+// def __lldb_init_module(debugger: lldb.SBDebugger, _):
+//     target = debugger.GetDummyTarget()
+//     # Caveat: must use BreakpointCreateByRegEx here and not
+//     # BreakpointCreateByName. For some reasons callback function does not
+//     # get carried over from dummy target for the later.
+//     bp = target.bpCreateByRegex("^NOTIFY_DEBUGGER_ABOUT_RX_PAGES$")
+//     bp.SetScriptCallbackFunction('{}.handle_new_rx_page'.format(__name__))
+//     bp.SetAutoContinue(True)
+//     print("-- LLDB integration loaded --")
+// ```
+//
+// Which is then imported into LLDB via `.lldbinit` script:
+//
+// ```
+// # .lldbinit
+// command script import --relative-to-command-file rx_helper.py
+// ```
+//
+// XCode allows configuring custom LLDB Init Files: see Product -> Scheme ->
+// Run -> Info -> LLDB Init File, you can use `$(SRCROOT)/...` to place LLDB
+// script inside project directory itself.
+//
+__attribute__((noinline)) __attribute__((visibility("default"))) extern "C" void
+NOTIFY_DEBUGGER_ABOUT_RX_PAGES(void* base, size_t size) {
+  // Note: need this to prevent LLVM from optimizing it away even with
+  // noinline.
+  asm volatile("" ::"r"(base), "r"(size) : "memory");
+}
+
+namespace {
+bool CheckIfNeedDebuggerHelpWithRX() {
+  // Do not expect any problems before iOS 18.4.
+  if (!IsAtLeastIOS18_4()) {
+    return false;
+  }
+
+  if (!FLAG_write_protect_code) {
+    FATAL("Must run with --write-protect-code on this OS");
+  }
+
+  // Helper to check if RX->RW->RX->RW->RX flip works, with and without
+  // debugger assistance.
+  const auto does_rx_rw_rx_flip_work = [](bool notify_debugger) {
+    const intptr_t size = VirtualMemory::PageSize();
+    void* page = Map(NULL, size, PROT_READ | PROT_EXEC,
+                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (page == MAP_FAILED) {
+      FATAL("Failed to map a test RX page (ENOMEM)");
+    }
+
+    if (notify_debugger) {
+      NOTIFY_DEBUGGER_ABOUT_RX_PAGES(page, size);
+      if (strncmp(reinterpret_cast<const char*>(page), "IHELPED!", 8) != 0) {
+        FATAL("NOTIFY_DEBUGGER_ABOUT_RX_PAGES was not intercepted as expected");
+      }
+    }
+
+    bool failed_to_return_to_rx = false;
+    // Need to try twice: the first RW->RX flip might work, some lazy checking
+    // is involved.
+    for (intptr_t i = 0; i < 2; i++) {
+      // Do not expect this one to fail.
+      VirtualMemory::Protect(page, size, VirtualMemory::kReadWrite);
+      reinterpret_cast<int64_t*>(page)[i] = kBreakInstructionFiller;
+      // This one might fail so we call mprotect directly and check if
+      // it failed.
+      if (mprotect(page, size, PROT_READ | PROT_EXEC) != 0) {
+        failed_to_return_to_rx = true;
+      }
+    }
+    munmap(page, size);
+    return !failed_to_return_to_rx;
+  };
+
+  // First try without debugger assistance.
+  if (does_rx_rw_rx_flip_work(/*notify_debugger=*/false)) {
+    return false;  // All works.
+  }
+
+  // RX->RW->RX->RW->RX does not seem to work. Try asking debugger for help.
+  if (!does_rx_rw_rx_flip_work(/*notify_debugger=*/true)) {
+    FATAL("Unable to flip between RX and RW memory protection on pages");
+  }
+
+  return true;  // Debugger can help us.
+}
+}  // namespace
+#endif
+
 void VirtualMemory::Init() {
   if (FLAG_old_gen_heap_size < 0 || FLAG_old_gen_heap_size > kMaxAddrSpaceMB) {
     OS::PrintErr(
@@ -154,6 +276,10 @@ void VirtualMemory::Init() {
     FLAG_new_gen_semi_max_size = kDefaultNewGenSemiMaxSize;
   }
   page_size_ = CalculatePageSize();
+#if defined(DART_HOST_OS_IOS) && !defined(DART_PRECOMPILED_RUNTIME)
+  notify_debugger_about_rx_pages_ = CheckIfNeedDebuggerHelpWithRX();
+#endif
+
 #if defined(DART_COMPRESSED_POINTERS)
   ASSERT(compressed_heap_ == nullptr);
 #if defined(LARGE_RESERVATIONS_MAY_FAIL)
@@ -187,7 +313,6 @@ void VirtualMemory::Init() {
   VirtualMemoryCompressedHeap::Init(compressed_heap_->address(),
                                     compressed_heap_->size());
 #endif  // defined(DART_COMPRESSED_POINTERS)
-
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   FILE* fp = fopen("/proc/sys/vm/max_map_count", "r");
   if (fp != nullptr) {
@@ -265,13 +390,20 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
   const intptr_t allocated_size = size + alignment - PageSize();
+
+#if defined(DART_HOST_OS_IOS) && !defined(DART_PRECOMPILED_RUNTIME)
+  const int prot = (is_executable && notify_debugger_about_rx_pages_)
+                       ? PROT_READ | PROT_EXEC
+                       : PROT_READ | PROT_WRITE;
+#else
   const int prot =
       PROT_READ | PROT_WRITE |
       ((is_executable && !FLAG_write_protect_code) ? PROT_EXEC : 0);
+#endif
 
   int map_flags = MAP_PRIVATE | MAP_ANONYMOUS;
 #if (defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS))
-  if (is_executable && IsAtLeastOS10_14()) {
+  if (is_executable && IsAtLeastMacOSX10_14()) {
     map_flags |= MAP_JIT;
   }
 #endif  // defined(DART_HOST_OS_MACOS)
@@ -302,6 +434,15 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   if (address == nullptr) {
     return nullptr;
   }
+
+#if defined(DART_HOST_OS_IOS) && !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_executable && notify_debugger_about_rx_pages_) {
+    NOTIFY_DEBUGGER_ABOUT_RX_PAGES(reinterpret_cast<void*>(address), size);
+    // Once debugger is notified we can flip RX to RW without loosing
+    // ability to flip back to RX.
+    Protect(address, size, kReadWrite);
+  }
+#endif
 
 #if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   // PR_SET_VMA was only added to mainline Linux in 5.17, and some versions of

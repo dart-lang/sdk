@@ -24,7 +24,7 @@ class Symbol {
     // Class._constructor@xxx -> Class._constructor
     // _Class@xxx._constructor@xxx -> _Class._constructor
     // lib._S@xxx with lib._M1@xxx, lib._M2@xxx -> lib._S with lib._M1, lib._M2
-    StringBuffer result = new StringBuffer();
+    StringBuffer result = StringBuffer();
     bool add_setter_suffix = false;
     var pos = 0;
     if (string.length >= 4 && string[3] == ':') {

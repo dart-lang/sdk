@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidEscapingInnerQuotesTest);
   });
@@ -26,23 +26,25 @@ void f() {
   }
 
   test_doubleQuotes_escapedQuote() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   print("\"");
 }
-''', [
-      lint(19, 4),
-    ]);
+''',
+      [lint(19, 4)],
+    );
   }
 
   test_doubleQuotes_escapedQuote_withInterpolation() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   print("\"$f");
 }
-''', [
-      lint(19, 6),
-    ]);
+''',
+      [lint(19, 6)],
+    );
   }
 
   test_doubleQuotes_escapedQuote_withSingleQuote() async {
@@ -62,13 +64,14 @@ void f() {
   }
 
   test_singleQuotes() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(String d) {
   print('a\'b\'c ${d.length}');
 }
-''', [
-      lint(27, 21),
-    ]);
+''',
+      [lint(27, 21)],
+    );
   }
 
   test_singleQuotes_empty() async {
@@ -80,13 +83,14 @@ void f() {
   }
 
   test_singleQuotes_escapedQuote() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   print('\'');
 }
-''', [
-      lint(19, 4),
-    ]);
+''',
+      [lint(19, 4)],
+    );
   }
 
   test_singleQuotes_escapedQuote_withDoubleQuote() async {
@@ -106,12 +110,13 @@ void f() {
   }
 
   test_singleQuotes_escapedQuote_withInterpolation() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   print('\'$f');
 }
-''', [
-      lint(19, 6),
-    ]);
+''',
+      [lint(19, 6)],
+    );
   }
 }

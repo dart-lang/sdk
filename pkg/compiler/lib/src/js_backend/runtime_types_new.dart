@@ -227,12 +227,6 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   void visit(DartType type, _) => type.accept(this, null);
 
   @override
-  void visitLegacyType(LegacyType type, _) {
-    visit(type.baseType, null);
-    _emitCode(Recipe.wrapStar);
-  }
-
-  @override
   void visitNullableType(NullableType type, _) {
     visit(type.baseType, null);
     _emitCode(Recipe.wrapQuestion);
@@ -265,7 +259,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
         return;
       }
 
-      js_ast.Name name = _emitter.typeVariableAccessNewRti(type.element);
+      js_ast.Name name = _emitter.typeVariableAccess(type.element);
       _emitName(name);
       typeVariables.add(type);
       return;
@@ -301,7 +295,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 
   @override
   void visitInterfaceType(InterfaceType type, _) {
-    js_ast.Name name = _emitter.typeAccessNewRti(type.element);
+    js_ast.Name name = _emitter.typeAccess(type.element);
     if (type.typeArguments.isEmpty) {
       // Push the name, which is later converted by an implicit toType
       // operation.
@@ -549,11 +543,11 @@ class RulesetEncoder {
     MapEntry<ClassEntity, ClassEntity> redirection,
   ) => js.concatenateStrings([
     _doubleQuote,
-    _emitter.typeAccessNewRti(redirection.key),
+    _emitter.typeAccess(redirection.key),
     _doubleQuote,
     _colon,
     _doubleQuote,
-    _emitter.typeAccessNewRti(redirection.value),
+    _emitter.typeAccess(redirection.value),
     _doubleQuote,
   ]);
 
@@ -561,7 +555,7 @@ class RulesetEncoder {
     MapEntry<InterfaceType, _RulesetEntry> entry,
   ) => js.concatenateStrings([
     _doubleQuote,
-    _emitter.typeAccessNewRti(entry.key.element),
+    _emitter.typeAccess(entry.key.element),
     _doubleQuote,
     _colon,
     _leftBrace,
@@ -582,7 +576,7 @@ class RulesetEncoder {
     InterfaceType supertype,
   ) => js.concatenateStrings([
     _doubleQuote,
-    _emitter.typeAccessNewRti(supertype.element),
+    _emitter.typeAccess(supertype.element),
     _doubleQuote,
     _colon,
     _leftBracket,
@@ -602,7 +596,7 @@ class RulesetEncoder {
     DartType supertypeArgument,
   ) => js.concatenateStrings([
     _doubleQuote,
-    _emitter.typeVariableAccessNewRti(typeVariable.element),
+    _emitter.typeVariableAccess(typeVariable.element),
     _doubleQuote,
     _colon,
     _encodeSupertypeArgument(targetType, supertypeArgument),
@@ -633,7 +627,7 @@ class RulesetEncoder {
     MapEntry<ClassEntity, int> entry,
   ) => js.concatenateStrings([
     _doubleQuote,
-    _emitter.typeAccessNewRti(entry.key),
+    _emitter.typeAccess(entry.key),
     _doubleQuote,
     _colon,
     js.number(entry.value),
@@ -654,7 +648,7 @@ class RulesetEncoder {
     MapEntry<ClassEntity, List<Variance>> classEntry,
   ) => js.concatenateStrings([
     _doubleQuote,
-    _emitter.typeAccessNewRti(classEntry.key),
+    _emitter.typeAccess(classEntry.key),
     _doubleQuote,
     _colon,
     _leftBracket,
@@ -716,4 +710,4 @@ int? indexTypeVariable(
 
 bool mustCheckAllSubtypes(JClosedWorld world, ClassEntity cls) =>
     world.isUsedAsMixin(cls) ||
-    world.extractTypeArgumentsInterfacesNewRti.contains(cls);
+    world.extractTypeArgumentsInterfaces.contains(cls);

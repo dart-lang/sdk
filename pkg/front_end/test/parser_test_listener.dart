@@ -1151,11 +1151,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endFunctionName(Token beginToken, Token token) {
+  void endFunctionName(
+      Token beginToken, Token token, bool isFunctionExpression) {
     indent--;
     seen(beginToken);
     seen(token);
-    doPrint('endFunctionName(' '$beginToken, ' '$token)');
+    doPrint(
+        'endFunctionName(' '$beginToken, ' '$token, ' '$isFunctionExpression)');
   }
 
   @override
@@ -3330,5 +3332,31 @@ class ParserTestListener implements Listener {
   void handlePatternAssignment(Token equals) {
     seen(equals);
     doPrint('handlePatternAssignment(' '$equals)');
+  }
+
+  @override
+  void handleDotShorthandContext(Token token) {
+    seen(token);
+    doPrint('handleDotShorthandContext(' '$token)');
+  }
+
+  @override
+  void handleDotShorthandHead(Token token) {
+    seen(token);
+    doPrint('handleDotShorthandHead(' '$token)');
+  }
+
+  @override
+  void beginConstDotShorthand(Token token) {
+    seen(token);
+    doPrint('beginConstDotShorthand(' '$token)');
+    indent++;
+  }
+
+  @override
+  void endConstDotShorthand(Token token) {
+    indent--;
+    seen(token);
+    doPrint('endConstDotShorthand(' '$token)');
   }
 }

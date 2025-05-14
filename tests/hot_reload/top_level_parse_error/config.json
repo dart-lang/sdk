@@ -1,0 +1,5 @@
+{
+  "expectedErrors": {
+    "1": "Variables must be declared using the keywords 'const', 'final', 'var' or a type name"
+  }
+}

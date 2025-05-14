@@ -26,9 +26,7 @@ class A {
 }
 
 class B {
-  B()
-      : _a = new A(),
-        count = 0 {}
+  B() : _a = new A(), count = 0 {}
   get a {
     count++;
     return _a;

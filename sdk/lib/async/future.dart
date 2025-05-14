@@ -41,7 +41,7 @@ abstract class FutureOr<T> {
   // Private generative constructor, so that it is not subclassable, mixable,
   // or instantiable.
   FutureOr._() {
-    throw new UnsupportedError("FutureOr cannot be instantiated");
+    throw UnsupportedError("FutureOr cannot be instantiated");
   }
 }
 
@@ -235,7 +235,7 @@ abstract interface class Future<T> {
   static final _Future<void> _nullFuture = nullFuture as _Future<void>;
 
   /// A `Future<bool>` completed with `false`.
-  static final _Future<bool> _falseFuture = new _Future<bool>.zoneValue(
+  static final _Future<bool> _falseFuture = _Future<bool>.zoneValue(
     false,
     _rootZone,
   );
@@ -253,7 +253,7 @@ abstract interface class Future<T> {
   /// If a non-future value is returned, the returned future is completed
   /// with that value.
   factory Future(FutureOr<T> computation()) {
-    _Future<T> result = new _Future<T>();
+    _Future<T> result = _Future<T>();
     Timer.run(() {
       FutureOr<T> computationResult;
       try {
@@ -280,7 +280,7 @@ abstract interface class Future<T> {
   /// If calling [computation] returns a non-future value,
   /// the returned future is completed with that value.
   factory Future.microtask(FutureOr<T> computation()) {
-    _Future<T> result = new _Future<T>();
+    _Future<T> result = _Future<T>();
     scheduleMicrotask(() {
       FutureOr<T> computationResult;
       try {
@@ -314,9 +314,8 @@ abstract interface class Future<T> {
     try {
       result = computation();
     } catch (error, stackTrace) {
-      var future = new _Future<T>();
-      _asyncCompleteWithErrorCallback(future, error, stackTrace);
-      return future;
+      return _Future<T>()
+        .._asyncCompleteErrorObject(_interceptCaughtError(error, stackTrace));
     }
     return result is Future<T> ? result : _Future<T>.value(result);
   }
@@ -349,7 +348,7 @@ abstract interface class Future<T> {
   @pragma("vm:entry-point")
   @pragma("vm:prefer-inline")
   factory Future.value([FutureOr<T>? value]) {
-    return new _Future<T>.immediate(value == null ? value as T : value);
+    return _Future<T>.immediate(value == null ? value as T : value);
   }
 
   /// Creates a future that completes with an error.
@@ -369,10 +368,8 @@ abstract interface class Future<T> {
   ///
   /// final error = await getFuture(); // Throws.
   /// ```
-  factory Future.error(Object error, [StackTrace? stackTrace]) {
-    AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
-    return new _Future<T>.immediateError(error, stackTrace);
-  }
+  factory Future.error(Object error, [StackTrace? stackTrace]) =>
+      _Future<T>.immediateError(_interceptUserError(error, stackTrace));
 
   /// Creates a future that runs its computation after a delay.
   ///
@@ -413,7 +410,7 @@ abstract interface class Future<T> {
       );
     }
     _Future<T> result = _Future<T>();
-    new Timer(duration, () {
+    Timer(duration, () {
       if (computation == null) {
         result._complete(null as T);
       } else {
@@ -561,25 +558,21 @@ abstract interface class Future<T> {
         return _future.._completeWithValue(<T>[]);
       }
       values = List<T?>.filled(remaining, null);
-    } catch (e, st) {
+    } catch (e, s) {
       // The error must have been thrown while iterating over the futures
       // list, or while installing a callback handler on the future.
       // This is a breach of the `Future` protocol, but we try to handle it
       // gracefully.
       if (remaining == 0 || eagerError) {
-        // Throw a new Future.error.
-        // Don't just call `_future._completeError` since that would propagate
-        // the error too eagerly, not giving the callers time to install
-        // error handlers.
-        // Also, don't use `_asyncCompleteError` since that one doesn't give
-        // zones the chance to intercept the error.
-        return new Future.error(e, st);
+        // Complete asynchronously to give receiver time to handle
+        // the result.
+        return _future.._asyncCompleteErrorObject(_interceptCaughtError(e, s));
       } else {
         // Don't allocate a list for values, thus indicating that there was an
         // error.
         // Set error to the caught exception.
         error = e;
-        stackTrace = st;
+        stackTrace = s;
       }
     }
     return _future;
@@ -619,7 +612,7 @@ abstract interface class Future<T> {
   /// }
   /// ```
   static Future<T> any<T>(Iterable<Future<T>> futures) {
-    var completer = new Completer<T>.sync();
+    var completer = Completer<T>.sync();
     void onValue(T value) {
       if (!completer.isCompleted) completer.complete(value);
     }
@@ -704,7 +697,7 @@ abstract interface class Future<T> {
   /// // Outputs: 'Finished with 3'
   /// ```
   static Future<void> doWhile(FutureOr<bool> action()) {
-    _Future<void> doneSignal = new _Future<void>();
+    _Future<void> doneSignal = _Future<void>();
     late void Function(bool) nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
     // context of all the previous iterations' callbacks.
@@ -716,9 +709,11 @@ abstract interface class Future<T> {
         try {
           result = action();
         } catch (error, stackTrace) {
-          // Cannot use _completeWithErrorCallback because it completes
+          // Cannot use `_completeWithErrorCallback` because it completes
           // the future synchronously.
-          _asyncCompleteWithErrorCallback(doneSignal, error, stackTrace);
+          doneSignal._asyncCompleteErrorObject(
+            _interceptCaughtError(error, stackTrace),
+          );
           return;
         }
         if (result is Future<bool>) {
@@ -1010,7 +1005,6 @@ void unawaited(Future<void>? future) {}
 ///
 /// Adds functionality to futures which makes it easier to
 /// write well-typed asynchronous code.
-@Since("2.12")
 extension FutureExtensions<T> on Future<T> {
   /// Handles errors on this future.
   ///
@@ -1198,7 +1192,7 @@ abstract interface class Completer<T> {
   ///   completer.complete('completion value');
   /// }
   /// ```
-  factory Completer() => new _AsyncCompleter<T>();
+  factory Completer() => _AsyncCompleter<T>();
 
   /// Completes the future synchronously.
   ///
@@ -1249,7 +1243,7 @@ abstract interface class Completer<T> {
   ///   foo();  // In this case, foo() runs after bar().
   /// });
   /// ```
-  factory Completer.sync() => new _SyncCompleter<T>();
+  factory Completer.sync() => _SyncCompleter<T>();
 
   /// The future that is completed by this completer.
   ///
@@ -1331,7 +1325,7 @@ abstract interface class Completer<T> {
   bool get isCompleted;
 }
 
-// Helper function completing a _Future with error, but checking the zone
+// Helper function completing a _Future with an error, but checking the zone
 // for error replacement and missing stack trace first.
 // Only used for errors that are *caught*.
 // A user provided error object should use `_interceptUserError` which
@@ -1341,24 +1335,5 @@ void _completeWithErrorCallback(
   Object error,
   StackTrace stackTrace,
 ) {
-  var replacement = _interceptError(error, stackTrace);
-  if (replacement != null) {
-    error = replacement.error;
-    stackTrace = replacement.stackTrace;
-  }
-  result._completeError(error, stackTrace);
-}
-
-// Like [_completeWithErrorCallback] but completes asynchronously.
-void _asyncCompleteWithErrorCallback(
-  _Future result,
-  Object error,
-  StackTrace stackTrace,
-) {
-  var replacement = _interceptError(error, stackTrace);
-  if (replacement != null) {
-    error = replacement.error;
-    stackTrace = replacement.stackTrace;
-  }
-  result._asyncCompleteError(error, stackTrace);
+  result._completeErrorObject(_interceptCaughtError(error, stackTrace));
 }

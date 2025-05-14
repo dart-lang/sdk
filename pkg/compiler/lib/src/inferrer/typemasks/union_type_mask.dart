@@ -19,35 +19,14 @@ class UnionTypeMask extends TypeMask {
   /// Components of the union, none of which is itself a union or nullable.
   final List<FlatTypeMask> disjointMasks;
 
-  final EnumSet<TypeMaskSpecialValue> specialValues;
-
   @override
-  bool get isNullable => specialValues.contains(TypeMaskSpecialValue.null_);
+  final Bitset powerset;
 
-  @override
-  bool get hasLateSentinel =>
-      specialValues.contains(TypeMaskSpecialValue.lateSentinel);
-
-  @override
-  AbstractBool get isLateSentinel => AbstractBool.maybeOrFalse(hasLateSentinel);
-
-  UnionTypeMask._internal(this.disjointMasks, this.specialValues)
+  UnionTypeMask._internal(this.disjointMasks, this.powerset)
     : assert(disjointMasks.length > 1),
       assert(disjointMasks.every((TypeMask mask) => mask is! UnionTypeMask)),
       assert(disjointMasks.every((TypeMask mask) => !mask.isNullable)),
       assert(disjointMasks.every((TypeMask mask) => !mask.hasLateSentinel));
-
-  UnionTypeMask._compose(
-    List<FlatTypeMask> disjointMasks, {
-    required bool isNullable,
-    required bool hasLateSentinel,
-  }) : this._internal(
-         disjointMasks,
-         _composeSpecialValues(
-           isNullable: isNullable,
-           hasLateSentinel: hasLateSentinel,
-         ),
-       );
 
   /// Deserializes a [UnionTypeMask] object from [source].
   factory UnionTypeMask.readFromDataSource(
@@ -58,11 +37,9 @@ class UnionTypeMask extends TypeMask {
     List<FlatTypeMask> disjointMasks = source.readList(
       () => TypeMask.readFromDataSource(source, domain) as FlatTypeMask,
     );
-    final specialValues = EnumSet<TypeMaskSpecialValue>.fromRawBits(
-      source.readInt(),
-    );
+    final powerset = Bitset(source.readInt());
     source.end(tag);
-    return UnionTypeMask._internal(disjointMasks, specialValues);
+    return UnionTypeMask._internal(disjointMasks, powerset);
   }
 
   /// Serializes this [UnionTypeMask] to [sink].
@@ -74,45 +51,43 @@ class UnionTypeMask extends TypeMask {
       disjointMasks,
       (FlatTypeMask mask) => mask.writeToDataSink(sink),
     );
-    sink.writeInt(specialValues.mask.bits);
+    sink.writeInt(powerset.bits);
     sink.end(tag);
   }
 
   static TypeMask unionOf(Iterable<TypeMask> masks, CommonMasks domain) {
     assert(
       masks.every(
-        (mask) => TypeMask.assertIsNormalized(mask, domain._closedWorld),
+        (mask) => TypeMask.assertIsNormalized(mask, domain.closedWorld),
       ),
     );
+    final powerset = masks.fold(
+      Bitset.empty(),
+      (powerset, mask) => powerset.union(mask.powerset),
+    );
+    final isNullable = _specialValueDomain.contains(
+      powerset,
+      TypeMaskSpecialValue.null_,
+    );
+    final hasLateSentinel = _specialValueDomain.contains(
+      powerset,
+      TypeMaskSpecialValue.lateSentinel,
+    );
     List<FlatTypeMask> disjoint = <FlatTypeMask>[];
-    bool isNullable = masks.any((TypeMask mask) => mask.isNullable);
-    bool hasLateSentinel = masks.any((TypeMask mask) => mask.hasLateSentinel);
     unionOfHelper(masks, disjoint, domain);
     if (disjoint.isEmpty) {
       return isNullable
-          ? TypeMask.empty(hasLateSentinel: hasLateSentinel)
-          : TypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
+          ? TypeMask.empty(domain, hasLateSentinel: hasLateSentinel)
+          : TypeMask.nonNullEmpty(domain, hasLateSentinel: hasLateSentinel);
     }
     if (disjoint.length > maxUnionLength) {
-      return flatten(
-        disjoint,
-        domain,
-        includeNull: isNullable,
-        includeLateSentinel: hasLateSentinel,
-      );
+      return flatten(disjoint, domain, powerset);
     }
     if (disjoint.length == 1) {
-      return disjoint.single.withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      );
+      return disjoint.single.withPowerset(powerset, domain);
     }
-    UnionTypeMask union = UnionTypeMask._compose(
-      disjoint,
-      isNullable: isNullable,
-      hasLateSentinel: hasLateSentinel,
-    );
-    assert(TypeMask.assertIsNormalized(union, domain._closedWorld));
+    final union = UnionTypeMask._internal(disjoint, powerset);
+    assert(TypeMask.assertIsNormalized(union, domain.closedWorld));
     return union;
   }
 
@@ -124,7 +99,7 @@ class UnionTypeMask extends TypeMask {
     // TODO(johnniwinther): Impose an order on the mask to ensure subclass masks
     // are preferred to subtype masks.
     for (TypeMask mask in masks) {
-      mask = TypeMask.nonForwardingMask(mask).withoutSpecialValues();
+      mask = TypeMask.nonForwardingMask(mask).withoutSpecialValues(domain);
       if (mask is UnionTypeMask) {
         unionOfHelper(mask.disjointMasks, disjoint, domain);
       } else if (mask.isEmpty) {
@@ -132,7 +107,7 @@ class UnionTypeMask extends TypeMask {
       } else {
         var flatMask =
             mask is RecordTypeMask
-                ? mask.toFlatTypeMask(domain._closedWorld)
+                ? mask.toFlatTypeMask(domain)
                 : mask as FlatTypeMask;
         int inListIndex = -1;
         bool covered = false;
@@ -176,10 +151,9 @@ class UnionTypeMask extends TypeMask {
 
   static TypeMask flatten(
     List<FlatTypeMask> masks,
-    CommonMasks domain, {
-    required bool includeNull,
-    required bool includeLateSentinel,
-  }) {
+    CommonMasks domain,
+    Bitset powerset,
+  ) {
     // TODO(johnniwinther): Move this computation to [ClosedWorld] and use the
     // class set structures.
     if (masks.isEmpty) throw ArgumentError.value(masks, 'masks');
@@ -188,7 +162,7 @@ class UnionTypeMask extends TypeMask {
     bool useSubclass = masks.every((e) => !e.isSubtype);
 
     final masksBases = masks.map((mask) => mask.base!).toList();
-    Iterable<ClassEntity> candidates = domain._closedWorld.commonSupertypesOf(
+    Iterable<ClassEntity> candidates = domain.closedWorld.commonSupertypesOf(
       masksBases,
     );
 
@@ -199,8 +173,8 @@ class UnionTypeMask extends TypeMask {
     for (ClassEntity candidate in candidates) {
       bool isInstantiatedStrictSubclass(ClassEntity cls) =>
           cls != candidate &&
-          domain._closedWorld.classHierarchy.isExplicitlyInstantiated(cls) &&
-          domain._closedWorld.classHierarchy.isSubclassOf(cls, candidate);
+          domain.closedWorld.classHierarchy.isExplicitlyInstantiated(cls) &&
+          domain.closedWorld.classHierarchy.isSubclassOf(cls, candidate);
 
       int size;
       FlatTypeMaskKind kind;
@@ -213,16 +187,14 @@ class UnionTypeMask extends TypeMask {
         // TODO(sigmund, johnniwinther): computing length here (and below) is
         // expensive. If we can't prevent `flatten` from being called a lot, it
         // might be worth caching results.
-        size = domain._closedWorld.classHierarchy.strictSubclassCount(
-          candidate,
-        );
+        size = domain.closedWorld.classHierarchy.strictSubclassCount(candidate);
         assert(
           size <=
-              domain._closedWorld.classHierarchy.strictSubtypeCount(candidate),
+              domain.closedWorld.classHierarchy.strictSubtypeCount(candidate),
         );
       } else {
         kind = FlatTypeMaskKind.subtype;
-        size = domain._closedWorld.classHierarchy.strictSubtypeCount(candidate);
+        size = domain.closedWorld.classHierarchy.strictSubtypeCount(candidate);
       }
       // Update the best candidate if the new one is better.
       if (bestElement == null || size < bestSize) {
@@ -231,41 +203,23 @@ class UnionTypeMask extends TypeMask {
         bestKind = kind;
       }
     }
-    return FlatTypeMask.normalized(
-      bestElement!,
-      bestKind,
-      _composeSpecialValues(
-        isNullable: includeNull,
-        hasLateSentinel: includeLateSentinel,
-      ),
-      domain,
-    );
+    return FlatTypeMask.normalized(bestElement!, bestKind, powerset, domain);
   }
 
   @override
   TypeMask union(TypeMask other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
-    bool isNullable = this.isNullable || other.isNullable;
-    bool hasLateSentinel = this.hasLateSentinel || other.hasLateSentinel;
+    final powerset = this.powerset.union(other.powerset);
     if (other is UnionTypeMask) {
       if (_containsDisjointMasks(other)) {
-        return withSpecialValues(
-          isNullable: isNullable,
-          hasLateSentinel: hasLateSentinel,
-        );
+        return withPowerset(powerset, domain);
       }
       if (other._containsDisjointMasks(this)) {
-        return other.withSpecialValues(
-          isNullable: isNullable,
-          hasLateSentinel: hasLateSentinel,
-        );
+        return other.withPowerset(powerset, domain);
       }
     } else {
-      if (disjointMasks.contains(other.withoutSpecialValues())) {
-        return withSpecialValues(
-          isNullable: isNullable,
-          hasLateSentinel: hasLateSentinel,
-        );
+      if (disjointMasks.contains(other.withoutSpecialValues(domain))) {
+        return withPowerset(powerset, domain);
       }
     }
 
@@ -273,41 +227,28 @@ class UnionTypeMask extends TypeMask {
     if (other is UnionTypeMask) {
       newList.addAll(other.disjointMasks);
     } else if (other is RecordTypeMask) {
-      newList.add(other.toFlatTypeMask(domain._closedWorld));
+      newList.add(other.toFlatTypeMask(domain));
     } else {
       newList.add(other as FlatTypeMask);
     }
     TypeMask newMask = TypeMask.unionOf(newList, domain);
-    return newMask.withSpecialValues(
-      isNullable: isNullable,
-      hasLateSentinel: hasLateSentinel,
-    );
+    return newMask.withPowerset(powerset, domain);
   }
 
   @override
   TypeMask intersection(TypeMask other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
-    bool isNullable = this.isNullable && other.isNullable;
-    bool hasLateSentinel = this.hasLateSentinel && other.hasLateSentinel;
+    final powerset = this.powerset.intersection(other.powerset);
     if (other is UnionTypeMask) {
       if (_containsDisjointMasks(other)) {
-        return other.withSpecialValues(
-          isNullable: isNullable,
-          hasLateSentinel: hasLateSentinel,
-        );
+        return other.withPowerset(powerset, domain);
       }
       if (other._containsDisjointMasks(this)) {
-        return withSpecialValues(
-          isNullable: isNullable,
-          hasLateSentinel: hasLateSentinel,
-        );
+        return withPowerset(powerset, domain);
       }
     } else {
-      if (disjointMasks.contains(other.withoutSpecialValues())) {
-        return other.withSpecialValues(
-          isNullable: isNullable,
-          hasLateSentinel: hasLateSentinel,
-        );
+      if (disjointMasks.contains(other.withoutSpecialValues(domain))) {
+        return other.withPowerset(powerset, domain);
       }
     }
 
@@ -326,10 +267,7 @@ class UnionTypeMask extends TypeMask {
       }
     }
     TypeMask newMask = TypeMask.unionOf(intersections, domain);
-    return newMask.withSpecialValues(
-      isNullable: isNullable,
-      hasLateSentinel: hasLateSentinel,
-    );
+    return newMask.withPowerset(powerset, domain);
   }
 
   @override
@@ -343,19 +281,10 @@ class UnionTypeMask extends TypeMask {
   }
 
   @override
-  UnionTypeMask withSpecialValues({bool? isNullable, bool? hasLateSentinel}) {
-    isNullable ??= this.isNullable;
-    hasLateSentinel ??= this.hasLateSentinel;
-    if (isNullable == this.isNullable &&
-        hasLateSentinel == this.hasLateSentinel) {
-      return this;
-    }
+  UnionTypeMask withPowerset(Bitset powerset, CommonMasks domain) {
+    if (powerset == this.powerset) return this;
     List<FlatTypeMask> newList = List<FlatTypeMask>.of(disjointMasks);
-    return UnionTypeMask._compose(
-      newList,
-      isNullable: isNullable,
-      hasLateSentinel: hasLateSentinel,
-    );
+    return UnionTypeMask._internal(newList, powerset);
   }
 
   @override
@@ -365,6 +294,8 @@ class UnionTypeMask extends TypeMask {
   @override
   bool get isNull => false;
   @override
+  AbstractBool get isLateSentinel => AbstractBool.maybeOrFalse(hasLateSentinel);
+  @override
   bool get isExact => false;
 
   /// Checks whether [other] is contained in this union.
@@ -373,15 +304,16 @@ class UnionTypeMask extends TypeMask {
   /// - [other] may not be a [UnionTypeMask] itself
   /// - the cheap test matching against individual members of [disjointMasks]
   ///   must have failed.
-  bool _slowContainsCheck(TypeMask other, JClosedWorld closedWorld) {
+  bool _slowContainsCheck(TypeMask other, CommonMasks domain) {
+    final closedWorld = domain.closedWorld;
     // Unions should never make it here.
     assert(other is! UnionTypeMask);
     // Likewise, nullness should be covered.
     assert(isNullable || !other.isNullable);
     assert(hasLateSentinel || !other.hasLateSentinel);
-    other = other.withoutSpecialValues();
+    other = other.withoutSpecialValues(domain);
     // Ensure the cheap test fails.
-    assert(!disjointMasks.any((mask) => mask.containsMask(other, closedWorld)));
+    assert(!disjointMasks.any((mask) => mask.containsMask(other, domain)));
     // If we cover object, we should never get here.
     assert(!contains(closedWorld.commonElements.objectClass, closedWorld));
     // The fast test is precise for exact types.
@@ -405,7 +337,7 @@ class UnionTypeMask extends TypeMask {
   }
 
   @override
-  bool isInMask(TypeMask other, JClosedWorld closedWorld) {
+  bool isInMask(TypeMask other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
     if (isNullable && !other.isNullable) return false;
     if (hasLateSentinel && !other.hasLateSentinel) return false;
@@ -413,32 +345,32 @@ class UnionTypeMask extends TypeMask {
       final union = other;
       return disjointMasks.every((FlatTypeMask disjointMask) {
         bool contained = union.disjointMasks.any(
-          (FlatTypeMask other) => other.containsMask(disjointMask, closedWorld),
+          (FlatTypeMask other) => other.containsMask(disjointMask, domain),
         );
         if (performExtraContainsCheck &&
             !contained &&
-            union._slowContainsCheck(disjointMask, closedWorld)) {
+            union._slowContainsCheck(disjointMask, domain)) {
           throw "TypeMask based containment check failed for $this and $other.";
         }
         return contained;
       });
     }
-    return disjointMasks.every((mask) => mask.isInMask(other, closedWorld));
+    return disjointMasks.every((mask) => mask.isInMask(other, domain));
   }
 
   @override
-  bool containsMask(TypeMask other, JClosedWorld closedWorld) {
+  bool containsMask(TypeMask other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
     if (other.isNullable && !isNullable) return false;
     if (other.hasLateSentinel && !hasLateSentinel) return false;
-    if (other is UnionTypeMask) return other.isInMask(this, closedWorld);
-    other = other.withoutSpecialValues();
+    if (other is UnionTypeMask) return other.isInMask(this, domain);
+    other = other.withoutSpecialValues(domain);
     bool contained = disjointMasks.any(
-      (mask) => mask.containsMask(other, closedWorld),
+      (mask) => mask.containsMask(other, domain),
     );
     if (performExtraContainsCheck &&
         !contained &&
-        _slowContainsCheck(other, closedWorld)) {
+        _slowContainsCheck(other, domain)) {
       throw "TypeMask based containment check failed for $this and $other.";
     }
     return contained;
@@ -497,7 +429,8 @@ class UnionTypeMask extends TypeMask {
   }
 
   @override
-  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
+  bool canHit(MemberEntity element, Name name, CommonMasks domain) {
+    final closedWorld = domain.closedWorld;
     if (element.enclosingClass == closedWorld.commonElements.jsNullClass) {
       return isNullable;
     }
@@ -507,17 +440,14 @@ class UnionTypeMask extends TypeMask {
               name,
               element,
             )) ||
-        disjointMasks.any((e) => e.canHit(element, name, closedWorld));
+        disjointMasks.any((e) => e.canHit(element, name, domain));
   }
 
   @override
   MemberEntity? locateSingleMember(Selector selector, CommonMasks domain) {
     MemberEntity? candidate;
     for (FlatTypeMask mask in disjointMasks) {
-      mask = mask.withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      );
+      mask = mask.withPowerset(powerset, domain);
       final current = mask.locateSingleMember(selector, domain);
       if (current == null) {
         return null;
@@ -558,7 +488,8 @@ class UnionTypeMask extends TypeMask {
       if (hasLateSentinel) 'sentinel',
       ...disjointMasks.map((TypeMask mask) => mask.toString()).toList()..sort(),
     ].join(", ");
-    return 'Union($masksString)';
+    return 'Union($masksString, '
+        'powerset: ${TypeMask.powersetToString(powerset)})';
   }
 
   @override

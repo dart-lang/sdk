@@ -4,42 +4,63 @@
 
 part of 'fragment.dart';
 
-class FieldFragment implements Fragment, Inferable, InferredTypeListener {
+class FieldFragment
+    with FieldDeclarationMixin
+    implements Fragment, FieldDeclaration, Inferable, InferredTypeListener {
   @override
   final String name;
 
+  @override
   final Uri fileUri;
+
+  @override
   final int nameOffset;
+
   final int endOffset;
+
   Token? _initializerToken;
   Token? _constInitializerToken;
+
+  @override
   final List<MetadataBuilder>? metadata;
+
+  @override
   final TypeBuilder type;
+
   final bool isTopLevel;
   final Modifiers modifiers;
   // TODO(johnniwinther): Create separate fragment for primary constructor
   // fields.
   final bool isPrimaryConstructorField;
 
+  final LookupScope enclosingScope;
+
+  final DeclarationFragment? enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
+
   SourcePropertyBuilder? _builder;
 
   late final _FieldEncoding _encoding;
 
-  FieldFragment(
-      {required this.name,
-      required this.fileUri,
-      required this.nameOffset,
-      required this.endOffset,
-      required Token? initializerToken,
-      required Token? constInitializerToken,
-      required this.metadata,
-      required this.type,
-      required this.isTopLevel,
-      required this.modifiers,
-      required this.isPrimaryConstructorField})
-      : _initializerToken = initializerToken,
+  FieldFragment({
+    required this.name,
+    required this.fileUri,
+    required this.nameOffset,
+    required this.endOffset,
+    required Token? initializerToken,
+    required Token? constInitializerToken,
+    required this.metadata,
+    required this.type,
+    required this.isTopLevel,
+    required this.modifiers,
+    required this.isPrimaryConstructorField,
+    required this.enclosingScope,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  })  : _initializerToken = initializerToken,
         _constInitializerToken = constInitializerToken;
 
+  @override
   bool get hasSetter {
     if (modifiers.isConst) {
       return false;
@@ -54,6 +75,10 @@ class FieldFragment implements Fragment, Inferable, InferredTypeListener {
     }
   }
 
+  /// Returns the token for the initializer of this field, if any.
+  ///
+  /// This can only be called once and will hand over the responsibility of
+  /// the token to the caller.
   Token? get initializerToken {
     Token? result = _initializerToken;
     // Ensure that we don't hold onto the token.
@@ -61,7 +86,12 @@ class FieldFragment implements Fragment, Inferable, InferredTypeListener {
     return result;
   }
 
-  // Coverage-ignore(suite): Not run.
+  /// Returns the token for the initializer of this field, if any. This is the
+  /// same as [initializerToken] but is used to signal that the initializer
+  /// needs to be computed for outline expressions.
+  ///
+  /// This can only be called once and will hand over the responsibility of
+  /// the token to the caller.
   Token? get constInitializerToken {
     Token? result = _constInitializerToken;
     // Ensure that we don't hold onto the token.
@@ -161,12 +191,63 @@ class FieldFragment implements Fragment, Inferable, InferredTypeListener {
       } else {
         // A field with no type and initializer or an instance field without
         // type and initializer need to have the type inferred.
-        _encoding.type =
-            new InferredType.fromFieldFragmentInitializer(this, token);
+        _encoding.type = new InferredType(
+            libraryBuilder: libraryBuilder,
+            typeBuilder: type,
+            inferType: inferType,
+            computeType: _computeInferredType,
+            fileUri: fileUri,
+            name: name,
+            nameOffset: nameOffset,
+            nameLength: name.length,
+            token: token);
         type.registerInferable(this);
       }
     }
   }
+
+  DartType _computeInferredType(
+      ClassHierarchyBase classHierarchy, Token? token) {
+    DartType? inferredType;
+    SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
+    DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
+    if (token != null) {
+      InterfaceType? enclosingClassThisType = declarationBuilder
+              is SourceClassBuilder
+          ? libraryBuilder.loader.typeInferenceEngine.coreTypes
+              .thisInterfaceType(
+                  declarationBuilder.cls, libraryBuilder.library.nonNullable)
+          : null;
+      LookupScope scope = enclosingScope;
+      TypeInferrer typeInferrer =
+          libraryBuilder.loader.typeInferenceEngine.createTopLevelTypeInferrer(
+              fileUri,
+              enclosingClassThisType,
+              libraryBuilder,
+              scope,
+              builder
+                  .dataForTesting
+                  // Coverage-ignore(suite): Not run.
+                  ?.inferenceData);
+      BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
+      BodyBuilder bodyBuilder = libraryBuilder.loader.createBodyBuilderForField(
+          libraryBuilder, bodyBuilderContext, scope, typeInferrer, fileUri);
+      bodyBuilder.constantContext =
+          modifiers.isConst ? ConstantContext.inferred : ConstantContext.none;
+      bodyBuilder.inFieldInitializer = true;
+      bodyBuilder.inLateFieldInitializer = modifiers.isLate;
+      Expression initializer = bodyBuilder.parseFieldInitializer(token);
+
+      inferredType =
+          typeInferrer.inferImplicitFieldType(bodyBuilder, initializer);
+    } else {
+      inferredType = const DynamicType();
+    }
+    return inferredType;
+  }
+
+  @override
+  bool get isEnumElement => false;
 
   BodyBuilderContext createBodyBuilderContext() {
     return new _FieldFragmentBodyBuilderContext(
@@ -180,6 +261,7 @@ class FieldFragment implements Fragment, Inferable, InferredTypeListener {
     _encoding.registerSuperCall();
   }
 
+  @override
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
       NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
       {required List<TypeParameter>? classTypeParameters}) {
@@ -192,6 +274,7 @@ class FieldFragment implements Fragment, Inferable, InferredTypeListener {
     _encoding.registerMembers(f);
   }
 
+  @override
   Iterable<Reference> getExportedMemberReferences(FieldReference references) {
     return [
       references.getterReference!,
@@ -201,34 +284,35 @@ class FieldFragment implements Fragment, Inferable, InferredTypeListener {
 
   shared.Expression? _initializerExpression;
 
+  @override
   // Coverage-ignore(suite): Not run.
   shared.Expression? get initializerExpression => _initializerExpression;
 
+  @override
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       List<Annotatable> annotatables,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
-      _buildMetadataForOutlineExpressions(libraryBuilder, parentScope,
+      buildMetadataForOutlineExpressions(libraryBuilder, enclosingScope,
           bodyBuilderContext, annotatable, metadata,
           fileUri: fileUri, createFileUriExpression: createFileUriExpression);
     }
     // For modular compilation we need to include initializers of all const
     // fields and all non-static final fields in classes with const constructors
     // into the outline.
+    Token? token = constInitializerToken;
     if ((modifiers.isConst ||
             (isFinal &&
                 isClassInstanceMember &&
                 (declarationBuilder as SourceClassBuilder)
                     .declaresConstConstructor)) &&
-        _constInitializerToken != null) {
-      Token initializerToken = _constInitializerToken!;
-      LookupScope scope = declarationBuilder?.scope ?? libraryBuilder.scope;
+        token != null) {
+      LookupScope scope = enclosingScope;
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
               libraryBuilder, createBodyBuilderContext(), scope, fileUri);
@@ -236,20 +320,20 @@ class FieldFragment implements Fragment, Inferable, InferredTypeListener {
           ? ConstantContext.inferred
           : ConstantContext.required;
       Expression initializer = bodyBuilder.typeInferrer
-          .inferFieldInitializer(bodyBuilder, fieldType,
-              bodyBuilder.parseFieldInitializer(initializerToken))
+          .inferFieldInitializer(
+              bodyBuilder, fieldType, bodyBuilder.parseFieldInitializer(token))
           .expression;
       buildBody(classHierarchy.coreTypes, initializer);
       bodyBuilder.performBacklogComputations();
       if (computeSharedExpressionForTesting) {
         // Coverage-ignore-block(suite): Not run.
         _initializerExpression = parseFieldInitializer(libraryBuilder.loader,
-            initializerToken, libraryBuilder.importUri, fileUri, scope);
+            token, libraryBuilder.importUri, fileUri, scope);
       }
     }
-    _constInitializerToken = null;
   }
 
+  @override
   void checkTypes(SourceLibraryBuilder libraryBuilder,
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
       {required bool isAbstract, required bool isExternal}) {
@@ -265,6 +349,7 @@ class FieldFragment implements Fragment, Inferable, InferredTypeListener {
         fileUri: fileUri);
   }
 
+  @override
   void ensureTypes(
       ClassMembersBuilder membersBuilder,
       Set<ClassMember>? getterOverrideDependencies,
@@ -281,11 +366,13 @@ class FieldFragment implements Fragment, Inferable, InferredTypeListener {
           nameLength: name.length,
           isAssignable: hasSetter);
     } else {
+      // Coverage-ignore-block(suite): Not run.
       type.build(builder.libraryBuilder, TypeUse.fieldType,
           hierarchy: membersBuilder.hierarchyBuilder);
     }
   }
 
+  @override
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     sourceClassBuilder.checkVarianceInField(typeEnvironment,
@@ -297,6 +384,7 @@ class FieldFragment implements Fragment, Inferable, InferredTypeListener {
         fileOffset: nameOffset);
   }
 
+  @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
     if (type is! OmittedTypeBuilder) {
       context.reportInboundReferenceIssuesForType(type);
@@ -305,8 +393,10 @@ class FieldFragment implements Fragment, Inferable, InferredTypeListener {
     return 0;
   }
 
+  @override
   Member get readTarget => _encoding.readTarget;
 
+  @override
   Member? get writeTarget => _encoding.writeTarget;
 
   /// Whether the body of this field has been built.
@@ -333,100 +423,61 @@ class FieldFragment implements Fragment, Inferable, InferredTypeListener {
     _encoding.createBodies(coreTypes, initializer);
   }
 
+  @override
   DartType get fieldType => _encoding.type;
 
   @override
-  void inferTypes(ClassHierarchyBase hierarchy) {
-    inferType(hierarchy);
-  }
+  // Coverage-ignore(suite): Not run.
+  DartType get _fieldTypeInternal => _encoding.type;
 
-  DartType inferType(ClassHierarchyBase hierarchy) {
-    if (fieldType is! InferredType) {
-      // We have already inferred a type.
-      return fieldType;
-    }
-
-    return builder.libraryBuilder.loader
-        .withUriForCrashReporting(fileUri, nameOffset, () {
-      InferredType implicitFieldType = fieldType as InferredType;
-      DartType inferredType = implicitFieldType.computeType(hierarchy);
-      if (fieldType is InferredType) {
-        // `fieldType` may have changed if a circularity was detected when
-        // [inferredType] was computed.
-        type.registerInferredType(inferredType);
-
-        // TODO(johnniwinther): Isn't this handled in the [fieldType] setter?
-        IncludesTypeParametersNonCovariantly? needsCheckVisitor;
-        DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
-        if (declarationBuilder is ClassBuilder) {
-          Class enclosingClass = declarationBuilder.cls;
-          if (enclosingClass.typeParameters.isNotEmpty) {
-            needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
-                enclosingClass.typeParameters,
-                // We are checking the field type as if it is the type of the
-                // parameter of the implicit setter and this is a contravariant
-                // position.
-                initialVariance: Variance.contravariant);
-          }
-        }
-        if (needsCheckVisitor != null) {
-          if (fieldType.accept(needsCheckVisitor)) {
-            _encoding.setCovariantByClass();
-          }
-        }
-      }
-      return fieldType;
-    });
-  }
-
-  void set fieldType(DartType value) {
+  @override
+  void set _fieldTypeInternal(DartType value) {
     _encoding.type = value;
-    DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
-    // TODO(johnniwinther): Should this be `hasSetter`?
-    if (!isFinal && !modifiers.isConst && declarationBuilder is ClassBuilder) {
-      Class enclosingClass = declarationBuilder.cls;
-      if (enclosingClass.typeParameters.isNotEmpty) {
-        IncludesTypeParametersNonCovariantly needsCheckVisitor =
-            new IncludesTypeParametersNonCovariantly(
-                enclosingClass.typeParameters,
-                // We are checking the field type as if it is the type of the
-                // parameter of the implicit setter and this is a contravariant
-                // position.
-                initialVariance: Variance.contravariant);
-        if (value.accept(needsCheckVisitor)) {
-          _encoding.setCovariantByClass();
-        }
-      }
-    }
   }
 
+  @override
+  void _setCovariantByClassInternal() {
+    _encoding.setCovariantByClass();
+  }
+
+  @override
   Initializer buildErroneousInitializer(Expression effect, Expression value,
       {required int fileOffset}) {
     return _encoding.buildErroneousInitializer(effect, value,
         fileOffset: fileOffset);
   }
 
+  @override
   void buildImplicitDefaultValue() {
     _encoding.buildImplicitDefaultValue();
   }
 
+  @override
   Initializer buildImplicitInitializer() {
     return _encoding.buildImplicitInitializer();
   }
 
+  @override
   List<Initializer> buildInitializer(int fileOffset, Expression value,
       {required bool isSynthetic}) {
     return _encoding.createInitializer(fileOffset, value,
         isSynthetic: isSynthetic);
   }
 
+  @override
   bool get hasInitializer => modifiers.hasInitializer;
 
+  @override
   bool get isExtensionTypeDeclaredInstanceField =>
       builder.isExtensionTypeInstanceMember && !isPrimaryConstructorField;
 
+  @override
   bool get isFinal => modifiers.isFinal;
 
+  @override
+  bool get isConst => modifiers.isConst;
+
+  @override
   bool get isLate => modifiers.isLate;
 
   bool get _isStatic =>
@@ -436,11 +487,8 @@ class FieldFragment implements Fragment, Inferable, InferredTypeListener {
   String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
 
   @override
-  void onInferredType(DartType type) {
-    fieldType = type;
-  }
-
   List<ClassMember> get localMembers => _encoding.localMembers;
 
+  @override
   List<ClassMember> get localSetters => _encoding.localSetters;
 }

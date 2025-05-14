@@ -91,7 +91,9 @@ enum PragmaAnnotation {
   lateCheck('late:check'),
 
   loadLibraryPriority('load-priority', hasOption: true),
-  resourceIdentifier('resource-identifier');
+  resourceIdentifier('resource-identifier'),
+
+  throwWithoutHelperFrame('stack-starts-at-throw');
 
   final String name;
   final bool forFunctionsOnly;
@@ -357,6 +359,11 @@ abstract class AnnotationsData {
 
   /// Determines whether [member] is annotated as a resource identifier.
   bool methodIsResourceIdentifier(FunctionEntity member);
+
+  /// Is this node in a context requesting that the captured stack in a `throw`
+  /// expression generates extra code to avoid having a runtime helper on the
+  /// stack?
+  bool throwWithoutHelperFrame(ir.TreeNode node);
 }
 
 class AnnotationsDataImpl implements AnnotationsData {
@@ -642,6 +649,22 @@ class AnnotationsDataImpl implements AnnotationsData {
       if (annotations.contains(PragmaAnnotation.resourceIdentifier)) {
         return true;
       }
+    }
+    return false;
+  }
+
+  @override
+  bool throwWithoutHelperFrame(ir.TreeNode node) {
+    return _throwWithoutHelperFrame(_findContext(node));
+  }
+
+  bool _throwWithoutHelperFrame(DirectivesContext? context) {
+    while (context != null) {
+      EnumSet<PragmaAnnotation>? annotations = context.annotations;
+      if (annotations.contains(PragmaAnnotation.throwWithoutHelperFrame)) {
+        return true;
+      }
+      context = context.parent;
     }
     return false;
   }

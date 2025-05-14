@@ -13,11 +13,10 @@ class ClassElementFlags {
   static const int _isBase = 1 << 3;
   static const int _isFinal = 1 << 4;
   static const int _isInterface = 1 << 5;
-  static const int _isMacro = 1 << 6;
-  static const int _isMixinApplication = 1 << 7;
-  static const int _isMixinClass = 1 << 8;
-  static const int _isSealed = 1 << 9;
-  static const int _isSimplyBounded = 1 << 10;
+  static const int _isMixinApplication = 1 << 6;
+  static const int _isMixinClass = 1 << 7;
+  static const int _isSealed = 1 << 8;
+  static const int _isSimplyBounded = 1 << 9;
 
   static void read(
     SummaryDataReader reader,
@@ -30,7 +29,6 @@ class ClassElementFlags {
     element.isBase = (byte & _isBase) != 0;
     element.isFinal = (byte & _isFinal) != 0;
     element.isInterface = (byte & _isInterface) != 0;
-    element.isMacro = (byte & _isMacro) != 0;
     element.isMixinApplication = (byte & _isMixinApplication) != 0;
     element.isMixinClass = (byte & _isMixinClass) != 0;
     element.isSealed = (byte & _isSealed) != 0;
@@ -48,7 +46,6 @@ class ClassElementFlags {
     result |= element.isBase ? _isBase : 0;
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isInterface ? _isInterface : 0;
-    result |= element.isMacro ? _isMacro : 0;
     result |= element.isMixinApplication ? _isMixinApplication : 0;
     result |= element.isMixinClass ? _isMixinClass : 0;
     result |= element.isSealed ? _isSealed : 0;
@@ -127,8 +124,7 @@ class ExtensionTypeElementFlags {
   static const int _hasRepresentationSelfReference = 1 << 0;
   static const int _hasImplementsSelfReference = 1 << 1;
   static const int _isAugmentation = 1 << 2;
-  static const int _isAugmentationChainStart = 1 << 3;
-  static const int _isSimplyBounded = 1 << 4;
+  static const int _isSimplyBounded = 1 << 3;
 
   static void read(SummaryDataReader reader, ExtensionTypeElementImpl element) {
     var byte = reader.readByte();
@@ -137,7 +133,6 @@ class ExtensionTypeElementFlags {
     element.hasImplementsSelfReference =
         (byte & _hasImplementsSelfReference) != 0;
     element.isAugmentation = (byte & _isAugmentation) != 0;
-    element.isAugmentationChainStart = (byte & _isAugmentationChainStart) != 0;
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
 
@@ -149,7 +144,6 @@ class ExtensionTypeElementFlags {
     result |=
         element.hasImplementsSelfReference ? _hasImplementsSelfReference : 0;
     result |= element.isAugmentation ? _isAugmentation : 0;
-    result |= element.isAugmentationChainStart ? _isAugmentationChainStart : 0;
     result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeByte(result);
   }
@@ -223,7 +217,8 @@ class FunctionElementFlags {
   static const int _isGenerator = 1 << 4;
   static const int _isStatic = 1 << 5;
 
-  static void read(SummaryDataReader reader, FunctionElementImpl element) {
+  static void read(
+      SummaryDataReader reader, TopLevelFunctionFragmentImpl element) {
     var byte = reader.readByte();
     element.hasImplicitReturnType = (byte & _hasImplicitReturnType) != 0;
     element.isAsynchronous = (byte & _isAsynchronous) != 0;
@@ -381,15 +376,20 @@ class PropertyAccessorElementFlags {
   static const int _isGenerator = 1 << 9;
   static const int _isStatic = 1 << 10;
 
+  static bool isGetter(int flags) => (flags & _isGetter) != 0;
+
   static void read(
     SummaryDataReader reader,
     PropertyAccessorElementImpl element,
   ) {
     var byte = reader.readUInt30();
+    setFlagsBasedOnFlagByte(element, byte);
+  }
+
+  static void setFlagsBasedOnFlagByte(
+      PropertyAccessorElementImpl element, int byte) {
     element.invokesSuperSelf = (byte & _invokesSuperSelf) != 0;
     element.isAugmentation = (byte & _isAugmentation) != 0;
-    element.isGetter = (byte & _isGetter) != 0;
-    element.isSetter = (byte & _isSetter) != 0;
     element.hasImplicitReturnType = (byte & _hasImplicitReturnType) != 0;
     element.isAbstract = (byte & _isAbstract) != 0;
     element.isAsynchronous = (byte & _isAsynchronous) != 0;

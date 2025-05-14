@@ -79,12 +79,12 @@ abstract class ModularEmitterBase implements ModularEmitter {
   }
 
   @override
-  js.Name typeAccessNewRti(ClassEntity element) {
+  js.Name typeAccess(ClassEntity element) {
     return _namer.className(element);
   }
 
   @override
-  js.Name typeVariableAccessNewRti(TypeVariableEntity element) {
+  js.Name typeVariableAccess(TypeVariableEntity element) {
     return _namer.globalNameForInterfaceTypeVariable(element);
   }
 

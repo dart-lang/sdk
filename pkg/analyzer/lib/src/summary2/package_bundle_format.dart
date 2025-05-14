@@ -24,8 +24,7 @@ class PackageBundleBuilder {
     required Uint8List resolutionBytes,
     PackageBundleSdk? sdk,
   }) {
-    var byteSink = ByteSink();
-    var sink = BufferedSink(byteSink);
+    var sink = BufferedSink();
 
     if (sdk != null) {
       sink.writeByte(1);
@@ -44,7 +43,7 @@ class PackageBundleBuilder {
 
     sink.writeUint8List(resolutionBytes);
 
-    return sink.flushAndTake();
+    return sink.takeBytes();
   }
 }
 

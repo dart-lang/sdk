@@ -15,21 +15,17 @@ import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_class_builder.dart';
-import '../source/constructor_declaration.dart';
 import '../source/diet_listener.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
-import '../source/source_factory_builder.dart';
-import '../source/source_field_builder.dart';
-import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
+import '../source/source_property_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
@@ -40,7 +36,7 @@ import 'internal_ast.dart';
 /// Interface that defines the interface between the [BodyBuilder] and the
 /// member/declaration whose AST is being built.
 abstract class BodyBuilderContext {
-  final BodyBuilderDeclarationContext _declarationContext;
+  final BodyBuilderDeclarationContext declarationContext;
 
   final bool _isDeclarationInstanceMember;
 
@@ -48,12 +44,12 @@ abstract class BodyBuilderContext {
       LibraryBuilder libraryBuilder, DeclarationBuilder? declarationBuilder,
       {required bool isDeclarationInstanceMember})
       : _isDeclarationInstanceMember = isDeclarationInstanceMember,
-        _declarationContext = new BodyBuilderDeclarationContext(
+        declarationContext = new BodyBuilderDeclarationContext(
             libraryBuilder, declarationBuilder);
 
   /// Returns `true` if the enclosing declaration declares a const constructor.
   bool get declarationDeclaresConstConstructor =>
-      _declarationContext.declaresConstConstructor;
+      declarationContext.declaresConstConstructor;
 
   /// Returns the file offset of the name of the member whose body is being
   /// built.
@@ -61,6 +57,8 @@ abstract class BodyBuilderContext {
   /// For an unnamed constructor this is offset of the class name.
   ///
   /// This is used for error reporting.
+  // TODO(johnniwinther): Replaces this with something better. It is not only
+  // used for error reporting.
   int get memberNameOffset {
     throw new UnsupportedError("${runtimeType}.memberNameOffset");
   }
@@ -70,6 +68,7 @@ abstract class BodyBuilderContext {
   /// For an unnamed constructor this is 0.
   ///
   /// This is used for error reporting.
+  // TODO(johnniwinther): Replaces this with something better.
   int get memberNameLength {
     throw new UnsupportedError('${runtimeType}.memberNameLength');
   }
@@ -81,13 +80,13 @@ abstract class BodyBuilderContext {
   /// returned.
   Member? lookupSuperMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter = false}) {
-    return _declarationContext.lookupSuperMember(hierarchy, name,
+    return declarationContext.lookupSuperMember(hierarchy, name,
         isSetter: isSetter);
   }
 
   /// Looks up the constructor by the given [name] in the enclosing declaration.
   Builder? lookupConstructor(Name name) {
-    return _declarationContext.lookupConstructor(name);
+    return declarationContext.lookupConstructor(name);
   }
 
   /// Creates an [Initializer] for a redirecting initializer call to
@@ -96,7 +95,7 @@ abstract class BodyBuilderContext {
   Initializer buildRedirectingInitializer(
       Builder constructorBuilder, Arguments arguments,
       {required int fileOffset}) {
-    return _declarationContext.buildRedirectingInitializer(
+    return declarationContext.buildRedirectingInitializer(
         constructorBuilder, arguments,
         fileOffset: fileOffset);
   }
@@ -104,7 +103,7 @@ abstract class BodyBuilderContext {
   /// Looks up the constructor by the given [name] in the superclass of the
   /// enclosing class.
   Constructor? lookupSuperConstructor(Name name) {
-    return _declarationContext.lookupSuperConstructor(name);
+    return declarationContext.lookupSuperConstructor(name);
   }
 
   /// Looks up the member by the given [name] declared in the enclosing
@@ -112,25 +111,15 @@ abstract class BodyBuilderContext {
   ///
   /// If [required] is `true`, an error is thrown if the member is not found.
   Builder? lookupLocalMember(String name, {bool required = false}) {
-    return _declarationContext.lookupLocalMember(name, required: required);
+    return declarationContext.lookupLocalMember(name, required: required);
   }
-
-  /// Returns `true` if the enclosing class in an augmenting class.
-  bool get isAugmentationClass => _declarationContext.isAugmentationClass;
 
   /// Returns `true` if the enclosing entity is an extension type.
   bool get isExtensionTypeDeclaration =>
-      _declarationContext.isExtensionTypeDeclaration;
+      declarationContext.isExtensionTypeDeclaration;
 
   /// Returns `true` if the enclosing entity is an extension.
-  bool get isExtensionDeclaration => _declarationContext.isExtensionDeclaration;
-
-  /// Looks up the static member by the given [name] in the origin of the
-  /// enclosing declaration.
-  Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
-    return _declarationContext.lookupStaticOriginMember(
-        name, fileOffset, fileUri);
-  }
+  bool get isExtensionDeclaration => declarationContext.isExtensionDeclaration;
 
   /// Returns the [FormalParameterBuilder] by the given [name] declared in the
   /// member whose body is being built.
@@ -263,17 +252,17 @@ abstract class BodyBuilderContext {
 
   /// Returns `true` if the enclosing class of the member whose body is being
   /// built is marked as a `mixin` class.
-  bool get isMixinClass => _declarationContext.isMixinClass;
+  bool get isMixinClass => declarationContext.isMixinClass;
 
   /// Returns `true` if the enclosing class of the member whose body is being
   /// built is marked as an enum.
-  bool get isEnumClass => _declarationContext.isEnumClass;
+  bool get isEnumClass => declarationContext.isEnumClass;
 
   /// Returns the name of the enclosing class or extension type declaration.
-  String get className => _declarationContext.className;
+  String get className => declarationContext.className;
 
   /// Returns the name of the superclass of the enclosing class.
-  String get superClassName => _declarationContext.superClassName;
+  String get superClassName => declarationContext.superClassName;
 
   /// Substitute [fieldType] from the context of the enclosing class or
   /// extension type declaration of a generative constructor.
@@ -287,7 +276,7 @@ abstract class BodyBuilderContext {
 
   /// Registers that the field [builder] has been initialized in generative
   /// constructor whose body is being built.
-  void registerInitializedField(PropertyBuilder builder) {
+  void registerInitializedField(SourcePropertyBuilder builder) {
     throw new UnsupportedError('${runtimeType}.registerInitializedField');
   }
 
@@ -370,15 +359,20 @@ abstract class BodyBuilderContext {
   }
 
   /// Registers [body] as the result of the body building.
-  void setBody(Statement body) {
-    throw new UnsupportedError("${runtimeType}.setBody");
+  void registerFunctionBody(Statement body) {
+    throw new UnsupportedError("${runtimeType}.registerFunctionBody");
+  }
+
+  /// Registers that the constructor has no body.
+  void registerNoBodyConstructor() {
+    throw new UnsupportedError("${runtimeType}.registerNoBodyConstructor");
   }
 
   /// Returns the type of `this` in the body being built.
   ///
   /// This is only used for classes. For extensions and extension types, `this`
   /// is handled via a synthetic this variable.
-  InterfaceType? get thisType => _declarationContext.thisType;
+  InterfaceType? get thisType => declarationContext.thisType;
 }
 
 /// Interface that provides information for a [BodyBuilderContext] from the
@@ -431,16 +425,10 @@ abstract class BodyBuilderDeclarationContext {
 
   Builder? lookupLocalMember(String name, {bool required = false});
 
-  bool get isAugmentationClass => false;
-
   bool get isExtensionTypeDeclaration => false;
 
   // Coverage-ignore(suite): Not run.
   bool get isExtensionDeclaration => false;
-
-  Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
-    throw new UnsupportedError('${runtimeType}.lookupStaticOriginMember');
-  }
 
   bool get isMixinClass => false;
 
@@ -534,16 +522,6 @@ class _SourceClassBodyBuilderDeclarationContext
   @override
   Constructor? lookupSuperConstructor(Name name) {
     return _sourceClassBuilder.lookupSuperConstructor(name);
-  }
-
-  @override
-  bool get isAugmentationClass => _sourceClassBuilder.isAugmenting;
-
-  @override
-  Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
-    // The scope of an augmented method includes the origin class.
-    return _sourceClassBuilder.origin
-        .findStaticBuilder(name, fileOffset, fileUri, _libraryBuilder);
   }
 
   @override
@@ -716,300 +694,6 @@ class TypedefBodyBuilderContext extends BodyBuilderContext {
             isDeclarationInstanceMember: false);
 }
 
-mixin _MemberBodyBuilderContext<T extends SourceMemberBuilder>
-    implements BodyBuilderContext {
-  T get _member;
-
-  Member get _builtMember;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  AugmentSuperTarget? get augmentSuperTarget {
-    if (_member.isAugmentation) {
-      return _member.augmentSuperTarget;
-    }
-    return null;
-  }
-
-  @override
-  int get memberNameOffset => _member.fileOffset;
-
-  @override
-  void registerSuperCall() {
-    _builtMember.transformerFlags |= TransformerFlag.superCalls;
-  }
-}
-
-class FieldBodyBuilderContext extends BodyBuilderContext
-    with _MemberBodyBuilderContext<SourceFieldBuilder> {
-  @override
-  SourceFieldBuilder _member;
-
-  @override
-  final Member _builtMember;
-
-  FieldBodyBuilderContext(this._member, this._builtMember)
-      : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isLateField => _member.isLate;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAbstractField => _member.isAbstract;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExternalField => _member.isExternal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
-    if (_member.isExtensionMember && !_member.isExternal) {
-      return InstanceTypeParameterAccessState.Invalid;
-    } else {
-      return super.instanceTypeParameterAccessState;
-    }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ConstantContext get constantContext {
-    return _member.isConst
-        ? ConstantContext.inferred
-        : !_member.isStatic && _declarationContext.declaresConstConstructor
-            ? ConstantContext.required
-            : ConstantContext.none;
-  }
-}
-
-mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
-    implements BodyBuilderContext {
-  T get _member;
-
-  @override
-  VariableDeclaration getFormalParameter(int index) {
-    return _member.getFormalParameter(index);
-  }
-
-  @override
-  VariableDeclaration? getTearOffParameter(int index) {
-    return _member.getTearOffParameter(index);
-  }
-
-  @override
-  TypeBuilder get returnType => _member.returnType;
-
-  @override
-  void setBody(Statement body) {
-    _member.body = body;
-  }
-
-  @override
-  List<FormalParameterBuilder>? get formals => _member.formals;
-
-  @override
-  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
-    return _member.computeFormalParameterInitializerScope(parent);
-  }
-
-  @override
-  FormalParameterBuilder? getFormalParameterByName(Identifier name) {
-    return _member.getFormal(name);
-  }
-
-  @override
-  int get memberNameLength => _member.name.length;
-
-  @override
-  FunctionNode get function {
-    return _member.function;
-  }
-
-  @override
-  bool get isFactory {
-    return _member.isFactory;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isNativeMethod {
-    return _member.isNative;
-  }
-
-  @override
-  bool get isExternalFunction {
-    return _member.isExternal;
-  }
-
-  @override
-  bool get isSetter {
-    return _member.isSetter;
-  }
-}
-
-mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
-    implements BodyBuilderContext {
-  T get _member;
-
-  TreeNode get _initializerParent;
-
-  @override
-  DartType substituteFieldType(DartType fieldType) {
-    return _member.substituteFieldType(fieldType);
-  }
-
-  @override
-  void registerInitializedField(PropertyBuilder builder) {
-    _member.registerInitializedField(builder);
-  }
-
-  @override
-  void prepareInitializers() {
-    _member.prepareInitializers();
-  }
-
-  @override
-  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
-      {required InitializerInferenceResult? inferenceResult}) {
-    _member.addInitializer(initializer, helper,
-        inferenceResult: inferenceResult, parent: _initializerParent);
-  }
-
-  @override
-  InitializerInferenceResult inferInitializer(Initializer initializer,
-      ExpressionGeneratorHelper helper, TypeInferrer typeInferrer) {
-    return typeInferrer.inferInitializer(helper, _member, initializer);
-  }
-
-  @override
-  DartType get returnTypeContext {
-    return const DynamicType();
-  }
-
-  @override
-  bool get isConstructor => true;
-
-  @override
-  bool get isConstConstructor {
-    return _member.isConst;
-  }
-
-  @override
-  bool get isExternalConstructor {
-    return _member.isExternal;
-  }
-
-  @override
-  ConstantContext get constantContext {
-    return isConstConstructor ? ConstantContext.required : ConstantContext.none;
-  }
-}
-
-class ConstructorBodyBuilderContext extends BodyBuilderContext
-    with
-        _FunctionBodyBuilderContextMixin<DeclaredSourceConstructorBuilder>,
-        _ConstructorBodyBuilderContextMixin<DeclaredSourceConstructorBuilder>,
-        _MemberBodyBuilderContext<DeclaredSourceConstructorBuilder> {
-  @override
-  final DeclaredSourceConstructorBuilder _member;
-
-  @override
-  final Member _builtMember;
-
-  ConstructorBodyBuilderContext(this._member, this._builtMember)
-      : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
-
-  @override
-  bool isConstructorCyclic(String name) {
-    return _declarationContext.isConstructorCyclic(_member.name, name);
-  }
-
-  @override
-  bool needsImplicitSuperInitializer(CoreTypes coreTypes) {
-    return !_declarationContext.isObjectClass(coreTypes) &&
-        !isExternalConstructor;
-  }
-
-  @override
-  TreeNode get _initializerParent => _member.invokeTarget;
-}
-
-class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
-    with
-        _FunctionBodyBuilderContextMixin<SourceExtensionTypeConstructorBuilder>,
-        _ConstructorBodyBuilderContextMixin<
-            SourceExtensionTypeConstructorBuilder>,
-        _MemberBodyBuilderContext<SourceExtensionTypeConstructorBuilder> {
-  @override
-  final SourceExtensionTypeConstructorBuilder _member;
-  @override
-  final Member _builtMember;
-
-  ExtensionTypeConstructorBodyBuilderContext(this._member, this._builtMember)
-      : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
-
-  @override
-  bool isConstructorCyclic(String name) {
-    return _declarationContext.isConstructorCyclic(_member.name, name);
-  }
-
-  @override
-  TreeNode get _initializerParent => _member.invokeTarget;
-}
-
-class FactoryBodyBuilderContext extends BodyBuilderContext
-    with
-        _MemberBodyBuilderContext<SourceFactoryBuilder>,
-        _FunctionBodyBuilderContextMixin<SourceFactoryBuilder> {
-  @override
-  final SourceFactoryBuilder _member;
-
-  @override
-  final Member _builtMember;
-
-  FactoryBodyBuilderContext(this._member, this._builtMember)
-      : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
-
-  @override
-  void setAsyncModifier(AsyncMarker asyncModifier) {
-    _member.asyncModifier = asyncModifier;
-  }
-
-  @override
-  DartType get returnTypeContext {
-    return _member.function.returnType;
-  }
-}
-
-class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
-    with
-        _MemberBodyBuilderContext<RedirectingFactoryBuilder>,
-        _FunctionBodyBuilderContextMixin<RedirectingFactoryBuilder> {
-  @override
-  final RedirectingFactoryBuilder _member;
-
-  @override
-  final Member _builtMember;
-
-  RedirectingFactoryBodyBuilderContext(this._member, this._builtMember)
-      : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
-
-  @override
-  bool get isRedirectingFactory => true;
-
-  @override
-  String get redirectingFactoryTargetName {
-    return _member.redirectionTarget.fullNameForErrors;
-  }
-}
-
 class ParameterBodyBuilderContext extends BodyBuilderContext {
   factory ParameterBodyBuilderContext(
       LibraryBuilder libraryBuilder,
@@ -1033,9 +717,12 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
   final Procedure _procedure;
 
   ExpressionCompilerProcedureBodyBuildContext(
-      DietListener listener, this._procedure,
+      DietListener listener,
+      this._procedure,
+      SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder? declarationBuilder,
       {required bool isDeclarationInstanceMember})
-      : super(listener.libraryBuilder, listener.currentDeclaration,
+      : super(libraryBuilder, declarationBuilder,
             isDeclarationInstanceMember: isDeclarationInstanceMember);
 
   @override

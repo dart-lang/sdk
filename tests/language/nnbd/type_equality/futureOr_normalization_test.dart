@@ -32,15 +32,25 @@ main() {
   Expect.equals(extractType<Embed<dynamic>>(), extractFutureOrType<dynamic>());
   Expect.equals(extractType<Embed<Object>>(), extractFutureOrType<Object>());
   Expect.equals(
-      extractType<Embed<Object?>>(), embedNullableFutureOrType<Object>());
+    extractType<Embed<Object?>>(),
+    embedNullableFutureOrType<Object>(),
+  );
   Expect.equals(extractType<Embed<Object?>>(), extractFutureOrType<Object?>());
   Expect.equals(extractType<Embed<void>>(), extractFutureOrType<void>());
   Expect.equals(
-      extractType<Embed<Future<Never>>>(), extractFutureOrType<Never>());
+    extractType<Embed<Future<Never>>>(),
+    extractFutureOrType<Never>(),
+  );
   Expect.equals(
-      extractType<Embed<Future<Null>?>>(), extractFutureOrType<Null>());
+    extractType<Embed<Future<Null>?>>(),
+    extractFutureOrType<Null>(),
+  );
   Expect.equals(
-      extractType<Embed<FutureOr<int?>>>(), embedNullableFutureOrType<int?>());
+    extractType<Embed<FutureOr<int?>>>(),
+    embedNullableFutureOrType<int?>(),
+  );
   Expect.equals(
-      extractType<Embed<FutureOr<A?>>>(), embedNullableFutureOrType<A?>());
+    extractType<Embed<FutureOr<A?>>>(),
+    embedNullableFutureOrType<A?>(),
+  );
 }

@@ -68,7 +68,7 @@ final List<Option> options = [
       "watch", (o, values) => o.translatorOptions.watchPoints = values),
   StringMultiOption(
       "define", (o, values) => o.environment.addAll(processEnvironment(values)),
-      abbr: "D"),
+      abbr: "D", splitCommas: false),
   StringMultiOption(
       "enable-experiment",
       (o, values) =>
@@ -78,8 +78,6 @@ final List<Option> options = [
   StringMultiOption("delete-tostring-package-uri",
       (o, values) => o.deleteToStringPackageUri = values),
   StringOption("depfile", (o, value) => o.depFile = value),
-  StringOption(
-      "js-runtime-output", (o, value) => o.outputJSRuntimeFile = value),
   StringOption(
       "dump-kernel-after-cfe", (o, value) => o.dumpKernelAfterCfe = value,
       hide: true),
@@ -99,6 +97,9 @@ final List<Option> options = [
   Flag("enable-deferred-loading",
       (o, value) => o.translatorOptions.enableDeferredLoading = value,
       defaultsTo: _d.translatorOptions.enableDeferredLoading),
+  Flag("require-js-string-builtin",
+      (o, value) => o.translatorOptions.requireJsStringBuiltin = value,
+      defaultsTo: _d.translatorOptions.requireJsStringBuiltin),
   Flag("enable-multi-module-stress-test-mode",
       (o, value) => o.translatorOptions.enableMultiModuleStressTestMode = value,
       defaultsTo: _d.translatorOptions.enableMultiModuleStressTestMode),

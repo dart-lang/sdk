@@ -45,8 +45,9 @@ Iterable<String> get registeredLintNames => registeredLints!.map((r) => r.name);
 Iterable<LintRule>? get registeredLints {
   if (_registeredLints == null) {
     registerLintRules();
-    _registeredLints = Registry.ruleRegistry.toList()
-      ..sort((l1, l2) => l1.name.compareTo(l2.name));
+    _registeredLints =
+        Registry.ruleRegistry.toList()
+          ..sort((l1, l2) => l1.name.compareTo(l2.name));
   }
   return _registeredLints;
 }
@@ -148,7 +149,8 @@ class LintScore {
           sb.write('${ruleSets.contains('flutter') ? " $checkMark" : ""} |');
         case Detail.flutterRepo:
           sb.write(
-              '${ruleSets.contains('flutter_repo') ? " $checkMark" : ""} |');
+            '${ruleSets.contains('flutter_repo') ? " $checkMark" : ""} |',
+          );
         case Detail.status:
           sb.write('${!state.isStable ? ' **${state.label}** ' : ""} |');
       }
@@ -206,13 +208,16 @@ class ScoreCard {
         ruleSets.add('flutter_repo');
       }
 
-      scorecard.add(LintScore(
-        name: lint.name,
-        hasFix: lintsWithFixes.contains(lint.name) ||
-            lintsWithAssists.contains(lint.name),
-        state: lint.state,
-        ruleSets: ruleSets,
-      ));
+      scorecard.add(
+        LintScore(
+          name: lint.name,
+          hasFix:
+              lintsWithFixes.contains(lint.name) ||
+              lintsWithAssists.contains(lint.name),
+          state: lint.state,
+          ruleSets: ruleSets,
+        ),
+      );
     }
 
     return scorecard;
@@ -225,14 +230,15 @@ class ScoreCard {
       'src',
       'services',
       'correction',
-      'assist.dart'
+      'assist.dart',
     ]);
     var contents = File(assistFilePath).readAsStringSync();
 
     var parser = CompilationUnitParser();
     var cu = parser.parse(contents: contents, name: 'assist.dart');
     var assistKindClass = cu.declarations.firstWhere(
-        (m) => m is ClassDeclaration && m.name.lexeme == 'DartAssistKind');
+      (m) => m is ClassDeclaration && m.name.lexeme == 'DartAssistKind',
+    );
 
     var collector = _AssistCollector();
     assistKindClass.accept(collector);
@@ -245,7 +251,8 @@ class ScoreCard {
     var parser = CompilationUnitParser();
     var cu = parser.parse(contents: contents, name: 'lint_names.dart');
     var lintNamesClass = cu.declarations.firstWhere(
-        (m) => m is ClassDeclaration && m.name.lexeme == 'LintNames');
+      (m) => m is ClassDeclaration && m.name.lexeme == 'LintNames',
+    );
 
     var collector = _FixCollector();
     lintNamesClass.accept(collector);
@@ -261,8 +268,10 @@ class _AssistCollector extends GeneralizingAstVisitor<void> {
     if (node.name.toString() == 'associatedErrorCodes:') {
       var list = node.expression as ListLiteral;
       for (var element in list.elements) {
-        var name =
-            element.toString().substring(1, element.toString().length - 1);
+        var name = element.toString().substring(
+          1,
+          element.toString().length - 1,
+        );
         lintNames.add(name);
         if (!registeredLintNames.contains(name)) {
           printToConsole('WARNING: unrecognized lint in assists: $name');

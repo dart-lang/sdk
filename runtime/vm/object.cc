@@ -1262,6 +1262,8 @@ void Object::Init(IsolateGroup* isolate_group) {
       "released with Dart_TypedDataReleaseData, or a finalizer is running.",
       Heap::kOld);
   *no_callbacks_error_ = ApiError::New(error_str, Heap::kOld);
+  error_str = String::New("isolate is exiting", Heap::kOld);
+  *unwind_error_ = UnwindError::New(error_str, Heap::kOld);
   error_str = String::New(
       "No api calls are allowed while unwind is in progress", Heap::kOld);
   *unwind_in_progress_error_ = UnwindError::New(error_str, Heap::kOld);
@@ -1281,6 +1283,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   error_str = String::New("Out of memory", Heap::kOld);
   *out_of_memory_error_ =
       LanguageError::New(error_str, Report::kError, Heap::kOld);
+  *unhandled_oom_exception_ =
+      UnhandledException::New(error_str, StackTrace::Handle(), Heap::kOld);
 
   // Allocate the parameter types and names for synthetic getters.
   *synthetic_getter_parameter_types_ = Array::New(1, Heap::kOld);
@@ -1393,6 +1397,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(smi_zero_->IsSmi());
   ASSERT(!no_callbacks_error_->IsSmi());
   ASSERT(no_callbacks_error_->IsApiError());
+  ASSERT(!unwind_error_->IsSmi());
+  ASSERT(unwind_error_->IsUnwindError());
   ASSERT(!unwind_in_progress_error_->IsSmi());
   ASSERT(unwind_in_progress_error_->IsUnwindError());
   ASSERT(!snapshot_writer_error_->IsSmi());
@@ -1403,6 +1409,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(background_compilation_error_->IsLanguageError());
   ASSERT(!out_of_memory_error_->IsSmi());
   ASSERT(out_of_memory_error_->IsLanguageError());
+  ASSERT(!unhandled_oom_exception_->IsSmi());
+  ASSERT(unhandled_oom_exception_->IsUnhandledException());
   ASSERT(!vm_isolate_snapshot_object_table_->IsSmi());
   ASSERT(vm_isolate_snapshot_object_table_->IsArray());
   ASSERT(!synthetic_getter_parameter_types_->IsSmi());
@@ -2883,8 +2891,9 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
       Report::LongJump(Object::out_of_memory_error());
       UNREACHABLE();
     } else if (thread->top_exit_frame_info() != 0) {
-      // Use the preallocated out of memory exception to avoid calling
-      // into dart code or allocating any code.
+      if (thread->IsInNoThrowOOMScope()) {
+        return Object::null();
+      }
       Exceptions::ThrowOOM();
       UNREACHABLE();
     } else {
@@ -3126,6 +3135,7 @@ const char* Class::NameCString(NameVisibility name_visibility) const {
 ClassPtr Class::Mixin() const {
   if (is_transformed_mixin_application()) {
     const Array& interfaces = Array::Handle(this->interfaces());
+    ASSERT(interfaces.Length() > 0);
     const Type& mixin_type =
         Type::Handle(Type::RawCast(interfaces.At(interfaces.Length() - 1)));
     return mixin_type.type_class();
@@ -3260,11 +3270,6 @@ void Class::set_is_future_subtype(bool value) const {
 void Class::set_can_be_future(bool value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(CanBeFutureBit::update(value, state_bits()));
-}
-
-void Class::set_is_dynamically_extendable(bool value) const {
-  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  set_state_bits(IsDynamicallyExtendableBit::update(value, state_bits()));
 }
 
 void Class::set_has_dynamically_extendable_subtypes(bool value) const {
@@ -3993,6 +3998,7 @@ FunctionPtr Class::CreateInvocationDispatcher(
     const String& target_name,
     const Array& args_desc,
     UntaggedFunction::Kind kind) const {
+  ASSERT(target_name.ptr() != Symbols::DynamicImplicitCall().ptr());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
@@ -4127,6 +4133,9 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
   extractor.set_extracted_method_closure(closure_function);
   extractor.set_is_debuggable(false);
   extractor.set_is_visible(false);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  extractor.SetIsDynamicallyOverridden(IsDynamicallyOverridden());
+#endif
 
   signature ^= ClassFinalizer::FinalizeType(signature);
   extractor.SetSignature(signature);
@@ -4333,10 +4342,20 @@ bool Function::IsDynamicInvocationForwarderName(StringPtr name) {
 }
 
 StringPtr Function::DemangleDynamicInvocationForwarderName(const String& name) {
+  if (name.ptr() == Symbols::DynamicImplicitCall().ptr()) {
+    return Symbols::call().ptr();
+  }
   const intptr_t kDynamicPrefixLength = 4;  // "dyn:"
   ASSERT(Symbols::DynamicPrefix().Length() == kDynamicPrefixLength);
   return Symbols::New(Thread::Current(), name, kDynamicPrefixLength,
                       name.Length() - kDynamicPrefixLength);
+}
+
+const String& Function::DropImplicitCallPrefix(const String& name) {
+  if (name.ptr() == Symbols::DynamicImplicitCall().ptr()) {
+    return Symbols::DynamicCall();
+  }
+  return name;
 }
 
 StringPtr Function::CreateDynamicInvocationForwarderName(const String& name) {
@@ -4399,6 +4418,7 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
 FunctionPtr Function::GetDynamicInvocationForwarder(
     const String& mangled_name) const {
   ASSERT(IsDynamicInvocationForwarderName(mangled_name));
+  ASSERT(mangled_name.ptr() != Symbols::DynamicImplicitCall().ptr());
   auto thread = Thread::Current();
   auto zone = thread->zone();
   const Class& owner = Class::Handle(zone, Owner());
@@ -4722,6 +4742,55 @@ static bool WriteQualifiedMemberName(Zone* zone,
   return false;
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+DART_WARN_UNUSED_RESULT
+static bool VerifyEntryPointHelper(const Object& object,
+                                   EntryPointPragma expected) {
+  // Annotations are discarded in the AOT snapshot, so we can't determine
+  // precisely if this member was marked as an entry-point. Instead, we use
+  // "has_pragma()" as a proxy, since that bit is usually retained.
+
+  if (object.IsClass()) {
+    return Class::Cast(object).has_pragma() &&
+           expected == EntryPointPragma::kAlways;
+  }
+  if (object.IsField()) {
+    return Field::Cast(object).has_pragma() &&
+           expected != EntryPointPragma::kCallOnly;
+  }
+  if (!object.IsFunction()) {
+    FATAL("Unexpected annotated node %s", object.ToCString());
+  }
+
+  const auto& f = Function::Cast(object);
+  if (!f.has_pragma()) return false;
+
+  // For non-closurization uses, if the function does not have code
+  // attached, that means it was not properly annotated to allow the use.
+
+  if (f.IsGetterFunction()) {
+    return EntryPointPragmaUtils::AllowsGet(expected) && f.HasCode();
+  }
+  if (f.IsSetterFunction()) {
+    return EntryPointPragmaUtils::AllowsSet(expected) && f.HasCode();
+  }
+  if (EntryPointPragmaUtils::AllowsCall(expected)) {
+    return f.HasCode();
+  }
+  if (f.IsConstructor()) {
+    // We're not checking for a call, which is the only allowed access.
+    return false;
+  }
+  if (EntryPointPragmaUtils::AllowsGet(expected)) {
+    // For non-getter functions, a 'get' entry point expectation denotes
+    // closurization. The precompiler saves the implicit closure
+    // function information if the function is properly annotated.
+    return f.HasImplicitClosureFunction();
+  }
+  return false;
+}
+#endif
+
 DART_WARN_UNUSED_RESULT
 static ErrorPtr VerifyEntryPoint(const Library& lib,
                                  const Object& member,
@@ -4771,29 +4840,7 @@ static ErrorPtr VerifyEntryPoint(const Library& lib,
   if (!annotated.IsNull()) {
     bool is_marked_entrypoint = false;
 #if defined(DART_PRECOMPILED_RUNTIME)
-    // Annotations are discarded in the AOT snapshot, so we can't determine
-    // precisely if this member was marked as an entry-point. Instead, we use
-    // "has_pragma()" as a proxy, since that bit is usually retained.
-    if (annotated.IsClass()) {
-      is_marked_entrypoint = Class::Cast(annotated).has_pragma();
-    } else if (annotated.IsField()) {
-      is_marked_entrypoint = Field::Cast(annotated).has_pragma();
-    } else if (annotated.IsFunction()) {
-      const auto& f = Function::Cast(annotated);
-      is_marked_entrypoint = f.has_pragma();
-      if (expected == EntryPointPragma::kCallOnly && !f.HasCode()) {
-        // If the function does not have code attached, that means it was not
-        // properly annotated to allow native invocation.
-        is_marked_entrypoint = false;
-      } else if (expected == EntryPointPragma::kGetterOnly &&
-                 !f.HasImplicitClosureFunction()) {
-        // If the function does not have an implicit closure function, that
-        // means it was not properly annotated to allow native closurization.
-        is_marked_entrypoint = false;
-      }
-    } else {
-      FATAL("Unexpected annotated node %s", annotated.ToCString());
-    }
+    is_marked_entrypoint = VerifyEntryPointHelper(annotated, expected);
 #else
     const auto& metadata = Object::Handle(zone, lib.GetMetadata(annotated));
     if (metadata.IsError()) {
@@ -5244,6 +5291,7 @@ ObjectPtr Instance::EvaluateCompiledExpression(
 #if defined(DEBUG)
   for (intptr_t i = 0; i < arguments.Length(); ++i) {
     ASSERT(arguments.At(i) != Object::optimized_out().ptr());
+    ASSERT(arguments.At(i) != Object::sentinel().ptr());
   }
 #endif  // defined(DEBUG)
 
@@ -8748,6 +8796,13 @@ bool Function::FfiCSignatureReturnsStruct() const {
   return true;
 }
 
+bool Function::FfiCSignatureReturnsHandle() const {
+  ASSERT(IsFfiCallbackTrampoline());
+  const auto& c_signature = FunctionType::Handle(FfiCSignature());
+  const auto& type = AbstractType::Handle(c_signature.result_type());
+  return type.type_class_id() == kFfiHandleCid;
+}
+
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiCallbackTrampoline());
 
@@ -8782,13 +8837,9 @@ bool Function::FfiIsLeaf() const {
     UNREACHABLE();
   }
   const auto& pragma_value_class = Class::Handle(zone, pragma_value.clazz());
-  const auto& pragma_value_fields =
-      Array::Handle(zone, pragma_value_class.fields());
-  ASSERT(pragma_value_fields.Length() >= 1);
   const auto& is_leaf_field = Field::Handle(
-      zone,
-      Field::RawCast(pragma_value_fields.At(pragma_value_fields.Length() - 1)));
-  ASSERT(is_leaf_field.name() == Symbols::isLeaf().ptr());
+      zone, pragma_value_class.LookupFieldAllowPrivate(Symbols::isLeaf()));
+  ASSERT(!is_leaf_field.IsNull());
   return Bool::Handle(zone, Bool::RawCast(pragma_value.GetField(is_leaf_field)))
       .value();
 }
@@ -10783,12 +10834,6 @@ bool Function::IsClosureCallDispatcher() const {
   return name() == Symbols::call().ptr();
 }
 
-bool Function::IsClosureCallGetter() const {
-  if (!IsGetterFunction()) return false;
-  if (!Class::IsClosureClass(Owner())) return false;
-  return name() == Symbols::GetCall().ptr();
-}
-
 FunctionPtr Function::ImplicitClosureFunction() const {
   // Return the existing implicit closure function if any.
   if (implicit_closure_function() != Function::null()) {
@@ -11374,8 +11419,10 @@ KernelProgramInfoPtr Function::KernelProgramInfo() const {
 }
 
 TypedDataViewPtr Function::KernelLibrary() const {
+  const intptr_t kernel_library_index = KernelLibraryIndex();
+  if (kernel_library_index == -1) return TypedDataView::null();
   const auto& info = KernelProgramInfo::Handle(KernelProgramInfo());
-  return info.KernelLibrary(KernelLibraryIndex());
+  return info.KernelLibrary(kernel_library_index);
 }
 
 intptr_t Function::KernelLibraryOffset() const {
@@ -12383,8 +12430,10 @@ void Field::InheritKernelOffsetFrom(const Field& src) const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 TypedDataViewPtr Field::KernelLibrary() const {
+  const intptr_t kernel_library_index = KernelLibraryIndex();
+  if (kernel_library_index == -1) return TypedDataView::null();
   const auto& info = KernelProgramInfo::Handle(KernelProgramInfo());
-  return info.KernelLibrary(KernelLibraryIndex());
+  return info.KernelLibrary(kernel_library_index);
 }
 
 intptr_t Field::KernelLibraryOffset() const {
@@ -13307,7 +13356,7 @@ void Field::SetStaticValue(const Object& value) const {
   const intptr_t id = field_id();
   ASSERT(id >= 0);
 
-  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   thread->isolate()->field_table()->SetAt(id, value.ptr());
 }
 
@@ -15649,6 +15698,7 @@ intptr_t KernelProgramInfo::KernelLibraryStartOffset(
   const intptr_t library_count =
       Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
           blob.DataAddr(blob.LengthInBytes() - 2 * 4))));
+  ASSERT((library_index >= 0) && (library_index < library_count));
   const intptr_t library_start =
       Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
           blob.DataAddr(blob.LengthInBytes() -
@@ -15658,6 +15708,7 @@ intptr_t KernelProgramInfo::KernelLibraryStartOffset(
 
 TypedDataViewPtr KernelProgramInfo::KernelLibrary(
     intptr_t library_index) const {
+  ASSERT(library_index >= 0);
   const intptr_t start_offset = KernelLibraryStartOffset(library_index);
   const intptr_t end_offset = KernelLibraryEndOffset(library_index);
   const auto& component = TypedDataBase::Handle(kernel_component());
@@ -15670,6 +15721,7 @@ intptr_t KernelProgramInfo::KernelLibraryEndOffset(
   const intptr_t library_count =
       Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
           blob.DataAddr(blob.LengthInBytes() - 2 * 4))));
+  ASSERT((library_index >= 0) && (library_index < library_count));
   const intptr_t library_end = Utils::BigEndianToHost32(
       LoadUnaligned(reinterpret_cast<uint32_t*>(blob.DataAddr(
           blob.LengthInBytes() - (2 + (library_count - library_index)) * 4))));
@@ -18688,7 +18740,6 @@ void Code::NotifyCodeObservers(const Function& function,
                                bool optimized) {
 #if !defined(PRODUCT)
   ASSERT(!function.IsNull());
-  ASSERT(!Thread::Current()->OwnsGCSafepoint());
   // Calling ToLibNamePrefixedQualifiedCString is very expensive,
   // try to avoid it.
   if (CodeObservers::AreActive()) {
@@ -18704,7 +18755,6 @@ void Code::NotifyCodeObservers(const char* name,
 #if !defined(PRODUCT)
   ASSERT(name != nullptr);
   ASSERT(!code.IsNull());
-  ASSERT(!Thread::Current()->OwnsGCSafepoint());
   if (CodeObservers::AreActive()) {
     const auto& instrs = Instructions::Handle(code.instructions());
     CodeObservers::NotifyAll(name, instrs.PayloadStart(),
@@ -23581,10 +23631,18 @@ void TypeParameter::PrintName(NameVisibility name_visibility,
 
 uword TypeParameter::ComputeHash() const {
   ASSERT(IsFinalized());
-  uint32_t result = parameterized_class_id();
-  result = CombineHashes(result, base());
+  uint32_t result = base();
   result = CombineHashes(result, index());
   result = CombineHashes(result, static_cast<uint32_t>(nullability()));
+  if (IsFunctionTypeParameter()) {
+    const FunctionType& func =
+        FunctionType::Handle(parameterized_function_type());
+    result = CombineHashes(result, func.packed_parameter_counts());
+    result = CombineHashes(result, func.packed_type_parameter_counts());
+  } else {
+    ASSERT(IsClassTypeParameter());
+    result = CombineHashes(result, parameterized_class_id());
+  }
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
   return result;

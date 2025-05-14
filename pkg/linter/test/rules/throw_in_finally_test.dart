@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ThrowInFinallyTest);
   });
@@ -47,7 +47,8 @@ class C {}
   }
 
   test_throwInFinally() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
   void f() {
   try {
   } catch (e) {
@@ -59,9 +60,9 @@ class C {}
     }
   }
 }
-''', [
-      lint(74, 8),
-    ]);
+''',
+      [lint(74, 8)],
+    );
   }
 
   test_throwInInnerClosureInFinally() async {

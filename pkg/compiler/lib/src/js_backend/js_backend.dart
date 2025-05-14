@@ -5,7 +5,6 @@
 library;
 
 export 'backend.dart';
-export 'checked_mode_helpers.dart';
 export 'constant_emitter.dart';
 export 'custom_elements_analysis.dart';
 export 'namer.dart';

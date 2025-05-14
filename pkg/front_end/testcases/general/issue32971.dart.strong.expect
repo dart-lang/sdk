@@ -12,13 +12,6 @@ import "package:expect/expect.dart" as exp;
 
 import "package:expect/expect.dart";
 
-abstract class _A&B&M = self::B with self::M /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_A&B&M
-    : super self::B::•()
-    ;
-  mixin-super-stub method g() → core::bool
-    return super.{self::M::g}();
-}
 class A extends self::_A&B&M {
   synthetic constructor •() → self::A
     : super self::_A&B&M::•()
@@ -55,6 +48,13 @@ class M extends core::Object {
     }
     return false;
   }
+}
+abstract class _A&B&M = self::B with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A&B&M
+    : super self::B::•()
+    ;
+  mixin-super-stub method g() → core::bool
+    return super.{self::M::g}();
 }
 static method main() → void {
   final self::A o = new self::A::•();

@@ -270,6 +270,7 @@ class _FutureOrType extends _Type {
 
 @pragma("wasm:entry-point")
 class _InterfaceType extends _Type {
+  @pragma("wasm:entry-point")
   final WasmI32 classId;
   final WasmArray<_Type> typeArguments;
 
@@ -337,8 +338,10 @@ class _InterfaceType extends _Type {
   @override
   String toString() {
     StringBuffer s = StringBuffer();
-    final int index = classId.toIntSigned();
-    s.write(_typeNames?[index] ?? 'minified:Class$index');
+    final int index = scopeClassId(classId).toIntSigned();
+    s.write(
+      _moduleRttForClassId(classId).typeNames?[index] ?? 'minified:Class$index',
+    );
     if (typeArguments.isNotEmpty) {
       s.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
@@ -353,7 +356,7 @@ class _InterfaceType extends _Type {
 }
 
 class _NamedParameter {
-  final String name;
+  final Symbol name;
   final _Type type;
   final bool isRequired;
 
@@ -383,7 +386,7 @@ class _NamedParameter {
     if (isRequired) s.write('required ');
     s.write(type);
     s.write(' ');
-    s.write(name);
+    s.write(_symbolToString(name));
     return s.toString();
   }
 }
@@ -577,6 +580,7 @@ class _RecordType extends _Type {
   _Type get _asNullable => _RecordType(names, fieldTypes, true);
 
   @override
+  @pragma('dyn-module:callable')
   bool _checkInstance(Object o) {
     if (!_isRecordClassId(ClassID.getID(o))) return false;
     return unsafeCast<Record>(o)._checkRecordType(fieldTypes, names);
@@ -654,39 +658,80 @@ class _RecordType extends _Type {
       identical(names, other.names);
 }
 
-/// Maps each class id representing a type to the offset of that type-checker
-/// row in [_typeRowDisplacementTable].
-external WasmArray<WasmI32> get _typeRowDisplacementOffsets;
-
-/// Tells whether a class `Sub` is a subclass of another class `Base.
-///
-/// Used via
-/// ```
-///    baseOffset = _typeRowDisplacementOffsets[Base.classId]`
-///    index = baseOffset + Sub.classId
-///    value = _typeRowDisplacementTable[index]
-///    if (value == Base.classId) {
-///      // => Sub.classId is a subclass of Base.classId
-///      // => Can use `index` into `_typeRowDisplacementSubstTable[index]`
-///    }
-///```
-external WasmArray<WasmI32> get _typeRowDisplacementTable;
-
-/// Holds the canonical type argument substitution index for matching table
-/// entries (see above).
-///
-/// If `index` matches in [_typeRowDisplacementTable] then the same index can be
-/// used in this array to find the type argument substitution array for
-/// translating type arguments from a base class to a direct/indirect class.
-external WasmArray<WasmArray<_Type>> get _typeRowDisplacementSubstTable;
-
-/// The names of all classes (indexed by class id) or null (if `--minify` was
-/// used)
-external WasmArray<String>? get _typeNames;
-
-/// The non-negative index into [_typeRowDisplacementSubstTable] that represents
-/// that no substitution is needed.
+/// The non-negative index into [_ModuleRtt.typeRowDisplacementSubstTable] that
+/// represents that no substitution is needed.
 external WasmI32 get _noSubstitutionIndex;
+
+external _ModuleRtt get _mainModuleRtt;
+
+WasmArray<_ModuleRtt> _rttInfoForModule = WasmArray.filled(1, _mainModuleRtt);
+
+@pragma('wasm:entry-point')
+void _registerModuleRtt(int moduleId, _ModuleRtt moduleRtt) {
+  if (moduleId >= _rttInfoForModule.length) {
+    final oldArray = _rttInfoForModule;
+    final newArray = WasmArray.filled(moduleId + 1, moduleRtt);
+    newArray.copy(0, oldArray, 0, oldArray.length);
+    _rttInfoForModule = newArray;
+  }
+  _rttInfoForModule[moduleId] = moduleRtt;
+}
+
+_ModuleRtt _moduleRttForClassId(WasmI32 classId) {
+  if (!hasDynamicModuleSupport) {
+    assert(classId <= ClassID.maxClassId);
+    return _mainModuleRtt;
+  }
+  return _rttInfoForModule[classIdToModuleId(classId)];
+}
+
+class _ModuleRtt {
+  /// Maps each class id representing a type to the offset of that type-checker
+  /// row in [typeRowDisplacementTable].
+  final WasmArray<WasmI32> typeRowDisplacementOffsets;
+
+  /// Tells whether a class `Sub` is a subclass of another class `Base.
+  ///
+  /// Used via
+  /// ```
+  ///    baseOffset = _typeRowDisplacementOffsets[Base.classId]`
+  ///    index = baseOffset + Sub.classId
+  ///    value = _typeRowDisplacementTable[index]
+  ///    if (value == Base.classId) {
+  ///      // => Sub.classId is a subclass of Base.classId
+  ///      // => Can use `index` into `typeRowDisplacementSubstTable[index]`
+  ///    }
+  ///```
+  ///
+  /// Takes two class IDs of classes to be queried. For dynamic modules this will
+  /// allow the compiler to scope the query to a specific module. The class IDs
+  /// are ignored for all other compilations.
+  final WasmArray<WasmI32> typeRowDisplacementTable;
+
+  /// Holds the canonical type argument substitution index for matching table
+  /// entries (see above).
+  ///
+  /// If `index` matches in [typeRowDisplacementTable] then the same index can be
+  /// used in this array to find the type argument substitution array for
+  /// translating type arguments from a base class to a direct/indirect class.
+  ///
+  /// Takes two class IDs of classes to be queried. For dynamic modules this will
+  /// allow the compiler to scope the query to a specific module. The class IDs
+  /// are ignored for all other compilations.
+  final WasmArray<WasmArray<_Type>> typeRowDisplacementSubstTable;
+
+  /// The names of all classes (indexed by class id) or null (if `--minify` was
+  /// used)
+  final WasmArray<String>? typeNames;
+
+  @pragma("wasm:entry-point")
+  const _ModuleRtt(
+    this.typeRowDisplacementOffsets,
+    this.typeRowDisplacementTable,
+    this.typeRowDisplacementSubstTable,
+    this.typeNames,
+  );
+}
 
 /// Type parameter environment used while comparing function types.
 ///
@@ -973,6 +1018,9 @@ abstract class _TypeUniverse {
       tTypeArguments,
       tEnv,
       substitutionIndex,
+      // Since these are already proved to be subclasses, sId and tId are in the
+      // same module or sId's module contains info for both.
+      _moduleRttForClassId(sId).typeRowDisplacementSubstTable,
     );
   }
 
@@ -998,6 +1046,9 @@ abstract class _TypeUniverse {
       sTypeArguments,
       tTypeArgument0,
       substitutionIndex,
+      // Since these are already proved to be subclasses, sId and tId are in the
+      // same module or sId's module contains info for both.
+      _moduleRttForClassId(sId).typeRowDisplacementSubstTable,
     );
   }
 
@@ -1020,6 +1071,9 @@ abstract class _TypeUniverse {
       tTypeArgument0,
       tTypeArgument1,
       substitutionIndex,
+      // Since these are already proved to be subclasses, sId and tId are in the
+      // same module or sId's module contains info for both.
+      _moduleRttForClassId(sId).typeRowDisplacementSubstTable,
     );
   }
 
@@ -1046,6 +1100,9 @@ abstract class _TypeUniverse {
       tTypeArguments,
       null,
       substitutionIndex,
+      // Since these are already proved to be subclasses, sId and tId are in the
+      // same module or sId's module contains info for both.
+      _moduleRttForClassId(sId).typeRowDisplacementSubstTable,
     );
   }
 
@@ -1053,6 +1110,7 @@ abstract class _TypeUniverse {
     WasmArray<_Type> sTypeArguments,
     _Type tTypeArgument0,
     WasmI32 substitutionIndex,
+    WasmArray<WasmArray<_Type>> substTable,
   ) {
     // Check individual type arguments without substitution (fast case).
     if (substitutionIndex == _noSubstitutionIndex) {
@@ -1060,8 +1118,7 @@ abstract class _TypeUniverse {
     }
 
     // Substitue each argument before performing the subtype check (slow case).
-    final substitutions =
-        _typeRowDisplacementSubstTable[substitutionIndex.toIntSigned()];
+    final substitutions = substTable[substitutionIndex.toIntSigned()];
     assert(substitutions.length == 1);
     final sArgForClassT = substituteTypeArgument(
       substitutions[0],
@@ -1076,6 +1133,7 @@ abstract class _TypeUniverse {
     _Type tTypeArgument0,
     _Type tTypeArgument1,
     WasmI32 substitutionIndex,
+    WasmArray<WasmArray<_Type>> substTable,
   ) {
     // Check individual type arguments without substitution (fast case).
     if (substitutionIndex == _noSubstitutionIndex) {
@@ -1084,8 +1142,7 @@ abstract class _TypeUniverse {
     }
 
     // Substitue each argument before performing the subtype check (slow case).
-    final substitutions =
-        _typeRowDisplacementSubstTable[substitutionIndex.toIntSigned()];
+    final substitutions = substTable[substitutionIndex.toIntSigned()];
     assert(substitutions.length == 2);
     final sArg1ForClassT = substituteTypeArgument(
       substitutions[1],
@@ -1107,6 +1164,7 @@ abstract class _TypeUniverse {
     WasmArray<_Type> tTypeArguments,
     _Environment? tEnv,
     WasmI32 substitutionIndex,
+    WasmArray<WasmArray<_Type>> substTable,
   ) {
     // Check individual type arguments without substitution (fast case).
     if (substitutionIndex == _noSubstitutionIndex) {
@@ -1119,8 +1177,7 @@ abstract class _TypeUniverse {
     }
 
     // Substitute each argument before performing the subtype check (slow case).
-    final substitutions =
-        _typeRowDisplacementSubstTable[substitutionIndex.toIntSigned()];
+    final substitutions = substTable[substitutionIndex.toIntSigned()];
     assert(substitutions.length == tTypeArguments.length);
     for (int i = 0; i < tTypeArguments.length; i++) {
       final sArgForClassT = substituteTypeArgument(
@@ -1155,8 +1212,17 @@ abstract class _TypeUniverse {
 
   @pragma('wasm:prefer-inline')
   static WasmI32 _checkSubclassRelationshipViaTable(WasmI32 sId, WasmI32 tId) {
-    final offset = _typeRowDisplacementOffsets;
-    final table = _typeRowDisplacementTable;
+    final sModuleId = classIdToModuleId(sId);
+    final tModuleId = classIdToModuleId(tId);
+    if (tModuleId != mainModuleId) {
+      if (sModuleId != tModuleId) return -1.toWasmI32();
+    }
+
+    final rtt = _rttInfoForModule[sModuleId];
+    final offset = rtt.typeRowDisplacementOffsets;
+    final table = rtt.typeRowDisplacementTable;
+    sId = localizeClassId(sId);
+    tId = localizeClassId(tId);
 
     final WasmI32 index = offset[tId.toIntSigned()] + sId;
     if (index.geU(table.length.toWasmI32())) return (-1).toWasmI32();
@@ -1223,43 +1289,56 @@ abstract class _TypeUniverse {
 
     // Check that [t]'s named arguments are subtypes of [s]'s named arguments.
     // This logic assumes the named arguments are stored in sorted order.
-    WasmArray<_NamedParameter> sNamed = s.namedParameters;
-    WasmArray<_NamedParameter> tNamed = t.namedParameters;
-    int sNamedLength = sNamed.length;
-    int tNamedLength = tNamed.length;
+    final WasmArray<_NamedParameter> sNamed = s.namedParameters;
+    final WasmArray<_NamedParameter> tNamed = t.namedParameters;
+    final sNamedLength = sNamed.length;
+    final tNamedLength = tNamed.length;
     int sIndex = 0;
     for (int tIndex = 0; tIndex < tNamedLength; tIndex++) {
       _NamedParameter tNamedParameter = tNamed[tIndex];
-      String tName = tNamedParameter.name;
+      Symbol tName = tNamedParameter.name;
+      _NamedParameter? sParameter; // current named parameter of `t` in `s`
+
+      // Find the current named parameter of `t` in `s`, skipping optional
+      // parameters.
       while (true) {
-        if (sIndex >= sNamedLength) return false;
-        _NamedParameter sNamedParameter = sNamed[sIndex];
-        String sName = sNamedParameter.name;
-        sIndex++;
-        int sNameComparedToTName = sName.compareTo(tName);
-        if (sNameComparedToTName > 0) return false;
-        bool sIsRequired = sNamedParameter.isRequired;
-        if (sNameComparedToTName < 0) {
-          if (sIsRequired) return false;
-          continue;
-        }
-        bool tIsRequired = tNamedParameter.isRequired;
-        if (sIsRequired && !tIsRequired) return false;
-        if (!isSubtype(
-          tNamedParameter.type,
-          tEnv,
-          sNamedParameter.type,
-          sEnv,
-        )) {
+        if (sIndex >= sNamedLength) {
+          // Named parameter not in `s`.
           return false;
         }
-        break;
+
+        _NamedParameter sNamedParameter = sNamed[sIndex];
+        Symbol sName = sNamedParameter.name;
+        sIndex++;
+
+        if (identical(tName, sName)) {
+          if (sNamedParameter.isRequired && !tNamedParameter.isRequired) {
+            return false;
+          }
+          sParameter = sNamedParameter;
+          break;
+        }
+
+        // Skip the named parameter of `s` if it's optional. Otherwise we have a
+        // required parameter in `s` that's not in `t`, so `s` can't be a
+        // subtype of `t`.
+        if (sNamedParameter.isRequired) {
+          return false;
+        }
+      }
+
+      if (!isSubtype(tNamedParameter.type, tEnv, sParameter.type, sEnv)) {
+        return false;
       }
     }
+
+    // If we have more named parameters in `s` after the parameters in `t`,
+    // those parameters should all be optional.
     while (sIndex < sNamedLength) {
       if (sNamed[sIndex].isRequired) return false;
       sIndex++;
     }
+
     return true;
   }
 
@@ -1508,7 +1587,7 @@ void _asSubtype(Object? o, bool onlyNullabilityCheck, _Type t) {
           ? _isNullabilityCheck(o, t.isDeclaredNullable)
           : _isSubtype(o, t);
   if (success) return;
-  _TypeError._throwAsCheckError(o, t);
+  _throwAsCheckError(o, t);
 }
 
 @pragma("wasm:entry-point")
@@ -1592,11 +1671,12 @@ void _asInterfaceSubtype2(
 }
 
 @pragma('wasm:never-inline')
-void _throwInterfaceTypeAsCheckError0(
+Never _throwInterfaceTypeAsCheckError0(
   Object? o,
   bool isDeclaredNullable,
   WasmI32 tId,
 ) {
+  if (minify) throw typeErrorWithoutDetails;
   final typeArguments = const WasmArray<_Type>.literal([]);
   _TypeError._throwAsCheckError(
     o,
@@ -1606,12 +1686,13 @@ void _throwInterfaceTypeAsCheckError0(
 
 @pragma("wasm:entry-point")
 @pragma('wasm:never-inline')
-void _throwInterfaceTypeAsCheckError1(
+Never _throwInterfaceTypeAsCheckError1(
   Object? o,
   bool isDeclaredNullable,
   WasmI32 tId,
   _Type typeArgument0,
 ) {
+  if (minify) throw typeErrorWithoutDetails;
   final typeArguments = WasmArray<_Type>.literal([typeArgument0]);
   _TypeError._throwAsCheckError(
     o,
@@ -1621,13 +1702,14 @@ void _throwInterfaceTypeAsCheckError1(
 
 @pragma("wasm:entry-point")
 @pragma('wasm:never-inline')
-void _throwInterfaceTypeAsCheckError2(
+Never _throwInterfaceTypeAsCheckError2(
   Object? o,
   bool isDeclaredNullable,
   WasmI32 tId,
   _Type typeArgument0,
   _Type typeArgument1,
 ) {
+  if (minify) throw typeErrorWithoutDetails;
   final typeArguments = WasmArray<_Type>.literal([
     typeArgument0,
     typeArgument1,
@@ -1640,16 +1722,24 @@ void _throwInterfaceTypeAsCheckError2(
 
 @pragma("wasm:entry-point")
 @pragma('wasm:never-inline')
-void _throwInterfaceTypeAsCheckError(
+Never _throwInterfaceTypeAsCheckError(
   Object? o,
   bool isDeclaredNullable,
   WasmI32 tId,
   WasmArray<_Type> typeArguments,
 ) {
+  if (minify) throw typeErrorWithoutDetails;
   _TypeError._throwAsCheckError(
     o,
     _InterfaceType(tId, isDeclaredNullable, typeArguments),
   );
+}
+
+@pragma("wasm:entry-point")
+@pragma('wasm:never-inline')
+Never _throwAsCheckError(Object? o, _Type type) {
+  if (minify) throw typeErrorWithoutDetails;
+  _TypeError._throwAsCheckError(o, type);
 }
 
 @pragma("wasm:entry-point")
@@ -1717,42 +1807,57 @@ bool _checkClosureShape(
 
   // Check named args. Both parameters and args are sorted, so we can iterate
   // them in parallel.
+  //
+  // The function type should have all of the arguments passed. The arguments
+  // can omit optional parameters of the function type.
+  //
+  // Function type named parameter symbols will be constants and minified, but
+  // the argument symbols may not be constants, so won't always be minified.
   int namedParamIdx = 0;
-  int namedArgIdx = 0;
-  while (namedParamIdx < functionType.namedParameters.length) {
-    _NamedParameter param = functionType.namedParameters[namedParamIdx];
+  argLoop:
+  for (
+    int namedArgIdx = 0;
+    namedArgIdx < namedArguments.length;
+    namedArgIdx += 2
+  ) {
+    Symbol argName = unsafeCast<Symbol>(namedArguments[namedArgIdx]);
 
-    if (namedArgIdx * 2 >= namedArguments.length) {
-      if (param.isRequired) {
+    // Find the parameter for the argument in the function type.
+    while (true) {
+      if (namedParamIdx >= functionType.namedParameters.length) {
+        // Function doesn't expect the named argument.
         return false;
       }
-      namedParamIdx += 1;
-      continue;
-    }
 
-    String argName = _symbolToString(namedArguments[namedArgIdx * 2] as Symbol);
+      _NamedParameter namedParameter =
+          functionType.namedParameters[namedParamIdx];
+      Symbol namedParameterName = namedParameter.name;
+      namedParamIdx++;
 
-    final cmp = argName.compareTo(param.name);
+      // NB. `namedParameterName` is coming from a function type, so it will
+      // always be a constant symbol and minified. `argName` may or may not be
+      // constant and minified. When in minification mode we don't have to
+      // compare symbol values as they will never be equal if the symbols are
+      // not identical.
+      if (identical(argName, namedParameterName) ||
+          (!minify && argName == namedParameterName)) {
+        continue argLoop;
+      }
 
-    if (cmp == 0) {
-      // Expected arg passed
-      namedParamIdx += 1;
-      namedArgIdx += 1;
-    } else if (cmp < 0) {
-      // Unexpected arg passed
-      return false;
-    } else if (param.isRequired) {
-      // Required param not passed
-      return false;
-    } else {
-      // Optional param not passed
-      namedParamIdx += 1;
+      if (namedParameter.isRequired) {
+        return false;
+      }
+
+      // Skip optional named parameter.
     }
   }
 
-  // All named parameters checked, any extra arguments are unexpected
-  if (namedArgIdx * 2 < namedArguments.length) {
-    return false;
+  // Check that the remaining parameters are all optional.
+  while (namedParamIdx < functionType.namedParameters.length) {
+    if (functionType.namedParameters[namedParamIdx].isRequired) {
+      return false;
+    }
+    namedParamIdx += 1;
   }
 
   return true;
@@ -1818,26 +1923,37 @@ void _checkClosureType(
   // Check named arguments. Since the shape check passed we know that passed
   // names exist in named parameters of the function.
   int namedParamIdx = 0;
-  int namedArgIdx = 0;
-  while (namedArgIdx * 2 < namedArguments.length) {
-    final String argName = _symbolToString(
-      namedArguments[namedArgIdx * 2] as Symbol,
-    );
-    if (argName == functionType.namedParameters[namedParamIdx].name) {
-      final arg = namedArguments[namedArgIdx * 2 + 1];
-      final paramTy = functionType.namedParameters[namedParamIdx].type;
-      if (!_isSubtype(arg, paramTy)) {
-        _TypeError._throwArgumentTypeCheckError(
-          arg,
-          paramTy,
-          argName,
-          StackTrace.current,
-        );
+  argLoop:
+  for (
+    int namedArgIdx = 0;
+    namedArgIdx < namedArguments.length;
+    namedArgIdx += 2
+  ) {
+    final argName = unsafeCast<Symbol>(namedArguments[namedArgIdx]);
+
+    // Find the parameter for the argument in the function type.
+    while (true) {
+      _NamedParameter namedParameter =
+          functionType.namedParameters[namedParamIdx];
+      Symbol namedParameterName = namedParameter.name;
+      namedParamIdx++;
+
+      if (identical(argName, namedParameterName) ||
+          (!minify && argName == namedParameterName)) {
+        final argTy = namedArguments[namedArgIdx + 1];
+        final paramTy = namedParameter.type;
+        if (!_isSubtype(argTy, paramTy)) {
+          _TypeError._throwArgumentTypeCheckError(
+            argTy,
+            paramTy,
+            _symbolToString(argName),
+            StackTrace.current,
+          );
+        }
+        continue argLoop;
       }
-      namedParamIdx += 1;
-      namedArgIdx += 1;
-    } else {
-      namedParamIdx += 1;
+
+      // Skip optional named parameter.
     }
   }
 }
@@ -1856,6 +1972,7 @@ _Type _getActualRuntimeType(Object object) {
 }
 
 @pragma("wasm:prefer-inline")
+@pragma('dyn-module:callable')
 _Type _getActualRuntimeTypeNullable(Object? object) =>
     object == null ? _literal<Null>() : _getActualRuntimeType(object);
 
@@ -1920,7 +2037,7 @@ _Type _getMasqueradedRuntimeType(Object object) {
     if (object is Float64x2) return _literal<Float64x2>();
     if (object is Int32x4) return _literal<Int32x4>();
   } else {
-    if (object is WasmStringBase) return _literal<String>();
+    if (object is String) return _literal<String>();
     if (object is WasmTypedDataBase) {
       if (object is ByteData) return _literal<ByteData>();
       if (object is Int8List) return _literal<Int8List>();

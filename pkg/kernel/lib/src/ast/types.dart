@@ -259,8 +259,7 @@ class TypeParameter extends TreeNode implements Annotatable {
 ///
 /// [StructuralParameter] objects should not be shared between different
 /// [FunctionType] objects.
-class StructuralParameter extends Node
-    implements SharedTypeParameterStructure<DartType> {
+class StructuralParameter extends Node implements SharedTypeParameter {
   int flags = 0;
 
   String? name; // Cosmetic name.
@@ -465,7 +464,7 @@ class Supertype extends Node {
 ///
 /// The `==` operator on [DartType]s compare based on type equality, not
 /// object identity.
-sealed class DartType extends Node implements SharedTypeStructure<DartType> {
+sealed class DartType extends Node implements SharedType {
   const DartType();
 
   @override
@@ -498,16 +497,7 @@ sealed class DartType extends Node implements SharedTypeStructure<DartType> {
   Nullability get nullability;
 
   @override
-  NullabilitySuffix get nullabilitySuffix {
-    if (isTypeWithoutNullabilityMarker(this)) {
-      return NullabilitySuffix.none;
-    } else if (isNullableTypeConstructorApplication(this)) {
-      return NullabilitySuffix.question;
-    } else {
-      assert(isLegacyTypeConstructorApplication(this));
-      return NullabilitySuffix.star;
-    }
-  }
+  bool get isQuestionType => !isTypeWithoutNullabilityMarker(this);
 
   /// If this is a typedef type, repeatedly unfolds its type definition until
   /// the root term is not a typedef type, otherwise returns the type itself.
@@ -584,10 +574,15 @@ sealed class DartType extends Node implements SharedTypeStructure<DartType> {
   String getDisplayString() => toText(const AstTextStrategy());
 
   @override
-  bool isStructurallyEqualTo(SharedTypeStructure other) {
+  bool isStructurallyEqualTo(SharedType other) {
     // TODO(cstefantsova): Use the actual algorithm for structural equality.
     return this == other;
   }
+
+  @override
+  DartType asQuestionType(bool isNullable) => isNullable
+      ? withDeclaredNullability(Nullability.nullable)
+      : computeTypeWithoutNullabilityMarker(this);
 
   /// Returns a textual representation of the this type.
   ///
@@ -632,8 +627,7 @@ abstract class AuxiliaryType extends DartType {
 ///
 /// Can usually be treated as 'dynamic', but should occasionally be handled
 /// differently, e.g. `x is ERROR` should evaluate to false.
-class InvalidType extends DartType
-    implements SharedInvalidTypeStructure<DartType> {
+class InvalidType extends DartType implements SharedInvalidType {
   @override
   final int hashCode = 12345;
 
@@ -686,8 +680,7 @@ class InvalidType extends DartType
   }
 }
 
-class DynamicType extends DartType
-    implements SharedDynamicTypeStructure<DartType> {
+class DynamicType extends DartType implements SharedDynamicType {
   @override
   final int hashCode = 54321;
 
@@ -732,7 +725,7 @@ class DynamicType extends DartType
   }
 }
 
-class VoidType extends DartType implements SharedVoidTypeStructure<DartType> {
+class VoidType extends DartType implements SharedVoidType {
   @override
   final int hashCode = 123121;
 
@@ -856,7 +849,7 @@ class NeverType extends DartType {
   }
 }
 
-class NullType extends DartType implements SharedNullTypeStructure<DartType> {
+class NullType extends DartType implements SharedNullType {
   @override
   final int hashCode = 415324;
 
@@ -1014,9 +1007,7 @@ class InterfaceType extends TypeDeclarationType {
 }
 
 /// A possibly generic function type.
-class FunctionType extends DartType
-    implements
-        SharedFunctionTypeStructure<DartType, StructuralParameter, NamedType> {
+class FunctionType extends DartType implements SharedFunctionType {
   final List<StructuralParameter> typeParameters;
   final int requiredParameterCount;
   final List<DartType> positionalParameters;
@@ -1604,8 +1595,8 @@ class ExtensionType extends TypeDeclarationType {
 class NamedType extends Node
     implements
         Comparable<NamedType>,
-        SharedNamedTypeStructure<DartType>,
-        SharedNamedFunctionParameterStructure<DartType> {
+        SharedNamedType,
+        SharedNamedFunctionParameter {
   // Flag used for serialization if [isRequired].
   static const int FlagRequiredNamedType = 1 << 0;
 
@@ -2197,8 +2188,7 @@ class StructuralParameterType extends DartType {
   }
 }
 
-class RecordType extends DartType
-    implements SharedRecordTypeStructure<DartType> {
+class RecordType extends DartType implements SharedRecordType {
   final List<DartType> positional;
   final List<NamedType> named;
 
@@ -2222,10 +2212,10 @@ class RecordType extends DartType
             "Named field types aren't sorted lexicographically "
             "in a RecordType: ${named}");
 
-  List<SharedNamedTypeStructure<DartType>> get namedTypes => named;
+  List<SharedNamedType> get namedTypes => named;
 
   @override
-  List<SharedNamedTypeStructure<DartType>> get sortedNamedTypesShared {
+  List<SharedNamedType> get sortedNamedTypesShared {
     return namedTypes;
   }
 

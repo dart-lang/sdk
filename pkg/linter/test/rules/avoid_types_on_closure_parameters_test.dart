@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidTypesOnClosureParametersTest);
   });
@@ -26,26 +26,28 @@ void f(List<int> list) {
   }
 
   test_argument_typedParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<int> list) {
   list.map((int e) => e.isEven);
 }
-''', [
-      lint(37, 3),
-    ]);
+''',
+      [lint(37, 3)],
+    );
   }
 
   test_assignedToFunctionTypedTarget() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   c.onFoo = (int p) {};
 }
 class C {
   void Function(int p)? onFoo;
 }
-''', [
-      lint(27, 3),
-    ]);
+''',
+      [lint(27, 3)],
+    );
   }
 
   test_assignedToNonFunctionTypedTarget() async {
@@ -107,52 +109,56 @@ class C {
   }
 
   test_closureIsArgument_parameterIsTyped_functionType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<int Function(int)> list) {
   list.map((int p(int x)) => p(0));
 }
-''', [
-      lint(51, 12),
-    ]);
+''',
+      [lint(51, 12)],
+    );
   }
 
   test_closureIsArgument_parameterIsTyped_namedRequired() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   c.map(({required int p}) => p);
 }
 class C {
   void map(int Function({required int p})) {}
 }
-''', [
-      lint(33, 3),
-    ]);
+''',
+      [lint(33, 3)],
+    );
   }
 
   test_closureIsArgument_parameterIsTyped_optionalNullable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   c.map(([int? p]) => p);
 }
 class C {
   void map(int? Function([int? p])) {}
 }
-''', [
-      lint(24, 4),
-    ]);
+''',
+      [lint(24, 4)],
+    );
   }
 
   test_closureIsArgument_parameterIsTyped_optionalWithDefault() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   c.map(([int p = 0]) => p);
 }
 class C {
   void map(int? Function([int p])) {}
 }
-''', [
-      lint(24, 3),
-    ]);
+''',
+      [lint(24, 3)],
+    );
   }
 
   test_parameterIsNotInClosure_inFunction() async {

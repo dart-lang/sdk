@@ -20,16 +20,6 @@ library;
 //   void patchedMethod([int i]) {}
 //                           ^
 //
-// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:17:25: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
-// Try adding either an explicit non-'null' default value or the 'required' modifier.
-// void patchedMethod([int i]) {}
-//                         ^
-//
-// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:19:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
-// Try adding either an explicit non-'null' default value or the 'required' modifier.
-// void _injectedMethod([int i]) {}
-//                           ^
-//
 // pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:13:29: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   void _injectedMethod([int i]) {}
@@ -39,6 +29,16 @@ library;
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
 // void method([int i]) {}
 //                  ^
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:17:25: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// void patchedMethod([int i]) {}
+//                         ^
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:19:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// void _injectedMethod([int i]) {}
+//                           ^
 //
 import self as self2;
 import "dart:_internal" as _in;
@@ -53,20 +53,22 @@ class Class extends core::Object {
   method method([core::int i = null]) → void
     ;
   @_in::patch
-  external method patchedMethod([core::int i = null]) → void;
+  method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([core::int i = null]) → void
+    ;
   method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i = null]) → void
     ;
 }
 static method method([core::int i]) → void
   ;
 @_in::patch
-external static method patchedMethod([core::int i]) → void;
+static method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([core::int i]) → void
+  ;
 static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i]) → void
   ;
 
 
 Extra constant evaluation status:
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:11:2 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:10:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:16:2 -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 3, effectively constant: 3

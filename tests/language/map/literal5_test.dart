@@ -33,11 +33,7 @@ void test(bool b) {
 }
 
 Map create(bool b) {
-  return {
-    b: 0,
-    m(b): n(b),
-    b ? 1 : "foo": 2,
-  };
+  return {b: 0, m(b): n(b), b ? 1 : "foo": 2};
 }
 
 Object m(bool b) => b ? 2 : "bar";

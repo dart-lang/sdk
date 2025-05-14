@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidEqualsAndHashCodeOnMutableClassesTest);
   });
@@ -21,7 +21,8 @@ class AvoidEqualsAndHashCodeOnMutableClassesTest extends LintRuleTest {
       LintNames.avoid_equals_and_hash_code_on_mutable_classes;
 
   test_enums() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 enum E {
   e(1), f(2), g(3);
   final int key;
@@ -29,13 +30,21 @@ enum E {
   bool operator ==(Object other) => other is E && other.key == key;
   int get hashCode => key.hashCode;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 83, 2),
-      error(CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 145,
-          8),
-      // No lint.
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          83,
+          2,
+        ),
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          145,
+          8,
+        ),
+        // No lint.
+      ],
+    );
   }
 
   test_immutableClass() async {
@@ -55,8 +64,9 @@ class A {
   }
 
   @FailingTest(
-      reason: '`augmented.metadata` is unimplemented',
-      issue: 'https://github.com/dart-lang/linter/issues/4932')
+    reason: '`augmented.metadata` is unimplemented',
+    issue: 'https://github.com/dart-lang/linter/issues/4932',
+  )
   test_immutableClass_augmented() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -83,7 +93,8 @@ augment class A { }
   }
 
   test_mutableClass() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   final String key;
   const A(this.key);
@@ -92,10 +103,9 @@ class A {
   @override
   int get hashCode => key.hashCode;
 }
-''', [
-      lint(65, 8),
-      lint(133, 3),
-    ]);
+''',
+      [lint(65, 8), lint(133, 3)],
+    );
   }
 
   test_mutableClass_augmentationMethod() async {
@@ -124,16 +134,17 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment class A {
   @override
   int get hashCode => 0;
 }
-''', [
-      lint(51, 3),
-    ]);
+''',
+      [lint(51, 3)],
+    );
   }
 
   test_subtypeOfImmutableClass() async {

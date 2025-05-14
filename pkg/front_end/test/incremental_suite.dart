@@ -27,7 +27,6 @@ import 'package:front_end/src/base/incremental_compiler.dart'
     show AdvancedInvalidationResult, IncrementalCompiler, RecorderForTesting;
 import 'package:front_end/src/base/incremental_serializer.dart'
     show IncrementalSerializer;
-import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/codes/cfe_codes.dart'
@@ -139,11 +138,6 @@ class NewWorldTestProperties {
       'incrementalSerialization', BoolValue(),
       defaultValue: false);
 
-  static const String nnbdMode_weak = 'weak';
-
-  static const Property<String?> nnbdMode =
-      Property.optional('nnbdMode', StringValue(options: {nnbdMode_weak}));
-
   static const String target_none = 'none';
   static const String target_dartdevc = 'dartdevc';
   static const String target_dart2js = 'dart2js';
@@ -188,11 +182,6 @@ class WorldProperties {
 
   static const Property<String?> experiments =
       Property.optional("experiments", StringValue());
-
-  static const String nnbdMode_weak = 'weak';
-
-  static const Property<String?> nnbdMode =
-      Property.optional("nnbdMode", StringValue(options: {nnbdMode_weak}));
 
   static const Property<List<String>> entry = Property.required(
       'entry', ListValue(StringValue(), supportSingleton: true));
@@ -437,10 +426,6 @@ const String EXPECTATIONS = '''
     "group": "Fail"
   },
   {
-    "name": "NNBDModeMismatch",
-    "group": "Fail"
-  },
-  {
     "name": "ConstantCoverageReferenceWithoutNode",
     "group": "Fail"
   }
@@ -484,7 +469,6 @@ final Expectation LibraryCountMismatch =
     staticExpectationSet["LibraryCountMismatch"];
 final Expectation InitializedFromDillMismatch =
     staticExpectationSet["InitializedFromDillMismatch"];
-final Expectation NNBDModeMismatch = staticExpectationSet["NNBDModeMismatch"];
 final Expectation ConstantCoverageReferenceWithoutNode =
     staticExpectationSet["ConstantCoverageReferenceWithoutNode"];
 
@@ -615,10 +599,6 @@ class RunCompilations extends Step<TestData, TestData, Context> {
               NewWorldTestProperties.trackWidgetCreation.read(map, keys),
           incrementalSerialization:
               NewWorldTestProperties.incrementalSerialization.read(map, keys),
-          nnbdMode: NewWorldTestProperties.nnbdMode.read(map, keys) ==
-                  NewWorldTestProperties.nnbdMode_weak
-              ? NnbdMode.Weak
-              : NnbdMode.Strong,
           modules: NewWorldTestProperties.modules.read(map, keys),
           targetName: NewWorldTestProperties.target.read(map, keys),
         ).newWorldTest();
@@ -766,7 +746,7 @@ Future<Map<String, Uint8List>> createModules(
       throw "Module probably not setup right.";
     }
     Component result = new Component(libraries: wantedLibs)
-      ..setMainMethodAndMode(null, false, c.mode);
+      ..setMainMethodAndMode(null, false);
     Uint8List resultBytes = util.postProcess(result);
     moduleResult[moduleName] = resultBytes;
   }
@@ -821,7 +801,6 @@ class World {
   final bool enableStringReplacement;
   final String? packageConfigFile;
   final String? experiments;
-  final String? nnbdModeString;
   final List<String> entries;
   final bool outlineOnly;
   final bool skipOutlineBodyCheck;
@@ -876,7 +855,6 @@ class World {
     required this.enableStringReplacement,
     required this.packageConfigFile,
     required this.experiments,
-    required this.nnbdModeString,
     required this.entries,
     required this.outlineOnly,
     required this.skipOutlineBodyCheck,
@@ -936,8 +914,6 @@ class World {
         WorldProperties.packageConfigFile.read(world, keys);
 
     String? experiments = WorldProperties.experiments.read(world, keys);
-
-    String? nnbdModeString = WorldProperties.nnbdMode.read(world, keys);
 
     List<String> entries = WorldProperties.entry.read(world, keys);
 
@@ -1044,7 +1020,6 @@ class World {
       enableStringReplacement: enableStringReplacement,
       packageConfigFile: packageConfigFile,
       experiments: experiments,
-      nnbdModeString: nnbdModeString,
       entries: entries,
       outlineOnly: outlineOnly,
       skipOutlineBodyCheck: skipOutlineBodyCheck,
@@ -1092,7 +1067,6 @@ class NewWorldTest {
   final bool forceLateLoweringForTesting;
   final bool trackWidgetCreation;
   final bool incrementalSerialization;
-  final NnbdMode nnbdMode;
   final String? targetName;
 
   // These are fields in a class to make it easier to track down memory leaks
@@ -1112,7 +1086,6 @@ class NewWorldTest {
     required this.forceLateLoweringForTesting,
     required this.trackWidgetCreation,
     required this.incrementalSerialization,
-    required this.nnbdMode,
     required this.targetName,
   });
 
@@ -1146,9 +1119,8 @@ class NewWorldTest {
 
     String sdkSummary = computePlatformDillName(
         target,
-        nnbdMode,
         () => throw new UnsupportedError(
-            "No platform dill for target '${targetName}' with $nnbdMode."))!;
+            "No platform dill for target '${targetName}'."))!;
 
     final Uri base = Uri.parse("org-dartlang-test:///");
     final Uri sdkSummaryUri = base.resolve(sdkSummary);
@@ -1254,7 +1226,6 @@ class NewWorldTest {
 
       if (!world.updateWorldType) {
         options = getOptions(target: target, sdkSummary: sdkSummary);
-        options.nnbdMode = nnbdMode;
         options.fileSystem = fs;
         options.sdkRoot = null;
         options.sdkSummary = sdkSummaryUri;
@@ -1274,18 +1245,6 @@ class NewWorldTest {
           options.explicitExperimentalFlags = explicitExperimentalFlags;
         } else {
           options.explicitExperimentalFlags = {};
-        }
-        // A separate "world" can also change nnbd mode ---
-        // notice that the platform is not updated though!
-        if (world.nnbdModeString != null) {
-          String nnbdMode = world.nnbdModeString!;
-          switch (nnbdMode) {
-            case WorldProperties.nnbdMode_weak:
-              options.nnbdMode = NnbdMode.Weak;
-              break;
-            default:
-              throw "Not supported nnbd mode: $nnbdMode";
-          }
         }
       }
       if (packagesUri != null) {
@@ -1422,9 +1381,6 @@ class NewWorldTest {
       result = checkNeededDillLibraries(
           world, data, compilerResult.neededDillLibraries, base);
       if (result != null) return result;
-
-      Result? nnbdCheck = checkNNBDSettings(component!);
-      if (nnbdCheck != null) return nnbdCheck.copyWithOutput(data);
 
       if (!world.noFullComponent) {
         Set<Library> allLibraries = new Set<Library>();
@@ -1921,26 +1877,6 @@ class Strategy extends EquivalenceStrategy {
   }
 }
 
-Result? checkNNBDSettings(Component component) {
-  NonNullableByDefaultCompiledMode mode = component.mode;
-  if (mode == NonNullableByDefaultCompiledMode.Invalid) return null;
-  for (Library lib in component.libraries) {
-    if (mode == lib.nonNullableByDefaultCompiledMode) continue;
-
-    if (mode == NonNullableByDefaultCompiledMode.Strong ||
-        lib.nonNullableByDefaultCompiledMode ==
-            NonNullableByDefaultCompiledMode.Strong) {
-      // Non agnostic and one (but not both) are strong => error.
-      return new Result(
-          null,
-          NNBDModeMismatch,
-          "Component mode was $mode but ${lib.importUri} had mode "
-          "${lib.nonNullableByDefaultCompiledMode}.");
-    }
-  }
-  return null;
-}
-
 Result<TestData>? checkExpectFile(TestData data, int worldNum,
     String extraUriString, Context context, String actualSerialized) {
   Uri uri = data.loadedFrom.resolve(data.loadedFrom.pathSegments.last +
@@ -2194,7 +2130,7 @@ Result<Uint8List?> checkIncrementalSerialization(
     World world) {
   if (incrementalSerialization == true) {
     Component c = new Component(nameRoot: component.root)
-      ..setMainMethodAndMode(null, false, component.mode);
+      ..setMainMethodAndMode(null, false);
     c.libraries.addAll(component.libraries);
     c.uriToSource.addAll(component.uriToSource);
     Map<String, Set<String>> originalContent = buildMapOfContent(c);
@@ -2433,7 +2369,7 @@ String componentToStringSdkFiltered(Component component,
       c.libraries.add(lib);
     }
   }
-  c.setMainMethodAndMode(component.mainMethodName, true, component.mode);
+  c.setMainMethodAndMode(component.mainMethodName, true);
   c.problemsAsJson = component.problemsAsJson;
 
   StringBuffer s = new StringBuffer();

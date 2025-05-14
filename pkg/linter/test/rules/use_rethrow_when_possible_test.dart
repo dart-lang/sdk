@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseRethrowWhenPossibleTest);
   });
@@ -18,28 +18,30 @@ class UseRethrowWhenPossibleTest extends LintRuleTest {
   String get lintRule => LintNames.use_rethrow_when_possible;
 
   test_catchError_throwSameError() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   try {} catch (e) {
     throw e;
   }
 }
-''', [
-      lint(36, 7),
-    ]);
+''',
+      [lint(36, 7)],
+    );
   }
 
   test_catchErrorAndStackTrace_throwSameError() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   try {} catch (e, stackTrace) {
     print(stackTrace);
     throw e;
   }
 }
-''', [
-      lint(71, 7),
-    ]);
+''',
+      [lint(71, 7)],
+    );
   }
 
   test_rethrow() async {

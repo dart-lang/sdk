@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -39,7 +37,7 @@ class FunctionExpressionInvocationResolver {
 
   void resolve(FunctionExpressionInvocationImpl node,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var function = node.function;
 
     if (function is ExtensionOverrideImpl) {
@@ -56,7 +54,7 @@ class FunctionExpressionInvocationResolver {
     }
 
     receiverType = _typeSystem.resolveToBound(receiverType);
-    if (receiverType is FunctionType) {
+    if (receiverType is FunctionTypeImpl) {
       _nullableDereferenceVerifier.expression(
         CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
         function,
@@ -79,11 +77,11 @@ class FunctionExpressionInvocationResolver {
     var result = _typePropertyResolver.resolve(
       receiver: function,
       receiverType: receiverType,
-      name: FunctionElement.CALL_METHOD_NAME,
+      name: MethodElement2.CALL_METHOD_NAME,
       propertyErrorEntity: function,
       nameErrorEntity: function,
     );
-    var callElement = result.getter;
+    var callElement = result.getter2;
 
     if (callElement == null) {
       if (result.needsGetterError) {
@@ -110,7 +108,7 @@ class FunctionExpressionInvocationResolver {
       return;
     }
 
-    node.staticElement = callElement;
+    node.element = callElement;
     var rawType = callElement.type;
     _resolve(node, rawType, whyNotPromotedArguments, contextType: contextType);
   }
@@ -145,29 +143,32 @@ class FunctionExpressionInvocationResolver {
 
   void _resolve(FunctionExpressionInvocationImpl node, FunctionType rawType,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var returnType = FunctionExpressionInvocationInferrer(
       resolver: _resolver,
       node: node,
       argumentList: node.argumentList,
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
-    ).resolveInvocation(rawType: rawType);
+    ).resolveInvocation(
+        // TODO(paulberry): eliminate this cast by changing the type of
+        // `rawType`.
+        rawType: rawType as FunctionTypeImpl);
 
     node.recordStaticType(returnType, resolver: _resolver);
   }
 
   void _resolveReceiverExtensionOverride(
       FunctionExpressionInvocationImpl node,
-      ExtensionOverride function,
+      ExtensionOverrideImpl function,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var result = _extensionResolver.getOverrideMember(
       function,
-      FunctionElement.CALL_METHOD_NAME,
+      MethodElement2.CALL_METHOD_NAME,
     );
-    var callElement = result.getter;
-    node.staticElement = callElement;
+    var callElement = result.getter2;
+    node.element = callElement;
 
     if (callElement == null) {
       _errorReporter.atNode(
@@ -191,9 +192,9 @@ class FunctionExpressionInvocationResolver {
     _resolve(node, rawType, whyNotPromotedArguments, contextType: contextType);
   }
 
-  void _unresolved(FunctionExpressionInvocationImpl node, DartType type,
+  void _unresolved(FunctionExpressionInvocationImpl node, TypeImpl type,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     _setExplicitTypeArgumentTypes(node);
     FunctionExpressionInvocationInferrer(
             resolver: _resolver,
@@ -216,7 +217,7 @@ class FunctionExpressionInvocationResolver {
           .map((typeArgument) => typeArgument.typeOrThrow)
           .toList();
     } else {
-      node.typeArgumentTypes = const <DartType>[];
+      node.typeArgumentTypes = const <TypeImpl>[];
     }
   }
 }

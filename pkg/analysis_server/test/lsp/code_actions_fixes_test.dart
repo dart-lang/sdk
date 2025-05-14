@@ -97,6 +97,10 @@ bar
       expectedContent,
       kind: CodeActionKind('quickfix.fooToBar'),
       title: "Change 'foo' to 'bar'",
+      command: 'dart.logAction',
+      commandArgs: [
+        {'action': 'fix from plugin'},
+      ],
     );
   }
 
@@ -544,24 +548,6 @@ Future foo;
 
     await executeCommand(fixAction.command!);
     expectCommandLogged('dart.fix.remove.unusedImport');
-  }
-
-  Future<void> test_macroGenerated() async {
-    setDartTextDocumentContentProviderSupport();
-    var macroFilePath = join(projectFolderPath, 'lib', 'test.macro.dart');
-    var code = TestCode.parse('''
-void f() {
-  js^on.encode('');
-}
-''');
-    newFile(macroFilePath, code.code);
-    await initialize();
-
-    var codeActions = await getCodeActions(
-      uriConverter.toClientUri(macroFilePath),
-      position: code.position.position,
-    );
-    expect(codeActions, isEmpty);
   }
 
   /// Repro for https://github.com/Dart-Code/Dart-Code/issues/4462.

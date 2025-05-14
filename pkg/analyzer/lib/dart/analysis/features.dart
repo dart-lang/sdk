@@ -31,14 +31,14 @@ abstract class Feature {
   static final control_flow_collections =
       ExperimentalFeatures.control_flow_collections;
 
+  /// Feature information for dot shorthands.
+  static final dot_shorthands = ExperimentalFeatures.dot_shorthands;
+
   /// Feature information for enhanced enums.
   static final enhanced_enums = ExperimentalFeatures.enhanced_enums;
 
   /// Feature information for enhanced parts.
   static final enhanced_parts = ExperimentalFeatures.enhanced_parts;
-
-  /// Feature information for enum shorthands.
-  static final enum_shorthands = ExperimentalFeatures.enum_shorthands;
 
   /// Feature information for extension methods.
   static final extension_methods = ExperimentalFeatures.extension_methods;
@@ -85,6 +85,9 @@ abstract class Feature {
 
   /// Feature information for set literals.
   static final set_literals = ExperimentalFeatures.set_literals;
+
+  /// Feature information for sound flow analysis.
+  static final sound_flow_analysis = ExperimentalFeatures.sound_flow_analysis;
 
   /// Feature information for super parameters.
   static final super_parameters = ExperimentalFeatures.super_parameters;
@@ -136,13 +139,14 @@ abstract class FeatureSet {
   }) = ExperimentStatus.fromStrings2;
 
   /// Computes the set of features for the latest language version known
-  /// to the analyzer, without any experiments.  Use it only if you really
-  /// don't care which language version you want to use, and sure that the
-  /// code that you process is valid for the latest language version.
+  /// to the analyzer, with experiments according to [flags].  Use it only if
+  /// you really don't care which language version you want to use, and sure
+  /// that the code that you process is valid for the latest language version.
   ///
   /// Otherwise, it is recommended to use [FeatureSet.fromEnableFlags2].
-  factory FeatureSet.latestLanguageVersion() =
-      ExperimentStatus.latestLanguageVersion;
+  factory FeatureSet.latestLanguageVersion({
+    List<String> flags,
+  }) = ExperimentStatus.latestLanguageVersion;
 
   /// Queries whether the given [feature] is contained in this feature set.
   bool isEnabled(Feature feature);

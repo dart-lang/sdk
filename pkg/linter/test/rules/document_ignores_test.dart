@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DocumentIgnoresTest);
   });
@@ -25,9 +25,7 @@ int x = 0;
 // ignore: unused_element
 int _y = 0;
 ''',
-      [
-        lint(12, 25),
-      ],
+      [lint(12, 25)],
     );
   }
 
@@ -38,9 +36,7 @@ int x = 0; // Text.
 // ignore: unused_element
 int _y = 0;
 ''',
-      [
-        lint(20, 25),
-      ],
+      [lint(20, 25)],
     );
   }
 
@@ -78,9 +74,7 @@ int _y = 0 as int;
 // ignore_for_file: unnecessary_cast
 int _y = 0 as int;
 ''',
-      [
-        lint(45, 36),
-      ],
+      [lint(45, 36)],
     );
   }
 

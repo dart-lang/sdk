@@ -9,21 +9,21 @@ import 'access_lib.dart' as private;
 
 main() {
   _function();
-//^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
-// [cfe] Method not found: '_function'.
+  // [error column 3, length 9]
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [cfe] Method not found: '_function'.
   private._function();
-//        ^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
-// [cfe] Method not found: '_function'.
+  //      ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [cfe] Method not found: '_function'.
   new _Class();
   //  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   // [cfe] Couldn't find constructor '_Class'.
   private._Class();
-//        ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
-// [cfe] Method not found: '_Class'.
+  //      ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [cfe] Method not found: '_Class'.
   new Class._constructor();
   //        ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR

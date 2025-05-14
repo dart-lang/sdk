@@ -12,6 +12,7 @@ import 'package:frontend_server/resident_frontend_server_utils.dart'
     show invokeReplaceCachedDill;
 import 'package:path/path.dart';
 import 'package:pub/pub.dart';
+import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../experiments.dart';
@@ -66,6 +67,12 @@ class RunCommand extends DartdevCommand {
             "started. Refer to 'dart ${CompilationServerCommand.commandName} "
             "start -h' for more information about info files.",
         hide: !verbose,
+      )
+      ..addFlag(
+        quietOption,
+        hide: !verbose,
+        help: 'Disable the printing of messages about the resident compiler '
+            'starting up / shutting down.',
       )
       ..addOption(
         CompilationServerCommand.residentCompilerInfoFileFlag,
@@ -309,6 +316,7 @@ class RunCommand extends DartdevCommand {
     required File residentCompilerInfoFile,
     required ArgResults args,
     required bool shouldRetryOnFrontendCompilerException,
+    required bool quiet,
   }) async {
     final executableFile = File(executable.executable);
     assert(!await isFileKernelFile(executableFile) &&
@@ -321,15 +329,18 @@ class RunCommand extends DartdevCommand {
         residentCompilerInfoFile,
         args,
         createCompileJitJson,
+        quiet: quiet,
       );
     } on FrontendCompilerException catch (e) {
       if (e.issue == CompilationIssue.serverError) {
         if (shouldRetryOnFrontendCompilerException) {
-          log.stderr(
-            'Error: A connection to the Resident Frontend Compiler could '
-            'not be established. Restarting the Resident Frontend Compiler '
-            'and retrying compilation.',
-          );
+          if (!quiet) {
+            log.stderr(
+              'Error: A connection to the Resident Frontend Compiler could '
+              'not be established. Restarting the Resident Frontend Compiler '
+              'and retrying compilation.',
+            );
+          }
           await shutDownOrForgetResidentFrontendCompiler(
             residentCompilerInfoFile,
           );
@@ -338,6 +349,7 @@ class RunCommand extends DartdevCommand {
             residentCompilerInfoFile: residentCompilerInfoFile,
             args: args,
             shouldRetryOnFrontendCompilerException: false,
+            quiet: quiet,
           );
         } else {
           log.stderr(
@@ -371,21 +383,52 @@ class RunCommand extends DartdevCommand {
     }
 
     String? nativeAssets;
-    if (!nativeAssetsExperimentEnabled) {
-      if (await warnOnNativeAssets()) {
-        return errorExitCode;
+    final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
+      Directory.current.uri,
+    );
+    if (packageConfig != null) {
+      final runPackageName = getPackageForCommand(mainCommand) ??
+          await DartNativeAssetsBuilder.findRootPackageName(
+            Directory.current.uri,
+          );
+      if (runPackageName != null) {
+        final pubspecUri =
+            await DartNativeAssetsBuilder.findPubspec(Directory.current.uri);
+        final Map? pubspec;
+        if (pubspecUri == null) {
+          pubspec = null;
+        } else {
+          pubspec =
+              loadYaml(File.fromUri(pubspecUri).readAsStringSync()) as Map;
+          final pubspecErrors =
+              DartNativeAssetsBuilder.validateHooksUserDefinesFromPubspec(
+                  pubspec);
+          if (pubspecErrors.isNotEmpty) {
+            log.stderr('Errors in pubspec:');
+            pubspecErrors.forEach(log.stderr);
+            return errorExitCode;
+          }
+        }
+        final builder = DartNativeAssetsBuilder(
+          pubspec: pubspec,
+          packageConfigUri: packageConfig,
+          runPackageName: runPackageName,
+          verbose: verbose,
+        );
+        if (!nativeAssetsExperimentEnabled) {
+          if (await builder.warnOnNativeAssets()) {
+            return errorExitCode;
+          }
+        } else {
+          final assetsYamlFileUri =
+              await builder.compileNativeAssetsJitYamlFile();
+          if (assetsYamlFileUri == null) {
+            log.stderr('Error: Compiling native assets failed.');
+            return errorExitCode;
+          }
+          nativeAssets = assetsYamlFileUri.toFilePath();
+        }
       }
-    } else {
-      final runPackageName = getPackageForCommand(mainCommand);
-      final assetsYamlFileUri = await compileNativeAssetsJitYamlFile(
-        verbose: verbose,
-        runPackageName: runPackageName,
-      );
-      if (assetsYamlFileUri == null) {
-        log.stderr('Error: Compiling native assets failed.');
-        return errorExitCode;
-      }
-      nativeAssets = assetsYamlFileUri.toFilePath();
     }
 
     final String? residentCompilerInfoFileArg =
@@ -396,6 +439,13 @@ class RunCommand extends DartdevCommand {
       log.stderr(
         'Error: the --resident flag must be passed whenever the '
         '--resident-compiler-info-file option is passed.',
+      );
+      return errorExitCode;
+    }
+    if (args.wasParsed(quietOption) && !useResidentCompiler) {
+      log.stderr(
+        'Error: the --resident flag must be passed whenever the --quiet flag '
+        'is passed.',
       );
       return errorExitCode;
     }
@@ -435,7 +485,10 @@ class RunCommand extends DartdevCommand {
         // need to replace the file in the resident frontend compiler kernel
         // cache associated with this executable, because the cached kernel file
         // may be used to populate context for expression evaluation later.
-        await ensureCompilationServerIsRunning(residentCompilerInfoFile);
+        await ensureCompilationServerIsRunning(
+          residentCompilerInfoFile,
+          quiet: args[quietOption] ?? false,
+        );
         final succeeded = await invokeReplaceCachedDill(
           replacementDillPath: executableFile.absolute.path,
           serverInfoFile: residentCompilerInfoFile,
@@ -456,6 +509,7 @@ class RunCommand extends DartdevCommand {
           residentCompilerInfoFile: residentCompilerInfoFile,
           args: args,
           shouldRetryOnFrontendCompilerException: true,
+          quiet: args[quietOption] ?? false,
         );
         if (compiledKernelFile == null) {
           return errorExitCode;

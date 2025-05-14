@@ -39,7 +39,6 @@ MapPattern
       value: DeclaredVariablePattern
         type: NamedType
           name: String
-          element: dart:core::<fragment>::@class::String
           element2: dart:core::@class::String
           type: String
         name: a
@@ -104,12 +103,10 @@ MapPattern
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
       NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
     rightBracket: >
@@ -326,12 +323,10 @@ MapPattern
     arguments
       NamedType
         name: bool
-        element: dart:core::<fragment>::@class::bool
         element2: dart:core::@class::bool
         type: bool
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
@@ -420,7 +415,6 @@ MapPattern
       value: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
         name: a
@@ -477,12 +471,10 @@ MapPattern
     arguments
       NamedType
         name: bool
-        element: dart:core::<fragment>::@class::bool
         element2: dart:core::@class::bool
         type: bool
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
@@ -520,12 +512,10 @@ MapPattern
     arguments
       NamedType
         name: bool
-        element: dart:core::<fragment>::@class::bool
         element2: dart:core::@class::bool
         type: bool
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
@@ -565,13 +555,11 @@ MapPattern
       key: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: a
-          staticElement: <testLibraryFragment>::@function::f::@parameter::a
           element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: bool Function()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        staticElement: <null>
         element: <null>
         staticInvokeType: bool Function()
         staticType: bool
@@ -618,7 +606,6 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Map<bool, int>
   patternTypeSchema: Map<_, _>
@@ -645,12 +632,10 @@ PatternVariableDeclaration
       arguments
         NamedType
           name: bool
-          element: dart:core::<fragment>::@class::bool
           element2: dart:core::@class::bool
           type: bool
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
@@ -673,7 +658,6 @@ PatternVariableDeclaration
   expression: MethodInvocation
     methodName: SimpleIdentifier
       token: g
-      staticElement: <testLibraryFragment>::@function::g
       element: <testLibrary>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList
@@ -712,7 +696,6 @@ PatternVariableDeclaration
         value: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::<fragment>::@class::int
             element2: dart:core::@class::int
             type: int
           name: a
@@ -726,7 +709,6 @@ PatternVariableDeclaration
   expression: MethodInvocation
     methodName: SimpleIdentifier
       token: g
-      staticElement: <testLibraryFragment>::@function::g
       element: <testLibrary>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList

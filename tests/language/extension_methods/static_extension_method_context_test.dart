@@ -18,15 +18,23 @@ class C {
 main() {
   var string = '';
   context<int>(
-      string.f(contextType([1])..expectStaticType<Exactly<List<int>>>()));
+    string.f(contextType([1])..expectStaticType<Exactly<List<int>>>()),
+  );
   context<int>(
-      E(string).f(contextType([1])..expectStaticType<Exactly<List<int>>>()));
+    E(string).f(contextType([1])..expectStaticType<Exactly<List<int>>>()),
+  );
 
   var nullableString = '' as String?;
-  context<int?>(nullableString
-      ?.f(contextType([1])..expectStaticType<Exactly<List<int?>>>()));
-  context<int?>(E(nullableString)
-      ?.f(contextType([1])..expectStaticType<Exactly<List<int?>>>()));
+  context<int?>(
+    nullableString?.f(
+      contextType([1])..expectStaticType<Exactly<List<int?>>>(),
+    ),
+  );
+  context<int?>(
+    E(
+      nullableString,
+    )?.f(contextType([1])..expectStaticType<Exactly<List<int?>>>()),
+  );
 
   // And just to verify that the expectations above are reasonable, repeat the
   // same thing with an ordinary class:
@@ -34,5 +42,6 @@ main() {
   context<int>(c.g(contextType([1])..expectStaticType<Exactly<List<int>>>()));
   var nullableC = C() as C?;
   context<int?>(
-      nullableC?.g(contextType([1])..expectStaticType<Exactly<List<int?>>>()));
+    nullableC?.g(contextType([1])..expectStaticType<Exactly<List<int?>>>()),
+  );
 }

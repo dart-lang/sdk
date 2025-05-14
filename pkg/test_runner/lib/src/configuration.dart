@@ -183,7 +183,6 @@ class TestConfiguration {
   final String? serviceResponseSizesDirectory;
   final String outputDirectory;
   final String? suiteDirectory;
-  String get babel => configuration.babel;
   String get builderTag => configuration.builderTag;
   final List<String> reproducingArguments;
 
@@ -386,15 +385,6 @@ class TestConfiguration {
             '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
         System.linux: '/usr/bin/google-chrome'
       },
-      Runtime.ie9: {
-        System.win: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
-      },
-      Runtime.ie10: {
-        System.win: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
-      },
-      Runtime.ie11: {
-        System.win: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
-      }
     };
 
     location = locations[runtime]![System.find(Platform.operatingSystem)];
@@ -464,15 +454,6 @@ class TestConfiguration {
     if (!validRuntimes.contains(runtime)) {
       print("Warning: combination of compiler '${compiler.name}' and "
           "runtime '${runtime.name}' is invalid. Skipping this combination.");
-      isValid = false;
-    }
-
-    if (runtime.isIE &&
-        Platform.operatingSystem != 'windows' &&
-        !listStatusFiles &&
-        !listTests) {
-      print("Warning: cannot run Internet Explorer on non-Windows operating"
-          " system.");
       isValid = false;
     }
 

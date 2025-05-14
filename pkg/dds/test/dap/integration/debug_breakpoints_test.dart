@@ -75,6 +75,69 @@ main() {
       expect(resolvedBreakpoints, addedBreakpoints);
     });
 
+    testWithUriConfigurations(
+        () => dap, 'provides reason for failed breakpoints', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(debuggerPauseProgram);
+      final invalidBreakpointLine = 9999;
+
+      // Start running the app.
+      await Future.wait([
+        client.initialize(),
+        client.launch(testFile.path),
+      ], eagerError: true);
+
+      // Collect reasons from all breakpoint events.
+      final breakpointReasons = <String?>[];
+      final breakpointChangedSubscription =
+          client.breakpointChangeEvents.listen((event) {
+        breakpointReasons
+            .add('${event.breakpoint.reason}: ${event.breakpoint.message}');
+      });
+
+      // Set the breakpoint and also collect the original reason.
+      var bps = await client.setBreakpoint(testFile, invalidBreakpointLine);
+      var bp = bps.breakpoints.single;
+      breakpointReasons.add('${bp.reason}: ${bp.message}');
+
+      // Wait up to a few seconds for the change events to come through to
+      // allow for slow CI bots, but exit early if they all arrived.
+      final testUntil = DateTime.now().toUtc().add(const Duration(seconds: 5));
+      while (DateTime.now().toUtc().isBefore(testUntil) &&
+          breakpointReasons.length < 2) {
+        await pumpEventQueue(times: 5000);
+      }
+
+      expect(
+          breakpointReasons,
+          equals([
+            'pending: Breakpoint has not yet been resolved',
+            'failed: No debuggable code where breakpoint was requested'
+          ]));
+
+      await breakpointChangedSubscription.cancel();
+    });
+
+    testWithUriConfigurations(
+        () => dap, 'provides reason for not-yet-resolved breakpoints',
+        () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(debuggerPauseProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Start running the app.
+      await Future.wait([
+        client.initialize(),
+        client.launch(testFile.path),
+      ], eagerError: true);
+
+      // Set a breakpoint and verify the result.
+      var bps = await client.setBreakpoint(testFile, breakpointLine);
+      expect(bps.breakpoints.single.reason, 'pending');
+      expect(bps.breakpoints.single.message,
+          'Breakpoint has not yet been resolved');
+    });
+
     test('responds to setBreakpoints before any breakpoint events', () async {
       final client = dap.client;
       final testFile =

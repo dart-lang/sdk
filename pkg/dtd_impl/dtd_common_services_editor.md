@@ -84,6 +84,23 @@ The following events are sent over the `Editor` stream. See `streamListen` in
 [dtd_protocol](./dtd_protocol.md) for information on subscribing to streams.
 
 
+## activeLocationChanged
+`ActiveLocationChangedEvent`
+
+An event sent by an editor when the document/location where the user is
+active (or the document itself) changes.
+
+Only the active document is tracked, even if multiple documents are
+open/visible at the same time. A new event replaces the active document and
+previous selections from an earlier event.
+
+Edits to the document are considered location changes even if the line/column
+remain the same because they they are locations in a different document version.
+
+This event may be debounced by the editor to avoid sending frequent events
+during typing.
+
+
 ## deviceAdded
 `DeviceAddedEvent`
 
@@ -148,6 +165,31 @@ and dark mode or increase/decrease font size.
 # Type Definitions
 
 ```dart
+/// An event sent by an editor when the document/location where the user is
+/// active changes.
+///
+/// Only the active document is tracked, even if multiple documents are
+/// open/visible at the same time. A new event replaces the active document and
+/// previous selections from an earlier event.
+/// This event may be debounced by the editor to avoid sending frequent events
+/// during typing.
+class ActiveLocationChangedEvent {
+  /// An identifier that represents the active document.
+  ///
+  /// `null` is there is no active document.
+  OptionalVersionedTextDocumentIdentifier? textDocument;
+
+  /// The set of selections in the document.
+  ///
+  /// There will always be at least one selection if there is an active document
+  /// (textDocument != null), but there may also be more if a user has multiple
+  /// selections active.
+  ///
+  /// The first selection is always the primary selection for actions that only
+  /// support one location.
+  List<EditorSelection> selections;
+}
+
 /// An event sent by an editor when a debug session is changed.
 ///
 /// This could be happen when a VM Service URI becomes available for a session
@@ -231,12 +273,29 @@ class EditorDevice {
   bool supported;
 }
 
-/// The description of an editor's theme.
-class Theme {
-  bool isDarkMode;
-  String? backgroundColor;
-  String? foregroundColor;
-  int? fontSize;
+
+/// A position inside a document.
+class EditorPosition {
+  /// The zero-based line number of this position.
+  int line;
+
+  /// The zero-based character number of this position.
+  int character;
+}
+
+/// A selection inside a document.
+class EditorSelection {
+  /// The start/anchor position of a selection.
+  ///
+  /// This will be the same as [active] if this is just a single position and
+  /// not a selection.
+  ///
+  /// This position may be before, after, or the same as [active] depending on
+  /// the selection.
+  EditorPosition anchor;
+
+  /// The end/active position of a selection.
+  EditorPosition active;
 }
 
 /// Parameters for the `enablePlatformTypeParams` request.
@@ -321,5 +380,41 @@ class OpenDevToolsPageParams {
 class SelectDeviceParams {
   /// The ID of the device to select (or `null` to unselect the current device).
   String? deviceId;
+}
+
+/// The description of an editor's theme.
+class Theme {
+  bool isDarkMode;
+  String? backgroundColor;
+  String? foregroundColor;
+  int? fontSize;
+}
+
+/// An identifier for a document with an optional version number.
+class OptionalVersionedTextDocumentIdentifier {
+  /// The URI that represents the document.
+  ///
+  /// This URI could be of any scheme and clients should ignore those they do
+  /// not understand. It is always a URI and never a bare file path.
+  ///
+  /// Clients should take care to handle paths that should be case-insensitive
+  /// or include escaping. In particular, Windows drive letters may be cased
+  /// inconsistently and the colon may be escaped as `%3a` or `%3A`.
+  ///
+  /// Examples:
+  ///
+  /// - file:///c:/foo/bar/baz.dart
+  /// - file:///C%3A/foo/bar/baz.dart
+  /// - file:///foo/bar/baz.dart
+  /// - dart-macro+file:///c:/foo/bar/baz.dart
+  /// - dart-macro+file:///C%3A/foo/bar/baz.dart
+  /// - dart-macro+file:///foo/bar/baz.dart
+  /// - vsls:///foo/bar/baz.dart
+  String uri;
+
+  /// The current version of this document, if the document is versioned. The
+  /// version is used to to ensure locations within a document are only applied
+  /// to the correct version of that document but not all editors provide it.
+  int? version;
 }
 ```

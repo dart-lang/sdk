@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NoWildcardVariableUsesTest);
   });
@@ -72,16 +72,17 @@ class C {
   }
 
   test_localVar() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 f() {
   var _ = 1;
   print(_);
 }
-''', [
-      lint(70, 1),
-    ]);
+''',
+      [lint(70, 1)],
+    );
   }
 
   test_localVar_wildcardsEnabled() async {
@@ -109,16 +110,17 @@ class C {
   }
 
   test_param() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 f(int __) {
   print(__);
 }
-''', [
-      lint(64, 2),
-    ]);
+''',
+      [lint(64, 2)],
+    );
   }
 
   test_topLevelFunction() async {

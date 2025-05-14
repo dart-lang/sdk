@@ -32,13 +32,13 @@ class Class2 extends core::Object implements mai::Sealed {
   synthetic constructor •() → self::Class2
     ;
 }
+class Class3 extends self::_Class3&Object&Sealed {
+  synthetic constructor •() → self::Class3
+    ;
+}
 abstract sealed class _Class3&Object&Sealed = core::Object with mai::Sealed /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class3&Object&Sealed
     : super core::Object::•()
-    ;
-}
-class Class3 extends self::_Class3&Object&Sealed {
-  synthetic constructor •() → self::Class3
     ;
 }
 

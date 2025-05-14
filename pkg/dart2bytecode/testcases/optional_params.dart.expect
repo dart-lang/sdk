@@ -192,7 +192,7 @@ ConstantPool {
 Function 'foo3', static, has-optional-named-params, reflectable, debuggable
     type-params <'P' extends dart:core::Object? (default dynamic), 'Q' extends dart:core::Object? (default dynamic)>
     parameters [dynamic 'z', dynamic 'y', dart:core::bool 'a', dart:core::Map < DART_SDK/pkg/dart2bytecode/testcases/optional_params.dart::foo3::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/optional_params.dart::foo3::TypeParam/1 > 'b'] (required: 2)
-    parameter-flags [0, 0, 0, 8]
+    parameter-flags [0, 1]
     return-type void
 
 Bytecode {

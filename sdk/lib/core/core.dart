@@ -165,10 +165,7 @@ import "dart:convert"
 import "dart:math" show Random; // Used by List.shuffle.
 import "dart:typed_data" show Uint8List;
 
-@Since("2.1")
-export "dart:async" show Future, Stream;
-@Since("2.12")
-export "dart:async" show FutureExtensions;
+export "dart:async" show Future, FutureExtensions, Stream;
 @Since("3.0")
 export "dart:async"
     show

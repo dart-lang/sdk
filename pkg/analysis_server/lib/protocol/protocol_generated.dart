@@ -19053,6 +19053,87 @@ class ServerOpenUrlRequestResult implements ResponseResult {
   int get hashCode => 561630021;
 }
 
+/// server.pluginError params
+///
+/// {
+///   "message": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerPluginErrorParams implements HasToJson {
+  /// The error message indicating what kind of error was encountered.
+  String message;
+
+  ServerPluginErrorParams(this.message);
+
+  factory ServerPluginErrorParams.fromJson(
+    JsonDecoder jsonDecoder,
+    String jsonPath,
+    Object? json, {
+    required ClientUriConverter? clientUriConverter,
+  }) {
+    json ??= {};
+    if (json is Map) {
+      String message;
+      if (json.containsKey('message')) {
+        message = jsonDecoder.decodeString(
+          '$jsonPath.message',
+          json['message'],
+        );
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'message');
+      }
+      return ServerPluginErrorParams(message);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'server.pluginError params', json);
+    }
+  }
+
+  factory ServerPluginErrorParams.fromNotification(
+    Notification notification, {
+    required ClientUriConverter? clientUriConverter,
+  }) {
+    return ServerPluginErrorParams.fromJson(
+      ResponseDecoder(null),
+      'params',
+      notification.params,
+      clientUriConverter: clientUriConverter,
+    );
+  }
+
+  @override
+  Map<String, Object> toJson({
+    required ClientUriConverter? clientUriConverter,
+  }) {
+    var result = <String, Object>{};
+    result['message'] = message;
+    return result;
+  }
+
+  Notification toNotification({
+    required ClientUriConverter? clientUriConverter,
+  }) {
+    return Notification(
+      'server.pluginError',
+      toJson(clientUriConverter: clientUriConverter),
+    );
+  }
+
+  @override
+  String toString() => json.encode(toJson(clientUriConverter: null));
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerPluginErrorParams) {
+      return message == other.message;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => message.hashCode;
+}
+
 /// ServerService
 ///
 /// enum {
@@ -19093,6 +19174,7 @@ enum ServerService {
 /// {
 ///   "requests": List<String>
 ///   "supportsUris": optional bool
+///   "lspCapabilities": optional object
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -19125,7 +19207,21 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
   /// capability.
   bool? supportsUris;
 
-  ServerSetClientCapabilitiesParams(this.requests, {this.supportsUris});
+  /// LSP capabilities of the client as defined by the Language Server Protocol
+  /// specification.
+  ///
+  /// If custom LSP capabilities are to be used, the setClientCapabilities
+  /// request should be called before any LSP requests are made to the server.
+  ///
+  /// If LSP capabilities are not provided or no setClientCapabilities request
+  /// is made, a very basic set of capabilities will be assumed.
+  Object? lspCapabilities;
+
+  ServerSetClientCapabilitiesParams(
+    this.requests, {
+    this.supportsUris,
+    this.lspCapabilities,
+  });
 
   factory ServerSetClientCapabilitiesParams.fromJson(
     JsonDecoder jsonDecoder,
@@ -19152,9 +19248,14 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
           json['supportsUris'],
         );
       }
+      Object? lspCapabilities;
+      if (json.containsKey('lspCapabilities')) {
+        lspCapabilities = json['lspCapabilities'] as Object;
+      }
       return ServerSetClientCapabilitiesParams(
         requests,
         supportsUris: supportsUris,
+        lspCapabilities: lspCapabilities,
       );
     } else {
       throw jsonDecoder.mismatch(
@@ -19187,6 +19288,10 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
     if (supportsUris != null) {
       result['supportsUris'] = supportsUris;
     }
+    var lspCapabilities = this.lspCapabilities;
+    if (lspCapabilities != null) {
+      result['lspCapabilities'] = lspCapabilities;
+    }
     return result;
   }
 
@@ -19213,13 +19318,15 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
             other.requests,
             (String a, String b) => a == b,
           ) &&
-          supportsUris == other.supportsUris;
+          supportsUris == other.supportsUris &&
+          lspCapabilities == other.lspCapabilities;
     }
     return false;
   }
 
   @override
-  int get hashCode => Object.hash(Object.hashAll(requests), supportsUris);
+  int get hashCode =>
+      Object.hash(Object.hashAll(requests), supportsUris, lspCapabilities);
 }
 
 /// server.setClientCapabilities result

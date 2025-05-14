@@ -1,0 +1,55 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+  static method d<T extends core::Object? = dynamic>() → self::C<dynamic>
+    return new self::C::•<self::C::d::T%>();
+}
+class C1 extends core::Object {
+  synthetic constructor •() → self::C1
+    : super core::Object::•()
+    ;
+  @#C1
+  operator ==(core::Object other) → core::bool
+    return core::identical(#C2, other);
+}
+class A1 extends core::Object {
+  synthetic constructor •() → self::A1
+    : super core::Object::•()
+    ;
+  operator ==(core::Object other) → core::bool
+    return core::identical(#C3, other);
+}
+extension type ET1(self::A1 _) implements self::A1 {
+  abstract extension-type-member representation-field get _() → self::A1;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(self::A1 _) → self::ET1 /* erasure=self::A1 */ {
+  lowered final self::ET1 /* erasure=self::A1 */ #this = _;
+  return #this;
+}
+static extension-type-member method ET1|constructor#_#new#tearOff(self::A1 _) → self::ET1 /* erasure=self::A1 */
+  return self::ET1|constructor#(_);
+static method main() → void {
+  core::Object o = #C4;
+  core::print(new self::C1::•() =={self::C1::==}{(core::Object) → core::bool} #C2);
+  core::print(self::ET1|constructor#(new self::A1::•()) =={self::A1::==}{(core::Object) → core::bool} #C3);
+  core::Object? c = new self::C::•<dynamic>();
+  if(c{core::Object} is self::C<dynamic>) {
+    c = #C6;
+  }
+}
+
+constants  {
+  #C1 = core::_Override {}
+  #C2 = constructor-tearoff self::C1::•
+  #C3 = static-tearoff self::ET1|constructor#_#new#tearOff
+  #C4 = static-tearoff core::Object::hash
+  #C5 = static-tearoff self::C::d
+  #C6 = instantiation #C5 <core::int>
+}

@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -34,15 +31,15 @@ class FunctionExpressionResolver {
           .executableDeclaration_enter(node, node.parameters, isClosure: true);
     }
 
-    bool wasFunctionTypeSupplied = contextType is FunctionType;
+    bool wasFunctionTypeSupplied = contextType is FunctionTypeImpl;
     node.wasFunctionTypeSupplied = wasFunctionTypeSupplied;
-    DartType? imposedType;
+    TypeImpl? imposedType;
     if (wasFunctionTypeSupplied) {
       var instantiatedType = _matchTypeParameters(
         node.typeParameters,
         contextType,
       );
-      if (instantiatedType is FunctionType) {
+      if (instantiatedType is FunctionTypeImpl) {
         _inferFormalParameters(node.parameters, instantiatedType);
         var returnType = instantiatedType.returnType;
         if (!(returnType is DynamicType || returnType is UnknownInferredType)) {
@@ -74,13 +71,13 @@ class FunctionExpressionResolver {
   /// Infer types of implicitly typed formal parameters.
   void _inferFormalParameters(
     FormalParameterList? node,
-    FunctionType contextType,
+    FunctionTypeImpl contextType,
   ) {
     if (node == null) {
       return;
     }
 
-    void inferType(ParameterElementImpl p, DartType inferredType) {
+    void inferType(FormalParameterElementImpl p, TypeImpl inferredType) {
       // Check that there is no declared type, and that we have not already
       // inferred a type in some fashion.
       if (p.hasImplicitType && p.type is DynamicType) {
@@ -96,32 +93,41 @@ class FunctionExpressionResolver {
           inferredType = _typeSystem.objectQuestion;
         }
         if (inferredType is! DynamicType) {
-          p.type = inferredType;
+          p.firstFragment.type = inferredType;
         }
       }
     }
 
-    var parameters = node.parameterElements.nonNulls;
+    var nodeParameterFragments = node.parameterFragments.nonNulls;
     {
-      Iterator<ParameterElement> positional =
-          parameters.where((p) => p.isPositional).iterator;
-      Iterator<ParameterElement> fnPositional =
-          contextType.parameters.where((p) => p.isPositional).iterator;
-      while (positional.moveNext() && fnPositional.moveNext()) {
-        inferType(positional.current as ParameterElementImpl,
-            fnPositional.current.type);
+      var nodePositional = nodeParameterFragments
+          .map((fragment) => fragment.element)
+          .where((element) => element.isPositional)
+          .iterator;
+      var contextPositional = contextType.formalParameters
+          .where((element) => element.isPositional)
+          .iterator;
+      while (nodePositional.moveNext() && contextPositional.moveNext()) {
+        inferType(
+          nodePositional.current as FormalParameterElementImpl,
+          contextPositional.current.type,
+        );
       }
     }
 
     {
-      Map<String, DartType> namedParameterTypes =
-          contextType.namedParameterTypes;
-      Iterable<ParameterElement> named = parameters.where((p) => p.isNamed);
-      for (var p in named) {
-        if (!namedParameterTypes.containsKey(p.name)) {
+      var contextNamedTypes = contextType.namedParameterTypes;
+      var nodeNamed = nodeParameterFragments
+          .map((fragment) => fragment.element)
+          .where((element) => element.isNamed);
+      for (var element in nodeNamed) {
+        if (!contextNamedTypes.containsKey(element.name3)) {
           continue;
         }
-        inferType(p as ParameterElementImpl, namedParameterTypes[p.name]!);
+        inferType(
+          element as FormalParameterElementImpl,
+          contextNamedTypes[element.name3]!,
+        );
       }
     }
   }
@@ -131,32 +137,34 @@ class FunctionExpressionResolver {
   ///
   /// Return `null` is the number of element in [typeParameterList] is not
   /// the same as the number of type parameters in the [type].
-  FunctionType? _matchTypeParameters(
-      TypeParameterList? typeParameterList, FunctionType type) {
+  FunctionTypeImpl? _matchTypeParameters(
+      TypeParameterListImpl? typeParameterList, FunctionTypeImpl type) {
     if (typeParameterList == null) {
-      if (type.typeFormals.isEmpty) {
+      if (type.typeParameters.isEmpty) {
         return type;
       }
       return null;
     }
 
     var typeParameters = typeParameterList.typeParameters;
-    if (typeParameters.length != type.typeFormals.length) {
+    if (typeParameters.length != type.typeParameters.length) {
       return null;
     }
 
     return type.instantiate(typeParameters.map((typeParameter) {
-      return typeParameter.declaredElement!.instantiate(
+      return typeParameter.declaredFragment!.element.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }).toList());
   }
 
   void _resolve2(FunctionExpressionImpl node, DartType? imposedType) {
-    var functionElement = node.declaredElement as ExecutableElementImpl;
+    var functionElement = node.declaredFragment!.element;
 
     if (_shouldUpdateReturnType(node)) {
-      functionElement.returnType = imposedType ?? DynamicTypeImpl.instance;
+      var firstFragment =
+          functionElement.firstFragment as ExecutableElementImpl;
+      firstFragment.returnType = imposedType ?? DynamicTypeImpl.instance;
     }
 
     node.recordStaticType(functionElement.type, resolver: _resolver);

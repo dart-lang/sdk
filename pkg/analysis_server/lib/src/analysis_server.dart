@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:io';
@@ -28,13 +26,13 @@ import 'package:analysis_server/src/protocol_server.dart'
     as legacy
     show MessageType;
 import 'package:analysis_server/src/protocol_server.dart' as server;
+import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
-import 'package:analysis_server/src/server/message_scheduler.dart';
-import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
+import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
 import 'package:analysis_server/src/services/dart_tooling_daemon/dtd_services.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
@@ -47,18 +45,16 @@ import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manage
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
-import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/src/utilities/tee_string_sink.dart';
 import 'package:analysis_server/src/utilities/timing_byte_store.dart';
-import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
+import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -107,7 +103,7 @@ typedef UserPromptSender =
     );
 
 /// Implementations of [AnalysisServer] implement a server that listens
-/// on a [CommunicationChannel] for analysis messages and process them.
+/// on an [AbstractNotificationManager] for analysis messages and process them.
 abstract class AnalysisServer {
   /// A flag indicating whether plugins are supported in this build.
   static final bool supportsPlugins = true;
@@ -140,7 +136,6 @@ abstract class AnalysisServer {
 
   /// The object used to manage sending a subset of notifications to the client.
   /// The subset of notifications are those to which plugins may contribute.
-  /// This field is `null` when the new plugin support is disabled.
   AbstractNotificationManager notificationManager;
 
   /// A reference to the handler for executing commands.
@@ -178,6 +173,10 @@ abstract class AnalysisServer {
   /// server.
   final DiagnosticServer? diagnosticServer;
 
+  /// Additional diagnostic info from the client editor to include in diagnostic
+  /// reports.
+  Object? clientDiagnosticInformation;
+
   /// A [RecentBuffer] of the most recent exceptions encountered by the analysis
   /// server.
   final RecentBuffer<ServerException> exceptions = RecentBuffer(10);
@@ -207,6 +206,9 @@ abstract class AnalysisServer {
   final ServerRecentPerformance recentPerformance = ServerRecentPerformance();
 
   final RequestStatisticsHelper? requestStatistics;
+
+  final PerformanceLog<TeeStringSink> analysisPerformanceLogger =
+      PerformanceLog<TeeStringSink>(TeeStringSink());
 
   /// Manages prompts telling the user about "dart fix".
   late final DartFixPromptManager _dartFixPrompt;
@@ -254,10 +256,6 @@ abstract class AnalysisServer {
   /// the last idle state.
   final Set<String> filesResolvedSinceLastIdle = {};
 
-  /// A mapping of [ProducerGenerator]s to the set of lint names with which they
-  /// are associated (can fix).
-  final Map<ProducerGenerator, Set<LintCode>> producerGeneratorsForLintRules;
-
   /// A completer for [lspUninitialized].
   final Completer<void> _lspUninitializedCompleter = Completer<void>();
 
@@ -292,7 +290,6 @@ abstract class AnalysisServer {
          httpClient,
          Platform.environment['PUB_HOSTED_URL'],
        ),
-       producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap(),
        messageScheduler = MessageScheduler(
          testView: retainDataForTesting ? MessageSchedulerTestView() : null,
        ) {
@@ -308,11 +305,10 @@ abstract class AnalysisServer {
     if (baseResourceProvider is PhysicalResourceProvider) {
       processRunner ??= ProcessRunner();
     }
+    var disablePubCommandVariable =
+        Platform.environment[PubCommand.disablePubCommandEnvironmentKey];
     var pubCommand =
-        processRunner != null &&
-                Platform.environment[PubCommand
-                        .disablePubCommandEnvironmentKey] ==
-                    null
+        processRunner != null && disablePubCommandVariable == null
             ? PubCommand(
               instrumentationService,
               resourceProvider.pathContext,
@@ -343,21 +339,21 @@ abstract class AnalysisServer {
     }
 
     var logName = options.newAnalysisDriverLog;
-    StringSink sink = NullStringSink();
     if (logName != null) {
       if (logName == 'stdout') {
-        sink = io.stdout;
+        analysisPerformanceLogger.sink.addSink(io.stdout);
       } else if (logName.startsWith('file:')) {
         var path = logName.substring('file:'.length);
-        sink = FileStringSink(path);
+        analysisPerformanceLogger.sink.addSink(FileStringSink(path));
       }
     }
 
     var requestStatistics = this.requestStatistics;
     if (requestStatistics != null) {
-      sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
+      analysisPerformanceLogger.sink.addSink(
+        requestStatistics.perfLoggerStringSink,
+      );
     }
-    var analysisPerformanceLogger = PerformanceLog(sink);
 
     byteStore = createByteStore(resourceProvider);
     fileContentCache = FileContentCache(resourceProvider);
@@ -420,7 +416,7 @@ abstract class AnalysisServer {
   ///
   /// Request handlers should be careful to use the correct clients capabilities
   /// if they are available to non-editor clients (such as over DTD). The
-  /// capabilities of the caller are available in [MessageInfo] and should
+  /// capabilities of the caller are available in [lsp.MessageInfo] and should
   /// usually be used when computing the results for requests, but if those
   /// requests additionally trigger requests to the editor, those requests to
   /// the editor should consider these capabilities.
@@ -439,7 +435,7 @@ abstract class AnalysisServer {
   /// A [Future] that completes when the LSP server moves into the initialized
   /// state and can handle normal LSP requests.
   ///
-  /// Completes with the [InitializedStateMessageHandler] that is active.
+  /// Completes with the [lsp.InitializedStateMessageHandler] that is active.
   ///
   /// When the server leaves the initialized state, [lspUninitialized] will
   /// complete.
@@ -495,8 +491,8 @@ abstract class AnalysisServer {
 
   void afterContextsDestroyed() {}
 
-  /// Broadcast a request built from the given [params] to all of the plugins
-  /// that are currently associated with the context root from the given
+  /// Broadcast a request built from the given [requestParams] to all of the
+  /// plugins that are currently associated with the context root from the given
   /// [driver]. Return a list containing futures that will complete when each of
   /// the plugins have sent a response, or an empty list if no [driver] is
   /// provided.
@@ -648,10 +644,10 @@ abstract class AnalysisServer {
   /// Gets the current version number of a document (if known).
   int? getDocumentVersion(String path);
 
-  /// Return a [Future] that completes with the [Element] at the given
+  /// Return a [Future] that completes with the [Element2] at the given
   /// [offset] of the given [file], or with `null` if there is no node at the
   /// [offset] or the node does not have an element.
-  Future<Element?> getElementAtOffset(String file, int offset) async {
+  Future<Element2?> getElementAtOffset(String file, int offset) async {
     if (!priorityFiles.contains(file)) {
       var driver = getAnalysisDriver(file);
       if (driver == null) {
@@ -663,9 +659,12 @@ abstract class AnalysisServer {
         return null;
       }
 
-      var element = findElementByNameOffset(unitElementResult.element, offset);
-      if (element != null) {
-        return element;
+      var fragment = findFragmentByNameOffset(
+        unitElementResult.fragment,
+        offset,
+      );
+      if (fragment != null) {
+        return fragment.element;
       }
     }
 
@@ -673,15 +672,15 @@ abstract class AnalysisServer {
     return getElementOfNode(node);
   }
 
-  /// Return a [Future] that completes with the [Element2] at the given
-  /// [offset] of the given [file], or with `null` if there is no node at the
-  /// [offset] or the node does not have an element.
-  Future<Element2?> getElementAtOffset2(String file, int offset) async =>
-      (await getElementAtOffset(file, offset)).asElement2;
-
-  /// Return the [Element] of the given [node], or `null` if [node] is `null` or
-  /// does not have an element.
-  Element? getElementOfNode(AstNode? node) {
+  /// Returns the element associated with the [node].
+  ///
+  /// If [useMockForImport] is `true` then a [MockLibraryImportElement] will be
+  /// returned when an import directive or a prefix element is associated with
+  /// the [node]. The rename-prefix refactoring should be updated to not require
+  /// this work-around.
+  ///
+  /// Returns `null` if [node] is `null` or doesn't have an element.
+  Element2? getElementOfNode(AstNode? node, {bool useMockForImport = false}) {
     if (node == null) {
       return null;
     }
@@ -695,40 +694,18 @@ abstract class AnalysisServer {
       return null;
     }
 
-    Element? element;
-    switch (node) {
-      case ExportDirective():
-        element = node.element;
-      case ImportDirective():
-        element = node.element;
-      case PartOfDirective():
-        element = node.element;
-      default:
-        element = ElementLocator.locate2(node).asElement;
+    Element2? element;
+    if (useMockForImport && node is ImportDirective) {
+      element = MockLibraryImportElement(node.libraryImport!);
+    } else {
+      element = ElementLocator.locate2(node);
     }
-
-    if (node is SimpleIdentifier && element is PrefixElement) {
-      element = getImportElement(node);
+    if (useMockForImport &&
+        node is SimpleIdentifier &&
+        element is PrefixElement2) {
+      element = MockLibraryImportElement(getImportElement(node)!);
     }
     return element;
-  }
-
-  /// Return the [Element] of the given [node], or `null` if [node] is `null` or
-  /// does not have an element.
-  Element2? getElementOfNode2(AstNode? node) {
-    if (node == null) {
-      return null;
-    }
-    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is StringLiteral && node.parent is UriBasedDirective) {
-      return null;
-    }
-    return ElementLocator.locate2(node);
   }
 
   /// Return a [LineInfo] for the file with the given [path].
@@ -816,6 +793,7 @@ abstract class AnalysisServer {
   Future<ResolvedUnitResult?>? getResolvedUnit(
     String path, {
     bool sendCachedToStream = false,
+    bool interactive = true,
   }) {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
@@ -827,7 +805,11 @@ abstract class AnalysisServer {
     }
 
     return driver
-        .getResolvedUnit(path, sendCachedToStream: sendCachedToStream)
+        .getResolvedUnit(
+          path,
+          sendCachedToStream: sendCachedToStream,
+          interactive: interactive,
+        )
         .then((value) => value is ResolvedUnitResult ? value : null)
         .catchError((Object e, StackTrace st) {
           instrumentationService.logException(e, st);
@@ -935,6 +917,9 @@ abstract class AnalysisServer {
   /// Report analytics data related to the number and size of files that were
   /// analyzed.
   void reportAnalysisAnalytics() {
+    if (!analyticsManager.needsAnslysisCompleteCall()) {
+      return;
+    }
     var packagesFileMap = <String, File?>{};
     var immediateFileCount = 0;
     var immediateFileLineCount = 0;
@@ -970,27 +955,9 @@ abstract class AnalysisServer {
 
     var rootPaths = packagesFileMap.keys.toList();
     rootPaths.sort((first, second) => first.length.compareTo(second.length));
-    var styleCounts = [
-      0, // neither
-      0, // only packages
-      0, // only options -- (No longer incremented. Options files do not imply unique contexts.)
-      0, // both -- (No longer incremented. Options files do not imply unique contexts.)
-    ];
-    var packagesFiles = <File>{};
-    for (var rootPath in rootPaths) {
-      var packagesFile = packagesFileMap[rootPath];
-      var hasUniquePackageFile =
-          packagesFile != null && packagesFiles.add(packagesFile);
-      var style = hasUniquePackageFile ? 1 : 0;
-      styleCounts[style]++;
-    }
 
     analyticsManager.analysisComplete(
       numberOfContexts: driverMap.length,
-      contextsWithoutFiles: styleCounts[0],
-      contextsFromPackagesFiles: styleCounts[1],
-      contextsFromOptionsFiles: styleCounts[2],
-      contextsFromBothFiles: styleCounts[3],
       immediateFileCount: immediateFileCount,
       immediateFileLineCount: immediateFileLineCount,
       transitiveFileCount: transitiveFileCount,
@@ -1032,6 +999,11 @@ abstract class AnalysisServer {
   /// The legacy server will wrap LSP notifications inside an
   /// 'lsp.notification' notification.
   void sendLspNotification(lsp.NotificationMessage notification);
+
+  /// Sends an LSP request with the given [params] to the client and waits for a
+  /// response. Completes with the raw [lsp.ResponseMessage] which could be an
+  /// error response.
+  Future<lsp.ResponseMessage> sendLspRequest(lsp.Method method, Object params);
 
   /// Sends an error notification to the user.
   void sendServerErrorNotification(
@@ -1115,7 +1087,7 @@ abstract class CommonServerContextManagerCallbacks
     // If the removed file doesn't have an overlay, we need to clear any
     // previous results.
     if (!resourceProvider.hasOverlay(file)) {
-      // Clear the cached errors in the the notification manager so we don't
+      // Clear the cached errors in the notification manager so we don't
       // re-send stale results if a plugin sends an update and we merge it with
       // previous results.
       analysisServer.notificationManager.errors.clearResultsForFile(file);
@@ -1235,6 +1207,21 @@ class ServerRecentPerformance {
   /// completion operation up to [performanceListMaxLength] measurements.
   final RecentBuffer<CompletionPerformance> completion =
       RecentBuffer<CompletionPerformance>(performanceListMaxLength);
+
+  /// A list of performance measurements for the latest requests to get fixes
+  /// up to [performanceListMaxLength] measurements.
+  final RecentBuffer<GetAssistsPerformance> getAssists =
+      RecentBuffer<GetAssistsPerformance>(performanceListMaxLength);
+
+  /// A list of performance measurements for the latest requests to get fixes
+  /// up to [performanceListMaxLength] measurements.
+  final RecentBuffer<GetFixesPerformance> getFixes =
+      RecentBuffer<GetFixesPerformance>(performanceListMaxLength);
+
+  /// A list of performance measurements for the latest requests to get refactorings
+  /// up to [performanceListMaxLength] measurements.
+  final RecentBuffer<GetRefactoringsPerformance> getRefactorings =
+      RecentBuffer<GetRefactoringsPerformance>(performanceListMaxLength);
 
   /// A [RecentBuffer] for performance information about the most recent
   /// requests.

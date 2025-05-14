@@ -9,14 +9,13 @@
 // This should not prevent execution.
 
 library Prefix21NegativeTest.dart;
+
 import "../library12.dart" as lib12;
 
 class myClass {
-  myClass(
-
-      p) { }
+  myClass(p) {}
 }
 
 main() {
-  new myClass(null);  // no dynamic type error when assigning null
+  new myClass(null); // no dynamic type error when assigning null
 }

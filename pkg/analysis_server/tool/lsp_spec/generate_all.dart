@@ -184,12 +184,12 @@ List<LspEntity> getCustomClasses() {
   var customTypes = <LspEntity>[
     TypeAlias(
       name: 'LSPAny',
-      baseType: TypeReference.LspAny,
+      baseType: TypeReference.lspAny,
       renameReferences: false,
     ),
     TypeAlias(
       name: 'LSPObject',
-      baseType: TypeReference.LspObject,
+      baseType: TypeReference.lspObject,
       renameReferences: false,
     ),
     // The DocumentFilter more complex in v3.17's meta_model (to allow
@@ -421,8 +421,11 @@ List<LspEntity> getCustomClasses() {
     ]),
     interface('EditableArguments', [
       field('textDocument', type: 'TextDocumentIdentifier'),
+      field('name', type: 'string', canBeUndefined: true),
+      field('documentation', type: 'string', canBeUndefined: true),
       // TODO(dantup): field('refactors', ...),
       field('arguments', type: 'EditableArgument', array: true),
+      field('range', type: 'Range', comment: 'The range of the invocation.'),
     ]),
     interface('EditableArgument', [
       field(
@@ -430,41 +433,47 @@ List<LspEntity> getCustomClasses() {
         type: 'string',
         comment: 'The name of the corresponding parameter.',
       ),
+      field('documentation', type: 'string', canBeUndefined: true),
       field(
         'type',
         type: 'string',
         comment:
-            'The kind of parameter. This is not necessarily the Dart type, '
+            'The kind of parameter.\n\nThis is not necessarily the Dart type, '
             'it is from a defined set of values that clients may understand '
             'how to edit.',
       ),
       Field(
         name: 'value',
-        type: TypeReference.LspAny,
+        type: TypeReference.lspAny,
         allowsNull: false,
         allowsUndefined: true,
         comment:
-            'The current value for this argument. This is only included if '
-            'an explicit value is given in the code and is a valid literal for '
-            'the kind of parameter. For expressions or named constants, this '
-            'will not be included and displayValue can be shown as the current '
-            'value instead.',
+            'The current value for this argument (provided only if '
+            'hasArgument=true).\n\nThis is only included if an explicit value '
+            'is given in the code and is a valid literal for the kind of '
+            'parameter. For expressions or named constants, this will not be '
+            'included and displayValue can be shown as the current value '
+            'instead.\n\nA value of `null` when hasArgument=true means the '
+            'argument has an explicit null value and not that defaultValue is '
+            'being used.',
       ),
       field(
         'hasArgument',
         type: 'boolean',
         comment:
             'Whether an explicit argument exists for this parameter in the '
-            'code. This will be true even if the explicit argument is the same '
-            'value as the parameter default.',
+            'code.\n\nThis will be true even if the explicit argument is the '
+            'same value as the parameter default or null.',
       ),
-      field(
-        'isDefault',
-        type: 'boolean',
+      Field(
+        name: 'defaultValue',
+        type: TypeReference.lspAny,
+        allowsNull: false,
+        allowsUndefined: true,
         comment:
-            'Whether the value is the default for this parameter, either '
-            'because there is no argument or because it is explicitly provided '
-            'as the same value.',
+            'The default value for this parameter if no argument is supplied.'
+            '\n\nSetting the argument to this value does not remove it from '
+            'the argument list.',
       ),
       field(
         'displayValue',
@@ -472,8 +481,8 @@ List<LspEntity> getCustomClasses() {
         canBeUndefined: true,
         comment:
             'A string that can be displayed to indicate the value for this '
-            'argument. This will be populated in cases where the source code '
-            'is not literally the same as the value field, for example an '
+            'argument.\n\nThis will be populated in cases where the source '
+            'code is not literally the same as the value field, for example an '
             'expression or named constant.',
       ),
       field(
@@ -485,14 +494,19 @@ List<LspEntity> getCustomClasses() {
         'isNullable',
         type: 'boolean',
         comment:
-            'Whether this argument can be `null`. It is possible for an '
+            'Whether this argument can be `null`.\n\nIt is possible for an '
             'argument to be required, but still allow an explicit `null`.',
+      ),
+      field(
+        'isDeprecated',
+        type: 'boolean',
+        comment: 'Whether the parameter is deprecated.',
       ),
       field(
         'isEditable',
         type: 'boolean',
         comment:
-            'Whether this argument can be add/edited. If not, '
+            'Whether this argument can be add/edited.\n\nIf not, '
             'notEditableReason will contain an explanation for why.',
       ),
       field(
@@ -509,7 +523,7 @@ List<LspEntity> getCustomClasses() {
         array: true,
         canBeUndefined: true,
         comment:
-            'The set of values allowed for this argument if it is an enum. '
+            'The set of values allowed for this argument if it is an enum.\n\n'
             'Values are qualified in the form `EnumName.valueName`.',
       ),
       // TODO(dantup): field('properties', ...),
@@ -523,7 +537,7 @@ List<LspEntity> getCustomClasses() {
       field('name', type: 'string'),
       Field(
         name: 'newValue',
-        type: TypeReference.LspAny,
+        type: TypeReference.lspAny,
         allowsNull: true,
         allowsUndefined: false,
       ),
@@ -561,7 +575,7 @@ List<LspEntity> getCustomClasses() {
         ),
         AbstractGetter(
           name: 'defaultValue',
-          type: TypeReference.LspAny,
+          type: TypeReference.lspAny,
           comment:
               'An optional default value for the parameter. The type of '
               'this value may vary between parameter kinds but must always be '

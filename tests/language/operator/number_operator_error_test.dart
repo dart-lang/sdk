@@ -10,9 +10,12 @@ void main() {
   testTypes<int, double, num, Object>(1, 1.0, 1, 1);
 }
 
-void
-    testTypes<I extends int, D extends double, N extends num, O extends Object>(
-        I ti, D td, N tn, O to) {
+void testTypes<
+  I extends int,
+  D extends double,
+  N extends num,
+  O extends Object
+>(I ti, D td, N tn, O to) {
   int i = 1;
   double d = 1.0;
   num n = cast(1);
@@ -28,8 +31,8 @@ void
   dynamic dyn = cast(1);
   late var never = throw "unreachable";
 
-  /* indent */ i + "string";
-  //               ^^^^^^^^
+  i + "string";
+  //  ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'num'.
 

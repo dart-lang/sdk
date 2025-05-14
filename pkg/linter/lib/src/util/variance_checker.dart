@@ -20,10 +20,10 @@ enum Variance {
   inout;
 
   Variance get inverse => switch (this) {
-        out => in_,
-        in_ => out,
-        inout => inout,
-      };
+    out => in_,
+    in_ => out,
+    inout => inout,
+  };
 }
 
 /// Iterate over a type annotation, keeping track of variance.
@@ -117,7 +117,9 @@ abstract class VarianceChecker {
 
   /// Check [formalParameter], using [variance] as the initial variance.
   void checkFormalParameter(
-      Variance variance, FormalParameter formalParameter) {
+    Variance variance,
+    FormalParameter formalParameter,
+  ) {
     if (!formalParameter.isExplicitlyTyped) return;
     switch (formalParameter) {
       case SuperFormalParameter(:var type):
@@ -125,10 +127,10 @@ abstract class VarianceChecker {
       case SimpleFormalParameter(:var type):
         check(variance, type);
       case FunctionTypedFormalParameter(
-          :var returnType,
-          :var parameters,
-          :var typeParameters
-        ):
+        :var returnType,
+        :var parameters,
+        :var typeParameters,
+      ):
         check(variance, returnType);
         typeParameters?.typeParameters.forEach(checkBound);
         for (var parameter in parameters.parameters) {

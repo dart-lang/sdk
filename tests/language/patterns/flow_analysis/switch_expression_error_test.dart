@@ -12,12 +12,14 @@ test() {
     int? reachability1 = 0;
     int? x;
     (switch (expr<Object>()) {
-      _ when x != null => pickSecond(
-          <Object?>[reachability0 = null, x.expectStaticType<Exactly<int>>()],
-          expr<String>()),
-      _ => pickSecond(
-          <Object?>[reachability1 = null, x.expectStaticType<Exactly<int?>>()],
-          expr<String>())
+      _ when x != null => pickSecond(<Object?>[
+        reachability0 = null,
+        x.expectStaticType<Exactly<int>>(),
+      ], expr<String>()),
+      _ => pickSecond(<Object?>[
+        reachability1 = null,
+        x.expectStaticType<Exactly<int?>>(),
+      ], expr<String>()),
     });
     reachability0.expectStaticType<Exactly<int?>>();
     reachability1.expectStaticType<Exactly<int?>>();
@@ -29,7 +31,7 @@ test() {
     int? x;
     (switch (expr<Object?>()) {
       _ when x == null => 0,
-      _ => pickSecond(x.expectStaticType<Exactly<int>>(), 1)
+      _ => pickSecond(x.expectStaticType<Exactly<int>>(), 1),
     });
   }
   {
@@ -40,7 +42,7 @@ test() {
     int? x;
     (switch (expr<Object?>()) {
       String _ when x == null => 0,
-      _ => pickSecond(x.expectStaticType<Exactly<int?>>(), 1)
+      _ => pickSecond(x.expectStaticType<Exactly<int?>>(), 1),
     });
   }
   {
@@ -49,12 +51,14 @@ test() {
     int? reachability1 = 0;
     var x = expr<num>();
     (switch (x) {
-      int y => pickSecond(
-          <Object?>[reachability0 = null, x.expectStaticType<Exactly<int>>()],
-          expr<String>()),
-      _ => pickSecond(
-          <Object?>[reachability1 = null, x.expectStaticType<Exactly<num>>()],
-          expr<String>())
+      int y => pickSecond(<Object?>[
+        reachability0 = null,
+        x.expectStaticType<Exactly<int>>(),
+      ], expr<String>()),
+      _ => pickSecond(<Object?>[
+        reachability1 = null,
+        x.expectStaticType<Exactly<num>>(),
+      ], expr<String>()),
     });
     reachability0.expectStaticType<Exactly<int?>>();
     reachability1.expectStaticType<Exactly<int?>>();
@@ -65,15 +69,15 @@ test() {
     var x = expr<Object>();
     (switch (x) {
       int _ && var y when expr<bool>() => pickSecond(<Object?>[
-          x.expectStaticType<Exactly<int>>(),
-          y.expectStaticType<Exactly<int>>()
-        ], 0),
+        x.expectStaticType<Exactly<int>>(),
+        y.expectStaticType<Exactly<int>>(),
+      ], 0),
       _ when pickSecond(x = expr<Object>(), expr<bool>()) => 1,
       int _ && var z => pickSecond(<Object?>[
-          x.expectStaticType<Exactly<Object>>(),
-          z.expectStaticType<Exactly<int>>()
-        ], 2),
-      _ => 3
+        x.expectStaticType<Exactly<Object>>(),
+        z.expectStaticType<Exactly<int>>(),
+      ], 2),
+      _ => 3,
     });
   }
   {
@@ -85,9 +89,9 @@ test() {
     (switch (x) {
       _ when pickSecond(x = expr<Object>(), expr<bool>()) => 0,
       var y => pickSecond(<Object?>[
-          x.expectStaticType<Exactly<Object>>(),
-          y.expectStaticType<Exactly<int>>()
-        ], 1)
+        x.expectStaticType<Exactly<Object>>(),
+        y.expectStaticType<Exactly<int>>(),
+      ], 1),
     });
   }
   {

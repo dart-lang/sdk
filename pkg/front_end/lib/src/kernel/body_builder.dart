@@ -73,7 +73,6 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
-import '../builder/property_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
@@ -92,11 +91,14 @@ import '../codes/cfe_codes.dart'
         templateLocalVariableUsedBeforeDeclaredContext;
 import '../codes/cfe_codes.dart' as cfe;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
+import '../dill/dill_type_parameter_builder.dart';
 import '../fragment/fragment.dart';
 import '../source/diet_parser.dart';
 import '../source/offset_map.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
+import '../source/source_type_parameter_builder.dart';
+import '../source/source_property_builder.dart';
 import '../source/stack_listener_impl.dart'
     show StackListenerImpl, offsetForToken;
 import '../source/value_kinds.dart';
@@ -367,21 +369,21 @@ class BodyBuilder extends StackListenerImpl
             uri: uri,
             typeInferrer: typeInferrer);
 
-  BodyBuilder.forOutlineExpression(SourceLibraryBuilder library,
+  BodyBuilder.forOutlineExpression(SourceLibraryBuilder libraryBuilder,
       BodyBuilderContext bodyBuilderContext, LookupScope scope, Uri fileUri,
       {LocalScope? formalParameterScope})
       : this(
-            libraryBuilder: library,
+            libraryBuilder: libraryBuilder,
             context: bodyBuilderContext,
             enclosingScope: new EnclosingLocalScope(scope),
             formalParameterScope: formalParameterScope,
-            hierarchy: library.loader.hierarchy,
-            coreTypes: library.loader.coreTypes,
+            hierarchy: libraryBuilder.loader.hierarchy,
+            coreTypes: libraryBuilder.loader.coreTypes,
             thisVariable: null,
             uri: fileUri,
-            typeInferrer: library.loader.typeInferenceEngine
-                .createLocalTypeInferrer(
-                    fileUri, bodyBuilderContext.thisType, library, null));
+            typeInferrer: libraryBuilder.loader.typeInferenceEngine
+                .createLocalTypeInferrer(fileUri, bodyBuilderContext.thisType,
+                    libraryBuilder, scope, null));
 
   LocalScope get _localScope => _localScopes.current;
 
@@ -395,7 +397,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   bool get isDartLibrary =>
-      libraryBuilder.origin.importUri.isScheme("dart") ||
+      libraryBuilder.importUri.isScheme("dart") ||
       uri.isScheme("org-dartlang-sdk");
 
   @override
@@ -1340,7 +1342,7 @@ class BodyBuilder extends StackListenerImpl
         ])
           ..fileOffset = body.fileOffset;
       }
-      _context.setBody(body);
+      _context.registerFunctionBody(body);
     }
 
     performBacklogComputations();
@@ -1615,8 +1617,7 @@ class BodyBuilder extends StackListenerImpl
     List<NominalParameterBuilder>? typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
       typeParameterBuilders ??= <NominalParameterBuilder>[];
-      typeParameterBuilders.add(new NominalParameterBuilder.fromKernel(
-          typeParameter,
+      typeParameterBuilders.add(new DillNominalParameterBuilder(typeParameter,
           loader: libraryBuilder.loader));
     }
     enterNominalVariablesScope(typeParameterBuilders);
@@ -1697,7 +1698,8 @@ class BodyBuilder extends StackListenerImpl
       {bool doFinishConstructor = true}) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
     if (!token.isEof) {
       token = parser.parseInitializers(token);
       checkEmpty(token.charOffset);
@@ -1717,7 +1719,8 @@ class BodyBuilder extends StackListenerImpl
   Expression parseFieldInitializer(Token token) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
     Token endToken =
         parser.parseExpression(parser.syntheticPreviousToken(token));
     assert(checkState(token, [
@@ -1735,7 +1738,8 @@ class BodyBuilder extends StackListenerImpl
   Expression parseAnnotation(Token token) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
     Token endToken = parser.parseMetadata(parser.syntheticPreviousToken(token));
     assert(checkState(token, [ValueKinds.Expression]));
     Expression annotation = pop() as Expression;
@@ -1746,7 +1750,8 @@ class BodyBuilder extends StackListenerImpl
   ArgumentsImpl parseArguments(Token token) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
     token = parser.parseArgumentsRest(token);
     ArgumentsImpl arguments = pop() as ArgumentsImpl;
     checkEmpty(token.charOffset);
@@ -2114,7 +2119,7 @@ class BodyBuilder extends StackListenerImpl
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
       /// We use an empty statement instead.
-      function.body = new EmptyStatement()..parent = function;
+      _context.registerNoBodyConstructor();
     } else if (body != null && _context.isMixinClass && !_context.isFactory) {
       // Report an error if a mixin class has a non-factory constructor with a
       // body.
@@ -3190,10 +3195,6 @@ class BodyBuilder extends StackListenerImpl
     }
     bool isQualified = prefixToken != null;
     Builder? declaration = scope.lookupGetable(name, nameOffset, uri);
-    if (declaration == null && prefix == null && _context.isAugmentationClass) {
-      // The scope of an augmented method includes the origin class.
-      declaration = _context.lookupStaticOriginMember(name, nameOffset, uri);
-    }
     if (declaration != null &&
         declaration.isDeclarationInstanceMember &&
         (inFieldInitializer &&
@@ -3328,11 +3329,12 @@ class BodyBuilder extends StackListenerImpl
           declaration.parent as ExtensionBuilder;
       MemberBuilder? setterBuilder =
           _getCorrespondingSetterBuilder(scope, declaration, name, nameOffset);
-      if (declaration.isField) {
+      if (declaration.isField && !declaration.isExternal) {
         declaration = null;
       }
       if (setterBuilder != null &&
-          (setterBuilder.isField || setterBuilder.isStatic)) {
+          ((setterBuilder.isField && !setterBuilder.isExternal) ||
+              setterBuilder.isStatic)) {
         setterBuilder = null;
       }
       if ((declaration == null && setterBuilder == null) ||
@@ -5083,41 +5085,49 @@ class BodyBuilder extends StackListenerImpl
   void enterNominalVariablesScope(
       List<NominalParameterBuilder>? nominalVariableBuilders) {
     debugEvent("enterNominalVariableScope");
-    enterLocalScope(_localScope.createNestedScope(
-        debugName: "function-type scope", kind: ScopeKind.typeParameters));
+    Map<String, TypeParameterBuilder> typeParameters = {};
     if (nominalVariableBuilders != null) {
       for (NominalParameterBuilder builder in nominalVariableBuilders) {
         if (builder.isWildcard) continue;
         String name = builder.name;
-        Builder? existing = _localScope.lookupLocalVariable(name);
+        TypeParameterBuilder? existing = typeParameters[name];
         if (existing == null) {
-          _localScope.addLocalVariable(name, builder);
+          typeParameters[name] = builder;
         } else {
           // Coverage-ignore-block(suite): Not run.
           reportDuplicatedDeclaration(existing, name, builder.fileOffset);
         }
       }
     }
+    enterLocalScope(new LocalTypeParameterScope(
+        local: typeParameters,
+        parent: _localScope,
+        debugName: "local function type parameter scope",
+        kind: ScopeKind.typeParameters));
   }
 
   void enterStructuralVariablesScope(
       List<StructuralParameterBuilder>? structuralVariableBuilders) {
     debugEvent("enterStructuralVariableScope");
-    enterLocalScope(_localScope.createNestedScope(
-        debugName: "function-type scope", kind: ScopeKind.typeParameters));
+    Map<String, TypeParameterBuilder> typeParameters = {};
     if (structuralVariableBuilders != null) {
       for (StructuralParameterBuilder builder in structuralVariableBuilders) {
         if (builder.isWildcard) continue;
         String name = builder.name;
-        Builder? existing = _localScope.lookupLocalVariable(name);
+        TypeParameterBuilder? existing = typeParameters[name];
         if (existing == null) {
-          _localScope.addLocalVariable(name, builder);
+          typeParameters[name] = builder;
         } else {
           // Coverage-ignore-block(suite): Not run.
           reportDuplicatedDeclaration(existing, name, builder.fileOffset);
         }
       }
     }
+    enterLocalScope(new LocalTypeParameterScope(
+        local: typeParameters,
+        parent: _localScope,
+        debugName: "function-type scope",
+        kind: ScopeKind.typeParameters));
   }
 
   @override
@@ -6407,6 +6417,7 @@ class BodyBuilder extends StackListenerImpl
       push(
           new ParserErrorGenerator(this, nameToken, cfe.messageSyntheticToken));
     } else if (type is InvalidExpression) {
+      // Coverage-ignore-block(suite): Not run.
       push(type);
     } else if (type is Expression) {
       push(createInstantiationAndInvocation(
@@ -6420,7 +6431,7 @@ class BodyBuilder extends StackListenerImpl
         typeName = type.fullNameForErrors;
       }
       push(buildUnresolvedError(
-          debugName(typeName!, name), nameToken.charOffset,
+          debugName(typeName!, name), nameLastToken.charOffset,
           arguments: arguments, kind: UnresolvedKind.Constructor));
     }
     constantContext = savedConstantContext;
@@ -6628,9 +6639,6 @@ class BodyBuilder extends StackListenerImpl
             case ExtensionBuilder():
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
-            // Coverage-ignore(suite): Not run.
-            // TODO(johnniwinther): How should we handle this case?
-            case OmittedTypeDeclarationBuilder():
             case null:
               return buildUnresolvedError(errorName, nameLastToken.charOffset,
                   arguments: arguments,
@@ -6676,9 +6684,6 @@ class BodyBuilder extends StackListenerImpl
             case InvalidTypeDeclarationBuilder():
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
-            // Coverage-ignore(suite): Not run.
-            // TODO(johnniwinther): How should we handle this case?
-            case OmittedTypeDeclarationBuilder():
             case null:
           }
         }
@@ -6775,9 +6780,6 @@ class BodyBuilder extends StackListenerImpl
         case InvalidTypeDeclarationBuilder():
         // Coverage-ignore(suite): Not run.
         case BuiltinTypeDeclarationBuilder():
-        // Coverage-ignore(suite): Not run.
-        // TODO(johnniwinther): How should we handle this case?
-        case OmittedTypeDeclarationBuilder():
         case null:
       }
     } else {
@@ -6869,9 +6871,6 @@ class BodyBuilder extends StackListenerImpl
       case StructuralParameterBuilder():
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
-      // Coverage-ignore(suite): Not run.
-      // TODO(johnniwinther): How should we handle this case?
-      case OmittedTypeDeclarationBuilder():
       case null:
         errorName ??=
             debugName(typeDeclarationBuilder!.fullNameForErrors, name);
@@ -7156,8 +7155,6 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleNullAwareElement(Token nullAwareElement) {
     debugEvent("NullAwareElement");
-    // TODO(cstefantsova): Replace the following no-op with the node for
-    // handling null-aware elements.
     if (!libraryFeatures.nullAwareElements.isEnabled) {
       addProblem(
           templateExperimentNotEnabledOffByDefault
@@ -7238,6 +7235,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleAugmentSuperExpression(
       Token augmentToken, Token superToken, IdentifierContext context) {
     debugEvent("AugmentSuperExpression");
@@ -7283,7 +7281,8 @@ class BodyBuilder extends StackListenerImpl
   void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
 
   @override
-  void endFunctionName(Token beginToken, Token token) {
+  void endFunctionName(
+      Token beginToken, Token token, bool isFunctionExpression) {
     debugEvent("FunctionName");
     Identifier name = pop() as Identifier;
     Token nameToken = name.token;
@@ -7300,20 +7299,24 @@ class BodyBuilder extends StackListenerImpl
         isLocalFunction: true,
         isWildcard: isWildcard)
       ..fileOffset = name.nameOffset;
-    // TODO(ahe): Why are we looking up in local scope, but declaring in parent
-    // scope?
-    Builder? existing = _localScope.lookupLocalVariable(name.name);
-    if (existing != null) {
-      // Coverage-ignore-block(suite): Not run.
-      reportDuplicatedDeclaration(existing, name.name, name.nameOffset);
-    }
     push(new FunctionDeclarationImpl(
         variable,
         // The real function node is created later.
         dummyFunctionNode)
       ..fileOffset = beginToken.charOffset);
     if (!(libraryFeatures.wildcardVariables.isEnabled && variable.isWildcard)) {
-      declareVariable(variable, _localScopes.previous);
+      // The local scope stack contains a type parameter scope for the local
+      // function on top of the scope for the block in which the local function
+      // declaration occurs. So for a local function declaration, we add the
+      // declaration to the previous scope, i.e. the block scope.
+      //
+      // For a named function expression, a nested scope is created to hold the
+      // name, so that it doesn't pollute the block scope (the named function
+      // expression is erroneous and should introduce the name in the scope) and
+      // we therefore use the current scope in this case.
+      LocalScope scope =
+          isFunctionExpression ? _localScope : _localScopes.previous;
+      declareVariable(variable, scope);
     }
   }
 
@@ -8877,12 +8880,20 @@ class BodyBuilder extends StackListenerImpl
       wildcardVariableIndex++;
     }
     TypeParameterBuilder variable = inFunctionType
-        ? new StructuralParameterBuilder(
-            typeParameterName, typeParameterNameOffset, uri,
-            isWildcard: isWildcard)
-        : new NominalParameterBuilder(
-            typeParameterName, typeParameterNameOffset, uri,
-            kind: TypeParameterKind.function, isWildcard: isWildcard);
+        ? new SourceStructuralParameterBuilder(
+            new RegularStructuralParameterDeclaration(
+                metadata: null,
+                name: typeParameterName,
+                fileOffset: typeParameterNameOffset,
+                fileUri: uri,
+                isWildcard: isWildcard))
+        : new SourceNominalParameterBuilder(
+            new DirectNominalParameterDeclaration(
+                name: typeParameterName,
+                kind: TypeParameterKind.function,
+                isWildcard: isWildcard,
+                fileOffset: typeParameterNameOffset,
+                fileUri: uri));
     if (annotations != null) {
       switch (variable) {
         case StructuralParameterBuilder():
@@ -9070,7 +9081,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   Initializer buildDuplicatedInitializer(
-      PropertyBuilder fieldBuilder,
+      SourcePropertyBuilder fieldBuilder,
       Expression value,
       String name,
       int offset,
@@ -9106,7 +9117,7 @@ class BodyBuilder extends StackListenerImpl
       // Duplicated name, already reported.
       while (builder != null) {
         if (builder.next == null &&
-            builder is PropertyBuilder &&
+            builder is SourcePropertyBuilder &&
             builder.isField) {
           // Assume the first field has been initialized.
           _context.registerInitializedField(builder);
@@ -9124,7 +9135,7 @@ class BodyBuilder extends StackListenerImpl
             ),
             fieldNameOffset)
       ];
-    } else if (builder is PropertyBuilder &&
+    } else if (builder is SourcePropertyBuilder &&
         builder.isField &&
         builder.isDeclarationInstanceMember) {
       if (builder.isExtensionTypeDeclaredInstanceField) {
@@ -9312,6 +9323,9 @@ class BodyBuilder extends StackListenerImpl
         pop() as List<TypeBuilder>?; // typeArguments
     if (libraryFeatures.constructorTearoffs.isEnabled) {
       Object? operand = pop();
+      if (operand is DotShorthandPropertyGet && typeArguments != null) {
+        operand.hasTypeParameters = true;
+      }
       if (operand is Generator) {
         push(operand.applyTypeArguments(
             openAngleBracket.charOffset, typeArguments));
@@ -9812,7 +9826,6 @@ class BodyBuilder extends StackListenerImpl
     ]));
     reportIfNotEnabled(
         libraryFeatures.patterns, question.charOffset, question.charCount);
-    // ignore: unused_local_variable
     Pattern operand = toPattern(pop());
     push(forest.createNullCheckPattern(question.charOffset, operand));
   }
@@ -9984,6 +9997,79 @@ class BodyBuilder extends StackListenerImpl
     Pattern pattern = toPattern(pop());
     push(
         forest.createPatternAssignment(equals.charOffset, pattern, expression));
+  }
+
+  @override
+  void handleDotShorthandContext(Token token) {
+    debugEvent("DotShorthandContext");
+    if (!libraryFeatures.dotShorthands.isEnabled) {
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.dotShorthands.name),
+          token.offset,
+          token.length);
+      return;
+    }
+
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+      ]),
+    ]));
+    Expression value = popForValue();
+    push(forest.createDotShorthandContext(token.charOffset, value));
+  }
+
+  @override
+  void handleDotShorthandHead(Token token) {
+    debugEvent("DotShorthandHead");
+    if (!libraryFeatures.dotShorthands.isEnabled) {
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.dotShorthands.name),
+          token.offset,
+          token.length);
+
+      // Recovery, avoid crashing with an extra selector.
+      pop();
+      push(new ParserErrorGenerator(this, token, cfe.messageSyntheticToken));
+      return;
+    }
+
+    assert(checkState(token, [ValueKinds.Selector]));
+    Selector selector = pop() as Selector;
+    if (libraryFeatures.dotShorthands.isEnabled) {
+      if (selector is InvocationSelector) {
+        // e.g. `.parse(2)`
+        push(forest.createDotShorthandInvocation(
+            offsetForToken(token), selector.name, selector.arguments,
+            nameOffset: offsetForToken(token.next),
+            isConst: constantContext == ConstantContext.inferred));
+      } else if (selector is PropertySelector) {
+        // e.g. `.zero`
+        push(forest.createDotShorthandPropertyGet(
+          offsetForToken(token),
+          selector.name,
+          nameOffset: offsetForToken(token.next),
+        ));
+      }
+    }
+  }
+
+  @override
+  void beginConstDotShorthand(Token token) {
+    debugEvent("beginConstDotShorthand");
+    super.push(constantContext);
+    constantContext = ConstantContext.inferred;
+  }
+
+  @override
+  void endConstDotShorthand(Token token) {
+    debugEvent("endConstDotShorthand");
+    Object? dotShorthand = pop();
+    constantContext = pop() as ConstantContext;
+    push(dotShorthand);
   }
 }
 

@@ -14,28 +14,42 @@ class FactoryFragment implements Fragment, FunctionFragment {
   final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
   final NominalParameterNameSpace typeParameterNameSpace;
+
+  /// The scope in which the factory is declared.
+  ///
+  /// This is the scope used for resolving the [metadata].
+  final LookupScope enclosingScope;
+
   final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
   final AsyncMarker asyncModifier;
   final String? nativeMethodName;
   final ConstructorReferenceBuilder? redirectionTarget;
+  final DeclarationFragment enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
 
   SourceFactoryBuilder? _builder;
 
-  FactoryFragment(
-      {required this.constructorName,
-      required this.fileUri,
-      required this.startOffset,
-      required this.formalsOffset,
-      required this.endOffset,
-      required this.modifiers,
-      required this.metadata,
-      required this.typeParameterNameSpace,
-      required this.typeParameterScope,
-      required this.formals,
-      required this.asyncModifier,
-      required this.nativeMethodName,
-      required this.redirectionTarget});
+  FactoryDeclaration? _declaration;
+
+  FactoryFragment({
+    required this.constructorName,
+    required this.fileUri,
+    required this.startOffset,
+    required this.formalsOffset,
+    required this.endOffset,
+    required this.modifiers,
+    required this.metadata,
+    required this.typeParameterNameSpace,
+    required this.enclosingScope,
+    required this.typeParameterScope,
+    required this.formals,
+    required this.asyncModifier,
+    required this.nativeMethodName,
+    required this.redirectionTarget,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  });
 
   @override
   String get name => constructorName.name;
@@ -51,6 +65,18 @@ class FactoryFragment implements Fragment, FunctionFragment {
   void set builder(SourceFactoryBuilder value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
+  }
+
+  FactoryDeclaration get declaration {
+    assert(
+        _declaration != null, "Declaration has not been computed for $this.");
+    return _declaration!;
+  }
+
+  void set declaration(FactoryDeclaration value) {
+    assert(_declaration == null,
+        "Declaration has already been computed for $this.");
+    _declaration = value;
   }
 
   @override
@@ -76,7 +102,17 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
 
   @override
   LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
-    return _fragment.builder.computeFormalParameterScope(typeParameterScope);
+    if (_fragment.formals == null) {
+      return new FormalParameterScope(parent: typeParameterScope);
+    }
+    Map<String, Builder> local = <String, Builder>{};
+    for (FormalParameterBuilder formal in _fragment.formals!) {
+      if (formal.isWildcard) {
+        continue;
+      }
+      local[formal.name] = formal;
+    }
+    return new FormalParameterScope(local: local, parent: typeParameterScope);
   }
 
   @override
@@ -86,7 +122,7 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
 
   @override
   BodyBuilderContext createBodyBuilderContext() {
-    return _fragment.builder.createBodyBuilderContext();
+    return _fragment.declaration.createBodyBuilderContext(_fragment.builder);
   }
 
   @override
@@ -97,9 +133,8 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
       ?.inferenceData;
 
   @override
-  List<TypeParameter>? get thisTypeParameters =>
-      _fragment.builder.thisTypeParameters;
+  List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  VariableDeclaration? get thisVariable => _fragment.builder.thisVariable;
+  VariableDeclaration? get thisVariable => null;
 }

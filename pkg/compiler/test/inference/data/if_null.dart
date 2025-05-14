@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   ifNull();
   ifNotNullInvoke();
@@ -13,10 +13,10 @@ main() {
 // If-null on parameter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _ifNull:[exact=JSUInt31]*/
-_ifNull(/*[null|exact=JSUInt31]*/ o) => o ?? 0;
+/*member: _ifNull:[exact=JSUInt31|powerset=0]*/
+_ifNull(/*[null|exact=JSUInt31|powerset=1]*/ o) => o ?? 0;
 
-/*member: ifNull:[null]*/
+/*member: ifNull:[null|powerset=1]*/
 ifNull() {
   _ifNull(null);
   _ifNull(0);
@@ -26,15 +26,15 @@ ifNull() {
 // If-not-null access on parameter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _ifNotNullInvoke:[null|exact=JSBool]*/
-_ifNotNullInvoke(/*[null|exact=JSUInt31]*/ o) {
+/*member: _ifNotNullInvoke:[null|exact=JSBool|powerset=1]*/
+_ifNotNullInvoke(/*[null|exact=JSUInt31|powerset=1]*/ o) {
   return o
       ?.
-      /*[exact=JSUInt31]*/
+      /*[exact=JSUInt31|powerset=0]*/
       isEven;
 }
 
-/*member: ifNotNullInvoke:[null]*/
+/*member: ifNotNullInvoke:[null|powerset=1]*/
 ifNotNullInvoke() {
   _ifNotNullInvoke(null);
   _ifNotNullInvoke(0);
@@ -44,12 +44,12 @@ ifNotNullInvoke() {
 // As above but unconditional access.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _notIfNotNullInvoke:[exact=JSBool]*/
-_notIfNotNullInvoke(/*[null|exact=JSUInt31]*/ o) {
-  return o. /*[null|exact=JSUInt31]*/ isEven;
+/*member: _notIfNotNullInvoke:[exact=JSBool|powerset=0]*/
+_notIfNotNullInvoke(/*[null|exact=JSUInt31|powerset=1]*/ o) {
+  return o. /*[null|exact=JSUInt31|powerset=1]*/ isEven;
 }
 
-/*member: notIfNotNullInvoke:[null]*/
+/*member: notIfNotNullInvoke:[null|powerset=1]*/
 notIfNotNullInvoke() {
   _notIfNotNullInvoke(null);
   _notIfNotNullInvoke(0);

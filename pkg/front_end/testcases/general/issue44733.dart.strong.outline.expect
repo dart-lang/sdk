@@ -16,11 +16,6 @@ library;
 import self as self;
 import "dart:core" as core;
 
-abstract class _B&A&C = self::A with self::C /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_B&A&C
-    : super self::A::•()
-    ;
-}
 abstract class B extends self::_B&A&C {
   synthetic constructor •() → self::B
     ;
@@ -41,6 +36,11 @@ abstract class A extends core::Object {
   synthetic constructor •() → self::A
     ;
   get y() → invalid-type
+    ;
+}
+abstract class _B&A&C = self::A with self::C /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_B&A&C
+    : super self::A::•()
     ;
 }
 static get x() → self::B

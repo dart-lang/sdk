@@ -178,11 +178,11 @@ class Stdin extends _StdStream implements Stream<List<int>> {
   ///
   /// The ANSI color selection is generally supported.
   ///
-  /// Currently, a `TERM` environment variable containing the string `xterm`
-  /// will be taken as evidence that ANSI escape sequences are supported.
-  /// On Windows, only versions of Windows 10 after v.1511
-  /// ("TH2", OS build 10586) will be detected as supporting the output of
-  /// ANSI escape sequences, and only versions after v.1607 ("Anniversary
+  /// Currently, a `TERM` environment variable containing the string `xterm`,
+  /// `screen`, `rxvt`, or `tmux` will be taken as evidence that ANSI escape
+  /// sequences are supported. On Windows, only versions of Windows 10 after
+  /// v.1511 ("TH2", OS build 10586) will be detected as supporting the output
+  /// of ANSI escape sequences, and only versions after v.1607 ("Anniversary
   /// Update", OS build 14393) will be detected as supporting the input of
   /// ANSI escape sequences.
   external bool get supportsAnsiEscapes;

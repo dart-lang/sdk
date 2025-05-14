@@ -12,10 +12,10 @@ const _desc = r'Avoid single cascade in expression statements.';
 
 class AvoidSingleCascadeInExpressionStatements extends LintRule {
   AvoidSingleCascadeInExpressionStatements()
-      : super(
-          name: LintNames.avoid_single_cascade_in_expression_statements,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_single_cascade_in_expression_statements,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -23,7 +23,9 @@ class AvoidSingleCascadeInExpressionStatements extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCascadeExpression(this, visitor);
   }

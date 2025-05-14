@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HashAndEqualsTest);
   });
@@ -42,29 +42,36 @@ part 'test.dart';
 class A { }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment class A {
   bool operator ==(Object other) => false;
 }
-''', [
-      lint(53, 2),
-    ]);
+''',
+      [lint(53, 2)],
+    );
   }
 
   test_enum_missingHash() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 enum A {
   a,b,c;
   @override
   bool operator ==(Object other) => false;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 46, 2),
-      // no lint
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          46,
+          2,
+        ),
+        // no lint
+      ],
+    );
   }
 
   test_equalsEquals_andHashCode() async {
@@ -92,48 +99,57 @@ class C {
   }
 
   test_equalsEquals_noHashCode() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   @override
   bool operator ==(Object other) => false;
 }
-''', [
-      lint(38, 2),
-    ]);
+''',
+      [lint(38, 2)],
+    );
   }
 
   test_extensionType_missingHash() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type E(Object o) {
   bool operator ==(Object other) => false;
 }
-''', [
-      // No lint.
-      error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 45, 2),
-    ]);
+''',
+      [
+        // No lint.
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
+          45,
+          2,
+        ),
+      ],
+    );
   }
 
   test_hashCode_noEqualsEquals() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   @override
   int get hashCode => 7;
 }
-''', [
-      lint(32, 8),
-    ]);
+''',
+      [lint(32, 8)],
+    );
   }
 
   test_hashCodeField_missingEqualsEquals() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   @override
   final int hashCode = 7;
 }
-''', [
-      lint(34, 8),
-    ]);
+''',
+      [lint(34, 8)],
+    );
   }
 
   test_neither() async {

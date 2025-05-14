@@ -856,11 +856,6 @@ class ArgumentCollector extends DartTypeVisitor<void, void> {
   void collectAll(List<DartType> types) => types.forEach(collect);
 
   @override
-  void visitLegacyType(LegacyType type, _) {
-    collect(type.baseType);
-  }
-
-  @override
   void visitNullableType(NullableType type, _) {
     collect(type.baseType);
   }
@@ -963,10 +958,6 @@ class _TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
       visitType(type, state);
     }
   }
-
-  @override
-  void visitLegacyType(LegacyType type, TypeVisitorState state) =>
-      visitType(type.baseType, state);
 
   @override
   void visitNullableType(NullableType type, TypeVisitorState state) =>

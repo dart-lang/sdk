@@ -10,30 +10,40 @@ import '../utils.dart';
 import 'helpers.dart';
 
 void main(List<String> args) async {
+  if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
+    return;
+  }
+
   // No --source option, `dart run` from source does not output target program
   // stdout.
 
-  test('dart test', timeout: longTimeout, () async {
-    await nativeAssetsTest('native_add', (packageUri) async {
-      final result = await runDart(
-        arguments: [
-          '--enable-experiment=native-assets',
-          'test',
-        ],
-        workingDirectory: packageUri,
-        logger: logger,
-      );
-      expect(
-        result.stdout,
-        stringContainsInOrder(
-          [
-            'native add test',
-            'All tests passed!',
+  for (final package in [
+    'native_add',
+    'native_add_version_skew',
+    'native_dynamic_linking',
+    'system_library',
+  ]) {
+    test('package:$package dart test', timeout: longTimeout, () async {
+      await nativeAssetsTest(package, (packageUri) async {
+        final result = await runDart(
+          arguments: [
+            '--enable-experiment=native-assets',
+            'test',
           ],
-        ),
-      );
+          workingDirectory: packageUri,
+          logger: logger,
+        );
+        expect(
+          result.stdout,
+          stringContainsInOrder(
+            [
+              'All tests passed!',
+            ],
+          ),
+        );
+      });
     });
-  });
+  }
 
   test('dart run test:test', timeout: longTimeout, () async {
     await nativeAssetsTest('native_add', (packageUri) async {
@@ -113,4 +123,28 @@ void main(List<String> args) async {
       );
     });
   });
+  test(
+    'dart test with user defines',
+    timeout: longTimeout,
+    () async {
+      await nativeAssetsTest('user_defines', (packageUri) async {
+        final result = await runDart(
+          arguments: [
+            '--enable-experiment=native-assets',
+            'test',
+          ],
+          workingDirectory: packageUri,
+          logger: logger,
+        );
+        expect(
+          result.stdout,
+          stringContainsInOrder(
+            [
+              'All tests passed!',
+            ],
+          ),
+        );
+      });
+    },
+  );
 }

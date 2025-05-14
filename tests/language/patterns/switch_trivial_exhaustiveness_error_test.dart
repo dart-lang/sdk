@@ -48,8 +48,8 @@ void testUnreachableCase(Object x) {
     case _:
       y = true;
     case int _:
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       y = null;
   }
   y.expectStaticType<Exactly<bool>>();
@@ -156,7 +156,8 @@ void testListContainingOnlyRestPatternWithSubpatternAnyList(List<Object> x) {
 }
 
 void testListContainingOnlyRestPatternWithSubpatternObjectPattern(
-    List<Object> x) {
+  List<Object> x,
+) {
   // Trivially exhaustive
   bool? y;
   switch (x) {
@@ -657,10 +658,10 @@ void testRelationalEqualsNullWithNullScrutinee(Null x) {
   // Trivially exhaustive
   bool? y;
   switch (x) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'Null' is not exhaustively matched by the switch cases since it doesn't match 'null'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'Null' is not exhaustively matched by the switch cases since it doesn't match 'null'.
     case == null:
       y = true;
   }

@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortChildPropertiesLastTest);
   });
@@ -21,7 +21,8 @@ class SortChildPropertiesLastTest extends LintRuleTest {
   String get lintRule => LintNames.sort_child_properties_last;
 
   test_childArgumentBeforeKeyArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 void f() {
   SizedBox(
@@ -29,9 +30,9 @@ void f() {
     key: Key(''),
   );
 }
-''', [
-      lint(66, 15),
-    ]);
+''',
+      [lint(66, 15)],
+    );
   }
 
   test_childArgumentOnly() async {
@@ -46,7 +47,8 @@ void f() {
   }
 
   test_childrenArgumentBeforeKeyArgument_insideOtherChildArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 void f() {
   SizedBox(
@@ -59,9 +61,9 @@ void f() {
     ),
   );
 }
-''', [
-      lint(130, 12),
-    ]);
+''',
+      [lint(130, 12)],
+    );
   }
 
   test_keyArgumentBeforeChildArgument() async {
@@ -113,7 +115,8 @@ void f() {
 
   test_nestedChildren() async {
     // See https://dart-review.googlesource.com/c/sdk/+/161624.
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 void f() {
   Column(
@@ -131,9 +134,8 @@ void f() {
     key: Key(''),
   );
 }
-''', [
-      lint(64, 165),
-      lint(98, 42),
-    ]);
+''',
+      [lint(64, 165), lint(98, 42)],
+    );
   }
 }

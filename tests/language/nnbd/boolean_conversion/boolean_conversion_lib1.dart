@@ -21,8 +21,11 @@ void expectOk(void Function() f) {
 
 final int constructsTested = 11;
 
-void check<T>(void Function(T, int) test, T value,
-    void Function(void Function()) expectation) {
+void check<T>(
+  void Function(T, int) test,
+  T value,
+  void Function(void Function()) expectation,
+) {
   for (int i = 0; i < constructsTested; i++) {
     expectation(() => test(value, i));
   }

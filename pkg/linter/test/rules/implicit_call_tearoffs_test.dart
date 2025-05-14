@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImplicitCallTearoffsTest);
   });
@@ -27,20 +27,22 @@ class C {
   }
 
   test_ifNullExpression_functionTypeContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void Function() f(C? c1, C c2) {
   return c1 ?? c2;
 }
 class C {
   void call() {}
 }
-''', [
-      lint(42, 8),
-    ]);
+''',
+      [lint(42, 8)],
+    );
   }
 
   test_instanceCreation_argumentToFunctionTypeParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   g(C());
 }
@@ -48,13 +50,14 @@ class C {
   void call() {}
 }
 void g(void Function() f) {}
-''', [
-      lint(15, 3),
-    ]);
+''',
+      [lint(15, 3)],
+    );
   }
 
   test_instanceCreation_argumentToFunctionTypeParameter_instantiatedTypeArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   g(C());
 }
@@ -62,13 +65,14 @@ void g(void Function(int) f) {}
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(15, 3),
-    ]);
+''',
+      [lint(15, 3)],
+    );
   }
 
   test_instanceCreation_cascadeExpression_functionTypeContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void Function() f() {
   return C()..other();
 }
@@ -76,53 +80,57 @@ class C {
   void call() {}
   void other() {}
 }
-''', [
-      lint(31, 12),
-    ]);
+''',
+      [lint(31, 12)],
+    );
   }
 
   test_instanceCreation_functionContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Function f = C();
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(13, 3),
-    ]);
+''',
+      [lint(13, 3)],
+    );
   }
 
   test_instanceCreation_functionTypeContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void Function() f = C();
 class C {
   void call() {}
 }
-''', [
-      lint(20, 3),
-    ]);
+''',
+      [lint(20, 3)],
+    );
   }
 
   test_instanceCreation_functionTypeContext_instantiatedTypeArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void Function(int) f = C();
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(23, 3),
-    ]);
+''',
+      [lint(23, 3)],
+    );
   }
 
   test_instanceCreation_genericFunctionTypeContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void Function<T>(T) f = C();
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(24, 3),
-    ]);
+''',
+      [lint(24, 3)],
+    );
   }
 
   test_instanceCreation_noContext() async {
@@ -135,7 +143,8 @@ class C {
   }
 
   test_simpleIdentifier_argumentToFunctionTypedParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   g(c);
 }
@@ -143,13 +152,14 @@ void g(void Function() f) {}
 class C {
   void call() {}
 }
-''', [
-      lint(18, 1),
-    ]);
+''',
+      [lint(18, 1)],
+    );
   }
 
   test_simpleIdentifier_argumentToFunctionTypeParameter_instantiatedTypeArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   g(c);
 }
@@ -157,87 +167,94 @@ void g(void Function(int) f) {}
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(18, 1),
-    ]);
+''',
+      [lint(18, 1)],
+    );
   }
 
   test_simpleIdentifier_functionContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   Function fn = c;
 }
 class C {
   void call() {}
 }
-''', [
-      lint(30, 1),
-    ]);
+''',
+      [lint(30, 1)],
+    );
   }
 
   test_simpleIdentifier_functionTypeContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void Function() f(C c) => c;
 class C {
   void call() {}
 }
-''', [
-      lint(26, 1),
-    ]);
+''',
+      [lint(26, 1)],
+    );
   }
 
   test_simpleIdentifier_functionTypeContext_instantiatedTypeArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void Function(int) f(C c) => c;
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(29, 1),
-    ]);
+''',
+      [lint(29, 1)],
+    );
   }
 
   test_simpleIdentifier_functionTypeContext_listTypArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   <void Function()>[c];
 }
 class C {
   void call() {}
 }
-''', [
-      lint(34, 1),
-    ]);
+''',
+      [lint(34, 1)],
+    );
   }
 
   test_simpleIdentifier_genericFunctionTypeContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   void Function<T>(T) fn = c;
 }
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(41, 1),
-    ]);
+''',
+      [lint(41, 1)],
+    );
   }
 
   test_simpleIdentifier_listLiteral_listOfFunctionTypeContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 List<void Function()> f(C c) {
   return [c];
 }
 class C {
   void call() {}
 }
-''', [
-      lint(41, 1),
-    ]);
+''',
+      [lint(41, 1)],
+    );
   }
 
   test_tearoffInstantiation_argumentToFunctionTypeParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   g(c<int>);
 }
@@ -245,52 +262,56 @@ void g(void Function(int) f) {}
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(18, 6),
-    ]);
+''',
+      [lint(18, 6)],
+    );
   }
 
   test_tearoffInstantiation_functionContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   Function fn = c<int>;
 }
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(30, 6),
-    ]);
+''',
+      [lint(30, 6)],
+    );
   }
 
   test_tearoffInstantiation_functionTypeContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   void Function(int) fn = c<int>;
 }
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(40, 6),
-    ]);
+''',
+      [lint(40, 6)],
+    );
   }
 
   test_tearoffInstantiation_noContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   c<int>;
 }
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(16, 6),
-    ]);
+''',
+      [lint(16, 6)],
+    );
   }
 
   test_tearoffInstantiationOfInstanceCreation_argumentToFunctionTypeParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   g(C()<int>);
 }
@@ -298,43 +319,46 @@ void g(void Function(int) f) {}
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(15, 8),
-    ]);
+''',
+      [lint(15, 8)],
+    );
   }
 
   test_tearoffInstantiationOfInstanceCreation_functionContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Function f = C()<int>; // LINT
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(13, 8),
-    ]);
+''',
+      [lint(13, 8)],
+    );
   }
 
   test_tearoffInstantiationOfInstanceCreation_functionTypeContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void Function(int) f = C()<int>;
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(23, 8),
-    ]);
+''',
+      [lint(23, 8)],
+    );
   }
 
   test_tearoffInstantiationofInstanceCreation_noContext() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   C()<int>;
 }
 class C {
   void call<T>(T arg) {}
 }
-''', [
-      lint(13, 8),
-    ]);
+''',
+      [lint(13, 8)],
+    );
   }
 }

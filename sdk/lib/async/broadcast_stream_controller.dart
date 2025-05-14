@@ -98,34 +98,34 @@ abstract class _BroadcastStreamController<T>
     : _state = _STATE_INITIAL;
 
   void Function() get onPause {
-    throw new UnsupportedError(
+    throw UnsupportedError(
       "Broadcast stream controllers do not support pause callbacks",
     );
   }
 
   void set onPause(void onPauseHandler()?) {
-    throw new UnsupportedError(
+    throw UnsupportedError(
       "Broadcast stream controllers do not support pause callbacks",
     );
   }
 
   void Function() get onResume {
-    throw new UnsupportedError(
+    throw UnsupportedError(
       "Broadcast stream controllers do not support pause callbacks",
     );
   }
 
   void set onResume(void onResumeHandler()?) {
-    throw new UnsupportedError(
+    throw UnsupportedError(
       "Broadcast stream controllers do not support pause callbacks",
     );
   }
 
   // StreamController interface.
 
-  Stream<T> get stream => new _BroadcastStream<T>(this);
+  Stream<T> get stream => _BroadcastStream<T>(this);
 
-  StreamSink<T> get sink => new _StreamSinkWrapper<T>(this);
+  StreamSink<T> get sink => _StreamSinkWrapper<T>(this);
 
   bool get isClosed => (_state & _STATE_CLOSED) != 0;
 
@@ -205,9 +205,9 @@ abstract class _BroadcastStreamController<T>
     bool cancelOnError,
   ) {
     if (isClosed) {
-      return new _DoneStreamSubscription<T>(onDone);
+      return _DoneStreamSubscription<T>(onDone);
     }
-    var subscription = new _BroadcastSubscription<T>(
+    var subscription = _BroadcastSubscription<T>(
       this,
       onData,
       onError,
@@ -246,10 +246,10 @@ abstract class _BroadcastStreamController<T>
 
   Error _addEventError() {
     if (isClosed) {
-      return new StateError("Cannot add new events after calling close");
+      return StateError("Cannot add new events after calling close");
     }
     assert(_isAddingStream);
-    return new StateError("Cannot add new events while doing an addStream");
+    return StateError("Cannot add new events while doing an addStream");
   }
 
   void add(T data) {
@@ -280,11 +280,7 @@ abstract class _BroadcastStreamController<T>
   Future addStream(Stream<T> stream, {bool? cancelOnError}) {
     if (!_mayAddEvent) throw _addEventError();
     _state |= _STATE_ADDSTREAM;
-    var addStreamState = new _AddStreamState(
-      this,
-      stream,
-      cancelOnError ?? false,
-    );
+    var addStreamState = _AddStreamState(this, stream, cancelOnError ?? false);
     _addStreamState = addStreamState;
     return addStreamState.addStreamFuture;
   }
@@ -311,7 +307,7 @@ abstract class _BroadcastStreamController<T>
     void action(_BufferingStreamSubscription<T> subscription),
   ) {
     if (_isFiring) {
-      throw new StateError(
+      throw StateError(
         "Cannot fire new event. Controller is already firing an event",
       );
     }
@@ -373,7 +369,7 @@ class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T>
 
   _addEventError() {
     if (_isFiring) {
-      return new StateError(
+      return StateError(
         "Cannot fire new event. Controller is already firing an event",
       );
     }
@@ -429,7 +425,7 @@ class _AsyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
       subscription != null;
       subscription = subscription._next
     ) {
-      subscription._addPending(new _DelayedData<T>(data));
+      subscription._addPending(_DelayedData<T>(data));
     }
   }
 
@@ -439,7 +435,7 @@ class _AsyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
       subscription != null;
       subscription = subscription._next
     ) {
-      subscription._addPending(new _DelayedError(error, stackTrace));
+      subscription._addPending(_DelayedError(error, stackTrace));
     }
   }
 
@@ -481,12 +477,12 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
   }
 
   void _addPendingEvent(_DelayedEvent event) {
-    (_pending ??= new _PendingEvents<T>()).add(event);
+    (_pending ??= _PendingEvents<T>()).add(event);
   }
 
   void add(T data) {
     if (!isClosed && _isFiring) {
-      _addPendingEvent(new _DelayedData<T>(data));
+      _addPendingEvent(_DelayedData<T>(data));
       return;
     }
     super.add(data);
@@ -497,7 +493,7 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
     if (!_mayAddEvent) throw _addEventError();
     AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
     if (!isClosed && _isFiring) {
-      _addPendingEvent(new _DelayedError(error, stackTrace));
+      _addPendingEvent(_DelayedError(error, stackTrace));
       return;
     }
     _addError(error, stackTrace);

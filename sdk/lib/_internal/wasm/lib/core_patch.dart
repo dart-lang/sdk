@@ -5,16 +5,20 @@
 import "dart:_internal"
     show
         ClassID,
+        classIdToModuleId,
         CodeUnits,
         doubleToIntBits,
         EfficientLengthIterable,
         FixedLengthListMixin,
-        indexCheckWithName,
+        hasDynamicModuleSupport,
         intBitsToDouble,
         IterableElementError,
         jsonEncode,
+        localizeClassId,
         ListIterator,
         Lists,
+        mainModuleId,
+        minify,
         mix64,
         patch,
         POWERS_OF_TEN,
@@ -22,18 +26,13 @@ import "dart:_internal"
         Symbol,
         UnmodifiableListMixin,
         unsafeCast,
-        WasmStringBase,
         WasmTypedDataBase;
 
+import 'dart:_error_utils';
 import "dart:_internal" as _internal;
 
 import 'dart:_js_helper'
-    show
-        JS,
-        JSSyntaxRegExp,
-        quoteStringForRegExp,
-        jsStringFromDartString,
-        jsStringToDartString;
+    show JS, JSSyntaxRegExp, quoteStringForRegExp, jsStringFromDartString;
 
 import 'dart:_list';
 
@@ -61,6 +60,8 @@ import 'dart:_object_helper';
 import 'dart:_string_helper';
 
 import 'dart:_wasm';
+
+import 'internal_patch.dart';
 
 part "closure.dart";
 part "double_patch.dart";

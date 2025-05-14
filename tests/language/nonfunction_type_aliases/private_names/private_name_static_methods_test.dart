@@ -20,7 +20,9 @@ void test1() {
     AlsoPublicClass.staticMethod().expectStaticType<Exactly<int>>();
 
     Expect.equals(
-        privateLibrarySentinel, PublicGenericClassOfInt.staticMethod());
+      privateLibrarySentinel,
+      PublicGenericClassOfInt.staticMethod(),
+    );
     PublicGenericClassOfInt.staticMethod().expectStaticType<Exactly<int>>();
   }
 }

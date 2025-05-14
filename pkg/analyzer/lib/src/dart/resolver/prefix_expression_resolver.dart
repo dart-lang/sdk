@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
@@ -38,20 +36,15 @@ class PrefixExpressionResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  TypeProvider get _typeProvider => _resolver.typeProvider;
+  TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(PrefixExpressionImpl node, {required DartType contextType}) {
+  void resolve(PrefixExpressionImpl node, {required TypeImpl contextType}) {
     var operator = node.operator.type;
 
     if (operator == TokenType.BANG) {
       _resolveNegation(node);
-      return;
-    }
-
-    if (node.operand case AugmentedExpressionImpl operand) {
-      _resolveAugmented(node, operand);
       return;
     }
 
@@ -62,8 +55,8 @@ class PrefixExpressionResolver {
         hasRead: true,
       );
 
-      var readElement = operandResolution.readElement;
-      var writeElement = operandResolution.writeElement;
+      var readElement = operandResolution.readElement2;
+      var writeElement = operandResolution.writeElement2;
 
       _resolver.setReadElement(
         operand,
@@ -78,7 +71,7 @@ class PrefixExpressionResolver {
 
       _assignmentShared.checkFinalAlreadyAssigned(node.operand);
     } else {
-      DartType innerContextType;
+      TypeImpl innerContextType;
       if (operator == TokenType.MINUS && operand is IntegerLiteralImpl) {
         // Negated integer literals should undergo int->double conversion in the
         // same circumstances as non-negated integer literals, so pass the
@@ -101,7 +94,7 @@ class PrefixExpressionResolver {
   ///
   // TODO(scheglov): this is duplicate
   void _checkForInvalidAssignmentIncDec(
-      PrefixExpressionImpl node, DartType type) {
+      PrefixExpressionImpl node, TypeImpl type) {
     var operandWriteType = node.writeType!;
     if (!_typeSystem.isAssignableTo(type, operandWriteType,
         strictCasts: _resolver.analysisOptions.strictCasts)) {
@@ -119,8 +112,8 @@ class PrefixExpressionResolver {
   /// @return the static return type that was computed
   ///
   // TODO(scheglov): this is duplicate
-  DartType _computeStaticReturnType(Element? element) {
-    if (element is PropertyAccessorElement) {
+  TypeImpl _computeStaticReturnType(Element2? element) {
+    if (element is PropertyAccessorElement2) {
       //
       // This is a function invocation expression disguised as something else.
       // We are invoking a getter and then invoking the returned function.
@@ -129,7 +122,7 @@ class PrefixExpressionResolver {
       return InvocationInferrer.computeInvokeReturnType(
         propertyType.returnType,
       );
-    } else if (element is ExecutableElement) {
+    } else if (element is ExecutableElement2) {
       return InvocationInferrer.computeInvokeReturnType(element.type);
     }
     return InvalidTypeImpl.instance;
@@ -158,18 +151,18 @@ class PrefixExpressionResolver {
       ExpressionImpl operand = node.operand;
       String methodName = _getPrefixOperator(node);
       if (operand is ExtensionOverrideImpl) {
-        var element = operand.element;
-        var member = element.getMethod(methodName);
+        var element = operand.element2;
+        var member = element.getMethod2(methodName);
         if (member == null) {
           // Extension overrides always refer to named extensions, so we can
           // safely assume `element.name` is non-`null`.
           _errorReporter.atToken(
             node.operator,
             CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-            arguments: [methodName, element.name!],
+            arguments: [methodName, element.name3!],
           );
         }
-        node.staticElement = member;
+        node.element = member;
         return;
       }
 
@@ -192,7 +185,7 @@ class PrefixExpressionResolver {
         propertyErrorEntity: node.operator,
         nameErrorEntity: operand,
       );
-      node.staticElement = result.getter as MethodElement?;
+      node.element = result.getter2 as MethodElement2?;
       if (result.needsGetterError) {
         if (operand is SuperExpression) {
           _errorReporter.atToken(
@@ -218,13 +211,13 @@ class PrefixExpressionResolver {
       node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
     } else {
       // The other cases are equivalent to invoking a method.
-      DartType staticType;
+      TypeImpl staticType;
       if (readType is DynamicType) {
         staticType = DynamicTypeImpl.instance;
       } else if (readType is InvalidType) {
         staticType = InvalidTypeImpl.instance;
       } else {
-        var staticMethodElement = node.staticElement;
+        var staticMethodElement = node.element;
         staticType = _computeStaticReturnType(staticMethodElement);
       }
       Expression operand = node.operand;
@@ -247,57 +240,6 @@ class PrefixExpressionResolver {
       node.recordStaticType(staticType, resolver: _resolver);
     }
     _resolver.nullShortingTermination(node);
-  }
-
-  void _resolveAugmented(
-    PrefixExpressionImpl node,
-    AugmentedExpressionImpl operand,
-  ) {
-    var methodName = _getPrefixOperator(node);
-    var augmentation = _resolver.enclosingAugmentation!;
-    var augmentationTarget = augmentation.augmentationTarget;
-
-    // Unresolved by default.
-    operand.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-
-    switch (augmentationTarget) {
-      case MethodElement operatorElement:
-        operand.element = operatorElement;
-        operand.setPseudoExpressionStaticType(
-            _resolver.thisType ?? InvalidTypeImpl.instance);
-        if (operatorElement.name == methodName) {
-          node.staticElement = operatorElement;
-          node.recordStaticType(operatorElement.returnType,
-              resolver: _resolver);
-        } else {
-          _errorReporter.atToken(
-            operand.augmentedKeyword,
-            CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR,
-            arguments: [
-              methodName,
-            ],
-          );
-          node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-        }
-      case PropertyAccessorElement accessor:
-        operand.element = accessor;
-        if (accessor.isGetter) {
-          operand.setPseudoExpressionStaticType(accessor.returnType);
-          _resolve1(node);
-          _resolve2(node);
-        } else {
-          _errorReporter.atToken(
-            operand.augmentedKeyword,
-            CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER,
-          );
-          node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-        }
-      case PropertyInducingElement property:
-        operand.element = property;
-        operand.setPseudoExpressionStaticType(property.type);
-        _resolve1(node);
-        _resolve2(node);
-    }
   }
 
   void _resolveNegation(PrefixExpressionImpl node) {

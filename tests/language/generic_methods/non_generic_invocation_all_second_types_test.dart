@@ -10,7 +10,7 @@ import '../syntax_helper.dart';
 
 class C extends SyntaxTracker {
   C([Object? x = absent, Object? y = absent])
-      : super('new C${SyntaxTracker.args(x, y)}');
+    : super('new C${SyntaxTracker.args(x, y)}');
 
   C.syntax(String s) : super(s);
 
@@ -42,7 +42,9 @@ main() {
   SyntaxTracker.known[#x] = '#x';
   SyntaxTracker.known[y] = 'y';
   checkSyntax(
-      f(x < C, x.getter.getter > (x)), 'f((x < C), (x.getter.getter > x))');
+    f(x < C, x.getter.getter > (x)),
+    'f((x < C), (x.getter.getter > x))',
+  );
   checkSyntax(f(x < C, C() > (x)), 'f((x < C), (new C() > x))');
   checkSyntax(f(x < C, new C() > (x)), 'f((x < C), (new C() > x))');
   checkSyntax(f(x < C, f() > (x)), 'f((x < C), (f() > x))');

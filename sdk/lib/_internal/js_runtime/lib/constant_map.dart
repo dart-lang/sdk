@@ -28,8 +28,10 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
         JS('void', '#[#] = #', object, k, index++);
       }
       final values = List<V>.from(other.values);
-      final map =
-          ConstantStringMap<K, V>._(object, JS<JSArray>('', '#', values));
+      final map = ConstantStringMap<K, V>._(
+        object,
+        JS<JSArray>('', '#', values),
+      );
       map._setKeys(keys);
       return map;
     }

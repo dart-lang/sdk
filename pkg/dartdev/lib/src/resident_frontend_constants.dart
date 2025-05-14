@@ -6,6 +6,7 @@
 const dartdevKernelCache = 'kernel';
 const residentCompilerInfoFileOption = 'resident-compiler-info-file';
 const residentOption = 'resident';
+const quietOption = 'quiet';
 const responseSuccessString = 'success';
 const responseErrorString = 'errorMessage';
 const responseOutputString = 'compilerOutputLines';

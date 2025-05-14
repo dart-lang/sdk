@@ -12,18 +12,16 @@ import '../analyzer.dart';
 const _desc = r"Don't assign to `void`.";
 
 class VoidChecks extends LintRule {
-  VoidChecks()
-      : super(
-          name: LintNames.void_checks,
-          description: _desc,
-        );
+  VoidChecks() : super(name: LintNames.void_checks, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.void_checks;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addAssignedVariablePattern(this, visitor);
     registry.addAssignmentExpression(this, visitor);
@@ -47,7 +45,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         type.isDartAsyncFuture &&
             type is InterfaceType &&
             isTypeAcceptableWhenExpectingFutureOrVoid(
-                type.typeArguments.first)) {
+              type.typeArguments.first,
+            )) {
       return true;
     }
 
@@ -77,8 +76,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     var type = node.writeType;
-    _check(type, node.rightHandSide.staticType, node,
-        checkedNode: node.rightHandSide);
+    _check(
+      type,
+      node.rightHandSide.staticType,
+      node,
+      checkedNode: node.rightHandSide,
+    );
   }
 
   @override
@@ -102,29 +105,46 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    var parent = node.thisOrAncestorMatching((e) =>
-        e is FunctionExpression ||
-        e is MethodDeclaration ||
-        e is FunctionDeclaration);
+    var parent = node.thisOrAncestorMatching(
+      (e) =>
+          e is FunctionExpression ||
+          e is MethodDeclaration ||
+          e is FunctionDeclaration,
+    );
     if (parent is FunctionExpression) {
       var type = parent.staticType;
       if (type is FunctionType) {
-        _check(type.returnType, node.expression?.staticType, node,
-            checkedNode: node.expression);
+        _check(
+          type.returnType,
+          node.expression?.staticType,
+          node,
+          checkedNode: node.expression,
+        );
       }
     } else if (parent is MethodDeclaration) {
-      _check(parent.declaredFragment?.element.returnType,
-          node.expression?.staticType, node,
-          checkedNode: node.expression);
+      _check(
+        parent.declaredFragment?.element.returnType,
+        node.expression?.staticType,
+        node,
+        checkedNode: node.expression,
+      );
     } else if (parent is FunctionDeclaration) {
       var parentElement = parent.declaredFragment?.element;
-      _check(parentElement?.returnType, node.expression?.staticType, node,
-          checkedNode: node.expression);
+      _check(
+        parentElement?.returnType,
+        node.expression?.staticType,
+        node,
+        checkedNode: node.expression,
+      );
     }
   }
 
-  void _check(DartType? expectedType, DartType? type, AstNode node,
-      {AstNode? checkedNode}) {
+  void _check(
+    DartType? expectedType,
+    DartType? type,
+    AstNode node, {
+    AstNode? checkedNode,
+  }) {
     checkedNode ??= node;
     if (expectedType == null || type == null) {
       return;
@@ -144,13 +164,19 @@ class _Visitor extends SimpleAstVisitor<void> {
         checkedNode.body is! ExpressionFunctionBody &&
         expectedType is FunctionType &&
         type is FunctionType) {
-      _check(expectedType.returnType, type.returnType, node,
-          checkedNode: checkedNode);
+      _check(
+        expectedType.returnType,
+        type.returnType,
+        node,
+        checkedNode: checkedNode,
+      );
     }
   }
 
   void _checkArgs(
-      NodeList<Expression> args, List<FormalParameterElement> parameters) {
+    NodeList<Expression> args,
+    List<FormalParameterElement> parameters,
+  ) {
     for (var arg in args) {
       var parameterElement = arg.correspondingParameter;
       if (parameterElement != null) {

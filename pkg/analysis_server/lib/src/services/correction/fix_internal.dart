@@ -38,6 +38,7 @@ import 'package:analysis_server/src/services/correction/dart/add_super_parameter
 import 'package:analysis_server/src/services/correction/dart/add_switch_case_break.dart';
 import 'package:analysis_server/src/services/correction/dart/add_trailing_comma.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/ambiguous_import_fix.dart';
 import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to_nearest_precise_value.dart';
@@ -51,8 +52,10 @@ import 'package:analysis_server/src/services/correction/dart/convert_flutter_chi
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_children.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_for_each_to_for_loop.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_block_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_into_getter.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_is_not.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_null_check_to_null_aware_element_or_entry.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_related_to_cascade.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_boolean_expression.dart';
@@ -69,6 +72,9 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_int_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_named_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_list_element.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_map_entry.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_set_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_on_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
@@ -100,7 +106,6 @@ import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/extend_class_for_mixin.dart';
 import 'package:analysis_server/src/services/correction/dart/extract_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_remove_widget.dart';
-import 'package:analysis_server/src/services/correction/dart/ignore_diagnostic.dart';
 import 'package:analysis_server/src/services/correction/dart/import_library.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
@@ -117,6 +122,7 @@ import 'package:analysis_server/src/services/correction/dart/make_return_type_nu
 import 'package:analysis_server/src/services/correction/dart/make_super_invocation_last.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_nullable.dart';
+import 'package:analysis_server/src/services/correction/dart/merge_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/move_annotation_to_library_directive.dart';
 import 'package:analysis_server/src/services/correction/dart/move_doc_comment_to_library_directive.dart';
 import 'package:analysis_server/src/services/correction/dart/move_type_arguments_to_class.dart';
@@ -131,6 +137,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_break.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_character.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comma.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_comment.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_constructor.dart';
@@ -146,6 +153,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_else.d
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_extends_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_ignored_diagnostic.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_invocation.dart';
@@ -221,6 +229,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_is_emp
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_nan.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_named_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware_element_or_entry.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_part_of_uri.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
@@ -245,26 +254,14 @@ import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_unawaited.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
+import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/ffi_code.g.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:linter/src/lint_codes.dart';
 
-final _builtInLintMultiProducers = {
-  LinterLintCode.comment_references: [
-    ImportLibrary.forType,
-    ImportLibrary.forExtension,
-  ],
-  LinterLintCode.deprecated_member_use_from_same_package_without_message: [
-    DataDriven.new,
-  ],
-  LinterLintCode.deprecated_member_use_from_same_package_with_message: [
-    DataDriven.new,
-  ],
-};
-
-final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
+final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.always_declare_return_types_of_functions: [AddReturnType.new],
   LinterLintCode.always_declare_return_types_of_methods: [AddReturnType.new],
   LinterLintCode.always_put_control_body_on_new_line: [UseCurlyBraces.nonBulk],
@@ -347,7 +344,10 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.directives_ordering_package_before_relative: [
     OrganizeImports.new,
   ],
-  LinterLintCode.discarded_futures: [AddAsync.new, WrapInUnawaited.new],
+  LinterLintCode.discarded_futures: [
+    AddAsync.discardedFutures,
+    WrapInUnawaited.new,
+  ],
   LinterLintCode.empty_catches: [RemoveEmptyCatch.new],
   LinterLintCode.empty_constructor_bodies: [RemoveEmptyConstructorBody.new],
   LinterLintCode.empty_statements: [
@@ -379,9 +379,18 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
     ReplaceNullCheckWithCast.new,
   ],
   LinterLintCode.null_closures: [ReplaceNullWithClosure.new],
-  LinterLintCode.omit_local_variable_types: [ReplaceWithVar.new],
-  LinterLintCode.omit_obvious_local_variable_types: [ReplaceWithVar.new],
-  LinterLintCode.omit_obvious_property_types: [ReplaceWithVar.new],
+  LinterLintCode.omit_local_variable_types: [
+    ReplaceWithVar.new,
+    RemoveTypeAnnotation.other,
+  ],
+  LinterLintCode.omit_obvious_local_variable_types: [
+    ReplaceWithVar.new,
+    RemoveTypeAnnotation.other,
+  ],
+  LinterLintCode.omit_obvious_property_types: [
+    ReplaceWithVar.new,
+    RemoveTypeAnnotation.other,
+  ],
   LinterLintCode.prefer_adjacent_string_concatenation: [RemoveOperator.new],
   LinterLintCode.prefer_collection_literals: [
     ConvertToMapLiteral.new,
@@ -485,6 +494,10 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.unnecessary_final_with_type: [ReplaceFinalWithVar.new],
   LinterLintCode.unnecessary_final_without_type: [ReplaceFinalWithVar.new],
   LinterLintCode.unnecessary_getters_setters: [MakeFieldPublic.new],
+  LinterLintCode.unnecessary_ignore_name: [RemoveIgnoredDiagnostic.new],
+  LinterLintCode.unnecessary_ignore_name_file: [RemoveIgnoredDiagnostic.new],
+  LinterLintCode.unnecessary_ignore: [RemoveComment.ignore],
+  LinterLintCode.unnecessary_ignore_file: [RemoveComment.ignore],
   LinterLintCode.unnecessary_lambdas: [ReplaceWithTearOff.new],
   LinterLintCode.unnecessary_late: [RemoveUnnecessaryLate.new],
   LinterLintCode.unnecessary_library_directive: [
@@ -524,6 +537,9 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   ],
   LinterLintCode.use_key_in_widget_constructors: [AddKeyToConstructors.new],
   LinterLintCode.use_named_constants: [ReplaceWithNamedConstant.new],
+  LinterLintCode.use_null_aware_elements: [
+    ConvertNullCheckToNullAwareElementOrEntry.new,
+  ],
   LinterLintCode.use_raw_strings: [ConvertToRawString.new],
   LinterLintCode.use_rethrow_when_possible: [UseRethrow.new],
   LinterLintCode.use_string_in_part_of_directives: [
@@ -534,140 +550,20 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.use_truncating_division: [UseEffectiveIntegerDivision.new],
 };
 
-final _builtInNonLintMultiProducers = {
-  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO: [
-    AddExtensionOverride.new,
-  ],
-  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE: [
-    AddExtensionOverride.new,
-  ],
-  CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
-  CompileTimeErrorCode.CAST_TO_NON_TYPE: [
-    DataDriven.new,
+final _builtInLintMultiGenerators = {
+  LinterLintCode.comment_references: [
     ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.CONST_WITH_NON_TYPE: [ImportLibrary.forType],
-  CompileTimeErrorCode.EXTENDS_NON_CLASS: [
-    DataDriven.new,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
-    AddMissingParameter.new,
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
-    AddMissingParameter.new,
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
-    DataDriven.new,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
-    AddSuperConstructorInvocation.new,
-  ],
-  CompileTimeErrorCode.INVALID_ANNOTATION: [
-    ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.INVALID_OVERRIDE: [DataDriven.new],
-  CompileTimeErrorCode.INVALID_OVERRIDE_SETTER: [DataDriven.new],
-  CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [DataDriven.new],
-  CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
-    DataDriven.new,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.NEW_WITH_NON_TYPE: [ImportLibrary.forType],
-  CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [DataDriven.new],
-  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT: [
-    AddSuperConstructorInvocation.new,
-  ],
-  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT: [
-    AddSuperConstructorInvocation.new,
-    CreateConstructorSuper.new,
-  ],
-  CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE: [ImportLibrary.forType],
-  CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
-    ImportLibrary.forType,
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.NOT_A_TYPE: [ImportLibrary.forType],
-  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL: [
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR: [
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL: [DataDriven.new],
-  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR: [
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [ImportLibrary.forType],
-  CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
-    ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.UNDEFINED_CLASS: [DataDriven.new, ImportLibrary.forType],
-  CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
-    AddSuperConstructorInvocation.new,
-  ],
-  CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [DataDriven.new],
-  CompileTimeErrorCode.UNDEFINED_FUNCTION: [
-    DataDriven.new,
     ImportLibrary.forExtension,
-    ImportLibrary.forExtensionType,
-    ImportLibrary.forFunction,
-    ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.UNDEFINED_GETTER: [
-    DataDriven.new,
-    ImportLibrary.forExtensionMember,
-    ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
-    DataDriven.new,
-    ImportLibrary.forExtension,
-    ImportLibrary.forExtensionMember,
-    ImportLibrary.forFunction,
-    ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.UNDEFINED_METHOD: [
-    DataDriven.new,
-    ImportLibrary.forExtensionMember,
-    ImportLibrary.forFunction,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
-    ChangeArgumentName.new,
+  LinterLintCode.deprecated_member_use_from_same_package_without_message: [
     DataDriven.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_OPERATOR: [
-    ImportLibrary.forExtensionMember,
-    UseDifferentDivisionOperator.new,
-  ],
-  CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME: [DataDriven.new],
-  CompileTimeErrorCode.UNDEFINED_SETTER: [
-    DataDriven.new,
-    // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
-    ImportLibrary.forExtensionMember,
-  ],
-  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [DataDriven.new],
-  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+  LinterLintCode.deprecated_member_use_from_same_package_with_message: [
     DataDriven.new,
   ],
-  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [DataDriven.new],
-  HintCode.DEPRECATED_MEMBER_USE: [DataDriven.new],
-  HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [DataDriven.new],
-  WarningCode.DEPRECATED_EXPORT_USE: [DataDriven.new],
-  WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [DataDriven.new],
 };
 
-final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
+final _builtInNonLintGenerators = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER: [
     RemoveAbstract.new,
     RemoveInitializer.new,
@@ -746,8 +642,14 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT: [
     RemoveMethodDeclaration.new,
   ],
+  CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD: [
+    ConvertIntoGetter.new,
+  ],
   CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT: [
     RemoveMethodDeclaration.new,
+  ],
+  CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD: [
+    ConvertIntoGetter.new,
   ],
   CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
     ReplaceWithExtensionName.new,
@@ -842,6 +744,15 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED: [
     MakeVariableNotFinal.new,
   ],
+  CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+    ConvertToNullAwareListElement.new,
+  ],
+  CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+    ConvertToNullAwareMapEntryKey.new,
+  ],
+  CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+    ConvertToNullAwareMapEntryValue.new,
+  ],
   CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
     AddRequiredKeyword.new,
     MakeVariableNullable.new,
@@ -915,10 +826,24 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.NON_BOOL_CONDITION: [AddNeNull.new, AddAwait.nonBool],
   CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR: [AddConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT: [RemoveConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY: [
+    RemoveConst.new,
+  ],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT: [RemoveConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_KEY: [RemoveConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY: [
+    RemoveConst.new,
+  ],
   CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY: [AddConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE: [RemoveConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY: [
+    RemoveConst.new,
+  ],
   CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION: [
     AddConst.new,
   ],
+  CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT: [RemoveConst.new],
   CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION: [
     AddMissingSwitchCases.new,
   ],
@@ -965,6 +890,13 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
   ],
+  CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY: [RemoveConst.new],
+  CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+    ConvertToNullAwareSetElement.new,
+  ],
+  CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY: [
+    RemoveConst.new,
+  ],
   CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED: [
     AddClassModifier.baseModifier,
     AddClassModifier.finalModifier,
@@ -994,14 +926,18 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     AddNullCheck.new,
     ExtractLocalVariable.new,
     ReplaceWithNullAware.single,
+    CreateExtensionMethod.new,
   ],
   CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
     AddNullCheck.new,
+    CreateExtensionOperator.new,
   ],
   CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
     AddNullCheck.new,
     ExtractLocalVariable.new,
     ReplaceWithNullAware.single,
+    CreateExtensionGetter.new,
+    CreateExtensionSetter.new,
   ],
   CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [
     AddNullCheck.new,
@@ -1042,6 +978,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD: [
     ChangeTo.method,
+    CreateExtensionMethod.new,
     CreateMethod.method,
   ],
   CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER: [
@@ -1087,6 +1024,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     ConvertFlutterChild.new,
     ConvertFlutterChildren.new,
   ],
+  CompileTimeErrorCode.UNDEFINED_OPERATOR: [CreateExtensionOperator.new],
   CompileTimeErrorCode.UNDEFINED_SETTER: [
     ChangeTo.getterOrSetter,
     CreateExtensionSetter.new,
@@ -1220,6 +1158,15 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveUnexpectedUnderscores.new,
   ],
   StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [RemoveDeadIfNull.new],
+  StaticWarningCode.INVALID_NULL_AWARE_ELEMENT: [
+    ReplaceWithNotNullAwareElementOrEntry.entry,
+  ],
+  StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY: [
+    ReplaceWithNotNullAwareElementOrEntry.mapKey,
+  ],
+  StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE: [
+    ReplaceWithNotNullAwareElementOrEntry.mapValue,
+  ],
   StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [ReplaceWithNotNullAware.new],
   StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT: [
     ReplaceWithNotNullAware.new,
@@ -1358,7 +1305,142 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
 };
 
-final _builtInParseLintProducers = <LintCode, List<ProducerGenerator>>{
+final _builtInNonLintMultiGenerators = {
+  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO: [
+    AddExtensionOverride.new,
+  ],
+  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE: [
+    AddExtensionOverride.new,
+  ],
+  CompileTimeErrorCode.AMBIGUOUS_IMPORT: [AmbiguousImportFix.new],
+  CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
+  CompileTimeErrorCode.CAST_TO_NON_TYPE: [
+    DataDriven.new,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.CONST_WITH_NON_TYPE: [ImportLibrary.forType],
+  CompileTimeErrorCode.EXTENDS_NON_CLASS: [
+    DataDriven.new,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
+    AddMissingParameter.new,
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
+    AddMissingParameter.new,
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
+    DataDriven.new,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
+    AddSuperConstructorInvocation.new,
+  ],
+  CompileTimeErrorCode.INVALID_ANNOTATION: [
+    ImportLibrary.forTopLevelVariable,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.INVALID_OVERRIDE: [DataDriven.new],
+  CompileTimeErrorCode.INVALID_OVERRIDE_SETTER: [DataDriven.new],
+  CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [DataDriven.new],
+  CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
+    DataDriven.new,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.NEW_WITH_NON_TYPE: [ImportLibrary.forType],
+  CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [DataDriven.new],
+  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT: [
+    AddSuperConstructorInvocation.new,
+  ],
+  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT: [
+    AddSuperConstructorInvocation.new,
+    CreateConstructorSuper.new,
+  ],
+  CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE: [ImportLibrary.forType],
+  CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
+    ImportLibrary.forType,
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.NOT_A_TYPE: [ImportLibrary.forType],
+  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL: [
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR: [
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL: [DataDriven.new],
+  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR: [
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [ImportLibrary.forType],
+  CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
+    ImportLibrary.forTopLevelVariable,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.UNDEFINED_CLASS: [DataDriven.new, ImportLibrary.forType],
+  CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
+    AddSuperConstructorInvocation.new,
+  ],
+  CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [DataDriven.new],
+  CompileTimeErrorCode.UNDEFINED_FUNCTION: [
+    DataDriven.new,
+    ImportLibrary.forExtension,
+    ImportLibrary.forExtensionType,
+    ImportLibrary.forFunction,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.UNDEFINED_GETTER: [
+    DataDriven.new,
+    ImportLibrary.forExtensionMember,
+    ImportLibrary.forTopLevelVariable,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
+    DataDriven.new,
+    ImportLibrary.forExtension,
+    ImportLibrary.forExtensionMember,
+    ImportLibrary.forFunction,
+    ImportLibrary.forTopLevelVariable,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.UNDEFINED_METHOD: [
+    DataDriven.new,
+    ImportLibrary.forExtensionMember,
+    ImportLibrary.forFunction,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
+    ChangeArgumentName.new,
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.UNDEFINED_OPERATOR: [
+    ImportLibrary.forExtensionMember,
+    UseDifferentDivisionOperator.new,
+  ],
+  CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME: [DataDriven.new],
+  CompileTimeErrorCode.UNDEFINED_SETTER: [
+    DataDriven.new,
+    // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
+    ImportLibrary.forExtensionMember,
+  ],
+  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [DataDriven.new],
+  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [DataDriven.new],
+  HintCode.DEPRECATED_MEMBER_USE: [DataDriven.new],
+  HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [DataDriven.new],
+  WarningCode.DEPRECATED_EXPORT_USE: [DataDriven.new],
+  WarningCode.MULTIPLE_COMBINATORS: [MergeCombinators.new],
+  WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [DataDriven.new],
+};
+
+final _builtInParseLintGenerators = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.prefer_generic_function_type_aliases: [
     ConvertToGenericFunctionSyntax.new,
   ],
@@ -1373,19 +1455,24 @@ final _builtInParseLintProducers = <LintCode, List<ProducerGenerator>>{
   ],
 };
 
-/// Registers each mapping of diagnostic -> list-of-producers with
+/// Registers each mapping of diagnostic -> list-of-producer-generators with
 /// [FixProcessor].
-void registerBuiltInProducers() {
+void registerBuiltInFixGenerators() {
   // This function can be called many times during test runs so these statements
   // should not result in duplicate producers (i.e. they should only add to maps
   // or sets or otherwise ensure producers that already exist are not added).
-  registeredFixGenerators.lintMultiProducers.addAll(_builtInLintMultiProducers);
-  registeredFixGenerators.lintProducers.addAll(_builtInLintProducers);
-  registeredFixGenerators.nonLintMultiProducers.addAll(
-    _builtInNonLintMultiProducers,
+
+  registeredFixGenerators.lintMultiProducers.addAll(
+    _builtInLintMultiGenerators,
   );
-  registeredFixGenerators.nonLintProducers.addAll(_builtInNonLintProducers);
-  registeredFixGenerators.parseLintProducers.addAll(_builtInParseLintProducers);
+  registeredFixGenerators.lintProducers.addAll(_builtInLintGenerators);
+  registeredFixGenerators.nonLintMultiProducers.addAll(
+    _builtInNonLintMultiGenerators,
+  );
+  registeredFixGenerators.nonLintProducers.addAll(_builtInNonLintGenerators);
+  registeredFixGenerators.parseLintProducers.addAll(
+    _builtInParseLintGenerators,
+  );
   registeredFixGenerators.ignoreProducerGenerators.addAll([
     IgnoreDiagnosticOnLine.new,
     IgnoreDiagnosticInFile.new,

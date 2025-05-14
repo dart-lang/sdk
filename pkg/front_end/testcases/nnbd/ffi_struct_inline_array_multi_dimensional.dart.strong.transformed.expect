@@ -81,11 +81,6 @@ constants  {
   #C19 = 1
 }
 
-Extra constant evaluation status:
-Evaluated: NullCheck @ org-dartlang-testcase:///ffi_struct_inline_array_multi_dimensional.dart:18:25 -> IntConstant(0)
-Evaluated: NullCheck @ org-dartlang-testcase:///ffi_struct_inline_array_multi_dimensional.dart:19:8 -> IntConstant(1)
-Extra constant evaluation: evaluated: 93, effectively constant: 2
-
 
 Constructor coverage from constants:
 org-dartlang-testcase:///ffi_struct_inline_array_multi_dimensional.dart:

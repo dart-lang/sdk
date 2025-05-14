@@ -188,6 +188,10 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
       );
     }
     pipeline = pipeline.addMiddleware(_authCodeMiddleware);
+    pipeline = pipeline.addMiddleware(
+        createMiddleware(errorHandler: (Object error, StackTrace st) {
+      return Response.internalServerError(body: error.toString());
+    }));
 
     if (_devToolsConfiguration?.enable ?? false) {
       // If we are enabling DevTools in DDS, then we also need to start the Dart
@@ -384,7 +388,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
         // If DDS is serving DevTools, install the DevTools handlers and
         // forward any unhandled HTTP requests to the VM service.
         final String buildDir =
-            _devToolsConfiguration!.customBuildDirectoryPath.toFilePath();
+            _devToolsConfiguration.customBuildDirectoryPath.toFilePath();
         return defaultHandler(
           dds: this,
           buildDir: buildDir,

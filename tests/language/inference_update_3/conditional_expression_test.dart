@@ -35,17 +35,20 @@ test(bool b) {
   {
     // Check the context type of `e1` and `e2`:
     // - Where the context is established using a function call argument.
-    context<String>(b
-        ? (contextType('')..expectStaticType<Exactly<String>>())
-        : (contextType('')..expectStaticType<Exactly<String>>()));
+    context<String>(
+      b
+          ? (contextType('')..expectStaticType<Exactly<String>>())
+          : (contextType('')..expectStaticType<Exactly<String>>()),
+    );
 
     // - Where the context is established using local variable promotion.
     Object? o;
     o = '' as Object?;
     if (o is String) {
-      o = b
-          ? (contextType('')..expectStaticType<Exactly<String>>())
-          : (contextType('')..expectStaticType<Exactly<String>>());
+      o =
+          b
+              ? (contextType('')..expectStaticType<Exactly<String>>())
+              : (contextType('')..expectStaticType<Exactly<String>>());
     }
   }
 
@@ -80,8 +83,10 @@ test(bool b) {
     // Therefore the type of `e` is T = Iterable<num>.
     var iterableInt = <int>[] as Iterable<int>;
     var iterableDouble = <double>[] as Iterable<double>;
-    contextIterable((b ? iterableInt : iterableDouble)
-      ..expectStaticType<Exactly<Iterable<num>>>());
+    contextIterable(
+      (b ? iterableInt : iterableDouble)
+        ..expectStaticType<Exactly<Iterable<num>>>(),
+    );
   }
 
   //   - Otherwise, if T1 <: S and T2 <: S, then the type of `e` is S.
@@ -115,7 +120,8 @@ test(bool b) {
     // - T2 <: S
     // Therefore the type of `e` is S = B1<Object>.
     contextB1<Object>(
-        (b ? c1Int : c2Double)..expectStaticType<Exactly<B1<Object>>>());
+      (b ? c1Int : c2Double)..expectStaticType<Exactly<B1<Object>>>(),
+    );
 
     // This example has:
     // - K = Iterable<num>
@@ -131,8 +137,9 @@ test(bool b) {
     // Therefore the type of `e` is S = Iterable<num>.
     var iterableInt = <int>[] as Iterable<int>;
     var listNum = <num>[];
-    context<Iterable<num>>((b ? iterableInt : listNum)
-      ..expectStaticType<Exactly<Iterable<num>>>());
+    context<Iterable<num>>(
+      (b ? iterableInt : listNum)..expectStaticType<Exactly<Iterable<num>>>(),
+    );
   }
 
   //   - Otherwise, the type of `e` is T.

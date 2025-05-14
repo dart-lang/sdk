@@ -1,0 +1,87 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue59800.dart:19:16: Error: Not a constant expression.
+// const int C5 = CAInt.foo!; // Error.
+//                ^^^^^
+//
+// pkg/front_end/testcases/general/issue59800.dart:20:16: Error: Not a constant expression.
+// const int C6 = CANull.foo!; // Error.
+//                ^^^^^^
+//
+// pkg/front_end/testcases/general/issue59800.dart:15:17: Error: Not a constant expression.
+// const int C1 = 0!; // Error.
+//                 ^
+//
+// pkg/front_end/testcases/general/issue59800.dart:16:20: Error: Not a constant expression.
+// const int C2 = null!; // Error.
+//                    ^
+//
+// pkg/front_end/testcases/general/issue59800.dart:17:20: Error: Not a constant expression.
+// const int C3 = CInt!; // Error.
+//                    ^
+//
+// pkg/front_end/testcases/general/issue59800.dart:18:21: Error: Not a constant expression.
+// const int C4 = CNull!; // Error.
+//                     ^
+//
+// pkg/front_end/testcases/general/issue59800.dart:19:25: Error: Not a constant expression.
+// const int C5 = CAInt.foo!; // Error.
+//                         ^
+//
+// pkg/front_end/testcases/general/issue59800.dart:20:26: Error: Not a constant expression.
+// const int C6 = CANull.foo!; // Error.
+//                          ^
+//
+// pkg/front_end/testcases/general/issue59800.dart:21:25: Error: Not a constant expression.
+// const int C7 = "".length!; // Error.
+//                         ^
+//
+// pkg/front_end/testcases/general/issue59800.dart:22:18: Error: Not a constant expression.
+// const int C8 = ""!.length; // Error.
+//                  ^
+//
+// pkg/front_end/testcases/general/issue59800.dart:23:26: Error: Not a constant expression.
+// const int C9 = ""!.length!; // Error.
+//                          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field core::int? foo;
+  const constructor •(core::int? foo) → self::A
+    : self::A::foo = foo, super core::Object::•()
+    ;
+}
+static const field core::int? CNull = #C1;
+static const field core::int? CInt = #C2;
+static const field self::A CANull = #C3;
+static const field self::A CAInt = #C4;
+static const field core::int C1 = invalid-expression "Not a constant expression.";
+static const field core::int C2 = invalid-expression "Not a constant expression.";
+static const field core::int C3 = invalid-expression "Not a constant expression.";
+static const field core::int C4 = invalid-expression "Not a constant expression.";
+static const field core::int C5 = invalid-expression "Not a constant expression.";
+static const field core::int C6 = invalid-expression "Not a constant expression.";
+static const field core::int C7 = invalid-expression "Not a constant expression.";
+static const field core::int C8 = invalid-expression "Not a constant expression.";
+static const field core::int C9 = invalid-expression "Not a constant expression.";
+static method test() → dynamic {
+  return <core::int>[invalid-expression "Not a constant expression.", invalid-expression "Not a constant expression.", invalid-expression "Not a constant expression.", invalid-expression "Not a constant expression.", invalid-expression "Not a constant expression.", invalid-expression "Not a constant expression.", invalid-expression "Not a constant expression.", invalid-expression "Not a constant expression.", invalid-expression "Not a constant expression."];
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+  #C2 = 0
+  #C3 = self::A {foo:#C1}
+  #C4 = self::A {foo:#C2}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue59800.dart:
+- A. (from org-dartlang-testcase:///issue59800.dart:7:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

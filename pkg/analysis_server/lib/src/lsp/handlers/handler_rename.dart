@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
 import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
@@ -17,7 +15,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 
 AstNode? _tweakLocatedNode(AstNode? node, int offset) {
@@ -66,7 +64,8 @@ class PrepareRenameHandler
     return (unit, offset).mapResults((unit, offset) async {
       var node = NodeLocator(offset).searchWithin(unit.unit);
       node = _tweakLocatedNode(node, offset);
-      var element = server.getElementOfNode(node);
+      var element = server.getElementOfNode(node, useMockForImport: true);
+
       if (node == null || element == null) {
         return success(null);
       }
@@ -161,7 +160,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
     ) async {
       var node = NodeLocator(offset).searchWithin(unit.unit);
       node = _tweakLocatedNode(node, offset);
-      var element = server.getElementOfNode(node);
+      var element = server.getElementOfNode(node, useMockForImport: true);
       if (node == null || element == null) {
         return success(null);
       }
@@ -223,7 +222,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
 
         // Set the completer to complete to show that request is paused, and
         // that processing of incoming messages can continue while we wait
-        // for the user's response. 
+        // for the user's response.
         message.completer?.complete();
 
         // Otherwise, ask the user whether to proceed with the rename.
@@ -278,9 +277,10 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
         var declaringFile =
             (refactoring as RenameUnitMemberRefactoringImpl)
                 .element
-                .declaration
+                .firstFragment
+                .libraryFragment
                 ?.source
-                ?.fullName;
+                .fullName;
         if (declaringFile != null) {
           var folder = pathContext.dirname(declaringFile);
           var actualFilename = pathContext.basename(declaringFile);
@@ -320,7 +320,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
 
   bool _isClassRename(RenameRefactoring refactoring) =>
       refactoring is RenameUnitMemberRefactoringImpl &&
-      refactoring.element is InterfaceElement;
+      refactoring.element is InterfaceElement2;
 
   /// Asks the user whether they would like to rename the file along with the
   /// class.

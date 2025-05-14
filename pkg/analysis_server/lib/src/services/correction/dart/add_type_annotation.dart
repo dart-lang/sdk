@@ -55,7 +55,9 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
       return;
     }
 
-    if (node is TypedLiteral) {
+    if (node case TypedLiteral(
+      :var typeArguments,
+    ) when typeArguments == null || typeArguments.isSynthetic) {
       await _typedLiteral(builder, node);
       return;
     }
@@ -205,7 +207,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(offset, (builder) {
         builder.write('<');
-        builder.writeTypes(type.typeArguments);
+        builder.writeTypes(type.typeArguments, shouldWriteDynamic: true);
         builder.write('>');
       });
     });

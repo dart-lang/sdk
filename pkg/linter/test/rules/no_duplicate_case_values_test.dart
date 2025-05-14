@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NoDuplicateCaseValuesTestLanguage219);
     defineReflectiveTests(NoDuplicateCaseValuesTest);
@@ -21,7 +21,8 @@ abstract class BaseNoDuplicateCaseValuesTest extends LintRuleTest {
 @reflectiveTest
 class NoDuplicateCaseValuesTest extends BaseNoDuplicateCaseValuesTest {
   test_duplicateConstClassValue_ok() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class ConstClass {
   final int v;
   const ConstClass(this.v);
@@ -38,13 +39,14 @@ void switchConstClass() {
     default:
   }
 }
-''', [
-      error(WarningCode.UNREACHABLE_SWITCH_CASE, 237, 4),
-    ]);
+''',
+      [error(WarningCode.UNREACHABLE_SWITCH_CASE, 237, 4)],
+    );
   }
 
   test_duplicateEnumValue_ok() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 enum E {
   one,
   two,
@@ -62,15 +64,18 @@ void switchEnum() {
     default:
   }
 }
-''', [
-      // No lint.
-      error(WarningCode.UNREACHABLE_SWITCH_CASE, 139, 4),
-      error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 155, 7),
-    ]);
+''',
+      [
+        // No lint.
+        error(WarningCode.UNREACHABLE_SWITCH_CASE, 139, 4),
+        error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 155, 7),
+      ],
+    );
   }
 
   test_duplicateIntConstant_ok() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void switchInt() {
   const int A = 1;
   int v = 5;
@@ -84,15 +89,18 @@ void switchInt() {
     default:
   }
 }
-''', [
-      // No lint.
-      error(WarningCode.UNREACHABLE_SWITCH_CASE, 95, 4),
-      error(WarningCode.UNREACHABLE_SWITCH_CASE, 107, 4),
-    ]);
+''',
+      [
+        // No lint.
+        error(WarningCode.UNREACHABLE_SWITCH_CASE, 95, 4),
+        error(WarningCode.UNREACHABLE_SWITCH_CASE, 107, 4),
+      ],
+    );
   }
 
   test_duplicateStringConstant_ok() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void switchString() {
   const String A = 'a';
   String v = 'aa';
@@ -106,13 +114,15 @@ void switchString() {
     default:
   }
 }
-''', [
-      // No lint.
-      error(WarningCode.UNREACHABLE_SWITCH_CASE, 115, 4),
-      error(ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY, 122, 1),
-      error(WarningCode.UNREACHABLE_SWITCH_CASE, 131, 4),
-      error(ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY, 153, 1),
-    ]);
+''',
+      [
+        // No lint.
+        error(WarningCode.UNREACHABLE_SWITCH_CASE, 115, 4),
+        error(ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY, 122, 1),
+        error(WarningCode.UNREACHABLE_SWITCH_CASE, 131, 4),
+        error(ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY, 153, 1),
+      ],
+    );
   }
 }
 
@@ -120,7 +130,8 @@ void switchString() {
 class NoDuplicateCaseValuesTestLanguage219 extends BaseNoDuplicateCaseValuesTest
     with LanguageVersion219Mixin {
   test_duplicateConstClassValue() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class ConstClass {
   final int v;
   const ConstClass(this.v);
@@ -137,13 +148,14 @@ void switchConstClass() {
     default:
   }
 }
-''', [
-      lint(242, 19),
-    ]);
+''',
+      [lint(242, 19)],
+    );
   }
 
   test_duplicateEnumValue() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 enum E {
   one,
   two,
@@ -161,13 +173,14 @@ void switchEnum() {
     default:
   }
 }
-''', [
-      lint(144, 5),
-    ]);
+''',
+      [lint(144, 5)],
+    );
   }
 
   test_duplicateIntConstant() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void switchInt() {
   const int A = 1;
   int v = 5;
@@ -181,14 +194,14 @@ void switchInt() {
     default:
   }
 }
-''', [
-      lint(100, 1),
-      lint(112, 1),
-    ]);
+''',
+      [lint(100, 1), lint(112, 1)],
+    );
   }
 
   test_duplicateStringConstant() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void switchString() {
   const String A = 'a';
   String v = 'aa';
@@ -202,9 +215,8 @@ void switchString() {
     default:
   }
 }
-''', [
-      lint(120, 5),
-      lint(136, 4),
-    ]);
+''',
+      [lint(120, 5), lint(136, 4)],
+    );
   }
 }

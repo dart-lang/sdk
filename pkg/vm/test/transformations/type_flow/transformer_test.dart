@@ -26,20 +26,23 @@ import '../../common_test_utils.dart';
 final Uri pkgVmDir = Platform.script.resolve('../../..');
 
 void runTestCase(
-    Uri source,
-    List<Uri>? linkedDependencies,
-    List<String>? experimentalFlags,
-    String? targetName,
-    TFAConfiguration tfaConfig) async {
+  Uri source,
+  List<Uri>? linkedDependencies,
+  List<String>? experimentalFlags,
+  String? targetName,
+  TFAConfiguration tfaConfig,
+) async {
   targetName ??= "vm";
   // Install all VM targets and dart2wasm.
   installAdditionalTargets();
   targets["dart2wasm"] = (TargetFlags flags) => WasmTarget();
   final target = getTarget(targetName, TargetFlags())!;
-  Component component = await compileTestCaseToKernelProgram(source,
-      target: target,
-      linkedDependencies: linkedDependencies,
-      experimentalFlags: experimentalFlags);
+  Component component = await compileTestCaseToKernelProgram(
+    source,
+    target: target,
+    linkedDependencies: linkedDependencies,
+    experimentalFlags: experimentalFlags,
+  );
 
   final coreTypes = new CoreTypes(component);
 
@@ -47,14 +50,18 @@ void runTestCase(
   if (target is WasmTarget) {
     // Keep these flags in-sync with pkg/dart2wasm/lib/compile.dart
     useRapidTypeAnalysis = false;
-    target.recordClasses = generateRecordClasses(component, coreTypes);
+    target.recordClasses = generateRecordClasses(component, coreTypes, false);
   }
 
-  component = transformComponent(target, coreTypes, component,
-      matcher: new ConstantPragmaAnnotationParser(coreTypes, target),
-      config: tfaConfig,
-      treeShakeProtobufs: true,
-      useRapidTypeAnalysis: useRapidTypeAnalysis);
+  component = transformComponent(
+    target,
+    coreTypes,
+    component,
+    matcher: new ConstantPragmaAnnotationParser(coreTypes, target),
+    config: tfaConfig,
+    treeShakeProtobufs: true,
+    useRapidTypeAnalysis: useRapidTypeAnalysis,
+  );
 
   String actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 
@@ -64,9 +71,9 @@ void runTestCase(
   // Include libraries with protobuf generated messages into the result.
   if (source.toString().contains('/protobuf_handler/')) {
     for (var lib in component.libraries) {
-      if (lib.importUri
-          .toString()
-          .contains('/protobuf_handler/lib/generated/')) {
+      if (lib.importUri.toString().contains(
+        '/protobuf_handler/lib/generated/',
+      )) {
         dependencies.add(lib);
       }
     }
@@ -89,7 +96,10 @@ void runTestCase(
   compareResultWithExpectationsFile(source, actual);
 
   verifyComponent(
-      target, VerificationStage.afterGlobalTransformations, component);
+    target,
+    VerificationStage.afterGlobalTransformations,
+    component,
+  );
 
   ensureKernelCanBeSerializedToBinary(component);
 }
@@ -104,26 +114,34 @@ String? argsTestName(List<String> args) {
 class TestOptions {
   /// List of libraries the should be precompiled to .dill before compiling the
   /// main library from source.
-  static const Option<List<String>?> linked =
-      Option('--linked', StringListValue());
+  static const Option<List<String>?> linked = Option(
+    '--linked',
+    StringListValue(),
+  );
 
-  static const Option<List<String>?> enableExperiment =
-      Option('--enable-experiment', StringListValue());
+  static const Option<List<String>?> enableExperiment = Option(
+    '--enable-experiment',
+    StringListValue(),
+  );
 
   static const Option<String?> target = Option('--target', StringValue());
 
-  static const Option<int?> maxAllocatedTypesInSetSpecialization =
-      Option('--tfa.maxAllocatedTypesInSetSpecialization', IntValue());
+  static const Option<int?> maxAllocatedTypesInSetSpecialization = Option(
+    '--tfa.maxAllocatedTypesInSetSpecialization',
+    IntValue(),
+  );
 
-  static const Option<int?> maxInterfaceInvocationsPerSelector =
-      Option('--tfa.maxInterfaceInvocationsPerSelector', IntValue());
+  static const Option<int?> maxInterfaceInvocationsPerSelector = Option(
+    '--tfa.maxInterfaceInvocationsPerSelector',
+    IntValue(),
+  );
 
   static const List<Option> options = [
     linked,
     enableExperiment,
     target,
     maxAllocatedTypesInSetSpecialization,
-    maxInterfaceInvocationsPerSelector
+    maxInterfaceInvocationsPerSelector,
   ];
 }
 
@@ -132,10 +150,13 @@ void main(List<String> args) {
 
   group('transform-component', () {
     final testCasesDir = new Directory.fromUri(
-        pkgVmDir.resolve('testcases/transformations/type_flow/transformer/'));
+      pkgVmDir.resolve('testcases/transformations/type_flow/transformer/'),
+    );
 
-    for (var entry
-        in testCasesDir.listSync(recursive: true, followLinks: false)) {
+    for (var entry in testCasesDir.listSync(
+      recursive: true,
+      followLinks: false,
+    )) {
       final path = entry.path;
       if (path.endsWith('.dart') &&
           !path.endsWith('.pb.dart') &&
@@ -153,8 +174,9 @@ void main(List<String> args) {
         File optionsFile = new File('${path}.options');
         if (optionsFile.existsSync()) {
           ParsedOptions parsedOptions = ParsedOptions.parse(
-              ParsedOptions.readOptionsFile(optionsFile.readAsStringSync()),
-              TestOptions.options);
+            ParsedOptions.readOptionsFile(optionsFile.readAsStringSync()),
+            TestOptions.options,
+          );
           List<String>? linked = TestOptions.linked.read(parsedOptions);
           if (linked != null) {
             linkDependencies =
@@ -163,21 +185,29 @@ void main(List<String> args) {
           experimentalFlags = TestOptions.enableExperiment.read(parsedOptions);
           targetName = TestOptions.target.read(parsedOptions);
           tfaConfig = TFAConfiguration(
-            maxInterfaceInvocationsPerSelector: TestOptions
-                    .maxInterfaceInvocationsPerSelector
-                    .read(parsedOptions) ??
+            maxInterfaceInvocationsPerSelector:
+                TestOptions.maxInterfaceInvocationsPerSelector.read(
+                  parsedOptions,
+                ) ??
                 defaultTFAConfiguration.maxInterfaceInvocationsPerSelector,
-            maxAllocatedTypesInSetSpecialization: TestOptions
-                    .maxAllocatedTypesInSetSpecialization
-                    .read(parsedOptions) ??
+            maxAllocatedTypesInSetSpecialization:
+                TestOptions.maxAllocatedTypesInSetSpecialization.read(
+                  parsedOptions,
+                ) ??
                 defaultTFAConfiguration.maxAllocatedTypesInSetSpecialization,
           );
         }
 
         test(
-            path,
-            () => runTestCase(entry.uri, linkDependencies, experimentalFlags,
-                targetName, tfaConfig));
+          path,
+          () => runTestCase(
+            entry.uri,
+            linkDependencies,
+            experimentalFlags,
+            targetName,
+            tfaConfig,
+          ),
+        );
       }
     }
   }, timeout: Timeout.none);

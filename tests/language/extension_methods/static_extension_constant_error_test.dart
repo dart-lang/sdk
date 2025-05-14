@@ -15,74 +15,90 @@ void main() {
 
   const c01 = ~i;
   //          ^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  // [cfe] Constant evaluation error:
   const c02 = b & b;
   //          ^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c03 = b | b;
   //          ^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c04 = b ^ b;
   //          ^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c05 = i ~/ i;
   //          ^^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c06 = i >> i;
   //          ^^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c08 = i << i;
   //          ^^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c09 = i + i;
   //          ^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c10 = -i;
   //          ^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  // [cfe] Constant evaluation error:
   const c11 = d - d;
   //          ^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c12 = d * d;
   //          ^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c13 = d / d;
   //          ^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c14 = d % d;
   //          ^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c15 = d < i;
   //          ^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c16 = i <= d;
   //          ^^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c17 = d > i;
   //          ^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c18 = i >= i;
   //          ^^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
   const c19 = s.length;
   //          ^^^^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_EXTENSION_METHOD
+  //            ^
+  // [cfe] Constant evaluation error:
 }

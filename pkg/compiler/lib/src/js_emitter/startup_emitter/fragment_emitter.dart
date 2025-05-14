@@ -2011,6 +2011,12 @@ class FragmentEmitter {
   ) {
     List<js.Property> globals = [];
 
+    globals.add(
+      js.Property(
+        js.string(CACHED_GLOBAL_THIS),
+        js.js(r'typeof self != "undefined" ? self : globalThis'),
+      ),
+    );
     if (fragmentsToLoad.isNotEmpty) {
       globals.addAll(
         emitEmbeddedGlobalsForDeferredLoading(

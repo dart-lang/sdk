@@ -76,10 +76,14 @@ void main() {
   expect("(a+b[b(c)]((a*b)))", a + b[c[a] = b(c)](a * b), "c[a]=b(c)");
 
   // Operator precedence is unaffected by being extensions.
-  expect("(c<((-a)|(b^((~c)&((a<<b)>>((c-a)+((((b*c)~/a)%b)/c)))))))",
-      c < -a | b ^ ~c & a << b >> c - a + b * c ~/ a % b / c);
-  expect("((((((((((((c/b)%a)~/c)*b)+a)-c)<<b)>>a)&(~c))^b)|(-a))>b)",
-      c / b % a ~/ c * b + a - c << b >> a & ~c ^ b | -a > b);
+  expect(
+    "(c<((-a)|(b^((~c)&((a<<b)>>((c-a)+((((b*c)~/a)%b)/c)))))))",
+    c < -a | b ^ ~c & a << b >> c - a + b * c ~/ a % b / c,
+  );
+  expect(
+    "((((((((((((c/b)%a)~/c)*b)+a)-c)<<b)>>a)&(~c))^b)|(-a))>b)",
+    c / b % a ~/ c * b + a - c << b >> a & ~c ^ b | -a > b,
+  );
 }
 
 // Last value set by []= or setter.

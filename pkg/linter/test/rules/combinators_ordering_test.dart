@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CombinatorsOrderingTest);
   });
@@ -28,11 +28,12 @@ import 'dart:math' hide max, min;
   }
 
   test_hideCombinator_import_unsorted() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:math' hide min, max;
-''', [
-      lint(19, 13),
-    ]);
+''',
+      [lint(19, 13)],
+    );
   }
 
   test_showCombinator_export_sorted() async {
@@ -42,11 +43,12 @@ export 'dart:math' show max, min;
   }
 
   test_showCombinator_export_unsorted() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 export 'dart:math' show min, max;
-''', [
-      lint(19, 13),
-    ]);
+''',
+      [lint(19, 13)],
+    );
   }
 
   test_showCombinator_import_sorted() async {
@@ -56,10 +58,11 @@ import 'dart:math' show max, min;
   }
 
   test_showCombinator_import_unsorted() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:math' show min, max;
-''', [
-      lint(19, 13),
-    ]);
+''',
+      [lint(19, 13)],
+    );
   }
 }

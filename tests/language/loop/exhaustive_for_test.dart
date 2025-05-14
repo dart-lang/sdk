@@ -41,7 +41,7 @@ void loop0() {
 
 void loop1() {
   status = INIT;
-  for (status &= ~INIT;;) {
+  for (status &= ~INIT; ;) {
     return;
   }
 }
@@ -62,14 +62,14 @@ void loop3() {
 
 void loop4() {
   status = UPDATE;
-  for (;; status &= ~UPDATE) {
+  for (; ; status &= ~UPDATE) {
     return;
   }
 }
 
 void loop5() {
   status = INIT | UPDATE;
-  for (status &= ~INIT;; status &= ~UPDATE) {
+  for (status &= ~INIT; ; status &= ~UPDATE) {
     return;
   }
 }
@@ -100,7 +100,7 @@ void loop8() {
 // Infinite loop not tested.
 void loop9() {
   status = INIT | CONTINUE;
-  for (status &= ~INIT;;) {
+  for (status &= ~INIT; ;) {
     status &= ~CONTINUE;
     continue;
   }
@@ -125,7 +125,7 @@ void loop11() {
 // Infinite loop.
 void loop12() {
   status = UPDATE | CONTINUE;
-  for (;; status &= ~UPDATE) {
+  for (; ; status &= ~UPDATE) {
     status &= ~CONTINUE;
     continue;
   }
@@ -134,7 +134,7 @@ void loop12() {
 // Infinite loop.
 void loop13() {
   status = INIT | UPDATE | CONTINUE;
-  for (status &= ~INIT;; status &= ~UPDATE) {
+  for (status &= ~INIT; ; status &= ~UPDATE) {
     status &= ~CONTINUE;
     continue;
   }
@@ -167,7 +167,7 @@ void loop16() {
 // Infinite loop.
 void loop17() {
   status = INIT | FALL;
-  for (status &= ~INIT;;) {
+  for (status &= ~INIT; ;) {
     status &= ~FALL;
   }
 }
@@ -189,7 +189,7 @@ void loop19() {
 // Infinite loop.
 void loop20() {
   status = UPDATE | FALL;
-  for (;; status &= ~UPDATE) {
+  for (; ; status &= ~UPDATE) {
     status &= ~FALL;
   }
 }
@@ -197,7 +197,7 @@ void loop20() {
 // Infinite loop.
 void loop21() {
   status = INIT | UPDATE | FALL;
-  for (status &= ~INIT;; status &= ~UPDATE) {
+  for (status &= ~INIT; ; status &= ~UPDATE) {
     status &= ~FALL;
   }
 }
@@ -231,7 +231,7 @@ void loop24() {
 // Infinite loop.
 void loop25() {
   status = INIT | CONTINUE | FALL;
-  for (status &= ~INIT;;) {
+  for (status &= ~INIT; ;) {
     if ((status & CONTINUE) == CONTINUE) {
       status &= ~CONTINUE;
       continue;
@@ -265,7 +265,7 @@ void loop27() {
 // Infinite loop.
 void loop28() {
   status = UPDATE | CONTINUE | FALL;
-  for (;; status &= ~UPDATE) {
+  for (; ; status &= ~UPDATE) {
     if ((status & CONTINUE) == CONTINUE) {
       status &= ~CONTINUE;
       continue;
@@ -277,7 +277,7 @@ void loop28() {
 // Infinite loop.
 void loop29() {
   status = INIT | UPDATE | CONTINUE | FALL;
-  for (status &= ~INIT;; status &= ~UPDATE) {
+  for (status &= ~INIT; ; status &= ~UPDATE) {
     if ((status & CONTINUE) == CONTINUE) {
       status &= ~CONTINUE;
       continue;
@@ -318,7 +318,7 @@ void loop32() {
 
 void loop33() {
   status = INIT | BREAK;
-  for (status &= ~INIT;;) {
+  for (status &= ~INIT; ;) {
     status &= ~BREAK;
     break;
   }
@@ -342,7 +342,7 @@ void loop35() {
 
 void loop36() {
   status = UPDATE | BREAK;
-  for (;; status &= ~UPDATE) {
+  for (; ; status &= ~UPDATE) {
     status &= ~BREAK;
     break;
   }
@@ -350,7 +350,7 @@ void loop36() {
 
 void loop37() {
   status = INIT | UPDATE | BREAK;
-  for (status &= ~INIT;; status &= ~UPDATE) {
+  for (status &= ~INIT; ; status &= ~UPDATE) {
     status &= ~BREAK;
     break;
   }
@@ -386,7 +386,7 @@ void loop40() {
 
 void loop41() {
   status = INIT | CONTINUE | BREAK;
-  for (status &= ~INIT;;) {
+  for (status &= ~INIT; ;) {
     if ((status & CONTINUE) == CONTINUE) {
       status &= ~CONTINUE;
       continue;
@@ -422,7 +422,7 @@ void loop43() {
 
 void loop44() {
   status = UPDATE | CONTINUE | BREAK;
-  for (;; status &= ~UPDATE) {
+  for (; ; status &= ~UPDATE) {
     if ((status & CONTINUE) == CONTINUE) {
       status &= ~CONTINUE;
       continue;
@@ -434,7 +434,7 @@ void loop44() {
 
 void loop45() {
   status = INIT | UPDATE | CONTINUE | BREAK;
-  for (status &= ~INIT;; status &= ~UPDATE) {
+  for (status &= ~INIT; ; status &= ~UPDATE) {
     if ((status & CONTINUE) == CONTINUE) {
       status &= ~CONTINUE;
       continue;
@@ -482,7 +482,7 @@ void loop48() {
 
 void loop49() {
   status = INIT | FALL | BREAK;
-  for (status &= ~INIT;;) {
+  for (status &= ~INIT; ;) {
     if ((status & FALL) == FALL) {
       status &= ~FALL;
     } else {
@@ -518,7 +518,7 @@ void loop51() {
 
 void loop52() {
   status = UPDATE | FALL | BREAK;
-  for (;; status &= ~UPDATE) {
+  for (; ; status &= ~UPDATE) {
     if ((status & FALL) == FALL) {
       status &= ~FALL;
     } else {
@@ -530,7 +530,7 @@ void loop52() {
 
 void loop53() {
   status = INIT | UPDATE | FALL | BREAK;
-  for (status &= ~INIT;; status &= ~UPDATE) {
+  for (status &= ~INIT; ; status &= ~UPDATE) {
     if ((status & FALL) == FALL) {
       status &= ~FALL;
     } else {
@@ -582,7 +582,7 @@ void loop56() {
 
 void loop57() {
   status = INIT | CONTINUE | FALL | BREAK;
-  for (status &= ~INIT;;) {
+  for (status &= ~INIT; ;) {
     if ((status & CONTINUE) == CONTINUE) {
       status &= ~CONTINUE;
       continue;
@@ -630,7 +630,7 @@ void loop59() {
 
 void loop60() {
   status = UPDATE | CONTINUE | FALL | BREAK;
-  for (;; status &= ~UPDATE) {
+  for (; ; status &= ~UPDATE) {
     if ((status & CONTINUE) == CONTINUE) {
       status &= ~CONTINUE;
       continue;
@@ -646,7 +646,7 @@ void loop60() {
 
 void loop61() {
   status = INIT | UPDATE | CONTINUE | FALL | BREAK;
-  for (status &= ~INIT;; status &= ~UPDATE) {
+  for (status &= ~INIT; ; status &= ~UPDATE) {
     if ((status & CONTINUE) == CONTINUE) {
       status &= ~CONTINUE;
       continue;

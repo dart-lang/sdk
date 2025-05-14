@@ -16,6 +16,7 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -119,6 +120,10 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     'File is not being analyzed',
     path,
   );
+
+  DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
+    return server.getDartdocDirectiveInfoFor(result);
+  }
 
   ErrorOr<LineInfo> getLineInfo(String path) {
     var lineInfo = server.getLineInfo(path);

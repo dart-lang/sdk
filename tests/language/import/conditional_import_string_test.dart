@@ -7,7 +7,9 @@ import "package:expect/expect.dart";
 
 import "default.dart"
     if (dart.library.io) "io.dart"
-    if (dart.library.html) "html.dart" deferred as d show value;
+    if (dart.library.html) "html.dart"
+    deferred as d
+    show value;
 
 void main() async {
   asyncStart();

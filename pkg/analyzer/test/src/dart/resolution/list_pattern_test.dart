@@ -34,7 +34,6 @@ ListPattern
     DeclaredVariablePattern
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
       name: a
@@ -94,7 +93,6 @@ ListPattern
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
@@ -215,7 +213,6 @@ ListPattern
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
@@ -296,7 +293,6 @@ ListPattern
     DeclaredVariablePattern
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
       name: a
@@ -354,7 +350,6 @@ ListPattern
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
@@ -390,7 +385,6 @@ ListPattern
     arguments
       NamedType
         name: num
-        element: dart:core::<fragment>::@class::num
         element2: dart:core::@class::num
         type: num
     rightBracket: >
@@ -399,7 +393,6 @@ ListPattern
     DeclaredVariablePattern
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
       name: a
@@ -431,7 +424,6 @@ ListPattern
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
@@ -475,7 +467,6 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: List<int>
   patternTypeSchema: List<_>
@@ -502,7 +493,6 @@ PatternVariableDeclaration
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
@@ -520,7 +510,6 @@ PatternVariableDeclaration
   expression: MethodInvocation
     methodName: SimpleIdentifier
       token: g
-      staticElement: <testLibraryFragment>::@function::g
       element: <testLibrary>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList
@@ -554,7 +543,6 @@ PatternVariableDeclaration
       DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
         name: a
@@ -568,7 +556,6 @@ PatternVariableDeclaration
   expression: MethodInvocation
     methodName: SimpleIdentifier
       token: g
-      staticElement: <testLibraryFragment>::@function::g
       element: <testLibrary>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList

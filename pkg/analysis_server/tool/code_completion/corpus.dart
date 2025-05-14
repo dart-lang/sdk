@@ -71,7 +71,7 @@ final _homeDir =
         ? Platform.environment['LOCALAPPDATA']!
         : Platform.environment['HOME']!;
 
-final _package_config = path.join('.dart_tool', 'package_config.json');
+final _packageConfig = path.join('.dart_tool', 'package_config.json');
 
 Future<CloneResult> _clone(String repo) async {
   var name = _trimName(
@@ -106,7 +106,7 @@ Future<ProcessResult> _runPub(String dir) async =>
 
 Future<void> _runPubGet(FileSystemEntity dir) async {
   if (_hasPubspec(dir)) {
-    var packageFile = path.join(dir.path, _package_config);
+    var packageFile = path.join(dir.path, _packageConfig);
     if (!File(packageFile).existsSync() || forcePubUpdate) {
       var relativeDirPath = path.relative(dir.path, from: _appDir);
       print('Getting pub dependencies for "$relativeDirPath"...');

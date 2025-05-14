@@ -12,17 +12,16 @@ const _desc = r'Name extensions using UpperCamelCase.';
 
 class CamelCaseExtensions extends LintRule {
   CamelCaseExtensions()
-      : super(
-          name: LintNames.camel_case_extensions,
-          description: _desc,
-        );
+    : super(name: LintNames.camel_case_extensions, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.camel_case_extensions;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addExtensionDeclaration(this, visitor);
   }

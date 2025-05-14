@@ -4,6 +4,11 @@
 
 part of dart._js_types;
 
+extension JSArrayImplUncheckedOperations<T extends JSAny?> on JSArrayImpl {
+  @pragma("wasm:prefer-inline")
+  void setUnchecked(int index, T value) => _setUnchecked(index, value);
+}
+
 // TODO(joshualitt): Refactor indexing here and in `js_string` to elide range
 // checks for internal functions.
 class JSArrayImpl<T extends JSAny?> implements List<T> {
@@ -28,7 +33,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
 
   @override
   T removeAt(int index) {
-    RangeError.checkValueInInterval(index, 0, length - 1);
+    IndexErrorUtils.checkIndex(index, length);
     return js.JSValue.boxT<T>(
       js.JS<WasmExternRef?>(
         '(a, i) => a.splice(i, 1)[0]',
@@ -40,7 +45,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
 
   @override
   void insert(int index, T value) {
-    RangeError.checkValueInInterval(index, 0, length);
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(index, length);
     js.JS<void>(
       '(a, i, v) => a.splice(i, 0, v)',
       toExternRef,
@@ -57,7 +62,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
 
   @override
   void insertAll(int index, Iterable<T> iterable) {
-    RangeError.checkValueInInterval(index, 0, length);
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(index, length);
     final that =
         iterable is EfficientLengthIterable ? iterable : iterable.toList();
     final thatLength = that.length;
@@ -69,7 +74,6 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
 
   @override
   void setAll(int index, Iterable<T> iterable) {
-    RangeError.checkValueInInterval(index, 0, length);
     for (final element in iterable) {
       this[index++] = element;
     }
@@ -155,19 +159,11 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   String join([String separator = ""]) {
     WasmExternRef? result;
-    if (separator is JSStringImpl) {
-      result = js.JS<WasmExternRef?>(
-        '(a, s) => a.join(s)',
-        toExternRef,
-        separator.toExternRef,
-      );
-    } else {
-      result = js.JS<WasmExternRef?>(
-        '(a, s) => a.join(s)',
-        toExternRef,
-        separator.toJS.toExternRef,
-      );
-    }
+    result = js.JS<WasmExternRef?>(
+      '(a, s) => a.join(s)',
+      toExternRef,
+      separator.toExternRef,
+    );
     return JSStringImpl(result);
   }
 
@@ -259,7 +255,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
 
   @override
   List<T> sublist(int start, [int? end]) {
-    end = RangeError.checkValidRange(start, end, length);
+    end = RangeErrorUtils.checkValidRange(start, end, length);
     return JSArrayImpl<T>(
       js.JS<WasmExternRef?>(
         '(a, s, e) => a.slice(s, e)',
@@ -272,7 +268,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
 
   @override
   Iterable<T> getRange(int start, int end) {
-    RangeError.checkValidRange(start, end, length);
+    RangeErrorUtils.checkValidRange(start, end, length);
     return SubListIterable<T>(this, start, end);
   }
 
@@ -297,7 +293,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
 
   @override
   void removeRange(int start, int end) {
-    RangeError.checkValidRange(start, end, length);
+    RangeErrorUtils.checkValidRange(start, end, length);
     int deleteCount = end - start;
     js.JS<void>(
       '(a, s, e) => a.splice(s, e)',
@@ -309,10 +305,10 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
 
   @override
   void setRange(int start, int end, Iterable<T> iterable, [int skipCount = 0]) {
-    RangeError.checkValidRange(start, end, length);
+    RangeErrorUtils.checkValidRange(start, end, length);
     final rangeLength = end - start;
     if (rangeLength == 0) return;
-    RangeError.checkNotNegative(skipCount);
+    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
 
     // TODO(joshualitt): Fast path for when iterable is JS backed.
     List<T> otherList;
@@ -341,7 +337,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
 
   @override
   void fillRange(int start, int end, [T? fillValue]) {
-    RangeError.checkValidRange(start, end, length);
+    RangeErrorUtils.checkValidRange(start, end, length);
     for (var i = start; i < end; i++) {
       this[i] = fillValue as T;
     }
@@ -349,7 +345,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
 
   @override
   void replaceRange(int start, int end, Iterable<T> replacement) {
-    RangeError.checkValidRange(start, end, length);
+    RangeErrorUtils.checkValidRange(start, end, length);
     final replacementList =
         replacement is EfficientLengthIterable
             ? replacement
@@ -491,9 +487,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   int get length => js.JS<double>('a => a.length', toExternRef).toInt();
 
   void set length(int newLength) {
-    if (newLength < 0) {
-      throw RangeError.range(newLength, 0, null);
-    }
+    RangeErrorUtils.checkNotNegative(newLength, "length");
     js.JS<void>(
       '(a, l) => a.length = l',
       toExternRef,
@@ -513,7 +507,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   @pragma("wasm:prefer-inline")
   T operator [](int index) {
-    IndexErrorUtils.checkAssumePositiveLength(index, length);
+    IndexErrorUtils.checkIndex(index, length);
     return _getUnchecked(index);
   }
 
@@ -528,7 +522,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, T value) {
-    IndexErrorUtils.checkAssumePositiveLength(index, length);
+    IndexErrorUtils.checkIndex(index, length);
     _setUnchecked(index, value);
   }
 
@@ -549,7 +543,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
         js.JS<WasmExternRef?>(
           '(a, t) => a.concat(t)',
           toExternRef,
-          other.toExternRef,
+          other.toJS.toExternRef,
         ),
       );
     } else {

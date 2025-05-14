@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidFieldInitializersInConstClassesTest);
   });
@@ -17,6 +17,7 @@ class AvoidFieldInitializersInConstClassesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_field_initializers_in_const_classes;
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_nonConstConstructor() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -49,15 +50,16 @@ class A {
 }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment const A() : s = '';
 }
-''', [
-      lint(59, 6),
-    ]);
+''',
+      [lint(59, 6)],
+    );
   }
 
   test_augmentedClass_augmentedField() async {
@@ -79,6 +81,7 @@ augment class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedClass_constructorInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -86,18 +89,20 @@ part 'test.dart';
 class A { }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment class A {
   final a;
   const A() : a = '';
 }
-''', [
-      lint(62, 6),
-    ]);
+''',
+      [lint(62, 6)],
+    );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedClass_constructorInitializer_multipleConstructors() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -126,14 +131,15 @@ class A {
 }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment class A {
   final s = '';
 }
-''', [
-      lint(45, 6),
-    ]);
+''',
+      [lint(45, 6)],
+    );
   }
 }

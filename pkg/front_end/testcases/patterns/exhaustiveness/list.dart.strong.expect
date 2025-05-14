@@ -38,7 +38,7 @@ library;
 // nonExhaustiveRestrictedType(List<num> list) => switch (list) {
 //                                                        ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:64:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[double(), ...[...]]'.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:64:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[double(), ...]'.
 //  - 'List' is from 'dart:core'.
 // Try adding a wildcard pattern or cases that match '[double(), ...]'.
 // nonExhaustive1aRestrictedValue(List<num> list) => switch (list) {
@@ -56,9 +56,9 @@ library;
 // nonExhaustive1bRestrictedValue(List<num> list) => switch (list) {
 //                                                           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:79:58: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[...[...], double()]'.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:79:58: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[_, ...[...]]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a wildcard pattern or cases that match '[..., double()]'.
+// Try adding a wildcard pattern or cases that match '[_, ...]'.
 // nonExhaustive1bRestrictedType(List<num> list) => switch (list) {
 //                                                          ^
 //
@@ -68,13 +68,13 @@ library;
 // nonExhaustive2aRestrictedValue(List<num> list) => switch (list) {
 //                                                           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:90:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[double(), double(), ...[...]]'.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:90:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[double(), _, ...]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a wildcard pattern or cases that match '[double(), double(), ...]'.
+// Try adding a wildcard pattern or cases that match '[double(), _, ...]'.
 // nonExhaustive2bRestrictedValue(List<num> list) => switch (list) {
 //                                                           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:96:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[double(), double(), ...[...]]'.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:96:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[double(), double(), ...]'.
 //  - 'List' is from 'dart:core'.
 // Try adding a wildcard pattern or cases that match '[double(), double(), ...]'.
 // nonExhaustive2cRestrictedValue(List<num> list) => switch (list) {
@@ -86,9 +86,9 @@ library;
 // nonExhaustive2dRestrictedValue(List<num> list) => switch (list) {
 //                                                           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:108:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[_, double()]'.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:108:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[double(), _]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a wildcard pattern or cases that match '[_, double()]'.
+// Try adding a wildcard pattern or cases that match '[double(), _]'.
 // nonExhaustive2eRestrictedValue(List<num> list) => switch (list) {
 //                                                           ^
 //

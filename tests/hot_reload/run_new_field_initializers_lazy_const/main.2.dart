@@ -35,9 +35,9 @@ Future<void> main() async {
   Expect.equals(6, helper());
   Expect.equals(2, hotReloadGeneration);
 }
+
 /** DIFF **/
 /*
-@@ -10,13 +10,13 @@
  
  class Foo {
    int x = 4;

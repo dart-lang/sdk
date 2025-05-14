@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DiscardedFuturesTest);
   });
@@ -17,7 +17,70 @@ class DiscardedFuturesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.discarded_futures;
 
-  test_assignment_ok() async {
+  Future<void> test_as_ok_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  // ignore: unnecessary_cast
+  Future<int> _ = g() as Future<int>;
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_as_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void foo() {
+  // ignore: unnecessary_cast
+  FutureOr<int> _ = g() as Future<int>;
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_assignment_mapLiteral() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  var _ = {
+    'a': g(),
+    'b': '',
+  };
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_assignment_mapLiteral_key_ok_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  var _ = {
+    g(): 0,
+    null: null,
+  };
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_assignment_mapLiteral_value_ok_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  var _ = {
+    'a': g(),
+    'b': null,
+  };
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_assignment_ok() async {
     await assertNoDiagnostics(r'''
 var handler = <String, Function>{};
 
@@ -31,8 +94,98 @@ Future<int> g() async => 0;
 ''');
   }
 
-  test_constructor() async {
-    await assertDiagnostics(r'''
+  Future<void> test_assignment_ok_implicit_listOfFuture() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  var _ = [g()];
+}
+
+Future<int> g() async => 0;
+  ''');
+  }
+
+  Future<void> test_assignment_ok_implicit_setOfFuture() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  var _ = {g()};
+}
+
+Future<int> g() async => 0;
+  ''');
+  }
+
+  Future<void> test_cascade_ok_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  Future<int> _ = g()..hashCode;
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_cascade_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void foo() {
+  FutureOr<int> _ = g()..hashCode;
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_cascadeSection() async {
+    await assertDiagnostics(
+      r'''
+void foo() {
+  var _ = 0..g();
+}
+
+extension on int {
+  Future<int> g() async => this;
+}
+  ''',
+      [lint(26, 1)],
+    );
+  }
+
+  Future<void> test_conditionalOperator_assignment_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  var _ = 1 == 1 ? g() : Future.value(1);
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_conditionalOperator_assignment_ok_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  Future<int> _ = 1 == 1 ? g() : Future.value(1);
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_conditionalOperator_assignment_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void foo() {
+  FutureOr<int> _ = 1 == 1 ? g() : Future.value(1);
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_constructor() async {
+    await assertDiagnostics(
+      r'''
 class A {
   A() {
     g();
@@ -40,13 +193,104 @@ class A {
 }
 
 Future<int> g() async => 0;
-''', [
-      lint(22, 1),
-    ]);
+''',
+      [lint(22, 1)],
+    );
   }
 
-  test_field_assignment() async {
-    await assertDiagnostics(r'''
+  Future<void> test_constructor_assignment_named_ok_future() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({required Future<int> fn});
+}
+
+void foo() {
+  A(fn: g());
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_constructor_assignment_named_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+class A {
+  A({required FutureOr<int> fn});
+}
+
+void foo() {
+  A(fn: g());
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_constructor_assignment_ok_future() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(Future<int> _);
+}
+
+void foo() {
+  A(g());
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_constructor_assignment_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+class A {
+  A(FutureOr<int> _);
+}
+
+void foo() {
+  A(g());
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_discardedFuture_awaited() async {
+    await assertDiagnostics(
+      '''
+void f() {
+  // ignore: await_in_wrong_context
+  await g();
+}
+
+Future<void> g() async { }
+''',
+      [lint(55, 1)],
+    );
+  }
+
+  Future<void> test_discardedFuture_awaited_method() async {
+    await assertDiagnostics(
+      '''
+class C {
+  void f() {
+    // ignore: await_in_wrong_context
+    await g();
+  }
+
+  Future<void> g() async { }
+}
+''',
+      [lint(71, 1)],
+    );
+  }
+
+  Future<void> test_field_assignment() async {
+    await assertDiagnostics(
+      r'''
 class A {
   var a = () {
     g();
@@ -54,13 +298,14 @@ class A {
 }
 
 Future<int> g() async => 0;
-''', [
-      lint(29, 1),
-    ]);
+''',
+      [lint(29, 1)],
+    );
   }
 
-  test_function() async {
-    await assertDiagnostics(r'''
+  Future<void> test_function() async {
+    await assertDiagnostics(
+      r'''
 void recreateDir(String path) {
   deleteDir(path);
   createDir(path);
@@ -68,14 +313,14 @@ void recreateDir(String path) {
 
 Future<void> deleteDir(String path) async {}
 Future<void> createDir(String path) async {}
-''', [
-      lint(34, 9),
-      lint(53, 9),
-    ]);
+''',
+      [lint(34, 9), lint(53, 9)],
+    );
   }
 
-  test_function_closure() async {
-    await assertDiagnostics(r'''
+  Future<void> test_function_closure() async {
+    await assertDiagnostics(
+      r'''
 void f() {
   () {
     createDir('.');
@@ -83,13 +328,14 @@ void f() {
 }
 
 Future<void> createDir(String path) async {}
-''', [
-      lint(22, 9),
-    ]);
+''',
+      [lint(22, 9)],
+    );
   }
 
-  test_function_closure_ok() async {
-    await assertNoDiagnostics(r'''
+  Future<void> test_function_closure2() async {
+    await assertDiagnostics(
+      r'''
 Future<void> f() async {
   () {
     createDir('.');
@@ -97,11 +343,13 @@ Future<void> f() async {
 }
 
 Future<void> createDir(String path) async {}
-''');
+''',
+      [lint(36, 9)],
+    );
   }
 
-  test_function_expression() async {
-    await assertDiagnostics(r'''
+  Future<void> test_function_expression() async {
+    await assertNoDiagnostics(r'''
 void f() {
   var x = h(() => g());
   print(x);
@@ -110,12 +358,10 @@ void f() {
 int h(Function f) => 0;
 
 Future<int> g() async => 0;
-''', [
-      lint(29, 1),
-    ]);
+''');
   }
 
-  test_function_ok_async() async {
+  Future<void> test_function_ok_async() async {
     await assertNoDiagnostics(r'''
 Future<void> recreateDir(String path) async {
   await deleteDir(path);
@@ -127,7 +373,7 @@ Future<void> createDir(String path) async {}
 ''');
   }
 
-  test_function_ok_return_invocation() async {
+  Future<void> test_function_ok_return_invocation() async {
     await assertNoDiagnostics(r'''
 Future<int> f() {
   return g();
@@ -136,22 +382,55 @@ Future<int> g() async => 0;
 ''');
   }
 
-  test_function_ok_unawaited() async {
-    await assertNoDiagnostics(r'''
+  Future<void> test_function_unawaited() async {
+    // https://github.com/dart-lang/sdk/issues/59204
+    await assertDiagnostics(
+      r'''
 import 'dart:async';
 
-void recreateDir(String path) {
-  unawaited(deleteDir(path));
-  unawaited(createDir(path));
+void baz(String path) {
+  foo(() {                // This should trigger
+    unawaited(foo(() {    // This should _not_ trigger
+      unawaited(bar());   // This should _not_ trigger
+      bar();              // This should trigger
+    }));
+  });
 }
 
-Future<void> deleteDir(String path) async {}
-Future<void> createDir(String path) async {}
+Future<void> foo(void Function() f) async {}
+Future<void> bar() async {}
+''',
+      [lint(48, 3), lint(211, 3)],
+    );
+  }
+
+  Future<void> test_ifNull_ok_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  Future<int>? variable;
+  Future<int> _ = variable ?? g();
+}
+
+Future<int> g() async => 0;
 ''');
   }
 
-  test_method() async {
-    await assertDiagnostics(r'''
+  Future<void> test_ifNull_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void foo() {
+  Future<int>? variable;
+  FutureOr<int> _ = variable ?? g();
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_method() async {
+    await assertDiagnostics(
+      r'''
 class Dir{
   void recreateDir(String path) {
     deleteDir(path);
@@ -161,35 +440,251 @@ class Dir{
   Future<void> deleteDir(String path) async {}
   Future<void> createDir(String path) async {}
 }
-''', [
-      lint(49, 9),
-      lint(70, 9),
-    ]);
+''',
+      [lint(49, 9), lint(70, 9)],
+    );
   }
 
-  test_topLevel_assignment() async {
-    await assertDiagnostics(r'''
+  Future<void> test_method_assignment_named_ok_future() async {
+    await assertNoDiagnostics(r'''
+void f({required Future<int> fn}) {}
+
+void foo() {
+  f(fn: g());
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_method_assignment_named_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void f({required FutureOr<int> fn}) {}
+
+void foo() {
+  f(fn: g());
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_method_assignment_ok_future() async {
+    await assertNoDiagnostics(r'''
+void f(Future<int> _) {}
+
+void foo() {
+  f(g());
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_method_assignment_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void f(FutureOr<int> _) {}
+
+void foo() {
+  f(g());
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_method_record_namedAssignment_ok_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  bar((f: g(),));
+}
+
+Future<int> g() async => 0;
+void bar(({Future<int> f,}) r) {}
+''');
+  }
+
+  Future<void> test_method_record_namedAssignment_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void foo() {
+  bar((f: g(),));
+}
+
+Future<int> g() async => 0;
+void bar(({FutureOr<int> f,}) r) {}
+''');
+  }
+
+  Future<void> test_method_record_positionalAssignment_ok_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  bar((g(),));
+}
+
+Future<int> g() async => 0;
+void bar((Future<int>,) r) {}
+''');
+  }
+
+  Future<void> test_method_record_positionalAssignment_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void foo() {
+  bar((g(),));
+}
+
+Future<int> g() async => 0;
+void bar((FutureOr<int>,) r) {}
+''');
+  }
+
+  Future<void> test_newMethod_invocation() async {
+    await assertDiagnostics(
+      r'''
+void foo() {
+  g().then((_) {});
+}
+
+Future<int> g() async => 0;
+''',
+      [lint(19, 4)],
+    );
+  }
+
+  Future<void> test_parenthesized_ok_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  Future<int> _ = (g());
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_parenthesized_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void foo() {
+  FutureOr<int> _ = (g());
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_propertyAccess() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  g().runtimeType;
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_record_namedAssignment_ok_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  ({Future<int> f,}) _ = (f: g(),);
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_record_namedAssignment_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void foo() {
+  ({FutureOr<int> f,}) _ = (f: g(),);
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_record_positionalAssignment_ok_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  (Future<int>,) _ = (g(),);
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_record_positionalAssignment_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void foo() {
+  (FutureOr<int>,) _ = (g(),);
+}
+
+Future<int> g() async => 0;
+void bar((Future<int>,) r) {}
+''');
+  }
+
+  Future<void> test_switch_assignment_ok_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  Future<int> _ = switch(1) {
+    1 => g(),
+    _ => Future.value(1),
+  };
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_switch_assignment_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void foo() {
+  FutureOr<int> _ = switch(1) {
+    1 => g(),
+    _ => Future.value(1),
+  };
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_topLevel_assignment() async {
+    await assertDiagnostics(
+      r'''
 var a = () {
   g();
 };
 
 Future<int> g() async => 0;
-''', [
-      lint(15, 1),
-    ]);
+''',
+      [lint(15, 1)],
+    );
   }
 
-  test_topLevel_assignment_expression_body() async {
-    await assertDiagnostics(r'''
+  Future<void> test_topLevel_assignment_expression_body() async {
+    await assertNoDiagnostics(r'''
 var a = () => g();
 
 Future<int> g() async => 0;
-''', [
-      lint(14, 1),
-    ]);
+''');
   }
 
-  test_topLevel_assignment_ok_async() async {
+  Future<void> test_topLevel_assignment_ok_async() async {
     await assertNoDiagnostics(r'''
 var a = () async {
   g();
@@ -199,7 +694,7 @@ Future<int> g() async => 0;
 ''');
   }
 
-  test_topLevel_assignment_ok_future() async {
+  Future<void> test_topLevel_assignment_ok_future() async {
     await assertNoDiagnostics(r'''
 Future<int> a = g();
 
@@ -207,8 +702,24 @@ Future<int> g() async => 0;
 ''');
   }
 
-  test_variable_assignment() async {
-    await assertDiagnostics(r'''
+  Future<void> test_trigger_futureOr() async {
+    await assertDiagnostics(
+      '''
+import 'dart:async';
+
+void foo() {
+  g();
+}
+
+FutureOr<int> g() async => 0;
+''',
+      [lint(37, 1)],
+    );
+  }
+
+  Future<void> test_variable_assignment() async {
+    await assertDiagnostics(
+      r'''
 var handler = <String, Function>{};
 
 void ff(String command) {
@@ -218,8 +729,30 @@ void ff(String command) {
 }
 
 Future<int> g() async => 0;
-''', [
-      lint(93, 1),
-    ]);
+''',
+      [lint(93, 1)],
+    );
+  }
+
+  Future<void> test_variable_assignment_ok_future() async {
+    await assertNoDiagnostics(r'''
+void foo() {
+  Future<int> _ = g();
+}
+
+Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_variable_assignment_ok_futureOr() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void foo() {
+  FutureOr<int> _ = g();
+}
+
+Future<int> g() async => 0;
+''');
   }
 }

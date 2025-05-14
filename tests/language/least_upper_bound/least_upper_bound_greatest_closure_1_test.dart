@@ -343,7 +343,9 @@ void main() {
   }
 
   void f5<X1 extends Iterable<Iterable<X1>?>>(
-      X1 x1, Iterable<List<Object?>?> t2) {
+    X1 x1,
+    Iterable<List<Object?>?> t2,
+  ) {
     // UP(X1 extends Iterable<Iterable<X1>?> /*B1*/,
     //     Iterable<List<Object?>?> /*T2*/) =
     //   T2 if X1 <: T2
@@ -614,7 +616,9 @@ void main() {
   }
 
   void f10<X1 extends void Function({X1 p})>(
-      X1 x1, void Function({Null p}) t2) {
+    X1 x1,
+    void Function({Null p}) t2,
+  ) {
     // UP(X1 extends void Function({X1 p}) /*B1*/,
     //     void Function({Null p}) /*T2*/) =
     //   T2 if X1 <: T2
@@ -683,7 +687,9 @@ void main() {
   }
 
   void f11<X1 extends void Function({required X1 p})>(
-      X1 x1, void Function({X1 p}) t2) {
+    X1 x1,
+    void Function({X1 p}) t2,
+  ) {
     // UP(X1 extends void Function({required X1 p}) /*B1*/,
     //     void Function({X1 p}) /*T2*/) =
     //   T2 if X1 <: T2
@@ -754,7 +760,9 @@ void main() {
   }
 
   void f12<X1 extends void Function(FutureOr<X1>)>(
-      X1 x1, void Function(FutureOr<Null>) t2) {
+    X1 x1,
+    void Function(FutureOr<Null>) t2,
+  ) {
     // UP(X1 extends void Function(FutureOr<X1>) /*B1*/,
     //     void Function(FutureOr<Null>) /*T2*/) =
     //   T2 if X1 <: T2

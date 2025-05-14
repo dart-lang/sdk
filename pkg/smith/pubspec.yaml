@@ -4,7 +4,9 @@ description: Shared code for working with the Dart SDK's tests and test runner.
 publish_to: none
 
 environment:
-  sdk: '^2.12.0'
+  sdk: ^3.5.0
+
+resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:

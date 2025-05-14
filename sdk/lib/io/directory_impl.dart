@@ -53,7 +53,7 @@ class _Directory extends FileSystemEntity implements Directory {
         "",
       );
     }
-    return new _Directory(result);
+    return _Directory(result);
   }
 
   static void set current(Object? path) {
@@ -72,7 +72,7 @@ class _Directory extends FileSystemEntity implements Directory {
     };
 
     if (!_EmbedderConfig._mayChdir) {
-      throw new UnsupportedError(
+      throw UnsupportedError(
         "This embedder disallows setting Directory.current",
       );
     }
@@ -88,7 +88,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Uri get uri {
-    return new Uri.directory(path);
+    return Uri.directory(path);
   }
 
   Future<bool> exists() {
@@ -104,12 +104,12 @@ class _Directory extends FileSystemEntity implements Directory {
   bool existsSync() {
     var result = _exists(_Namespace._namespace, _rawPath);
     if (result is OSError) {
-      throw new FileSystemException("Exists failed", path, result);
+      throw FileSystemException("Exists failed", path, result);
     }
     return (result == 1);
   }
 
-  Directory get absolute => new Directory(_absolutePath);
+  Directory get absolute => Directory(_absolutePath);
 
   Future<Directory> create({bool recursive = false}) {
     if (recursive) {
@@ -148,12 +148,12 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   static Directory get systemTemp =>
-      new Directory(_systemTemp(_Namespace._namespace));
+      Directory(_systemTemp(_Namespace._namespace));
 
   Future<Directory> createTemp([String? prefix]) {
     prefix ??= '';
     if (path == '') {
-      throw new ArgumentError(
+      throw ArgumentError(
         "Directory.createTemp called with an empty path. "
         "To use the system temp directory, use Directory.systemTemp",
       );
@@ -182,7 +182,7 @@ class _Directory extends FileSystemEntity implements Directory {
   Directory createTempSync([String? prefix]) {
     prefix ??= '';
     if (path == '') {
-      throw new ArgumentError(
+      throw ArgumentError(
         "Directory.createTemp called with an empty path. "
         "To use the system temp directory, use Directory.systemTemp",
       );
@@ -200,13 +200,13 @@ class _Directory extends FileSystemEntity implements Directory {
       FileSystemEntity._toUtf8Array(fullPrefix),
     );
     if (result is OSError) {
-      throw new FileSystemException._fromOSError(
+      throw FileSystemException._fromOSError(
         result,
         "Creation of temporary directory failed",
         fullPrefix,
       );
     }
-    return new Directory(result);
+    return Directory(result);
   }
 
   Future<Directory> _delete({bool recursive = false}) {
@@ -234,7 +234,7 @@ class _Directory extends FileSystemEntity implements Directory {
       newPath,
     ]).then((response) {
       _checkForErrorResponse(response, "Rename failed", path);
-      return new Directory(newPath);
+      return Directory(newPath);
     });
   }
 
@@ -245,14 +245,14 @@ class _Directory extends FileSystemEntity implements Directory {
     if (result is OSError) {
       throw FileSystemException._fromOSError(result, "Rename failed", path);
     }
-    return new Directory(newPath);
+    return Directory(newPath);
   }
 
   Stream<FileSystemEntity> list({
     bool recursive = false,
     bool followLinks = true,
   }) {
-    return new _AsyncDirectoryLister(
+    return _AsyncDirectoryLister(
       // FIXME(bkonyi): here we're using `path` directly, which might cause issues
       // if it is not UTF-8 encoded.
       FileSystemEntity._toUtf8Array(
@@ -316,12 +316,12 @@ class _AsyncDirectoryLister {
   final bool recursive;
   final bool followLinks;
 
-  final controller = new StreamController<FileSystemEntity>(sync: true);
+  final controller = StreamController<FileSystemEntity>(sync: true);
   bool canceled = false;
   bool nextRunning = false;
   bool closed = false;
   _AsyncDirectoryListerOps? _ops;
-  Completer closeCompleter = new Completer();
+  Completer closeCompleter = Completer();
 
   _AsyncDirectoryLister(this.rawPath, this.recursive, this.followLinks) {
     controller
@@ -349,7 +349,7 @@ class _AsyncDirectoryLister {
       followLinks,
     ]).then((response) {
       if (response is int) {
-        _ops = new _AsyncDirectoryListerOps(response);
+        _ops = _AsyncDirectoryListerOps(response);
         next();
       } else if (response is Error) {
         controller.addError(response, response.stackTrace);
@@ -401,13 +401,13 @@ class _AsyncDirectoryLister {
           assert(i % 2 == 0);
           switch (result[i++]) {
             case listFile:
-              controller.add(new File.fromRawPath(result[i]));
+              controller.add(File.fromRawPath(result[i]));
               break;
             case listDirectory:
-              controller.add(new Directory.fromRawPath(result[i]));
+              controller.add(Directory.fromRawPath(result[i]));
               break;
             case listLink:
-              controller.add(new Link.fromRawPath(result[i]));
+              controller.add(Link.fromRawPath(result[i]));
               break;
             case listError:
               error(result[i]);
@@ -418,7 +418,7 @@ class _AsyncDirectoryLister {
           }
         }
       } else {
-        controller.addError(new FileSystemException("Internal error"));
+        controller.addError(FileSystemException("Internal error"));
       }
     });
   }
@@ -452,9 +452,9 @@ class _AsyncDirectoryLister {
     var errorResponseInfo = message[responseError]! as List<Object?>;
     var errorType = errorResponseInfo[_errorResponseErrorType];
     if (errorType == _illegalArgumentResponse) {
-      controller.addError(new ArgumentError());
+      controller.addError(ArgumentError());
     } else if (errorType == _osErrorResponse) {
-      var err = new OSError(
+      var err = OSError(
         errorResponseInfo[_osErrorResponseMessage] as String,
         errorResponseInfo[_osErrorResponseErrorCode] as int,
       );
@@ -472,7 +472,7 @@ class _AsyncDirectoryLister {
         ),
       );
     } else {
-      controller.addError(new FileSystemException("Internal error"));
+      controller.addError(FileSystemException("Internal error"));
     }
   }
 }

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:path/path.dart' as p;
-import 'package:smith/configuration.dart' show NnbdMode;
 
 import 'configuration.dart' show Compiler;
 import 'utils.dart';
@@ -144,30 +143,23 @@ bool _invalidVariableName(String keyword, {bool strictMode = true}) {
 /// or extension, like "math_test". [testNameAlias] is the alias of the
 /// test variable used for import/export (usually relative to its module root).
 /// [testJSDir] is the relative path to the build directory where the
-/// ddc-generated JS file is stored. [nonNullAsserts] enables non-null
-/// assertions for non-nullable method parameters when running with weak null
-/// safety. [weakNullSafetyErrors] enables null safety type violations to throw
-/// when running in weak mode. [ddcModuleFormat] determines whether to emit a
-/// template that works with the DDC module format or one that works with the
-/// AMD module format. [canaryMode] is whether DDC is running in canary mode. If
-/// this flag and [ddcModuleFormat] is enabled, a template that works with the
-/// DDC hot reload format will be emitted.
+/// ddc-generated JS file is stored. [ddcModuleFormat] determines whether to
+/// emit a template that works with the DDC module format or one that works with
+/// the AMD module format. [canaryMode] is whether DDC is running in canary
+/// mode. If this flag and [ddcModuleFormat] is enabled, a template that works
+/// with the DDC hot reload format will be emitted.
 String ddcHtml(
     String testName,
     String testNameAlias,
     String testJSDir,
     Compiler compiler,
-    NnbdMode mode,
     String genDir,
-    bool nonNullAsserts,
     bool nativeNonNullAsserts,
     bool jsInteropNonNullAsserts,
-    bool weakNullSafetyErrors,
     {bool ddcModuleFormat = false,
     bool canaryMode = false}) {
   var testId = pathToJSIdentifier(testName);
   var testIdAlias = pathToJSIdentifier(testNameAlias);
-  var soundNullSafety = mode == NnbdMode.strong;
   var ddcGenDir = '/root_build/$genDir';
   var hotReloadFormat = ddcModuleFormat && canaryMode;
 
@@ -197,9 +189,6 @@ testErrorToStackTrace = function(error) {
 """;
 
   var sdkFlagSetup = """
-runtime.weakNullSafetyWarnings(!($weakNullSafetyErrors || $soundNullSafety));
-runtime.weakNullSafetyErrors($weakNullSafetyErrors);
-runtime.nonNullAsserts($nonNullAsserts);
 runtime.nativeNonNullAsserts($nativeNonNullAsserts);
 runtime.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
 """;
@@ -226,9 +215,6 @@ runtime.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
       """;
       sdkFlagSetup = """
         let sdkOptions = {
-          weakNullSafetyWarnings: !($weakNullSafetyErrors || $soundNullSafety),
-          weakNullSafetyErrors: $weakNullSafetyErrors,
-          nonNullAsserts: $nonNullAsserts,
           nativeNonNullAsserts: $nativeNonNullAsserts,
           jsInteropNonNullAsserts: $jsInteropNonNullAsserts,
         };
@@ -335,7 +321,8 @@ $script
 """;
 }
 
-String dart2wasmHtml(String title, String wasmPath, String mjsPath) {
+String dart2wasmHtml(
+    String title, String wasmPath, String mjsPath, String supportJsPath) {
   return """
 <!DOCTYPE html>
 <html>
@@ -358,7 +345,16 @@ String dart2wasmHtml(String title, String wasmPath, String mjsPath) {
           src="/root_dart/pkg/test_runner/lib/src/test_controller.js">
   </script>
   <script type="module">
-  async function loadAndRun(mjsPath, wasmPath) {
+  async function loadAndRun(mjsPath, wasmPath, supportJsPath) {
+    const supportJSExpression = await (await fetch(supportJsPath)).text();
+    const support = eval(supportJSExpression);
+    if (support !== true) {
+      dartMainRunner(() => {
+        throw 'This browser does not support the required features to run the dart2wasm compiled app!';
+      });
+      return;
+    }
+
     const mjs = await import(mjsPath);
     const compiledApp = await mjs.compileStreaming(fetch(wasmPath));
     window.loadData = async (relativeToWasmFileUri) => {
@@ -377,7 +373,7 @@ String dart2wasmHtml(String title, String wasmPath, String mjsPath) {
     });
   }
 
-  loadAndRun('$mjsPath', '$wasmPath');
+  loadAndRun('$mjsPath', '$wasmPath', '$supportJsPath');
   </script>
 </body>
 </html>""";

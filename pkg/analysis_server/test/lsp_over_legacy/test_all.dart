@@ -5,11 +5,11 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'call_hierarchy_test.dart' as call_hierarchy;
-import 'dart_text_document_content_provider_test.dart'
-    as dart_text_document_content_provider;
 import 'document_color_test.dart' as document_color;
 import 'document_highlights_test.dart' as document_highlights;
 import 'document_symbols_test.dart' as document_symbols;
+import 'edit_argument_test.dart' as edit_argument;
+import 'editable_arguments_test.dart' as editable_arguments;
 import 'format_test.dart' as format;
 import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
@@ -17,15 +17,17 @@ import 'signature_help_test.dart' as signature_help;
 import 'type_definition_test.dart' as type_definition;
 import 'type_hierarchy_test.dart' as type_hierarchy;
 import 'will_rename_files_test.dart' as will_rename_files;
+import 'workspace_apply_edit_test.dart' as workspace_apply_edit;
 import 'workspace_symbols_test.dart' as workspace_symbols;
 
 void main() {
   defineReflectiveSuite(() {
     call_hierarchy.main();
-    dart_text_document_content_provider.main();
     document_color.main;
     document_highlights.main();
     document_symbols.main();
+    edit_argument.main();
+    editable_arguments.main();
     format.main();
     hover.main();
     implementation.main();
@@ -33,6 +35,7 @@ void main() {
     type_definition.main();
     type_hierarchy.main();
     will_rename_files.main();
+    workspace_apply_edit.main();
     workspace_symbols.main();
   }, name: 'lsp_over_legacy');
 }

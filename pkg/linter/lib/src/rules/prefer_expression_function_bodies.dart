@@ -12,17 +12,19 @@ const _desc =
 
 class PreferExpressionFunctionBodies extends LintRule {
   PreferExpressionFunctionBodies()
-      : super(
-          name: LintNames.prefer_expression_function_bodies,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.prefer_expression_function_bodies,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_expression_function_bodies;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addBlockFunctionBody(this, visitor);
   }

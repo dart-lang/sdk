@@ -12,7 +12,7 @@ import 'package:build_integration/file_system/single_root.dart'
     show SingleRootFileSystem;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag, isExperimentEnabled;
+    show ExperimentalFlag;
 import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
@@ -20,7 +20,6 @@ import 'package:front_end/src/api_prototype/terminal_color_support.dart';
 import 'package:front_end/src/base/command_line_options.dart';
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/file_system_dependency_tracker.dart';
-import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/base/problems.dart' show DebugAbort;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -33,7 +32,6 @@ import 'package:front_end/src/codes/cfe_codes.dart'
         templateUnspecified;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
-import 'package:front_end/src/kernel/macro/offset_checker.dart';
 import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;
 import 'package:kernel/target/targets.dart'
@@ -64,8 +62,6 @@ const List<Option> optionSpecification = [
   Options.packages,
   Options.platform,
   Options.sdk,
-  Options.showGeneratedMacroSources,
-  Options.checkMacroOffsets,
   Options.singleRootBase,
   Options.singleRootScheme,
   Options.nnbdWeakMode,
@@ -126,9 +122,7 @@ ProcessedOptions analyzeCommandLine(
       forceConstructorTearOffLoweringForTesting:
           Options.forceConstructorTearOffLowering.read(parsedOptions),
       forceLateLoweringSentinelForTesting:
-          Options.forceLateLoweringSentinel.read(parsedOptions),
-      soundNullSafety: isExperimentEnabled(ExperimentalFlag.nonNullable,
-          explicitExperimentalFlags: explicitExperimentalFlags));
+          Options.forceLateLoweringSentinel.read(parsedOptions));
 
   final Target? target = getTarget(targetName, flags);
   if (target == null) {
@@ -171,12 +165,6 @@ ProcessedOptions analyzeCommandLine(
   final String? singleRootScheme = Options.singleRootScheme.read(parsedOptions);
   final Uri? singleRootBase = Options.singleRootBase.read(parsedOptions);
 
-  final bool nnbdStrongMode = Options.nnbdStrongMode.read(parsedOptions);
-
-  final bool nnbdWeakMode = Options.nnbdWeakMode.read(parsedOptions);
-
-  final NnbdMode nnbdMode = nnbdWeakMode ? NnbdMode.Weak : NnbdMode.Strong;
-
   final bool enableUnscheduledExperiments =
       Options.enableUnscheduledExperiments.read(parsedOptions);
 
@@ -187,17 +175,6 @@ ProcessedOptions analyzeCommandLine(
       Options.invocationModes.read(parsedOptions) ?? '';
 
   final String verbosity = Options.verbosity.read(parsedOptions);
-
-  final bool showGeneratedMacroSources =
-      Options.showGeneratedMacroSources.read(parsedOptions);
-
-  final bool checkMacroOffsets = Options.checkMacroOffsets.read(parsedOptions);
-
-  if (nnbdStrongMode && nnbdWeakMode) {
-    return throw new CommandLineProblem.deprecated(
-        "Can't specify both '${Flags.nnbdStrongMode}' and "
-        "'${Flags.nnbdWeakMode}'.");
-  }
 
   FileSystem fileSystem;
   if (tracker != null) {
@@ -246,17 +223,11 @@ ProcessedOptions analyzeCommandLine(
     ..skipPlatformVerification = skipPlatformVerification
     ..explicitExperimentalFlags = explicitExperimentalFlags
     ..environmentDefines = environmentDefines
-    ..nnbdMode = nnbdMode
     ..enableUnscheduledExperiments = enableUnscheduledExperiments
     ..additionalDills = linkDependencies
     ..emitDeps = !noDeps
     ..invocationModes = InvocationMode.parseArguments(invocationModes)
-    ..verbosity = Verbosity.parseArgument(verbosity)
-    ..showGeneratedMacroSourcesForTesting = showGeneratedMacroSources;
-
-  if (checkMacroOffsets) {
-    compilerOptions.hooksForTesting = new MacroOffsetChecker();
-  }
+    ..verbosity = Verbosity.parseArgument(verbosity);
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {
@@ -296,7 +267,7 @@ ProcessedOptions analyzeCommandLine(
       ? null
       : (Options.platform.read(parsedOptions) ??
           computePlatformBinariesLocation(forceBuildDir: true)
-              .resolve(computePlatformDillName(target, nnbdMode, () {
+              .resolve(computePlatformDillName(target, () {
             throwCommandLineProblem(
                 "Target '${target.name}' requires an explicit "
                 "'${Flags.platform}' option.");

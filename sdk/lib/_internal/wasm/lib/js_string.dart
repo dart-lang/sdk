@@ -8,6 +8,7 @@ import 'dart:_js_helper' as js;
 import 'dart:_js_types';
 import 'dart:_object_helper';
 import 'dart:_string_helper';
+import 'dart:_string' show jsStringFromCharCodeArray;
 import 'dart:_wasm';
 import 'dart:js_interop';
 
@@ -54,31 +55,138 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @pragma("wasm:entry-point")
   static String _interpolate(WasmArray<Object?> values) {
     final valuesLength = values.length;
-    final array = JSArrayImpl.fromLength(valuesLength);
+    String result = '';
     for (int i = 0; i < valuesLength; i++) {
-      final o = values[i];
-      final s = o.toString();
-      final jsString =
-          s is JSStringImpl ? js.JSValue.boxT<JSAny?>(s.toExternRef) : s.toJS;
-      array[i] = jsString;
+      result = result + values[i].toString();
     }
+    return result;
+  }
+
+  @pragma("wasm:entry-point", "call")
+  static String _interpolate1(Object? value) {
+    return value is String ? value : value.toString();
+  }
+
+  @pragma("wasm:entry-point", "call")
+  static String _interpolate2(Object? value1, Object? value2) {
+    final String string1 = value1 is String ? value1 : value1.toString();
+    final String string2 = value2 is String ? value2 : value2.toString();
     return JSStringImpl(
-      js.JS<WasmExternRef?>("a => a.join('')", array.toExternRef),
+      _jsStringConcatImport(
+        unsafeCast<JSStringImpl>(string1).toExternRef,
+        unsafeCast<JSStringImpl>(string2).toExternRef,
+      ),
     );
+  }
+
+  @pragma("wasm:entry-point", "call")
+  static String _interpolate3(Object? value1, Object? value2, Object? value3) {
+    final String string1 = value1 is String ? value1 : value1.toString();
+    final String string2 = value2 is String ? value2 : value2.toString();
+    final String string3 = value3 is String ? value3 : value3.toString();
+    return JSStringImpl(
+      _jsStringConcatImport(
+        _jsStringConcatImport(
+          unsafeCast<JSStringImpl>(string1).toExternRef,
+          unsafeCast<JSStringImpl>(string2).toExternRef,
+        ),
+        unsafeCast<JSStringImpl>(string3).toExternRef,
+      ),
+    );
+  }
+
+  @pragma("wasm:entry-point", "call")
+  static String _interpolate4(
+    Object? value1,
+    Object? value2,
+    Object? value3,
+    Object? value4,
+  ) {
+    final String string1 = value1 is String ? value1 : value1.toString();
+    final String string2 = value2 is String ? value2 : value2.toString();
+    final String string3 = value3 is String ? value3 : value3.toString();
+    final String string4 = value4 is String ? value4 : value4.toString();
+    return JSStringImpl(
+      _jsStringConcatImport(
+        _jsStringConcatImport(
+          unsafeCast<JSStringImpl>(string1).toExternRef,
+          unsafeCast<JSStringImpl>(string2).toExternRef,
+        ),
+        _jsStringConcatImport(
+          unsafeCast<JSStringImpl>(string3).toExternRef,
+          unsafeCast<JSStringImpl>(string4).toExternRef,
+        ),
+      ),
+    );
+  }
+
+  static const _codeUnitsCacheSize = 512;
+  @pragma('wasm:initialize-at-startup')
+  static final _codeUnitsCache = WasmArray<WasmI16>(_codeUnitsCacheSize);
+  static JSStringImpl fromAsciiBytes(
+    WasmArray<WasmI8> source,
+    int start,
+    int end,
+  ) {
+    final length = end - start;
+    if (length <= _codeUnitsCacheSize) {
+      final array = _codeUnitsCache;
+      for (int i = 0; i < length; ++i) {
+        array.write(i, source.readUnsigned(start++));
+      }
+      return fromCharCodeArray(array, 0, length);
+    }
+    final array = WasmArray<WasmI16>(length);
+    for (int i = 0; i < length; ++i) {
+      array.write(i, source.readUnsigned(start++));
+    }
+    return fromCharCodeArray(array, 0, length);
+  }
+
+  static JSStringImpl fromCharCodeArray(
+    WasmArray<WasmI16> source,
+    int start,
+    int end,
+  ) {
+    return JSStringImpl(
+      jsStringFromCharCodeArray(source, start.toWasmI32(), end.toWasmI32()),
+    );
+  }
+
+  @pragma("wasm:initialize-at-startup")
+  static final _stringFromCodePointBuffer = WasmArray<WasmI16>(2);
+
+  static JSStringImpl fromCharCode(int charCode) {
+    final array = _stringFromCodePointBuffer;
+    array.write(0, charCode);
+    return JSStringImpl.fromCharCodeArray(array, 0, 1);
+  }
+
+  static JSStringImpl fromCodePoint(int codePoint) {
+    final array = _stringFromCodePointBuffer;
+    if (codePoint <= 0xffff) {
+      array.write(0, codePoint);
+      return JSStringImpl.fromCharCodeArray(array, 0, 1);
+    }
+    final low = 0xDC00 | (codePoint & 0x3ff);
+    final high = 0xD7C0 + (codePoint >> 10);
+    array.write(0, high);
+    array.write(1, low);
+    return JSStringImpl.fromCharCodeArray(array, 0, 2);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   int codeUnitAt(int index) {
     final length = this.length;
-    IndexErrorUtils.checkAssumePositiveLength(index, length);
+    IndexErrorUtils.checkIndex(index, length);
     return _codeUnitAtUnchecked(index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   int _codeUnitAtUnchecked(int index) {
-    return _jsCharCodeAt(toExternRef, index);
+    return jsCharCodeAt(toExternRef, index);
   }
 
   @override
@@ -104,16 +212,14 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   }
 
   @override
+  @pragma('dyn-module:callable')
   String operator +(String other) {
-    if (other is JSStringImpl) {
-      return JSStringImpl(
-        _jsStringConcatImport(toExternRef, other.toExternRef),
-      );
-    }
-
-    // TODO(joshualitt): Refactor `string_patch.dart` so we can directly
-    // allocate a string of the right size.
-    return js.jsStringToDartString(this) + other;
+    return JSStringImpl(
+      _jsStringConcatImport(
+        toExternRef,
+        unsafeCast<JSStringImpl>(other).toExternRef,
+      ),
+    );
   }
 
   @override
@@ -121,49 +227,36 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
     final otherLength = other.length;
     final length = this.length;
     if (otherLength > length) return false;
-    return other == substring(length - otherLength);
+    return other == _substringUnchecked(length - otherLength, length);
   }
-
-  String _replaceJS(js.JSNativeRegExp jsRegExp, String replacement) =>
-      JSStringImpl(
-        js.JS<WasmExternRef?>(
-          '(o, a, b) => o.replace(a, b)',
-          toExternRef,
-          (jsRegExp as js.JSValue).toExternRef,
-          replacement.toExternRef,
-        ),
-      );
 
   @override
   String replaceAll(Pattern from, String to) {
     if (from is String) {
       if (from.isEmpty) {
-        if (isEmpty) {
-          return to;
-        } else {
-          StringBuffer result = StringBuffer();
+        if (isEmpty) return to;
+        StringBuffer result = StringBuffer();
+        result.write(to);
+        final length = this.length;
+        for (int i = 0; i < length; i++) {
+          result.write(this[i]);
           result.write(to);
-          final length = this.length;
-          for (int i = 0; i < length; i++) {
-            result.write(this[i]);
-            result.write(to);
-          }
-          return result.toString();
         }
-      } else if (from is JSStringImpl && to is JSStringImpl) {
-        return JSStringImpl(
-          js.JS<WasmExternRef?>(
-            '(o, p, r) => o.split(p).join(r)',
-            toExternRef,
-            from.toExternRef,
-            to.toExternRef,
-          ),
-        );
-      } else {
-        return split(from).join(to);
+        return result.toString();
       }
-    } else if (from is js.JSSyntaxRegExp) {
-      return _replaceJS(js.regExpGetGlobalNative(from), _escapeReplacement(to));
+      return _jsStringReplaceAll(
+        toExternRef,
+        unsafeCast<JSStringImpl>(from).toExternRef,
+        to.toExternRef,
+      );
+    }
+
+    if (from is js.JSSyntaxRegExp) {
+      return _jsStringReplace(
+        toExternRef,
+        (js.regExpGetGlobalNative(from) as js.JSValue).toExternRef,
+        to.toExternRef,
+      );
     } else {
       int startIndex = 0;
       StringBuffer result = StringBuffer();
@@ -274,7 +367,11 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
     }
     if (from is js.JSSyntaxRegExp) {
       return startIndex == 0
-          ? _replaceJS(js.regExpGetNative(from), _escapeReplacement(to))
+          ? _jsStringReplace(
+            toExternRef,
+            (js.regExpGetNative(from) as js.JSValue).toExternRef,
+            to.toExternRef,
+          )
           : _replaceFirstRE(from, to, startIndex);
     }
     Iterator<Match> matches = from.allMatches(this, startIndex).iterator;
@@ -297,31 +394,16 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
     return replaceRange(match.start, match.end, replacement);
   }
 
-  // TODO(joshualitt): Create a subtype of `JSArrayImpl` that can support lazily
-  // converting arguments `toDart` and return that here.
-  List<String> _jsSplit(WasmExternRef? token) =>
-      (js.JSValue(
-                js.JS<WasmExternRef?>(
-                  '(s, t) => s.split(t)',
-                  toExternRef,
-                  token,
-                ),
-              )
-              as JSArray)
-          .toDart
-          .map((JSAny? a) => (a as JSString).toDart)
-          .toList();
-
   @override
   List<String> split(Pattern pattern) {
     if (pattern is JSStringImpl) {
-      return _jsSplit(pattern.toExternRef);
+      return _jsStringSplitToDart(toExternRef, pattern.toExternRef);
     } else if (pattern is String) {
-      return _jsSplit(pattern.toJS.toExternRef);
+      return _jsStringSplitToDart(toExternRef, pattern.toJS.toExternRef);
     } else if (pattern is js.JSSyntaxRegExp &&
         js.regExpCaptureCount(pattern) == 0) {
       final re = js.regExpGetNative(pattern);
-      return _jsSplit((re as js.JSValue).toExternRef);
+      return _jsStringSplitToDart(toExternRef, (re as js.JSValue).toExternRef);
     } else {
       final result = <String>[];
       // End of most recent match. That is, start of next part to add to result.
@@ -355,7 +437,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @override
   String replaceRange(int start, int? end, String replacement) {
     end ??= length;
-    RangeErrorUtils.checkValidRangePositiveLength(start, end, length);
+    RangeErrorUtils.checkValidRange(start, end, length);
     return _replaceRange(start, end, replacement);
   }
 
@@ -374,7 +456,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @override
   String substring(int start, [int? end]) {
     end ??= length;
-    RangeErrorUtils.checkValidRangePositiveLength(start, end, length);
+    RangeErrorUtils.checkValidRange(start, end, length);
     if (start == end) return "";
     return _substringUnchecked(start, end);
   }
@@ -387,7 +469,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @override
   String toLowerCase() {
     final thisRef = toExternRef;
-    final lowerCaseRef = js.JS<WasmExternRef?>('s => s.toLowerCase()', thisRef);
+    final lowerCaseRef = _jsStringToLowerCase(thisRef);
     return _jsIdentical(thisRef, lowerCaseRef)
         ? this
         : JSStringImpl(lowerCaseRef);
@@ -396,7 +478,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @override
   String toUpperCase() {
     final thisRef = toExternRef;
-    final upperCaseRef = js.JS<WasmExternRef?>('s => s.toUpperCase()', thisRef);
+    final upperCaseRef = _jsStringToUpperCase(thisRef);
     return _jsIdentical(thisRef, upperCaseRef)
         ? this
         : JSStringImpl(upperCaseRef);
@@ -503,9 +585,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
 
     // Start by doing JS trim. Then check if it leaves a NEL at either end of
     // the string.
-    final result = JSStringImpl(
-      js.JS<WasmExternRef?>('s => s.trim()', toExternRef),
-    );
+    final result = JSStringImpl(_jsStringTrim(toExternRef));
     final resultLength = result.length;
     if (resultLength == 0) return result;
 
@@ -543,9 +623,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
     // Start by doing JS trim. Then check if it leaves a NEL at the beginning
     // of the string.
     int startIndex = 0;
-    final result = JSStringImpl(
-      js.JS<WasmExternRef?>('s => s.trimLeft()', toExternRef),
-    );
+    final result = JSStringImpl(_jsStringTrimLeft(toExternRef));
     final resultLength = result.length;
     if (resultLength == 0) return result;
 
@@ -571,9 +649,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
 
     // Start by doing JS trim. Then check if it leaves a NEL at the end of the
     // string.
-    final result = JSStringImpl(
-      js.JS<WasmExternRef?>('s => s.trimRight()', toExternRef),
-    );
+    final result = JSStringImpl(_jsStringTrimRight(toExternRef));
     final resultLength = result.length;
     if (resultLength == 0) return result;
 
@@ -594,13 +670,12 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   String operator *(int times) {
     if (0 >= times) return '';
     if (times == 1 || length == 0) return this;
-    return JSStringImpl(
-      js.JS<WasmExternRef?>(
-        '(s, n) => s.repeat(n)',
-        toExternRef,
-        times.toDouble().toExternRef,
-      ),
-    );
+    if (times & 0x7fffffff != times) {
+      throw Exception(
+        'The implementation cannot handle very large operands (was: $times).',
+      );
+    }
+    return JSStringImpl(_jsStringRepeat(toExternRef, times));
   }
 
   @override
@@ -623,24 +698,14 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @override
   Runes get runes => Runes(this);
 
-  int _jsIndexOf(WasmExternRef? pattern, int start) =>
-      js
-          .JS<double>(
-            '(s, p, i) => s.indexOf(p, i)',
-            toExternRef,
-            pattern,
-            start.toDouble(),
-          )
-          .toInt();
-
   @override
   int indexOf(Pattern pattern, [int start = 0]) {
     final length = this.length;
     RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(start, length);
     if (pattern is JSStringImpl) {
-      return _jsIndexOf(pattern.toExternRef, start);
+      return _jsStringIndexOf(toExternRef, pattern.toExternRef, start);
     } else if (pattern is String) {
-      return _jsIndexOf(pattern.toExternRef, start);
+      return _jsStringIndexOf(toExternRef, pattern.toJS.toExternRef, start);
     } else if (pattern is js.JSSyntaxRegExp) {
       Match? match = js.firstMatchAfter(pattern, this.toJS, start);
       return (match == null) ? -1 : match.start;
@@ -651,16 +716,6 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
       return -1;
     }
   }
-
-  int _jsLastIndexOf(WasmExternRef? pattern, int start) =>
-      js
-          .JS<double>(
-            '(s, p, i) => s.lastIndexOf(p, i)',
-            toExternRef,
-            pattern,
-            start.toDouble(),
-          )
-          .toInt();
 
   @override
   int lastIndexOf(Pattern pattern, [int? start]) {
@@ -674,12 +729,12 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
       if (start + pattern.length > length) {
         start = length - pattern.length;
       }
-      return _jsLastIndexOf(pattern.toExternRef, start);
+      return _jsStringLastIndexOf(toExternRef, pattern.toExternRef, start);
     } else if (pattern is String) {
       if (start + pattern.length > length) {
         start = length - pattern.length;
       }
-      return _jsLastIndexOf(pattern.toExternRef, start);
+      return _jsStringLastIndexOf(toExternRef, pattern.toJS.toExternRef, start);
     }
     for (int i = start; i >= 0; i--) {
       if (pattern.matchAsPrefix(this, i) != null) return i;
@@ -722,55 +777,19 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @override
   @pragma("wasm:prefer-inline")
   String operator [](int index) {
-    IndexErrorUtils.checkAssumePositiveLength(index, length);
-    return JSStringImpl(_jsFromCharCode(_codeUnitAtUnchecked(index)));
+    IndexErrorUtils.checkIndex(index, length);
+    return JSStringImpl.fromCharCode(_codeUnitAtUnchecked(index));
   }
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-
-    if (other is JSStringImpl) {
-      return _jsEquals(toExternRef, other.toExternRef);
-    }
-
-    final length = this.length;
-    if (other is String && length == other.length) {
-      for (int i = 0; i < length; i++) {
-        if (_codeUnitAtUnchecked(i) != other.codeUnitAt(i)) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    return false;
-  }
+  @pragma('wasm:prefer-inline')
+  bool operator ==(Object other) =>
+      other is JSStringImpl && _jsEquals(toExternRef, other.toExternRef);
 
   @override
-  int compareTo(String other) {
-    if (other is JSStringImpl) {
-      return _jsCompare(toExternRef, other.toExternRef);
-    }
-    final otherLength = other.length;
-    final length = this.length;
-    final len = (length < otherLength) ? length : otherLength;
-    for (int i = 0; i < len; i++) {
-      int thisCodeUnit = _codeUnitAtUnchecked(i);
-      int otherCodeUnit = other.codeUnitAt(i);
-      if (thisCodeUnit < otherCodeUnit) {
-        return -1;
-      }
-      if (thisCodeUnit > otherCodeUnit) {
-        return 1;
-      }
-    }
-    if (length < otherLength) return -1;
-    if (length > otherLength) return 1;
-    return 0;
-  }
+  @pragma('wasm:prefer-inline')
+  int compareTo(String other) =>
+      _jsCompare(toExternRef, unsafeCast<JSStringImpl>(other).toExternRef);
 
   @override
   String toString() => this;
@@ -806,23 +825,119 @@ String _matchString(Match match) => match[0]!;
 
 String _stringIdentity(String string) => string;
 
-String _escapeReplacement(String replacement) {
-  // The JavaScript `String.prototype.replace` method recognizes replacement
-  // patterns in the replacement string. Dart does not have that behavior, so
-  // the replacement patterns need to be escaped.
-  return JSStringImpl(
-    js.JS<WasmExternRef>(
-      r'(s) => s.replace(/\$/g, "$$$$")',
-      replacement.toJS.toExternRef,
-    ),
-  );
-}
+// NOTE: The [replacement] does not need special escaping it will be used
+// as-is (due to passing `() => r` to the JS `replaceAll()` call)
+JSStringImpl _jsStringReplaceAll(
+  WasmExternRef? string,
+  WasmExternRef? pattern,
+  WasmExternRef? replacement,
+) => JSStringImpl(
+  js.JS<WasmExternRef?>(
+    '(o, p, r) => o.replaceAll(p, () => r)',
+    string,
+    pattern,
+    replacement,
+  ),
+);
+
+// NOTE: The [replacement] does not need special escaping it will be used
+// as-is (due to passing `() => r` to the JS `replaceAll()` call)
+String _jsStringReplace(
+  WasmExternRef? string,
+  WasmExternRef? pattern,
+  WasmExternRef? replacement,
+) => JSStringImpl(
+  js.JS<WasmExternRef?>(
+    '(o, p, r) => o.replace(p, () => r)',
+    string,
+    pattern,
+    replacement,
+  ),
+);
+
+WasmExternRef? _jsStringToLowerCase(WasmExternRef? string) =>
+// Note: Special cased in V8 to be fast as `F.p.c.b`.
+// Do not change to `s => s.toLowerCase()`!
+js.JS<WasmExternRef?>(
+  'Function.prototype.call.bind(String.prototype.toLowerCase)',
+  string,
+);
+
+WasmExternRef? _jsStringToUpperCase(WasmExternRef? string) =>
+    js.JS<WasmExternRef?>('s => s.toUpperCase()', string);
+
+WasmExternRef? _jsStringTrim(WasmExternRef? string) =>
+    js.JS<WasmExternRef?>('s => s.trim()', string);
+
+WasmExternRef? _jsStringTrimLeft(WasmExternRef? string) =>
+    js.JS<WasmExternRef?>('s => s.trimLeft()', string);
+
+WasmExternRef? _jsStringTrimRight(WasmExternRef? string) =>
+    js.JS<WasmExternRef?>('s => s.trimRight()', string);
+
+@pragma("wasm:prefer-inline")
+WasmExternRef? _jsStringRepeat(WasmExternRef? string, int times) =>
+    js.JS<WasmExternRef?>(
+      '(string, times) => string.repeat(times)',
+      string,
+      times.toWasmI32(),
+    );
+
+@pragma("wasm:prefer-inline")
+int _jsStringIndexOf(
+  WasmExternRef? string,
+  WasmExternRef? pattern,
+  int startIndex,
+) =>
+    // Note: Special cased in V8 to be fast as `F.p.c.b`.
+    // Do not change to `(s, p, i) => s.indexOf(p, i)`!
+    js
+        .JS<double>(
+          'Function.prototype.call.bind(String.prototype.indexOf)',
+          string,
+          pattern,
+          startIndex.toWasmI32(),
+        )
+        .toInt();
+
+@pragma("wasm:prefer-inline")
+int _jsStringLastIndexOf(
+  WasmExternRef? string,
+  WasmExternRef? pattern,
+  int start,
+) =>
+    js
+        .JS<double>(
+          '(s, p, i) => s.lastIndexOf(p, i)',
+          string,
+          pattern,
+          start.toDouble(),
+        )
+        .toInt();
+
+// TODO(joshualitt): Create a subtype of `JSArrayImpl` that can support lazily
+// converting arguments `toDart` and return that here.
+@pragma("wasm:prefer-inline")
+List<String> _jsStringSplitToDart(
+  WasmExternRef? string,
+  WasmExternRef? token,
+) =>
+    (js.JSValue(_jsStringSplit(string, token)) as JSArray).toDart
+        .map((JSAny? a) => (a as JSString).toDart)
+        .toList();
+
+WasmExternRef? _jsStringSplit(WasmExternRef? string, WasmExternRef? token) =>
+    js.JS<WasmExternRef?>(
+      '(string, token) => string.split(token)',
+      string,
+      token,
+    );
 
 bool _jsIdentical(WasmExternRef? ref1, WasmExternRef? ref2) =>
     js.JS<bool>('Object.is', ref1, ref2);
 
 @pragma("wasm:prefer-inline")
-int _jsCharCodeAt(WasmExternRef? stringRef, int index) =>
+int jsCharCodeAt(WasmExternRef? stringRef, int index) =>
     _jsStringCharCodeAtImport(
       stringRef,
       WasmI32.fromInt(index),
@@ -851,10 +966,6 @@ bool _jsEquals(WasmExternRef? s1, WasmExternRef? s2) =>
 int _jsCompare(WasmExternRef? s1, WasmExternRef? s2) =>
     _jsStringCompareImport(s1, s2).toIntSigned();
 
-@pragma("wasm:prefer-inline")
-WasmExternRef _jsFromCharCode(int charCode) =>
-    _jsStringFromCharCodeImport(WasmI32.fromInt(charCode));
-
 @pragma("wasm:import", "wasm:js-string.charCodeAt")
 external WasmI32 _jsStringCharCodeAtImport(WasmExternRef? s, WasmI32 index);
 
@@ -873,6 +984,9 @@ external WasmI32 _jsStringEqualsImport(WasmExternRef? s1, WasmExternRef? s2);
 @pragma("wasm:import", "wasm:js-string.fromCharCode")
 external WasmExternRef _jsStringFromCharCodeImport(WasmI32 c);
 
+@pragma("wasm:import", "wasm:js-string.fromCodePoint")
+external WasmExternRef _jsStringFromCodePointImport(WasmI32 c);
+
 @pragma("wasm:import", "wasm:js-string.length")
 external WasmI32 _jsStringLengthImport(WasmExternRef? s);
 
@@ -881,4 +995,18 @@ external WasmExternRef _jsStringSubstringImport(
   WasmExternRef? s,
   WasmI32 startIndex,
   WasmI32 endIndex,
+);
+
+@pragma("wasm:import", "wasm:js-string.fromCharCodeArray")
+external WasmExternRef jsStringFromCharCodeArray(
+  WasmArray<WasmI16>? array,
+  WasmI32 start,
+  WasmI32 end,
+);
+
+@pragma("wasm:import", "wasm:js-string.intoCharCodeArray")
+external WasmI32 jsStringIntoCharCodeArray(
+  WasmExternRef? s,
+  WasmArray<WasmI16>? array,
+  WasmI32 start,
 );

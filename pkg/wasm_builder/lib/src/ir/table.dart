@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of 'tables.dart';
+import '../builder/module.dart';
+import '../serialize/serialize.dart';
+import 'ir.dart';
 
 /// An (imported or defined) table.
 class Table with Indexable, Exportable implements Serializable {

@@ -156,7 +156,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
       var matches = await searchEngine.searchReferences(element);
       for (var match in matches) {
         if (match.isResolved) {
-          libraries.putIfAbsent(match.libraryElement2, () => {}).add(element2);
+          libraries.putIfAbsent(match.libraryElement, () => {}).add(element2);
         }
       }
     }
@@ -168,11 +168,23 @@ class MoveTopLevelToFile extends RefactoringProducer {
       var library = entry.key;
       var prefixes = <String>{};
       for (var element in entry.value) {
-        var prefixList = await searchEngine.searchPrefixesUsedInLibrary(
-          library,
-          element,
+        // Search for prefixes for the element.
+        prefixes.addAll(
+          await searchEngine.searchPrefixesUsedInLibrary(library, element),
         );
-        prefixes.addAll(prefixList);
+        // And also for the getter if this might be something like a top-level
+        // variable.
+        if (element case PropertyInducingElement2(:var getter2?)) {
+          prefixes.addAll(
+            await searchEngine.searchPrefixesUsedInLibrary(library, getter2),
+          );
+        }
+        // And setters.
+        if (element case PropertyInducingElement2(:var setter2?)) {
+          prefixes.addAll(
+            await searchEngine.searchPrefixesUsedInLibrary(library, setter2),
+          );
+        }
       }
       await builder.addDartFileEdit(library.firstFragment.source.fullName, (
         builder,
@@ -262,6 +274,9 @@ class MoveTopLevelToFile extends RefactoringProducer {
         name = node.name.lexeme;
       } else if (node is ExtensionDeclaration && validSelection(node.name)) {
         name = node.name?.lexeme;
+      } else if (node is ExtensionTypeDeclaration &&
+          validSelection(node.name)) {
+        name = node.name.lexeme;
       } else if (node is FunctionDeclaration &&
           node.parent is CompilationUnit &&
           validSelection(node.name)) {

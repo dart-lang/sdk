@@ -50,10 +50,9 @@ class AnalysisDriverUnlinkedUnit {
   }
 
   Uint8List toBytes() {
-    var byteSink = ByteSink();
-    var sink = BufferedSink(byteSink);
+    var sink = BufferedSink();
     write(sink);
-    return sink.flushAndTake();
+    return sink.takeBytes();
   }
 
   void write(BufferedSink sink) {
@@ -62,31 +61,6 @@ class AnalysisDriverUnlinkedUnit {
     sink.writeStringUtf8Iterable(referencedNames);
     sink.writeStringUtf8Iterable(subtypedNames);
     unit.write(sink);
-  }
-}
-
-/// Unlinked information about a `macro` class.
-class MacroClass {
-  final String name;
-  final List<String> constructors;
-
-  MacroClass({
-    required this.name,
-    required this.constructors,
-  });
-
-  factory MacroClass.read(
-    SummaryDataReader reader,
-  ) {
-    return MacroClass(
-      name: reader.readStringUtf8(),
-      constructors: reader.readStringUtf8List(),
-    );
-  }
-
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8(name);
-    sink.writeStringUtf8Iterable(constructors);
   }
 }
 
@@ -253,7 +227,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
       isDocImport: reader.readBool(),
       isSyntheticDartCore: reader.readBool(),
       prefix: reader.readOptionalObject(
-        UnlinkedLibraryImportPrefix.read,
+        () => UnlinkedLibraryImportPrefix.read(reader),
       ),
       uri: reader.readOptionalStringUtf8(),
     );
@@ -299,9 +273,9 @@ class UnlinkedLibraryImportPrefix {
       deferredOffset: reader.readOptionalUInt30(),
       asOffset: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
-      name: reader.readOptionalObject((reader) {
-        return UnlinkedLibraryImportPrefixName.read(reader);
-      }),
+      name: reader.readOptionalObject(
+        () => UnlinkedLibraryImportPrefixName.read(reader),
+      ),
     );
   }
 
@@ -540,9 +514,6 @@ class UnlinkedUnit {
   /// Offsets of the first character of each line in the source code.
   final Uint32List lineStarts;
 
-  /// The list of `macro` classes.
-  final List<MacroClass> macroClasses;
-
   /// `part` directives.
   final List<UnlinkedPartDirective> parts;
 
@@ -567,7 +538,6 @@ class UnlinkedUnit {
     required this.isDartCore,
     required this.libraryDirective,
     required this.lineStarts,
-    required this.macroClasses,
     required this.parts,
     required this.partOfNameDirective,
     required this.partOfUriDirective,
@@ -588,20 +558,17 @@ class UnlinkedUnit {
       informativeBytes: reader.readUint8List(),
       isDartCore: reader.readBool(),
       libraryDirective: reader.readOptionalObject(
-        UnlinkedLibraryDirective.read,
+        () => UnlinkedLibraryDirective.read(reader),
       ),
       lineStarts: reader.readUInt30List(),
-      macroClasses: reader.readTypedList(
-        () => MacroClass.read(reader),
-      ),
       parts: reader.readTypedList(
         () => UnlinkedPartDirective.read(reader),
       ),
       partOfNameDirective: reader.readOptionalObject(
-        UnlinkedPartOfNameDirective.read,
+        () => UnlinkedPartOfNameDirective.read(reader),
       ),
       partOfUriDirective: reader.readOptionalObject(
-        UnlinkedPartOfUriDirective.read,
+        () => UnlinkedPartOfUriDirective.read(reader),
       ),
       topLevelDeclarations: reader.readStringUtf8Set(),
       dartdocTemplates: reader.readTypedList(
@@ -626,9 +593,6 @@ class UnlinkedUnit {
       (x) => x.write(sink),
     );
     sink.writeUint30List(lineStarts);
-    sink.writeList<MacroClass>(macroClasses, (x) {
-      x.write(sink);
-    });
     sink.writeList<UnlinkedPartDirective>(parts, (x) {
       x.write(sink);
     });

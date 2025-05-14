@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // This test verifies that cyclic type alias definitions cause a compile-time
 // error, when the cycle occurs via the bound.
 
@@ -59,7 +58,8 @@ typedef T11<X extends void Function({int T11})> = List<X>;
 
 // Note: we have to use `void Function<...>() Function()` because a generic
 // function can't directly be used as a bound.
-typedef T12<X extends void Function<Y extends T12<Never>>() Function()> = List<X>;
-//      ^^^
-// [analyzer] COMPILE_TIME_ERROR.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
-// [cfe] The typedef 'T12' has a reference to itself.
+typedef T12<X extends void Function<Y extends T12<Never>>() Function()> =
+    //  ^^^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+    // [cfe] The typedef 'T12' has a reference to itself.
+    List<X>;

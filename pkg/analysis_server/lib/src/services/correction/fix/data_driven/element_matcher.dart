@@ -549,7 +549,7 @@ class _MatcherBuilder {
           var enclosingElement = element.enclosingElement2;
           if (enclosingElement is! LibraryElement2) {
             _addMatcher(
-              components: [node.name, (enclosingElement?.displayName)!],
+              components: [node.name, enclosingElement.displayName],
               kinds: [],
             );
             return;

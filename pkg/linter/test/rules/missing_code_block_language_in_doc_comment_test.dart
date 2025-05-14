@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingCodeBlockLanguageInDocCommentTest);
   });
@@ -56,35 +56,38 @@ class A {}
   }
 
   test_missingLanguage() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// ```
 /// test
 /// ```
 class A {}
-''', [
-      lint(3, 4),
-    ]);
+''',
+      [lint(3, 4)],
+    );
   }
 
   test_missingLanguage_leadingWhitespace() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 ///   ```
 /// test
 /// ```
 class A {}
-''', [
-      lint(3, 6),
-    ]);
+''',
+      [lint(3, 6)],
+    );
   }
 
   test_missingLanguage_noEndingFence() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// ```
 /// test
 /// more test
 class A {}
-''', [
-      lint(3, 4),
-    ]);
+''',
+      [lint(3, 4)],
+    );
   }
 }

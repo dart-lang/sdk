@@ -53,4 +53,4 @@ fi
 
 BIN_DIR="$OUT_DIR$DART_CONFIGURATION"
 
-exec "$BIN_DIR"/dart "$@"
+exec "$BIN_DIR"/dart-sdk/bin/dart "$@"

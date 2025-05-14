@@ -5,6 +5,7 @@
 import "dart:_internal" show patch;
 import "dart:_string" show StringUncheckedOperations;
 import "dart:_wasm";
+import "dart:_error_utils";
 
 @patch
 class int {
@@ -17,8 +18,12 @@ class int {
       // Try parsing immediately, without trimming whitespace.
       int? result = _tryParseIntRadix10(source, 0, source.length);
       if (result != null) return result;
-    } else if ((radix - 2).gtU(34)) {
-      throw RangeError("Radix $radix not in range 2..36");
+    } else {
+      RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(
+        radix - 2,
+        34,
+        "Radix $radix not in range 2..36",
+      );
     }
     return _parse(source, radix, _kNull);
   }
@@ -32,8 +37,12 @@ class int {
       // Try parsing immediately, without trimming whitespace.
       int? result = _tryParseIntRadix10(source, 0, source.length);
       if (result != null) return result;
-    } else if ((radix - 2).gtU(34)) {
-      throw RangeError("Radix $radix not in range 2..36");
+    } else {
+      RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(
+        radix - 2,
+        34,
+        "Radix $radix not in range 2..36",
+      );
     }
     // Split here so improve odds of parse being inlined and the checks omitted.
     return _parse(source, radix, null)!;
@@ -239,7 +248,7 @@ class int {
   }
 
   // For each radix, 2-36, how many digits are guaranteed to fit in an `int`.
-  static const _PARSE_LIMITS = const ImmutableWasmArray<WasmI64>.literal([
+  static const _PARSE_LIMITS = ImmutableWasmArray<WasmI64>.literal([
     0, // unused
     0, // unused
     63, // radix: 2

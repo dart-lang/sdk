@@ -24,9 +24,9 @@ Future<void> main() async {
   helper();
   Expect.equals(hash1, hash2);
 }
+
 /** DIFF **/
 /*
-@@ -11,12 +11,11 @@
  var a, hash1, hash2;
  
  class A {

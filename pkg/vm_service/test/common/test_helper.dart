@@ -115,7 +115,13 @@ class _ServiceTesteeLauncher {
     bool pauseOnUnhandledExceptions,
     bool testeeControlsServer,
     bool useAuthToken,
-    bool shouldTesteeBeLaunchedWithDartRunResident,
+
+    /// If non-null, any compilation requests sent from the testee VM will be
+    /// sent to the resident frontend compiler associated with
+    /// [residentCompilerInfoFilePath] rather than the testee VM's kernel
+    /// isolate. If null, then those requests will be sent to the testee VM's
+    /// kernel isolate.
+    String? residentCompilerInfoFilePath,
     List<String>? experiments,
     List<String>? extraArgs,
   ) {
@@ -125,7 +131,7 @@ class _ServiceTesteeLauncher {
       pauseOnUnhandledExceptions,
       testeeControlsServer,
       useAuthToken,
-      shouldTesteeBeLaunchedWithDartRunResident,
+      residentCompilerInfoFilePath,
       experiments,
       extraArgs,
     );
@@ -137,7 +143,13 @@ class _ServiceTesteeLauncher {
     bool pauseOnUnhandledExceptions,
     bool testeeControlsServer,
     bool useAuthToken,
-    bool shouldTesteeBeLaunchedWithDartRunResident,
+
+    /// If non-null, any compilation requests sent from the testee VM will be
+    /// sent to the resident frontend compiler associated with
+    /// [residentCompilerInfoFilePath] rather than the testee VM's kernel
+    /// isolate. If null, then those requests will be sent to the testee VM's
+    /// kernel isolate.
+    String? residentCompilerInfoFilePath,
     List<String>? experiments,
     List<String>? extraArgs,
   ) {
@@ -169,8 +181,12 @@ class _ServiceTesteeLauncher {
       fullArgs.add('--enable-vm-service:0');
     }
 
-    if (shouldTesteeBeLaunchedWithDartRunResident) {
-      fullArgs.addAll(['run', '--resident']);
+    if (residentCompilerInfoFilePath != null) {
+      fullArgs.addAll([
+        'run',
+        '--resident',
+        '--resident-compiler-info-file=$residentCompilerInfoFilePath',
+      ]);
     }
     fullArgs.addAll(args);
 
@@ -202,7 +218,13 @@ class _ServiceTesteeLauncher {
     bool pauseOnUnhandledExceptions,
     bool testeeControlsServer,
     bool useAuthToken,
-    bool shouldTesteeBeLaunchedWithDartRunResident,
+
+    /// If non-null, any compilation requests sent from the testee VM will be
+    /// sent to the resident frontend compiler associated with
+    /// [residentCompilerInfoFilePath] rather than the testee VM's kernel
+    /// isolate. If null, then those requests will be sent to the testee VM's
+    /// kernel isolate.
+    String? residentCompilerInfoFilePath,
     List<String>? experiments,
     List<String>? extraArgs,
   ) {
@@ -212,7 +234,7 @@ class _ServiceTesteeLauncher {
       pauseOnUnhandledExceptions,
       testeeControlsServer,
       useAuthToken,
-      shouldTesteeBeLaunchedWithDartRunResident,
+      residentCompilerInfoFilePath,
       experiments,
       extraArgs,
     ).then((p) {
@@ -286,6 +308,16 @@ class _ServiceTesterRunner {
     bool allowForNonZeroExitCode = false,
     VmServiceFactory serviceFactory = VmService.defaultFactory,
   }) async {
+    final tempDir = io.Directory.systemTemp.createTempSync();
+    final String? residentCompilerInfoFilePath;
+    if (shouldTesteeBeLaunchedWithDartRunResident) {
+      residentCompilerInfoFilePath =
+          '${tempDir.path}${io.Platform.pathSeparator}'
+          'resident_compiler_info.txt';
+    } else {
+      residentCompilerInfoFilePath = null;
+    }
+
     final process = _ServiceTesteeLauncher(scriptName);
     late VmService vm;
     late IsolateRef isolate;
@@ -297,7 +329,7 @@ class _ServiceTesterRunner {
         pauseOnUnhandledExceptions,
         testeeControlsServer,
         useAuthToken,
-        shouldTesteeBeLaunchedWithDartRunResident,
+        residentCompilerInfoFilePath,
         experiments,
         extraArgs,
       )
@@ -366,13 +398,19 @@ $st
     final exitCode = await process.exitCode;
     if (shouldTesteeBeLaunchedWithDartRunResident) {
       print(
-        '** Shutting down resident frontend compiler that was used by VM '
+        '** Shutting down resident frontend compiler associated with '
+        '$residentCompilerInfoFilePath that was used by VM '
         'Service tests',
       );
       await io.Process.run(
         io.Platform.executable,
-        ['compilation-server', 'shutdown'],
+        [
+          'compilation-server',
+          'shutdown',
+          '--resident-compiler-info-file=$residentCompilerInfoFilePath',
+        ],
       );
+      tempDir.deleteSync(recursive: true);
     }
     if (exitCode != 0) {
       if (!(process.killedByTester || allowForNonZeroExitCode)) {

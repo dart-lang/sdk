@@ -61,8 +61,7 @@ void expect(dynamic actual, dynamic expected) {
 
 Uint8List serialize(Library lib1) {
   Component component = new Component(libraries: [lib1])
-    ..setMainMethodAndMode(
-        null, false, NonNullableByDefaultCompiledMode.Strong);
+    ..setMainMethodAndMode(null, false);
   ByteSink sink = new ByteSink();
   new BinaryPrinter(sink).writeComponentFile(component);
   return sink.builder.takeBytes();

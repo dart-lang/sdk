@@ -1197,8 +1197,8 @@ class Thread : public AllStatic {
   static uword vm_tag_dart_id();
 
   static word safepoint_state_offset();
-  static uword full_safepoint_state_unacquired();
-  static uword full_safepoint_state_acquired();
+  static uword native_safepoint_state_unacquired();
+  static uword native_safepoint_state_acquired();
 
   static word execution_state_offset();
   static uword vm_execution_state();
@@ -1258,7 +1258,6 @@ class Thread : public AllStatic {
   static word deoptimize_stub_offset();
   static word enter_safepoint_stub_offset();
   static word exit_safepoint_stub_offset();
-  static word exit_safepoint_ignore_unwind_in_progress_stub_offset();
   static word call_native_through_safepoint_stub_offset();
   static word call_native_through_safepoint_entry_point_offset();
 

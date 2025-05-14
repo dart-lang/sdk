@@ -288,13 +288,27 @@ void main() {
       expect(reporter.errors.first, equals('params.kind must not be null'));
     });
 
-    test('canParse records fields of the wrong type', () {
+    test('canParse records fields of the wrong type (non-spec types)', () {
       var reporter = LspJsonReporter('params');
       expect(RenameFileOptions.canParse({'overwrite': 1}, reporter), isFalse);
       expect(reporter.errors, hasLength(1));
       expect(
         reporter.errors.first,
         equals('params.overwrite must be of type bool'),
+      );
+    });
+
+    test('canParse records fields of the wrong type (spec types)', () {
+      var reporter = LspJsonReporter('params');
+      expect(
+        ClientCapabilities.canParse({'textDocument': 1}, reporter),
+        isFalse,
+      );
+      expect(
+        reporter.errors.single,
+        equals(
+          'params.textDocument must be of type TextDocumentClientCapabilities',
+        ),
       );
     });
 

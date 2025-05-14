@@ -163,10 +163,7 @@ final Map v = {
 /// Test how well the parser recovers when extra modifiers are provided.
 @reflectiveTest
 class ModifiersTest extends AbstractRecoveryTest {
-  @failingTest
   void test_classDeclaration_static() {
-    // TODO(danrubel): Fails because compilation unit begin token is `static`
-    // even after recovery.
     testRecovery('''
 static class A {}
 ''', [ParserErrorCode.EXTRANEOUS_MODIFIER], '''

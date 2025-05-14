@@ -73,7 +73,7 @@ Future runTest1() async {
   elementEnvironment.forEachParameterAsLocal(results.globalLocalsMap, bar, (
     barArg,
   ) {
-    AbstractValue barArgMask = results.resultOfParameter(barArg);
+    AbstractValue barArgMask = results.resultOfParameter(barArg, bar);
     Expect.equals(falseType, barArgMask);
   });
   String barCode = backendStrategy.getGeneratedCodeForTesting(bar)!;
@@ -130,7 +130,7 @@ Future runTest2() async {
   elementEnvironment.forEachParameterAsLocal(results.globalLocalsMap, bar, (
     barArg,
   ) {
-    AbstractValue barArgMask = results.resultOfParameter(barArg);
+    AbstractValue barArgMask = results.resultOfParameter(barArg, bar);
     // The argument to bar should have the same type as the return type of foo
     Expect.identical(commonMasks.boolType, barArgMask);
   });

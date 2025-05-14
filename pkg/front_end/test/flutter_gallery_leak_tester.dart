@@ -222,6 +222,7 @@ Future<void> main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch()..start();
   await sendAndWait(heapHelper.process, ['compile package:gallery/main.dart']);
   print("First compile took ${stopwatch.elapsedMilliseconds} ms");
+  await accept(heapHelper);
   await pauseAndWait(heapHelper);
 
   await recompileAndWait(heapHelper.process, "package:gallery/main.dart", []);

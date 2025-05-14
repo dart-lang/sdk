@@ -4,9 +4,12 @@
 
 import 'dart:async';
 
+import 'package:analysis_server_plugin/edit/assist/assist.dart';
+import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/plugin.dart';
+import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/src/registry.dart';
@@ -26,6 +29,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -84,6 +88,7 @@ class PluginServer {
     for (var plugin in plugins) {
       plugin.register(_registry);
     }
+    _registry.registerIgnoreProducerGenerators();
   }
 
   /// Handles an 'analysis.setPriorityFiles' request.
@@ -94,6 +99,60 @@ class PluginServer {
           protocol.AnalysisSetPriorityFilesParams parameters) async {
     _priorityPaths = parameters.files.toSet();
     return protocol.AnalysisSetPriorityFilesResult();
+  }
+
+  /// Handles an 'edit.getAssists' request.
+  ///
+  /// Throws a [RequestFailure] if the request could not be handled.
+  Future<protocol.EditGetAssistsResult> handleEditGetAssists(
+      protocol.EditGetAssistsParams parameters) async {
+    var path = parameters.file;
+
+    var recentState = _recentState[path];
+    if (recentState == null) {
+      return protocol.EditGetAssistsResult(const []);
+    }
+
+    var (:analysisContext, :errors) = recentState;
+    var libraryResult =
+        await analysisContext.currentSession.getResolvedLibrary(path);
+    if (libraryResult is! ResolvedLibraryResult) {
+      return protocol.EditGetAssistsResult(const []);
+    }
+    var unitResult = libraryResult.unitWithPath(path);
+    if (unitResult is! ResolvedUnitResult) {
+      return protocol.EditGetAssistsResult(const []);
+    }
+
+    var context = DartAssistContext(
+      // TODO(srawlins): Use a real instrumentation service. Other
+      // implementations get InstrumentationService from AnalysisServer.
+      InstrumentationService.NULL_SERVICE,
+      DartChangeWorkspace([analysisContext.currentSession]),
+      libraryResult,
+      unitResult,
+      parameters.offset,
+      parameters.length,
+    );
+
+    List<Assist> assists;
+    try {
+      assists = await computeAssists(context);
+    } on InconsistentAnalysisException {
+      // TODO(srawlins): Is it important to at least log this? Or does it
+      // happen on the regular?
+      assists = [];
+    }
+
+    if (assists.isEmpty) {
+      return protocol.EditGetAssistsResult(const []);
+    }
+
+    var corrections = [
+      for (var assist in assists..sort(Assist.compareAssists))
+        protocol.PrioritizedSourceChange(assist.kind.priority, assist.change)
+    ];
+    return protocol.EditGetAssistsResult(corrections);
   }
 
   /// Handles an 'edit.getFixes' request.
@@ -189,6 +248,9 @@ class PluginServer {
   Future<void> _analyzeAllFilesInContextCollection({
     required AnalysisContextCollection contextCollection,
   }) async {
+    _channel.sendNotification(
+        protocol.PluginStatusParams(analysis: protocol.AnalysisStatus(true))
+            .toNotification());
     await _forAnalysisContexts(contextCollection, (analysisContext) async {
       var paths = analysisContext.contextRoot
           .analyzedFiles()
@@ -203,6 +265,9 @@ class PluginServer {
         paths: paths,
       );
     });
+    _channel.sendNotification(
+        protocol.PluginStatusParams(analysis: protocol.AnalysisStatus(false))
+            .toNotification());
   }
 
   Future<void> _analyzeFile({
@@ -211,7 +276,7 @@ class PluginServer {
   }) async {
     var file = _resourceProvider.getFile(path);
     var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
-    var diagnostics = await _computeLints(
+    var diagnostics = await _computeDiagnostics(
       analysisContext,
       path,
       analysisOptions: analysisOptions as AnalysisOptionsImpl,
@@ -238,7 +303,7 @@ class PluginServer {
     }
   }
 
-  Future<List<protocol.AnalysisError>> _computeLints(
+  Future<List<protocol.AnalysisError>> _computeDiagnostics(
     AnalysisContext analysisContext,
     String path, {
     required AnalysisOptionsImpl analysisOptions,
@@ -246,11 +311,11 @@ class PluginServer {
     var libraryResult =
         await analysisContext.currentSession.getResolvedLibrary(path);
     if (libraryResult is! ResolvedLibraryResult) {
-      return [];
+      return const [];
     }
     var unitResult = await analysisContext.currentSession.getResolvedUnit(path);
     if (unitResult is! ResolvedUnitResult) {
-      return [];
+      return const [];
     }
     var listener = RecordingErrorListener();
     var errorReporter = ErrorReporter(
@@ -287,6 +352,9 @@ class PluginServer {
       null,
     );
 
+    // A mapping from each lint and warning code to its corresponding plugin.
+    var pluginCodeMapping = <String, String>{};
+
     for (var configuration in analysisOptions.pluginConfigurations) {
       if (!configuration.isEnabled) continue;
       // TODO(srawlins): Namespace rules by their plugin, to avoid collisions.
@@ -298,15 +366,33 @@ class PluginServer {
         // `benchhmark.dart` script does.
         rule.registerNodeProcessors(nodeRegistry, context);
       }
+      for (var code in rules.expand((r) => r.lintCodes)) {
+        var existingPlugin = pluginCodeMapping[code.name];
+        if (existingPlugin == null) {
+          pluginCodeMapping[code.name] = configuration.name;
+        }
+      }
     }
 
     context.currentUnit = currentUnit;
     currentUnit.unit.accept(
         AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true));
+
+    var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
+    var errors = listener.errors.where((e) {
+      var pluginName = pluginCodeMapping[e.errorCode.name];
+      if (pluginName == null) {
+        // If [e] is somehow not mapped, something is wrong; but don't mark it
+        // as ignored.
+        return true;
+      }
+      return !ignoreInfo.ignored(e, pluginName: pluginName);
+    });
+
     // The list of the `AnalysisError`s and their associated
     // `protocol.AnalysisError`s.
     var errorsAndProtocolErrors = [
-      for (var e in listener.errors)
+      for (var e in errors)
         (
           error: e,
           protocolError: protocol.AnalysisError(
@@ -367,7 +453,12 @@ class PluginServer {
         result = await _handleAnalysisUpdateContent(params);
 
       case protocol.COMPLETION_REQUEST_GET_SUGGESTIONS:
+        result = null;
+
       case protocol.EDIT_REQUEST_GET_ASSISTS:
+        var params = protocol.EditGetAssistsParams.fromRequest(request);
+        result = await handleEditGetAssists(params);
+
       case protocol.EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS:
         result = null;
 
@@ -496,6 +587,9 @@ class PluginServer {
   /// Handles the fact that files with [paths] were changed.
   Future<void> _handleContentChanged(List<String> paths) async {
     if (_contextCollection case var contextCollection?) {
+      _channel.sendNotification(
+          protocol.PluginStatusParams(analysis: protocol.AnalysisStatus(true))
+              .toNotification());
       await _forAnalysisContexts(contextCollection, (analysisContext) async {
         for (var path in paths) {
           analysisContext.changeFile(path);
@@ -504,6 +598,9 @@ class PluginServer {
         await _handleAffectedFiles(
             analysisContext: analysisContext, paths: affected);
       });
+      _channel.sendNotification(
+          protocol.PluginStatusParams(analysis: protocol.AnalysisStatus(false))
+              .toNotification());
     }
   }
 

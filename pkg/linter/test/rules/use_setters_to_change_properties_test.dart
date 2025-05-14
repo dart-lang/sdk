@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     // TODO(srawlins): Add test with setter-like with multiple statements; add
     // test with non-trivial right side (`this.x = x + 1`).
@@ -37,7 +37,8 @@ abstract class A {
   }
 
   test_extension() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int x = 0;
 }
@@ -47,9 +48,9 @@ extension E on A {
     this.x = x;
   }
 }
-''', [
-      lint(52, 4),
-    ]);
+''',
+      [lint(52, 4)],
+    );
   }
 
   test_inheritedFromSuperclass() async {
@@ -85,26 +86,28 @@ class B implements A {
   }
 
   test_setterLike_blockBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 abstract class A {
   int x = 0;
   void setX(int x) {
     this.x = x;
   }
 }
-''', [
-      lint(39, 4),
-    ]);
+''',
+      [lint(39, 4)],
+    );
   }
 
   test_setterLike_expressionBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 abstract class A {
   int x = 0;
   void setX(int x) => this.x = x;
 }
-''', [
-      lint(39, 4),
-    ]);
+''',
+      [lint(39, 4)],
+    );
   }
 }

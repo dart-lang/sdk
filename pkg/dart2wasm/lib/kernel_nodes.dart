@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart';
 
 /// Kernel nodes for classes and members referenced specifically by the
@@ -11,6 +12,8 @@ mixin KernelNodes {
   Component get component;
 
   LibraryIndex get index;
+
+  CoreTypes get coreTypes;
 
   // dart:_internal classes
   late final Class symbolClass = index.getClass("dart:_internal", "Symbol");
@@ -36,20 +39,14 @@ mixin KernelNodes {
       index.getClass("dart:_boxed_int", "BoxedInt");
   late final Class closureClass = index.getClass("dart:core", "_Closure");
   late final Class listBaseClass = index.getClass("dart:_list", "WasmListBase");
+  late final Procedure listBaseIndexOperator =
+      index.getProcedure("dart:_list", "WasmListBase", "[]");
   late final Class fixedLengthListClass =
       index.getClass("dart:_list", "ModifiableFixedLengthList");
   late final Class growableListClass =
       index.getClass("dart:_list", "GrowableList");
   late final Class immutableListClass =
       index.getClass("dart:_list", "ImmutableList");
-  late final Class wasmStringBaseClass =
-      index.getClass("dart:_internal", "WasmStringBase");
-  late final Class stringBaseClass =
-      index.getClass("dart:_string", "StringBase");
-  late final Class oneByteStringClass =
-      index.getClass("dart:_string", "OneByteString");
-  late final Class twoByteStringClass =
-      index.getClass("dart:_string", "TwoByteString");
   late final Class invocationClass = index.getClass("dart:core", 'Invocation');
   late final Class noSuchMethodErrorClass =
       index.getClass("dart:core", "NoSuchMethodError");
@@ -121,6 +118,17 @@ mixin KernelNodes {
       index.getField("dart:core", "_RecordType", "fieldTypes");
   late final Field recordTypeNamesField =
       index.getField("dart:core", "_RecordType", "names");
+  late final Class moduleRtt = index.getClass("dart:core", "_ModuleRtt");
+  late final Field moduleRttOffsets =
+      index.getField("dart:core", "_ModuleRtt", "typeRowDisplacementOffsets");
+  late final Field moduleRttDisplacementTable =
+      index.getField("dart:core", "_ModuleRtt", "typeRowDisplacementTable");
+  late final Field moduleRttSubstTable = index.getField(
+      "dart:core", "_ModuleRtt", "typeRowDisplacementSubstTable");
+  late final Field moduleRttTypeNames =
+      index.getField("dart:core", "_ModuleRtt", "typeNames");
+  late final Procedure registerModuleRtt =
+      index.getTopLevelProcedure("dart:core", "_registerModuleRtt");
 
   // dart:core sync* support classes
   late final Class suspendStateClass =
@@ -139,6 +147,9 @@ mixin KernelNodes {
       index.getField("dart:async", "_Completer", "future");
   late final Procedure completerComplete =
       index.getProcedure("dart:async", "_AsyncCompleter", "complete");
+  late final Procedure completerCompleteErrorWithCurrentStack =
+      index.getProcedure(
+          "dart:async", "_AsyncCompleter", "_completeErrorWithCurrentStack");
   late final Procedure completerCompleteError =
       index.getProcedure("dart:async", "_Completer", "completeError");
   late final Procedure awaitHelper =
@@ -158,6 +169,7 @@ mixin KernelNodes {
   late final wasmI8Class = index.getClass("dart:_wasm", "WasmI8");
   late final wasmI16Class = index.getClass("dart:_wasm", "WasmI16");
   late final wasmI32Class = index.getClass("dart:_wasm", "WasmI32");
+  late final wasmI32Value = index.getField("dart:_wasm", "WasmI32", "_value");
   late final wasmI64Class = index.getClass("dart:_wasm", "WasmI64");
   late final wasmF32Class = index.getClass("dart:_wasm", "WasmF32");
   late final wasmF64Class = index.getClass("dart:_wasm", "WasmF64");
@@ -206,6 +218,14 @@ mixin KernelNodes {
       index.getProcedure("dart:_string", "JSStringImpl", "==");
   late final Procedure jsStringInterpolate =
       index.getProcedure("dart:_string", "JSStringImpl", "_interpolate");
+  late final Procedure jsStringInterpolate1 =
+      index.getProcedure("dart:_string", "JSStringImpl", "_interpolate1");
+  late final Procedure jsStringInterpolate2 =
+      index.getProcedure("dart:_string", "JSStringImpl", "_interpolate2");
+  late final Procedure jsStringInterpolate3 =
+      index.getProcedure("dart:_string", "JSStringImpl", "_interpolate3");
+  late final Procedure jsStringInterpolate4 =
+      index.getProcedure("dart:_string", "JSStringImpl", "_interpolate4");
 
   // dart:collection procedures and fields
   late final Procedure mapFactory =
@@ -250,18 +270,6 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "Object", "_nullToString");
   late final Procedure nullNoSuchMethod =
       index.getProcedure("dart:core", "Object", "_nullNoSuchMethod");
-  late final Procedure stringEquals =
-      index.getProcedure("dart:_string", "StringBase", "_equals");
-  late final Procedure stringInterpolate =
-      index.getProcedure("dart:_string", "StringBase", "_interpolate");
-  late final Procedure stringInterpolate1 =
-      index.getProcedure("dart:_string", "StringBase", "_interpolate1");
-  late final Procedure stringInterpolate2 =
-      index.getProcedure("dart:_string", "StringBase", "_interpolate2");
-  late final Procedure stringInterpolate3 =
-      index.getProcedure("dart:_string", "StringBase", "_interpolate3");
-  late final Procedure stringInterpolate4 =
-      index.getProcedure("dart:_string", "StringBase", "_interpolate4");
   late final Procedure truncDiv =
       index.getProcedure("dart:_boxed_int", "BoxedInt", "_truncDiv");
   late final Procedure runtimeTypeEquals =
@@ -285,8 +293,8 @@ mixin KernelNodes {
           "_throwUnimplementedExternalMemberError");
   late final Procedure stackTraceCurrent =
       index.getProcedure("dart:core", "StackTrace", "get:current");
-  late final Procedure throwNullCheckError =
-      index.getProcedure("dart:core", "_TypeError", "_throwNullCheckError");
+  late final Procedure throwNullCheckErrorWithCurrentStack = index.getProcedure(
+      "dart:core", "_TypeError", "_throwNullCheckErrorWithCurrentStack");
   late final Procedure throwAsCheckError =
       index.getProcedure("dart:core", "_TypeError", "_throwAsCheckError");
   late final Procedure throwInterfaceTypeAsCheckError1 = index
@@ -382,12 +390,82 @@ mixin KernelNodes {
   late final Procedure systemHashCombine =
       index.getProcedure("dart:_internal", "SystemHash", "combine");
 
+  // Dynamic module helpers
+  late final Class constCacheClass =
+      index.getClass('dart:_internal', 'WasmConstCache');
+  late final Constructor constCacheInit =
+      index.getConstructor('dart:_internal', 'WasmConstCache', '');
+  late final Procedure constCacheCanonicalize = index.getProcedure(
+      'dart:_internal', 'WasmConstCache', 'canonicalizeValue');
+  late final Procedure constCacheArrayCanonicalize = index.getProcedure(
+      'dart:_internal', 'WasmArrayConstCache', 'canonicalizeArrayValue');
+  late final Procedure registerUpdateableFuncRefs = index.getTopLevelProcedure(
+      'dart:_internal', 'registerUpdateableFuncRefs');
+  late final Procedure getUpdateableFuncRef =
+      index.getTopLevelProcedure('dart:_internal', 'getUpdateableFuncRef');
+  late final Procedure classIdToModuleId =
+      index.getTopLevelProcedure('dart:_internal', 'classIdToModuleId');
+  late final Procedure localizeClassId =
+      index.getTopLevelProcedure('dart:_internal', 'localizeClassId');
+  late final Procedure scopeClassId =
+      index.getTopLevelProcedure('dart:_internal', 'scopeClassId');
+  late final Procedure globalizeClassId =
+      index.getTopLevelProcedure('dart:_internal', 'globalizeClassId');
+  late final Procedure registerModuleClassRange =
+      index.getTopLevelProcedure('dart:_internal', 'registerModuleClassRange');
+  late final Procedure constCacheGetter =
+      index.getTopLevelProcedure('dart:_internal', 'getConstCache');
+  late final Field objectConstArrayCache =
+      index.getTopLevelField('dart:_internal', 'objectConstArray');
+  late final Field stringConstArrayCache =
+      index.getTopLevelField('dart:_internal', 'stringConstArray');
+  late final Field stringConstImmutableArrayCache =
+      index.getTopLevelField('dart:_internal', 'stringConstImmutableArray');
+  late final Field typeConstArrayCache =
+      index.getTopLevelField('dart:_internal', 'typeConstArray');
+  late final Field typeArrayConstArrayCache =
+      index.getTopLevelField('dart:_internal', 'typeArrayConstArray');
+  late final Field namedParameterConstArrayCache =
+      index.getTopLevelField('dart:_internal', 'nameParameterConstArray');
+  late final Field i8ConstImmutableArrayCache =
+      index.getTopLevelField('dart:_internal', 'i8ConstImmutableArray');
+  late final Field i32ConstArrayCache =
+      index.getTopLevelField('dart:_internal', 'i32ConstArray');
+  late final Field i64ConstImmutableArrayCache =
+      index.getTopLevelField('dart:_internal', 'i64ConstImmutableArray');
+  late final Field boxedIntImmutableArrayCache =
+      index.getTopLevelField('dart:_internal', 'boxedIntImmutableArray');
+
   // Debugging
   late final Procedure printToConsole =
       index.getTopLevelProcedure("dart:_internal", "printToConsole");
 
   late final Map<Member, (Extension, ExtensionMemberDescriptor)>
       _extensionCache = {};
+
+  late final Map<InterfaceType, Field> wasmArrayConstCache = {
+    _makeElementType(coreTypes.objectClass, nullable: true):
+        objectConstArrayCache,
+    _makeElementType(typeClass): typeConstArrayCache,
+    _makeElementType(namedParameterClass): namedParameterConstArrayCache,
+    _makeElementType(coreTypes.stringClass): stringConstArrayCache,
+    _makeElementType(wasmI32Class): i32ConstArrayCache,
+    _makeElementType(wasmArrayClass,
+        typeArguments: [_makeElementType(typeClass)]): typeArrayConstArrayCache,
+  };
+  late final Map<InterfaceType, Field> immutableWasmArrayConstCache = {
+    _makeElementType(coreTypes.stringClass): stringConstImmutableArrayCache,
+    _makeElementType(wasmI8Class): i8ConstImmutableArrayCache,
+    _makeElementType(wasmI64Class): i64ConstImmutableArrayCache,
+    _makeElementType(boxedIntClass): boxedIntImmutableArrayCache,
+  };
+
+  InterfaceType _makeElementType(Class c,
+          {bool nullable = false, List<InterfaceType>? typeArguments}) =>
+      InterfaceType(
+          c,
+          nullable ? Nullability.nullable : Nullability.nonNullable,
+          typeArguments);
 
   (Extension, ExtensionMemberDescriptor) extensionOfMember(Member member) {
     return _extensionCache.putIfAbsent(member, () {

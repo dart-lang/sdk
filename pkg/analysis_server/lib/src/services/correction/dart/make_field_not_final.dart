@@ -19,9 +19,8 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_fieldName];
@@ -57,7 +56,7 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    var declaration = await sessionHelper.getElementDeclaration(
+    var declaration = await sessionHelper.getFragmentDeclaration(
       variable.firstFragment,
     );
     var variableNode = declaration?.node;

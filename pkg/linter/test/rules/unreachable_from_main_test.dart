@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnreachableFromMainTest);
   });
@@ -16,6 +16,9 @@ main() {
 class UnreachableFromMainTest extends LintRuleTest {
   @override
   bool get addMetaPackageDep => true;
+
+  @override
+  bool get addTestReflectiveLoaderPackageDep => true;
 
   @override
   String get lintRule => LintNames.unreachable_from_main;
@@ -37,7 +40,8 @@ class C {
   }
 
   test_class_instanceField_reachable_overrides_local() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   B();
 }
@@ -49,9 +53,9 @@ class A {
 class B extends A {
   int? f;
 }
-''', [
-      lint(41, 1),
-    ]);
+''',
+      [lint(41, 1)],
+    );
   }
 
   test_class_instanceField_reachable_read() async {
@@ -79,7 +83,8 @@ class C {
   }
 
   test_class_instanceField_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   C();
 }
@@ -87,9 +92,9 @@ void main() {
 class C {
   int? f;
 }
-''', [
-      lint(41, 1),
-    ]);
+''',
+      [lint(41, 1)],
+    );
   }
 
   test_class_instanceGetter_reachable_invoked() async {
@@ -105,7 +110,8 @@ class C {
   }
 
   test_class_instanceGetter_reachable_overrides() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   B();
 }
@@ -117,13 +123,14 @@ class A {
 class B extends A {
   int get foo => 0;
 }
-''', [
-      lint(44, 3),
-    ]);
+''',
+      [lint(44, 3)],
+    );
   }
 
   test_class_instanceGetter_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   C();
 }
@@ -131,9 +138,9 @@ void main() {
 class C {
   int get foo => 0;
 }
-''', [
-      lint(44, 3),
-    ]);
+''',
+      [lint(44, 3)],
+    );
   }
 
   test_class_instanceMethod_reachable_invoked() async {
@@ -181,7 +188,8 @@ class B extends A {
   }
 
   test_class_instanceMethod_reachable_overrides_local() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   B();
 }
@@ -193,13 +201,14 @@ class A {
 class B extends A {
   void foo() {}
 }
-''', [
-      lint(41, 3),
-    ]);
+''',
+      [lint(41, 3)],
+    );
   }
 
   test_class_instanceMethod_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   C();
 }
@@ -207,9 +216,9 @@ void main() {
 class C {
   void foo() {}
 }
-''', [
-      lint(41, 3),
-    ]);
+''',
+      [lint(41, 3)],
+    );
   }
 
   test_class_instanceSetter_reachable_invoked() async {
@@ -225,7 +234,8 @@ class C {
   }
 
   test_class_instanceSetter_reachable_overrides() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   B();
 }
@@ -237,13 +247,14 @@ class A {
 class B extends A {
   set foo(int _) {}
 }
-''', [
-      lint(40, 3),
-    ]);
+''',
+      [lint(40, 3)],
+    );
   }
 
   test_class_instanceSetter_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   C();
 }
@@ -251,9 +262,9 @@ void main() {
 class C {
   set foo(int _) {}
 }
-''', [
-      lint(40, 3),
-    ]);
+''',
+      [lint(40, 3)],
+    );
   }
 
   test_class_reachable_mainInPart() async {
@@ -378,7 +389,8 @@ void f([Object? p = const C()]) {}
   }
 
   test_class_referencedInObjectPattern() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {}
 
 void main() {
@@ -388,23 +400,25 @@ void main() {
 void f([Object? c]) {
   if (c case C()) {}
 }
-''', [
-      lint(6, 1),
-    ]);
+''',
+      [lint(6, 1)],
+    );
   }
 
   test_class_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {}
 
 class C {}
-''', [
-      lint(22, 1),
-    ]);
+''',
+      [lint(22, 1)],
+    );
   }
 
   test_class_unreachable_foundInAsExpression() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {}
 
 void main() {
@@ -414,13 +428,14 @@ void main() {
 void f([Object? o]) {
   o as A;
 }
-''', [
-      lint(6, 1),
-    ]);
+''',
+      [lint(6, 1)],
+    );
   }
 
   test_class_unreachable_foundInAsPattern() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {}
 
 void main() {
@@ -430,13 +445,14 @@ void main() {
 void f([(Object, )? l]) {
   var (_ as A, ) = l!;
 }
-''', [
-      lint(6, 1),
-    ]);
+''',
+      [lint(6, 1)],
+    );
   }
 
   test_class_unreachable_foundInIsExpression() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {}
 
 void main() {
@@ -446,26 +462,29 @@ void main() {
 void f([Object? o]) {
   o is A;
 }
-''', [
-      lint(6, 1),
-    ]);
+''',
+      [lint(6, 1)],
+    );
   }
 
   test_class_unreachable_hasNamedConstructors() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {}
 
 class C {
   C();
   C.named();
 }
-''', [
-      lint(22, 1),
-      // TODO(srawlins): See if we can skip reporting a declaration if its
-      // enclosing declaration is being reported.
-      lint(28, 1),
-      lint(37, 5),
-    ]);
+''',
+      [
+        lint(22, 1),
+        // TODO(srawlins): See if we can skip reporting a declaration if its
+        // enclosing declaration is being reported.
+        lint(28, 1),
+        lint(37, 5),
+      ],
+    );
   }
 
   test_class_unreachable_mainInPart() async {
@@ -480,18 +499,14 @@ part 'part.dart';
 class A {}
 ''');
     await assertDiagnosticsInUnits([
-      (
-        '$testPackageLibPath/lib.dart',
-        [
-          lint(25, 1),
-        ]
-      ),
+      ('$testPackageLibPath/lib.dart', [lint(25, 1)]),
       ('$testPackageLibPath/part.dart', []),
     ]);
   }
 
   test_class_unreachable_referencedInParameter_externalMethodDeclaration() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   D().f;
 }
@@ -501,13 +516,14 @@ class C {}
 class D {
   external f(C c);
 }
-''', [
-      lint(32, 1),
-    ]);
+''',
+      [lint(32, 1)],
+    );
   }
 
   test_class_unreachable_referencedInTypeAnnotation_fieldDeclaration() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   D().c;
 }
@@ -517,13 +533,14 @@ class C {}
 class D {
   C? c;
 }
-''', [
-      lint(32, 1),
-    ]);
+''',
+      [lint(32, 1)],
+    );
   }
 
   test_class_unreachable_referencedInTypeAnnotation_parameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   f();
 }
@@ -531,13 +548,14 @@ void main() {
 void f([C? c]) {}
 
 class C {}
-''', [
-      lint(49, 1),
-    ]);
+''',
+      [lint(49, 1)],
+    );
   }
 
   test_class_unreachable_referencedInTypeAnnotation_topLevelVariable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   print(c);
 }
@@ -545,25 +563,27 @@ void main() {
 C? c;
 
 class C {}
-''', [
-      lint(42, 1),
-    ]);
+''',
+      [lint(42, 1)],
+    );
   }
 
   test_class_unreachable_referencedInTypeAnnotation_variableDeclaration() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   C? c;
 }
 
 class C {}
-''', [
-      lint(31, 1),
-    ]);
+''',
+      [lint(31, 1)],
+    );
   }
 
   test_class_unreachable_typeArgumentBound() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   f();
 }
@@ -571,9 +591,9 @@ void main() {
 class C {}
 
 void f<T extends C>() {}
-''', [
-      lint(30, 1),
-    ]);
+''',
+      [lint(30, 1)],
+    );
   }
 
   test_classInPart_reachable() async {
@@ -622,16 +642,8 @@ part of 'lib.dart';
 class A {}
 ''');
     await assertDiagnosticsInUnits([
-      (
-        '$testPackageLibPath/lib.dart',
-        [],
-      ),
-      (
-        '$testPackageLibPath/part.dart',
-        [
-          lint(27, 1),
-        ],
-      ),
+      ('$testPackageLibPath/lib.dart', []),
+      ('$testPackageLibPath/part.dart', [lint(27, 1)]),
     ]);
   }
 
@@ -647,21 +659,14 @@ class A {}
 void main() {}
 ''');
     await assertDiagnosticsInUnits([
-      (
-        '$testPackageLibPath/lib.dart',
-        [],
-      ),
-      (
-        '$testPackageLibPath/part.dart',
-        [
-          lint(27, 1),
-        ],
-      ),
+      ('$testPackageLibPath/lib.dart', []),
+      ('$testPackageLibPath/part.dart', [lint(27, 1)]),
     ]);
   }
 
   test_constructor_named_onEnum() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   E.one;
   E.two;
@@ -673,10 +678,12 @@ enum E {
   const E();
   const E.named();
 }
-''', [
-      // No lint.
-      error(WarningCode.UNUSED_ELEMENT, 84, 5),
-    ]);
+''',
+      [
+        // No lint.
+        error(WarningCode.UNUSED_ELEMENT, 84, 5),
+      ],
+    );
   }
 
   test_constructor_named_reachableViaDirectCall() async {
@@ -747,7 +754,8 @@ class C {
   }
 
   test_constructor_named_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   C;
 }
@@ -755,13 +763,14 @@ void main() {
 class C {
   C.named();
 }
-''', [
-      lint(36, 5),
-    ]);
+''',
+      [lint(36, 5)],
+    );
   }
 
   test_constructor_named_unreachable_inExtensionType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   E(7);
 }
@@ -769,13 +778,14 @@ void main() {
 extension type E(int it) {
   E.named(this.it);
 }
-''', [
-      lint(56, 5),
-    ]);
+''',
+      [lint(56, 5)],
+    );
   }
 
   test_constructor_named_unreachable_otherHasRedirectedConstructor() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   C.two();
 }
@@ -785,27 +795,12 @@ class C {
   C.one();
   factory C.two() = C.one;
 }
-''', [
-      lint(42, 5),
-    ]);
+''',
+      [lint(42, 5)],
+    );
   }
 
   test_constructor_reachableViaTestReflectiveLoader() async {
-    var testReflectiveLoaderPath = '$workspaceRootPath/test_reflective_loader';
-    var packageConfigBuilder = PackageConfigFileBuilder();
-    packageConfigBuilder.add(
-      name: 'test_reflective_loader',
-      rootPath: testReflectiveLoaderPath,
-    );
-    writeTestPackageConfig(packageConfigBuilder);
-    newFile('$testReflectiveLoaderPath/lib/test_reflective_loader.dart', r'''
-library test_reflective_loader;
-
-const Object reflectiveTest = _ReflectiveTest();
-class _ReflectiveTest {
-  const _ReflectiveTest();
-}
-''');
     await assertNoDiagnostics(r'''
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -957,7 +952,8 @@ class C {
   }
 
   test_constructor_unnamed_referencedInConstantPattern() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   const C();
 }
@@ -969,14 +965,14 @@ void main() {
 void f([C? c]) {
   if (c case const C()) {}
 }
-''', [
-      lint(6, 1),
-      lint(18, 1),
-    ]);
+''',
+      [lint(6, 1), lint(18, 1)],
+    );
   }
 
   test_constructor_unnamed_referencedInConstantPattern_generic() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C<T> {
   const C();
 }
@@ -988,14 +984,14 @@ void main() {
 void f([C? c]) {
   if (c case const C<int>()) {}
 }
-''', [
-      lint(6, 1),
-      lint(21, 1),
-    ]);
+''',
+      [lint(6, 1), lint(21, 1)],
+    );
   }
 
   test_constructor_unnamed_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   C;
 }
@@ -1003,13 +999,14 @@ void main() {
 class C {
   C();
 }
-''', [
-      lint(34, 1),
-    ]);
+''',
+      [lint(34, 1)],
+    );
   }
 
   test_constructor_unnamed_unreachable_otherHasRedirection() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   C.two();
 }
@@ -1019,9 +1016,9 @@ class C {
   C.one();
   C.two() : this.one();
 }
-''', [
-      lint(40, 1),
-    ]);
+''',
+      [lint(40, 1)],
+    );
   }
 
   test_enum_reachableViaValue() async {
@@ -1035,23 +1032,25 @@ enum E { one, two }
   }
 
   test_enum_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {}
 
 enum E { one, two }
-''', [
-      lint(21, 1),
-    ]);
+''',
+      [lint(21, 1)],
+    );
   }
 
   test_extension_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {}
 
 extension IntExtension on int {}
-''', [
-      lint(26, 12),
-    ]);
+''',
+      [lint(26, 12)],
+    );
   }
 
   test_extensionType_reachable_referencedInTypeAnnotation_asExpression() async {
@@ -1076,7 +1075,8 @@ extension type E(int it) {}
   }
 
   test_instanceFieldOnExtension_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   E.f;
 }
@@ -1085,9 +1085,9 @@ extension E on int {
   static int f = 1;
   void m() {}
 }
-''', [
-      lint(72, 1),
-    ]);
+''',
+      [lint(72, 1)],
+    );
   }
 
   test_instanceMethod_reachable_toJson() async {
@@ -1105,7 +1105,8 @@ class C {
   }
 
   test_instanceMethod_unreachable_inExtensionType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   E(7);
 }
@@ -1113,9 +1114,9 @@ void main() {
 extension type E(int it) {
   void m() {}
 }
-''', [
-      lint(59, 1),
-    ]);
+''',
+      [lint(59, 1)],
+    );
   }
 
   test_mixin_reachable_implemented() async {
@@ -1143,17 +1144,19 @@ class A with M {}
   }
 
   test_mixin_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {}
 
 mixin M {}
-''', [
-      lint(22, 1),
-    ]);
+''',
+      [lint(22, 1)],
+    );
   }
 
   test_staticField_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   C;
 }
@@ -1161,9 +1164,9 @@ void main() {
 class C {
   static int f = 1;
 }
-''', [
-      lint(45, 1),
-    ]);
+''',
+      [lint(45, 1)],
+    );
   }
 
   test_staticFieldOnClass_reachable() async {
@@ -1204,7 +1207,8 @@ extension E on int {
   }
 
   test_staticFieldOnExtension_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   E(1).m();
 }
@@ -1213,9 +1217,9 @@ extension E on int {
   static int f = 1;
   void m() {}
 }
-''', [
-      lint(63, 1),
-    ]);
+''',
+      [lint(63, 1)],
+    );
   }
 
   test_staticFieldOnMixin_reachable() async {
@@ -1243,7 +1247,8 @@ class C {
   }
 
   test_staticGetter_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   C;
 }
@@ -1251,13 +1256,14 @@ void main() {
 class C {
   static int get g => 7;
 }
-''', [
-      lint(49, 1),
-    ]);
+''',
+      [lint(49, 1)],
+    );
   }
 
   test_staticMethod_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   C;
 }
@@ -1265,9 +1271,9 @@ void main() {
 class C {
   static void f() {}
 }
-''', [
-      lint(46, 1),
-    ]);
+''',
+      [lint(46, 1)],
+    );
   }
 
   test_staticMethodOnClass_reachable() async {
@@ -1332,7 +1338,8 @@ class C {
   }
 
   test_staticSetter_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {
   C;
 }
@@ -1340,9 +1347,9 @@ void main() {
 class C {
   static set s(int value) {}
 }
-''', [
-      lint(45, 1),
-    ]);
+''',
+      [lint(45, 1)],
+    );
   }
 
   test_topLevelFunction_reachable() async {
@@ -1370,24 +1377,26 @@ void _f() {}
   }
 
   test_topLevelFunction_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {}
 
 void f() {}
-''', [
-      lint(21, 1),
-    ]);
+''',
+      [lint(21, 1)],
+    );
   }
 
   test_topLevelFunction_unreachable_unrelatedPragma() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {}
 
 @pragma('other')
 void f() {}
-''', [
-      lint(38, 1),
-    ]);
+''',
+      [lint(38, 1)],
+    );
   }
 
   test_topLevelFunction_unreachable_visibleForTesting() async {
@@ -1426,13 +1435,14 @@ int get g => 7;
   }
 
   test_topLevelGetter_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {}
 
 int get g => 7;
-''', [
-      lint(24, 1),
-    ]);
+''',
+      [lint(24, 1)],
+    );
   }
 
   test_topLevelSetter_reachable() async {
@@ -1446,13 +1456,14 @@ set s(int value) {}
   }
 
   test_topLevelSetter_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {}
 
 set s(int value) {}
-''', [
-      lint(20, 1),
-    ]);
+''',
+      [lint(20, 1)],
+    );
   }
 
   test_topLevelVariable_reachable() async {
@@ -1470,13 +1481,14 @@ int x = 1;
   }
 
   test_topLevelVariable_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {}
 
 int x = 1;
-''', [
-      lint(20, 1),
-    ]);
+''',
+      [lint(20, 1)],
+    );
   }
 
   test_typedef_reachable_referencedAsInstanceCreation_named() async {
@@ -1609,12 +1621,13 @@ typedef Cb = void Function();
   }
 
   test_typedef_unreachable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void main() {}
 
 typedef T = String;
-''', [
-      lint(24, 1),
-    ]);
+''',
+      [lint(24, 1)],
+    );
   }
 }

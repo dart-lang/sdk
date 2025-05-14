@@ -33,11 +33,10 @@ class TestCompiler {
 
     // Initialize DDC.
     var moduleName = 'foo.dart';
-    var classHierarchy = compilerResult.classHierarchy!;
+    var classHierarchy = compilerResult.classHierarchy;
     var compilerOptions = Options(
         replCompile: true,
         moduleName: moduleName,
-        soundNullSafety: setup.soundNullSafety,
         moduleFormats: [setup.moduleFormat],
         emitDebugSymbols: true);
     var coreTypes = compilerResult.coreTypes;

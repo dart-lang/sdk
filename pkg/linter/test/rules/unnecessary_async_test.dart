@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryAsyncTest);
   });
@@ -40,15 +40,16 @@ void useFunction(void Function() x) {}
   }
 
   test_closure_imposedReturnTypeVoid_noAwait() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   useFunction(() async {});
 }
 
 void useFunction(void Function() x) {}
-''', [
-      lint(28, 5),
-    ]);
+''',
+      [lint(28, 5)],
+    );
   }
 
   test_closure_noImposedReturnType_hasAwait() async {
@@ -62,60 +63,63 @@ void f() {
   }
 
   test_closure_noImposedReturnType_noAwait() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   var v = () async {};
 }
-''', [
-      lint(24, 5),
-    ]);
+''',
+      [lint(24, 5)],
+    );
   }
 
   test_localFunction_void_hasAwait() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void foo() {
   void f() async {
     await 0;
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 20, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 20, 1)],
+    );
   }
 
   test_localFunction_void_noAwait() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void foo() {
   void f() async {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 20, 1),
-      lint(24, 5),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 20, 1), lint(24, 5)],
+    );
   }
 
   test_localFunction_void_noAwait_outerHasAwait() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Future<void> foo() async {
   void f() async {}
   await 0;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 34, 1),
-      lint(38, 5),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 34, 1), lint(38, 5)],
+    );
   }
 
   test_method_future_returnFuture() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   Future<int> f() async {
     return Future.value(0);
   }
 }
-''', [
-      lint(28, 5),
-    ]);
+''',
+      [lint(28, 5)],
+    );
   }
 
   test_method_future_returnValue() async {
@@ -129,7 +133,8 @@ class A {
   }
 
   test_method_futureOr_returnFuture() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:async';
 
 class A {
@@ -137,13 +142,14 @@ class A {
     return Future.value(0);
   }
 }
-''', [
-      lint(52, 5),
-    ]);
+''',
+      [lint(52, 5)],
+    );
   }
 
   test_method_futureOr_returnValue() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:async';
 
 class A {
@@ -151,9 +157,9 @@ class A {
     return 0;
   }
 }
-''', [
-      lint(52, 5),
-    ]);
+''',
+      [lint(52, 5)],
+    );
   }
 
   test_method_void_hasAwaitExpression() async {
@@ -167,13 +173,14 @@ class A {
   }
 
   test_method_void_noAwait() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   void f() async {}
 }
-''', [
-      lint(21, 5),
-    ]);
+''',
+      [lint(21, 5)],
+    );
   }
 
   test_topLevelFunction_block_future_intNullable_returnNullable() async {
@@ -193,7 +200,8 @@ dynamic f() async {
   }
 
   test_topLevelFunction_blockBody_future_int_hasReturn_futureCustom() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Future<int> f() async {
   return MyFuture.value(0);
 }
@@ -204,19 +212,20 @@ class MyFuture<T> implements Future<T> {
   @override
   noSuchMethod(invocation) => super.noSuchMethod(invocation);
 }
-''', [
-      lint(16, 5),
-    ]);
+''',
+      [lint(16, 5)],
+    );
   }
 
   test_topLevelFunction_blockBody_future_int_returnFuture() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Future<int> f() async {
   return Future.value(0);
 }
-''', [
-      lint(16, 5),
-    ]);
+''',
+      [lint(16, 5)],
+    );
   }
 
   test_topLevelFunction_blockBody_future_int_returnValue() async {
@@ -236,7 +245,8 @@ Future<int?> f() async {
   }
 
   test_topLevelFunction_blockBody_future_void_hasReturn_future() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Future<void> f() async {
   return foo();
 }
@@ -244,9 +254,9 @@ Future<void> f() async {
 Future<void> foo() {
   return Future.value();
 }
-''', [
-      lint(17, 5),
-    ]);
+''',
+      [lint(17, 5)],
+    );
   }
 
   test_topLevelFunction_blockBody_future_void_hasReturn_nothing() async {
@@ -284,13 +294,14 @@ Future<void> f() async {
   }
 
   test_topLevelFunction_blockBody_futureNullable_int_hasReturn_future() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Future<int>? f() async {
   return Future.value(0);
 }
-''', [
-      lint(17, 5),
-    ]);
+''',
+      [lint(17, 5)],
+    );
   }
 
   test_topLevelFunction_blockBody_futureNullable_int_hasReturn_value() async {
@@ -310,11 +321,12 @@ Future<int?>? f() async {
   }
 
   test_topLevelFunction_blockBody_futureNullable_intNullable_noReturn() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Future<int?>? f() async {}
-''', [
-      error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE, 14, 1),
-    ]);
+''',
+      [error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE, 14, 1)],
+    );
   }
 
   test_topLevelFunction_blockBody_futureNullable_void_hasReturn_nothing() async {
@@ -352,27 +364,29 @@ Future<void>? f() async {
   }
 
   test_topLevelFunction_blockBody_futureOr_returnFuture() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:async';
 
 FutureOr<int> f() async {
   return Future.value(0);
 }
-''', [
-      lint(40, 5),
-    ]);
+''',
+      [lint(40, 5)],
+    );
   }
 
   test_topLevelFunction_blockBody_futureOr_returnValue() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:async';
 
 FutureOr<int> f() async {
   return 0;
 }
-''', [
-      lint(40, 5),
-    ]);
+''',
+      [lint(40, 5)],
+    );
   }
 
   test_topLevelFunction_blockBody_object() async {
@@ -410,31 +424,34 @@ void f(Stream<int> values) async {
   }
 
   test_topLevelFunction_blockBody_void_hasAwait_nestedFunctionExpression() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() async {
   () async {
     await 0;
   }();
 }
-''', [
-      lint(9, 5),
-    ]);
+''',
+      [lint(9, 5)],
+    );
   }
 
   test_topLevelFunction_blockBody_void_noAwait() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() async {}
-''', [
-      lint(9, 5),
-    ]);
+''',
+      [lint(9, 5)],
+    );
   }
 
   test_topLevelFunction_exprBody_future_int_returnFuture() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Future<int> f() async => Future.value(0);
-''', [
-      lint(16, 5),
-    ]);
+''',
+      [lint(16, 5)],
+    );
   }
 
   test_topLevelFunction_exprBody_future_int_returnValue() async {

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -21,12 +19,12 @@ main() {
 
 @reflectiveTest
 class TryPromoteToTest extends AbstractTypeSystemTest {
-  void notPromotes(DartType from, DartType to) {
+  void notPromotes(TypeImpl from, TypeImpl to) {
     var result = typeSystem.tryPromoteToType(to, from);
     expect(result, isNull);
   }
 
-  void promotes(DartType from, DartType to) {
+  void promotes(TypeImpl from, TypeImpl to) {
     var result = typeSystem.tryPromoteToType(to, from);
     expect(result, to);
   }
@@ -43,7 +41,7 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter() {
-    TypeParameterTypeImpl tryPromote(DartType to, TypeParameterTypeImpl from) {
+    TypeParameterTypeImpl tryPromote(TypeImpl to, TypeParameterTypeImpl from) {
       return typeSystem.tryPromoteToType(to, from) as TypeParameterTypeImpl;
     }
 
@@ -63,17 +61,17 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_twice() {
-    TypeParameterTypeImpl tryPromote(DartType to, TypeParameterTypeImpl from) {
+    TypeParameterTypeImpl tryPromote(TypeImpl to, TypeParameterTypeImpl from) {
       return typeSystem.tryPromoteToType(to, from) as TypeParameterTypeImpl;
     }
 
     void check(
       TypeParameterTypeImpl type,
-      TypeParameterElement element,
+      TypeParameterElement2 element,
       NullabilitySuffix nullability,
       DartType promotedBound,
     ) {
-      expect(type.element, element);
+      expect(type.element3, element);
       expect(type.nullabilitySuffix, nullability);
       expect(type.promotedBound, promotedBound);
     }

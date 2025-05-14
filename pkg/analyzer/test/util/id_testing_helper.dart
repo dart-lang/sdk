@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 // TODO(johnniwinther): .
 // TODO(paulberry): Use the code for extraction of test data from
 // annotated code from CFE.
@@ -124,8 +122,7 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
     resourceProvider: resourceProvider,
     retainDataForTesting: true,
     sdkPath: sdkRoot.path,
-    updateAnalysisOptions2: (
-        {required analysisOptions, required contextRoot, required sdk}) {
+    updateAnalysisOptions3: ({required analysisOptions, required sdk}) {
       analysisOptions.contextFeatures = config.featureSet;
     },
   );
@@ -270,12 +267,6 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         }
       }
       return 0;
-    } else if (id is LibraryId) {
-      var unit =
-          parseString(content: code[uri]!.sourceCode, throwIfDiagnostics: false)
-              .unit;
-      var offset = unit.declaredElement?.library.nameOffset ?? -1;
-      return offset >= 0 ? offset : 0;
     } else {
       throw StateError('Unexpected id ${id.runtimeType}');
     }

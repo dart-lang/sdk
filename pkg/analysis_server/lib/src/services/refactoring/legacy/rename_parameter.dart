@@ -11,20 +11,21 @@ import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_c
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// A [Refactoring] for renaming [FormalParameterElement]s.
 class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
   List<FormalParameterElement> elements = [];
+  bool _renameAllPositionalOccurences = false;
 
   RenameParameterRefactoringImpl(
     super.workspace,
     super.sessionHelper,
     FormalParameterElement super.element,
-  ) : super.c2();
+  ) : super();
 
   @override
-  FormalParameterElement get element2 =>
-      super.element2 as FormalParameterElement;
+  FormalParameterElement get element => super.element as FormalParameterElement;
 
   @override
   String get refactoringName {
@@ -34,6 +35,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
     var result = RefactoringStatus();
+    var conflictResult = RefactoringStatus();
     await _prepareElements();
     for (var element in elements) {
       if (newName.startsWith('_') && element.isNamed) {
@@ -46,15 +48,38 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
         break;
       }
       var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
-      var unit = resolvedUnit?.unit;
-      unit?.accept(
-        ConflictValidatorVisitor(
-          result,
-          newName,
-          element,
-          VisibleRangesComputer.forNode(unit),
+      if (resolvedUnit != null) {
+        // If any of the resolved units have the lint enabled, we should avoid
+        // renaming method parameters separately from the other implementations.
+        if (element.isPositional && !_renameAllPositionalOccurences) {
+          _renameAllPositionalOccurences |=
+              getCodeStyleOptions(
+                resolvedUnit.file,
+              ).avoidRenamingMethodParameters;
+        }
+
+        var unit = resolvedUnit.unit;
+        unit.accept(
+          ConflictValidatorVisitor(
+            conflictResult,
+            newName,
+            element,
+            VisibleRangesComputer.forNode(unit),
+          ),
+        );
+      }
+    }
+    if (_renameAllPositionalOccurences && elements.length > 1) {
+      result.addStatus(
+        _RefactoringStatusExt.from(
+          'This will also rename all related positional parameters '
+          'to the same name.',
+          conflictResult,
         ),
       );
+    }
+    if (result.problem == null) {
+      return conflictResult;
     }
     return result;
   }
@@ -70,17 +95,22 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
   Future<void> fillChange() async {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
     for (var element in elements) {
+      if (element != this.element &&
+          element.isPositional &&
+          !_renameAllPositionalOccurences) {
+        continue;
+      }
       var fieldRenamed = false;
       if (element is FieldFormalParameterElement2) {
         var field = element.field2;
         if (field != null) {
-          await processor.renameElement2(field);
+          await processor.renameElement(field);
           fieldRenamed = true;
         }
       }
 
       if (!fieldRenamed) {
-        processor.addDeclarationEdit2(element);
+        processor.addDeclarationEdit(element);
       }
       var references = await searchEngine.searchReferences(element);
 
@@ -93,7 +123,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
       // References to positional parameters from super-formal.
       if (element.isPositional) {
         references.removeWhere(
-          (match) => match.element2 is SuperFormalParameterElement2,
+          (match) => match.element is SuperFormalParameterElement2,
         );
       }
 
@@ -103,12 +133,33 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
 
   /// Fills [elements] with [Element2]s to rename.
   Future<void> _prepareElements() async {
-    var element = element2;
+    var element = this.element;
     if (element.isNamed) {
-      elements =
-          (await getHierarchyNamedParameters(searchEngine, element)).toList();
-    } else {
-      elements = [element];
+      elements = await getHierarchyNamedParameters(searchEngine, element);
+    } else if (element.isPositional) {
+      elements = await getHierarchyPositionalParameters(searchEngine, element);
     }
+  }
+}
+
+extension _RefactoringStatusExt on RefactoringStatus {
+  String get messagesAggregated {
+    if (problems.isEmpty) {
+      return '';
+    }
+    if (problems.length == 1) {
+      return '\n${problems.first.message}';
+    }
+    return '\n${problems.first.message} And ${problems.length - 1} more '
+        'error${problems.length > 1 ? 's' : ''}.';
+  }
+
+  static RefactoringStatus from(String message, RefactoringStatus result) {
+    var constructor = switch (result.severity) {
+      RefactoringProblemSeverity.ERROR => RefactoringStatus.error,
+      RefactoringProblemSeverity.FATAL => RefactoringStatus.fatal,
+      _ => RefactoringStatus.warning,
+    };
+    return constructor(message + result.messagesAggregated);
   }
 }

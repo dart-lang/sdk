@@ -41,7 +41,12 @@ import 'generics.dart'
 import 'local_variable_table.dart' show LocalVariableTable;
 import 'local_vars.dart' show LocalVariables;
 import 'object_table.dart'
-    show ObjectHandle, ObjectTable, NameAndType, topLevelClassName;
+    show
+        ObjectHandle,
+        ObjectTable,
+        NameAndType,
+        ParameterFlags,
+        topLevelClassName;
 import 'options.dart' show BytecodeOptions;
 import 'recognized_methods.dart' show RecognizedMethods;
 import 'source_positions.dart' show LineStarts, SourcePositions;
@@ -689,9 +694,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     for (var param in function.namedParameters) {
       parameters.add(getParameterDeclaration(param));
     }
-    // We only need the required flags when loading the function declaration.
     final parameterFlags =
-        getParameterFlags(function, mask: ParameterDeclaration.isRequiredFlag);
+        ParameterFlags.getFunctionFlags(function, isCode: false);
     if (parameterFlags != null) {
       flags |= FunctionDeclaration.hasParameterFlagsFlag;
     }
@@ -750,43 +754,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     final nameHandle = objectTable.getNameHandle(lib, name);
     final typeHandle = objectTable.getHandle(variable.type)!;
     return new ParameterDeclaration(nameHandle, typeHandle);
-  }
-
-  // Most uses of parameter flags in the VM only nee a subset of the flags,
-  // so the optional [mask] argument allows the caller to specify the subset
-  // that should be retained.
-  List<int>? getParameterFlags(FunctionNode function, {int mask = -1}) {
-    int getFlags(VariableDeclaration variable, int mask) {
-      int flags = 0;
-      if (variable.isCovariantByDeclaration) {
-        flags |= ParameterDeclaration.isCovariantFlag;
-      }
-      if (variable.isCovariantByClass) {
-        flags |= ParameterDeclaration.isCovariantByClassFlag;
-      }
-      if (variable.isFinal) {
-        flags |= ParameterDeclaration.isFinalFlag;
-      }
-      if (variable.isRequired) {
-        flags |= ParameterDeclaration.isRequiredFlag;
-      }
-      return flags & mask;
-    }
-
-    final List<int> paramFlags = <int>[];
-    for (var param in function.positionalParameters) {
-      paramFlags.add(getFlags(param, mask));
-    }
-    for (var param in function.namedParameters) {
-      paramFlags.add(getFlags(param, mask));
-    }
-
-    for (int flags in paramFlags) {
-      if (flags != 0) {
-        return paramFlags;
-      }
-    }
-    return null;
   }
 
   @override
@@ -1774,16 +1741,12 @@ class BytecodeGenerator extends RecursiveVisitor {
         int? forwardingStubTargetCpIndex = null;
         int? defaultFunctionTypeArgsCpIndex = null;
 
-        // We don't need the required flag when loading the code, but do need
-        // all other parameter flags.
-        final parameterFlagMask = ~ParameterDeclaration.isRequiredFlag;
-
         if (node is Constructor) {
           parameterFlags =
-              getParameterFlags(node.function, mask: parameterFlagMask);
+              ParameterFlags.getFunctionFlags(node.function, isCode: true);
         } else if (node is Procedure) {
           parameterFlags =
-              getParameterFlags(node.function, mask: parameterFlagMask);
+              ParameterFlags.getFunctionFlags(node.function, isCode: true);
 
           if (node.isForwardingStub) {
             forwardingStubTargetCpIndex = cp.addObjectRef(node.stubTarget);
@@ -2496,9 +2459,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       typeParameters = getTypeParametersDeclaration(function.typeParameters);
     }
 
-    // We only need the required flags when loading the closure declaration.
     final parameterFlags =
-        getParameterFlags(function, mask: ParameterDeclaration.isRequiredFlag);
+        ParameterFlags.getFunctionFlags(function, isCode: false);
     if (parameterFlags != null) {
       flags |= ClosureDeclaration.hasParameterFlagsFlag;
     }
@@ -3999,7 +3961,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     return locals.tempIndexInFrame(node, tempIndex: 1);
   }
 
-  _saveContextForTryBlock(TreeNode node) {
+  void _saveContextForTryBlock(TreeNode node) {
     if (!locals.hasContextVar) {
       return;
     }
@@ -4007,7 +3969,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitPopLocal(_savedContextVar(node));
   }
 
-  _restoreContextForTryBlock(TreeNode node) {
+  void _restoreContextForTryBlock(TreeNode node) {
     if (!locals.hasContextVar) {
       return;
     }

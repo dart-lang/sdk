@@ -66,18 +66,15 @@ class OptionalNamedParametersTest {
     Expect.equals(20, F10());
     Expect.equals(20, np.f21());
 
-
     Expect.equals(20, F10(b: 20));
     Expect.equals(20, np.f21(b: 20));
     Expect.equals(1020, F21(10));
     Expect.equals(1020, np.f32(10));
 
-
     Expect.equals(1025, F21(10, b: 25));
     Expect.equals(1025, np.f32(10, b: 25));
     Expect.equals(102030, F31(10));
     Expect.equals(102030, np.f42(10));
-
 
     Expect.equals(102530, F31(10, b: 25));
     Expect.equals(102530, np.f42(10, b: 25));
@@ -85,7 +82,6 @@ class OptionalNamedParametersTest {
     Expect.equals(102035, np.f42(10, c: 35));
     Expect.equals(102535, F31(10, b: 25, c: 35));
     Expect.equals(102535, np.f42(10, b: 25, c: 35));
-
 
     Expect.equals(102535, F31(10, c: 35, b: 25));
     Expect.equals(102535, np.f42(10, c: 35, b: 25));

@@ -7,7 +7,7 @@ import 'package:expect/async_helper.dart' show asyncExpectThrows;
 
 /// For the same reasons as the `duplicate_library` test, it is an error to load
 /// the same module twice.
-main() async {
+void main() async {
   await helper.load('entry1.dart');
   await asyncExpectThrows(helper.load('entry1.dart'));
   helper.done();

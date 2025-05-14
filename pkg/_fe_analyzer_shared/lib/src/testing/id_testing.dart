@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import '../macros/uri.dart';
 import 'annotated_code_helper.dart';
 import 'id.dart';
 import 'id_generation.dart';
@@ -929,9 +928,6 @@ Future<void> runTests<T>(Directory dataDir,
               actualData[marker] = {};
 
           void addActualData(Uri uri, Map<Id, ActualData<T>> actualData) {
-            if (isMacroLibraryUri(uri)) {
-              uri = toOriginLibraryUri(uri);
-            }
             assert(testData.code.containsKey(uri) || actualData.isEmpty,
                 "Unexpected data ${actualData} for $uri");
             if (actualData.isEmpty) {

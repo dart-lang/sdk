@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalyzerUseNewElementsTest);
   });
@@ -37,22 +37,35 @@ class AnalyzerUseNewElementsTest extends LintRuleTest {
     newPackageConfigJsonFileFromBuilder(
       testPackageRootPath,
       PackageConfigFileBuilder()
-        ..add(
-          name: 'analyzer',
-          rootPath: analyzerFolder.path,
-        ),
+        ..add(name: 'analyzer', rootPath: analyzerFolder.path),
     );
   }
 
   test_enablement_optedOut() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 // ignore_for_file: analyzer_use_new_elements
 import 'package:analyzer/dart/element/element.dart';
 
 ClassElement f() {
   throw 42;
 }
-''', []);
+''',
+      [error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 100, 12)],
+    );
+  }
+
+  test_interfaceTypeImpl_element() async {
+    await assertDiagnostics(
+      r'''
+import 'package:analyzer/src/dart/element/type.dart';
+
+void f(InterfaceTypeImpl type) {
+  type.element;
+}
+''',
+      [error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 95, 7), lint(95, 7)],
+    );
   }
 
   test_methodInvocation_hasFormalParameter() async {
@@ -78,51 +91,93 @@ import 'package:analyzer/dart/element/element.dart';
 List<ClassElement> getAllClasses() => [];
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'a.dart';
 
 void f() {
   getAllClasses();
 }
-''', [
-      lint(31, 13),
-    ]);
+''',
+      [lint(31, 13)],
+    );
+  }
+
+  test_methodInvocation_inDeprecated() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:analyzer/dart/element/element.dart';
+
+List<ClassElement> getAllClasses() => [];
+''');
+
+    await assertNoDiagnostics(r'''
+import 'a.dart';
+
+@deprecated
+void f() {
+  getAllClasses();
+}
+''');
+  }
+
+  test_methodInvocation_inDeprecated2() async {
+    await assertNoDiagnostics(r'''
+import 'package:analyzer/dart/element/element.dart';
+
+@deprecated
+void f(Element element) {
+  var foo = element.nonSynthetic;
+  print(foo);
+}
+''');
   }
 
   test_namedType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:analyzer/dart/element/element.dart';
 
 ClassElement f() {
   throw 42;
 }
-''', [
-      lint(54, 12),
-    ]);
+''',
+      [
+        error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 54, 12),
+        lint(54, 12),
+      ],
+    );
   }
 
   test_propertyAccess() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:analyzer/dart/ast/ast.dart';
 
 void f(ClassDeclaration a) {
   a.declaredElement;
 }
-''', [
-      lint(79, 15),
-    ]);
+''',
+      [
+        error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 79, 15),
+        lint(79, 15),
+      ],
+    );
   }
 
   test_propertyAccess_declaredElement_src() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:analyzer/src/dart/ast/ast.dart';
 
 void f(ClassDeclarationImpl a) {
   a.declaredElement;
 }
-''', [
-      lint(87, 15),
-    ]);
+''',
+      [
+        error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 87, 15),
+        lint(87, 15),
+      ],
+    );
   }
 
   test_propertyAccess_nestedType() async {
@@ -132,14 +187,15 @@ import 'package:analyzer/dart/element/element.dart';
 List<ClassElement> get allClasses => [];
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'a.dart';
 
 void f() {
   allClasses;
 }
-''', [
-      lint(31, 10),
-    ]);
+''',
+      [lint(31, 10)],
+    );
   }
 }

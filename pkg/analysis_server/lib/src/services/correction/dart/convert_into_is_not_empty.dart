@@ -16,65 +16,61 @@ class ConvertIntoIsNotEmpty extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    // prepare "expr.isEmpty"
-    SimpleIdentifier? isEmptyIdentifier;
-    AstNode? isEmptyAccess;
-    if (node is SimpleIdentifier) {
-      var identifier = node as SimpleIdentifier;
-      var parent = identifier.parent;
-      // normal case (but rare)
-      if (parent is PropertyAccess) {
-        isEmptyIdentifier = parent.propertyName;
-        isEmptyAccess = parent;
-      }
-      // usual case
-      if (parent is PrefixedIdentifier) {
-        isEmptyIdentifier = parent.identifier;
-        isEmptyAccess = parent;
-      }
-    }
-    if (isEmptyIdentifier == null || isEmptyAccess == null) {
+    if (node is! SimpleIdentifier) {
       return;
     }
-    // should be "isEmpty"
+
+    // Prepare `expr.isEmpty`.
+    SimpleIdentifier isEmptyIdentifier;
+    AstNode isEmptyAccess;
+    var identifier = node as SimpleIdentifier;
+    var parent = identifier.parent;
+    if (parent is PropertyAccess) {
+      // Normal case (but rare).
+      isEmptyIdentifier = parent.propertyName;
+      isEmptyAccess = parent;
+    } else if (parent is PrefixedIdentifier) {
+      // Usual case.
+      isEmptyIdentifier = parent.identifier;
+      isEmptyAccess = parent;
+    } else {
+      return;
+    }
+
+    // Should be `isEmpty`.
     var propertyElement = isEmptyIdentifier.element;
     if (propertyElement == null || 'isEmpty' != propertyElement.name3) {
       return;
     }
-    // should have "isNotEmpty"
+    // Should have `isNotEmpty`.
     var propertyTarget = propertyElement.enclosingElement2;
     if (propertyTarget == null ||
         getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
       return;
     }
-    // should be in PrefixExpression
+    // Should be in `PrefixExpression`.
     if (isEmptyAccess.parent is! PrefixExpression) {
       return;
     }
     var prefixExpression = isEmptyAccess.parent as PrefixExpression;
-    // should be !
+    // Should be `!`.
     if (prefixExpression.operator.type != TokenType.BANG) {
       return;
     }
 
-    var isEmptyIdentifier_final = isEmptyIdentifier;
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
         range.startStart(prefixExpression, prefixExpression.operand),
       );
-      builder.addSimpleReplacement(
-        range.node(isEmptyIdentifier_final),
-        'isNotEmpty',
-      );
+      builder.addSimpleReplacement(range.node(isEmptyIdentifier), 'isNotEmpty');
     });
   }
 }

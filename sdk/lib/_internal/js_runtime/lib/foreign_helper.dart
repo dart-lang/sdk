@@ -157,27 +157,30 @@ export 'dart:_array_flags';
 /// additional arguments for the new information.
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
-external T JS<T>(String typeDescription, String codeTemplate,
-    [arg0,
-    arg1,
-    arg2,
-    arg3,
-    arg4,
-    arg5,
-    arg6,
-    arg7,
-    arg8,
-    arg9,
-    arg10,
-    arg11,
-    arg12,
-    arg13,
-    arg14,
-    arg51,
-    arg16,
-    arg17,
-    arg18,
-    arg19]);
+external T JS<T>(
+  String typeDescription,
+  String codeTemplate, [
+  arg0,
+  arg1,
+  arg2,
+  arg3,
+  arg4,
+  arg5,
+  arg6,
+  arg7,
+  arg8,
+  arg9,
+  arg10,
+  arg11,
+  arg12,
+  arg13,
+  arg14,
+  arg51,
+  arg16,
+  arg17,
+  arg18,
+  arg19,
+]);
 
 /// Converts the Dart closure [function] into a JavaScript closure.
 ///
@@ -228,8 +231,22 @@ external JS_EMBEDDED_GLOBAL(String typeDescription, String name);
 /// `_js_shared_embedded_names` library.
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
-external JS_BUILTIN(String typeDescription, JsBuiltin builtin,
-    [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11]);
+external JS_BUILTIN(
+  String typeDescription,
+  JsBuiltin builtin, [
+  arg0,
+  arg1,
+  arg2,
+  arg3,
+  arg4,
+  arg5,
+  arg6,
+  arg7,
+  arg8,
+  arg9,
+  arg10,
+  arg11,
+]);
 
 /// Returns the state of a flag that is determined by the state of the compiler
 /// when the program has been analyzed.
@@ -257,9 +274,6 @@ external Object JS_RAW_EXCEPTION();
 
 /// Returns a TypeReference to [T].
 external Rti TYPE_REF<T>();
-
-/// Returns a TypeReference to [T]*.
-external Rti LEGACY_TYPE_REF<T>();
 
 /// Pretend [code] is executed.  Generates no executable code.  This is used to
 /// model effects at some other point in external code.  For example, the
@@ -336,8 +350,12 @@ external int HArrayFlagsGet(Object array);
 /// intervening HArrayFlagsSet that might invalidate the check.
 @pragma('dart2js:as:trust')
 T HArrayFlagsCheck<T>(
-    Object array, int arrayFlags, int checkFlags, String operation,
-    [String verb = 'modify']) {
+  Object array,
+  int arrayFlags,
+  int checkFlags,
+  String operation, [
+  String verb = 'modify',
+]) {
   // This body is unused but serves as a model for global for impacts and
   // analysis.
   if (arrayFlags & checkFlags != 0) {

@@ -16,28 +16,18 @@ class MapFactorySpecializer extends BaseSpecializer {
   final Constructor _internalLinkedHashMapConstructor;
 
   MapFactorySpecializer(CoreTypes coreTypes)
-      : _linkedHashMapDefaultFactory = assertNotNull(
-          coreTypes.index.getProcedure(
-            'dart:collection',
-            'LinkedHashMap',
-            '',
-          ),
-        ),
-        _internalLinkedHashMapConstructor = assertNotNull(
-          coreTypes.index.getConstructor(
-            'dart:_compact_hash',
-            '_Map',
-            '',
-          ),
-        ) {
-    transformers.addAll({
-      _linkedHashMapDefaultFactory: transformLinkedHashMap,
-    });
-  }
+    : _linkedHashMapDefaultFactory = coreTypes.index.getProcedure(
+        'dart:collection',
+        'LinkedHashMap',
+        '',
+      ),
 
-  static T assertNotNull<T>(T t) {
-    assert(t != null);
-    return t;
+      _internalLinkedHashMapConstructor = coreTypes.index.getConstructor(
+        'dart:_compact_hash',
+        '_Map',
+        '',
+      ) {
+    transformers.addAll({_linkedHashMapDefaultFactory: transformLinkedHashMap});
   }
 
   TreeNode transformLinkedHashMap(StaticInvocation node) {

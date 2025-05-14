@@ -5,7 +5,9 @@
 import 'package:expect/expect.dart';
 
 class T {
-  A foo(int x) { return A(); }
+  A foo(int x) {
+    return A();
+  }
 }
 
 class A {}

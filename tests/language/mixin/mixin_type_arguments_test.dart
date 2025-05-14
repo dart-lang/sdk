@@ -72,26 +72,64 @@ class CA extends Object
 List<Type> trace(x) => [x.m1(), x.m2(), x.m3(), x.m4(), x.m5()];
 
 main() {
-  Expect.listEquals(
-      [M1<dynamic>, M2<A>, M3<dynamic>, M4<B>, M5<C>], trace(new C1()));
+  Expect.listEquals([
+    M1<dynamic>,
+    M2<A>,
+    M3<dynamic>,
+    M4<B>,
+    M5<C>,
+  ], trace(new C1()));
   Expect.listEquals([M1<A>, M2<B>, M3<C>, M4<D>, M5<E>], trace(new C2()));
-  Expect.listEquals(
-      [M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>], trace(new C3()));
-  Expect.listEquals(
-      [M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>], trace(new C3<F>()));
-  Expect.listEquals(
-      [M1<dynamic>, M2<A>, M3<dynamic>, M4<B>, M5<C>], trace(new C4()));
+  Expect.listEquals([
+    M1<A>,
+    M2<dynamic>,
+    M3<dynamic>,
+    M4<dynamic>,
+    M5<B>,
+  ], trace(new C3()));
+  Expect.listEquals([
+    M1<A>,
+    M2<F>,
+    M3<dynamic>,
+    M4<dynamic>,
+    M5<B>,
+  ], trace(new C3<F>()));
+  Expect.listEquals([
+    M1<dynamic>,
+    M2<A>,
+    M3<dynamic>,
+    M4<B>,
+    M5<C>,
+  ], trace(new C4()));
   Expect.listEquals([M1<A>, M2<B>, M3<C>, M4<D>, M5<E>], trace(new C5()));
-  Expect.listEquals(
-      [M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>], trace(new C6()));
-  Expect.listEquals(
-      [M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>], trace(new C6<F>()));
+  Expect.listEquals([
+    M1<A>,
+    M2<dynamic>,
+    M3<dynamic>,
+    M4<dynamic>,
+    M5<B>,
+  ], trace(new C6()));
+  Expect.listEquals([
+    M1<A>,
+    M2<F>,
+    M3<dynamic>,
+    M4<dynamic>,
+    M5<B>,
+  ], trace(new C6<F>()));
   Expect.listEquals([M1<A>, M2<A>, M3<A>, M4<A>, M5<A>], trace(new C7()));
   Expect.listEquals([M1<A>, M2<A>, M3<A>, M4<A>, M5<A>], trace(new C8()));
-  Expect.listEquals(
-      [M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>],
-      trace(new C9()));
-  Expect.listEquals(
-      [M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>],
-      trace(new CA()));
+  Expect.listEquals([
+    M1<List<A>>,
+    M2<List<A>>,
+    M3<List<A>>,
+    M4<List<A>>,
+    M5<List<A>>,
+  ], trace(new C9()));
+  Expect.listEquals([
+    M1<List<A>>,
+    M2<List<A>>,
+    M3<List<A>>,
+    M4<List<A>>,
+    M5<List<A>>,
+  ], trace(new CA()));
 }

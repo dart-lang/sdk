@@ -7,7 +7,9 @@ description: >-
   This package is not intended to be used directly.
 
 environment:
-  sdk: ^3.3.0
+  sdk: ^3.7.0
+
+resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:

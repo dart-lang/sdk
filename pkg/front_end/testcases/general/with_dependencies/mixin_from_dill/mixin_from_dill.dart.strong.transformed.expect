@@ -26,18 +26,6 @@ library;
 import self as mix2;
 import "dart:core" as core;
 
-abstract class _Foo&B&D extends mix2::B implements mix2::D /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → mix2::_Foo&B&D
-    : super mix2::B::•()
-    ;
-  operator ==(core::Object dynamic) → core::bool {
-    core::print("D.==");
-    return true;
-  }
-  method x() → void {
-    core::print("D.x");
-  }
-}
 class Foo extends mix2::_Foo&B&D {
   synthetic constructor •() → mix2::Foo
     : super mix2::_Foo&B&D::•()
@@ -69,14 +57,9 @@ abstract class D extends core::Object implements mix2::C /*isMixinDeclaration*/ 
     core::print("D.x");
   }
 }
-
-library;
-import self as mix;
-import "dart:core" as core;
-
-abstract class _Foo&B&D extends mix::B implements mix::D /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → mix::_Foo&B&D
-    : super mix::B::•()
+abstract class _Foo&B&D extends mix2::B implements mix2::D /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → mix2::_Foo&B&D
+    : super mix2::B::•()
     ;
   operator ==(core::Object dynamic) → core::bool {
     core::print("D.==");
@@ -86,6 +69,11 @@ abstract class _Foo&B&D extends mix::B implements mix::D /*isAnonymousMixin,isEl
     core::print("D.x");
   }
 }
+
+library;
+import self as mix;
+import "dart:core" as core;
+
 class Foo extends mix::_Foo&B&D {
   synthetic constructor •() → mix::Foo
     : super mix::_Foo&B&D::•()
@@ -109,6 +97,18 @@ abstract class C extends core::Object {
     ;
 }
 abstract class D extends core::Object implements mix::C /*isMixinDeclaration*/  {
+  operator ==(core::Object dynamic) → core::bool {
+    core::print("D.==");
+    return true;
+  }
+  method x() → void {
+    core::print("D.x");
+  }
+}
+abstract class _Foo&B&D extends mix::B implements mix::D /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → mix::_Foo&B&D
+    : super mix::B::•()
+    ;
   operator ==(core::Object dynamic) → core::bool {
     core::print("D.==");
     return true;

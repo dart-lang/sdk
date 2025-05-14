@@ -21,19 +21,12 @@ class A extends core::Object /*hasConstConstructor*/  {
 abstract class B extends core::Object /*isMixinDeclaration*/  {
   static const field core::int value = #C1;
 }
-abstract class _C1&A&B extends self::A implements self::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  static const field core::int value = #C1;
-  const synthetic constructor •() → self::_C1&A&B
-    : super self::A::•()
-    ;
-}
 class C1 extends self::_C1&A&B /*hasConstConstructor*/  {
   const constructor •() → self::C1
     : super self::_C1&A&B::•()
     ;
 }
 class C2 extends self::A implements self::B /*isEliminatedMixin,hasConstConstructor*/  {
-  static const field core::int value = #C1;
   const synthetic constructor •() → self::C2
     : super self::A::•()
     ;
@@ -45,12 +38,6 @@ class C3 extends self::C2 /*hasConstConstructor*/  {
 }
 abstract class D extends core::Object /*isMixinDeclaration*/  {
   field core::int value = 1;
-}
-abstract class _E1&A&D extends self::A implements self::D /*isAnonymousMixin,isEliminatedMixin*/  {
-  field core::int value = 1;
-  synthetic constructor •() → self::_E1&A&D
-    : super self::A::•()
-    ;
 }
 class E1 extends self::_E1&A&D /*hasConstConstructor*/  {
   const constructor •() → self::E1
@@ -66,6 +53,17 @@ class E2 extends self::A implements self::D /*isEliminatedMixin*/  {
 class E3 extends self::E2 /*hasConstConstructor*/  {
   const constructor •() → self::E3
     : super self::E2::•()
+    ;
+}
+abstract class _C1&A&B extends self::A implements self::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C1&A&B
+    : super self::A::•()
+    ;
+}
+abstract class _E1&A&D extends self::A implements self::D /*isAnonymousMixin,isEliminatedMixin*/  {
+  field core::int value = 1;
+  synthetic constructor •() → self::_E1&A&D
+    : super self::A::•()
     ;
 }
 static method main() → dynamic {}

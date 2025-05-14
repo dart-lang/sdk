@@ -103,6 +103,17 @@ dependencies:
     );
   }
 
+  void test_pubspecContainsSdkConstraint() {
+    var pluginPackageGenerator = PluginPackageGenerator([]);
+    expect(
+      pluginPackageGenerator.generatePubspec(),
+      contains('''
+environment:
+  sdk: ^3.6.0
+'''),
+    );
+  }
+
   void test_pubspecContainsVersionedDependencies() {
     var pluginPackageGenerator = PluginPackageGenerator([
       PluginConfiguration(

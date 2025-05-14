@@ -26,7 +26,6 @@ native-assets:
         NativeAssetsValidator(errorDetector).parseAndValidate(yamlString)!;
     final component = Component(
       libraries: [NativeAssetsSynthesizer.synthesizeLibrary(validatedYaml)],
-      mode: NonNullableByDefaultCompiledMode.Strong,
     );
     final libraryToString = kernelLibraryToString(component.libraries.single);
     final expectedKernel = '''@#C3
@@ -55,15 +54,20 @@ constants  {
   test('no file', () async {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-        previousErrorHandler: (message) =>
-            errors.add(message as NativeAssetsDiagnosticMessage));
+      previousErrorHandler:
+          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+    );
     final uri = Directory.systemTemp.uri.resolve('file_does_not_exist.yaml');
     Object? result =
         await NativeAssetsSynthesizer.synthesizeLibraryFromYamlFile(
-            uri, errorDetector);
+          uri,
+          errorDetector,
+        );
     expect(result, null);
     expect(errorDetector.hasCompilationErrors, true);
-    expect(errors.single.message,
-        equals("Native assets file ${uri.toFilePath()} doesn't exist."));
+    expect(
+      errors.single.message,
+      equals("Native assets file ${uri.toFilePath()} doesn't exist."),
+    );
   });
 }

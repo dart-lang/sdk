@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -20,7 +20,7 @@ class InstanceCreationExpressionResolver {
   InstanceCreationExpressionResolver(this._resolver);
 
   void resolve(InstanceCreationExpressionImpl node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     // The parser can parse certain code as [InstanceCreationExpression] when it
     // might be an invocation of a method on a [FunctionReference] or
     // [ConstructorReference]. In such a case, it is this resolver's
@@ -50,7 +50,7 @@ class InstanceCreationExpressionResolver {
   }
 
   void _resolveInstanceCreationExpression(InstanceCreationExpressionImpl node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
     var constructorName = node.constructorName;
     constructorName.accept(_resolver);
@@ -67,7 +67,10 @@ class InstanceCreationExpressionResolver {
             argumentList: node.argumentList,
             contextType: contextType,
             whyNotPromotedArguments: whyNotPromotedArguments)
-        .resolveInvocation(rawType: elementToInfer?.asType);
+        .resolveInvocation(
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `ConstructorElementToInfer.asType`.
+            rawType: elementToInfer?.asType as FunctionTypeImpl?);
     node.recordStaticType(node.constructorName.type.type!, resolver: _resolver);
     _resolver.checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedArguments);
@@ -81,7 +84,7 @@ class InstanceCreationExpressionResolver {
   void _resolveWithTypeNameWithTypeArguments(
       InstanceCreationExpressionImpl node,
       TypeArgumentListImpl typeNameTypeArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
     // [MethodInvocation].
     _resolveInstanceCreationExpression(node, contextType: contextType);

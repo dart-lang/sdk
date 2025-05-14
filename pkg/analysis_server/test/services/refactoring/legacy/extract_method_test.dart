@@ -353,100 +353,80 @@ import 'package:ddd/ddd.dart';
 @reflectiveTest
 class ExtractMethodTest extends _ExtractMethodTest {
   Future<void> test_bad_assignmentLeftHandSide() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int aaa;
-  aaa = 0;
+  [!aaa !]= 0;
 }
 ''');
-    _createRefactoringForString('aaa ');
     return _assertConditionsFatal(
       'Cannot extract the left-hand side of an assignment.',
     );
   }
 
   Future<void> test_bad_comment_selectionEndsInside() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-// start
-  print(0);
-/*
-// end
-*/
+  [!print(0); /* !] */
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal('Selection ends inside a comment.');
   }
 
   Future<void> test_bad_comment_selectionStartsInside() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-/*
-// start
-*/
-  print(0);
-// end
+/* [! */ print(0); !]
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal('Selection begins inside a comment.');
   }
 
   Future<void> test_bad_conflict_method_alreadyDeclaresMethod() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   void res() {}
   void f() {
-// start
-    print(0);
-// end
+    [!print(0);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsError(
       "Class 'A' already declares method with name 'res'.",
     );
   }
 
   Future<void> test_bad_conflict_method_shadowsSuperDeclaration() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   void res() {} // marker
 }
 class B extends A {
   void f() {
     res();
-// start
-    print(0);
-// end
+    [!print(0);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsError("Created method will shadow method 'A.res'.");
   }
 
   Future<void> test_bad_conflict_topLevel_alreadyDeclaresFunction() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 library my.lib;
 
 void res() {}
 void f() {
-// start
-  print(0);
-// end
+  [!print(0);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsError(
       "Library already declares function with name 'res'.",
     );
   }
 
   Future<void> test_bad_conflict_topLevel_willHideInheritedMemberUsage() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   void res() {}
 }
@@ -456,283 +436,244 @@ class B extends A {
   }
 }
 void f() {
-// start
-  print(0);
-// end
+  [!print(0);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsError(
       "Created function will shadow method 'A.res'.",
     );
   }
 
   Future<void> test_bad_constructor_initializer() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   int f;
-  A() : f = 0 {}
+  A() : [!f = 0!] {}
 }
 ''');
-    _createRefactoringForString('f = 0');
     return _assertConditionsFatal(
       'Cannot extract a constructor initializer. Select expression part of initializer.',
     );
   }
 
   Future<void> test_bad_constructor_redirectingConstructor() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
-  A() : this.named();
+  A() : [!this.named()!];
   A.named() {}
 }
 ''');
-    _createRefactoringForString('this.named()');
     return _assertConditionsFatal(
       'Cannot extract a constructor initializer. Select expression part of initializer.',
     );
   }
 
   Future<void> test_bad_constructor_superConstructor() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {}
 class B extends A {
-  B() : super();
+  B() : [!super()!];
 }
 ''');
-    _createRefactoringForString('super()');
     return _assertConditionsFatal(
       'Cannot extract a constructor initializer. Select expression part of initializer.',
     );
   }
 
   Future<void> test_bad_directive_combinator() async {
-    await indexTestUnit('''
-import 'dart:async' show FutureOr;
+    await _createRefactoring('''
+import 'dart:async' [!show!] FutureOr;
 ''');
-    _createRefactoringForString('show');
     return _assertConditionsFatal('Cannot extract a directive.');
   }
 
   Future<void> test_bad_directive_combinatorNames() async {
-    await indexTestUnit('''
-import 'dart:async' show FutureOr;
+    await _createRefactoring('''
+import 'dart:async' show [!FutureOr!];
 ''');
-    _createRefactoringForString('FutureOr');
     return _assertConditionsFatal('Cannot extract a directive.');
   }
 
   Future<void> test_bad_directive_import() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 // Dummy comment ("The selection offset must be greater than zero")
-import 'dart:async';
+[!import!] 'dart:async';
 ''');
-    _createRefactoringForString('import');
     return _assertConditionsFatal('Cannot extract a directive.');
   }
 
   Future<void> test_bad_directive_prefixAs() async {
-    await indexTestUnit('''
-import 'dart:core' as core;
+    await _createRefactoring('''
+import 'dart:core' [!as!] core;
 ''');
-    _createRefactoringForString('as');
     return _assertConditionsFatal('Cannot extract a directive.');
   }
 
   Future<void> test_bad_directive_prefixName() async {
-    await indexTestUnit('''
-import 'dart:async' as prefixName;
+    await _createRefactoring('''
+import 'dart:async' as [!prefixName!];
 ''');
-    _createRefactoringForString('prefixName');
     return _assertConditionsFatal('Cannot extract a directive.');
   }
 
   Future<void> test_bad_directive_uriString() async {
-    await indexTestUnit('''
-import 'dart:async';
+    await _createRefactoring('''
+import '[!dart:async!]';
 ''');
-    _createRefactoringForString('dart:async');
     return _assertConditionsFatal('Cannot extract a directive.');
   }
 
   Future<void> test_bad_doWhile_body() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   do
-// start
-  {
-  }
-// end
+  [!{
+  }!]
   while (true);
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       "Operation not applicable to a 'do' statement's body and expression.",
     );
   }
 
   Future<void> test_bad_emptySelection() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-// start
-// end
+  [! !]
   print(0);
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       'Can only extract a single expression or a set of statements.',
     );
   }
 
   Future<void> test_bad_forLoop_conditionAndUpdaters() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   for (
     int i = 0;
-// start
-    i < 10;
-    i++
-// end
+    [!i < 10;
+    i++!]
   ) {}
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       "Operation not applicable to a 'for' statement's condition and updaters.",
     );
   }
 
   Future<void> test_bad_forLoop_init() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   for (
-// start
-    int i = 0
-// end
+    [!int i = 0!]
     ; i < 10;
     i++
   ) {}
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       "Cannot extract initialization part of a 'for' statement.",
     );
   }
 
   Future<void> test_bad_forLoop_initAndCondition() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   for (
-// start
-    int i = 0;
-    i < 10;
-// end
+    [!int i = 0;
+    i < 10;!]
     i++
   ) {}
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       "Operation not applicable to a 'for' statement's initializer and condition.",
     );
   }
 
   Future<void> test_bad_forLoop_updaters() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   for (
     int i = 0;
     i < 10;
-// start
-    i++
-// end
+    [!i++!]
   ) {}
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       "Cannot extract increment part of a 'for' statement.",
     );
   }
 
   Future<void> test_bad_forLoop_updatersAndBody() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   for (
     int i = 0;
     i < 10;
-// start
-    i++
-  ) {}
-// end
+    [!i++
+  ) {}!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       'Not all selected statements are enclosed by the same parent statement.',
     );
   }
 
   Future<void> test_bad_function_prefix() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 import 'dart:io' as io;
 void f() {
-  io.exit(1);
+  [!io!].exit(1);
 }
 ''');
-    _createRefactoringWithSuffix('io', '.exit');
     return _assertConditionsFatal('Cannot extract an import prefix.');
   }
 
   Future<void> test_bad_functionDeclaration_beforeParameters() async {
-    await indexTestUnit('''
-int test() => 42;
+    await _createRefactoring('''
+int test^() => 42;
 ''');
-    _createRefactoringForStringOffset('(');
     return _assertConditionsFatal(
       'Can only extract a single expression or a set of statements.',
     );
   }
 
   Future<void> test_bad_functionDeclaration_inParameters() async {
-    await indexTestUnit('''
-int test() => 42;
+    await _createRefactoring('''
+int test(^) => 42;
 ''');
-    _createRefactoringForStringOffset(')');
     return _assertConditionsFatal(
       'Can only extract a single expression or a set of statements.',
     );
   }
 
   Future<void> test_bad_functionDeclaration_name() async {
-    await indexTestUnit('''
-int test() => 42;
+    await _createRefactoring('''
+int te^st() => 42;
 ''');
-    _createRefactoringForStringOffset('st()');
     return _assertConditionsFatal(
       'Can only extract a single expression or a set of statements.',
     );
   }
 
   Future<void> test_bad_methodName_reference() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  f();
+  [!f!]();
 }
 ''');
-    _createRefactoringWithSuffix('f', '();');
     return _assertConditionsFatal('Cannot extract a single method name.');
   }
 
   Future<void> test_bad_namePartOfDeclaration_function() async {
-    await indexTestUnit('''
-void f() {
-}
+    await _createRefactoring('''
+void [!f!]() {}
 ''');
-    _createRefactoringForString('f');
     return _assertConditionsFatal(
       'The selection does not cover a set of statements or an expression. '
       'Extend selection to a valid range.',
@@ -740,75 +681,64 @@ void f() {
   }
 
   Future<void> test_bad_namePartOfDeclaration_variable() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  int vvv = 0;
+  int [!vvv!] = 0;
 }
 ''');
-    _createRefactoringForString('vvv');
     return _assertConditionsFatal(
       'Can only extract a single expression or a set of statements.',
     );
   }
 
   Future<void> test_bad_namePartOfQualified() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   var fff;
 }
 
 void f(A a) {
-  a.fff = 1;
+  a.[!fff!] = 1;
 }
 ''');
-    _createRefactoringWithSuffix('fff', ' = 1');
     return _assertConditionsFatal(
       'Cannot extract name part of a property access.',
     );
   }
 
   Future<void> test_bad_newMethodName_notIdentifier() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-// start
-  print(0);
-// end
+  [!print(0);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     refactoring.name = 'bad-name';
     // check conditions
     return _assertConditionsFatal("Method name must not contain '-'.");
   }
 
   Future<void> test_bad_notSameParent() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   while (false)
-// start
-  {
+  [!{
   }
-  print(0);
-// end
+  print(0);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       'Not all selected statements are enclosed by the same parent statement.',
     );
   }
 
   Future<void> test_bad_parameterName_duplicate() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int v1 = 1;
   int v2 = 2;
-// start
-  int a = v1 + v2; // marker
-// end
+  [!int a = v1 + v2; // marker !]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // update parameters
     await refactoring.checkInitialConditions();
     {
@@ -822,17 +752,14 @@ void f() {
   }
 
   Future<void> test_bad_parameterName_inUse_function() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void g() {
   int v1 = 1;
   int v2 = 2;
-// start
-  f(v1, v2);
-// end
+  [!f(v1, v2);!]
 }
 f(a, b) {}
 ''');
-    _createRefactoringForStartEndComments();
     // update parameters
     await refactoring.checkInitialConditions();
     {
@@ -847,16 +774,13 @@ f(a, b) {}
   }
 
   Future<void> test_bad_parameterName_inUse_localVariable() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int v1 = 1;
   int v2 = 2;
-// start
-  int a = v1 + v2; // marker
-// end
+  [!int a = v1 + v2; // marker!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // update parameters
     await refactoring.checkInitialConditions();
     {
@@ -871,19 +795,16 @@ void f() {
   }
 
   Future<void> test_bad_parameterName_inUse_method() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   void f() {
     int v1 = 1;
     int v2 = 2;
-  // start
-    m(v1, v2);
-  // end
+    [!m(v1, v2);!]
   }
   m(a, b) {}
 }
 ''');
-    _createRefactoringForStartEndComments();
     // update parameters
     await refactoring.checkInitialConditions();
     {
@@ -898,15 +819,12 @@ class A {
   }
 
   Future<void> test_bad_selectionEndsInSomeNode() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-// start
-  print(0);
-  print(1);
-// end
+  [!print(0);
+  print(1)!];
 }
 ''');
-    _createRefactoringForStartEndString('print(0', 'rint(1)');
     return _assertConditionsFatal(
       'The selection does not cover a set of statements or an expression. '
       'Extend selection to a valid range.',
@@ -914,31 +832,25 @@ void f() {
   }
 
   Future<void> test_bad_statements_exit_notAllExecutionFlows() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f(int p) {
-// start
-  if (p == 0) {
+  [!if (p == 0) {
     return;
-  }
-// end
+  }!]
   print(p);
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsError(ExtractMethodRefactoringImpl.errorExits);
   }
 
   Future<void> test_bad_statements_return_andAssignsVariable() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 int f() {
-// start
-  var v = 0;
-  return 42;
-// end
+  [!var v = 0;
+  return 42;!]
   print(v);
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       'Ambiguous return value: Selected block contains assignment(s) to '
       'local variables and return statement.',
@@ -946,16 +858,13 @@ int f() {
   }
 
   Future<void> test_bad_switchCase() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   switch (1) {
-// start
-    case 0: break;
-// end
+    [!case 0: break;!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       'Selection must either cover whole switch statement '
       'or parts of a single case block.',
@@ -963,47 +872,38 @@ void f() {
   }
 
   Future<void> test_bad_tokensBetweenLastNodeAndSelectionEnd() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-// start
-  print(0);
+  [!print(0);
   print(1);
-}
-// end
+}!]
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       'The end of the selection contains characters that do not belong to a statement.',
     );
   }
 
   Future<void> test_bad_tokensBetweenSelectionStartAndFirstNode() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-// start
-  print(0); // marker
-  print(1);
-// end
+  print(0[!); // marker
+  print(1);!]
 }
 ''');
-    _createRefactoringForStartEndString('); // marker', '// end');
     return _assertConditionsFatal(
       'The beginning of the selection contains characters that do not belong to a statement.',
     );
   }
 
   Future<void> test_bad_try_catchBlock_block() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   try
   {}
   catch (e)
-// start
-  {}
-// end
+  [!{}!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       'Selection must either cover whole try statement or '
       'parts of try, catch, or finally block.',
@@ -1011,17 +911,14 @@ void f() {
   }
 
   Future<void> test_bad_try_catchBlock_complete() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   try
   {}
-// start
-  catch (e)
-  {}
-// end
+  [!catch (e)
+  {}!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       'Selection must either cover whole try statement or '
       'parts of try, catch, or finally block.',
@@ -1029,35 +926,29 @@ void f() {
   }
 
   Future<void> test_bad_try_catchBlock_exception() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   try {
   } catch (
-// start
-  e
-// end
+  [!e!]
   ) {
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       'Cannot extract the name part of a declaration.',
     );
   }
 
   Future<void> test_bad_try_finallyBlock() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   try
   {}
   finally
-// start
-  {}
-// end
+  [!{}!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       'Selection must either cover whole try statement or '
       'parts of try, catch, or finally block.',
@@ -1065,17 +956,14 @@ void f() {
   }
 
   Future<void> test_bad_try_tryBlock() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   try
-// start
-  {}
-// end
+  [!{}!]
   finally
   {}
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       'Selection must either cover whole try statement or '
       'parts of try, catch, or finally block.',
@@ -1083,76 +971,66 @@ void f() {
   }
 
   Future<void> test_bad_typeReference() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  int a = 0;
+  [!int!] a = 0;
 }
 ''');
-    _createRefactoringForString('int');
     return _assertConditionsFatal('Cannot extract a single type reference.');
   }
 
   Future<void> test_bad_typeReference_nullable() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 // Dummy comment ("The selection offset must be greater than zero")
-int? f;
+[!int!]? f;
 ''');
-    _createRefactoringForString('int');
     return _assertConditionsFatal('Cannot extract a single type reference.');
   }
 
   Future<void> test_bad_typeReference_prefix() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 import 'dart:io' as io;
 void f() {
-  io.File f = io.File('');
+  [!io!].File f = io.File('');
 }
 ''');
-    _createRefactoringWithSuffix('io', '.File f');
     return _assertConditionsFatal('Cannot extract an import prefix.');
   }
 
   Future<void> test_bad_variableDeclarationFragment() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int
-// start
-    a = 1
-// end
+    [!a = 1!]
     ,b = 2;
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       'Cannot extract a variable declaration fragment. Select whole declaration statement.',
     );
   }
 
   Future<void> test_bad_while_conditionAndBody() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   while
-// start
-    (false)
+    [!(false)
   {
-  }
-// end
+  }!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
       "Operation not applicable to a while statement's expression and body.",
     );
   }
 
   Future<void> test_canExtractGetter_false_closure() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  useFunction((_) => true);
+  useFunction([!(_) => true!]);
 }
 useFunction(filter(String p)) {}
 ''');
-    _createRefactoringForString('(_) => true');
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.canCreateGetter, false);
@@ -1160,17 +1038,14 @@ useFunction(filter(String p)) {}
   }
 
   Future<void> test_canExtractGetter_false_fieldAssignment() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   var f;
   void m() {
-// start
-    f = 1;
-// end
+    [!f = 1;!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.canCreateGetter, false);
@@ -1178,12 +1053,11 @@ class A {
   }
 
   Future<void> test_canExtractGetter_false_hasParameters() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f(int p) {
-  int a = p + 1;
+  int a = [!p + 1!];
 }
 ''');
-    _createRefactoringForString('p + 1');
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.canCreateGetter, false);
@@ -1191,13 +1065,12 @@ void f(int p) {
   }
 
   Future<void> test_canExtractGetter_false_returnNotUsed_assignment() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 var topVar = 0;
 void f(int p) {
-  topVar = 5;
+  [!topVar = 5!];
 }
 ''');
-    _createRefactoringForString('topVar = 5');
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.canCreateGetter, false);
@@ -1205,17 +1078,14 @@ void f(int p) {
   }
 
   Future<void> test_canExtractGetter_false_returnNotUsed_noReturn() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 var topVar = 0;
 void f() {
-// start
-  int a = 1;
+  [!int a = 1;
   int b = 2;
-  topVar = a + b;
-// end
+  topVar = a + b;!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.canCreateGetter, false);
@@ -1223,12 +1093,11 @@ void f() {
   }
 
   Future<void> test_canExtractGetter_true() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  int a = 1 + 2;
+  int a = [!1 + 2!];
 }
 ''');
-    _createRefactoringForString('1 + 2');
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.canCreateGetter, true);
@@ -1241,7 +1110,7 @@ void f() {
   1 + 2;
 }
 ''');
-    _createRefactoring(0, 1 << 20);
+    _createRefactoringForRange(0, 1 << 20);
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
@@ -1252,18 +1121,17 @@ void f() {
   1 + 2;
 }
 ''');
-    _createRefactoring(-10, 20);
+    _createRefactoringForRange(-10, 20);
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
   Future<void> test_checkName() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  int a = 1 + 2;
+  int a = [!1 + 2!];
 }
 ''');
-    _createRefactoringForString('1 + 2');
     // empty
     refactoring.name = '';
     assertRefactoringStatus(
@@ -1299,13 +1167,12 @@ void f() {
   }
 
   Future<void> test_closure_asFunction_singleExpression() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 process(f(x)) {}
 void f() {
-  process((x) => x * 2);
+  process([!(x) => x * 2!]);
 }
 ''');
-    _createRefactoringForString('(x) => x * 2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 process(f(x)) {}
@@ -1318,21 +1185,20 @@ res(x) => x * 2;
   }
 
   Future<void> test_closure_asFunction_statements() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 process(f(x)) {}
 void f() {
-  process((x) {
+  process([!(x) {
     print(x);
     return x * 2;
-  }); // marker
+  }!]);
 }
 ''');
-    _createRefactoringForStartEndString('(x) {', '); // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 process(f(x)) {}
 void f() {
-  process(res); // marker
+  process(res);
 }
 
 res(x) {
@@ -1343,26 +1209,25 @@ res(x) {
   }
 
   Future<void> test_closure_asMethod_statements() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 process(f(x)) {}
 class A {
   int k = 2;
   void f() {
-    process((x) {
+    process([!(x) {
       print(x);
       return x * k;
-    }); // marker
+    }!]);
   }
 }
 ''');
-    _createRefactoringForStartEndString('(x) {', '); // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 process(f(x)) {}
 class A {
   int k = 2;
   void f() {
-    process(res); // marker
+    process(res);
   }
 
   res(x) {
@@ -1374,15 +1239,14 @@ class A {
   }
 
   Future<void> test_closure_atArgumentName() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void process({int fff(int x)?}) {}
 class C {
   void f() {
-    process(fff: (int x) => x * 2);
+    process(f^ff: (int x) => x * 2);
   }
 }
 ''');
-    _createRefactoring(findOffset('ff: (int x)'), 0);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void process({int fff(int x)?}) {}
@@ -1397,15 +1261,14 @@ class C {
   }
 
   Future<void> test_closure_atParameters() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void process(num f(int x)) {}
 class C {
   void f() {
-    process((int x) => x * 2);
+    process((int ^x) => x * 2);
   }
 }
 ''');
-    _createRefactoring(findOffset('x) =>'), 0);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void process(num f(int x)) {}
@@ -1420,15 +1283,14 @@ class C {
   }
 
   Future<void> test_closure_bad_referencesLocalVariable() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 process(f(x)) {}
 void f() {
   int k = 2;
   int a = 3;
-  process((x) => x * k * a);
+  process([!(x) => x * k * a!]);
 }
 ''');
-    _createRefactoringForString('(x) => x * k * a');
     // check
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(
@@ -1441,13 +1303,12 @@ void f() {
   }
 
   Future<void> test_closure_bad_referencesParameter() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 process(f(x)) {}
 void f(int k) {
-  process((x) => x * k);
+  process([!(x) => x * k!]);
 }
 ''');
-    _createRefactoringForString('(x) => x * k');
     // check
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(
@@ -1460,14 +1321,13 @@ void f(int k) {
   }
 
   Future<void> test_fromTopLevelVariableInitializerClosure() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 var X = 1;
 
 dynamic Y = () {
-  return 1 + X;
+  return [!1 + X!];
 };
 ''');
-    _createRefactoringForString('1 + X');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 var X = 1;
@@ -1481,24 +1341,22 @@ int res() => 1 + X;
   }
 
   Future<void> test_getExtractGetter_expression_true_binaryExpression() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  print(1 + 2);
+  print([!1 + 2!]);
 }
 ''');
-    _createRefactoringForString('1 + 2');
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.createGetter, true);
   }
 
   Future<void> test_getExtractGetter_expression_true_literal() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  print(42);
+  print([!42!]);
 }
 ''');
-    _createRefactoringForString('42');
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.createGetter, true);
@@ -1506,12 +1364,11 @@ void f() {
 
   Future<void>
   test_getExtractGetter_expression_true_prefixedExpression() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  print(!true);
+  print([!!true!]);
 }
 ''');
-    _createRefactoringForString('!true');
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.createGetter, true);
@@ -1519,96 +1376,86 @@ void f() {
 
   Future<void>
   test_getExtractGetter_expression_true_prefixedIdentifier() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  print(myValue.isEven);
+  print([!myValue.isEven!]);
 }
 int get myValue => 42;
 ''');
-    _createRefactoringForString('myValue.isEven');
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.createGetter, true);
   }
 
   Future<void> test_getExtractGetter_expression_true_propertyAccess() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  print(1.isEven);
+  print([!1.isEven!]);
 }
 ''');
-    _createRefactoringForString('1.isEven');
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.createGetter, true);
   }
 
   Future<void> test_getExtractGetter_statements() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-// start
-  int v = 0;
-// end
+  [!int v = 0;!]
   print(v);
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.createGetter, false);
   }
 
   Future<void> test_getRefactoringName_function() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  print(1 + 2);
+  print([!1 + 2!]);
 }
 ''');
-    _createRefactoringForString('1 + 2');
     expect(refactoring.refactoringName, 'Extract Function');
   }
 
   Future<void> test_getRefactoringName_method() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   void f() {
-    print(1 + 2);
+    print([!1 + 2!]);
   }
 }
 ''');
-    _createRefactoringForString('1 + 2');
     expect(refactoring.refactoringName, 'Extract Method');
   }
 
   Future<void> test_isAvailable_false_functionName() async {
-    await indexTestUnit('''
-void f() {}
+    await _createRefactoring('''
+void [!f!]() {}
 ''');
-    _createRefactoringForString('f');
     expect(refactoring.isAvailable(), isFalse);
   }
 
   Future<void> test_isAvailable_true() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  1 + 2;
+  [!1 + 2!];
 }
 ''');
-    _createRefactoringForString('1 + 2');
     expect(refactoring.isAvailable(), isTrue);
   }
 
   Future<void> test_names_singleExpression() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class TreeItem {}
 TreeItem getSelectedItem() => throw 0;
 process(my) {}
 void f() {
-  process(getSelectedItem()); // marker
+  process([!getSelectedItem()!]); // marker
   int treeItem = 0;
 }
 ''');
-    _createRefactoringWithSuffix('getSelectedItem()', '); // marker');
     // check names
     await refactoring.checkInitialConditions();
     expect(
@@ -1618,13 +1465,12 @@ void f() {
   }
 
   Future<void> test_offsets_lengths() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int a = 1 + 2;
-  int b = 1 +  2;
+  int b = [!1 +  2!];
 }
 ''');
-    _createRefactoringForString('1 +  2');
     // apply refactoring
     await refactoring.checkInitialConditions();
     expect(
@@ -1635,83 +1481,70 @@ void f() {
   }
 
   Future<void> test_parameterType_nullableTypeWithTypeArguments() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 abstract class C {
   List<int>? get x;
 }
 class D {
   f(C c) {
     var x = c.x;
-// start
-    print(x);
-// end
+    [!print(x);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     // do check
     await refactoring.checkInitialConditions();
     expect(refactoring.parameters[0].type, 'List<int>?');
   }
 
   Future<void> test_parameterType_prefixed() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 import 'dart:core' as core;
 class C {
   f(core.String p) {
-// start
-    p;
-// end
+    [!p;!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     await refactoring.checkInitialConditions();
     expect(refactoring.parameters[0].type, 'core.String');
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55254')
   Future<void> test_parameterType_typeParameterOfEnclosingClass() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class C<T> {
   f(T p) {
-// start
-    p;
-// end
+    [!p;!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     await refactoring.checkInitialConditions();
     expect(refactoring.parameters[0].type, 'T');
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55254')
   Future<void> test_parameterType_typeParameterOfEnclosingFunction() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class C {
   f<T>(T p) {
-// start
-    p;
-// end
+    [!p;!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     await refactoring.checkInitialConditions();
     expect(refactoring.parameters[0].type, 'T');
   }
 
   Future<void> test_prefixPartOfQualified() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   var fff;
 }
 void f(A a) {
-  a.fff = 5;
+  ^a.fff = 5;
 }
 ''');
-    _createRefactoringForStringOffset('a.fff');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 class A {
@@ -1726,101 +1559,86 @@ A res(A a) => a;
   }
 
   Future<void> test_returnType_closure() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 process(f(x)) {}
 void f() {
-  process((x) => x * 2);
+  process([!(x) => x * 2!]);
 }
 ''');
-    _createRefactoringForString('(x) => x * 2');
     // do check
     await refactoring.checkInitialConditions();
     expect(refactoring.returnType, '');
   }
 
   Future<void> test_returnType_expression() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  int a = 1 + 2;
+  int a = [!1 + 2!];
 }
 ''');
-    _createRefactoringForString('1 + 2');
     // do check
     await refactoring.checkInitialConditions();
     expect(refactoring.returnType, 'int');
   }
 
   Future<void> test_returnType_mixInterfaceFunction() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 Object f() {
-// start
-  if (true) {
+  [!if (true) {
     return 1;
   } else {
     return () {};
-  }
-// end
+  }!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // do check
     await refactoring.checkInitialConditions();
     expect(refactoring.returnType, 'Object');
   }
 
   Future<void> test_returnType_statements() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-// start
-  double v = 5.0;
-// end
+  [!double v = 5.0;!]
   print(v);
 }
 ''');
-    _createRefactoringForStartEndComments();
     // do check
     await refactoring.checkInitialConditions();
     expect(refactoring.returnType, 'double');
   }
 
   Future<void> test_returnType_statements_nullMix() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 f(bool p) {
-// start
-  if (p) {
+  [!if (p) {
     return 42;
   }
-  return null;
-// end
+  return null;!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // do check
     await refactoring.checkInitialConditions();
     expect(refactoring.returnType, 'int?');
   }
 
   Future<void> test_returnType_statements_void() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-// start
-  print(42);
-// end
+  [!print(42);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // do check
     await refactoring.checkInitialConditions();
     expect(refactoring.returnType, 'void');
   }
 
   Future<void> test_setExtractGetter() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  int a = 1 + 2;
+  int a = [!1 + 2!];
 }
 ''');
-    _createRefactoringForString('1 + 2');
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.canCreateGetter, true);
@@ -1836,12 +1654,11 @@ int get res => 1 + 2;
   }
 
   Future<void> test_singleExpression() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  int a = 1 + 2;
+  int a = [!1 + 2!];
 }
 ''');
-    _createRefactoringForString('1 + 2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
@@ -1853,13 +1670,12 @@ int res() => 1 + 2;
   }
 
   Future<void> test_singleExpression_cascade() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   String s = '';
-  var v = s..length;
+  var v = [!s..length!];
 }
 ''');
-    _createRefactoringForString('s..length');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
@@ -1872,16 +1688,15 @@ String res(String s) => s..length;
   }
 
   Future<void> test_singleExpression_coveringExpression() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f(int n) {
-  var v = new FooBar(n);
+  var v = new Foo^Bar(n);
 }
 
 class FooBar {
   FooBar(int count);
 }
 ''');
-    _createRefactoringForStringOffset('Bar(n);');
     return _assertSuccessfulRefactoring('''
 void f(int n) {
   var v = res(n);
@@ -1896,18 +1711,17 @@ class FooBar {
   }
 
   Future<void> test_singleExpression_dynamic() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 dynaFunction() {}
 void f() {
-  var v = dynaFunction(); // marker
+  var v = [!dynaFunction()!];
 }
 ''');
-    _createRefactoringWithSuffix('dynaFunction()', '; // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 dynaFunction() {}
 void f() {
-  var v = res(); // marker
+  var v = res();
 }
 
 res() => dynaFunction();
@@ -1915,15 +1729,14 @@ res() => dynaFunction();
   }
 
   Future<void> test_singleExpression_hasAwait() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 import 'dart:async';
 Future<int> getValue() async => 42;
 void f() async {
-  int v = await getValue();
+  int v = [!await getValue()!];
   print(v);
 }
 ''');
-    _createRefactoringForString('await getValue()');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'dart:async';
@@ -1938,19 +1751,18 @@ Future<int> res() async => await getValue();
   }
 
   Future<void> test_singleExpression_ignore_assignmentLeftHandSize() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   getButton().text = 'txt';
-  print(getButton().text); // marker
+  print([!getButton().text!]);
 }
 getButton() {}
 ''');
-    _createRefactoringWithSuffix('getButton().text', '); // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
   getButton().text = 'txt';
-  print(res()); // marker
+  print(res());
 }
 
 res() => getButton().text;
@@ -1959,12 +1771,12 @@ getButton() {}
   }
 
   Future<void> test_singleExpression_occurrences() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int v1 = 1;
   int v2 = 2;
   int v3 = 3;
-  int positiveA = v1 + v2; // marker
+  int positiveA = [!v1 + v2!];
   int positiveB = v2 + v3;
   int positiveC = v1 +  v2;
   int positiveD = v1/*abc*/ + v2;
@@ -1974,14 +1786,13 @@ void f() {
   int negD = v1 * v2;
 }
 ''');
-    _createRefactoringWithSuffix('v1 + v2', '; // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
   int v1 = 1;
   int v2 = 2;
   int v3 = 3;
-  int positiveA = res(v1, v2); // marker
+  int positiveA = res(v1, v2);
   int positiveB = res(v2, v3);
   int positiveC = res(v1, v2);
   int positiveD = res(v1, v2);
@@ -1996,16 +1807,15 @@ int res(int v1, int v2) => v1 + v2;
   }
 
   Future<void> test_singleExpression_occurrences_disabled() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int v1 = 1;
   int v2 = 2;
   int v3 = 3;
-  int a = v1 + v2; // marker
+  int a = [!v1 + v2!];
   int b = v2 + v3;
 }
 ''');
-    _createRefactoringWithSuffix('v1 + v2', '; // marker');
     refactoring.extractAll = false;
     // apply refactoring
     return _assertSuccessfulRefactoring('''
@@ -2013,7 +1823,7 @@ void f() {
   int v1 = 1;
   int v2 = 2;
   int v3 = 3;
-  int a = res(v1, v2); // marker
+  int a = res(v1, v2);
   int b = v2 + v3;
 }
 
@@ -2022,12 +1832,12 @@ int res(int v1, int v2) => v1 + v2;
   }
 
   Future<void> test_singleExpression_occurrences_inClassOnly() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   myMethod() {
     int v1 = 1;
     int v2 = 2;
-    int positiveA = v1 + v2; // marker
+    int positiveA = [!v1 + v2!];
   }
 }
 void f() {
@@ -2036,14 +1846,13 @@ void f() {
   int negA = v1 + v2;
 }
 ''');
-    _createRefactoringWithSuffix('v1 + v2', '; // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 class A {
   myMethod() {
     int v1 = 1;
     int v2 = 2;
-    int positiveA = res(v1, v2); // marker
+    int positiveA = res(v1, v2);
   }
 
   int res(int v1, int v2) => v1 + v2;
@@ -2057,15 +1866,14 @@ void f() {
   }
 
   Future<void> test_singleExpression_occurrences_incompatibleTypes() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int x = 1;
   String y = 'foo';
-  print(x.toString());
+  print([!x.toString()!]);
   print(y.toString());
 }
 ''');
-    _createRefactoringForString('x.toString()');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
@@ -2080,11 +1888,11 @@ String res(int x) => x.toString();
   }
 
   Future<void> test_singleExpression_occurrences_inWholeUnit() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int v1 = 1;
   int v2 = 2;
-  int positiveA = v1 + v2; // marker
+  int positiveA = [!v1 + v2!];
 }
 class A {
   myMethod() {
@@ -2094,13 +1902,12 @@ class A {
   }
 }
 ''');
-    _createRefactoringWithSuffix('v1 + v2', '; // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
   int v1 = 1;
   int v2 = 2;
-  int positiveA = res(v1, v2); // marker
+  int positiveA = res(v1, v2);
 }
 
 int res(int v1, int v2) => v1 + v2;
@@ -2114,39 +1921,13 @@ class A {
 ''');
   }
 
-  Future<void> test_singleExpression_occurrences_referencedInMacro() async {
-    addMacros([declareInTypeMacro()]);
-
-    await indexTestUnit('''
-import 'macros.dart';
-
-void f() {
-  print('!');
-}
-
-@DeclareInType("  void m() { print('!'); }")
-class A { }
-''');
-
-    _createRefactoringForString("print('!');");
-    await assertRefactoringConditionsOK();
-    var refactoringChange = await refactoring.createChange();
-
-    // Verify that `test.macro.dart` is unmodified.
-    expect(
-      refactoringChange.edits.map((e) => e.file),
-      unorderedEquals([testFile.path]),
-    );
-  }
-
   Future<void> test_singleExpression_parameter_functionTypeAlias() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 typedef R Foo<S, R>(S s);
 void f(Foo<String, int> foo, String s) {
-  int a = foo(s);
+  int a = [!foo(s)!];
 }
 ''');
-    _createRefactoringForString('foo(s)');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 typedef R Foo<S, R>(S s);
@@ -2159,12 +1940,11 @@ int res(Foo<String, int> foo, String s) => foo(s);
   }
 
   Future<void> test_singleExpression_recordType_named() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  var r = (f1: 0, f2: true);
+  var r = [!(f1: 0, f2: true)!];
 }
 ''');
-    _createRefactoringForString('(f1: 0, f2: true)');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
@@ -2176,12 +1956,11 @@ void f() {
   }
 
   Future<void> test_singleExpression_recordType_positional() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  var r = (0, true);
+  var r = [!(0, true)!];
 }
 ''');
-    _createRefactoringForString('(0, true)');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
@@ -2194,13 +1973,12 @@ void f() {
 
   Future<void> test_singleExpression_returnType_importLibrary() async {
     _addLibraryReturningAsync();
-    await indexTestUnit('''
+    await _createRefactoring('''
 import 'asyncLib.dart';
 void f() {
-  var a = newCompleter();
+  var a = [!newCompleter()!];
 }
 ''');
-    _createRefactoringForString('newCompleter()');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'asyncLib.dart';
@@ -2214,12 +1992,11 @@ Completer<int> res() => newCompleter();
   }
 
   Future<void> test_singleExpression_returnTypeGeneric() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  var v = <String>[];
+  var v = [!<String>[]!];
 }
 ''');
-    _createRefactoringForString('<String>[]');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
@@ -2231,13 +2008,12 @@ List<String> res() => <String>[];
   }
 
   Future<void> test_singleExpression_returnTypePrefix() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 import 'dart:math' as pref;
 void f() {
-  var v = new pref.Random();
+  var v = [!new pref.Random()!];
 }
 ''');
-    _createRefactoringForString('new pref.Random()');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'dart:math' as pref;
@@ -2251,15 +2027,14 @@ pref.Random res() => new pref.Random();
 
   Future<void>
   test_singleExpression_staticContext_extractFromInitializer() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   A(int v) {}
 }
 class B extends A {
-  B() : super(1 + 2) {}
+  B() : super([!1 + 2!]) {}
 }
 ''');
-    _createRefactoringForString('1 + 2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 class A {
@@ -2274,12 +2049,12 @@ class B extends A {
   }
 
   Future<void> test_singleExpression_staticContext_extractFromInstance() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   instanceMethodA() {
     int v1 = 1;
     int v2 = 2;
-    int positiveA = v1 + v2; // marker
+    int positiveA = [!v1 + v2!];
   }
   instanceMethodB() {
     int v1 = 1;
@@ -2293,14 +2068,13 @@ class A {
   }
 }
 ''');
-    _createRefactoringWithSuffix('v1 + v2', '; // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 class A {
   instanceMethodA() {
     int v1 = 1;
     int v2 = 2;
-    int positiveA = res(v1, v2); // marker
+    int positiveA = res(v1, v2);
   }
 
   static int res(int v1, int v2) => v1 + v2;
@@ -2320,14 +2094,13 @@ class A {
 
   Future<void>
   test_singleExpression_staticContext_extractFromStaticField() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   static String x(String Function(String) f) => '';
 
-  static String test = x((v) => v.toString());
+  static String test = x([!(v) => v.toString()!]);
 }
 ''');
-    _createRefactoringForString('(v) => v.toString()');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 class A {
@@ -2342,12 +2115,12 @@ class A {
 
   Future<void>
   test_singleExpression_staticContext_extractFromStaticMethod() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   static staticMethodA() {
     int v1 = 1;
     int v2 = 2;
-    int positiveA = v1 + v2; // marker
+    int positiveA = [!v1 + v2!];
   }
   static staticMethodB() {
     int v1 = 1;
@@ -2361,14 +2134,13 @@ class A {
   }
 }
 ''');
-    _createRefactoringWithSuffix('v1 + v2', '; // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 class A {
   static staticMethodA() {
     int v1 = 1;
     int v2 = 2;
-    int positiveA = res(v1, v2); // marker
+    int positiveA = res(v1, v2);
   }
 
   static int res(int v1, int v2) => v1 + v2;
@@ -2387,18 +2159,17 @@ class A {
   }
 
   Future<void> test_singleExpression_staticContext_hasInInitializer() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   A(int v) {}
 }
 class B extends A {
   B() : super(1 + 2) {}
   foo() {
-    print(1 + 2); // marker
+    print([!1 + 2!]);
   }
 }
 ''');
-    _createRefactoringWithSuffix('1 + 2', '); // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 class A {
@@ -2407,7 +2178,7 @@ class A {
 class B extends A {
   B() : super(res()) {}
   foo() {
-    print(res()); // marker
+    print(res());
   }
 
   static int res() => 1 + 2;
@@ -2417,12 +2188,11 @@ class B extends A {
 
   Future<void> test_singleExpression_unresolved() async {
     verifyNoTestUnitErrors = false;
-    await indexTestUnit('''
+    await _createRefactoring('''
 Object f() {
-  return unresolved;
+  return [!unresolved!];
 }
 ''');
-    _createRefactoringForString('unresolved');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 Object f() {
@@ -2434,17 +2204,16 @@ dynamic res() => unresolved;
   }
 
   Future<void> test_singleExpression_usesParameter() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 fooA(int a1) {
   int a2 = 2;
-  int a = a1 + a2;
+  int a = [!a1 + a2!];
 }
 fooB(int b1) {
   int b2 = 2;
   int b = b1 + b2;
 }
 ''');
-    _createRefactoringForString('a1 + a2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 fooA(int a1) {
@@ -2461,14 +2230,13 @@ fooB(int b1) {
   }
 
   Future<void> test_singleExpression_withVariables() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int v1 = 1;
   int v2 = 2;
-  int a = v1 + v2 + v1;
+  int a = [!v1 + v2 + v1!];
 }
 ''');
-    _createRefactoringForString('v1 + v2 + v1');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
@@ -2482,16 +2250,15 @@ int res(int v1, int v2) => v1 + v2 + v1;
   }
 
   Future<void> test_singleExpression_withVariables_doRename() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int v1 = 1;
   int v2 = 2;
   int v3 = 3;
-  int a = v1 + v2 + v1; // marker
+  int a = [!v1 + v2 + v1!]; // marker
   int b = v2 + v3 + v2;
 }
 ''');
-    _createRefactoringForString('v1 + v2 + v1');
     // apply refactoring
     await refactoring.checkInitialConditions();
     {
@@ -2519,16 +2286,15 @@ int res(int par1, int param2) => par1 + param2 + par1;
   }
 
   Future<void> test_singleExpression_withVariables_doReorder() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int v1 = 1;
   int v2 = 2;
   int v3 = 3;
-  int a = v1 + v2; // marker
+  int a = [!v1 + v2!]; // marker
   int b = v2 + v3;
 }
 ''');
-    _createRefactoringForString('v1 + v2');
     // apply refactoring
     await refactoring.checkInitialConditions();
     {
@@ -2556,15 +2322,14 @@ int res(int v2, int v1) => v1 + v2;
   }
 
   Future<void> test_singleExpression_withVariables_namedExpression() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int v1 = 1;
   int v2 = 2;
-  int a = process(arg: v1 + v2);
+  int a = [!process(arg: v1 + v2)!];
 }
 process({arg}) {}
 ''');
-    _createRefactoringForString('process(arg: v1 + v2)');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
@@ -2579,15 +2344,14 @@ process({arg}) {}
   }
 
   Future<void> test_singleExpression_withVariables_newType() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int v1 = 1;
   int v2 = 2;
   int v3 = 3;
-  int a = v1 + v2 + v3;
+  int a = [!v1 + v2 + v3!];
 }
 ''');
-    _createRefactoringForString('v1 + v2 + v3');
     // apply refactoring
     await refactoring.checkInitialConditions();
     {
@@ -2616,14 +2380,13 @@ int res(num v1, v2, v3) => v1 + v2 + v3;
   }
 
   Future<void> test_singleExpression_withVariables_useBestType() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   var v1 = 1;
   var v2 = 2;
-  var a = v1 + v2 + v1; // marker
+  var a = [!v1 + v2 + v1!]; // marker
 }
 ''');
-    _createRefactoringForString('v1 + v2 + v1');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
@@ -2637,23 +2400,18 @@ int res(int v1, int v2) => v1 + v2 + v1;
   }
 
   Future<void> test_statements_assignment() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int v;
-// start
-  v = 5;
-// end
+  [!v = 5;!]
   print(v);
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
   int v;
-// start
   v = res(v);
-// end
   print(v);
 }
 
@@ -2665,25 +2423,20 @@ int res(int v) {
   }
 
   Future<void> test_statements_changeIndentation() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   {
-// start
-    if (true) {
+    [!if (true) {
       print(0);
-    }
-// end
+    }!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
   {
-// start
     res();
-// end
   }
 }
 
@@ -2696,26 +2449,21 @@ void res() {
   }
 
   Future<void> test_statements_changeIndentation_multilineString() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   {
-// start
-    print("""
+    [!print("""
 first line
 second line
-    """);
-// end
+    """);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
   {
-// start
     res();
-// end
   }
 }
 
@@ -2729,25 +2477,20 @@ second line
   }
 
   Future<void> test_statements_definesVariable_notUsedOutside() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int a = 1;
   int b = 1;
-// start
-  int v = a + b;
-  print(v);
-// end
+  [!int v = a + b;
+  print(v);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
   int a = 1;
   int b = 1;
-// start
   res(a, b);
-// end
 }
 
 void res(int a, int b) {
@@ -2759,12 +2502,10 @@ void res(int a, int b) {
 
   Future<void>
   test_statements_definesVariable_oneUsedOutside_assignment() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 myFunctionA() {
   int a = 1;
-// start
-  a += 10;
-// end
+  [!a += 10;!]
   print(a);
 }
 myFunctionB() {
@@ -2773,14 +2514,11 @@ myFunctionB() {
   print(b);
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 myFunctionA() {
   int a = 1;
-// start
   a = res(a);
-// end
   print(a);
 }
 
@@ -2798,13 +2536,11 @@ myFunctionB() {
 
   Future<void>
   test_statements_definesVariable_oneUsedOutside_declaration() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 myFunctionA() {
   int a = 1;
   int b = 2;
-// start
-  int v1 = a + b;
-// end
+  [!int v1 = a + b;!]
   print(v1);
 }
 myFunctionB() {
@@ -2814,15 +2550,12 @@ myFunctionB() {
   print(v2);
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 myFunctionA() {
   int a = 1;
   int b = 2;
-// start
   int v1 = res(a, b);
-// end
   print(v1);
 }
 
@@ -2840,44 +2573,36 @@ myFunctionB() {
   }
 
   Future<void> test_statements_definesVariable_twoUsedOutside() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-// start
-  int varA = 1;
-  int varB = 2;
-// end
+  [!int varA = 1;
+  int varB = 2;!]
   int v = varA + varB;
 }
 ''');
-    _createRefactoringForStartEndComments();
     // check conditions
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
   Future<void> test_statements_duplicate_absolutelySame() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 myFunctionA() {
   print(0);
   print(1);
 }
 myFunctionB() {
-// start
-  print(0);
-  print(1);
-// end
+  [!print(0);
+  print(1);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 myFunctionA() {
   res();
 }
 myFunctionB() {
-// start
   res();
-// end
 }
 
 void res() {
@@ -2889,28 +2614,23 @@ void res() {
 
   Future<void>
   test_statements_duplicate_declaresDifferentlyNamedVariable() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 myFunctionA() {
   int varA = 1;
   print(varA);
 }
 myFunctionB() {
-// start
-  int varB = 1;
-  print(varB);
-// end
+  [!int varB = 1;
+  print(varB);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 myFunctionA() {
   res();
 }
 myFunctionB() {
-// start
   res();
-// end
 }
 
 void res() {
@@ -2921,24 +2641,19 @@ void res() {
   }
 
   Future<void> test_statements_dynamic() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 dynaFunction(p) => 0;
 void f() {
-// start
-  var a = 1;
-  var v = dynaFunction(a);
-// end
+  [!var a = 1;
+  var v = dynaFunction(a);!]
   print(v);
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 dynaFunction(p) => 0;
 void f() {
-// start
   var v = res();
-// end
   print(v);
 }
 
@@ -2952,22 +2667,17 @@ res() {
 
   /// We should always add ";" when invoke method with extracted statements.
   Future<void> test_statements_endsWithBlock() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-// start
-  if (true) {
+  [!if (true) {
     print(0);
-  }
-// end
+  }!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
-// start
   res();
-// end
 }
 
 void res() {
@@ -2979,28 +2689,24 @@ void res() {
   }
 
   Future<void> test_statements_exit_throws() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f(int p) {
-// start
-  if (p == 0) {
+  [!if (p == 0) {
     return;
   }
-  throw 'boo!';
-// end
+  throw 'boo!';!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     await assertRefactoringConditionsOK();
   }
 
   Future<void> test_statements_functionPrefix() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 import 'dart:io' as io;
 void f() {
-  io.exit(1);
+  [!io.exit(1)!];
 }
 ''');
-    _createRefactoringForString('io.exit(1)');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'dart:io' as io;
@@ -3013,25 +2719,20 @@ Never res() => io.exit(1);
   }
 
   Future<void> test_statements_hasAwait_dynamicReturnType() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 import 'dart:async';
 Future getValue() async => 42;
 void f() async {
-// start
-  var v = await getValue();
-// end
+  [!var v = await getValue();!]
   print(v);
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'dart:async';
 Future getValue() async => 42;
 void f() async {
-// start
   var v = await res();
-// end
   print(v);
 }
 
@@ -3043,26 +2744,21 @@ Future<dynamic> res() async {
   }
 
   Future<void> test_statements_hasAwait_expression() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 import 'dart:async';
 Future<int> getValue() async => 42;
 void f() async {
-// start
-  int v = await getValue();
-  v += 2;
-// end
+  [!int v = await getValue();
+  v += 2;!]
   print(v);
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'dart:async';
 Future<int> getValue() async => 42;
 void f() async {
-// start
   int v = await res();
-// end
   print(v);
 }
 
@@ -3075,28 +2771,23 @@ Future<int> res() async {
   }
 
   Future<void> test_statements_hasAwait_forEach() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 import 'dart:async';
 Stream<int> getValueStream() => throw 0;
 void f() async {
-// start
-  int sum = 0;
+  [!int sum = 0;
   await for (int v in getValueStream()) {
     sum += v;
-  }
-// end
+  }!]
   print(sum);
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'dart:async';
 Stream<int> getValueStream() => throw 0;
 void f() async {
-// start
   int sum = await res();
-// end
   print(sum);
 }
 
@@ -3113,24 +2804,19 @@ Future<int> res() async {
   /// `await` in a nested function should not result in `await` at the call to
   /// the new function.
   Future<void> test_statements_hasAwait_functionExpression() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void g(Future<void> Function() func) {}
 void f() {
-// start
-  g(() async {
+  [!g(() async {
     await null;
-  });
-// end
+  });!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void g(Future<void> Function() func) {}
 void f() {
-// start
   res();
-// end
 }
 
 void res() {
@@ -3142,25 +2828,20 @@ void res() {
   }
 
   Future<void> test_statements_hasAwait_voidReturnType() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 import 'dart:async';
 Future<int> getValue() async => 42;
 void f() async {
-// start
-  int v = await getValue();
-  print(v);
-// end
+  [!int v = await getValue();
+  print(v);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'dart:async';
 Future<int> getValue() async => 42;
 void f() async {
-// start
   await res();
-// end
 }
 
 Future<void> res() async {
@@ -3171,14 +2852,12 @@ Future<void> res() async {
   }
 
   Future<void> test_statements_inSwitchMember() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   foo(int p) {
     switch (p) {
       case 0:
-// start
-        print(0);
-// end
+        [!print(0);!]
         break;
       default:
         break;
@@ -3186,16 +2865,13 @@ class A {
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 class A {
   foo(int p) {
     switch (p) {
       case 0:
-// start
         res();
-// end
         break;
       default:
         break;
@@ -3210,21 +2886,16 @@ class A {
   }
 
   Future<void> test_statements_localFunction() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-// start
-  void g() {}
-  g();
-// end
+  [!void g() {}
+  g();!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
-// start
   res();
-// end
 }
 
 void res() {
@@ -3235,23 +2906,18 @@ void res() {
   }
 
   Future<void> test_statements_method() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   foo() {
-// start
-    print(0);
-// end
+    [!print(0);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 class A {
   foo() {
-// start
     res();
-// end
   }
 
   void res() {
@@ -3262,24 +2928,19 @@ class A {
   }
 
   Future<void> test_statements_noDuplicates() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
   int a = 1;
   int b = 1;
-// start
-  print(a);
-// end
+  [!print(a);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
   int a = 1;
   int b = 1;
-// start
   res(a);
-// end
 }
 
 void res(int a) {
@@ -3289,25 +2950,20 @@ void res(int a) {
   }
 
   Future<void> test_statements_parameters_ignoreInnerPropagatedType() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f(Object x) {
-// start
-  if (x is int) {
+  [!if (x is int) {
     print('int');
   }
   if (x is bool) {
     print('bool');
-  }
-// end
+  }!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f(Object x) {
-// start
   res(x);
-// end
 }
 
 void res(Object x) {
@@ -3323,25 +2979,20 @@ void res(Object x) {
 
   Future<void> test_statements_parameters_importType() async {
     _addLibraryReturningAsync();
-    await indexTestUnit('''
+    await _createRefactoring('''
 import 'asyncLib.dart';
 void f() {
   var v = newCompleter();
-// start
-  print(v);
-// end
+  [!print(v);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'asyncLib.dart';
 import 'dart:async';
 void f() {
   var v = newCompleter();
-// start
   res(v);
-// end
 }
 
 void res(Completer<int> v) {
@@ -3351,28 +3002,23 @@ void res(Completer<int> v) {
   }
 
   Future<void> test_statements_parameters_localFunction() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class C {
   int f(int a) {
     int callback(int x, int y) => x + a;
     int b = a + 1;
-// start
-    int c = callback(b, 2);
-// end
+    [!int c = callback(b, 2);!]
     int d = c + 1;
     return d;
   }
 }''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 class C {
   int f(int a) {
     int callback(int x, int y) => x + a;
     int b = a + 1;
-// start
     int c = res(callback, b);
-// end
     int d = c + 1;
     return d;
   }
@@ -3385,39 +3031,31 @@ class C {
   }
 
   Future<void> test_statements_parameters_noLocalVariableConflict() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 int f(int x) {
   int y = x + 1;
-// start
-  if (y % 2 == 0) {
+  [!if (y % 2 == 0) {
     int y = x + 2;
     return y;
   } else {
     return y;
-  }
-// end
+  }!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     await assertRefactoringConditionsOK();
   }
 
   Future<void> test_statements_return_last() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 int f() {
-// start
-  int v = 5;
-  return v + 1;
-// end
+  [!int v = 5;
+  return v + 1;!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 int f() {
-// start
   return res();
-// end
 }
 
 int res() {
@@ -3428,24 +3066,19 @@ int res() {
   }
 
   Future<void> test_statements_return_multiple_ifElse() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 num f(bool b) {
-// start
-  if (b) {
+  [!if (b) {
     return 1;
   } else {
     return 2.0;
-  }
-// end
+  }!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 num f(bool b) {
-// start
   return res(b);
-// end
 }
 
 num res(bool b) {
@@ -3459,23 +3092,18 @@ num res(bool b) {
   }
 
   Future<void> test_statements_return_multiple_ifThen() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 num f(bool b) {
-// start
-  if (b) {
+  [!if (b) {
     return 1;
   }
-  return 2.0;
-// end
+  return 2.0;!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 num f(bool b) {
-// start
   return res(b);
-// end
 }
 
 num res(bool b) {
@@ -3488,23 +3116,18 @@ num res(bool b) {
   }
 
   Future<void> test_statements_return_multiple_ignoreInFunction() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 int f() {
-// start
-  localFunction() {
+  [!localFunction() {
     return 'abc';
   }
-  return 42;
-// end
+  return 42;!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 int f() {
-// start
   return res();
-// end
 }
 
 int res() {
@@ -3517,23 +3140,18 @@ int res() {
   }
 
   Future<void> test_statements_return_multiple_interfaceFunction() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 f(bool b) {
-// start
-  if (b) {
+  [!if (b) {
     return 1;
   }
-  return () {};
-// end
+  return () {};!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 f(bool b) {
-// start
   return res(b);
-// end
 }
 
 Object res(bool b) {
@@ -3547,26 +3165,21 @@ Object res(bool b) {
 
   Future<void>
   test_statements_return_multiple_sameElementDifferentTypeArgs() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 f(bool b) {
-// start
-  if (b) {
+  [!if (b) {
     print(true);
     return <int>[];
   } else {
     print(false);
     return <String>[];
-  }
-// end
+  }!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 f(bool b) {
-// start
   return res(b);
-// end
 }
 
 List<Object> res(bool b) {
@@ -3582,20 +3195,15 @@ List<Object> res(bool b) {
   }
 
   Future<void> test_statements_return_single() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 int f() {
-// start
-  return 42;
-// end
+  [!return 42;!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 int f() {
-// start
   return res();
-// end
 }
 
 int res() {
@@ -3605,20 +3213,15 @@ int res() {
   }
 
   Future<void> test_statements_topFunction_parameters_function() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 Future<void> f(void f(String x), String a) async {
-// start
-  f(a);
-// end
+  [!f(a);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 Future<void> f(void f(String x), String a) async {
-// start
   res(f, a);
-// end
 }
 
 void res(void Function(String x) f, String a) {
@@ -3629,20 +3232,15 @@ void res(void Function(String x) f, String a) {
 
   Future<void>
   test_statements_topFunction_parameters_function_functionSyntax() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 Future<void> f(void Function(String) f, String a) async {
-// start
-  f(a);
-// end
+  [!f(a);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 Future<void> f(void Function(String) f, String a) async {
-// start
   res(f, a);
-// end
 }
 
 void res(void Function(String) f, String a) {
@@ -3652,20 +3250,15 @@ void res(void Function(String) f, String a) {
   }
 
   Future<void> test_statements_topFunction_parameters_recordType() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f((int, String) r) {
-// start
-  print(r);
-// end
+  [!print(r);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f((int, String) r) {
-// start
   res(r);
-// end
 }
 
 void res((int, String) r) {
@@ -3677,22 +3270,17 @@ void res((int, String) r) {
   /// We have 3 identical statements, but select only 2.
   /// This should not cause problems.
   Future<void> test_statements_twoOfThree() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-// start
-  print(0);
-  print(0);
-// end
+  [!print(0);
+  print(0);!]
   print(0);
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
-// start
   res();
-// end
   print(0);
 }
 
@@ -3704,12 +3292,11 @@ void res() {
   }
 
   Future<void> test_string() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 void f() {
-  var a = 'test';
+  var a = '[!test!]';
 }
 ''');
-    _createRefactoringForString('test');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 void f() {
@@ -3732,25 +3319,22 @@ Completer<int> newCompleter() => null;
 @reflectiveTest
 class ExtractMethodTest_Enum extends _ExtractMethodTest {
   Future<void> test_bad_conflict_method_alreadyDeclaresMethod() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 enum E {
   v;
   void res() {}
   void foo() {
-// start
-    print(0);
-// end
+    [!print(0);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsError(
       "Enum 'E' already declares method with name 'res'.",
     );
   }
 
   Future<void> test_bad_conflict_method_shadowsSuperDeclaration() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 mixin M {
   void res() {}
 }
@@ -3759,18 +3343,15 @@ enum E with M {
   v;
   void foo() {
     res();
-// start
-    print(0);
-// end
+    [!print(0);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsError("Created method will shadow method 'M.res'.");
   }
 
   Future<void> test_bad_conflict_topLevel_willHideInheritedMemberUsage() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 mixin M {
   void res() {}
 }
@@ -3783,27 +3364,23 @@ enum E with M {
 }
 
 void f() {
-// start
-  print(0);
-// end
+  [!print(0);!]
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsError(
       "Created function will shadow method 'M.res'.",
     );
   }
 
   Future<void> test_singleExpression_method() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 enum E {
   v;
   void foo() {
-    int a = 1 + 2;
+    int a = [!1 + 2!];
   }
 }
 ''');
-    _createRefactoringForString('1 + 2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 enum E {
@@ -3818,25 +3395,20 @@ enum E {
   }
 
   Future<void> test_statements_method() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 enum E {
   v;
   void foo() {
-// start
-    print(0);
-// end
+    [!print(0);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 enum E {
   v;
   void foo() {
-// start
     res();
-// end
   }
 
   void res() {
@@ -3850,14 +3422,13 @@ enum E {
 @reflectiveTest
 class ExtractMethodTest_Extension extends _ExtractMethodTest {
   Future<void> test_singleExpression_method() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 extension E on int {
   void foo() {
-    int a = 1 + 2;
+    int a = [!1 + 2!];
   }
 }
 ''');
-    _createRefactoringForString('1 + 2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 extension E on int {
@@ -3871,23 +3442,18 @@ extension E on int {
   }
 
   Future<void> test_statements_method() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 extension E on int {
   void foo() {
-// start
-    print(0);
-// end
+    [!print(0);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 extension E on int {
   void foo() {
-// start
     res();
-// end
   }
 
   void res() {
@@ -3901,24 +3467,21 @@ extension E on int {
 @reflectiveTest
 class ExtractMethodTest_ExtensionType extends _ExtractMethodTest {
   Future<void> test_bad_conflict_method_alreadyDeclaresMethod() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 extension type E(int it) {
   void res() {}
   void foo() {
-// start
-    print(0);
-// end
+    [!print(0);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsError(
       "Extension type 'E' already declares method with name 'res'.",
     );
   }
 
   Future<void> test_bad_conflict_method_shadowsSuperDeclaration() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   void res() {}
 }
@@ -3926,25 +3489,21 @@ class A {
 extension type E(A it) implements A {
   void foo() {
     res();
-// start
-    print(0);
-// end
+    [!print(0);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsError("Created method will shadow method 'A.res'.");
   }
 
   Future<void> test_singleExpression_method() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 extension type E(int it) {
   void foo() {
-    int a = 1 + 2;
+    int a = [!1 + 2!];
   }
 }
 ''');
-    _createRefactoringForString('1 + 2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 extension type E(int it) {
@@ -3958,23 +3517,18 @@ extension type E(int it) {
   }
 
   Future<void> test_statements_method() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 extension type E(int it) {
   void foo() {
-// start
-    print(0);
-// end
+    [!print(0);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 extension type E(int it) {
   void foo() {
-// start
     res();
-// end
   }
 
   void res() {
@@ -3988,24 +3542,21 @@ extension type E(int it) {
 @reflectiveTest
 class ExtractMethodTest_Mixin extends _ExtractMethodTest {
   Future<void> test_bad_conflict_method_alreadyDeclaresMethod() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 mixin A {
   void res() {}
   void foo() {
-// start
-    print(0);
-// end
+    [!print(0);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsError(
       "Mixin 'A' already declares method with name 'res'.",
     );
   }
 
   Future<void> test_bad_conflict_method_shadowsSuperDeclaration() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 class A {
   void res() {}
 }
@@ -4013,25 +3564,21 @@ class A {
 mixin B implements A {
   void foo() {
     res();
-// start
-    print(0);
-// end
+    [!print(0);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     return _assertConditionsError("Created method will shadow method 'A.res'.");
   }
 
   Future<void> test_singleExpression_method() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 mixin A {
   void foo() {
-    int a = 1 + 2;
+    int a = [!1 + 2!];
   }
 }
 ''');
-    _createRefactoringForString('1 + 2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 mixin A {
@@ -4045,23 +3592,18 @@ mixin A {
   }
 
   Future<void> test_statements_method() async {
-    await indexTestUnit('''
+    await _createRefactoring('''
 mixin A {
   void foo() {
-// start
-    print(0);
-// end
+    [!print(0);!]
   }
 }
 ''');
-    _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 mixin A {
   void foo() {
-// start
     res();
-// end
   }
 
   void res() {
@@ -4117,7 +3659,22 @@ class _ExtractMethodTest extends RefactoringTest {
     return _assertRefactoringChange(expectedCode);
   }
 
-  void _createRefactoring(int offset, int length) {
+  Future<void> _createRefactoring(String code) async {
+    await indexTestUnit(code);
+    if (parsedTestCode.ranges.isNotEmpty) {
+      if (parsedTestCode.positions.isNotEmpty) {
+        fail('Tests cannot specify both a range and a position.');
+      }
+      var range = parsedTestCode.range.sourceRange;
+      _createRefactoringForRange(range.offset, range.length);
+    } else if (parsedTestCode.positions.isNotEmpty) {
+      _createRefactoringForRange(parsedTestCode.position.offset, 0);
+    } else {
+      fail('Tests must specify either a range or a position.');
+    }
+  }
+
+  void _createRefactoringForRange(int offset, int length) {
     refactoring = ExtractMethodRefactoringImpl(
       searchEngine,
       testAnalysisResult,
@@ -4125,43 +3682,6 @@ class _ExtractMethodTest extends RefactoringTest {
       length,
     );
     refactoring.name = 'res';
-  }
-
-  void _createRefactoringForStartEndComments() {
-    var eol = testCode.contains('\r\n') ? '\r\n' : '\r';
-    var offset = findEnd('// start') + eol.length;
-    var end = findOffset('// end');
-    _createRefactoring(offset, end - offset);
-  }
-
-  void _createRefactoringForStartEndString(
-    String startSearch,
-    String endSearch,
-  ) {
-    var offset = findOffset(startSearch);
-    var end = findOffset(endSearch);
-    _createRefactoring(offset, end - offset);
-  }
-
-  /// Creates a new refactoring in [refactoring] for the selection range of the
-  /// given [search] pattern.
-  void _createRefactoringForString(String search) {
-    var offset = findOffset(search);
-    var length = search.length;
-    _createRefactoring(offset, length);
-  }
-
-  /// Creates a new refactoring in [refactoring] at the offset of the given
-  /// [search] pattern, and with `0` length.
-  void _createRefactoringForStringOffset(String search) {
-    var offset = findOffset(search);
-    _createRefactoring(offset, 0);
-  }
-
-  void _createRefactoringWithSuffix(String selectionSearch, String suffix) {
-    var offset = findOffset(selectionSearch + suffix);
-    var length = selectionSearch.length;
-    _createRefactoring(offset, length);
   }
 
   /// Returns a deep copy of [refactoring] parameters.

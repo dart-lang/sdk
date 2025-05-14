@@ -91,7 +91,8 @@ abstract class PipelineTestStrategy<S extends ModularStep> {
   FutureOr<void> cleanup(Pipeline<S> pipeline);
 }
 
-runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
+void runPipelineTest<S extends ModularStep>(
+    PipelineTestStrategy<S> testStrategy) {
   var sources = {
     testStrategy.testRootUri.resolve("a1.dart"): 'A1',
     testStrategy.testRootUri.resolve("a2.dart"): 'A2',
@@ -101,12 +102,11 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
   };
 
   var m1 = Module("a", const [], testStrategy.testRootUri,
-      [Uri.parse("a1.dart"), Uri.parse("a2.dart")], {},
+      [Uri.parse("a1.dart"), Uri.parse("a2.dart")],
       isShared: true);
   var m2 = Module("b", [m1], testStrategy.testRootUri,
-      [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")], {});
-  var m3 = Module(
-      "c", [m2], testStrategy.testRootUri, [Uri.parse("c.dart")], {},
+      [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")]);
+  var m3 = Module("c", [m2], testStrategy.testRootUri, [Uri.parse("c.dart")],
       isMain: true);
 
   var singleModuleInput = ModularTest([m1], m1, []);

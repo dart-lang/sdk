@@ -679,7 +679,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
   } else if (dart_function.is_external()) {
     body += ThrowNoSuchMethodError(TokenPosition::kNoSource, dart_function,
                                    /*incompatible_arguments=*/false);
-    body += ThrowException(TokenPosition::kNoSource);  // Close graph.
+    ASSERT(body.is_closed());
   } else if (has_body) {
     body += BuildStatement();
   }
@@ -970,10 +970,13 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
 void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
   const Function& function = parsed_function()->function();
 
-  const intptr_t kernel_offset = function.kernel_offset();
-  ASSERT(kernel_offset >= 0);
-
-  SetOffset(kernel_offset);
+  if (!function.IsNoSuchMethodDispatcher() &&
+      !function.IsInvokeFieldDispatcher() &&
+      !function.IsFfiCallbackTrampoline()) {
+    const intptr_t kernel_offset = function.kernel_offset();
+    ASSERT(kernel_offset >= 0);
+    SetOffset(kernel_offset);
+  }
 
   // Mark forwarding stubs.
   switch (function.kind()) {
@@ -1699,10 +1702,6 @@ Fragment StreamingFlowGraphBuilder::StringInterpolateSingle(
   return flow_graph_builder_->StringInterpolateSingle(position);
 }
 
-Fragment StreamingFlowGraphBuilder::ThrowTypeError() {
-  return flow_graph_builder_->ThrowTypeError();
-}
-
 Fragment StreamingFlowGraphBuilder::LoadInstantiatorTypeArguments() {
   return flow_graph_builder_->LoadInstantiatorTypeArguments();
 }
@@ -2113,7 +2112,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableGetImpl(
           already_assigned += flow_graph_builder_->ThrowLateInitializationError(
               position, "_throwLocalAssignedDuringInitialization",
               variable->name());
-          already_assigned += Goto(join);
+          ASSERT(already_assigned.is_closed());
         }
       } else {
         // Late non-final variable. Store the initializer result.
@@ -2126,7 +2125,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableGetImpl(
       Fragment initialize(is_uninitialized);
       initialize += flow_graph_builder_->ThrowLateInitializationError(
           position, "_throwLocalNotInitialized", variable->name());
-      initialize += Goto(join);
+      ASSERT(initialize.is_closed());
     }
   }
 
@@ -2193,7 +2192,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableSetImpl(
       Fragment already_initialized(is_initialized);
       already_initialized += flow_graph_builder_->ThrowLateInitializationError(
           position, "_throwLocalAlreadyInitialized", variable->name());
-      already_initialized += Goto(join);
+      ASSERT(already_initialized.is_closed());
     }
 
     instructions = Fragment(instructions.entry, join);
@@ -2821,7 +2820,13 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
 
   // read flags.
   const uint8_t flags = ReadFlags();
-  const bool is_invariant = (flags & kInstanceInvocationFlagInvariant) != 0;
+  bool is_invariant = false;
+  bool is_implicit_call = false;
+  if (is_dynamic) {
+    is_implicit_call = (flags & kDynamicInvocationFlagImplicitCall) != 0;
+  } else {
+    is_invariant = (flags & kInstanceInvocationFlagInvariant) != 0;
+  }
 
   const TokenPosition position = ReadPosition();  // read position.
   if (p != nullptr) *p = position;
@@ -2940,13 +2945,16 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
   //     at the entry because the parameter is marked covariant, neither of
   //     those cases require a dynamic invocation forwarder.
   const Function* direct_call_target = &direct_call.target_;
-  if (H.IsRoot(itarget_name) &&
-      (name.ptr() != Symbols::EqualOperator().ptr())) {
+  if (is_dynamic && (name.ptr() != Symbols::EqualOperator().ptr())) {
     mangled_name = &String::ZoneHandle(
         Z, Function::CreateDynamicInvocationForwarderName(name));
     if (!direct_call_target->IsNull()) {
       direct_call_target = &Function::ZoneHandle(
           direct_call_target->GetDynamicInvocationForwarder(*mangled_name));
+    }
+    if (is_implicit_call) {
+      ASSERT(mangled_name->ptr() == Symbols::DynamicCall().ptr());
+      mangled_name = &Symbols::DynamicImplicitCall();
     }
   }
 
@@ -4641,11 +4649,6 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
       Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::AssertionError()));
   ASSERT(!klass.IsNull());
 
-  // Build equivalent of `throw _AssertionError._throwNew(start, end, message)`
-  // expression. We build throw (even through _throwNew already throws) because
-  // call is not a valid last instruction for the block. Blocks can only
-  // terminate with explicit control flow instructions (Branch, Goto, Return
-  // or Throw).
   Fragment otherwise_fragment(otherwise);
   if (CompilerState::Current().is_aot()) {
     // When in AOT, figure out start line, end line, line fragment needed for
@@ -4701,8 +4704,8 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
     otherwise_fragment +=
         StaticCall(condition_start_offset, target, 3, ICData::kStatic);
   }
-  otherwise_fragment += ThrowException(TokenPosition::kNoSource);
   otherwise_fragment += Drop();
+  ASSERT(otherwise_fragment.is_closed());
 
   return Fragment(instructions.entry, then);
 }
@@ -4982,16 +4985,9 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchCase(SwitchHelper* helper,
     body_fragment += Drop();
   }
 
-  // TODO(http://dartbug.com/50595): The CFE does not insert breaks for
-  // unterminated cases which never reach the end of their control flow.
-  // If the CFE inserts synthesized breaks, we can add an assert here instead.
   if (!is_default && body_fragment.is_open() &&
       (case_index < (helper->case_count() - 1))) {
-    const auto& error =
-        String::ZoneHandle(Z, Symbols::New(thread(), "Unreachable code."));
-    body_fragment += Constant(error);
-    body_fragment += ThrowException(TokenPosition::kNoSource);
-    body_fragment += Drop();
+    body_fragment += B->Stop("Unreachable end of case");
   }
 
   // If there is an implicit fall-through we have one [SwitchCase] and

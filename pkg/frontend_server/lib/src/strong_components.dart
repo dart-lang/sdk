@@ -120,7 +120,7 @@ class _LibraryGraph implements Graph<Library> {
             !dependency.targetLibrary.importUri.isScheme('dart'))
           _partialComponent == null
               ? dependency.targetLibrary
-              : _partialComponent![dependency.targetLibrary.importUri] ??
+              : _partialComponent[dependency.targetLibrary.importUri] ??
                   dependency.targetLibrary
     ];
   }

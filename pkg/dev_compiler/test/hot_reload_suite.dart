@@ -169,8 +169,12 @@ class HotReloadTest {
   // TODO(nshahan): Support multiple expected errors for a single generation.
   final Map<int, String> expectedErrors;
 
+  /// Map of generation number to whether a hot restart was triggered before the
+  /// generation.
+  final Map<int, bool> isHotRestart;
+
   HotReloadTest(this.directory, this.name, this.generationCount, this.files,
-      ReloadTestConfiguration config)
+      ReloadTestConfiguration config, this.isHotRestart)
       : excludedPlatforms = config.excludedPlatforms,
         expectedErrors = config.expectedErrors;
 
@@ -376,8 +380,9 @@ abstract class HotReloadSuiteRunner {
         r'^(?<name>[\w,-]+)'
         // Followed by a dot and 1 or more digits.
         r'\.(?<generation>\d+)'
-        // Optionally a dot and the word 'reject'.
-        r'(?<reject>\.reject)?'
+        // Optionally a dot and either the word 'restart' indicating a hot
+        // restart, or the word 'reject', indicating a hot reload rejection.
+        r'((?<restart>\.restart)|(?<reject>\.reject))?'
         // Ending with a dot and the word 'dart'
         r'\.dart$');
     final testSuite = <HotReloadTest>[];
@@ -409,6 +414,7 @@ abstract class HotReloadSuiteRunner {
             label: testName);
         continue;
       }
+      final isHotRestart = <int, bool>{};
       final expectedErrors = testConfig.expectedErrors;
       final dartFiles = testDir
           .listSync()
@@ -420,15 +426,26 @@ abstract class HotReloadSuiteRunner {
         final matches = validTestSourceName.allMatches(fileName);
         if (matches.length != 1) {
           throw Exception('Invalid test source file name: $fileName\n'
-              'Valid names look like "file_name.10.dart" '
-              'or "file_name.10.reject.dart".');
+              'Valid names look like "file_name.10.dart", '
+              '"file_name.10.restart.dart" or "file_name.10.reject.dart".');
         }
         final match = matches.single;
         final name = match.namedGroup('name');
         final restoredName = '$name.dart';
         final generation = int.parse(match.namedGroup('generation')!);
         maxGenerations = max(maxGenerations, generation);
+        final restart = match.namedGroup('restart') != null;
+        if (!isHotRestart.containsKey(generation)) {
+          isHotRestart[generation] = restart;
+        } else {
+          if (restart != isHotRestart[generation]) {
+            throw Exception('Expected all files for generation $generation to '
+                "be consistent about having a '.restart' suffix, but $fileName "
+                'does not match other files in the same generation.');
+          }
+        }
         final rejectExpected = match.namedGroup('reject') != null;
+        assert(!(rejectExpected && restart));
         if (rejectExpected && !expectedErrors.containsKey(generation)) {
           throw Exception(
               'Expected error for generation file missing from config.json: '
@@ -465,8 +482,8 @@ abstract class HotReloadSuiteRunner {
             {for (final edit in fileEdits) edit.generation: edit});
         testFiles.add(TestFile(fileName, editsByGeneration));
       }
-      testSuite.add(HotReloadTest(
-          testDir, testName, maxGenerations + 1, testFiles, testConfig));
+      testSuite.add(HotReloadTest(testDir, testName, maxGenerations + 1,
+          testFiles, testConfig, isHotRestart));
     }
     return testSuite;
   }
@@ -575,16 +592,16 @@ abstract class HotReloadSuiteRunner {
             }
             final previousTempUri = generatedCodeDir.uri.resolve('__previous');
             final currentTempUri = generatedCodeDir.uri.resolve('__current');
-            File.fromUri(previousTempUri).writeAsStringSync(previousCode);
-            File.fromUri(currentTempUri).writeAsStringSync(currentCode);
+            // Avoid 'No newline at end of file' messages in the output by
+            // appending a newline to the trimmed source code strings.
+            File.fromUri(previousTempUri).writeAsStringSync('$previousCode\n');
+            File.fromUri(currentTempUri).writeAsStringSync('$currentCode\n');
             final diffOutput = _diffWithFileUris(
                 previousTempUri, currentTempUri,
                 label: test.name);
             File.fromUri(previousTempUri).deleteSync();
             File.fromUri(currentTempUri).deleteSync();
-            var (filteredDiffOutput, filteredCurrentDiff) =
-                _filterLineDeltas(diffOutput, currentDiff);
-            if (filteredDiffOutput != filteredCurrentDiff) {
+            if (diffOutput != currentDiff) {
               reportDiffOutcome(
                   test.name,
                   currentEdit.fileUri,
@@ -623,16 +640,18 @@ abstract class HotReloadSuiteRunner {
             (currentCode, currentDiff) = _splitTestByDiff(currentEdit.fileUri);
             final previousTempUri = generatedCodeDir.uri.resolve('__previous');
             final currentTempUri = generatedCodeDir.uri.resolve('__current');
-            File.fromUri(previousTempUri).writeAsStringSync(previousCode);
-            File.fromUri(currentTempUri).writeAsStringSync(currentCode);
+            // Avoid 'No newline at end of file' messages in the output by
+            // appending a newline to the trimmed source code strings.
+            File.fromUri(previousTempUri).writeAsStringSync('$previousCode\n');
+            File.fromUri(currentTempUri).writeAsStringSync('$currentCode\n');
             final diffOutput = _diffWithFileUris(
                 previousTempUri, currentTempUri,
                 label: test.name);
             File.fromUri(previousTempUri).deleteSync();
             File.fromUri(currentTempUri).deleteSync();
-            final newCurrentText = '$currentCode'
-                '${currentCode.endsWith('\n') ? '' : '\n'}'
-                '$diffOutput\n';
+            // Write an empty line between the code and the diff comment to
+            // agree with the dart formatter.
+            final newCurrentText = '$currentCode\n\n$diffOutput\n';
             File.fromUri(currentEdit.fileUri).writeAsStringSync(newCurrentText);
             _print('Writing updated diff to $currentEdit.fileUri',
                 label: test.name);
@@ -733,7 +752,7 @@ abstract class HotReloadSuiteRunner {
           return false;
         }
         final rejectionMessage = reloadReceipt.rejectionMessage;
-        if (rejectionMessage != null &&
+        if (rejectionMessage == null ||
             !rejectionMessage.contains(expectedError)) {
           _print(
               'Generation ${reloadReceipt.generation} was rejected but error '
@@ -847,7 +866,7 @@ abstract class HotReloadSuiteRunner {
     if (failedTests.isNotEmpty) {
       print('Some tests failed:');
       failedTests.forEach((outcome) {
-        print('${outcome.testName} failed with:\n  ${outcome.testOutput}');
+        print(outcome.testName);
       });
       // Exit cleanly after writing test results.
       exit(0);
@@ -902,57 +921,32 @@ abstract class HotReloadSuiteRunner {
       {String label = '', bool commented = true, bool trimHeaders = true}) {
     final file1Path = file1.toFilePath();
     final file2Path = file2.toFilePath();
-    final diffArgs = [
-      '-u',
-      '--width=120',
-      '--expand-tabs',
-      file1Path,
-      file2Path
-    ];
-    _debugPrint("Running diff with 'diff ${diffArgs.join(' ')}'.",
+    final diffArgs = ['diff', '-u', file1Path, file2Path];
+    _debugPrint("Running diff with 'git diff ${diffArgs.join(' ')}'.",
         label: label);
-    final diffProcess = Process.runSync('diff', diffArgs);
+    final diffProcess = Process.runSync('git', diffArgs);
     final errOutput = diffProcess.stderr as String;
     if (errOutput.isNotEmpty) {
-      throw Exception('diff failed with:\n$errOutput');
+      throw Exception('git diff failed with:\n$errOutput');
     }
     var output = diffProcess.stdout as String;
     if (trimHeaders) {
-      // Skip the first two lines.
+      // Skip the diff header. 'git diff' has 5 lines in its header.
       // TODO(markzipan): Add support for Windows-style line endings.
-      output = output.split('\n').skip(2).join('\n');
+      output = output.split('\n').skip(5).join('\n');
     }
     return commented ? '$testDiffSeparator\n/*\n$output*/' : output;
   }
 
-  /// Removes diff lines that show added or removed newlines.
-  ///
-  /// 'diff' can be unstable across platforms around newline offsets.
-  (String, String) _filterLineDeltas(String diff1, String diff2) {
-    bool isBlankLineOrDelta(String s) {
-      var trimmed = s.trim();
-      return trimmed.isEmpty ||
-          (trimmed.startsWith('+') || trimmed.startsWith('-')) &&
-              trimmed.length == 1;
-    }
-
-    var diff1Lines = LineSplitter().convert(diff1)
-      ..removeWhere(isBlankLineOrDelta);
-    var diff2Lines = LineSplitter().convert(diff2)
-      ..removeWhere(isBlankLineOrDelta);
-    return (diff1Lines.join('\n'), diff2Lines.join('\n'));
-  }
-
-  /// Returns the code and diff portions of [file].
+  /// Returns the code and diff portions of [file] with all leading and trailing
+  /// whitespace trimmed.
   (String, String) _splitTestByDiff(Uri file) {
     final text = File.fromUri(file).readAsStringSync();
     final diffIndex = text.indexOf(testDiffSeparator);
     final diffSplitIndex = diffIndex == -1 ? text.length - 1 : diffIndex;
-    final codeText = text.substring(0, diffSplitIndex);
-    final diffText = text.substring(diffSplitIndex, text.length - 1);
-    // Avoid 'No newline at end of file' messages in the output by appending a
-    // newline if one is not already trailing.
-    return ('$codeText${codeText.endsWith('\n') ? '' : '\n'}', diffText);
+    final codeText = text.substring(0, diffSplitIndex).trim();
+    final diffText = text.substring(diffSplitIndex, text.length - 1).trim();
+    return (codeText, diffText);
   }
 }
 
@@ -1009,7 +1003,8 @@ abstract class DdcSuiteRunner extends HotReloadSuiteRunner {
       outputDillPath = outputIncrementalDillUri.toFilePath();
       compilerOutput = await controller.sendRecompile(
           snapshotEntrypointWithScheme,
-          invalidatedFiles: updatedFiles);
+          invalidatedFiles: updatedFiles,
+          recompileRestart: test.isHotRestart[generation]!);
     }
     final expectedError = test.expectedErrors[generation];
     if (compilerOutput.errorCount > 0) {
@@ -1312,7 +1307,10 @@ class VMSuiteRunner extends HotReloadSuiteRunner {
       // TODO(markzipan): Add logic to reject bad compiles.
       compilerOutput = await controller.sendRecompile(
           snapshotEntrypointWithScheme,
-          invalidatedFiles: updatedFiles);
+          invalidatedFiles: updatedFiles,
+          // The VM never uses the `recompile-restart` instruction as it does
+          // not recompile during a hot restart.
+          recompileRestart: false);
     }
     var hasExpectedCompileError = false;
     final expectedError = test.expectedErrors[generation];

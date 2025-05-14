@@ -14,17 +14,19 @@ const _desc = r'Avoid `null` in `null`-aware assignment.';
 
 class UnnecessaryNullAwareAssignments extends LintRule {
   UnnecessaryNullAwareAssignments()
-      : super(
-          name: LintNames.unnecessary_null_aware_assignments,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.unnecessary_null_aware_assignments,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_null_aware_assignments;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addAssignmentExpression(this, visitor);
   }

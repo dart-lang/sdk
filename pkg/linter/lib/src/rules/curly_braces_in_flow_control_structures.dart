@@ -11,10 +11,10 @@ const _desc = r'DO use curly braces for all flow control structures.';
 
 class CurlyBracesInFlowControlStructures extends LintRule {
   CurlyBracesInFlowControlStructures()
-      : super(
-          name: LintNames.curly_braces_in_flow_control_structures,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.curly_braces_in_flow_control_structures,
+        description: _desc,
+      );
 
   @override
   bool get canUseParsedResult => true;
@@ -25,7 +25,9 @@ class CurlyBracesInFlowControlStructures extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);

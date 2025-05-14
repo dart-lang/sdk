@@ -124,6 +124,7 @@ Future runTest(
 const List<LineException> beforeExceptions = const [
   const LineException('wrapException', 'js_helper.dart'),
   const LineException('throwExpression', 'js_helper.dart'),
+  const LineException('throw_', 'js_helper.dart'),
 ];
 
 /// Lines allowed after the intended stack trace. Typically from the event

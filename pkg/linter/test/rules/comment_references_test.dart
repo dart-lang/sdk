@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CommentReferencesTest);
   });
@@ -25,12 +25,13 @@ class C {}
   }
 
   test_false() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// [false]
 class C {}
-''', [
-      lint(5, 5),
-    ]);
+''',
+      [lint(5, 5)],
+    );
   }
 
   test_field() async {
@@ -141,12 +142,13 @@ class C {}
   }
 
   test_null() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// [null]
 class C {}
-''', [
-      lint(5, 4),
-    ]);
+''',
+      [lint(5, 4)],
+    );
   }
 
   test_parameter() async {
@@ -213,21 +215,23 @@ class C {}
   }
 
   test_this() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// [this]
 class C {}
-''', [
-      lint(5, 4),
-    ]);
+''',
+      [lint(5, 4)],
+    );
   }
 
   test_true() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// [true]
 class C {}
-''', [
-      lint(5, 4),
-    ]);
+''',
+      [lint(5, 4)],
+    );
   }
 
   test_typeName() async {
@@ -246,38 +250,42 @@ class C {}
   }
 
   test_unknownElement() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// Text [y].
 class C {}
-''', [
-      lint(10, 1),
-    ]);
+''',
+      [lint(10, 1)],
+    );
   }
 
   test_unknownElement_dottedName() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// Parameter [y.z].
 class C {}
-''', [
-      lint(15, 3),
-    ]);
+''',
+      [lint(15, 3)],
+    );
   }
 
   test_unknownElement_followedByColon() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// Parameter [y]: z.
 void f(int x) {}
-''', [
-      lint(15, 1),
-    ]);
+''',
+      [lint(15, 1)],
+    );
   }
 
   test_unknownElement_twiceDottedName() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// Parameter [x.y.z].
 class C {}
-''', [
-      lint(15, 5),
-    ]);
+''',
+      [lint(15, 5)],
+    );
   }
 }

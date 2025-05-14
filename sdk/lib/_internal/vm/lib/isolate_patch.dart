@@ -16,12 +16,11 @@ part "timer_impl.dart";
 @patch
 class ReceivePort {
   @patch
-  factory ReceivePort([String debugName = '']) =>
-      new _ReceivePortImpl(debugName);
+  factory ReceivePort([String debugName = '']) => _ReceivePortImpl(debugName);
 
   @patch
   factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) {
-    return new _ReceivePortImpl.fromRawReceivePort(rawPort);
+    return _ReceivePortImpl.fromRawReceivePort(rawPort);
   }
 }
 
@@ -29,7 +28,7 @@ class ReceivePort {
 @pragma("vm:entry-point")
 class Capability {
   @patch
-  factory Capability() => new _Capability();
+  factory Capability() => _Capability();
 }
 
 @pragma("vm:entry-point")
@@ -62,7 +61,7 @@ class RawReceivePort {
    */
   @patch
   factory RawReceivePort([Function? handler, String debugName = '']) {
-    _RawReceivePort result = new _RawReceivePort(debugName);
+    _RawReceivePort result = _RawReceivePort(debugName);
     result.handler = handler;
     return result;
   }
@@ -70,10 +69,10 @@ class RawReceivePort {
 
 final class _ReceivePortImpl extends Stream implements ReceivePort {
   _ReceivePortImpl([String debugName = ''])
-    : this.fromRawReceivePort(new RawReceivePort(null, debugName));
+    : this.fromRawReceivePort(RawReceivePort(null, debugName));
 
   _ReceivePortImpl.fromRawReceivePort(this._rawPort)
-    : _controller = new StreamController(sync: true) {
+    : _controller = StreamController(sync: true) {
     _controller.onCancel = close;
     _rawPort.handler = _controller.add;
   }
@@ -341,7 +340,7 @@ final class Isolate {
   static Uri? get packageConfigSync {
     var hook = VMLibraryHooks.packageConfigUriSync;
     if (hook == null) {
-      throw new UnsupportedError("Isolate.packageConfig");
+      throw UnsupportedError("Isolate.packageConfig");
     }
     return hook();
   }
@@ -355,7 +354,7 @@ final class Isolate {
   static Uri? resolvePackageUriSync(Uri packageUri) {
     var hook = VMLibraryHooks.resolvePackageUriSync;
     if (hook == null) {
-      throw new UnsupportedError("Isolate.resolvePackageUriSync");
+      throw UnsupportedError("Isolate.resolvePackageUriSync");
     }
     return hook(packageUri);
   }
@@ -383,7 +382,7 @@ final class Isolate {
     if (script == null) {
       // We do not have enough information to support spawning the new
       // isolate.
-      throw new UnsupportedError("Isolate.spawn");
+      throw UnsupportedError("Isolate.spawn");
     }
     if (script.isScheme("package")) {
       if (Isolate._packageSupported()) {
@@ -393,7 +392,7 @@ final class Isolate {
       }
     }
 
-    final RawReceivePort readyPort = new RawReceivePort(
+    final RawReceivePort readyPort = RawReceivePort(
       null,
       'Isolate.spawn ready',
     );
@@ -413,7 +412,7 @@ final class Isolate {
       return await _spawnCommon(readyPort);
     } catch (e, st) {
       readyPort.close();
-      return await new Future<Isolate>.error(e, st);
+      return await Future<Isolate>.error(e, st);
     }
   }
 
@@ -448,20 +447,20 @@ final class Isolate {
     String? debugName,
   }) async {
     if (environment != null) {
-      throw new UnimplementedError("environment");
+      throw UnimplementedError("environment");
     }
 
     // Verify that no mutually exclusive arguments have been passed.
     if (automaticPackageResolution) {
       if (packageRoot != null) {
-        throw new ArgumentError(
+        throw ArgumentError(
           "Cannot simultaneously request "
           "automaticPackageResolution and specify a "
           "packageRoot.",
         );
       }
       if (packageConfig != null) {
-        throw new ArgumentError(
+        throw ArgumentError(
           "Cannot simultaneously request "
           "automaticPackageResolution and specify a "
           "packageConfig.",
@@ -469,7 +468,7 @@ final class Isolate {
       }
     } else {
       if ((packageRoot != null) && (packageConfig != null)) {
-        throw new ArgumentError(
+        throw ArgumentError(
           "Cannot simultaneously specify a "
           "packageRoot and a packageConfig.",
         );
@@ -497,7 +496,7 @@ final class Isolate {
     // The VM will invoke [_startIsolate] and not `main`.
     final packageConfigString = packageConfig?.toString();
 
-    final RawReceivePort readyPort = new RawReceivePort(
+    final RawReceivePort readyPort = RawReceivePort(
       null,
       'Isolate.spawnUri ready',
     );
@@ -526,14 +525,14 @@ final class Isolate {
   }
 
   static Future<Isolate> _spawnCommon(RawReceivePort readyPort) {
-    final completer = new Completer<Isolate>.sync();
+    final completer = Completer<Isolate>.sync();
     readyPort.handler = (readyMessage) {
       readyPort.close();
       if (readyMessage is List && readyMessage.length == 2) {
         SendPort controlPort = readyMessage[0];
         List capabilities = readyMessage[1];
         completer.complete(
-          new Isolate(
+          Isolate(
             controlPort,
             pauseCapability: capabilities[0],
             terminateCapability: capabilities[1],
@@ -542,12 +541,12 @@ final class Isolate {
       } else if (readyMessage is String) {
         // We encountered an error while starting the new isolate.
         completer.completeError(
-          new IsolateSpawnException('Unable to spawn isolate: ${readyMessage}'),
+          IsolateSpawnException('Unable to spawn isolate: ${readyMessage}'),
         );
       } else {
         // This shouldn't happen.
         completer.completeError(
-          new IsolateSpawnException(
+          IsolateSpawnException(
             "Internal error: unexpected format for ready message: "
             "'${readyMessage}'",
           ),
@@ -599,7 +598,7 @@ final class Isolate {
     // _sendOOB expects a fixed length array and hence we create a fixed
     // length array and assign values to it instead of using [ ... ].
     var msg =
-        new List<Object?>.filled(4, null)
+        List<Object?>.filled(4, null)
           ..[0] =
               0 // Make room for OOB message type.
           ..[1] = _PAUSE
@@ -611,7 +610,7 @@ final class Isolate {
   @patch
   void resume(Capability resumeCapability) {
     var msg =
-        new List<Object?>.filled(4, null)
+        List<Object?>.filled(4, null)
           ..[0] =
               0 // Make room for OOB message type.
           ..[1] = _RESUME
@@ -623,7 +622,7 @@ final class Isolate {
   @patch
   void addOnExitListener(SendPort responsePort, {Object? response}) {
     var msg =
-        new List<Object?>.filled(4, null)
+        List<Object?>.filled(4, null)
           ..[0] =
               0 // Make room for OOB message type.
           ..[1] = _ADD_EXIT
@@ -635,7 +634,7 @@ final class Isolate {
   @patch
   void removeOnExitListener(SendPort responsePort) {
     var msg =
-        new List<Object?>.filled(3, null)
+        List<Object?>.filled(3, null)
           ..[0] =
               0 // Make room for OOB message type.
           ..[1] = _DEL_EXIT
@@ -646,7 +645,7 @@ final class Isolate {
   @patch
   void setErrorsFatal(bool errorsAreFatal) {
     var msg =
-        new List<Object?>.filled(4, null)
+        List<Object?>.filled(4, null)
           ..[0] =
               0 // Make room for OOB message type.
           ..[1] = _ERROR_FATAL
@@ -658,7 +657,7 @@ final class Isolate {
   @patch
   void kill({int priority = beforeNextEvent}) {
     var msg =
-        new List<Object?>.filled(4, null)
+        List<Object?>.filled(4, null)
           ..[0] =
               0 // Make room for OOB message type.
           ..[1] = _KILL
@@ -674,7 +673,7 @@ final class Isolate {
     int priority = immediate,
   }) {
     var msg =
-        new List<Object?>.filled(5, null)
+        List<Object?>.filled(5, null)
           ..[0] =
               0 // Make room for OOM message type.
           ..[1] = _PING
@@ -687,7 +686,7 @@ final class Isolate {
   @patch
   void addErrorListener(SendPort port) {
     var msg =
-        new List<Object?>.filled(3, null)
+        List<Object?>.filled(3, null)
           ..[0] =
               0 // Make room for OOB message type.
           ..[1] = _ADD_ERROR
@@ -698,7 +697,7 @@ final class Isolate {
   @patch
   void removeErrorListener(SendPort port) {
     var msg =
-        new List<Object?>.filled(3, null)
+        List<Object?>.filled(3, null)
           ..[0] =
               0 // Make room for OOB message type.
           ..[1] = _DEL_ERROR
@@ -708,7 +707,7 @@ final class Isolate {
 
   static Isolate _getCurrentIsolate() {
     List portAndCapabilities = _getPortAndCapabilitiesOfCurrentIsolate();
-    return new Isolate(
+    return Isolate(
       portAndCapabilities[0],
       pauseCapability: portAndCapabilities[1],
       terminateCapability: portAndCapabilities[2],
@@ -742,33 +741,6 @@ final class Isolate {
     }
     _exit(finalMessagePort, message);
   }
-
-  /**
-   * Creates an Uri representing the script which was compiled into kernel
-   * binary in [kernelBlob].
-   * The resulting Uri can be used for the subsequent spawnUri calls.
-   * Such spawnUri will start an isolate which would run the given
-   * compiled script in [kernelBlob].
-   */
-  /*static*/
-  Uri createUriForKernelBlob(Uint8List kernelBlob) {
-    return Uri.parse(_registerKernelBlob(kernelBlob));
-  }
-
-  /**
-   * Unregisters kernel blob previously registered with
-   * [createUriForKernelBlob] and frees underlying resources.
-   */
-  /*static*/
-  void unregisterKernelBlobUri(Uri kernelBlobUri) {
-    _unregisterKernelBlob(kernelBlobUri.toString());
-  }
-
-  @pragma("vm:external-name", "Isolate_registerKernelBlob")
-  external static String _registerKernelBlob(Uint8List kernelBlob);
-
-  @pragma("vm:external-name", "Isolate_unregisterKernelBlob")
-  external static void _unregisterKernelBlob(String kernelBlobUri);
 }
 
 @patch

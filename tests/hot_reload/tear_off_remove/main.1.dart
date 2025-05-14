@@ -19,13 +19,13 @@ Future<void> main() async {
   helper();
   await hotReload();
   Expect.throws<NoSuchMethodError>(
-      helper,
-      (err) =>
-          '$err'.contains("No static method 'foo' declared in class 'C'."));
+    helper,
+    (err) => '$err'.contains("No static method 'foo' declared in class 'C'."),
+  );
 }
+
 /** DIFF **/
 /*
-@@ -8,13 +8,11 @@
  // Adapted from:
  // https://github.com/dart-lang/sdk/blob/f34a2ed99fc1b34cedbd974a5801f8d922121126/runtime/vm/isolate_reload_test.cc#L1693
  

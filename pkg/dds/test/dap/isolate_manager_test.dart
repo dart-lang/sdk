@@ -144,5 +144,27 @@ main() {
       expect(receivedUri, 'scheme://file/path.dart');
       expect(resolved, Uri.file('/returned/file/path.dart'));
     });
+
+    test('sends resume after kPausePostRequest', () async {
+      // Trigger initial startup.
+      await adapter.isolateManager.handleEvent(Event(
+          isolate: adapter.mockService.isolate1,
+          kind: EventKind.kIsolateRunnable));
+      isolateManager.threads[0].startupHandled = true;
+
+      // Clear any previously called methods.
+      adapter.mockService.calledMethods.clear();
+
+      // Now simulate a hot reload causing the isolate to pause again.
+      await adapter.isolateManager.handleEvent(Event(
+          isolate: adapter.mockService.isolate1,
+          kind: EventKind.kPausePostRequest));
+
+      // Ensure we called readyToResume.
+      expect(adapter.mockService.calledMethods.map((cm) => cm.method),
+          contains('readyToResume'));
+
+      // Expect it was resumed.
+    });
   });
 }

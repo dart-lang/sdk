@@ -14,8 +14,11 @@ class SummaryDataReader {
 
   late final _StringTable _stringTable;
 
+  final Int64List _int64Buffer = Int64List(1);
+  late final Uint8List _int64BufferUint8 = _int64Buffer.buffer.asUint8List();
+
   final Float64List _doubleBuffer = Float64List(1);
-  Uint8List? _doubleBufferUint8;
+  late final Uint8List _doubleBufferUint8 = _doubleBuffer.buffer.asUint8List();
 
   SummaryDataReader(this.bytes);
 
@@ -43,22 +46,32 @@ class SummaryDataReader {
   }
 
   double readDouble() {
-    var doubleBufferUint8 =
-        _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
-    doubleBufferUint8[0] = readByte();
-    doubleBufferUint8[1] = readByte();
-    doubleBufferUint8[2] = readByte();
-    doubleBufferUint8[3] = readByte();
-    doubleBufferUint8[4] = readByte();
-    doubleBufferUint8[5] = readByte();
-    doubleBufferUint8[6] = readByte();
-    doubleBufferUint8[7] = readByte();
+    _doubleBufferUint8[0] = readByte();
+    _doubleBufferUint8[1] = readByte();
+    _doubleBufferUint8[2] = readByte();
+    _doubleBufferUint8[3] = readByte();
+    _doubleBufferUint8[4] = readByte();
+    _doubleBufferUint8[5] = readByte();
+    _doubleBufferUint8[6] = readByte();
+    _doubleBufferUint8[7] = readByte();
     return _doubleBuffer[0];
   }
 
   T readEnum<T extends Enum>(List<T> values) {
     var index = readByte();
     return values[index];
+  }
+
+  int readInt64() {
+    _int64BufferUint8[0] = readByte();
+    _int64BufferUint8[1] = readByte();
+    _int64BufferUint8[2] = readByte();
+    _int64BufferUint8[3] = readByte();
+    _int64BufferUint8[4] = readByte();
+    _int64BufferUint8[5] = readByte();
+    _int64BufferUint8[6] = readByte();
+    _int64BufferUint8[7] = readByte();
+    return _int64Buffer[0];
   }
 
   Map<K, V> readMap<K, V>({
@@ -75,9 +88,17 @@ class SummaryDataReader {
     };
   }
 
-  T? readOptionalObject<T>(T Function(SummaryDataReader reader) read) {
+  int? readOptionalInt64() {
     if (readBool()) {
-      return read(this);
+      return readInt64();
+    } else {
+      return null;
+    }
+  }
+
+  T? readOptionalObject<T>(T Function() read) {
+    if (readBool()) {
+      return read();
     } else {
       return null;
     }
@@ -202,6 +223,11 @@ class SummaryDataReader {
     var result = Uint8List.sublistView(bytes, offset, offset + length);
     offset += length;
     return result;
+  }
+
+  Uri readUri() {
+    var uriStr = readStringUtf8();
+    return Uri.parse(uriStr);
   }
 
   String stringOfIndex(int index) {

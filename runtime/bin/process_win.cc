@@ -20,6 +20,7 @@
 #include "bin/utils.h"
 #include "bin/utils_win.h"
 #include "platform/syslog.h"
+#include "platform/text_buffer.h"
 
 namespace dart {
 namespace bin {
@@ -344,7 +345,7 @@ static int GenerateNames(wchar_t pipe_names[Count][kMaxPipeNameSize]) {
 class ProcessStarter {
  public:
   ProcessStarter(const char* path,
-                 char* arguments[],
+                 const char* arguments[],
                  intptr_t arguments_length,
                  const char* working_directory,
                  char* environment[],
@@ -373,11 +374,12 @@ class ProcessStarter {
     stderr_handles_[kWriteHandle] = INVALID_HANDLE_VALUE;
     exit_handles_[kReadHandle] = INVALID_HANDLE_VALUE;
     exit_handles_[kWriteHandle] = INVALID_HANDLE_VALUE;
+    child_process_handle_ = INVALID_HANDLE_VALUE;
 
     // Transform input strings to system format.
     const wchar_t* system_path = StringUtilsWin::Utf8ToWide(path_);
-    wchar_t** system_arguments;
-    system_arguments = reinterpret_cast<wchar_t**>(
+    const wchar_t** system_arguments;
+    system_arguments = reinterpret_cast<const wchar_t**>(
         Dart_ScopeAllocate(arguments_length * sizeof(*system_arguments)));
     for (int i = 0; i < arguments_length; i++) {
       system_arguments[i] = StringUtilsWin::Utf8ToWide(arguments[i]);
@@ -562,8 +564,78 @@ class ProcessStarter {
         *exit_handler_ = reinterpret_cast<intptr_t>(exit_handle);
       }
     }
-
+    child_process_handle_ = process_info.hProcess;
     CloseHandle(process_info.hThread);
+
+    // Return process id.
+    *id_ = process_info.dwProcessId;
+    return 0;
+  }
+
+  int StartForExec() {
+    ASSERT(mode_ == kInheritStdio);
+    ASSERT(Process::ModeIsAttached(mode_));
+    ASSERT(!Process::ModeHasStdio(mode_));
+
+    // Setup info
+    STARTUPINFOEXW startup_info;
+    ZeroMemory(&startup_info, sizeof(startup_info));
+    startup_info.StartupInfo.cb = sizeof(startup_info);
+
+    // Setup the handles to inherit. We only want to inherit the three
+    // handles for stdin, stdout and stderr.
+    HANDLE stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
+    HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    HANDLE stderr_handle = GetStdHandle(STD_ERROR_HANDLE);
+    startup_info.StartupInfo.hStdInput = stdin_handle;
+    startup_info.StartupInfo.hStdOutput = stdout_handle;
+    startup_info.StartupInfo.hStdError = stderr_handle;
+    startup_info.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+    SIZE_T size = 0;
+    // The call to determine the size of an attribute list always fails with
+    // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
+    if (!InitializeProcThreadAttributeList(nullptr, 1, 0, &size) &&
+        (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
+      return CleanupAndReturnError();
+    }
+    attribute_list_ = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(
+        Dart_ScopeAllocate(size));
+    ZeroMemory(attribute_list_, size);
+    if (!InitializeProcThreadAttributeList(attribute_list_, 1, 0, &size)) {
+      return CleanupAndReturnError();
+    }
+    inherited_handles_ = {stdin_handle, stdout_handle, stderr_handle};
+    if (!UpdateProcThreadAttribute(
+            attribute_list_, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
+            inherited_handles_.data(),
+            inherited_handles_.size() * sizeof(HANDLE), nullptr, nullptr)) {
+      return CleanupAndReturnError();
+    }
+    startup_info.lpAttributeList = attribute_list_;
+
+    PROCESS_INFORMATION process_info;
+    ZeroMemory(&process_info, sizeof(process_info));
+
+    // Create process.
+    DWORD creation_flags =
+        EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT;
+    BOOL result = CreateProcessW(
+        nullptr,  // ApplicationName
+        command_line_,
+        nullptr,  // ProcessAttributes
+        nullptr,  // ThreadAttributes
+        TRUE,     // InheritHandles
+        creation_flags, environment_block_, system_working_directory_,
+        reinterpret_cast<STARTUPINFOW*>(&startup_info), &process_info);
+
+    if (result == 0) {
+      return SetOsErrorMessage(os_error_message_);
+    }
+    child_process_handle_ = process_info.hProcess;
+    CloseHandle(process_info.hThread);
+    CloseHandle(stdin_handle);
+    CloseHandle(stdout_handle);
+    CloseHandle(stderr_handle);
 
     // Return process id.
     *id_ = process_info.dwProcessId;
@@ -627,6 +699,7 @@ class ProcessStarter {
   HANDLE stdout_handles_[2];
   HANDLE stderr_handles_[2];
   HANDLE exit_handles_[2];
+  HANDLE child_process_handle_;
 
   const wchar_t* system_working_directory_;
   wchar_t* command_line_;
@@ -651,7 +724,7 @@ class ProcessStarter {
 
 int Process::Start(Namespace* namespc,
                    const char* path,
-                   char* arguments[],
+                   const char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
                    char* environment[],
@@ -828,8 +901,6 @@ bool Process::Wait(intptr_t pid,
   // Continue until all handles are closed.
   int alive = kHandles;
   while (alive > 0) {
-    LeaveIsolateScope leave_isolate;
-
     // Blocking call waiting for events from the child process.
     DWORD wait_result = WaitForMultipleObjects(alive, events, FALSE, INFINITE);
 
@@ -878,6 +949,92 @@ bool Process::Wait(intptr_t pid,
   result->set_exit_code(exit_code);
 
   return true;
+}
+
+int Process::Exec(Namespace* namespc,
+                  const char* path,
+                  const char* arguments[],
+                  intptr_t arguments_length,
+                  const char* working_directory,
+                  char* errmsg,
+                  intptr_t errmsg_len) {
+  // Create a Job object with JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+  HANDLE hjob = CreateJobObject(nullptr, nullptr);
+  if (hjob == nullptr) {
+    BufferFormatter f(errmsg, errmsg_len);
+    f.Printf("Process::Exec - CreateJobObject failed %d\n", GetLastError());
+    return -1;
+  }
+  JOBOBJECT_EXTENDED_LIMIT_INFORMATION info;
+  DWORD qresult;
+  if (!QueryInformationJobObject(hjob, JobObjectExtendedLimitInformation, &info,
+                                 sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION),
+                                 &qresult)) {
+    BufferFormatter f(errmsg, errmsg_len);
+    f.Printf("Process::Exec - QueryInformationJobObject failed %d\n",
+             GetLastError());
+    return -1;
+  }
+  info.BasicLimitInformation.LimitFlags |= JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+  if (!SetInformationJobObject(hjob, JobObjectExtendedLimitInformation, &info,
+                               sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION))) {
+    BufferFormatter f(errmsg, errmsg_len);
+    f.Printf("Process::Exec - SetInformationJobObject failed %d\n",
+             GetLastError());
+    return -1;
+  }
+
+  // Put the current process into the job object (there is a race here
+  // as the process can crash before it is in the Job object, but since
+  // we haven't spawned any children yet this race is harmless)
+  if (!AssignProcessToJobObject(hjob, GetCurrentProcess())) {
+    BufferFormatter f(errmsg, errmsg_len);
+    f.Printf("Process::Exec - AssignProcessToJobObject failed %d\n",
+             GetLastError());
+    return -1;
+  }
+
+  // Spawn the new child process (this child will automatically get
+  // added to the Job object).
+  // If the parent process is killed or it crashes the Job object
+  // will get destroyed and all the child processes will also get killed.
+  // arguments includes the name of the executable to run which is the same
+  // as the value passed in 'path', we strip that off when starting the
+  // process.
+  intptr_t pid = -1;
+  char* os_error_message = nullptr;  // Scope allocated by Process::Start.
+  ProcessStarter starter(path, &(arguments[1]), (arguments_length - 1),
+                         working_directory, nullptr, 0, kInheritStdio, nullptr,
+                         nullptr, nullptr, &pid, nullptr, &os_error_message);
+  int result = starter.StartForExec();
+  if (result != 0) {
+    BufferFormatter f(errmsg, errmsg_len);
+    f.Printf("Process::Exec - %s\n", os_error_message);
+    return -1;
+  }
+
+  // Now wait for this child process to terminate (normal exit or crash).
+  HANDLE child_process = starter.child_process_handle_;
+  ASSERT(child_process != INVALID_HANDLE_VALUE);
+  DWORD wait_result = WaitForSingleObject(child_process, INFINITE);
+  if (wait_result != WAIT_OBJECT_0) {
+    BufferFormatter f(errmsg, errmsg_len);
+    f.Printf("Process::Exec - WaitForSingleObject failed %d\n", GetLastError());
+    CloseHandle(child_process);
+    return -1;
+  }
+  int retval;
+  if (!GetExitCodeProcess(child_process, reinterpret_cast<DWORD*>(&retval))) {
+    BufferFormatter f(errmsg, errmsg_len);
+    f.Printf("Process::Exec - GetExitCodeProcess failed %d\n", GetLastError());
+    CloseHandle(child_process);
+    return -1;
+  }
+  CloseHandle(child_process);
+  // We exit the process here to simulate the same behaviour as exec on systems
+  // that support it.
+  ExitProcess(retval);
+  return 0;
 }
 
 bool Process::Kill(intptr_t id, int signal) {

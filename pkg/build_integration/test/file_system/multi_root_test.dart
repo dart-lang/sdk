@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 
 var root = Uri.parse('org-dartlang-test:///');
 
-main() {
+void main() {
   late MemoryFileSystem memoryFs;
   late MultiRootFileSystem multiRoot;
 

@@ -5,7 +5,7 @@
 // Formatting can break multitests, so don't format them.
 // dart format off
 
-// dart2wasmOptions=--extra-compiler-option=--omit-explicit-checks
+// dart2wasmOptions=-O0 --extra-compiler-option=--omit-explicit-checks
 
 class C {
   final double x;

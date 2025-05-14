@@ -11,9 +11,12 @@ class FunctionArgumentTest {
   }
 
   static void testMain() {
-    Expect.equals(42, testMe(() {
-      return 42;
-    }));
+    Expect.equals(
+      42,
+      testMe(() {
+        return 42;
+      }),
+    );
   }
 }
 

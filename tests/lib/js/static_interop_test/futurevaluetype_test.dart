@@ -5,9 +5,6 @@
 // Test that `FunctionNode`'s `futureValueType`s are correctly transformed.
 // See https://github.com/dart-lang/sdk/issues/48835 for more details.
 
-@JS()
-library futurevaluetype_test;
-
 import 'dart:html';
 
 import 'package:expect/async_helper.dart';

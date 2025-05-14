@@ -4,7 +4,4 @@
 
 library enum_private_lib;
 
-enum Enum2 {
-  _A,
-  _B,
-}
+enum Enum2 { _A, _B }

@@ -224,7 +224,7 @@ String formatComments(List<String> comments) {
   return sb.toString();
 }
 
-main(List<String> arguments) async {
+void main(List<String> arguments) async {
   var parser = buildParser();
   var results = parser.parse(arguments);
   if (results["help"] || results.rest.isEmpty) {

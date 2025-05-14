@@ -31,7 +31,6 @@ intptr_t OS::ProcessId() {
 const int64_t kTimeEpoc = 116444736000000000LL;
 
 static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
-  time_t seconds = static_cast<time_t>(seconds_since_epoch);
   SYSTEMTIME systemTime;
   union {
     FILETIME fileTime;

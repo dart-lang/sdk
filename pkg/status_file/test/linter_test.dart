@@ -41,7 +41,8 @@ StatusFile createFromString(String text) {
   return StatusFile.parse("test", text.split('\n'));
 }
 
-expectError(String text, String expectedError, {bool disjunctions = false}) {
+void expectError(String text, String expectedError,
+    {bool disjunctions = false}) {
   var statusFile = createFromString(text);
   var errors = lint(statusFile,
           checkForDisjunctions: disjunctions, checkForNonExisting: false)
@@ -49,7 +50,7 @@ expectError(String text, String expectedError, {bool disjunctions = false}) {
   Expect.equals(expectedError, errors.first.toString());
 }
 
-expectNoError(String text, {bool disjunctions = true}) {
+void expectNoError(String text, {bool disjunctions = true}) {
   var errors = lint(createFromString(text),
           checkForDisjunctions: disjunctions, checkForNonExisting: false)
       .toList();

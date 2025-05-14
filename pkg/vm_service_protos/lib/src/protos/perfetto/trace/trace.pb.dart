@@ -10,9 +10,9 @@
 //  Generated code. Do not modify.
 //  source: protos/perfetto/trace/trace.proto
 //
-// @dart = 2.12
+// @dart = 3.3
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -23,8 +23,18 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'trace_packet.pb.dart' as $10;
 
+export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
+
 class Trace extends $pb.GeneratedMessage {
-  factory Trace() => create();
+  factory Trace({
+    $core.Iterable<$10.TracePacket>? packet,
+  }) {
+    final $result = create();
+    if (packet != null) {
+      $result.packet.addAll(packet);
+    }
+    return $result;
+  }
   Trace._() : super();
   factory Trace.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -65,7 +75,7 @@ class Trace extends $pb.GeneratedMessage {
   static Trace? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.List<$10.TracePacket> get packet => $_getList(0);
+  $pb.PbList<$10.TracePacket> get packet => $_getList(0);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

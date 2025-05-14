@@ -4,8 +4,6 @@
 
 // Tests multiple wildcard generic type parameters.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 // Class type parameters
 class T<_, _> {}
 

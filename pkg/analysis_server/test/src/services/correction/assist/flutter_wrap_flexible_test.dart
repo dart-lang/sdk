@@ -31,7 +31,7 @@ class FlutterWrapFlexibleTest extends AssistProcessorTest {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
-    return /*caret*/Container();
+    return ^Container();
   }
 }
 ''');
@@ -50,7 +50,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
-    return /*caret*/Flexible(child: Container());
+    return ^Flexible(child: Container());
   }
 }
 ''');
@@ -68,7 +68,7 @@ class MyWidget extends StatelessWidget {
 }
 
 Widget f() {
-  return MyWidget./*caret*/named();
+  return MyWidget.^named();
 }
 ''');
     await assertHasAssist('''
@@ -92,7 +92,7 @@ import 'package:flutter/widgets.dart';
 
 void f() {
   Widget w;
-  w = /*caret*/Container();
+  w = ^Container();
 }
 ''');
     await assertHasAssist('''
@@ -109,7 +109,7 @@ void f() {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  Widget f() => /*caret*/Container();
+  Widget f() => ^Container();
 }
 ''');
     await assertHasAssist('''
@@ -126,7 +126,7 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
     return Column(
-      children: [/*caret*/Text('aaa')],
+      children: [^Text('aaa')],
     );
   }
 }
@@ -149,7 +149,7 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
     return Container(
-      child: /*caret*/Text('aaa'),
+      child: ^Text('aaa'),
     );
   }
 }
@@ -163,7 +163,7 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
     return Flex(
-      children: [/*caret*/Text('aaa')],
+      children: [^Text('aaa')],
     );
   }
 }
@@ -187,7 +187,7 @@ class FakeFlutter {
   Widget f() {
     return Row(
       children: [
-        /*caret*/Text('aaa'),
+        ^Text('aaa'),
       ],
     );
   }
@@ -213,7 +213,7 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
     return Stack(
-      children: [/*caret*/Text('aaa')],
+      children: [^Text('aaa')],
     );
   }
 }
@@ -226,7 +226,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
-    return /*caret*/Container();
+    return ^Container();
   }
 }
 ''');
@@ -251,7 +251,7 @@ class FakeFlutter {
   Future<void> test_switchExpression() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-Widget f(int i) => /*caret*/switch (i) {
+Widget f(int i) => ^switch (i) {
   0 => Row(),
   _ => Column(),
 };
@@ -271,7 +271,7 @@ Widget f(int i) => Flexible(
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 Widget f() => switch (1) {
-  _ => /*caret*/Container(),
+  _ => ^Container(),
 };
 ''');
     await assertHasAssist('''
@@ -287,7 +287,7 @@ Widget f() => switch (1) {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  Widget w = /*caret*/Container();
+  Widget w = ^Container();
 }
 ''');
     await assertHasAssist('''
@@ -304,7 +304,7 @@ void f() {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  Widget /*caret*/w = Container();
+  Widget ^w = Container();
 }
 ''');
     await assertNoAssist();

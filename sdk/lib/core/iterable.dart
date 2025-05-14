@@ -127,6 +127,24 @@ abstract mixin class Iterable<E> {
     return _GeneratorIterable<E>(count, generator);
   }
 
+  /// Creates an [Iterable] from the [Iterator] factory.
+  ///
+  /// The returned iterable creates a new iterator each time [iterator] is read,
+  /// by calling the provided [iteratorFactory] function. The [iteratorFactory]
+  /// function must return a new instance of `Iterator<E>` on each call.
+  ///
+  /// This factory is useful when you need to create an iterable from a custom
+  /// iterator, or when you want to ensure a fresh iteration state on each use.
+  ///
+  /// Example:
+  /// ```dart
+  /// final numbers = Iterable.withIterator(() => [1, 2, 3].iterator);
+  /// print(numbers.toList()); // [1, 2, 3]
+  /// ```
+  @Since("3.8")
+  factory Iterable.withIterator(Iterator<E> Function() iteratorFactory) =
+      _WithIteratorIterable<E>;
+
   /// Creates an empty iterable.
   ///
   /// The empty iterable has no elements, and iterating it always stops
@@ -913,6 +931,20 @@ class _GeneratorIterable<E> extends ListIterable<E> {
 
   /// Helper function used as default _generator function.
   static int _id(int n) => n;
+}
+
+/// Used internally by [Iterable.withIterator].
+///
+/// This class implements [Iterable] by delegating the iterator creation
+/// to the provided function.
+class _WithIteratorIterable<E> extends Iterable<E> {
+  final Iterator<E> Function() _iteratorFactory;
+
+  /// Creates an iterable that gets its elements from iterators created by
+  /// the provided factory function.
+  _WithIteratorIterable(this._iteratorFactory);
+
+  Iterator<E> get iterator => _iteratorFactory();
 }
 
 /// Convert elements of [iterable] to strings and store them in [parts].

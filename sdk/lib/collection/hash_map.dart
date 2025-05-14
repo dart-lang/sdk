@@ -83,7 +83,7 @@ typedef _Hasher<K> = int Function(K object);
 /// ```
 /// To remove an entry with a specific key, use [remove].
 /// ```dart continued
-/// final removeValue = planets.remove(5);
+/// final removeValue = planets.remove(6);
 /// print(removeValue); // Jupiter
 /// print(planets); // fx {4: Mars, 3: Earth, 5: Saturn}
 /// ```
@@ -283,7 +283,6 @@ abstract final class HashMap<K, V> implements Map<K, V> {
   /// final map = HashMap.fromEntries(numbers.map((i) => MapEntry(i, i * i)));
   /// print(map); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
-  @Since("2.1")
   factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       HashMap<K, V>()..addEntries(entries);
 }

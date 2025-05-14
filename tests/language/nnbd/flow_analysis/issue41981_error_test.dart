@@ -7,7 +7,6 @@
 // variable, because promotion to `Never` causes the code to be considered
 // unreachable.
 
-
 main() {
   late int i;
   Null n = null;
@@ -16,7 +15,7 @@ main() {
     i = 42;
   }
   i; // Variable is definitely unassigned
-//^
-// [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-// [cfe] Late variable 'i' without initializer is definitely unassigned.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
+  // [cfe] Late variable 'i' without initializer is definitely unassigned.
 }

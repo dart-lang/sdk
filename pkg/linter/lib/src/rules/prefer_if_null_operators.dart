@@ -12,17 +12,16 @@ const _desc = r'Prefer using `??` operators.';
 
 class PreferIfNullOperators extends LintRule {
   PreferIfNullOperators()
-      : super(
-          name: LintNames.prefer_if_null_operators,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_if_null_operators, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_if_null_operators;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConditionalExpression(this, visitor);
   }
@@ -49,9 +48,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      var exp = condition.operator.type == TokenType.EQ_EQ
-          ? node.elseExpression
-          : node.thenExpression;
+      var exp =
+          condition.operator.type == TokenType.EQ_EQ
+              ? node.elseExpression
+              : node.thenExpression;
       if (exp.toString() == expression.toString()) {
         rule.reportLint(node);
       }

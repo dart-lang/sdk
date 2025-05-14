@@ -15,17 +15,19 @@ const _desc = r'Avoid positional boolean parameters.';
 
 class AvoidPositionalBooleanParameters extends LintRule {
   AvoidPositionalBooleanParameters()
-      : super(
-          name: LintNames.avoid_positional_boolean_parameters,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_positional_boolean_parameters,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_positional_boolean_parameters;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
@@ -98,8 +100,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (name == null) return false;
 
     var libraryUri = classElement.library2.uri;
-    return context.inheritanceManager
-            .getInherited3(classElement.thisType, Name(libraryUri, name)) !=
+    return context.inheritanceManager.getInherited3(
+          classElement.thisType,
+          Name(libraryUri, name),
+        ) !=
         null;
   }
 

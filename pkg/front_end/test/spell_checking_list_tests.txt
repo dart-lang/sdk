@@ -424,6 +424,7 @@ hunk
 hurray
 i'm
 ia
+icache
 identification
 idle
 if's
@@ -499,6 +500,7 @@ linebreaks
 lints
 listening
 listing
+llc
 ln
 locale
 locating
@@ -688,6 +690,7 @@ redirections
 rediscover
 reducer
 reenable
+reexport
 referential
 refname
 refusing

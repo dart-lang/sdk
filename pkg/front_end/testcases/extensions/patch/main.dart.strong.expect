@@ -1,12 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/extensions/patch/main.dart:9:5: Error: The method 'method2' isn't defined for the class 'int'.
-// Try correcting the name to the name of an existing method, or defining a method named 'method2'.
-//   0.method2();
-//     ^^^^^^^
-//
 import self as self;
 import "dart:test" as test;
 
@@ -14,21 +6,10 @@ import "dart:test";
 
 static method test() → dynamic {
   test::IntExtension|method1(0);
-  invalid-expression "pkg/front_end/testcases/extensions/patch/main.dart:9:5: Error: The method 'method2' isn't defined for the class 'int'.
-Try correcting the name to the name of an existing method, or defining a method named 'method2'.
-  0.method2();
-    ^^^^^^^" in 0{<unresolved>}.method2();
+  test::IntExtension|method2(0);
 }
 
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/extensions/patch/origin_lib.dart:11:5: Error: The method 'method2' isn't defined for the class 'int'.
-// Try correcting the name to the name of an existing method, or defining a method named 'method2'.
-//   0.method2();
-//     ^^^^^^^
-//
 import self as test;
 import "dart:_internal" as _in;
 import "dart:core" as core;
@@ -37,30 +18,47 @@ import "dart:_internal";
 
 @#C1
 extension IntExtension on core::int {
-  method method2 = test::IntExtension|method2;
-  method tearoff method2 = test::IntExtension|get#method2;
   method method1 = test::IntExtension|method1;
   method tearoff method1 = test::IntExtension|get#method1;
+  method method2 = test::IntExtension|method2;
+  method tearoff method2 = test::IntExtension|get#method2;
+}
+@#C1
+extension GenericExtension<T extends core::Object? = dynamic> on T% {
+  method method3 = test::GenericExtension|method3;
+  method tearoff method3 = test::GenericExtension|get#method3;
+  method method4 = test::GenericExtension|method4;
+  method tearoff method4 = test::GenericExtension|get#method4;
+}
+static method method1() → dynamic {
+  test::IntExtension|method1(0);
+  test::IntExtension|method2(0);
+  test::GenericExtension|method3<core::int>(0);
+  test::GenericExtension|method4<core::int>(0);
 }
 @#C1
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ IntExtension|method1(lowered final core::int #this) → core::int
   return 42;
-static extension-member method IntExtension|get#method1(lowered final core::int #this) → () → core::int
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ IntExtension|get#method1(lowered final core::int #this) → () → core::int
   return () → core::int => test::IntExtension|method1(#this);
-static method method1() → dynamic {
-  test::IntExtension|method1(0);
-  invalid-expression "pkg/front_end/testcases/extensions/patch/origin_lib.dart:11:5: Error: The method 'method2' isn't defined for the class 'int'.
-Try correcting the name to the name of an existing method, or defining a method named 'method2'.
-  0.method2();
-    ^^^^^^^" in 0{<unresolved>}.method2();
-}
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ IntExtension|method2(lowered final core::int #this) → core::int
   return 43;
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ IntExtension|get#method2(lowered final core::int #this) → () → core::int
   return () → core::int => test::IntExtension|method2(#this);
+@#C1
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|method3<T extends core::Object? = dynamic>(lowered final test::GenericExtension|method3::T% #this) → core::int
+  return 42;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|get#method3<T extends core::Object? = dynamic>(lowered final test::GenericExtension|get#method3::T% #this) → () → core::int
+  return () → core::int => test::GenericExtension|method3<test::GenericExtension|get#method3::T%>(#this);
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|method4<T extends core::Object? = dynamic>(lowered final test::GenericExtension|method4::T% #this) → core::int
+  return 43;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|get#method4<T extends core::Object? = dynamic>(lowered final test::GenericExtension|get#method4::T% #this) → () → core::int
+  return () → core::int => test::GenericExtension|method4<test::GenericExtension|get#method4::T%>(#this);
 static method /* from org-dartlang-testcase:///patch_lib.dart */ _method2() → dynamic {
   test::IntExtension|method1(0);
   test::IntExtension|method2(0);
+  test::GenericExtension|method3<core::int>(0);
+  test::GenericExtension|method4<core::int>(0);
 }
 
 constants  {

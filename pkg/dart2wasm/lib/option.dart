@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+import 'dart:io' show Directory;
 
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/vm.dart' show resolveInputUri;
@@ -78,33 +78,35 @@ class MultiValueOption<T> extends Option<List<T>> {
       void Function(WasmCompilerOptions o, List<T> v) applyToOptions,
       T Function(dynamic v) converter,
       {Iterable<String>? defaultsTo,
-      String? abbr})
+      String? abbr,
+      bool splitCommas = true})
       : super(
             name,
-            (a) => a.addMultiOption(name, abbr: abbr, defaultsTo: defaultsTo),
+            (a) => a.addMultiOption(name,
+                abbr: abbr, defaultsTo: defaultsTo, splitCommas: splitCommas),
             applyToOptions,
             (vs) => vs.map(converter).cast<T>().toList());
 }
 
 class IntMultiOption extends MultiValueOption<int> {
-  IntMultiOption(
-      name, void Function(WasmCompilerOptions o, List<int> v) applyToOptions,
+  IntMultiOption(String name,
+      void Function(WasmCompilerOptions o, List<int> v) applyToOptions,
       {Iterable<String>? defaultsTo})
       : super(name, applyToOptions, (v) => int.parse(v),
             defaultsTo: defaultsTo);
 }
 
 class StringMultiOption extends MultiValueOption<String> {
-  StringMultiOption(
-      name, void Function(WasmCompilerOptions o, List<String> v) applyToOptions,
-      {String? abbr, Iterable<String>? defaultsTo})
+  StringMultiOption(String name,
+      void Function(WasmCompilerOptions o, List<String> v) applyToOptions,
+      {String? abbr, Iterable<String>? defaultsTo, bool splitCommas = true})
       : super(name, applyToOptions, (v) => v,
-            abbr: abbr, defaultsTo: defaultsTo);
+            abbr: abbr, defaultsTo: defaultsTo, splitCommas: splitCommas);
 }
 
 class UriMultiOption extends MultiValueOption<Uri> {
-  UriMultiOption(
-      name, void Function(WasmCompilerOptions o, List<Uri> v) applyToOptions,
+  UriMultiOption(String name,
+      void Function(WasmCompilerOptions o, List<Uri> v) applyToOptions,
       {Iterable<String>? defaultsTo})
       : super(name, applyToOptions, (v) => Uri.file(Directory(v).absolute.path),
             defaultsTo: defaultsTo);

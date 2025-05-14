@@ -106,7 +106,8 @@ class Test extends Base {
       // Therefore the type of `e` is T = num.
       var d = 2.0;
       context<Object>(
-          (super.pIntQuestion ??= d)..expectStaticType<Exactly<num>>());
+        (super.pIntQuestion ??= d)..expectStaticType<Exactly<num>>(),
+      );
 
       // This example has:
       // - K = Iterable<_>
@@ -119,8 +120,10 @@ class Test extends Base {
       // - T <: S
       // Therefore the type of `e` is T = Iterable<num>.
       var iterableDouble = <double>[] as Iterable<double>;
-      contextIterable((super.pIterableIntQuestion ??= iterableDouble)
-        ..expectStaticType<Exactly<Iterable<num>>>());
+      contextIterable(
+        (super.pIterableIntQuestion ??= iterableDouble)
+          ..expectStaticType<Exactly<Iterable<num>>>(),
+      );
 
       // This example has:
       // - K = Function
@@ -134,8 +137,10 @@ class Test extends Base {
       // - T <: S
       // Therefore the type of `e` is T = Function.
       var callableClassInt = CallableClass<int>();
-      context<Function>((super.pFunctionQuestion ??= callableClassInt)
-        ..expectStaticType<Exactly<Function>>());
+      context<Function>(
+        (super.pFunctionQuestion ??= callableClassInt)
+          ..expectStaticType<Exactly<Function>>(),
+      );
     }
 
     //   - Otherwise, if NonNull(T1) <: S and T2' <: S, then the type of `e` is
@@ -154,8 +159,10 @@ class Test extends Base {
       // - T2' <: S
       // Therefore the type of `e` is S = B1<Object?>.
       var c2Double = C2<double>();
-      contextB1((super.pC1IntQuestion ??= c2Double)
-        ..expectStaticType<Exactly<B1<Object?>>>());
+      contextB1(
+        (super.pC1IntQuestion ??= c2Double)
+          ..expectStaticType<Exactly<B1<Object?>>>(),
+      );
 
       // This example has:
       // - K = B1<Object>
@@ -169,8 +176,10 @@ class Test extends Base {
       // - NonNull(T1) <: S
       // - T2' <: S
       // Therefore the type of `e` is S = B1<Object>.
-      contextB1<Object>((super.pC1IntQuestion ??= c2Double)
-        ..expectStaticType<Exactly<B1<Object>>>());
+      contextB1<Object>(
+        (super.pC1IntQuestion ??= c2Double)
+          ..expectStaticType<Exactly<B1<Object>>>(),
+      );
 
       // This example has:
       // - K = Iterable<num>
@@ -185,8 +194,10 @@ class Test extends Base {
       // - T2' <: S
       // Therefore the type of `e` is S = Iterable<num>.
       var listNum = <num>[];
-      context<Iterable<num>>((super.pIterableIntQuestion ??= listNum)
-        ..expectStaticType<Exactly<Iterable<num>>>());
+      context<Iterable<num>>(
+        (super.pIterableIntQuestion ??= listNum)
+          ..expectStaticType<Exactly<Iterable<num>>>(),
+      );
 
       // This example has:
       // - K = B1<int> Function()
@@ -202,9 +213,10 @@ class Test extends Base {
       // - T2' <: S
       // Therefore the type of `e` is S = B1<int> Function().
       var callableClassC2Int = CallableClass<C2<int>>();
-      context<B1<int> Function()>((super.pC1IntFunctionQuestion ??=
-          callableClassC2Int)
-        ..expectStaticType<Exactly<B1<int> Function()>>());
+      context<B1<int> Function()>(
+        (super.pC1IntFunctionQuestion ??= callableClassC2Int)
+          ..expectStaticType<Exactly<B1<int> Function()>>(),
+      );
     }
 
     //   - Otherwise, the type of `e` is T.
@@ -246,8 +258,9 @@ class Test extends Base {
         // The fact that NonNull(T1) <!: S precludes using S as static type.
         // Therefore the type of `e` is T = num?.
         // We avoid having a compile-time error because `o` can be demoted.
-        o = (super.pDoubleQuestion ??= intQuestion)
-          ..expectStaticType<Exactly<num?>>();
+        o =
+            (super.pDoubleQuestion ??= intQuestion)
+              ..expectStaticType<Exactly<num?>>();
       }
       o = '' as Object?;
       if (o is String?) {
@@ -287,8 +300,9 @@ class Test extends Base {
         // The fact that T2' <!: S precludes using S as static type.
         // Therefore the type of `e` is T = A Function().
         // We avoid having a compile-time error because `o` can be demoted.
-        o = (super.pC1IntFunctionQuestion ??= callableClassC2Int)
-          ..expectStaticType<Exactly<A Function()>>();
+        o =
+            (super.pC1IntFunctionQuestion ??= callableClassC2Int)
+              ..expectStaticType<Exactly<A Function()>>();
       }
 
       o = (() => C2<int>()) as Object?;
@@ -308,8 +322,9 @@ class Test extends Base {
         // The fact that NonNull(T1) <!: S precludes using S as static type.
         // Therefore the type of `e` is T = A Function().
         // We avoid having a compile-time error because `o` can be demoted.
-        o = (super.pC1IntFunctionQuestion ??= callableClassC2Int)
-          ..expectStaticType<Exactly<A Function()>>();
+        o =
+            (super.pC1IntFunctionQuestion ??= callableClassC2Int)
+              ..expectStaticType<Exactly<A Function()>>();
       }
 
       o = 0 as Object?;
@@ -329,8 +344,9 @@ class Test extends Base {
         // The fact that NonNull(T1) <!: S precludes using S as static type.
         // Therefore the type of `e` is T = A Function().
         // We avoid having a compile-time error because `o` can be demoted.
-        o = (super.pC1IntFunctionQuestion ??= callableClassC2Int)
-          ..expectStaticType<Exactly<A Function()>>();
+        o =
+            (super.pC1IntFunctionQuestion ??= callableClassC2Int)
+              ..expectStaticType<Exactly<A Function()>>();
       }
     }
   }

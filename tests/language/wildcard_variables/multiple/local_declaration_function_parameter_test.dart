@@ -4,8 +4,6 @@
 
 // Tests multiple wildcard function parameters.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'package:expect/expect.dart';
 
 class Constructor {

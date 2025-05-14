@@ -3,8 +3,11 @@
 name: compiler
 # This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
+
 environment:
-  sdk: '^3.7.0-0'
+  sdk: ^3.7.0
+
+resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
@@ -20,6 +23,7 @@ dependencies:
   kernel: any
   meta: any
   mmap: any
+  shell_arg_splitter: any
   vm_service: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.

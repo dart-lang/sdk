@@ -21,8 +21,9 @@ void main() async {
   });
 
   test('find native_assets.yaml many folders up', () async {
-    final dir5 =
-        Directory.fromUri(tempDir.uri.resolve('dir1/dir2/dir3/dir4/dir5/'));
+    final dir5 = Directory.fromUri(
+      tempDir.uri.resolve('dir1/dir2/dir3/dir4/dir5/'),
+    );
     await dir5.create(recursive: true);
 
     final dartFile = File.fromUri(dir5.uri.resolve('main.dart'));
@@ -42,8 +43,9 @@ void main(){
   "generator": "test"
 }
 ''';
-    final packageConfigFile =
-        File.fromUri(dartToolDir.uri.resolve('package_config.json'));
+    final packageConfigFile = File.fromUri(
+      dartToolDir.uri.resolve('package_config.json'),
+    );
     await packageConfigFile.writeAsString(packageConfigContents);
 
     final nativeAssetsContents = '''
@@ -53,8 +55,9 @@ native-assets:
     "benchmarks/FfiCall/native-library":
       ["relative", "../native/out/linux/arm/libnative_functions.so"]
 ''';
-    final nativeAssetsFile =
-        File.fromUri(dartToolDir.uri.resolve('native_assets.yaml'));
+    final nativeAssetsFile = File.fromUri(
+      dartToolDir.uri.resolve('native_assets.yaml'),
+    );
     await nativeAssetsFile.writeAsString(nativeAssetsContents);
 
     final String? result = await findNativeAssets(

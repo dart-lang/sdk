@@ -832,7 +832,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final pauseEventKind = isolate.runnable ?? false
           ? vm.EventKind.kIsolateRunnable
           : vm.EventKind.kIsolateStart;
-      await isolateManager.registerIsolate(isolate, pauseEventKind);
+      final thread =
+          await isolateManager.registerIsolate(isolate, pauseEventKind);
 
       // If the Isolate already has a Pause event we can give it to the
       // IsolateManager to handle (if it's PausePostStart it will re-configure
@@ -844,7 +845,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           isolate.pauseEvent!,
         );
       } else if (isolate.runnable == true) {
-        await isolateManager.readyToResumeIsolate(isolate);
+        await isolateManager.handleThreadStartup(thread,
+            sendStoppedOnEntry: false);
       }
     }));
   }
@@ -1581,7 +1583,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           // Send breakpoints back as unverified and with our generated IDs so we
           // can update them with a 'breakpoint' event when we get the
           // 'BreakpointAdded'/'BreakpointResolved' events from the VM.
-          .map((bp) => Breakpoint(id: bp.id, verified: false))
+          .map((bp) => Breakpoint(
+              id: bp.id,
+              verified: false,
+              message: 'Breakpoint has not yet been resolved',
+              reason: 'pending'))
           .toList(),
     ));
     completer.complete();
@@ -3040,7 +3046,7 @@ class _DdsCapabilities {
   /// `postEvent`.
   bool get supportsCustomStreams => _isAtLeast(major: 1, minor: 4);
 
-  bool _isAtLeast({required major, required minor}) {
+  bool _isAtLeast({required int major, required int minor}) {
     if (this.major > major) {
       return true;
     } else if (this.major == major && this.minor >= minor) {

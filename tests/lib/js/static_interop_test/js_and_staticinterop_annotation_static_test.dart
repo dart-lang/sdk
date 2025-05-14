@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@JS()
-library js_and_staticinterop_annotation_static_test;
-
 import 'package:js/js.dart';
 
 @staticInterop

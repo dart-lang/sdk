@@ -108,6 +108,13 @@ extension MapExtension<K, V> on Map<K, V> {
     return keys.firstOrNull;
   }
 
+  Map<K2, V> mapKey<K2>(K2 Function(K) convert) {
+    return map((key, value) {
+      var key2 = convert(key);
+      return MapEntry(key2, value);
+    });
+  }
+
   Map<K, V2> mapValue<V2>(V2 Function(V) convert) {
     return map((key, value) {
       var value2 = convert(value);

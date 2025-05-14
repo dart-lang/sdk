@@ -287,16 +287,25 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     required bool isOptional,
   }) {
     Local local = _localsMap.getLocalVariable(node);
-    _state.setLocal(
-      _inferrer,
-      _capturedAndBoxed,
-      local,
-      _inferrer.typeOfParameter(local),
-    );
+    final parameterType = _inferrer.typeOfParameter(local);
+    _state.setLocal(_inferrer, _capturedAndBoxed, local, parameterType);
+
     if (isOptional) {
       TypeInformation type;
       if (node.initializer != null) {
         type = visit(node.initializer)!;
+        if (_inferrer.abstractValueDomain.isNull(type.type).isDefinitelyTrue &&
+            !node.type.isPotentiallyNullable) {
+          // TODO(52582): Make optional nonnullable parameters nullable until
+          // such a case from redirecting factories is a compile-time error.
+          //
+          // In rare cases (e.g. optional parameters on redirecting factories)
+          // the CFE can give us a non-nullable parameter with a null
+          // initializer. Ideally we would take the type of the initializer on
+          // the target parameter but instead we're conservative and treat the
+          // parameter as nullable.
+          parameterType.isOptionalNoDefault = true;
+        }
       } else {
         type = _types.nullType;
       }
@@ -1014,8 +1023,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     if (mask != null) return mask;
     // TODO(sigmund): ensure that this is only called once per node.
     DartType staticType = _getStaticType(receiver);
-    bool includeNull =
-        _dartTypes.useLegacySubtyping || staticType is NullableType;
+    bool includeNull = staticType is NullableType;
     staticType = staticType.withoutNullability;
     if (staticType is InterfaceType) {
       ClassEntity cls = staticType.element;

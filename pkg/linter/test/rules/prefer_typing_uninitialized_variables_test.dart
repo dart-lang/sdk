@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferTypingUninitializedVariablesTest);
   });
@@ -34,21 +34,20 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(32, 1),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(32, 1)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_field_final_noInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   final x;
   C(this.x);
 }
-''', [
-      lint(18, 1),
-    ]);
+''',
+      [lint(18, 1)],
+    );
   }
 
   test_field_typed() async {
@@ -60,34 +59,37 @@ class C {
   }
 
   test_field_var_noInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   var x;
 }
-''', [
-      lint(16, 1),
-    ]);
+''',
+      [lint(16, 1)],
+    );
   }
 
   test_field_var_noInitializer_notFirst() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   var a = 5,
       b;
 }
-''', [
-      lint(29, 1),
-    ]);
+''',
+      [lint(29, 1)],
+    );
   }
 
   test_field_var_noInitializer_static() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static var x;
 }
-''', [
-      lint(23, 1),
-    ]);
+''',
+      [lint(23, 1)],
+    );
   }
 
   test_forEachLoopVariable_final() async {
@@ -99,13 +101,14 @@ void f() {
   }
 
   test_forLoopVariable_var_noInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   for (var i, j = 0; j < 5; i = j, j++) {}
 }
-''', [
-      lint(22, 1),
-    ]);
+''',
+      [lint(22, 1)],
+    );
   }
 
   test_localVariable_var_initializer() async {
@@ -118,14 +121,15 @@ void f() {
   }
 
   test_localVariable_var_noInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   // ignore: unused_local_variable
   var x;
 }
-''', [
-      lint(52, 1),
-    ]);
+''',
+      [lint(52, 1)],
+    );
   }
 
   test_topLevelVariable_augmented() async {
@@ -141,9 +145,7 @@ part of 'a.dart';
 augment var x;
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(20, 1),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(20, 1)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
@@ -154,10 +156,11 @@ var x = 4;
   }
 
   test_topLevelVariable_var_noInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x;
-''', [
-      lint(4, 1),
-    ]);
+''',
+      [lint(4, 1)],
+    );
   }
 }

@@ -7,7 +7,9 @@ description: >-
   This library provides access to the measurements at runtime.
 
 environment:
-  sdk: "^3.7.0-0"
+  sdk: "^3.7.0"
+
+resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:

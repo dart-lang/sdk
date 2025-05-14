@@ -32,7 +32,6 @@ import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
 import '../base/local_scope.dart';
 import '../base/problems.dart' show DebugAbort;
 import '../base/scope.dart';
-import '../builder/declaration_builders.dart';
 import '../codes/cfe_codes.dart'
     show Code, LocatedMessage, Message, messageExpectedBlockToSkip;
 import '../fragment/fragment.dart';
@@ -47,9 +46,17 @@ import 'diet_parser.dart';
 import 'offset_map.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'stack_listener_impl.dart';
+import 'type_parameter_scope_builder.dart';
 
 class DietListener extends StackListenerImpl {
   final SourceLibraryBuilder libraryBuilder;
+
+  /// The outermost scope used by this listener.
+  ///
+  /// Normally this is the compilation unit scope for the compilation unit being
+  /// parsed, but for expression evaluate it can be the body scope of the
+  /// declaration in which the expression should be evaluated.
+  final LookupScope outermostScope;
 
   final ClassHierarchy hierarchy;
 
@@ -59,14 +66,13 @@ class DietListener extends StackListenerImpl {
 
   final TypeInferenceEngine typeInferenceEngine;
 
-  DeclarationBuilder? _currentDeclaration;
   bool _inRedirectingFactory = false;
 
   bool currentClassIsParserRecovery = false;
 
   /// For top-level declarations, this is the library scope. For class members,
   /// this is the instance scope of [currentDeclaration].
-  LookupScope memberScope;
+  LookupScope _memberScope;
 
   @override
   final Uri uri;
@@ -75,11 +81,11 @@ class DietListener extends StackListenerImpl {
 
   final OffsetMap _offsetMap;
 
-  DietListener(SourceLibraryBuilder library, this.hierarchy, this.coreTypes,
-      this.typeInferenceEngine, this._offsetMap)
+  DietListener(SourceLibraryBuilder library, this.outermostScope,
+      this.hierarchy, this.coreTypes, this.typeInferenceEngine, this._offsetMap)
       : libraryBuilder = library,
         uri = _offsetMap.uri,
-        memberScope = library.scope,
+        _memberScope = outermostScope,
         enableNative =
             library.loader.target.backendTarget.enableNative(library.importUri),
         _benchmarker = library.loader.target.benchmarker;
@@ -89,7 +95,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   bool get isDartLibrary =>
-      libraryBuilder.origin.importUri.isScheme("dart") ||
+      libraryBuilder.importUri.isScheme("dart") ||
       uri.isScheme("org-dartlang-sdk");
 
   @override
@@ -97,16 +103,6 @@ class DietListener extends StackListenerImpl {
       LibraryFeature feature, int charOffset, int length) {
     return libraryBuilder.reportFeatureNotEnabled(
         feature, uri, charOffset, length);
-  }
-
-  DeclarationBuilder? get currentDeclaration => _currentDeclaration;
-
-  void set currentDeclaration(DeclarationBuilder? builder) {
-    if (builder == null) {
-      _currentDeclaration = null;
-    } else {
-      _currentDeclaration = builder;
-    }
   }
 
   @override
@@ -583,7 +579,10 @@ class DietListener extends StackListenerImpl {
 
     // Native imports must be skipped because they aren't assigned corresponding
     // LibraryDependency nodes.
-    Token importUriToken = augmentToken?.next ?? importKeyword.next!;
+    Token importUriToken = augmentToken
+            // Coverage-ignore(suite): Not run.
+            ?.next ??
+        importKeyword.next!;
     String importUri =
         unescapeString(importUriToken.lexeme, importUriToken, this);
     if (importUri.startsWith("dart-ext:")) return;
@@ -823,10 +822,12 @@ class DietListener extends StackListenerImpl {
     // member, since that provides better error recovery.
     // TODO(johnniwinther): Provide a dummy this on static extension methods
     // for better error recovery?
-    InterfaceType? thisType =
-        thisVariable == null ? currentDeclaration?.thisType : null;
     TypeInferrer typeInferrer = typeInferenceEngine.createLocalTypeInferrer(
-        uri, thisType, libraryBuilder, inferenceDataForTesting);
+        uri,
+        bodyBuilderContext.thisType,
+        libraryBuilder,
+        memberScope,
+        inferenceDataForTesting);
     ConstantContext constantContext = bodyBuilderContext.constantContext;
     BodyBuilder result = createListenerInternal(
         bodyBuilderContext,
@@ -894,7 +895,8 @@ class DietListener extends StackListenerImpl {
     try {
       Parser parser = new Parser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: libraryFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled,
+          enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         listener.pop(); // Pops metadata constants.
@@ -936,7 +938,7 @@ class DietListener extends StackListenerImpl {
     // for type inference.
     _parseFields(
         _offsetMap,
-        createListener(fragment.createBodyBuilderContext(), memberScope,
+        createListener(fragment.createBodyBuilderContext(), _memberScope,
             inferenceDataForTesting: fragment
                 .builder
                 .dataForTesting
@@ -982,28 +984,27 @@ class DietListener extends StackListenerImpl {
     Token beginToken = pop() as Token;
     Object? name = pop();
     pop(); // Annotation begin token.
-    assert(currentDeclaration == null);
-    assert(memberScope == libraryBuilder.scope);
+    assert(_memberScope == outermostScope);
     if (name is ParserRecovery) {
       // Coverage-ignore-block(suite): Not run.
       currentClassIsParserRecovery = true;
       return;
     }
+    DeclarationFragmentImpl currentDeclaration;
     if (name is Identifier) {
       currentDeclaration = _offsetMap.lookupNamedDeclaration(name);
     } else {
       currentDeclaration = _offsetMap.lookupUnnamedDeclaration(beginToken);
     }
-    memberScope = currentDeclaration!.scope;
+    _memberScope = currentDeclaration.bodyScope;
   }
 
   @override
   void endClassOrMixinOrExtensionBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody");
-    currentDeclaration = null;
     currentClassIsParserRecovery = false;
-    memberScope = libraryBuilder.scope;
+    _memberScope = outermostScope;
   }
 
   @override
@@ -1066,14 +1067,13 @@ class DietListener extends StackListenerImpl {
     push(identifier);
     push(extensionKeyword);
 
-    // The current declaration is set in [beginClassOrMixinOrExtensionBody] but
+    // The [memberScope] is set in [beginClassOrMixinOrExtensionBody] but
     // for primary constructors we need it before the body so we set it here.
-    // TODO(johnniwinther): Normalize the setting of the current declaration.
-    assert(currentDeclaration == null);
-    assert(memberScope == libraryBuilder.scope);
+    assert(_memberScope == outermostScope);
 
-    currentDeclaration = _offsetMap.lookupNamedDeclaration(identifier);
-    memberScope = currentDeclaration!.scope;
+    DeclarationFragmentImpl currentDeclaration =
+        _offsetMap.lookupNamedDeclaration(identifier);
+    _memberScope = currentDeclaration.bodyScope;
   }
 
   @override
@@ -1103,20 +1103,18 @@ class DietListener extends StackListenerImpl {
           createFunctionListener(functionBodyBuildingContext), formalsToken);
     }
 
-    // The current declaration is set in [beginClassOrMixinOrExtensionBody],
-    // assuming that it is currently `null`, so we reset it here.
-    // TODO(johnniwinther): Normalize the setting of the current declaration.
-    currentDeclaration = null;
-    memberScope = libraryBuilder.scope;
+    // The [memberScope] is set in [beginClassOrMixinOrExtensionBody],
+    // assuming that it is currently the [compilationUnitScope], so we reset it
+    // here.
+    _memberScope = outermostScope;
   }
 
   @override
   void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
-    // The current declaration is set in [beginClassOrMixinOrExtensionBody],
-    // assuming that it is currently `null`, so we reset it here.
-    // TODO(johnniwinther): Normalize the setting of the current declaration.
-    currentDeclaration = null;
-    memberScope = libraryBuilder.scope;
+    // The [memberScope] is set in [beginClassOrMixinOrExtensionBody],
+    // assuming that it is currently the [compilationUnitScope], so we reset it
+    // here.
+    _memberScope = outermostScope;
   }
 
   @override
@@ -1132,8 +1130,7 @@ class DietListener extends StackListenerImpl {
     debugEvent("Enum");
     Object? name = pop();
 
-    assert(currentDeclaration == null);
-    assert(memberScope == libraryBuilder.scope);
+    assert(_memberScope == outermostScope);
 
     if (name is ParserRecovery) {
       currentClassIsParserRecovery = true;
@@ -1141,8 +1138,9 @@ class DietListener extends StackListenerImpl {
     }
 
     Identifier identifier = name as Identifier;
-    currentDeclaration = _offsetMap.lookupNamedDeclaration(identifier);
-    memberScope = currentDeclaration!.scope;
+    DeclarationFragmentImpl currentDeclaration =
+        _offsetMap.lookupNamedDeclaration(identifier);
+    _memberScope = currentDeclaration.bodyScope;
   }
 
   @override
@@ -1150,8 +1148,7 @@ class DietListener extends StackListenerImpl {
       int memberCount, Token endToken) {
     debugEvent("Enum");
     checkEmpty(enumKeyword.charOffset);
-    currentDeclaration = null;
-    memberScope = libraryBuilder.scope;
+    _memberScope = outermostScope;
   }
 
   @override
@@ -1225,7 +1222,8 @@ class DietListener extends StackListenerImpl {
     try {
       Parser parser = new Parser(bodyBuilder,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: libraryFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled,
+          enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
       token = parser.parseFormalParametersOpt(
           parser.syntheticPreviousToken(token), MemberKind.PrimaryConstructor);
       FormalParameters? formals = bodyBuilder.pop() as FormalParameters?;
@@ -1254,7 +1252,8 @@ class DietListener extends StackListenerImpl {
     try {
       Parser parser = new Parser(bodyBuilder,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: libraryFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled,
+          enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         bodyBuilder.pop(); // Annotations.
@@ -1303,7 +1302,8 @@ class DietListener extends StackListenerImpl {
     Token token = startToken;
     Parser parser = new Parser(bodyBuilder,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
     if (isTopLevel) {
       token = parser.parseTopLevelMember(metadata ?? token);
     } else {
@@ -1332,10 +1332,11 @@ class DietListener extends StackListenerImpl {
   List<Expression>? parseMetadata(BodyBuilderContext bodyBuilderContext,
       Token? metadata, Annotatable? parent) {
     if (metadata != null) {
-      BodyBuilder listener = createListener(bodyBuilderContext, memberScope);
+      BodyBuilder listener = createListener(bodyBuilderContext, _memberScope);
       Parser parser = new Parser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: libraryFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled,
+          enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
       return listener.finishMetadata(parent);
     }

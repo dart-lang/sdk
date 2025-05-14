@@ -14,7 +14,7 @@ void v = null;
 Future<Object?> test1() async {
   return v;
   //     ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   // [cfe] A value of type 'void' can't be returned from an async function with return type 'Future<Object?>'.
 }
 

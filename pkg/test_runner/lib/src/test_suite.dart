@@ -971,8 +971,10 @@ class StandardTestSuite extends TestSuite {
             _createUrlPathFromFile(Path('$outputDir/$nameNoExt.wasm'));
         final mjsPath =
             _createUrlPathFromFile(Path('$outputDir/$nameNoExt.mjs'));
-        content =
-            dart2wasmHtml(testFile.path.toNativePath(), wasmPath, mjsPath);
+        final supportJsPath =
+            _createUrlPathFromFile(Path('$outputDir/$nameNoExt.support.js'));
+        content = dart2wasmHtml(
+            testFile.path.toNativePath(), wasmPath, mjsPath, supportJsPath);
       } else if (configuration.compiler == Compiler.ddc) {
         var ddcConfig =
             configuration.compilerConfiguration as DevCompilerConfiguration;
@@ -981,14 +983,10 @@ class StandardTestSuite extends TestSuite {
             "${nameFromModuleRoot.directoryPath}/$nameNoExt";
         var jsDir =
             Path(compilationTempDir).relativeTo(Repository.dir).toString();
-        var nullAssertions =
-            testFile.sharedOptions.contains('--null-assertions');
         var nativeNonNullAsserts =
             testFile.ddcOptions.contains('--native-null-assertions');
         var jsInteropNonNullAsserts =
             testFile.ddcOptions.contains('--interop-null-assertions');
-        var weakNullSafetyErrors =
-            testFile.ddcOptions.contains('--weak-null-safety-errors');
         var ddcModuleFormat = args.contains('--modules=ddc');
         var canaryMode = args.contains('--canary');
         content = ddcHtml(
@@ -996,12 +994,9 @@ class StandardTestSuite extends TestSuite {
             nameFromModuleRootNoExt,
             jsDir,
             configuration.compiler,
-            configuration.nnbdMode,
             ddcConfig.buildOptionsDir,
-            nullAssertions,
             nativeNonNullAsserts,
             jsInteropNonNullAsserts,
-            weakNullSafetyErrors,
             ddcModuleFormat: ddcModuleFormat,
             canaryMode: canaryMode);
       } else {

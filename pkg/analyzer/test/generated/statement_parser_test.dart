@@ -18,7 +18,7 @@ main() {
   });
 }
 
-/// Tests of the fasta parser based on [StatementParserTestMixin].
+/// Tests of the fasta parser based on [FastaParserTestCase].
 @reflectiveTest
 class StatementParserTest extends FastaParserTestCase {
   void test_35177() {

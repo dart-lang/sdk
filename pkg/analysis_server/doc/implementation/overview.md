@@ -3,31 +3,39 @@
 This section of the documentation discusses how the analysis server works and
 how to enhance the various features provided by the server.
 
+## Design
+
+The design of the analysis server beings with [a description of what the server
+does on startup](startup.md)
+
+## Features
+
 To learn how the server implements support for a specific feature, read one of
 the following feature-specific documents:
-- Call Hierarchy
-- Closing Labels
-- Code Completion
-- Code Folding
+
+- Call hierarchy
+- Closing labels
+- [Code completion](code_completion.md)
+- Code folding
 - documentSymbol
-- Flutter Outline
+- Flutter outline
 - Hovers
-- Implemented Markers
+- Implemented markers
 - [Navigation](navigation.md)
 - Occurrences
-- Organize Imports
+- Organize imports
 - Outline
-- Overrides Markers
-- [Quick Assists](quick_assist.md)
-- [Quick Fixes](quick_fix.md)
+- Overrides markers
+- [Quick assists](quick_assist.md)
+- [Quick fixes](quick_fix.md)
 - Refactorings - legacy
 - Refactorings - self describing
-- Search - Find References
-- Search - Member Declarations
-- Search - Member References
-- Search - Top-level Declarations
+- Search - Find references
+- Search - Member declarations
+- Search - Member references
+- Search - Top-level declarations
 - selectionRange
-- Semantic Highlights
+- [Semantic highlights](semantic_highlighting.md)
 - signatureHelp
-- Sort Members
-- Type Hierarchy
+- Sort members
+- Type hierarchy

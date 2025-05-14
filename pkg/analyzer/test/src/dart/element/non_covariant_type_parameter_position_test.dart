@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/non_covariant_type_parameter_position.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,10 +23,10 @@ class NonCovariantTypeParameterPositionVisitorTest
   late final T_element = typeParameter('T');
   late final T = typeParameterTypeNone(T_element);
 
-  FunctionType get _contravariantT {
+  FunctionTypeImpl get _contravariantT {
     return functionTypeNone(
       returnType: voidNone,
-      parameters: [
+      formalParameters: [
         positionalParameter(type: T),
       ],
     );
@@ -66,7 +67,7 @@ class NonCovariantTypeParameterPositionVisitorTest
     expectNotNonCovariant(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           positionalParameter(type: _contravariantT),
         ],
       ),
@@ -76,7 +77,7 @@ class NonCovariantTypeParameterPositionVisitorTest
     expectNonCovariant(
       functionTypeNone(
         returnType: T,
-        parameters: [
+        formalParameters: [
           positionalParameter(type: T),
         ],
       ),
@@ -87,7 +88,7 @@ class NonCovariantTypeParameterPositionVisitorTest
     expectNotNonCovariant(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           positionalParameter(
             type: typeParameterTypeNone(T2),
           ),
@@ -98,7 +99,7 @@ class NonCovariantTypeParameterPositionVisitorTest
     // void Function<U extends T>()
     expectNonCovariant(
       functionTypeNone(
-        typeFormals: [
+        typeParameters: [
           typeParameter('U', bound: T),
         ],
         returnType: voidNone,
@@ -166,7 +167,7 @@ class NonCovariantTypeParameterPositionVisitorTest
   bool _compute(DartType type) {
     return type.accept(
       NonCovariantTypeParameterPositionVisitor(
-        [T_element.element],
+        [T_element],
         initialVariance: Variance.covariant,
       ),
     );

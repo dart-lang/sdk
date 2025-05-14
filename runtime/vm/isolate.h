@@ -29,6 +29,7 @@
 #include "vm/megamorphic_cache_table.h"
 #include "vm/metrics.h"
 #include "vm/os_thread.h"
+#include "vm/port.h"
 #include "vm/random.h"
 #include "vm/service.h"
 #include "vm/tags.h"
@@ -539,12 +540,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return thread == nullptr ? nullptr : thread->isolate_group();
   }
 
-  void IncreaseMutatorCount(Isolate* mutator, bool is_nested_reenter);
+  void IncreaseMutatorCount(Thread* thread,
+                            bool is_nested_reenter,
+                            bool was_stolen);
   void DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit);
-  intptr_t MutatorCount() const {
-    MonitorLocker ml(active_mutators_monitor_.get());
-    return active_mutators_;
-  }
+  NO_SANITIZE_THREAD
+  intptr_t MutatorCount() const { return active_mutators_; }
 
   bool HasTagHandler() const { return library_tag_handler() != nullptr; }
   ObjectPtr CallTagHandler(Dart_LibraryTag tag,
@@ -925,6 +926,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t active_mutators_ = 0;
   intptr_t waiting_mutators_ = 0;
   intptr_t max_active_mutators_ = 0;
+  bool has_timeout_waiter_ = false;
 
   NOT_IN_PRODUCT(GroupDebugger* debugger_ = nullptr);
 
@@ -1228,20 +1230,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   static Dart_IsolateGroupCleanupCallback GroupCleanupCallback() {
     return cleanup_group_callback_;
   }
-  static void SetRegisterKernelBlobCallback(
-      Dart_RegisterKernelBlobCallback cb) {
-    register_kernel_blob_callback_ = cb;
-  }
-  static Dart_RegisterKernelBlobCallback RegisterKernelBlobCallback() {
-    return register_kernel_blob_callback_;
-  }
-  static void SetUnregisterKernelBlobCallback(
-      Dart_UnregisterKernelBlobCallback cb) {
-    unregister_kernel_blob_callback_ = cb;
-  }
-  static Dart_UnregisterKernelBlobCallback UnregisterKernelBlobCallback() {
-    return unregister_kernel_blob_callback_;
-  }
 
 #if !defined(PRODUCT)
   // This method first ensures that the default Service ID zone for this isolate
@@ -1492,6 +1480,12 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
     return &pointers_to_verify_at_exit_;
   }
 
+  bool SetOwnerThread(ThreadId expected_old_owner, ThreadId new_owner);
+
+  // Must be invoked with a valid PortMap::Locker, or while this isolate is the
+  // current isolate (in which case the locker may be null).
+  ThreadId GetOwnerThread(PortMap::Locker* locker);
+
  private:
   friend class Dart;                  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
@@ -1689,6 +1683,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   DeoptContext* deopt_context_ = nullptr;
   FfiCallbackMetadata::Metadata* ffi_callback_list_head_ = nullptr;
   intptr_t ffi_callback_keep_alive_counter_ = 0;
+  RelaxedAtomic<ThreadId> owner_thread_ = OSThread::kInvalidThreadId;
 
   GrowableObjectArrayPtr tag_table_;
 
@@ -1729,8 +1724,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   static Dart_IsolateShutdownCallback shutdown_callback_;
   static Dart_IsolateCleanupCallback cleanup_callback_;
   static Dart_IsolateGroupCleanupCallback cleanup_group_callback_;
-  static Dart_RegisterKernelBlobCallback register_kernel_blob_callback_;
-  static Dart_UnregisterKernelBlobCallback unregister_kernel_blob_callback_;
 
 #if !defined(PRODUCT)
   static void WakePauseEventHandler(Dart_Isolate isolate);
@@ -1745,9 +1738,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
     return accepts_messages_;
   }
 
-  // This monitor protects [creation_enabled_].
+  // This monitor protects [creation_enabled_] and [pending_shutdowns_].
   static Monitor* isolate_creation_monitor_;
   static bool creation_enabled_;
+  static intptr_t pending_shutdowns_;
 
   ArrayPtr loaded_prefixes_set_storage_;
 

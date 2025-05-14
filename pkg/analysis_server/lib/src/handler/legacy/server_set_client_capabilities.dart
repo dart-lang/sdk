@@ -29,6 +29,9 @@ class ServerSetClientCapabilitiesHandler extends LegacyHandler {
     } on RequestFailure catch (exception) {
       sendResponse(exception.response);
       return;
+    } on RequestError catch (error) {
+      sendResponse(Response(request.id, error: error));
+      return;
     }
     sendResult(ServerSetClientCapabilitiesResult());
   }

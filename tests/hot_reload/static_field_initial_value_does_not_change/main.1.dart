@@ -28,9 +28,9 @@ Future<void> main() async {
   Expect.equals(42, C.x);
   Expect.equals(2, hotReloadGeneration);
 }
+
 /** DIFF **/
 /*
-@@ -9,7 +9,7 @@
  // https://github.com/dart-lang/sdk/blob/63622f03eeaf72983b2f4957fa84da8062693f00/runtime/vm/isolate_reload_test.cc#L5448
  
  class C {

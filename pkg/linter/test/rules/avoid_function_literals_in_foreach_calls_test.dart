@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidFunctionLiteralsInForeachCalls);
   });
@@ -18,12 +18,15 @@ class AvoidFunctionLiteralsInForeachCalls extends LintRuleTest {
   String get lintRule => LintNames.avoid_function_literals_in_foreach_calls;
 
   test_expectedIdentifier() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(dynamic iter) => iter?.forEach(...);
-''', [
-      // No lint
-      error(ParserErrorCode.MISSING_IDENTIFIER, 38, 3),
-    ]);
+''',
+      [
+        // No lint
+        error(ParserErrorCode.MISSING_IDENTIFIER, 38, 3),
+      ],
+    );
   }
 
   test_functionExpression_nullableTarget() async {
@@ -43,15 +46,16 @@ void f(Map<String, int>? people) {
   }
 
   test_functionExpression_targetDoesNotHaveMethodChain() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<List<String>> people) {
   people
       .first
       .forEach((person) => print('$person!'));
 }
-''', [
-      lint(65, 7),
-    ]);
+''',
+      [lint(65, 7)],
+    );
   }
 
   test_functionExpression_targetHasCascade() async {
@@ -89,7 +93,8 @@ void f(List<String> people) {
   }
 
   test_functionExpression_targetInIrrelevantNestedCascade() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<List<List<String>>> lists) {
   final lists2 = lists..forEach((list) {
     list.forEach((item) {
@@ -97,31 +102,33 @@ void f(List<List<List<String>>> lists) {
     });
   });
 }
-''', [
-      lint(91, 7),
-    ]);
+''',
+      [lint(91, 7)],
+    );
   }
 
   test_functionExpressionWithBlockBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<String> people) {
   people.forEach((person) {
     print('$person!');
   });
 }
-''', [
-      lint(39, 7),
-    ]);
+''',
+      [lint(39, 7)],
+    );
   }
 
   test_functionExpressionWithExpressionBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<String> people) {
   people.forEach((person) => print('$person!'));
 }
-''', [
-      lint(39, 7),
-    ]);
+''',
+      [lint(39, 7)],
+    );
   }
 
   test_nonFunctionExpression() async {

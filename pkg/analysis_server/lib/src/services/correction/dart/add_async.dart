@@ -12,12 +12,13 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddAsync extends ResolvedCorrectionProducer {
-  // TODO(pq): consider adding a variation that adds an `await` as well.
-
   final _Type _type;
 
   /// Initialize a newly created producer.
   AddAsync({required super.context}) : _type = _Type.others;
+
+  AddAsync.discardedFutures({required super.context})
+    : _type = _Type.discardedFutures;
 
   AddAsync.missingReturn({required super.context})
     : _type = _Type.missingReturn;
@@ -27,9 +28,8 @@ class AddAsync extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // Not predictably the correct action.
-          CorrectionApplicability
-          .singleLocation;
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_ASYNC;
@@ -39,8 +39,8 @@ class AddAsync extends ResolvedCorrectionProducer {
     switch (_type) {
       case _Type.missingReturn:
         var node = this.node;
-        FunctionBody? body;
-        DartType? returnType;
+        FunctionBody body;
+        DartType returnType;
         switch (node) {
           case FunctionDeclaration():
             body = node.functionExpression.body;
@@ -48,18 +48,18 @@ class AddAsync extends ResolvedCorrectionProducer {
               returnType = declaredElement.returnType;
             } else if (node.declaredFragment case var declaredFragment?) {
               returnType = declaredFragment.element.returnType;
+            } else {
+              return;
             }
           case MethodDeclaration():
             body = node.body;
             returnType = node.declaredFragment!.element.returnType;
-        }
-        if (body == null || returnType == null) {
-          return;
+          default:
+            return;
         }
         if (_isFutureVoid(returnType) && _hasNoReturns(body)) {
-          var final_body = body;
           await builder.addDartFileEdit(file, (builder) {
-            builder.addSimpleInsertion(final_body.offset, 'async ');
+            builder.addSimpleInsertion(body.offset, 'async ');
           });
         }
       case _Type.wrongReturnType:
@@ -93,7 +93,23 @@ class AddAsync extends ResolvedCorrectionProducer {
             );
           });
         }
-      case _Type.others:
+      default:
+        int? offset;
+        if (_type == _Type.discardedFutures) {
+          var expr = node;
+          if (expr.parent case MethodInvocation function) {
+            expr = function;
+            offset = function.offset;
+          }
+          if (expr.parent case FunctionExpressionInvocation function) {
+            expr = function;
+            offset = function.offset;
+          }
+          if (expr.parent case AwaitExpression awaitExpression) {
+            expr = awaitExpression;
+            offset = null;
+          }
+        }
         var body = node.thisOrAncestorOfType<FunctionBody>();
         if (body != null && body.keyword == null) {
           await builder.addDartFileEdit(file, (builder) {
@@ -102,6 +118,9 @@ class AddAsync extends ResolvedCorrectionProducer {
               typeSystem: typeSystem,
               typeProvider: typeProvider,
             );
+            if (offset != null) {
+              builder.addSimpleInsertion(offset, 'await ');
+            }
           });
         }
     }
@@ -241,6 +260,10 @@ enum _Type {
   /// Indicates whether the producer is producing a fix in the case
   /// where a function is missing a return at the end.
   missingReturn,
+
+  /// Indicates whether the producer is producing a fix in the case
+  /// where the discaded_futures lint is triggered.
+  discardedFutures,
 
   /// Indicates whether the producer is producing a fix that adds `async`
   /// to a function that is missing it. In cases where the error/lint is

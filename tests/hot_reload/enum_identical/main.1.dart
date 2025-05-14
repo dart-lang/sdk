@@ -20,9 +20,4 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -17,3 +17,4 @@
-   await hotReload();
-   Expect.identical(Fruit.Banana, x);
- }
-+
 */

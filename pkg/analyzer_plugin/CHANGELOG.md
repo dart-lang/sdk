@@ -1,7 +1,12 @@
-## 0.13.0-dev
+## 0.13.1
+- Updated SDK constraint to `^3.5.0`.
+
+## 0.13.0
 - Remove `elementName()` from `RangeFactory`. Use `fragmentName()` instead.
 - Breaking changes to `DartFileEditBuilder` and `DartEditBuilder`.
 - Breaking changes to `AnalyzerConverter`.
+- Support for a plugin to send an `AnalysisStatus` notification, featuring an
+  `isAnalyzing` `bool` field.
 
 ## 0.12.0
 - Breaking changes to `DartFileEditBuilder`: `convertFunctionFromSyncToAsync`

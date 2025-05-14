@@ -5,7 +5,7 @@
 void main() {
   Object b = true;
   b ? 1 : 2;
-//^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-// [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
+  // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 }

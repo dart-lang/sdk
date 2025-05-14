@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
+library;
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
+    show BaseDeprecatedMemberUseVerifier;
+import 'package:analyzer/src/workspace/workspace.dart' // ignore: implementation_imports
+    show WorkspacePackage;
 
 import '../analyzer.dart';
 
@@ -19,20 +22,22 @@ const _desc =
 
 class DeprecatedMemberUseFromSamePackage extends LintRule {
   DeprecatedMemberUseFromSamePackage()
-      : super(
-          name: LintNames.deprecated_member_use_from_same_package,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.deprecated_member_use_from_same_package,
+        description: _desc,
+      );
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.deprecated_member_use_from_same_package_with_message,
-        LinterLintCode.deprecated_member_use_from_same_package_without_message
-      ];
+    LinterLintCode.deprecated_member_use_from_same_package_with_message,
+    LinterLintCode.deprecated_member_use_from_same_package_without_message,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -45,8 +50,12 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
   _DeprecatedMemberUseVerifier(this._rule, this._workspacePackage);
 
   @override
-  void reportError2(SyntacticEntity errorEntity, Element2 element,
-      String displayName, String? message) {
+  void reportError2(
+    SyntacticEntity errorEntity,
+    Element2 element,
+    String displayName,
+    String? message,
+  ) {
     var library = element is LibraryElement2 ? element : element.library2;
     if (library == null ||
         !_workspacePackage.contains(library.firstFragment.source)) {
@@ -62,8 +71,9 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
         errorEntity.offset,
         errorEntity.length,
         arguments: [displayName],
-        errorCode: LinterLintCode
-            .deprecated_member_use_from_same_package_without_message,
+        errorCode:
+            LinterLintCode
+                .deprecated_member_use_from_same_package_without_message,
       );
     } else {
       if (!normalizedMessage.endsWith('.') &&
@@ -88,10 +98,8 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
 class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   final _DeprecatedMemberUseVerifier _deprecatedVerifier;
 
-  _RecursiveVisitor(
-    LintRule rule,
-    WorkspacePackage package,
-  ) : _deprecatedVerifier = _DeprecatedMemberUseVerifier(rule, package);
+  _RecursiveVisitor(LintRule rule, WorkspacePackage package)
+    : _deprecatedVerifier = _DeprecatedMemberUseVerifier(rule, package);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -286,7 +294,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     _deprecatedVerifier.redirectingConstructorInvocation(node);
     super.visitRedirectingConstructorInvocation(node);
   }
@@ -335,10 +344,7 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
     _withDeprecatedFragment(node.declaredFragment, recurse);
   }
 
-  void _withDeprecatedFragment(
-    Fragment? fragment,
-    void Function() recurse,
-  ) {
+  void _withDeprecatedFragment(Fragment? fragment, void Function() recurse) {
     var isDeprecated = false;
     if (fragment?.element case Annotatable annotatable) {
       isDeprecated = annotatable.metadata2.hasDeprecated;

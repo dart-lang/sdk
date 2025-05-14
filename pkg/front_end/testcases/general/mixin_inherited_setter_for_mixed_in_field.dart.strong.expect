@@ -21,6 +21,16 @@ class D extends self::C<self::B> {
     : super self::C::•()
     ;
 }
+class Foo extends self::_Foo&Object&C {
+  synthetic constructor •() → self::Foo
+    : super self::_Foo&Object&C::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+}
 abstract class _Foo&Object&C = core::Object with self::C<self::B> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Foo&Object&C
     : super core::Object::•()
@@ -31,16 +41,6 @@ abstract class _Foo&Object&C = core::Object with self::C<self::B> /*isAnonymousM
     return super.{self::C::_field} = value;
   mixin-super-stub method foo(covariant-by-class self::B x) → dynamic
     return super.{self::C::foo}(x);
-}
-class Foo extends self::_Foo&Object&C {
-  synthetic constructor •() → self::Foo
-    : super self::_Foo&Object&C::•()
-    ;
-}
-class B extends self::A {
-  synthetic constructor •() → self::B
-    : super self::A::•()
-    ;
 }
 static method main() → dynamic {
   self::Foo foo = new self::Foo::•();

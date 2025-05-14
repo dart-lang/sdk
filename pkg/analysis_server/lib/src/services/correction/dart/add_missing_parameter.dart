@@ -66,7 +66,7 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
     var prefix = _executableParameters.required.isNotEmpty ? ', [' : '[';
     if (_executableParameters.required.isNotEmpty) {
       var lastElement = _executableParameters.required.last;
-      var prevNode = await _executableParameters.getParameterNode2(
+      var prevNode = await _executableParameters.getParameterNode(
         lastElement.firstFragment,
       );
       await _addParameter(builder, prevNode?.end, prefix, ']');
@@ -87,9 +87,8 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   Future<void> _addParameter(
     ChangeBuilder builder,
@@ -139,7 +138,7 @@ class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
   Future<void> compute(ChangeBuilder builder) async {
     if (_executableParameters.required.isNotEmpty) {
       var lastElement = _executableParameters.required.last;
-      var prevNode = await _executableParameters.getParameterNode2(
+      var prevNode = await _executableParameters.getParameterNode(
         lastElement.firstFragment,
       );
       await _addParameter(builder, prevNode?.end, ', ', '');

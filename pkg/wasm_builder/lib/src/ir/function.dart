@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of 'functions.dart';
+import '../builder/module.dart';
+import '../serialize/serialize.dart';
+import 'ir.dart';
 
 /// A local variable defined in a function.
 class Local {
@@ -43,6 +45,8 @@ class DefinedFunction extends BaseFunction implements Serializable {
 
   /// All local variables defined in the function, including its inputs.
   List<Local> get locals => body.locals;
+
+  Map<int, String> get localNames => body.localNames;
 
   DefinedFunction(
       super.enclosingModule, this.body, super.finalizableIndex, super.type,

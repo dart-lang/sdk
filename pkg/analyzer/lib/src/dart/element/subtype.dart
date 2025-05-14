@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -33,27 +30,24 @@ class SubtypeHelper {
         _objectNone = _typeSystem.objectNone,
         _objectQuestion = _typeSystem.objectQuestion;
 
-  /// Return `true` if [T0_] is a subtype of [T1_].
-  bool isSubtypeOf(DartType T0_, DartType T1_) {
+  /// Return `true` if [T0] is a subtype of [T1].
+  bool isSubtypeOf(TypeImpl T0, TypeImpl T1) {
     // Reflexivity: if `T0` and `T1` are the same type then `T0 <: T1`.
-    if (identical(T0_, T1_)) {
+    if (identical(T0, T1)) {
       return true;
     }
 
     // `_` is treated as a top and a bottom type during inference.
-    if (identical(T0_, UnknownInferredType.instance) ||
-        identical(T1_, UnknownInferredType.instance)) {
+    if (identical(T0, UnknownInferredType.instance) ||
+        identical(T1, UnknownInferredType.instance)) {
       return true;
     }
 
     // `InvalidType` is treated as a top and a bottom type.
-    if (identical(T0_, InvalidTypeImpl.instance) ||
-        identical(T1_, InvalidTypeImpl.instance)) {
+    if (identical(T0, InvalidTypeImpl.instance) ||
+        identical(T1, InvalidTypeImpl.instance)) {
       return true;
     }
-
-    var T0 = T0_ as TypeImpl;
-    var T1 = T1_ as TypeImpl;
 
     var T1_nullability = T1.nullabilitySuffix;
     var T0_nullability = T0.nullabilitySuffix;
@@ -92,7 +86,7 @@ class SubtypeHelper {
           T0 is TypeParameterTypeImpl) {
         var S = T0.promotedBound;
         if (S == null) {
-          var B = T0.element.bound ?? _objectQuestion;
+          var B = T0.element3.bound ?? _objectQuestion;
           return isSubtypeOf(B, _objectNone);
         } else {
           return isSubtypeOf(S, _objectNone);
@@ -115,9 +109,9 @@ class SubtypeHelper {
         return false;
       }
       // Extension types require explicit `Object` implementation.
-      if (T0 is InterfaceTypeImpl && T0.element is ExtensionTypeElement) {
+      if (T0 is InterfaceTypeImpl && T0.element3 is ExtensionTypeElement2) {
         for (var interface in T0.interfaces) {
-          if (isSubtypeOf(interface, T1_)) {
+          if (isSubtypeOf(interface, T1)) {
             return true;
           }
         }
@@ -157,7 +151,7 @@ class SubtypeHelper {
       var S0 = T0.typeArguments[0];
       // * `T0 <: T1` iff `Future<S0> <: T1` and `S0 <: T1`
       if (isSubtypeOf(S0, T1)) {
-        var FutureS0 = _typeProvider.futureElement.instantiate(
+        var FutureS0 = _typeProvider.futureElement2.instantiateImpl(
           typeArguments: fixedTypeList(S0),
           nullabilitySuffix: NullabilitySuffix.none,
         );
@@ -179,7 +173,7 @@ class SubtypeHelper {
     if (T0 is TypeParameterTypeImpl &&
         T1 is TypeParameterTypeImpl &&
         T1.promotedBound == null &&
-        T0.element == T1.element) {
+        T0.element3 == T1.element3) {
       return true;
     }
 
@@ -189,7 +183,7 @@ class SubtypeHelper {
       var T1_promotedBound = T1.promotedBound;
       if (T1_promotedBound != null) {
         var X1 = TypeParameterTypeImpl(
-          element: T1.element,
+          element3: T1.element3,
           nullabilitySuffix: T1.nullabilitySuffix,
         );
         return isSubtypeOf(T0, X1) && isSubtypeOf(T0, T1_promotedBound);
@@ -203,7 +197,7 @@ class SubtypeHelper {
       var S1 = T1.typeArguments[0];
       // `T0 <: T1` iff any of the following hold:
       // * either `T0 <: Future<S1>`
-      var FutureS1 = _typeProvider.futureElement.instantiate(
+      var FutureS1 = _typeProvider.futureElement2.instantiateImpl(
         typeArguments: fixedTypeList(S1),
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -221,7 +215,7 @@ class SubtypeHelper {
         if (S0 != null && isSubtypeOf(S0, T1)) {
           return true;
         }
-        var B0 = T0.element.bound;
+        var B0 = T0.element3.bound;
         if (B0 != null && isSubtypeOf(B0, T1)) {
           return true;
         }
@@ -249,7 +243,7 @@ class SubtypeHelper {
         if (S0 != null && isSubtypeOf(S0, T1)) {
           return true;
         }
-        var B0 = T0.element.bound;
+        var B0 = T0.element3.bound;
         if (B0 != null && isSubtypeOf(B0, T1)) {
           return true;
         }
@@ -275,7 +269,7 @@ class SubtypeHelper {
         return true;
       }
 
-      var B0 = T0.element.bound;
+      var B0 = T0.element3.bound;
       if (B0 != null && isSubtypeOf(B0, T1)) {
         return true;
       }
@@ -305,19 +299,19 @@ class SubtypeHelper {
   }
 
   bool _interfaceArguments(
-    InterfaceElement element,
-    InterfaceType subType,
-    InterfaceType superType,
+    InterfaceElementImpl2 element,
+    InterfaceTypeImpl subType,
+    InterfaceTypeImpl superType,
   ) {
-    List<TypeParameterElement> parameters = element.typeParameters;
-    List<DartType> subArguments = subType.typeArguments;
-    List<DartType> superArguments = superType.typeArguments;
+    var parameters = element.typeParameters2;
+    var subArguments = subType.typeArguments;
+    var superArguments = superType.typeArguments;
 
     assert(subArguments.length == superArguments.length);
     assert(parameters.length == subArguments.length);
 
-    for (int i = 0; i < subArguments.length; i++) {
-      var parameter = parameters[i] as TypeParameterElementImpl;
+    for (var i = 0; i < subArguments.length; i++) {
+      var parameter = parameters[i];
       var subArgument = subArguments[i];
       var superArgument = superArguments[i];
 
@@ -346,8 +340,9 @@ class SubtypeHelper {
   }
 
   /// Check that [f] is a subtype of [g].
-  bool _isFunctionSubtypeOf(FunctionType f, FunctionType g) {
-    var fresh = _typeSystem.relateTypeParameters(f.typeFormals, g.typeFormals);
+  bool _isFunctionSubtypeOf(FunctionTypeImpl f, FunctionTypeImpl g) {
+    var fresh =
+        _typeSystem.relateTypeParameters2(f.typeParameters, g.typeParameters);
     if (fresh == null) {
       return false;
     }
@@ -359,8 +354,8 @@ class SubtypeHelper {
       return false;
     }
 
-    var fParameters = f.parameters;
-    var gParameters = g.parameters;
+    var fParameters = f.formalParameters;
+    var gParameters = g.formalParameters;
 
     var fIndex = 0;
     var gIndex = 0;
@@ -391,26 +386,32 @@ class SubtypeHelper {
         }
       } else if (fParameter.isNamed) {
         if (gParameter.isNamed) {
-          var compareNames = fParameter.name.compareTo(gParameter.name);
-          if (compareNames == 0) {
-            if (fParameter.isRequiredNamed && !gParameter.isRequiredNamed) {
-              return false;
-            } else if (isSubtypeOf(gParameter.type, fParameter.type)) {
-              fIndex++;
-              gIndex++;
-            } else {
-              return false;
-            }
-          } else if (compareNames < 0) {
-            if (fParameter.isRequiredNamed) {
-              return false;
-            } else {
-              fIndex++;
-            }
-          } else {
-            assert(compareNames > 0);
-            // The subtype must accept all parameters of the supertype.
+          var fName = fParameter.name3;
+          var gName = gParameter.name3;
+          if (fName == null || gName == null) {
             return false;
+          }
+
+          var compareNames = fName.compareTo(gName);
+          switch (compareNames) {
+            case 0:
+              if (fParameter.isRequiredNamed && !gParameter.isRequiredNamed) {
+                return false;
+              } else if (isSubtypeOf(gParameter.type, fParameter.type)) {
+                fIndex++;
+                gIndex++;
+              } else {
+                return false;
+              }
+            case < 0:
+              if (fParameter.isRequiredNamed) {
+                return false;
+              } else {
+                fIndex++;
+              }
+            default:
+              // The subtype must accept all parameters of the supertype.
+              return false;
           }
         } else {
           break;
@@ -435,7 +436,10 @@ class SubtypeHelper {
     return true;
   }
 
-  bool _isInterfaceSubtypeOf(InterfaceType subType, InterfaceType superType) {
+  bool _isInterfaceSubtypeOf(
+    InterfaceTypeImpl subType,
+    InterfaceTypeImpl superType,
+  ) {
     // Note: we should never reach `_isInterfaceSubtypeOf` with `i2 == Object`,
     // because top types are eliminated before `isSubtypeOf` calls this.
     // TODO(scheglov): Replace with assert().
@@ -448,8 +452,8 @@ class SubtypeHelper {
       return false;
     }
 
-    var subElement = subType.element;
-    var superElement = superType.element;
+    var subElement = subType.element3;
+    var superElement = superType.element3;
     if (identical(subElement, superElement)) {
       return _interfaceArguments(superElement, subType, superType);
     }
@@ -460,10 +464,9 @@ class SubtypeHelper {
     }
 
     for (var interface in subElement.allSupertypes) {
-      if (identical(interface.element, superElement)) {
+      if (identical(interface.element3, superElement)) {
         var substitution = Substitution.fromInterfaceType(subType);
-        var substitutedInterface =
-            substitution.substituteType(interface) as InterfaceType;
+        var substitutedInterface = substitution.mapInterfaceType(interface);
         return _interfaceArguments(
           superElement,
           substitutedInterface,
@@ -476,7 +479,7 @@ class SubtypeHelper {
   }
 
   /// Check that [subType] is a subtype of [superType].
-  bool _isRecordSubtypeOf(RecordType subType, RecordType superType) {
+  bool _isRecordSubtypeOf(RecordTypeImpl subType, RecordTypeImpl superType) {
     var subPositional = subType.positionalFields;
     var superPositional = superType.positionalFields;
     if (subPositional.length != superPositional.length) {

@@ -2,17 +2,26 @@ import 'dart:io';
 
 import 'package:expect/expect.dart';
 
-void main() {
-  final executable = Platform.executable;
-  final outDir = executable.substring(0, executable.lastIndexOf('dart'));
-
-  final runKernelExecutable = outDir + 'run_kernel';
-
-  final result = Process.runSync(runKernelExecutable, []);
+void checkSample(
+  String binary,
+  List<String> args, {
+  bool skipIfNotBuilt = false,
+}) {
+  if (Platform.isWindows) {
+    binary = '$binary.exe';
+  }
+  if (!File(binary).existsSync()) {
+    if (skipIfNotBuilt) {
+      return;
+    } else {
+      Expect.fail('Binary $binary does not exist!');
+    }
+  }
+  final result = Process.runSync(binary, args);
   Expect.equals(
     0,
     result.exitCode,
-    'process failed:\n'
+    'process $binary failed:\n'
     '  exit code: ${result.exitCode}\n'
     '  -- stdout --\n'
     '${result.stdout}'
@@ -20,4 +29,41 @@ void main() {
     '${result.stderr}\n'
     '  ------------',
   );
+}
+
+void main() {
+  final executable = File(Platform.executable).absolute.path;
+  final out = executable.substring(0, executable.lastIndexOf('dart') - 1);
+
+  checkSample('$out/run_main_kernel', ['$out/gen/hello_kernel.dart.snapshot']);
+  checkSample('$out/run_two_programs_kernel', [
+    '$out/gen/program1_kernel.dart.snapshot',
+    '$out/gen/program2_kernel.dart.snapshot',
+  ]);
+  checkSample('$out/run_timer_kernel', ['$out/gen/timer_kernel.dart.snapshot']);
+  checkSample('$out/run_timer_async_kernel', [
+    '$out/gen/timer_kernel.dart.snapshot',
+  ]);
+  // FFI samples aren't built on some platforms.
+  checkSample('$out/run_futures_kernel', [
+    '$out/gen/futures_kernel.dart.snapshot',
+  ], skipIfNotBuilt: true);
+
+  // AOT Samples aren't built on some platforms.
+  checkSample('$out/run_main_aot', [
+    '$out/hello_aot.snapshot',
+  ], skipIfNotBuilt: true);
+  checkSample('$out/run_two_programs_aot', [
+    '$out/program1_aot.snapshot',
+    '$out/program2_aot.snapshot',
+  ], skipIfNotBuilt: true);
+  checkSample('$out/run_timer_aot', [
+    '$out/timer_aot.snapshot',
+  ], skipIfNotBuilt: true);
+  checkSample('$out/run_timer_async_aot', [
+    '$out/timer_aot.snapshot',
+  ], skipIfNotBuilt: true);
+  checkSample('$out/run_futures_aot', [
+    '$out/futures_aot.snapshot',
+  ], skipIfNotBuilt: true);
 }

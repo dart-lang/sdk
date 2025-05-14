@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Many functions here are mostly camelcase, with an occasional underscore to
+// separate phrases.
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:math';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
@@ -129,7 +133,7 @@ class StatementCompletionKind {
 
 /// The computer for Dart statement completions.
 class StatementCompletionProcessor {
-  static final NO_COMPLETION = StatementCompletion(
+  static final _noCompletion = StatementCompletion(
     DartStatementCompletion.NO_COMPLETION,
     SourceChange('', edits: []),
   );
@@ -167,13 +171,13 @@ class StatementCompletionProcessor {
   Future<StatementCompletion> compute() async {
     var node = _selectedNode();
     if (node == null) {
-      return NO_COMPLETION;
+      return _noCompletion;
     }
     node = node.thisOrAncestorMatching(
       (n) => n is Statement || _isNonStatementDeclaration(n),
     );
     if (node == null) {
-      return _complete_simpleEnter() ? completion! : NO_COMPLETION;
+      return _complete_simpleEnter() ? completion! : _noCompletion;
     }
     if (node is Block) {
       if (node.statements.isNotEmpty) {
@@ -227,7 +231,7 @@ class StatementCompletionProcessor {
     if (_complete_simpleEnter()) {
       return completion!;
     }
-    return NO_COMPLETION;
+    return _noCompletion;
   }
 
   void _addInsertEdit(int offset, String text) {

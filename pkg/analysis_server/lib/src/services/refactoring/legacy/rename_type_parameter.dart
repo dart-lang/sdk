@@ -13,10 +13,10 @@ class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
     super.workspace,
     super.sessionHelper,
     TypeParameterElement2 super.element2,
-  ) : super.c2();
+  ) : super();
 
   @override
-  TypeParameterElement2 get element2 => super.element2 as TypeParameterElement2;
+  TypeParameterElement2 get element => super.element as TypeParameterElement2;
 
   @override
   String get refactoringName {
@@ -27,13 +27,13 @@ class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
   Future<RefactoringStatus> checkFinalConditions() async {
     var result = RefactoringStatus();
 
-    var enclosing = element2.enclosingElement2;
+    var enclosing = element.enclosingElement2;
     if (enclosing is TypeParameterizedElement2) {
       for (var sibling in enclosing.typeParameters2) {
         if (sibling.name3 == newName) {
           var nodeKind = sibling.kind.displayName;
           var message = "Duplicate $nodeKind '$newName'.";
-          result.addError(message, newLocation_fromElement2(sibling));
+          result.addError(message, newLocation_fromElement(sibling));
         }
       }
     }
@@ -51,9 +51,9 @@ class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<void> fillChange() async {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
-    processor.addDeclarationEdit2(element2);
+    processor.addDeclarationEdit(element);
 
-    var references = await searchEngine.searchReferences(element2);
+    var references = await searchEngine.searchReferences(element);
     processor.addReferenceEdits(references);
   }
 }

@@ -21,6 +21,8 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
+import 'constants.dart';
+
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisServerTest);
@@ -41,7 +43,7 @@ class AnalysisServerTest with ResourceProviderMixin {
   late LegacyAnalysisServer server;
 
   void setUp() {
-    channel = MockServerChannel();
+    channel = MockServerChannel(printMessages: debugPrintCommunication);
 
     // Create an SDK in the mock file system.
     var sdkRoot = newFolder('/sdk');

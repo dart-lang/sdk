@@ -10,27 +10,27 @@ import "private_name_library.dart";
 /// Test that having a private class in the implements and extends class via two
 /// different public names is an error.
 class A0 extends PublicClass implements AlsoPublicClass {
-//    ^
-// [cfe] '_PrivateClass' can't be used in both 'extends' and 'implements' clauses.
-//                                      ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_SUPER_CLASS
+  //  ^
+  // [cfe] '_PrivateClass' can't be used in both 'extends' and 'implements' clauses.
+  //                                    ^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_SUPER_CLASS
 }
 
 /// Test that having a private class in the implements class twice via the same
 /// public name is an error.
 class A1 implements PublicClass, PublicClass {
-//                               ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_REPEATED
-// [cfe] unspecified
+  //                             ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_REPEATED
+  // [cfe] '_PrivateClass' can only be implemented once.
   noSuchMethod(_) => null;
 }
 
 /// Test that having a private class in the implements class twice via two
 /// different public names is an error.
 class A2 implements PublicClass, AlsoPublicClass {
-//                               ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_REPEATED
-// [cfe] unspecified
+  //                             ^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_REPEATED
+  // [cfe] '_PrivateClass' can only be implemented once.
   noSuchMethod(_) => null;
 }
 
@@ -40,10 +40,9 @@ class A3 extends PublicGenericClassOfInt {}
 /// Test that having a private generic class in the super-interface graph
 /// twice with two different generic instantiations is an error.
 class A4 extends A3 implements PublicGenericClass<String> {
-// [error line 42, column 7, length 2]
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
-//    ^
-// [cfe] 'A4' can't implement both '_PrivateGenericClass<int>' and '_PrivateGenericClass<String>'
+  //  ^^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
+  // [cfe] 'A4' can't implement both '_PrivateGenericClass<int>' and '_PrivateGenericClass<String>'
 }
 
 /// Test that having a private generic class in the super-interface graph
@@ -53,12 +52,12 @@ class A5 extends A3 implements PublicGenericClass<int> {}
 /// Test that having a private generic class in the implements clause twice with
 /// two different generic instantiations is an error.
 class A6 implements PublicGenericClass<int>, PublicGenericClass<String> {
-// [error line 55, column 7, length 2]
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
-//    ^
-// [cfe] 'A6' can't implement both '_PrivateGenericClass<int>' and '_PrivateGenericClass<String>'
-//                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_REPEATED
+  //  ^^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
+  // [cfe] 'A6' can't implement both '_PrivateGenericClass<int>' and '_PrivateGenericClass<String>'
+  //                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_REPEATED
+  // [cfe] '_PrivateGenericClass' can only be implemented once.
 }
 
 void main() {}

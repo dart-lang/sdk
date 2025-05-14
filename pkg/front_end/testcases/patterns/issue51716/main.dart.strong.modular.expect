@@ -8,9 +8,9 @@ import "org-dartlang-testcase:///main_lib1.dart";
 import "org-dartlang-testcase:///main_lib2.dart";
 
 class Main1 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::Main1> values = #C7;
   enum-element static const field self::Main1 a = #C3;
   enum-element static const field self::Main1 b = #C6;
+  static const field core::List<self::Main1> values = #C7;
   const synthetic constructor •(core::int #index, core::String #name) → self::Main1
     : super core::_Enum::•(#index, #name)
     ;
@@ -18,9 +18,9 @@ class Main1 extends core::_Enum /*isEnum*/  {
     return "Main1.${this.{core::_Enum::_name}{core::String}}";
 }
 class Main2 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::Main2> values = #C10;
   enum-element static const field self::Main2 a = #C8;
   enum-element static const field self::Main2 b = #C9;
+  static const field core::List<self::Main2> values = #C10;
   const synthetic constructor •(core::int #index, core::String #name) → self::Main2
     : super core::_Enum::•(#index, #name)
     ;
@@ -149,9 +149,9 @@ import "org-dartlang-testcase:///main.dart";
 import "org-dartlang-testcase:///main_lib2.dart";
 
 class Lib1a extends core::_Enum /*isEnum*/  {
-  static const field core::List<mai::Lib1a> values = #C17;
   enum-element static const field mai::Lib1a a = #C11;
   enum-element static const field mai::Lib1a b = #C12;
+  static const field core::List<mai::Lib1a> values = #C17;
   const synthetic constructor •(core::int #index, core::String #name) → mai::Lib1a
     : super core::_Enum::•(#index, #name)
     ;
@@ -159,9 +159,9 @@ class Lib1a extends core::_Enum /*isEnum*/  {
     return "Lib1a.${this.{core::_Enum::_name}{core::String}}";
 }
 class Lib1b extends core::_Enum /*isEnum*/  {
-  static const field core::List<mai::Lib1b> values = #C18;
   enum-element static const field mai::Lib1b a = #C13;
   enum-element static const field mai::Lib1b b = #C14;
+  static const field core::List<mai::Lib1b> values = #C18;
   const synthetic constructor •(core::int #index, core::String #name) → mai::Lib1b
     : super core::_Enum::•(#index, #name)
     ;

@@ -1,0 +1,49 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue59800.dart:19:16: Error: Not a constant expression.
+// const int C5 = CAInt.foo!; // Error.
+//                ^^^^^
+//
+// pkg/front_end/testcases/general/issue59800.dart:20:16: Error: Not a constant expression.
+// const int C6 = CANull.foo!; // Error.
+//                ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field core::int? foo;
+  const constructor •(core::int? foo) → self::A
+    : self::A::foo = foo, super core::Object::•()
+    ;
+}
+static const field core::int? CNull = null;
+static const field core::int? CInt = 0;
+static const field self::A CANull = const self::A::•(null);
+static const field self::A CAInt = const self::A::•(0);
+static const field core::int C1 = 0!;
+static const field core::int C2 = null!;
+static const field core::int C3 = self::CInt!;
+static const field core::int C4 = self::CNull!;
+static const field core::int C5 = self::CAInt.{self::A::foo}{core::int?}!;
+static const field core::int C6 = self::CANull.{self::A::foo}{core::int?}!;
+static const field core::int C7 = "".{core::String::length}{core::int}!;
+static const field core::int C8 = ""!.{core::String::length}{core::int};
+static const field core::int C9 = ""!.{core::String::length}{core::int}!;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue59800.dart:12:24 -> InstanceConstant(const A{A.foo: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue59800.dart:13:23 -> InstanceConstant(const A{A.foo: 0})
+Evaluated: StaticGet @ org-dartlang-testcase:///issue59800.dart:17:16 -> IntConstant(0)
+Evaluated: StaticGet @ org-dartlang-testcase:///issue59800.dart:18:16 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///issue59800.dart:19:16 -> InstanceConstant(const A{A.foo: 0})
+Evaluated: StaticGet @ org-dartlang-testcase:///issue59800.dart:20:16 -> InstanceConstant(const A{A.foo: null})
+Evaluated: InstanceGet @ org-dartlang-testcase:///issue59800.dart:21:19 -> IntConstant(0)
+Extra constant evaluation: evaluated: 22, effectively constant: 7

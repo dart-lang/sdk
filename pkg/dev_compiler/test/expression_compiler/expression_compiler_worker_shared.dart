@@ -60,9 +60,6 @@ void runTests(SetupCompilerOptions setup, {bool verbose = false}) {
             badPath,
             '--module-format',
             setup.moduleFormat.name,
-            setup.soundNullSafety
-                ? '--sound-null-safety'
-                : '--no-sound-null-safety',
             if (setup.enableAsserts) '--enable-asserts',
             if (setup.canaryFeatures) '--canary',
             if (verbose) '--verbose',
@@ -136,7 +133,8 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
-              'compiledProcedure': contains('developer.postEvent'),
+              'compiledProcedure':
+                  stringContainsInOrder(['developer', 'postEvent']),
             })
           ]));
     });
@@ -170,7 +168,8 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
-              'compiledProcedure': contains('developer.postEvent'),
+              'compiledProcedure':
+                  stringContainsInOrder(['developer', 'postEvent']),
             })
           ]));
     });
@@ -732,12 +731,10 @@ class TestProjectConfiguration {
   static final String outputDir = 'out';
 
   final Directory rootDirectory;
-  final bool soundNullSafety;
   final ModuleFormat moduleFormat;
   late final Map<String, ModuleConfiguration> modules;
 
-  TestProjectConfiguration(
-      this.rootDirectory, this.soundNullSafety, this.moduleFormat);
+  TestProjectConfiguration(this.rootDirectory, this.moduleFormat);
 
   void initialize() {
     final testModule4 = ModuleConfiguration(
@@ -812,13 +809,7 @@ class TestProjectConfiguration {
   Uri get packagesPath => root.resolve('package_config.json');
 
   Uri get sdkRoot => computePlatformBinariesLocation();
-  // Use the outline copied to the released SDK.
-  // Unsound .dill files are not longer in the released SDK so this file must be
-  // read from the build output directory.
-  Uri get sdkSummaryPath => soundNullSafety
-      ? sdkRoot.resolve('ddc_outline.dill')
-      : computePlatformBinariesLocation(forceBuildDir: true)
-          .resolve('ddc_outline_unsound.dill');
+  Uri get sdkSummaryPath => sdkRoot.resolve('ddc_outline.dill');
   Uri get librariesPath => sdkRoot.resolve('lib/libraries.json');
 
   List get inputUris => [
@@ -1045,8 +1036,7 @@ abstract class ExpressionCompilerWorkerTestDriver {
 
   Future<void> setUpAll() async {
     tempDir = Directory.systemTemp.createTempSync('foo bar');
-    config = TestProjectConfiguration(
-        tempDir, setup.soundNullSafety, setup.moduleFormat)
+    config = TestProjectConfiguration(tempDir, setup.moduleFormat)
       ..initialize();
 
     await start();
@@ -1076,7 +1066,6 @@ abstract class ExpressionCompilerWorkerTestDriver {
       fileSystem: assetFileSystem,
       requestStream: requestController.stream,
       sendResponse: responseController.add,
-      soundNullSafety: setup.soundNullSafety,
       moduleFormat: setup.moduleFormat,
       canaryFeatures: setup.canaryFeatures,
       enableAsserts: setup.enableAsserts,
@@ -1205,18 +1194,15 @@ class DDCKernelGenerator {
   DDCKernelGenerator(this.config, this.verbose);
 
   Future<int> generate() async {
+    var exitCode = 0;
     if (!File(dartdevc).existsSync()) {
-      // This can be removed once we stop supporting ia32 architecture.
-      dartdevc = p.join(
-          sdkPath, 'dart-sdk', 'bin', 'snapshots', 'dartdevc.dart.snapshot');
-      kernelWorker = p.join(sdkPath, 'dart-sdk', 'bin', 'snapshots',
-          'kernel_worker.dart.snapshot');
-      dartExecutable = Platform.resolvedExecutable;
+      exitCode = 1;
+      expect(exitCode, 0,
+          reason: 'Unable to locate snapshot for compiler $dartdevc');
     }
     Directory.fromUri(config.outputPath).createSync();
 
     // generate summaries
-    var exitCode = 0;
     for (var module in config.modules.values) {
       exitCode = await _generateSummary(module);
       expect(exitCode, 0,
@@ -1247,8 +1233,8 @@ class DDCKernelGenerator {
       '--reuse-compiler-result',
       '--use-incremental-compiler',
       '--packages-file=${config.packagesPath.path}',
-      if (config.soundNullSafety) '--sound-null-safety',
-      if (!config.soundNullSafety) '--no-sound-null-safety',
+      // TODO(nshahan): Remove when kernel worker defaults to sound null safety.
+      '--sound-null-safety',
     ];
 
     return runProcess(dartExecutable, args, config.rootPath, verbose);
@@ -1276,8 +1262,6 @@ class DDCKernelGenerator {
       'org-dartlang-app',
       '--packages',
       config.packagesPath.toFilePath(),
-      if (config.soundNullSafety) '--sound-null-safety',
-      if (!config.soundNullSafety) '--no-sound-null-safety',
       '--modules',
       config.moduleFormat.name,
       '--no-summarize',

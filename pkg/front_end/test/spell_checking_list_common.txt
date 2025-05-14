@@ -52,6 +52,7 @@ accurate
 accurately
 achieve
 achieved
+achieves
 act
 acting
 action
@@ -510,6 +511,7 @@ coerced
 coerces
 coercing
 coercion
+coercions
 coincides
 coinductively
 collapses
@@ -654,6 +656,7 @@ constuctor
 consume
 consumed
 consumer
+consumes
 consuming
 contain
 contained
@@ -812,6 +815,7 @@ delegates
 delegation
 delete
 deleted
+deletes
 deliberately
 delimited
 delimiter
@@ -1378,6 +1382,7 @@ gleaned
 global
 glorified
 go
+goal
 goes
 going
 gone
@@ -1386,6 +1391,7 @@ got
 gotten
 governed
 gracefully
+grain
 grammar
 granular
 graph
@@ -1401,6 +1407,7 @@ grouping
 groups
 grow
 growable
+growing
 guaranteed
 guaranteeing
 guarantees
@@ -2259,6 +2266,7 @@ patches
 patching
 paths
 pattern
+paying
 peek
 peel
 peeled
@@ -2739,6 +2747,7 @@ sake
 same
 sample
 samples
+sanitizes
 sanity
 sate
 satisfied
@@ -2840,6 +2849,7 @@ shorted
 shorten
 shortened
 shorter
+shorthand
 shorthands
 shorting
 shorts
@@ -3244,6 +3254,9 @@ trigger
 triggered
 trim
 trimmed
+trimmer
+trimming
+trims
 trip
 triple
 triples

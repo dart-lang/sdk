@@ -21,18 +21,19 @@ constants() {
   Expect.equals(0xFFFFFFF0, 0xFFFFFFF << 4);
   Expect.equals(0x7FFFFFFF, 0xFFFFFFFF >> 1);
   Expect.equals(
-      0xFFFFFFFC,
-      ((((((0xFFFFFFF << 4) // 0xFFFFFFF0
-                          >>
-                          1) // 0x7FFFFFF8
-                      |
-                      0x80000000) // 0xFFFFFFF8
-                  >>
-                  2) // 0x3FFFFFFE
-              ^
-              0x40000000) // 0x7FFFFFFE
-          <<
-          1));
+    0xFFFFFFFC,
+    ((((((0xFFFFFFF << 4) // 0xFFFFFFF0
+                        >>
+                        1) // 0x7FFFFFF8
+                    |
+                    0x80000000) // 0xFFFFFFF8
+                >>
+                2) // 0x3FFFFFFE
+            ^
+            0x40000000) // 0x7FFFFFFE
+        <<
+        1),
+  );
 }
 
 foo(i) {
@@ -69,18 +70,19 @@ interceptors() {
   Expect.equals(0xFFFFFFF0, id(0xFFFFFFF) << id(4));
   Expect.equals(0x7FFFFFFF, id(0xFFFFFFFF) >> id(1));
   Expect.equals(
-      0xFFFFFFFC,
-      ((((((id(0xFFFFFFF) << 4) // 0xFFFFFFF0
-                          >>
-                          1) // 0x7FFFFFF8
-                      |
-                      0x80000000) // 0xFFFFFFF8
-                  >>
-                  2) // 0x3FFFFFFE
-              ^
-              0x40000000) // 0x7FFFFFFE
-          <<
-          1));
+    0xFFFFFFFC,
+    ((((((id(0xFFFFFFF) << 4) // 0xFFFFFFF0
+                        >>
+                        1) // 0x7FFFFFF8
+                    |
+                    0x80000000) // 0xFFFFFFF8
+                >>
+                2) // 0x3FFFFFFE
+            ^
+            0x40000000) // 0x7FFFFFFE
+        <<
+        1),
+  );
 }
 
 speculative() {
@@ -113,18 +115,19 @@ speculative() {
     Expect.equals(0xFFFFFFF0, m << l);
     Expect.equals(0x7FFFFFFF, f >> c);
     Expect.equals(
-        0xFFFFFFFC,
-        ((((((m << 4) // 0xFFFFFFF0
-                            >>
-                            1) // 0x7FFFFFF8
-                        |
-                        0x80000000) // 0xFFFFFFF8
-                    >>
-                    2) // 0x3FFFFFFE
-                ^
-                0x40000000) // 0x7FFFFFFE
-            <<
-            1));
+      0xFFFFFFFC,
+      ((((((m << 4) // 0xFFFFFFF0
+                          >>
+                          1) // 0x7FFFFFF8
+                      |
+                      0x80000000) // 0xFFFFFFF8
+                  >>
+                  2) // 0x3FFFFFFE
+              ^
+              0x40000000) // 0x7FFFFFFE
+          <<
+          1),
+    );
   }
 }
 

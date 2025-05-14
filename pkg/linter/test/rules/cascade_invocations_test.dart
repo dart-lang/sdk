@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CascadeInvocationsTest);
   });
@@ -33,18 +33,20 @@ void f(C c) {
   }
 
   test_assignmentThenMethodCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<int> list) {
   list = [];
   list.clear();
 }
-''', [
-      lint(40, 13),
-    ]);
+''',
+      [lint(40, 13)],
+    );
   }
 
   test_consecutiveMethodCalls_thenDifferentTarget() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   late C parent;
   late C c;
@@ -55,9 +57,9 @@ class C {
     parent.c.bar();
   }
 }
-''', [
-      lint(72, 8),
-    ]);
+''',
+      [lint(72, 8)],
+    );
   }
 
   test_methodCallDependsOnTarget() async {
@@ -88,27 +90,28 @@ class C {
   }
 
   test_multipleConsecutiveMethodCalls() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<int> list) {
   list.clear();
   list.clear();
 }
-''', [
-      lint(43, 13),
-    ]);
+''',
+      [lint(43, 13)],
+    );
   }
 
   test_multipleConsecutiveMethodCalls_cascaded() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<int> list) {
   list.clear();
   list.clear();
   list..clear();
 }
-''', [
-      lint(43, 13),
-      lint(59, 14),
-    ]);
+''',
+      [lint(43, 13), lint(59, 14)],
+    );
   }
 
   test_nonConsecutiveReferences() async {
@@ -127,7 +130,8 @@ class Foo {
   }
 
   test_nullAwareAccessThenConsecutiveAccess() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   c?.m(); // ignore: invalid_null_aware_operator
   c.m();
@@ -136,9 +140,9 @@ void f(C c) {
 class C {
   void m() {}
 }
-''', [
-      lint(74, 6),
-    ]);
+''',
+      [lint(74, 6)],
+    );
   }
 
   test_nullAwareAccessThenMethodCall() async {
@@ -154,7 +158,8 @@ class C {
   }
 
   test_nullAwareAssignment() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C? c) {
   c ??= C();
   c.foo = 1;
@@ -164,9 +169,9 @@ class C {
   int foo = 0;
   int bar = 0;
 }
-''', [
-      lint(43, 10),
-    ]);
+''',
+      [lint(43, 10)],
+    );
   }
 
   test_oneCallIsAwaited() async {
@@ -237,13 +242,14 @@ class C {
   }
 
   test_twoConsecutiveMethodCalls() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<int> list) {
   list.clear();
   list.clear();
 }
-''', [
-      lint(43, 13),
-    ]);
+''',
+      [lint(43, 13)],
+    );
   }
 }

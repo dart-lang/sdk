@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -17,21 +18,20 @@ const _desc = r'Specify type annotations.';
 
 class StrictTopLevelInference extends LintRule {
   StrictTopLevelInference()
-      : super(
-          name: LintNames.strict_top_level_inference,
-          description: _desc,
-        );
+    : super(name: LintNames.strict_top_level_inference, description: _desc);
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.strict_top_level_inference_add_type,
-        LinterLintCode.strict_top_level_inference_replace_keyword,
-        LinterLintCode.strict_top_level_inference_split_to_types,
-      ];
+    LinterLintCode.strict_top_level_inference_add_type,
+    LinterLintCode.strict_top_level_inference_replace_keyword,
+    LinterLintCode.strict_top_level_inference_split_to_types,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
@@ -41,11 +41,17 @@ class StrictTopLevelInference extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  final bool _wildCardVariablesEnabled;
+
   final LintRule rule;
 
   final LinterContext context;
 
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule, this.context)
+    : _wildCardVariablesEnabled = context.isEnabled(Feature.wildcard_variables);
+
+  bool isWildcardIdentifier(String lexeme) =>
+      _wildCardVariablesEnabled && lexeme == '_';
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -97,8 +103,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (node.variables.length == 1) {
       var variable = node.variables.single;
-      var overriddenMember = context.inheritanceManager
-          .overriddenMember(variable.declaredFragment?.element);
+      var overriddenMember = context.inheritanceManager.overriddenMember(
+        variable.declaredFragment?.element,
+      );
       if (overriddenMember == null) {
         _report(variable.name, keyword: node.keyword);
       }
@@ -106,8 +113,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Handle the multiple-variable case separately so that we can instead
       // report `LinterLintCode.strict_top_level_inference_split_to_types`.
       for (var variable in variablesMissingAnInitializer) {
-        var overriddenMember = context.inheritanceManager
-            .overriddenMember(variable.declaredFragment?.element);
+        var overriddenMember = context.inheritanceManager.overriddenMember(
+          variable.declaredFragment?.element,
+        );
         if (overriddenMember == null) {
           rule.reportLintForToken(
             variable.name,
@@ -118,10 +126,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _checkFormalParameters(List<FormalParameter> parameters,
-      {ExecutableElement2? overriddenMember}) {
+  void _checkFormalParameters(
+    List<FormalParameter> parameters, {
+    ExecutableElement2? overriddenMember,
+  }) {
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
+      var parameterName = parameter.name;
+      if (parameterName != null && isWildcardIdentifier(parameterName.lexeme)) {
+        continue;
+      }
+
       if (parameter is DefaultFormalParameter) {
         parameter = parameter.parameter;
       }
@@ -139,20 +154,20 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       if (parameter.type != null) return;
       if (overriddenMember == null) {
-        _report(parameter.name, keyword: parameter.keyword);
+        _report(parameterName, keyword: parameter.keyword);
       } else {
         if (parameter.isPositional) {
           if (overriddenMember.formalParameters.length <= i ||
               overriddenMember.formalParameters[i].isNamed) {
             // The overridden member does not have a corresponding parameter.
-            _report(parameter.name, keyword: parameter.keyword);
+            _report(parameterName, keyword: parameter.keyword);
           }
         } else {
           var overriddenParameter = overriddenMember.formalParameters
               .firstWhereOrNull((p) => p.isNamed);
           if (overriddenParameter == null) {
             // The overridden member does not have a corresponding parameter.
-            _report(parameter.name, keyword: parameter.keyword);
+            _report(parameterName, keyword: parameter.keyword);
           }
         }
       }
@@ -178,27 +193,37 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     var container = element.enclosingFragment!.element;
-    var noOverride = node.isStatic ||
+    var noOverride =
+        node.isStatic ||
         container is ExtensionElement2 ||
         container is ExtensionTypeElement2;
 
     if (noOverride) {
       if (node.returnType == null) {
-        rule.reportLintForToken(node.name,
-            errorCode: LinterLintCode.strict_top_level_inference_add_type);
+        rule.reportLintForToken(
+          node.name,
+          errorCode: LinterLintCode.strict_top_level_inference_add_type,
+        );
       }
       if (node.parameters case var parameters?) {
         _checkFormalParameters(parameters.parameters);
       }
     } else {
-      var overriddenMember = context.inheritanceManager
-          .overriddenMember(node.declaredFragment?.element);
-      if (overriddenMember == null && node.returnType == null) {
+      var overriddenMember = context.inheritanceManager.overriddenMember(
+        node.declaredFragment?.element,
+      );
+      if (overriddenMember == null &&
+          node.returnType == null &&
+          (!container.isReflectiveTest ||
+              (!node.name.lexeme.startsWith('test_') &&
+                  !node.name.lexeme.startsWith('solo_test_')))) {
         _report(node.name);
       }
       if (node.parameters case var parameters?) {
-        _checkFormalParameters(parameters.parameters,
-            overriddenMember: overriddenMember);
+        _checkFormalParameters(
+          parameters.parameters,
+          overriddenMember: overriddenMember,
+        );
       }
     }
   }
@@ -222,8 +247,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return false;
     if (container is ExtensionElement2) return false;
     if (container is ExtensionTypeElement2) return false;
-    var overriddenMember = context.inheritanceManager
-        .overriddenMember(node.declaredFragment?.element);
+    var overriddenMember = context.inheritanceManager.overriddenMember(
+      node.declaredFragment?.element,
+    );
     return overriddenMember != null;
   }
 

@@ -65,7 +65,7 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
     Map<TypeParameter, DartType> map = {};
     for (MapEntry<NominalParameterBuilder, TypeBuilder> entry
         in _substitutionMap.entries) {
-      map[entry.key.actualParameter] =
+      map[entry.key.parameter] =
           entry.value.build(libraryBuilder, typeUse, hierarchy: hierarchy);
     }
     return _substitution = Substitution.fromMap(map);
@@ -88,10 +88,6 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
     DartType type = _typeBuilder.buildAliased(library, typeUse, hierarchy);
     Substitution substitution =
         _computeSubstitution(library, typeUse, hierarchy);
-    if ('$type'.contains('T*')) {
-      // Coverage-ignore-block(suite): Not run.
-      _typeBuilder.buildAliased(library, typeUse, hierarchy);
-    }
     return substitution.substituteType(type);
   }
 

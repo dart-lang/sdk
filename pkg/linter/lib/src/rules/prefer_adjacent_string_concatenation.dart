@@ -11,17 +11,19 @@ const _desc = r'Use adjacent strings to concatenate string literals.';
 
 class PreferAdjacentStringConcatenation extends LintRule {
   PreferAdjacentStringConcatenation()
-      : super(
-          name: LintNames.prefer_adjacent_string_concatenation,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.prefer_adjacent_string_concatenation,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_adjacent_string_concatenation;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addBinaryExpression(this, visitor);
   }

@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidCatchesWithoutOnClausesTest);
   });
@@ -19,8 +19,10 @@ class AvoidCatchesWithoutOnClausesTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  List<ErrorCode> get ignoredErrorCodes =>
-      [WarningCode.UNUSED_ELEMENT, WarningCode.UNUSED_LOCAL_VARIABLE];
+  List<ErrorCode> get ignoredErrorCodes => [
+    WarningCode.UNUSED_ELEMENT,
+    WarningCode.UNUSED_LOCAL_VARIABLE,
+  ];
 
   @override
   String get lintRule => LintNames.avoid_catches_without_on_clauses;
@@ -36,25 +38,27 @@ void f() {
   }
 
   test_missingOnClause() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   try {} catch (e) {}
 }
-''', [
-      lint(20, 5),
-    ]);
+''',
+      [lint(20, 5)],
+    );
   }
 
   test_missingOnClause_nonRelevantUse() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   try {} catch (e) {
     print(e);
   }
 }
-''', [
-      lint(20, 5),
-    ]);
+''',
+      [lint(20, 5)],
+    );
   }
 
   test_missingOnClause_rethrow() async {
@@ -68,7 +72,8 @@ void f() {
   }
 
   test_missingOnClause_unrelatedRethrow() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   try {} catch (e) {
     try {} on Exception catch (e) {
@@ -77,13 +82,14 @@ void f() {
     }
   }
 }
-''', [
-      lint(20, 5),
-    ]);
+''',
+      [lint(20, 5)],
+    );
   }
 
   test_missingOnClause_unrelatedRethrow_inNestedFunction() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   try {} catch (e) {
     void g() {
@@ -94,9 +100,9 @@ void f() {
     }
   }
 }
-''', [
-      lint(20, 5),
-    ]);
+''',
+      [lint(20, 5)],
+    );
   }
 
   test_missingOnClause_usedInCompleter_completeError() async {

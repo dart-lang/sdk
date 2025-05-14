@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseDecoratedBoxTest);
   });
@@ -48,7 +48,8 @@ Widget f() {
   }
 
   test_containerWithDecorationAndChild() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 Widget f() {
   return Container(
@@ -56,9 +57,9 @@ Widget f() {
     child: SizedBox(),
   );
 }
-''', [
-      lint(61, 9),
-    ]);
+''',
+      [lint(61, 9)],
+    );
   }
 
   test_containerWithDecorationAndChildAndOtherArgument() async {
@@ -120,7 +121,8 @@ Widget f() {
   }
 
   test_containerWithKeyAndDecorationAndChild() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 Widget f() {
   return Container(
@@ -129,9 +131,9 @@ Widget f() {
     child: SizedBox(),
   );
 }
-''', [
-      lint(61, 9),
-    ]);
+''',
+      [lint(61, 9)],
+    );
   }
 
   test_containerWithoutArguments() async {

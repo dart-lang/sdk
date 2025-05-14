@@ -4,7 +4,9 @@ description: A resident kernel compiler
 publish_to: none
 
 environment:
-  sdk: '^3.0.0'
+  sdk: ^3.5.0
+
+resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
@@ -24,7 +26,5 @@ dependencies:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   collection: any
-  const_finder_fixtures: any
-  const_finder_fixtures_package: any
   lints: any
   test: any

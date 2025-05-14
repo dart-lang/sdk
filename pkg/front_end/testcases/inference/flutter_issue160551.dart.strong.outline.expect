@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  constructor •() → self::A
+    ;
+  static factory redir({core::double foo = null}) → self::A /* redirection-target: self::B::•<dynamic>*/
+    return new self::B::•<dynamic>(foo: foo);
+}
+class B<T extends core::Object? = dynamic> extends self::A {
+  final field core::double foo;
+  constructor •({core::double foo = 10.0}) → self::B<self::B::T%>
+    ;
+}
+static method main() → void
+  ;

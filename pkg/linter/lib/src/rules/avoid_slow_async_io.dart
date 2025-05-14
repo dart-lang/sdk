@@ -12,10 +12,7 @@ import '../extensions.dart';
 
 const _desc = r'Avoid slow asynchronous `dart:io` methods.';
 
-const List<String> _dirMethodNames = <String>[
-  'exists',
-  'stat',
-];
+const List<String> _dirMethodNames = <String>['exists', 'stat'];
 
 const List<String> _fileMethodNames = <String>[
   'lastModified',
@@ -32,17 +29,16 @@ const List<String> _fileSystemEntityMethodNames = <String>[
 
 class AvoidSlowAsyncIo extends LintRule {
   AvoidSlowAsyncIo()
-      : super(
-          name: LintNames.avoid_slow_async_io,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_slow_async_io, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_slow_async_io;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }

@@ -11,8 +11,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeAliasElementTest_keepLinking);
     defineReflectiveTests(TypeAliasElementTest_fromBytes);
-    defineReflectiveTests(TypeAliasElementTest_augmentation_keepLinking);
-    defineReflectiveTests(TypeAliasElementTest_augmentation_fromBytes);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(TypeAliasElementTest_augmentation_keepLinking);
+    // defineReflectiveTests(TypeAliasElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -48,112 +49,6 @@ typedef CommentAroundAnnotation();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased Raw @8
-          reference: <testLibraryFragment>::@typeAlias::Raw
-          codeOffset: 0
-          codeLength: 14
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-        functionTypeAliasBased HasDocComment @54
-          reference: <testLibraryFragment>::@typeAlias::HasDocComment
-          documentationComment: /// Comment 1.\n/// Comment 2.
-          codeOffset: 16
-          codeLength: 54
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-        functionTypeAliasBased HasAnnotation @90
-          reference: <testLibraryFragment>::@typeAlias::HasAnnotation
-          metadata
-            Annotation
-              atSign: @ @72
-              name: SimpleIdentifier
-                token: Object @73
-                staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::@class::Object
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @79
-                rightParenthesis: ) @80
-              element: dart:core::<fragment>::@class::Object::@constructor::new
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-          codeOffset: 72
-          codeLength: 34
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-        functionTypeAliasBased AnnotationThenComment @156
-          reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
-          documentationComment: /// Comment 1.\n/// Comment 2.
-          metadata
-            Annotation
-              atSign: @ @108
-              name: SimpleIdentifier
-                token: Object @109
-                staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::@class::Object
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @115
-                rightParenthesis: ) @116
-              element: dart:core::<fragment>::@class::Object::@constructor::new
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-          codeOffset: 108
-          codeLength: 72
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-        functionTypeAliasBased CommentThenAnnotation @230
-          reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
-          documentationComment: /// Comment 1.\n/// Comment 2.
-          metadata
-            Annotation
-              atSign: @ @212
-              name: SimpleIdentifier
-                token: Object @213
-                staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::@class::Object
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @219
-                rightParenthesis: ) @220
-              element: dart:core::<fragment>::@class::Object::@constructor::new
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-          codeOffset: 182
-          codeLength: 72
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-        functionTypeAliasBased CommentAroundAnnotation @304
-          reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
-          documentationComment: /// Comment 2.
-          metadata
-            Annotation
-              atSign: @ @271
-              name: SimpleIdentifier
-                token: Object @272
-                staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::@class::Object
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @278
-                rightParenthesis: ) @279
-              element: dart:core::<fragment>::@class::Object::@constructor::new
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-          codeOffset: 271
-          codeLength: 59
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -173,13 +68,11 @@ library
               atSign: @ @72
               name: SimpleIdentifier
                 token: Object @73
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @79
                 rightParenthesis: ) @80
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         AnnotationThenComment @156
           reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
@@ -190,13 +83,11 @@ library
               atSign: @ @108
               name: SimpleIdentifier
                 token: Object @109
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @115
                 rightParenthesis: ) @116
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         CommentThenAnnotation @230
           reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
@@ -207,13 +98,11 @@ library
               atSign: @ @212
               name: SimpleIdentifier
                 token: Object @213
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @219
                 rightParenthesis: ) @220
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         CommentAroundAnnotation @304
           reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
@@ -224,13 +113,11 @@ library
               atSign: @ @271
               name: SimpleIdentifier
                 token: Object @272
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @278
                 rightParenthesis: ) @279
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
   typeAliases
     Raw
@@ -247,13 +134,11 @@ library
           atSign: @ @72
           name: SimpleIdentifier
             token: Object @73
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @79
             rightParenthesis: ) @80
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
     AnnotationThenComment
@@ -264,13 +149,11 @@ library
           atSign: @ @108
           name: SimpleIdentifier
             token: Object @109
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @115
             rightParenthesis: ) @116
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
     CommentThenAnnotation
@@ -281,13 +164,11 @@ library
           atSign: @ @212
           name: SimpleIdentifier
             token: Object @213
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @219
             rightParenthesis: ) @220
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
     CommentAroundAnnotation
@@ -298,13 +179,11 @@ library
           atSign: @ @271
           name: SimpleIdentifier
             token: Object @272
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @278
             rightParenthesis: ) @279
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
 ''');
@@ -340,112 +219,6 @@ typedef CommentAroundAnnotation = Function();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        Raw @8
-          reference: <testLibraryFragment>::@typeAlias::Raw
-          codeOffset: 0
-          codeLength: 25
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-        HasDocComment @65
-          reference: <testLibraryFragment>::@typeAlias::HasDocComment
-          documentationComment: /// Comment 1.\n/// Comment 2.
-          codeOffset: 27
-          codeLength: 65
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-        HasAnnotation @112
-          reference: <testLibraryFragment>::@typeAlias::HasAnnotation
-          metadata
-            Annotation
-              atSign: @ @94
-              name: SimpleIdentifier
-                token: Object @95
-                staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::@class::Object
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @101
-                rightParenthesis: ) @102
-              element: dart:core::<fragment>::@class::Object::@constructor::new
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-          codeOffset: 94
-          codeLength: 45
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-        AnnotationThenComment @189
-          reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
-          documentationComment: /// Comment 1.\n/// Comment 2.
-          metadata
-            Annotation
-              atSign: @ @141
-              name: SimpleIdentifier
-                token: Object @142
-                staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::@class::Object
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @148
-                rightParenthesis: ) @149
-              element: dart:core::<fragment>::@class::Object::@constructor::new
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-          codeOffset: 141
-          codeLength: 83
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-        CommentThenAnnotation @274
-          reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
-          documentationComment: /// Comment 1.\n/// Comment 2.
-          metadata
-            Annotation
-              atSign: @ @256
-              name: SimpleIdentifier
-                token: Object @257
-                staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::@class::Object
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @263
-                rightParenthesis: ) @264
-              element: dart:core::<fragment>::@class::Object::@constructor::new
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-          codeOffset: 226
-          codeLength: 83
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-        CommentAroundAnnotation @359
-          reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
-          documentationComment: /// Comment 2.
-          metadata
-            Annotation
-              atSign: @ @326
-              name: SimpleIdentifier
-                token: Object @327
-                staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::@class::Object
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @333
-                rightParenthesis: ) @334
-              element: dart:core::<fragment>::@class::Object::@constructor::new
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-          codeOffset: 326
-          codeLength: 70
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -465,13 +238,11 @@ library
               atSign: @ @94
               name: SimpleIdentifier
                 token: Object @95
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @101
                 rightParenthesis: ) @102
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         AnnotationThenComment @189
           reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
@@ -482,13 +253,11 @@ library
               atSign: @ @141
               name: SimpleIdentifier
                 token: Object @142
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @148
                 rightParenthesis: ) @149
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         CommentThenAnnotation @274
           reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
@@ -499,13 +268,11 @@ library
               atSign: @ @256
               name: SimpleIdentifier
                 token: Object @257
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @263
                 rightParenthesis: ) @264
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         CommentAroundAnnotation @359
           reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
@@ -516,13 +283,11 @@ library
               atSign: @ @326
               name: SimpleIdentifier
                 token: Object @327
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @333
                 rightParenthesis: ) @334
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
   typeAliases
     Raw
@@ -539,13 +304,11 @@ library
           atSign: @ @94
           name: SimpleIdentifier
             token: Object @95
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @101
             rightParenthesis: ) @102
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
     AnnotationThenComment
@@ -556,13 +319,11 @@ library
           atSign: @ @141
           name: SimpleIdentifier
             token: Object @142
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @148
             rightParenthesis: ) @149
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
     CommentThenAnnotation
@@ -573,13 +334,11 @@ library
           atSign: @ @256
           name: SimpleIdentifier
             token: Object @257
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @263
             rightParenthesis: ) @264
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
     CommentAroundAnnotation
@@ -590,13 +349,11 @@ library
           atSign: @ @326
           name: SimpleIdentifier
             token: Object @327
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @333
             rightParenthesis: ) @334
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
 ''');
@@ -609,25 +366,6 @@ typedef void F<T>(int a);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @13
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated T @15
-              defaultType: dynamic
-          aliasedType: void Function(int)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional a @22
-                type: int
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -637,7 +375,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
-              element: <not-implemented>
+              element: T@15
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -655,33 +393,6 @@ void f(F<int> a) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @10
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            covariant T @12
-              defaultType: dynamic
-          aliasedType: T Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: T
-      functions
-        f @23
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @32
-              type: int Function()
-                alias: <testLibraryFragment>::@typeAlias::F
-                  typeArguments
-                    int
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -691,7 +402,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
       functions
         f @23
           reference: <testLibraryFragment>::@function::f
@@ -712,7 +423,7 @@ library
       formalParameters
         requiredPositional a
           type: int Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 int
       returnType: void
@@ -726,25 +437,6 @@ typedef void F<T>(T a);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @13
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            contravariant T @15
-              defaultType: dynamic
-          aliasedType: void Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional a @20
-                type: T
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -754,7 +446,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
-              element: <not-implemented>
+              element: T@15
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -772,36 +464,6 @@ typedef F1<T> F2<T>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F1 @13
-          reference: <testLibraryFragment>::@typeAlias::F1
-          typeParameters
-            contravariant T @16
-              defaultType: dynamic
-          aliasedType: void Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional a @21
-                type: T
-            returnType: void
-        functionTypeAliasBased F2 @39
-          reference: <testLibraryFragment>::@typeAlias::F2
-          typeParameters
-            contravariant T @42
-              defaultType: dynamic
-          aliasedType: void Function(T) Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void Function(T)
-              alias: <testLibraryFragment>::@typeAlias::F1
-                typeArguments
-                  T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -811,13 +473,13 @@ library
           element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @16
-              element: <not-implemented>
+              element: T@16
         F2 @39
           reference: <testLibraryFragment>::@typeAlias::F2
           element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @42
-              element: <not-implemented>
+              element: T@42
   typeAliases
     F1
       firstFragment: <testLibraryFragment>::@typeAlias::F1
@@ -840,36 +502,6 @@ typedef void F1<T>(T a);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F2 @14
-          reference: <testLibraryFragment>::@typeAlias::F2
-          typeParameters
-            contravariant T @17
-              defaultType: dynamic
-          aliasedType: void Function(T) Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void Function(T)
-              alias: <testLibraryFragment>::@typeAlias::F1
-                typeArguments
-                  T
-        functionTypeAliasBased F1 @36
-          reference: <testLibraryFragment>::@typeAlias::F1
-          typeParameters
-            contravariant T @39
-              defaultType: dynamic
-          aliasedType: void Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional a @44
-                type: T
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -879,13 +511,13 @@ library
           element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
         F1 @36
           reference: <testLibraryFragment>::@typeAlias::F1
           element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @39
-              element: <not-implemented>
+              element: T@39
   typeAliases
     F2
       firstFragment: <testLibraryFragment>::@typeAlias::F2
@@ -907,22 +539,6 @@ typedef T F<T>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @10
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            covariant T @12
-              defaultType: dynamic
-          aliasedType: T Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -932,7 +548,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -949,22 +565,6 @@ typedef List<T> F<T>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @16
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            covariant T @18
-              defaultType: dynamic
-          aliasedType: List<T> Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: List<T>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -974,7 +574,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @18
-              element: <not-implemented>
+              element: T@18
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -992,33 +592,6 @@ typedef F1<T> F2<T>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F1 @10
-          reference: <testLibraryFragment>::@typeAlias::F1
-          typeParameters
-            covariant T @13
-              defaultType: dynamic
-          aliasedType: T Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: T
-        functionTypeAliasBased F2 @33
-          reference: <testLibraryFragment>::@typeAlias::F2
-          typeParameters
-            covariant T @36
-              defaultType: dynamic
-          aliasedType: T Function() Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: T Function()
-              alias: <testLibraryFragment>::@typeAlias::F1
-                typeArguments
-                  T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1028,13 +601,13 @@ library
           element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @13
-              element: <not-implemented>
+              element: T@13
         F2 @33
           reference: <testLibraryFragment>::@typeAlias::F2
           element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @36
-              element: <not-implemented>
+              element: T@36
   typeAliases
     F1
       firstFragment: <testLibraryFragment>::@typeAlias::F1
@@ -1057,39 +630,6 @@ typedef void F2<T>(F1<T> a);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F1 @13
-          reference: <testLibraryFragment>::@typeAlias::F1
-          typeParameters
-            contravariant T @16
-              defaultType: dynamic
-          aliasedType: void Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional a @21
-                type: T
-            returnType: void
-        functionTypeAliasBased F2 @38
-          reference: <testLibraryFragment>::@typeAlias::F2
-          typeParameters
-            covariant T @41
-              defaultType: dynamic
-          aliasedType: void Function(void Function(T))
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional a @50
-                type: void Function(T)
-                  alias: <testLibraryFragment>::@typeAlias::F1
-                    typeArguments
-                      T
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1099,13 +639,13 @@ library
           element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @16
-              element: <not-implemented>
+              element: T@16
         F2 @38
           reference: <testLibraryFragment>::@typeAlias::F2
           element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @41
-              element: <not-implemented>
+              element: T@41
   typeAliases
     F1
       firstFragment: <testLibraryFragment>::@typeAlias::F1
@@ -1127,25 +667,6 @@ typedef T F<T>(T a);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @10
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            invariant T @12
-              defaultType: dynamic
-          aliasedType: T Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional a @17
-                type: T
-            returnType: T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1155,7 +676,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1173,36 +694,6 @@ typedef F1<T> F2<T>(T a);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F1 @10
-          reference: <testLibraryFragment>::@typeAlias::F1
-          typeParameters
-            covariant T @13
-              defaultType: dynamic
-          aliasedType: T Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: T
-        functionTypeAliasBased F2 @33
-          reference: <testLibraryFragment>::@typeAlias::F2
-          typeParameters
-            invariant T @36
-              defaultType: dynamic
-          aliasedType: T Function() Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional a @41
-                type: T
-            returnType: T Function()
-              alias: <testLibraryFragment>::@typeAlias::F1
-                typeArguments
-                  T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1212,13 +703,13 @@ library
           element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @13
-              element: <not-implemented>
+              element: T@13
         F2 @33
           reference: <testLibraryFragment>::@typeAlias::F2
           element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @36
-              element: <not-implemented>
+              element: T@36
   typeAliases
     F1
       firstFragment: <testLibraryFragment>::@typeAlias::F1
@@ -1240,25 +731,6 @@ typedef void F<T>(int a);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @13
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated T @15
-              defaultType: dynamic
-          aliasedType: void Function(int)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional a @22
-                type: int
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1268,7 +740,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
-              element: <not-implemented>
+              element: T@15
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1285,27 +757,6 @@ typedef F<T> = void Function<U>(int a);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated T @10
-              defaultType: dynamic
-          aliasedType: void Function<U>(int)
-          aliasedElement: GenericFunctionTypeElement
-            typeParameters
-              covariant U @29
-            parameters
-              requiredPositional a @36
-                type: int
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1315,7 +766,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1332,26 +783,6 @@ typedef F<X extends F> = Function(F);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        notSimplyBounded F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated X @10
-              bound: dynamic
-              defaultType: dynamic
-          aliasedType: dynamic Function(dynamic)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional @-1
-                type: dynamic
-            returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1361,7 +792,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             X @10
-              element: <not-implemented>
+              element: X@10
   typeAliases
     notSimplyBounded F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1378,24 +809,6 @@ typedef F = G Function();
 typedef G = F Function();
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        notSimplyBounded F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-        notSimplyBounded G @34
-          reference: <testLibraryFragment>::@typeAlias::G
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1425,19 +838,6 @@ typedef F = List<F> Function();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        notSimplyBounded F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: List<dynamic> Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: List<dynamic>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1459,23 +859,6 @@ typedef F<T extends F> = void Function();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        notSimplyBounded F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated T @10
-              bound: dynamic
-              defaultType: dynamic
-          aliasedType: void Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1485,7 +868,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     notSimplyBounded F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1503,22 +886,6 @@ typedef F<T> = void Function();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated T @10
-              defaultType: dynamic
-          aliasedType: void Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1528,7 +895,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1543,19 +910,6 @@ library
 typedef F = void Function();
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: void Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1579,21 +933,6 @@ typedef F<T extends F> = List<int>;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        notSimplyBounded F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated T @10
-              bound: dynamic
-              defaultType: dynamic
-          aliasedType: List<int>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1603,7 +942,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     notSimplyBounded F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1619,17 +958,6 @@ library
 typedef F = List<F>;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        notSimplyBounded F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: List<dynamic>
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1654,37 +982,6 @@ void f(A a) {}
 ''');
     configuration.withFunctionTypeParameters = true;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          aliasedType: void Function({int p})
-            parameters
-              optionalNamed p @-1
-                type: int
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              optionalNamed p @31
-                type: int
-            returnType: void
-      functions
-        f @42
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @46
-              type: void Function({int p})
-                alias: <testLibraryFragment>::@typeAlias::A
-                parameters
-                  optionalNamed p @-1
-                    type: int
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1712,7 +1009,7 @@ library
       formalParameters
         requiredPositional a
           type: void Function({int p})
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
       returnType: void
 ''');
   }
@@ -1722,28 +1019,6 @@ library
 typedef void F(T a<T, U>(U u));
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @13
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: void Function(T Function<T, U>(U))
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional a @17
-                type: T Function<T, U>(U)
-                typeParameters
-                  covariant T @19
-                  covariant U @22
-                parameters
-                  requiredPositional u @27
-                    type: U
-            returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1767,25 +1042,6 @@ typedef F<T> = void Function(T);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            contravariant T @10
-              defaultType: dynamic
-          aliasedType: void Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional @-1
-                type: T
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1795,7 +1051,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1813,36 +1069,6 @@ typedef F2<T> = F1<T> Function();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F1 @8
-          reference: <testLibraryFragment>::@typeAlias::F1
-          typeParameters
-            contravariant T @11
-              defaultType: dynamic
-          aliasedType: void Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional @-1
-                type: T
-            returnType: void
-        F2 @42
-          reference: <testLibraryFragment>::@typeAlias::F2
-          typeParameters
-            contravariant T @45
-              defaultType: dynamic
-          aliasedType: void Function(T) Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void Function(T)
-              alias: <testLibraryFragment>::@typeAlias::F1
-                typeArguments
-                  T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1852,13 +1078,13 @@ library
           element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @11
-              element: <not-implemented>
+              element: T@11
         F2 @42
           reference: <testLibraryFragment>::@typeAlias::F2
           element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @45
-              element: <not-implemented>
+              element: T@45
   typeAliases
     F1
       firstFragment: <testLibraryFragment>::@typeAlias::F1
@@ -1880,22 +1106,6 @@ typedef F<T> = T Function();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: T Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1905,7 +1115,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1922,22 +1132,6 @@ typedef F<T> = List<T> Function();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: List<T> Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: List<T>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1947,7 +1141,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1965,33 +1159,6 @@ typedef F2<T> = F1<T> Function();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F1 @8
-          reference: <testLibraryFragment>::@typeAlias::F1
-          typeParameters
-            covariant T @11
-              defaultType: dynamic
-          aliasedType: T Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: T
-        F2 @38
-          reference: <testLibraryFragment>::@typeAlias::F2
-          typeParameters
-            covariant T @41
-              defaultType: dynamic
-          aliasedType: T Function() Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: T Function()
-              alias: <testLibraryFragment>::@typeAlias::F1
-                typeArguments
-                  T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2001,13 +1168,13 @@ library
           element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @11
-              element: <not-implemented>
+              element: T@11
         F2 @38
           reference: <testLibraryFragment>::@typeAlias::F2
           element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @41
-              element: <not-implemented>
+              element: T@41
   typeAliases
     F1
       firstFragment: <testLibraryFragment>::@typeAlias::F1
@@ -2030,39 +1197,6 @@ typedef F2<T> = void Function(F1<T>);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F1 @8
-          reference: <testLibraryFragment>::@typeAlias::F1
-          typeParameters
-            contravariant T @11
-              defaultType: dynamic
-          aliasedType: void Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional @-1
-                type: T
-            returnType: void
-        F2 @42
-          reference: <testLibraryFragment>::@typeAlias::F2
-          typeParameters
-            covariant T @45
-              defaultType: dynamic
-          aliasedType: void Function(void Function(T))
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional @-1
-                type: void Function(T)
-                  alias: <testLibraryFragment>::@typeAlias::F1
-                    typeArguments
-                      T
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2072,13 +1206,13 @@ library
           element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @11
-              element: <not-implemented>
+              element: T@11
         F2 @42
           reference: <testLibraryFragment>::@typeAlias::F2
           element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @45
-              element: <not-implemented>
+              element: T@45
   typeAliases
     F1
       firstFragment: <testLibraryFragment>::@typeAlias::F1
@@ -2101,33 +1235,6 @@ typedef F<T> = void Function(A<int>);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      typeAliases
-        F @19
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated T @21
-              defaultType: dynamic
-          aliasedType: void Function(A)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional @-1
-                type: A
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2146,7 +1253,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @21
-              element: <not-implemented>
+              element: T@21
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2171,31 +1278,6 @@ typedef G<T> = void Function(F<int>);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: void Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void
-        G @37
-          reference: <testLibraryFragment>::@typeAlias::G
-          typeParameters
-            unrelated T @39
-              defaultType: dynamic
-          aliasedType: void Function(void Function())
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional @-1
-                type: void Function()
-                  alias: <testLibraryFragment>::@typeAlias::F
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2208,7 +1290,7 @@ library
           element: <testLibrary>::@typeAlias::G
           typeParameters
             T @39
-              element: <not-implemented>
+              element: T@39
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -2228,25 +1310,6 @@ typedef F<T> = T Function(T);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            invariant T @10
-              defaultType: dynamic
-          aliasedType: T Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional @-1
-                type: T
-            returnType: T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2256,7 +1319,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -2274,36 +1337,6 @@ typedef F2<T> = F1<T> Function(T);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F1 @8
-          reference: <testLibraryFragment>::@typeAlias::F1
-          typeParameters
-            covariant T @11
-              defaultType: dynamic
-          aliasedType: T Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: T
-        F2 @38
-          reference: <testLibraryFragment>::@typeAlias::F2
-          typeParameters
-            invariant T @41
-              defaultType: dynamic
-          aliasedType: T Function() Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional @-1
-                type: T
-            returnType: T Function()
-              alias: <testLibraryFragment>::@typeAlias::F1
-                typeArguments
-                  T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2313,13 +1346,13 @@ library
           element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @11
-              element: <not-implemented>
+              element: T@11
         F2 @38
           reference: <testLibraryFragment>::@typeAlias::F2
           element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @41
-              element: <not-implemented>
+              element: T@41
   typeAliases
     F1
       firstFragment: <testLibraryFragment>::@typeAlias::F1
@@ -2341,25 +1374,6 @@ typedef F<T> = void Function(int);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated T @10
-              defaultType: dynamic
-          aliasedType: void Function(int)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional @-1
-                type: int
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2369,7 +1383,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -2386,20 +1400,6 @@ typedef A<T> = List<void Function(T)>;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            contravariant T @10
-              defaultType: dynamic
-          aliasedType: List<void Function(T)>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2409,7 +1409,7 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     A
       firstFragment: <testLibraryFragment>::@typeAlias::A
@@ -2427,31 +1427,6 @@ typedef B<T> = List<A<T>>;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            contravariant T @10
-              defaultType: dynamic
-          aliasedType: void Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional @-1
-                type: T
-            returnType: void
-        B @41
-          reference: <testLibraryFragment>::@typeAlias::B
-          typeParameters
-            contravariant T @43
-              defaultType: dynamic
-          aliasedType: List<void Function(T)>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2461,13 +1436,13 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
         B @41
           reference: <testLibraryFragment>::@typeAlias::B
           element: <testLibrary>::@typeAlias::B
           typeParameters
             T @43
-              element: <not-implemented>
+              element: T@43
   typeAliases
     A
       firstFragment: <testLibraryFragment>::@typeAlias::A
@@ -2489,20 +1464,6 @@ typedef A<T> = List<T>;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: List<T>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2512,7 +1473,7 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     A
       firstFragment: <testLibraryFragment>::@typeAlias::A
@@ -2530,26 +1491,6 @@ typedef B<T> = List<A<T>>;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: Map<int, T>
-        B @36
-          reference: <testLibraryFragment>::@typeAlias::B
-          typeParameters
-            covariant T @38
-              defaultType: dynamic
-          aliasedType: List<Map<int, T>>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2559,13 +1500,13 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
         B @36
           reference: <testLibraryFragment>::@typeAlias::B
           element: <testLibrary>::@typeAlias::B
           typeParameters
             T @38
-              element: <not-implemented>
+              element: T@38
   typeAliases
     A
       firstFragment: <testLibraryFragment>::@typeAlias::A
@@ -2587,20 +1528,6 @@ typedef A<T> = (void Function(T), int);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            contravariant T @10
-              defaultType: dynamic
-          aliasedType: (void Function(T), int)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2610,7 +1537,7 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     A
       firstFragment: <testLibraryFragment>::@typeAlias::A
@@ -2628,26 +1555,6 @@ typedef B<T> = List<A<T>>;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            contravariant T @10
-              defaultType: dynamic
-          aliasedType: (void Function(T), int)
-        B @48
-          reference: <testLibraryFragment>::@typeAlias::B
-          typeParameters
-            contravariant T @50
-              defaultType: dynamic
-          aliasedType: List<(void Function(T), int)>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2657,13 +1564,13 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
         B @48
           reference: <testLibraryFragment>::@typeAlias::B
           element: <testLibrary>::@typeAlias::B
           typeParameters
             T @50
-              element: <not-implemented>
+              element: T@50
   typeAliases
     A
       firstFragment: <testLibraryFragment>::@typeAlias::A
@@ -2685,20 +1592,6 @@ typedef A<T> = (T, int);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: (T, int)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2708,7 +1601,7 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     A
       firstFragment: <testLibraryFragment>::@typeAlias::A
@@ -2725,20 +1618,6 @@ typedef A<T> = (T Function(T), int);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            invariant T @10
-              defaultType: dynamic
-          aliasedType: (T Function(T), int)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2748,7 +1627,7 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     A
       firstFragment: <testLibraryFragment>::@typeAlias::A
@@ -2765,20 +1644,6 @@ typedef A<T> = (int, String);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            unrelated T @10
-              defaultType: dynamic
-          aliasedType: (int, String)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2788,7 +1653,7 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     A
       firstFragment: <testLibraryFragment>::@typeAlias::A
@@ -2804,31 +1669,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            contravariant T @10
-              defaultType: dynamic
-          aliasedType: int Function<S>(List<S>, num Function<A>(A), T)
-          aliasedElement: GenericFunctionTypeElement
-            typeParameters
-              covariant S @28
-            parameters
-              requiredPositional list @39
-                type: List<S>
-              requiredPositional @-1
-                type: num Function<A>(A)
-              requiredPositional @-1
-                type: T
-            returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2838,7 +1678,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -2856,61 +1696,6 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @43
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            f @58
-              reference: <testLibraryFragment>::@class::A::@field::f
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int Function<T>(T)
-                alias: <testLibraryFragment>::@typeAlias::Foo
-                  typeArguments
-                    int
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get f @-1
-              reference: <testLibraryFragment>::@class::A::@getter::f
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int Function<T>(T)
-                alias: <testLibraryFragment>::@typeAlias::Foo
-                  typeArguments
-                    int
-            synthetic set f= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::f
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _f @-1
-                  type: int Function<T>(T)
-                    alias: <testLibraryFragment>::@typeAlias::Foo
-                      typeArguments
-                        int
-              returnType: void
-      typeAliases
-        Foo @8
-          reference: <testLibraryFragment>::@typeAlias::Foo
-          typeParameters
-            covariant S @12
-              defaultType: dynamic
-          aliasedType: S Function<T>(T)
-          aliasedElement: GenericFunctionTypeElement
-            typeParameters
-              covariant T @28
-            parameters
-              requiredPositional x @33
-                type: T
-            returnType: S
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2940,7 +1725,7 @@ library
               reference: <testLibraryFragment>::@class::A::@setter::f
               element: <testLibraryFragment>::@class::A::@setter::f#element
               formalParameters
-                <null-name>
+                _f
                   element: <testLibraryFragment>::@class::A::@setter::f::@parameter::_f#element
       typeAliases
         Foo @8
@@ -2948,7 +1733,7 @@ library
           element: <testLibrary>::@typeAlias::Foo
           typeParameters
             S @12
-              element: <not-implemented>
+              element: S@12
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2957,7 +1742,7 @@ library
         f
           firstFragment: <testLibraryFragment>::@class::A::@field::f
           type: int Function<T>(T)
-            alias: <testLibraryFragment>::@typeAlias::Foo
+            alias: <testLibrary>::@typeAlias::Foo
               typeArguments
                 int
           getter: <testLibraryFragment>::@class::A::@getter::f#element
@@ -2974,7 +1759,7 @@ library
           formalParameters
             requiredPositional _f
               type: int Function<T>(T)
-                alias: <testLibraryFragment>::@typeAlias::Foo
+                alias: <testLibrary>::@typeAlias::Foo
                   typeArguments
                     int
   typeAliases
@@ -2996,34 +1781,6 @@ class C<T extends C<T>> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        notSimplyBounded class C @38
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @40
-              bound: C<T>
-              defaultType: C<dynamic>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      typeAliases
-        notSimplyBounded F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: void Function(C<C<dynamic>>)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional c @28
-                type: C<C<dynamic>>
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3033,7 +1790,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @40
-              element: <not-implemented>
+              element: T@40
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -3044,7 +1801,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::F
           element: <testLibrary>::@typeAlias::F
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -3070,34 +1827,6 @@ class C<T extends C<T>> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        notSimplyBounded class C @36
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @38
-              bound: C<T>
-              defaultType: C<dynamic>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      typeAliases
-        notSimplyBounded F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: void Function(C<C<dynamic>>)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional @-1
-                type: C<C<dynamic>>
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3107,7 +1836,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @38
-              element: <not-implemented>
+              element: T@38
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -3118,7 +1847,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::F
           element: <testLibrary>::@typeAlias::F
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -3144,31 +1873,6 @@ class C<T extends C<T>> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        notSimplyBounded class C @32
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @34
-              bound: C<T>
-              defaultType: C<dynamic>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      typeAliases
-        notSimplyBounded F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: C<C<dynamic>> Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: C<C<dynamic>>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3178,7 +1882,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @34
-              element: <not-implemented>
+              element: T@34
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -3189,7 +1893,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::F
           element: <testLibrary>::@typeAlias::F
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -3211,28 +1915,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        notSimplyBounded F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            contravariant T @10
-              bound: U
-              defaultType: Never
-            covariant U @23
-              defaultType: dynamic
-          aliasedType: U Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional t @41
-                type: T
-            returnType: U
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3242,9 +1924,9 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
             U @23
-              element: <not-implemented>
+              element: U@23
   typeAliases
     notSimplyBounded F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3264,20 +1946,6 @@ library
  */
 typedef F();''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @68
-          reference: <testLibraryFragment>::@typeAlias::F
-          documentationComment: /**\n * Docs\n */
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3306,34 +1974,6 @@ class C<T extends C<T>> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        notSimplyBounded class C @27
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @29
-              bound: C<T>
-              defaultType: C<dynamic>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      typeAliases
-        functionTypeAliasBased notSimplyBounded F @13
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: void Function(C<C<dynamic>>)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional c @17
-                type: C<C<dynamic>>
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3343,7 +1983,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @29
-              element: <not-implemented>
+              element: T@29
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -3354,7 +1994,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::F
           element: <testLibrary>::@typeAlias::F
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -3380,31 +2020,6 @@ class C<T extends C<T>> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        notSimplyBounded class C @21
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @23
-              bound: C<T>
-              defaultType: C<dynamic>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      typeAliases
-        functionTypeAliasBased notSimplyBounded F @10
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: C<C<dynamic>> Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: C<C<dynamic>>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3414,7 +2029,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @23
-              element: <not-implemented>
+              element: T@23
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -3425,7 +2040,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::F
           element: <testLibrary>::@typeAlias::F
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -3448,23 +2063,6 @@ typedef void F<T extends F>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased notSimplyBounded F @13
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated T @15
-              bound: dynamic
-              defaultType: dynamic
-          aliasedType: void Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3474,7 +2072,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
-              element: <not-implemented>
+              element: T@15
   typeAliases
     notSimplyBounded F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3490,19 +2088,6 @@ library
 typedef void F();
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @13
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: void Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3524,22 +2109,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @13
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated T @15
-              defaultType: dynamic
-          aliasedType: void Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3549,7 +2118,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
-              element: <not-implemented>
+              element: T@15
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3564,28 +2133,6 @@ library
 typedef void F(int a, b, [int c, d]);
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @13
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: void Function(int, dynamic, [int, dynamic])
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional a @19
-                type: int
-              requiredPositional hasImplicitType b @22
-                type: dynamic
-              optionalPositional c @30
-                type: int
-              optionalPositional hasImplicitType d @33
-                type: dynamic
-            returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3607,27 +2154,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: dynamic Function(dynamic Function(dynamic, dynamic))
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional g @10
-                type: dynamic Function(dynamic, dynamic)
-                parameters
-                  requiredPositional hasImplicitType x @12
-                    type: dynamic
-                  requiredPositional hasImplicitType y @15
-                    type: dynamic
-            returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3647,30 +2173,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            contravariant A @10
-              defaultType: dynamic
-            covariant B @13
-              defaultType: dynamic
-          aliasedType: dynamic Function(A Function(B))
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional g @18
-                type: A Function(B)
-                parameters
-                  requiredPositional x @22
-                    type: B
-            returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3680,9 +2182,9 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             A @10
-              element: <not-implemented>
+              element: A@10
             B @13
-              element: <not-implemented>
+              element: B@13
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3696,22 +2198,6 @@ library
   test_typedef_legacy_parameter_return_type() async {
     var library = await buildLibrary('typedef F(int g());');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: dynamic Function(int Function())
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional g @14
-                type: int Function()
-            returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3733,22 +2219,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: dynamic Function(int)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional i @14
-                type: int
-            returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3768,25 +2238,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            contravariant T @10
-              defaultType: dynamic
-          aliasedType: dynamic Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional t @15
-                type: T
-            returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3796,7 +2247,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3809,24 +2260,6 @@ library
   test_typedef_legacy_parameters() async {
     var library = await buildLibrary('typedef F(x, y);');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: dynamic Function(dynamic, dynamic)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional hasImplicitType x @10
-                type: dynamic
-              requiredPositional hasImplicitType y @13
-                type: dynamic
-            returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3848,26 +2281,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: dynamic Function({dynamic x, dynamic y, dynamic z})
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              optionalNamed hasImplicitType y @11
-                type: dynamic
-              optionalNamed hasImplicitType z @14
-                type: dynamic
-              optionalNamed hasImplicitType x @17
-                type: dynamic
-            returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3885,19 +2298,6 @@ library
   test_typedef_legacy_return_type() async {
     var library = await buildLibrary('typedef int F();');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @12
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: int Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3919,22 +2319,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @10
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            covariant T @12
-              defaultType: dynamic
-          aliasedType: T Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3944,7 +2328,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3957,19 +2341,6 @@ library
   test_typedef_legacy_return_type_implicit() async {
     var library = await buildLibrary('typedef F();');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3991,19 +2362,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @13
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: void Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4023,27 +2381,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @10
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            contravariant T @12
-              defaultType: dynamic
-            covariant U @15
-              defaultType: dynamic
-          aliasedType: U Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional t @20
-                type: T
-            returnType: U
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4053,9 +2390,9 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
             U @15
-              element: <not-implemented>
+              element: U@15
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -4070,37 +2407,6 @@ library
     var library = await buildLibrary(
         'typedef U F<T extends Object, U extends D>(T t); class D {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class D @55
-          reference: <testLibraryFragment>::@class::D
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::D
-      typeAliases
-        functionTypeAliasBased F @10
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            contravariant T @12
-              bound: Object
-              defaultType: Object
-            covariant U @30
-              bound: D
-              defaultType: D
-          aliasedType: U Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional t @45
-                type: T
-            returnType: U
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -4121,9 +2427,9 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
             U @30
-              element: <not-implemented>
+              element: U@30
   classes
     class D
       reference: <testLibrary>::@class::D
@@ -4149,23 +2455,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased notSimplyBounded F @13
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated T @15
-              bound: dynamic
-              defaultType: dynamic
-          aliasedType: void Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4175,7 +2464,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
-              element: <not-implemented>
+              element: T@15
   typeAliases
     notSimplyBounded F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -4192,23 +2481,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased notSimplyBounded F @13
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated T @15
-              bound: List<dynamic>
-              defaultType: dynamic
-          aliasedType: void Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4218,7 +2490,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
-              element: <not-implemented>
+              element: T@15
   typeAliases
     notSimplyBounded F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -4234,28 +2506,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased notSimplyBounded F @10
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            contravariant T @12
-              bound: List<U>
-              defaultType: List<Never>
-            covariant U @31
-              defaultType: dynamic
-          aliasedType: U Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional t @36
-                type: T
-            returnType: U
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4265,9 +2515,9 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
             U @31
-              element: <not-implemented>
+              element: U@31
   typeAliases
     notSimplyBounded F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -4284,28 +2534,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased notSimplyBounded F @10
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            contravariant T @12
-              bound: U
-              defaultType: Never
-            covariant U @25
-              defaultType: dynamic
-          aliasedType: U Function(T)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional t @30
-                type: T
-            returnType: U
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4315,9 +2543,9 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
             U @25
-              element: <not-implemented>
+              element: U@25
   typeAliases
     notSimplyBounded F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -4356,46 +2584,6 @@ void f2(A2<int> a) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A1 @8
-          reference: <testLibraryFragment>::@typeAlias::A1
-          aliasedType: void Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void
-        A2 @38
-          reference: <testLibraryFragment>::@typeAlias::A2
-          typeParameters
-            covariant R @41
-              defaultType: dynamic
-          aliasedType: R Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: R
-      functions
-        f1 @65
-          reference: <testLibraryFragment>::@function::f1
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @71
-              type: void Function()
-                alias: <testLibraryFragment>::@typeAlias::A1
-          returnType: void
-        f2 @82
-          reference: <testLibraryFragment>::@function::f2
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @93
-              type: int Function()
-                alias: <testLibraryFragment>::@typeAlias::A2
-                  typeArguments
-                    int
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4408,7 +2596,7 @@ library
           element: <testLibrary>::@typeAlias::A2
           typeParameters
             R @41
-              element: <not-implemented>
+              element: R@41
       functions
         f1 @65
           reference: <testLibraryFragment>::@function::f1
@@ -4438,7 +2626,7 @@ library
       formalParameters
         requiredPositional a
           type: void Function()
-            alias: <testLibraryFragment>::@typeAlias::A1
+            alias: <testLibrary>::@typeAlias::A1
       returnType: void
     f2
       reference: <testLibrary>::@function::f2
@@ -4446,7 +2634,7 @@ library
       formalParameters
         requiredPositional a
           type: int Function()
-            alias: <testLibraryFragment>::@typeAlias::A2
+            alias: <testLibrary>::@typeAlias::A2
               typeArguments
                 int
       returnType: void
@@ -4464,45 +2652,6 @@ void f2(A2<int, String> a) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A1 @8
-          reference: <testLibraryFragment>::@typeAlias::A1
-          aliasedType: List<int>
-        A2 @32
-          reference: <testLibraryFragment>::@typeAlias::A2
-          typeParameters
-            covariant T @35
-              defaultType: dynamic
-            covariant U @38
-              defaultType: dynamic
-          aliasedType: Map<T, U>
-      functions
-        f1 @59
-          reference: <testLibraryFragment>::@function::f1
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @65
-              type: List<int>
-                alias: <testLibraryFragment>::@typeAlias::A1
-          returnType: void
-        f2 @76
-          reference: <testLibraryFragment>::@function::f2
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @95
-              type: Map<int, String>
-                alias: <testLibraryFragment>::@typeAlias::A2
-                  typeArguments
-                    int
-                    String
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4515,9 +2664,9 @@ library
           element: <testLibrary>::@typeAlias::A2
           typeParameters
             T @35
-              element: <not-implemented>
+              element: T@35
             U @38
-              element: <not-implemented>
+              element: U@38
       functions
         f1 @59
           reference: <testLibraryFragment>::@function::f1
@@ -4548,7 +2697,7 @@ library
       formalParameters
         requiredPositional a
           type: List<int>
-            alias: <testLibraryFragment>::@typeAlias::A1
+            alias: <testLibrary>::@typeAlias::A1
       returnType: void
     f2
       reference: <testLibrary>::@function::f2
@@ -4556,7 +2705,7 @@ library
       formalParameters
         requiredPositional a
           type: Map<int, String>
-            alias: <testLibraryFragment>::@typeAlias::A2
+            alias: <testLibrary>::@typeAlias::A2
               typeArguments
                 int
                 String
@@ -4593,34 +2742,6 @@ void f(A<int, String> a) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-            covariant U @13
-              defaultType: dynamic
-          aliasedType: (T, U)
-      functions
-        f @31
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @48
-              type: (int, String)
-                alias: <testLibraryFragment>::@typeAlias::A
-                  typeArguments
-                    int
-                    String
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4630,9 +2751,9 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
             U @13
-              element: <not-implemented>
+              element: U@13
       functions
         f @31
           reference: <testLibraryFragment>::@function::f
@@ -4654,7 +2775,7 @@ library
       formalParameters
         requiredPositional a
           type: (int, String)
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
               typeArguments
                 int
                 String
@@ -4671,34 +2792,6 @@ void f<U>(A<U> a) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: T
-      functions
-        f @23
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant U @25
-              defaultType: dynamic
-          parameters
-            requiredPositional a @33
-              type: U
-                alias: <testLibraryFragment>::@typeAlias::A
-                  typeArguments
-                    U
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4708,14 +2801,14 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
       functions
         f @23
           reference: <testLibraryFragment>::@function::f
           element: <testLibrary>::@function::f
           typeParameters
             U @25
-              element: <not-implemented>
+              element: U@25
           formalParameters
             a @33
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -4734,7 +2827,7 @@ library
       formalParameters
         requiredPositional a
           type: U
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
               typeArguments
                 U
       returnType: void
@@ -4766,45 +2859,6 @@ class B implements X<String> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @32
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @34
-              defaultType: dynamic
-            covariant U @37
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @49
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          interfaces
-            A<int, String>
-              alias: <testLibraryFragment>::@typeAlias::X
-                typeArguments
-                  String
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: A<int, T>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4814,9 +2868,9 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @34
-              element: <not-implemented>
+              element: T@34
             U @37
-              element: <not-implemented>
+              element: U@37
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -4836,7 +2890,7 @@ library
           element: <testLibrary>::@typeAlias::X
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -4852,7 +2906,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       interfaces
         A<int, String>
-          alias: <testLibraryFragment>::@typeAlias::X
+          alias: <testLibrary>::@typeAlias::X
             typeArguments
               String
       constructors
@@ -4878,55 +2932,6 @@ class D implements B, X<int>, C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @28
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @30
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @42
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-        class C @53
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-        class D @64
-          reference: <testLibraryFragment>::@class::D
-          enclosingElement3: <testLibraryFragment>
-          interfaces
-            B
-            C
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::D
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: A<T>?
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4936,7 +2941,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @30
-              element: <not-implemented>
+              element: T@30
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -4972,7 +2977,7 @@ library
           element: <testLibrary>::@typeAlias::X
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -5023,59 +3028,6 @@ class D implements B, X<int>, C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @28
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @30
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @42
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-        class C @53
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-        class D @64
-          reference: <testLibraryFragment>::@class::D
-          enclosingElement3: <testLibraryFragment>
-          interfaces
-            B
-            A<int?>
-              alias: <testLibraryFragment>::@typeAlias::X
-                typeArguments
-                  int
-            C
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::D
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: A<T?>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5085,7 +3037,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @30
-              element: <not-implemented>
+              element: T@30
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -5121,7 +3073,7 @@ library
           element: <testLibrary>::@typeAlias::X
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -5149,7 +3101,7 @@ library
       interfaces
         B
         A<int?>
-          alias: <testLibraryFragment>::@typeAlias::X
+          alias: <testLibrary>::@typeAlias::X
             typeArguments
               int
         C
@@ -5171,25 +3123,6 @@ typedef X = Never;
 class A implements X {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @25
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          aliasedType: Never
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -5228,25 +3161,6 @@ typedef X = Null;
 class A implements X {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          aliasedType: Null
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -5289,48 +3203,6 @@ class C<U> implements A, X<U>, B {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @35
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-        class C @46
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant U @48
-              defaultType: dynamic
-          interfaces
-            A
-            B
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5356,7 +3228,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             U @48
-              element: <not-implemented>
+              element: U@48
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -5368,7 +3240,7 @@ library
           element: <testLibrary>::@typeAlias::X
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -5410,42 +3282,6 @@ class B {}
 class C implements A, X, B {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @35
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-        class C @46
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          interfaces
-            A
-            B
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          aliasedType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -5518,39 +3354,6 @@ class B with X {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @26
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @28
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @40
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: Object
-          mixins
-            A<int>
-              alias: <testLibraryFragment>::@typeAlias::X
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          aliasedType: A<int>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5560,7 +3363,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @28
-              element: <not-implemented>
+              element: T@28
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -5593,7 +3396,7 @@ library
       supertype: Object
       mixins
         A<int>
-          alias: <testLibraryFragment>::@typeAlias::X
+          alias: <testLibrary>::@typeAlias::X
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -5615,50 +3418,6 @@ class B with M1, X, M2 {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @27
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @29
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @65
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: Object
-          mixins
-            M1
-            M2
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-      mixins
-        mixin M1 @41
-          reference: <testLibraryFragment>::@mixin::M1
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-        mixin M2 @53
-          reference: <testLibraryFragment>::@mixin::M2
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          aliasedType: A<int>?
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5668,7 +3427,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @29
-              element: <not-implemented>
+              element: T@29
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -5741,52 +3500,6 @@ class B with M1, X, M2 {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @27
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @29
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @65
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: Object
-          mixins
-            M1
-            A<int?>
-              alias: <testLibraryFragment>::@typeAlias::X
-            M2
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-      mixins
-        mixin M1 @41
-          reference: <testLibraryFragment>::@mixin::M1
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-        mixin M2 @53
-          reference: <testLibraryFragment>::@mixin::M2
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          aliasedType: A<int?>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5796,7 +3509,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @29
-              element: <not-implemented>
+              element: T@29
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -5837,7 +3550,7 @@ library
       mixins
         M1
         A<int?>
-          alias: <testLibraryFragment>::@typeAlias::X
+          alias: <testLibrary>::@typeAlias::X
         M2
       constructors
         synthetic new
@@ -5866,25 +3579,6 @@ typedef X = Never;
 class A extends X {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @25
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          aliasedType: Never
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -5926,40 +3620,6 @@ class B extends X {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @26
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @28
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @40
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: A<int>
-            alias: <testLibraryFragment>::@typeAlias::X
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          aliasedType: A<int>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5969,7 +3629,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @28
-              element: <not-implemented>
+              element: T@28
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -5983,9 +3643,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
@@ -6003,7 +3660,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<int>
-        alias: <testLibraryFragment>::@typeAlias::X
+        alias: <testLibrary>::@typeAlias::X
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -6024,45 +3681,6 @@ class B extends X<A<int>> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @26
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @38
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: A<int>
-            alias: <testLibraryFragment>::@typeAlias::X
-              typeArguments
-                A<int>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6072,7 +3690,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @26
-              element: <not-implemented>
+              element: T@26
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -6086,16 +3704,13 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           element: <testLibrary>::@typeAlias::X
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -6109,7 +3724,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<int>
-        alias: <testLibraryFragment>::@typeAlias::X
+        alias: <testLibrary>::@typeAlias::X
           typeArguments
             A<int>
       constructors
@@ -6131,25 +3746,6 @@ typedef X = Null;
 class A extends X {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          aliasedType: Null
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -6191,35 +3787,6 @@ class D extends X {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @27
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @29
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class D @41
-          reference: <testLibraryFragment>::@class::D
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::D
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          aliasedType: A<int>?
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6229,7 +3796,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @29
-              element: <not-implemented>
+              element: T@29
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -6278,40 +3845,6 @@ class D extends X {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @27
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @29
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class D @41
-          reference: <testLibraryFragment>::@class::D
-          enclosingElement3: <testLibraryFragment>
-          supertype: A<int?>
-            alias: <testLibraryFragment>::@typeAlias::X
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::D
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int?}
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          aliasedType: A<int?>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6321,7 +3854,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @29
-              element: <not-implemented>
+              element: T@29
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -6335,9 +3868,6 @@ library
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               typeName: D
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int?}
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
@@ -6355,7 +3885,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       supertype: A<int?>
-        alias: <testLibraryFragment>::@typeAlias::X
+        alias: <testLibrary>::@typeAlias::X
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
@@ -6373,25 +3903,6 @@ typedef X = Never;
 class A extends X {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @25
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          aliasedType: Never
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -6432,25 +3943,6 @@ class A extends X {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
-          aliasedType: Null
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6488,17 +3980,6 @@ typedef = int;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        @8
-          reference: <testLibraryFragment>::@typeAlias::0
-          aliasedType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6519,25 +4000,6 @@ typedef A = dynamic;
 void f(A a) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          aliasedType: dynamic
-      functions
-        f @26
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @30
-              type: dynamic
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -6579,26 +4041,6 @@ void f(A a) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @24
-          reference: <testLibraryFragment>::@typeAlias::A
-          aliasedType: dynamic Function()
-      functions
-        f @38
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @42
-              type: dynamic Function()
-                alias: <testLibraryFragment>::@typeAlias::A
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6624,7 +4066,7 @@ library
       formalParameters
         requiredPositional a
           type: dynamic Function()
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
       returnType: void
 ''');
   }
@@ -6635,26 +4077,6 @@ typedef A = int;
 void f(A a) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          aliasedType: int
-      functions
-        f @22
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @26
-              type: int
-                alias: <testLibraryFragment>::@typeAlias::A
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -6682,7 +4104,7 @@ library
       formalParameters
         requiredPositional a
           type: int
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
       returnType: void
 ''');
   }
@@ -6693,26 +4115,6 @@ typedef A = int?;
 void f(A a) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          aliasedType: int?
-      functions
-        f @23
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @27
-              type: int?
-                alias: <testLibraryFragment>::@typeAlias::A
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -6740,7 +4142,7 @@ library
       formalParameters
         requiredPositional a
           type: int?
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
       returnType: void
 ''');
   }
@@ -6753,31 +4155,6 @@ void f(A<String> a) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: Map<int, T>
-      functions
-        f @33
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @45
-              type: Map<int, String>
-                alias: <testLibraryFragment>::@typeAlias::A
-                  typeArguments
-                    String
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6787,7 +4164,7 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
       functions
         f @33
           reference: <testLibraryFragment>::@function::f
@@ -6808,7 +4185,7 @@ library
       formalParameters
         requiredPositional a
           type: Map<int, String>
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
               typeArguments
                 String
       returnType: void
@@ -6821,25 +4198,6 @@ typedef A = Never;
 void f(A a) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          aliasedType: Never
-      functions
-        f @24
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @28
-              type: Never
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -6877,25 +4235,6 @@ typedef A = Never?;
 void f(A a) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          aliasedType: Never?
-      functions
-        f @25
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @29
-              type: Never?
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -6936,38 +4275,6 @@ void f2(A<int> a) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: T
-      functions
-        f1 @23
-          reference: <testLibraryFragment>::@function::f1
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @28
-              type: dynamic
-          returnType: void
-        f2 @39
-          reference: <testLibraryFragment>::@function::f2
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @49
-              type: int
-                alias: <testLibraryFragment>::@typeAlias::A
-                  typeArguments
-                    int
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6977,7 +4284,7 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
       functions
         f1 @23
           reference: <testLibraryFragment>::@function::f1
@@ -7011,7 +4318,7 @@ library
       formalParameters
         requiredPositional a
           type: int
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
               typeArguments
                 int
       returnType: void
@@ -7027,38 +4334,6 @@ void f2(A<int> a) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          typeParameters
-            covariant T @10
-              defaultType: dynamic
-          aliasedType: T?
-      functions
-        f1 @24
-          reference: <testLibraryFragment>::@function::f1
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @29
-              type: dynamic
-          returnType: void
-        f2 @40
-          reference: <testLibraryFragment>::@function::f2
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @50
-              type: int?
-                alias: <testLibraryFragment>::@typeAlias::A
-                  typeArguments
-                    int
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7068,7 +4343,7 @@ library
           element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
       functions
         f1 @24
           reference: <testLibraryFragment>::@function::f1
@@ -7102,7 +4377,7 @@ library
       formalParameters
         requiredPositional a
           type: int?
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
               typeArguments
                 int
       returnType: void
@@ -7115,25 +4390,6 @@ typedef A = void;
 void f(A a) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          aliasedType: void
-      functions
-        f @23
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @27
-              type: void
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -7173,19 +4429,6 @@ typedef F = (F, int) Function();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        notSimplyBounded F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: (dynamic, int) Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: (dynamic, int)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7203,22 +4446,6 @@ library
   test_typedefs() async {
     var library = await buildLibrary('f() {} g() {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        g @7
-          reference: <testLibraryFragment>::@function::g
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -7632,7 +4859,7 @@ library
     <testLibrary>::@fragment::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       typeAliases
-        augment A @37
+        augment notSimplyBounded A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
           aliasedType: int
           augmentationTarget: <testLibraryFragment>::@typeAlias::A

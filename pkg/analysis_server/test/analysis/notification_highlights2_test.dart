@@ -708,19 +708,6 @@ class A {
 ''');
   }
 
-  Future<void> test_class_macroKeyword() async {
-    var testCode = TestCode.parse(r'''
-macro class A {}
-''');
-    addTestFile(testCode.code);
-    await prepareHighlights();
-    assertHighlightText(testCode, -1, r'''
-0 + 5 |macro| BUILT_IN
-6 + 5 |class| KEYWORD
-12 + 1 |A| CLASS
-''');
-  }
-
   Future<void> test_class_method_functionTypedFormalParameter() async {
     var testCode = TestCode.parse(r'''
 class A {
@@ -1556,6 +1543,7 @@ class C = Object with A;
     assertHasRegion(HighlightRegionType.KEYWORD, 'with A;');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onInstanceGetter() async {
     addTestFile('''
 class C {
@@ -1566,6 +1554,7 @@ class C {
     assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onInstanceMethod() async {
     addTestFile('''
 class C {
@@ -1576,6 +1565,7 @@ class C {
     assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onInstanceSetter() async {
     addTestFile('''
 class C {
@@ -1586,6 +1576,7 @@ class C {
     assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onStaticMethod() async {
     addTestFile('''
 class C {
@@ -1596,6 +1587,7 @@ class C {
     assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onTopLevelFunction() async {
     addTestFile('''
 augment int f(int x) => augmented(x);
@@ -1604,6 +1596,7 @@ augment int f(int x) => augmented(x);
     assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onTopLevelGetter() async {
     addTestFile('''
 augment int get g => augmented;
@@ -1612,6 +1605,7 @@ augment int get g => augmented;
     assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onTopLevelSetter() async {
     addTestFile('''
 augment set s(int x) { augmented = x; }
@@ -2052,15 +2046,15 @@ class A {
   A(Object aaa);
 }
 class B extends A {
-  B(@V1 /*0*/ int super.aaa<T>(double a /*1*/));
+  B(@V1 int super.aaa<T>(double a));
 }
 ''');
     await prepareHighlights();
-    assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'V1 /*0*/');
+    assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'V1 int');
     assertHasRegion(HighlightRegionType.CLASS, 'int');
     assertHasRegion(HighlightRegionType.CLASS, 'double');
     assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T>');
-    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a /*1*/');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a));');
   }
 
   Future<void> test_PARAMETER_super_requiredNamed() async {
@@ -2069,13 +2063,13 @@ class A {
   A({required int aaa});
 }
 class B extends A {
-  B({required super.aaa /*0*/});
+  B({required super.aaa });
 }
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.KEYWORD, 'required super.aaa');
     assertHasRegion(HighlightRegionType.KEYWORD, 'super.aaa');
-    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa /*0*/');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa ');
   }
 
   Future<void> test_PARAMETER_super_requiredPositional() async {
@@ -2084,12 +2078,12 @@ class A {
   A(int aaa);
 }
 class B extends A {
-  B(super.aaa /*0*/);
+  B(super.aaa );
 }
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.KEYWORD, 'super.aaa');
-    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa /*0*/');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa ');
   }
 
   Future<void> test_patternVariableDeclaration_final() async {

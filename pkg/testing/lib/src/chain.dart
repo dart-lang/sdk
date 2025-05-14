@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library testing.chain;
+library;
 
 import 'dart:convert' show json, JsonEncoder;
 
@@ -347,13 +347,14 @@ abstract class Step<I, O, C extends ChainContext> {
 
   Future<Result<O>> run(I input, C context);
 
-  Result<O> unhandledError(error, StackTrace trace) {
+  Result<O> unhandledError(Object? error, StackTrace trace) {
     return Result<O>.crash(error, trace);
   }
 
   Result<O> pass(O output) => Result<O>.pass(output);
 
-  Result<O> crash(error, StackTrace trace) => Result<O>.crash(error, trace);
+  Result<O> crash(Object? error, StackTrace trace) =>
+      Result<O>.crash(error, trace);
 
   Result<O> fail(O output, [error, StackTrace? trace]) {
     return Result<O>.fail(output, error, trace);
@@ -392,7 +393,7 @@ class Result<O> {
 
   Result.pass(O output) : this(output, Expectation.pass, null);
 
-  Result.crash(error, StackTrace trace)
+  Result.crash(Object? error, StackTrace trace)
       : this(null, Expectation.crash, error, trace: trace);
 
   Result.fail(O output, [error, StackTrace? trace])

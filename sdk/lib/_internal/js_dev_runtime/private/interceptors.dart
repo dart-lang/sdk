@@ -183,8 +183,7 @@ class JSFunction extends Interceptor {
     );
   }
 
-  // TODO(nshahan): We can remove these if we canonicalize all tearoffs and no
-  // longer support weak null safety "same type" equality.
+  // TODO(nshahan): We can remove these if we canonicalize all tearoffs.
   operator ==(other) {
     // Basic function values (no generics, no bound instances) are represented
     // as the original functions so reference equality is sufficient.
@@ -204,32 +203,9 @@ class JSFunction extends Interceptor {
       // Generic instantiation was present.
       var typeArgs = JS('!', '#._typeArgs', this);
       var otherTypeArgs = JS('', '#._typeArgs', other);
-      // Test if all instantiated type arguments are equal.
-      if (JS_GET_FLAG('SOUND_NULL_SAFETY')) {
-        // The list has been canonicalized on creation so reference equality
-        // is sufficient.
-        if (JS<bool>('!', '# !== #', typeArgs, otherTypeArgs)) return false;
-      } else {
-        // In weak null safety all types arguments must be compared in a way
-        // that is agnostic to legacy.
-        var typeArgCount = JS<int>('!', '#.length', typeArgs);
-        if (JS<bool>('!', '!#', otherTypeArgs) ||
-            typeArgCount != JS('', '#.length', otherTypeArgs)) {
-          return false;
-        }
-        for (var i = 0; i < typeArgCount; i++) {
-          var typeArg = JS<rti.Rti>('!', '#[#]', typeArgs, i);
-          var otherTypeArg = JS<rti.Rti>('!', '#[#]', otherTypeArgs, i);
-          if (JS_GET_FLAG('SOUND_NULL_SAFETY')) {
-            if (typeArg != otherTypeArg) return false;
-          } else {
-            if (rti.Rti.getLegacyErasedRecipe(typeArg) !=
-                rti.Rti.getLegacyErasedRecipe(otherTypeArg)) {
-              return false;
-            }
-          }
-        }
-      }
+      // Test if all instantiated type arguments are equal. The list has been
+      // canonicalized on creation so reference equality is sufficient.
+      if (JS<bool>('!', '# !== #', typeArgs, otherTypeArgs)) return false;
       boundObj = JS('', '#._boundObject', originalFn);
       otherFn = JS('', '#._originalFn', other);
       if (boundObj == null) {
@@ -238,12 +214,30 @@ class JSFunction extends Interceptor {
         return JS<bool>('!', '# === #', originalFn, otherFn);
       }
     }
+    // This is a static tearoff. Static tearoffs always provide a bound
+    // enclosing method target string that should be compared instead of the
+    // original object (in case the original object is a proxied library).
+    if (JS<bool>('!', '#._isStaticTearoff', this)) {
+      return JS<bool>(
+        '!',
+        '#._boundMethodTarget === #._boundMethodTarget'
+            '&& #._boundName === #._boundName ',
+        originalFn,
+        otherFn,
+        originalFn,
+        otherFn,
+      );
+    }
     // This is an instance tearoff, test if the bound instances and methods
     // are equal.
     return JS<bool>(
       '!',
-      '# === #._boundObject && #._boundMethod === #._boundMethod',
+      '# === #._boundObject '
+          '&& #._boundName === #._boundName '
+          '&& #._boundMethodTarget === #._boundMethodTarget',
       boundObj,
+      otherFn,
+      originalFn,
       otherFn,
       originalFn,
       otherFn,
@@ -254,9 +248,14 @@ class JSFunction extends Interceptor {
     var boundObj = JS<Object?>('', '#._boundObject', this);
     if (boundObj == null) return identityHashCode(this);
 
-    var boundMethod = JS<Object>('!', '#._boundMethod', this);
-    int hash = (17 * 31 + boundObj.hashCode) & 0x1fffffff;
-    return (hash * 31 + identityHashCode(boundMethod)) & 0x1fffffff;
+    var boundName = JS<Object>('!', '#._boundName', this);
+    var boundMethodTarget = JS<Object>('!', '#._boundMethodTarget', this);
+    int hash = (17 * 31 + identityHashCode(boundName)) & 0x1fffffff;
+    hash = (hash * 31 + identityHashCode(boundMethodTarget)) & 0x1fffffff;
+    if (!JS<bool>('!', '#._isStaticTearoff', this)) {
+      hash = (hash * 31 + boundObj.hashCode) & 0x1fffffff;
+    }
+    return hash;
   }
 
   Type get runtimeType =>

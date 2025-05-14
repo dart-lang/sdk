@@ -54,12 +54,16 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
   final PragmaAnnotationParser matcher;
 
   PragmaEntryPointsVisitor(
-      this.entryPoints, this.nativeCodeOracle, this.matcher);
+    this.entryPoints,
+    this.nativeCodeOracle,
+    this.matcher,
+  );
 
   // Returns list of entry point types specified by
   // pragmas in the given annotations.
   List<PragmaEntryPointType> entryPointTypesFromPragmas(
-      List<Expression> annotations) {
+    List<Expression> annotations,
+  ) {
     List<PragmaEntryPointType>? types;
     for (var annotation in annotations) {
       ParsedPragma? pragma = matcher.parsePragma(annotation);
@@ -76,14 +80,19 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     return types ?? const [];
   }
 
+  static const _referenceToDocumentation =
+      "See https://github.com/dart-lang/sdk/blob/master/runtime/docs/compiler/"
+      "aot/entry_point_pragma.md.";
+
   @override
   visitLibrary(Library library) {
     for (final type in entryPointTypesFromPragmas(library.annotations)) {
       if (type == PragmaEntryPointType.Default) {
         nativeCodeOracle.addLibraryReferencedFromNativeCode(library);
       } else {
-        throw "Error: pragma entry-point definition on a library must evaluate "
-            "to null. See entry_points_pragma.md.";
+        throw "Error: The argument to an entry-point pragma annotation "
+            "on a library must evaluate to null, true, or false.\n"
+            "$_referenceToDocumentation";
       }
     }
     library.visitChildren(this);
@@ -101,8 +110,9 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         entryPoints.addDynamicallyExtendableClass(klass);
         nativeCodeOracle.addClassReferencedFromNativeCode(klass);
       } else {
-        throw "Error: pragma entry-point definition on a class must evaluate "
-            "to null, true or false. See entry_points_pragma.md.";
+        throw "Error: The argument to an entry-point pragma annotation "
+            "on a class must evaluate to null, true, or false.\n"
+            "$_referenceToDocumentation";
       }
     }
     klass.visitChildren(this);
@@ -114,39 +124,56 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     if (types.isEmpty) return;
 
     void addSelector(CallKind ck) {
-      entryPoints.addRawCall(proc.isInstanceMember
-          ? new InterfaceSelector(proc, callKind: ck)
-          : new DirectSelector(proc, callKind: ck));
+      entryPoints.addRawCall(
+        proc.isInstanceMember
+            ? new InterfaceSelector(proc, callKind: ck)
+            : new DirectSelector(proc, callKind: ck),
+      );
     }
-
-    final defaultCallKind = proc.isGetter
-        ? CallKind.PropertyGet
-        : (proc.isSetter ? CallKind.PropertySet : CallKind.Method);
 
     for (final type in types) {
       switch (type) {
         case PragmaEntryPointType.CallOnly:
-          addSelector(defaultCallKind);
+          if (proc.isGetter) {
+            throw "Error: The argument to an entry-point pragma annotation on "
+                "a getter ($proc) must evaluate to null, true, false, or "
+                "'get'.\n$_referenceToDocumentation";
+          }
+          if (proc.isSetter) {
+            throw "Error: The argument to an entry-point pragma annotation on "
+                "a setter ($proc) must evaluate to null, true, false, or "
+                "'set'.\n$_referenceToDocumentation";
+          }
+          addSelector(CallKind.Method);
           break;
         case PragmaEntryPointType.SetterOnly:
           if (!proc.isSetter) {
-            throw "Error: cannot generate a setter for a method or getter ($proc).";
+            throw "Error: cannot generate a setter for a method or getter "
+                "($proc).\n$_referenceToDocumentation";
           }
           addSelector(CallKind.PropertySet);
           break;
         case PragmaEntryPointType.GetterOnly:
           if (proc.isSetter) {
-            throw "Error: cannot closurize a setter ($proc).";
+            throw "Error: cannot closurize a setter ($proc).\n"
+                "$_referenceToDocumentation";
           }
           if (proc.isFactory) {
-            throw "Error: cannot closurize a factory ($proc).";
+            throw "Error: cannot closurize a factory ($proc).\n"
+                "$_referenceToDocumentation";
           }
           addSelector(CallKind.PropertyGet);
           break;
         case PragmaEntryPointType.Default:
-          addSelector(defaultCallKind);
-          if (!proc.isSetter && !proc.isGetter && !proc.isFactory) {
+          if (proc.isGetter) {
             addSelector(CallKind.PropertyGet);
+          } else if (proc.isSetter) {
+            addSelector(CallKind.PropertySet);
+          } else {
+            addSelector(CallKind.Method);
+            if (!proc.isFactory) {
+              addSelector(CallKind.PropertyGet);
+            }
           }
           break;
         case PragmaEntryPointType.Extendable:
@@ -165,11 +192,13 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     for (final type in entryPointTypesFromPragmas(ctor.annotations)) {
       if (type != PragmaEntryPointType.Default &&
           type != PragmaEntryPointType.CallOnly) {
-        throw "Error: pragma entry-point definition on a constructor ($ctor) must"
-            "evaluate to null, true, false or 'call'. See entry_points_pragma.md.";
+        throw "Error: The argument to an entry-point pragma annotation on a "
+            "constructor ($ctor) must evaluate to null, true, false or "
+            "'call'.\n$_referenceToDocumentation";
       }
-      entryPoints
-          .addRawCall(new DirectSelector(ctor, callKind: CallKind.Method));
+      entryPoints.addRawCall(
+        new DirectSelector(ctor, callKind: CallKind.Method),
+      );
       entryPoints.addAllocatedClass(ctor.enclosingClass);
       nativeCodeOracle.setMemberReferencedFromNativeCode(ctor);
     }
@@ -181,9 +210,11 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     if (types.isEmpty) return;
 
     void addSelector(CallKind ck) {
-      entryPoints.addRawCall(field.isInstanceMember
-          ? new InterfaceSelector(field, callKind: ck)
-          : new DirectSelector(field, callKind: ck));
+      entryPoints.addRawCall(
+        field.isInstanceMember
+            ? new InterfaceSelector(field, callKind: ck)
+            : new DirectSelector(field, callKind: ck),
+      );
     }
 
     for (final type in types) {
@@ -192,21 +223,22 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
           addSelector(CallKind.PropertyGet);
           break;
         case PragmaEntryPointType.SetterOnly:
-          if (field.isFinal) {
-            throw "Error: can't use 'set' in entry-point pragma for final field "
-                "$field";
+          if (!field.hasSetter) {
+            throw "Error: can't use 'set' in an entry-point pragma annotation "
+                "for a field that has no setter ($field).\n"
+                "$_referenceToDocumentation";
           }
           addSelector(CallKind.PropertySet);
           break;
         case PragmaEntryPointType.Default:
           addSelector(CallKind.PropertyGet);
-          if (!field.isFinal) {
+          if (field.hasSetter) {
             addSelector(CallKind.PropertySet);
           }
           break;
         case PragmaEntryPointType.CallOnly:
-          throw "Error: can't generate invocation dispatcher for field $field"
-              "through @pragma('vm:entry-point')";
+          throw "Error: 'call' is not a valid entry-point pragma annotation "
+              "argument for the field $field.\n$_referenceToDocumentation";
         case PragmaEntryPointType.Extendable:
           throw "Error: only class can be extendable";
         case PragmaEntryPointType.CanBeOverridden:
@@ -268,8 +300,10 @@ class NativeCodeOracle {
     return null;
   }
 
-  bool isRecognized(Member member,
-      [List<PragmaRecognizedType>? expectedTypes]) {
+  bool isRecognized(
+    Member member, [
+    List<PragmaRecognizedType>? expectedTypes,
+  ]) {
     PragmaRecognizedType? type = recognizedType(member);
     return type != null &&
         (expectedTypes == null || expectedTypes.contains(type));
@@ -291,10 +325,11 @@ class NativeCodeOracle {
   /// Simulate the execution of a native method by adding its entry points
   /// using [entryPointsListener]. Returns result type of the native method.
   TypeExpr handleNativeProcedure(
-      Member member,
-      EntryPointsListener entryPointsListener,
-      TypesBuilder typesBuilder,
-      RuntimeTypeTranslator translator) {
+    Member member,
+    EntryPointsListener entryPointsListener,
+    TypesBuilder typesBuilder,
+    RuntimeTypeTranslator translator,
+  ) {
     TypeExpr? returnType = null;
 
     for (var annotation in member.annotations) {
@@ -316,10 +351,11 @@ class NativeCodeOracle {
           returnType = entryPointsListener.addAllocatedClass(type.classNode);
           if (pragma.resultTypeUsesPassedTypeArguments) {
             returnType = translator.instantiateConcreteType(
-                returnType as ConcreteType,
-                member.function!.typeParameters
-                    .map((t) => TypeParameterType.withDefaultNullability(t))
-                    .toList());
+              returnType as ConcreteType,
+              member.function!.typeParameters
+                  .map((t) => TypeParameterType.withDefaultNullability(t))
+                  .toList(),
+            );
           }
           continue;
         }

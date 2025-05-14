@@ -32,6 +32,7 @@ extensions/internal_resolution: semiFuzzFailureOnForceRebuildBodies # unnamed ex
 extensions/issue40816: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 extensions/nullable_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
 extensions/on_function_type: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+extensions/part_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 extensions/unnamed_extensions: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 general/bug33099: semiFuzzFailureOnForceRebuildBodies # private class
 general/closure: semiFuzzFailureOnForceRebuildBodies # private field
@@ -46,6 +47,8 @@ general/private_method_tearoff: semiFuzzFailureOnForceRebuildBodies # private me
 general/redirecting_factory_const_inference: semiFuzzFailureOnForceRebuildBodies # private class
 general/redirecting_factory_from_dill/main.no_link: semiFuzzFailureOnForceRebuildBodies # privacy.
 general/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
+general/redirecting_factory_vs_field_inference: semiFuzzFailureOnForceRebuildBodies # privacy
+general/redirecting_factory_vs_field_inference2: semiFuzzFailureOnForceRebuildBodies # privacy
 general/redirection/main: semiFuzzFailureOnForceRebuildBodies # privacy.
 general/store_load: semiFuzzFailureOnForceRebuildBodies # private field in class
 general/typedef: semiFuzzFailureOnForceRebuildBodies # private typedef
@@ -90,20 +93,27 @@ inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForce
 dart2js/tear_off_patch/main: SemiFuzzFailure
 dartdevc/factory_patch/main: SemiFuzzFailure
 extensions/patch/main: SemiFuzzFailure
+extensions/as_show/main: SemiFuzzFailure
+extensions/patching/main: SemiFuzzFailure
 general/constructor_patch/main: SemiFuzzFailure
 general/export_dart_conflict/main: SemiFuzzFailure
 general/factory_patch/main: SemiFuzzFailure
 general/inject_private_patch/main: SemiFuzzFailure
 general/inject_public/main: SemiFuzzFailure
+general/invalid_patch/main: SemiFuzzFailure
 general/issue45101/main: SemiFuzzFailure
 general/mixin_from_patch/main: SemiFuzzFailure
 general/multiple_class_patches/main: SemiFuzzFailure
 general/nested_lib_spec/main: SemiFuzzFailure
+general/patching/main: SemiFuzzFailure
 general/patch_annotations/main: SemiFuzzFailure
 general/patch_conflict/main: SemiFuzzFailure
 general/patch_extends_implements/main: SemiFuzzFailure
 general/patch_extension_scope/main: SemiFuzzFailure
 general/patch_getter/main: SemiFuzzFailure
+general/patch_internal/main: SemiFuzzFailure
+general/patch_prefix_access/main: SemiFuzzFailure
+general/patch_type_parameters/main: SemiFuzzFailure
 general/tear_off_patch/main: SemiFuzzFailure
 late_lowering/injected_late_field_checks/main: SemiFuzzFailure
 late_lowering/issue41436/issue41436: SemiFuzzFailure

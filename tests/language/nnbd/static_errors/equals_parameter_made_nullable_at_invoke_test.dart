@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
 
-
 // Test that Object.operator==(Object o) is the signature of ==, but that we can
 // still compare nullable values to Object.
 //
@@ -35,5 +34,5 @@ main() {
 class C {
   // Valid override
   @override
-  bool operator==(Object other) => identical(other, this);
+  bool operator ==(Object other) => identical(other, this);
 }

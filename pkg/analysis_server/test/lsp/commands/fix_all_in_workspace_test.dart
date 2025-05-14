@@ -75,7 +75,7 @@ bool f() {
     super.setUp();
 
     registerLintRules();
-    registerBuiltInProducers();
+    registerBuiltInFixGenerators();
 
     // We need applyEdit support to send edits from server to client
     // out-of-band (which commands have to do because they cannot return edits).

@@ -15,6 +15,7 @@ main() {
 
 @reflectiveTest
 class NonGenerativeImplicitConstructorTest extends PubPackageResolutionTest {
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_explicit_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';

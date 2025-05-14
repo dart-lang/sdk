@@ -7,8 +7,8 @@ typedef T1<X> = List<X?>?;
 typedef T2<X, Y> = Map<X?, Y?>?;
 typedef T3 = Never? Function(void)?;
 typedef T4<X> = X? Function(X?, {required X? name})?;
-typedef T5<X extends String, Y extends List<X?>> = X? Function(Y?,
-    [Map<Y, Y?>]);
+typedef T5<X extends String, Y extends List<X?>> =
+    X? Function(Y?, [Map<Y, Y?>]);
 
 void main() {
   // ignore:unused_local_variable

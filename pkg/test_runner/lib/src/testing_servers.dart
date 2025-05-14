@@ -152,7 +152,7 @@ class TestingServers {
     }
   }
 
-  void _onError(e) {
+  void _onError(Object? e) {
     DebugLogger.error('HttpServer: an error occurred', e);
   }
 
@@ -341,8 +341,6 @@ class TestingServers {
         // Allow loading from http://*:$allowedPort in browsers.
         allowedOrigin = '${origin.scheme}://${origin.host}:$allowedPort';
       } else {
-        // IE10 appears to be bugged and is not sending the Origin header
-        // when making CORS requests to the same domain but different port.
         allowedOrigin = '*';
       }
 
@@ -355,9 +353,24 @@ class TestingServers {
     }
     if (useContentSecurityPolicy) {
       // Chrome respects the standardized Content-Security-Policy header,
-      // whereas Firefox and IE10 use X-Content-Security-Policy. Safari
-      // still uses the WebKit- prefixed version.
-      var contentHeaderValue = "script-src 'self'; object-src 'self'";
+      // whereas Firefox uses X-Content-Security-Policy. Safari still uses the
+      // WebKit- prefixed version.
+      var contentHeaderValue = [
+        "script-src 'self'",
+        "object-src 'self'",
+
+        // Trusted types (https://w3c.github.io/trusted-types/dist/spec/#trusted-types-csp-directive)
+        //
+        // Policy `dart.deferred-loading` is used to trust dart2js's deferred
+        // loading URLs, and is tested by tests/web/deferred/trusted_script_url
+        //
+        // Policy `scriptUrl` is the name of a policy created to test creation
+        // of policies via js-interop, and is tested by
+        // tests/lib/js/static_interop_test/import/import_trustedscripturl_test
+        "require-trusted-types-for: 'script'",
+        "trusted-types dart.deferred-loading scriptUrl"
+        ,
+      ].join('; ');
       for (var header in [
         "Content-Security-Policy",
         "X-Content-Security-Policy"

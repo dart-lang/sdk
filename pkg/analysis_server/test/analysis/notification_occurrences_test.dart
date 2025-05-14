@@ -50,7 +50,7 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
     expect(testOccurrences.element.name, elementName ?? range.text);
     expect(
       testOccurrences.offsets,
-      containsAll(code.ranges.map((r) => r.sourceRange.offset)),
+      unorderedEquals(code.ranges.map((r) => r.sourceRange.offset)),
     );
   }
 
@@ -213,6 +213,18 @@ void f(E e) {
   e./*[1*/foo/*1]*/ = 0;
 }
       ''');
+  }
+
+  Future<void> test_extension() async {
+    await assertOccurrences(kind: ElementKind.EXTENSION, '''
+void foo(int i) {
+  /*[0*/E/*0]*/(i).self;
+}
+
+extension /*[1*/E/*1]*/<ThisType> on ThisType {
+  ThisType get self => this;
+}
+''');
   }
 
   Future<void> test_extensionType() async {
@@ -421,8 +433,8 @@ void f(List<int> x, num /*[0*/a/*0]*/) {
 
   Future<void> test_pattern_cast_typeName() async {
     await assertOccurrences(kind: ElementKind.CLASS, '''
-String f((num, /*[0*/String/*0]*/) record) {
-  var (i as int, s as /*[1*/String/*1]*/) = record;
+/*[0*/String/*0]*/ f((num, /*[1*/String/*1]*/) record) {
+  var (i as int, s as /*[2*/String/*2]*/) = record;
 }
     );
      ''');
@@ -576,6 +588,35 @@ String f(int char) {
       ''');
   }
 
+  Future<void> test_patternVariable_ifCase_logicalOr() async {
+    await assertOccurrences(kind: ElementKind.LOCAL_VARIABLE, '''
+void f(Object? x) {
+  if (x case int /*[0*/test/*0]*/ || [int /*[1*/test/*1]*/] when /*[2*/test/*2]*/ > 0) {
+    /*[3*/test/*3]*/;
+    /*[4*/test/*4]*/ = 1;
+    /*[5*/test/*5]*/ += 2;
+  }
+}
+''');
+  }
+
+  Future<void> test_prefix() async {
+    await assertOccurrences(kind: ElementKind.PREFIX, '''
+import '' as /*[0*/p/*0]*/;
+
+class A {
+  void m() {
+    /*[1*/p/*1]*/.foo();
+    print(/*[2*/p/*2]*/.a);
+  }
+}
+
+void foo() {}
+
+/*[3*/p/*3]*/.A? a;
+''');
+  }
+
   Future<void> test_prefix_wildcard() async {
     // Ensure no crash.
     await assertOccurrences(kind: ElementKind.PREFIX, '''
@@ -647,6 +688,38 @@ void f() {
       ''');
   }
 
+  Future<void> test_type_class_constructors() async {
+    await assertOccurrences(kind: ElementKind.CLASS, '''
+class /*[0*/A/*0]*/ {
+  A(); // Unnamed constructor is own entity
+  /*[1*/A/*1]*/.named();
+}
+
+/*[2*/A/*2]*/ a = A(); // Unnamed constructor is own entity
+var b = /*[3*/A/*3]*/.new();
+var c = /*[4*/A/*4]*/.new;
+      ''');
+  }
+
+  /// The type name in unnamed constructors are their own entity and not
+  /// part of the type name.
+  ///
+  /// For the legacy protocol, "new" is not treated as a reference to the
+  /// constructor because the protocol currently only supports same-length
+  /// occurrences.
+  Future<void> test_type_class_constructors_unnamed() async {
+    await assertOccurrences(kind: ElementKind.CONSTRUCTOR, '''
+class A {
+  /*[0*/A/*0]*/();
+  A.named();
+}
+
+A a = /*[1*/A/*1]*/();
+var b = A.new();
+var c = A.new;
+      ''');
+  }
+
   Future<void> test_type_class_definition() async {
     await assertOccurrences(kind: ElementKind.CLASS, '''
 class /*[0*/A/*0]*/ {}
@@ -672,5 +745,65 @@ void f() {
     await prepareOccurrences();
     var offset = findOffset('void f()');
     findRegion(offset, 'void'.length, exists: false);
+  }
+
+  Future<void> test_typeParameter_class() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+abstract class A</*[0*/ThisType/*0]*/> {
+  /*[1*/ThisType/*1]*/ f();
+}
+''');
+  }
+
+  Future<void> test_typeParameter_enum() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+enum E</*[0*/ThisType/*0]*/> {
+  a;
+
+  /*[1*/ThisType/*1]*/ get t => throw UnimplementedError();
+}
+''');
+  }
+
+  Future<void> test_typeParameter_extension() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+extension E</*[0*/ThisType/*0]*/> on /*[1*/ThisType/*1]*/ {
+  /*[2*/ThisType/*2]*/ f() => this;
+}
+''');
+  }
+
+  Future<void> test_typeParameter_extensionType() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+extension type Et</*[0*/ThisType/*0]*/>(/*[1*/ThisType/*1]*/ value) {
+  /*[2*/ThisType/*2]*/ get v => value;
+}
+''');
+  }
+
+  Future<void> test_typeParameter_function() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+/*[0*/ThisType/*0]*/ f</*[1*/ThisType/*1]*/>() => 0 as /*[2*/ThisType/*2]*/;
+''');
+  }
+
+  Future<void> test_typeParameter_functionParameter() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+void f(/*[0*/ThisType/*0]*/ Function</*[1*/ThisType/*1]*/>() f) => f();
+''');
+  }
+
+  Future<void> test_typeParameter_mixin() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+mixin M</*[0*/ThisType/*0]*/> {
+  /*[1*/ThisType/*1]*/ get t;
+}
+''');
+  }
+
+  Future<void> test_typeParameter_typedef() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+typedef TypeDef</*[0*/ThisType/*0]*/> = /*[1*/ThisType/*1]*/ Function(/*[2*/ThisType/*2]*/);
+''');
   }
 }

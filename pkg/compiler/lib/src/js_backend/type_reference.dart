@@ -663,12 +663,6 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
   }
 
   @override
-  void visitLegacyType(covariant LegacyType type, _) {
-    _add('legacy');
-    _visit(type.baseType);
-  }
-
-  @override
   void visitNullableType(covariant NullableType type, _) {
     _add('nullable');
     _visit(type.baseType);

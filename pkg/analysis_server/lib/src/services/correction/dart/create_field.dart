@@ -21,9 +21,8 @@ class CreateField extends CreateFieldOrGetter {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_fieldName];
@@ -76,7 +75,7 @@ class CreateField extends CreateFieldOrGetter {
     }
     // Prepare target `ClassDeclaration`.
     var targetFragment = targetElement.firstFragment;
-    var targetDeclarationResult = await sessionHelper.getElementDeclaration(
+    var targetDeclarationResult = await sessionHelper.getFragmentDeclaration(
       targetFragment,
     );
     if (targetDeclarationResult == null) {
@@ -156,7 +155,7 @@ class CreateField extends CreateFieldOrGetter {
     var staticModifier = false;
     InterfaceElement2? targetClassElement;
     if (target != null) {
-      targetClassElement = getTargetInterfaceElement2(target);
+      targetClassElement = getTargetInterfaceElement(target);
       // Maybe static.
       if (target is Identifier) {
         var targetIdentifier = target;

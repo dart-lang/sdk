@@ -170,11 +170,98 @@ class B extends A {
     );
   }
 
-  Future<void> test_getter() async {
+  Future<void> test_field_field() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  String? [!foo!];
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  String? fo^o;
+}
+'''),
+    );
+  }
+
+  Future<void> test_field_getter() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  String? get [!foo!] => null;
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  String? fo^o;
+}
+'''),
+    );
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/60469')
+  Future<void> test_field_setter() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  set [!foo!](String? value) {}
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  String? fo^o;
+}
+'''),
+    );
+  }
+
+  Future<void> test_getter_field() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  String [!foo!] = '';
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  String get fo^o => '';
+}
+'''),
+    );
+  }
+
+  Future<void> test_getter_getter() async {
     await verifyGoToSuper(
       TestCode.parse('''
 class A {
   String get [!foo!] => '';
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  String get fo^o => '';
+}
+'''),
+    );
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/60469')
+  Future<void> test_getter_setter() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  set [!foo!](String value) {}
 }
 
 class B extends A {}
@@ -385,7 +472,42 @@ class C extends B {
     );
   }
 
-  Future<void> test_setter() async {
+  Future<void> test_setter_field() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  String [!foo!] = '';
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  set fo^o(String value) {}
+}
+'''),
+    );
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/60469')
+  Future<void> test_setter_getter() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  String get [!foo!] => '';
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  set fo^o(String value) {}
+}
+'''),
+    );
+  }
+
+  Future<void> test_setter_setter() async {
     await verifyGoToSuper(
       TestCode.parse('''
 class A {

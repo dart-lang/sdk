@@ -138,8 +138,10 @@ testMockTearoffs() {
   Expect.isTrue(eat is EatFoodType, 'eat is EatFoodType');
   Expect.isTrue(eat2 is EatFoodType, 'eat2 is EatFoodType');
   Expect.equals(eat, eat2, 'eat == eat2');
-  Expect.isTrue(eat.runtimeType == eat2.runtimeType,
-      'eat.runtimeType == eat2.runtimeType');
+  Expect.isTrue(
+    eat.runtimeType == eat2.runtimeType,
+    'eat.runtimeType == eat2.runtimeType',
+  );
 
   Expect.isTrue(eat("cat food"), 'eat("cat food")');
   Expect.isFalse(eat(""), 'eat("")');
@@ -151,8 +153,11 @@ testMockTearoffs() {
   var doStuff2 = (g as dynamic).doStuff;
 
   Expect.equals(doStuff, doStuff2, 'doStuff == doStuff2');
-  Expect.equals(doStuff.runtimeType, doStuff2.runtimeType,
-      'doStuff.runtimeType == doStuff2.runtimeType');
+  Expect.equals(
+    doStuff.runtimeType,
+    doStuff2.runtimeType,
+    'doStuff.runtimeType == doStuff2.runtimeType',
+  );
 
   Expect.listEquals([int], doStuff(42));
   Expect.listEquals([num], doStuff<num>(42));

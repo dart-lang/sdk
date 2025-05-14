@@ -21,7 +21,10 @@ class B {
 
 class C {
   B? instanceField = new B();
+  UsedAsType<int>? Function() instanceField2 = () => null;
 }
+
+class UsedAsType<T> {}
 
 void main() {
   field = null;

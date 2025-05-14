@@ -11,6 +11,7 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:vm/metadata/direct_call.dart';
 import 'package:vm/metadata/inferred_type.dart';
+import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/metadata/unboxing_info.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -18,15 +19,18 @@ import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
 import 'constants.dart';
-import 'deferred_loading.dart';
 import 'dispatch_table.dart';
 import 'dynamic_forwarders.dart';
+import 'dynamic_module_kernel_metadata.dart';
+import 'dynamic_modules.dart';
 import 'functions.dart';
 import 'globals.dart';
 import 'kernel_nodes.dart';
+import 'modules.dart';
 import 'param_info.dart';
 import 'records.dart';
 import 'reference_extensions.dart';
+import 'serialization.dart';
 import 'static_dispatch_table.dart';
 import 'tags.dart';
 import 'types.dart';
@@ -54,7 +58,59 @@ class TranslatorOptions {
   bool enableMultiModuleStressTestMode = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
+  bool requireJsStringBuiltin = false;
   List<int> watchPoints = [];
+
+  void serialize(DataSerializer sink) {
+    sink.writeBool(enableAsserts);
+    sink.writeBool(importSharedMemory);
+    sink.writeBool(inlining);
+    sink.writeBool(jsCompatibility);
+    sink.writeBool(omitImplicitTypeChecks);
+    sink.writeBool(omitExplicitTypeChecks);
+    sink.writeBool(omitBoundsChecks);
+    sink.writeBool(polymorphicSpecialization);
+    sink.writeBool(printKernel);
+    sink.writeBool(printWasm);
+    sink.writeBool(minify);
+    sink.writeBool(verifyTypeChecks);
+    sink.writeBool(verbose);
+    sink.writeBool(enableExperimentalFfi);
+    sink.writeBool(enableExperimentalWasmInterop);
+    sink.writeBool(generateSourceMaps);
+    sink.writeBool(enableDeferredLoading);
+    sink.writeBool(enableMultiModuleStressTestMode);
+    sink.writeInt(inliningLimit);
+    sink.writeInt(
+        sharedMemoryMaxPages == null ? 0 : (sharedMemoryMaxPages! + 1));
+  }
+
+  static TranslatorOptions deserialize(DataDeserializer source) {
+    final TranslatorOptions options = TranslatorOptions();
+    options.enableAsserts = source.readBool();
+    options.importSharedMemory = source.readBool();
+    options.inlining = source.readBool();
+    options.jsCompatibility = source.readBool();
+    options.omitImplicitTypeChecks = source.readBool();
+    options.omitExplicitTypeChecks = source.readBool();
+    options.omitBoundsChecks = source.readBool();
+    options.polymorphicSpecialization = source.readBool();
+    options.printKernel = source.readBool();
+    options.printWasm = source.readBool();
+    options.minify = source.readBool();
+    options.verifyTypeChecks = source.readBool();
+    options.verbose = source.readBool();
+    options.enableExperimentalFfi = source.readBool();
+    options.enableExperimentalWasmInterop = source.readBool();
+    options.generateSourceMaps = source.readBool();
+    options.enableDeferredLoading = source.readBool();
+    options.enableMultiModuleStressTestMode = source.readBool();
+    options.inliningLimit = source.readInt();
+    final int sharedMemoryMaxPages = source.readInt();
+    options.sharedMemoryMaxPages =
+        sharedMemoryMaxPages == 0 ? null : (sharedMemoryMaxPages - 1);
+    return options;
+  }
 }
 
 /// The main entry point for the translation from kernel to Wasm and the hub for
@@ -70,6 +126,7 @@ class Translator with KernelNodes {
   @override
   final Component component;
   final List<Library> libraries;
+  @override
   final CoreTypes coreTypes;
   late final TypeEnvironment typeEnvironment;
   final ClosedWorldClassHierarchy hierarchy;
@@ -96,6 +153,11 @@ class Translator with KernelNodes {
       (component.metadata[UnboxingInfoMetadataRepository.repositoryTag]
               as UnboxingInfoMetadataRepository)
           .mapping;
+  late final Map<TreeNode, ProcedureAttributesMetadata>
+      procedureAttributeMetadata =
+      (component.metadata[ProcedureAttributesMetadataRepository.repositoryTag]
+              as ProcedureAttributesMetadataRepository)
+          .mapping;
 
   // Other parts of the global compiler state.
   @override
@@ -104,6 +166,7 @@ class Translator with KernelNodes {
   late final ClassInfoCollector classInfoCollector;
   late final StaticDispatchTables staticTablesPerType;
   late final DispatchTable dispatchTable;
+  DispatchTable? dynamicMainModuleDispatchTable;
   late final Globals globals;
   late final Constants constants;
   late final Types types;
@@ -144,7 +207,8 @@ class Translator with KernelNodes {
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
   late final w.FunctionBuilder initFunction;
-  late final w.ValueType voidMarker;
+  late final w.ValueType voidMarker =
+      w.RefType.def(w.StructType("void"), nullable: true);
   // Lazily import FFI memory if used.
   late final w.Memory ffiMemory = mainModule.memories.import("ffi", "memory",
       options.importSharedMemory, 0, options.sharedMemoryMaxPages);
@@ -157,9 +221,11 @@ class Translator with KernelNodes {
   final Map<w.StorageType, w.ArrayType> immutableArrayTypeCache = {};
   final Map<w.StorageType, w.ArrayType> mutableArrayTypeCache = {};
   final Map<w.BaseFunction, w.Global> functionRefCache = {};
-  final Map<Procedure, ClosureImplementation> tearOffFunctionCache = {};
+  final Map<Procedure, Map<w.ModuleBuilder, ClosureImplementation>>
+      tearOffFunctionCache = {};
 
-  final Map<FunctionNode, ClosureImplementation> closureImplementations = {};
+  final Map<FunctionNode, Map<w.ModuleBuilder, ClosureImplementation>>
+      closureImplementations = {};
 
   // Some convenience accessors for commonly used values.
   late final ClassInfo topInfo = classes[0];
@@ -182,6 +248,11 @@ class Translator with KernelNodes {
       w.RefType.def(typeArrayType, nullable: false);
   late final w.RefType nullableObjectArrayTypeRef =
       w.RefType.def(nullableObjectArrayType, nullable: false);
+
+  late final boxedIntType =
+      boxedIntClass.getThisType(coreTypes, Nullability.nonNullable);
+  late final boxedDoubleType =
+      boxedDoubleClass.getThisType(coreTypes, Nullability.nonNullable);
 
   final Map<w.ModuleBuilder, PartialInstantiator> _partialInstantiators = {};
   PartialInstantiator getPartialInstantiatorForModule(w.ModuleBuilder module) {
@@ -236,6 +307,12 @@ class Translator with KernelNodes {
     w.NumType.f64: boxedDoubleClass,
   };
 
+  late final Set<Class> boxClasses = {
+    boxedBoolClass,
+    boxedIntClass,
+    boxedDoubleClass,
+  };
+
   /// Classes whose identity hash code is their hash code rather than the
   /// identity hash code field in the struct. Each implementation class maps to
   /// the class containing the implementation of its `hashCode` getter.
@@ -243,11 +320,7 @@ class Translator with KernelNodes {
     boxedIntClass: boxedIntClass,
     boxedDoubleClass: boxedDoubleClass,
     boxedBoolClass: coreTypes.boolClass,
-    if (!options.jsCompatibility) ...{
-      oneByteStringClass: stringBaseClass,
-      twoByteStringClass: stringBaseClass
-    },
-    if (options.jsCompatibility) ...{jsStringClass: jsStringClass},
+    jsStringClass: jsStringClass,
   };
 
   /// Type for vtable entries for dynamic calls. These entries are used in
@@ -318,6 +391,11 @@ class Translator with KernelNodes {
   final Map<w.ModuleBuilder, ModuleOutput> _builderToOutput = {};
   bool get hasMultipleModules => _moduleOutputData.hasMultipleModules;
 
+  DynamicModuleInfo? dynamicModuleInfo;
+  bool get dynamicModuleSupportEnabled => dynamicModuleInfo != null;
+  bool get isDynamicModule => dynamicModuleInfo?.isDynamicModule ?? false;
+  w.ModuleBuilder get dynamicModule => dynamicModuleInfo!.dynamicModule;
+
   w.ModuleBuilder moduleForReference(Reference reference) =>
       _outputToBuilder[_moduleOutputData.moduleForReference(reference)]!;
 
@@ -336,17 +414,27 @@ class Translator with KernelNodes {
           : Closures(this, member, findCaptures: false);
 
   Translator(this.component, this.coreTypes, this.index, this.recordClasses,
-      this._moduleOutputData, this.options)
+      this._moduleOutputData, this.options,
+      {bool enableDynamicModules = false,
+      required MainModuleMetadata mainModuleMetadata})
       : libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
+    if (enableDynamicModules) {
+      dynamicModuleInfo = DynamicModuleInfo(this, mainModuleMetadata);
+    }
     typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
     subtypes = hierarchy.computeSubtypesInformation();
     closureLayouter = ClosureLayouter(this);
     classInfoCollector = ClassInfoCollector(this);
     staticTablesPerType = StaticDispatchTables(this);
-    dispatchTable = DispatchTable(this);
-    compilationQueue = CompilationQueue();
+    dispatchTable = DispatchTable(isDynamicModuleTable: isDynamicModule)
+      ..translator = this;
+    if (isDynamicModule) {
+      dynamicMainModuleDispatchTable = mainModuleMetadata.dispatchTable
+        ..translator = this;
+    }
+    compilationQueue = CompilationQueue(this);
     functions = FunctionCollector(this);
     types = Types(this);
     exceptionTag = ExceptionTag(this);
@@ -363,8 +451,7 @@ class Translator with KernelNodes {
       mapEntries.add(
           MapLiteralEntry(StringLiteral(libName), MapLiteral(subMapEntries)));
     });
-    final stringClass =
-        options.jsCompatibility ? jsStringClass : stringBaseClass;
+    final stringClass = jsStringClass;
     loadLibraryImportMap.function.body = ReturnStatement(MapLiteral(mapEntries,
         keyType: InterfaceType(stringClass, Nullability.nonNullable),
         valueType: InterfaceType(coreTypes.mapNonNullableRawType.classNode,
@@ -390,29 +477,37 @@ class Translator with KernelNodes {
     }
   }
 
+  void drainCompletionQueue() {
+    while (!compilationQueue.isEmpty) {
+      final task = compilationQueue.pop();
+      task.run(this, options.printKernel, options.printWasm);
+    }
+  }
+
   Map<ModuleOutput, w.Module> translate(
       Uri Function(String moduleName)? sourceMapUrlGenerator) {
     _initLoadLibraryImportMap();
     _initModules(sourceMapUrlGenerator);
-    voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
-
-    closureLayouter.collect();
-    classInfoCollector.collect();
-
     initFunction = mainModule.functions
         .define(typesBuilder.defineFunction(const [], const []), "#init");
     mainModule.functions.start = initFunction;
+
+    closureLayouter.collect();
+    classInfoCollector.collect();
 
     globals = Globals(this);
     constants = Constants(this);
 
     dispatchTable.build();
+    dynamicMainModuleDispatchTable?.build();
 
     functions.initialize();
-    while (!compilationQueue.isEmpty) {
-      final task = compilationQueue.pop();
-      task.run(this, options.printKernel, options.printWasm);
-    }
+
+    dynamicModuleInfo?.initDynamicModule();
+
+    drainCompletionQueue();
+
+    dynamicModuleInfo?.finishDynamicModule();
 
     constructorClosures.clear();
     dispatchTable.output();
@@ -456,7 +551,12 @@ class Translator with KernelNodes {
   /// [callFunction].
   List<w.ValueType> callReference(
       Reference reference, w.InstructionsBuilder b) {
-    return callFunction(functions.getFunction(reference), b);
+    final function = functions.getFunction(reference);
+    final targetModule = function.enclosingModule;
+    if (targetModule == b.module) {
+      return b.invoke(directCallTarget(reference));
+    }
+    return callFunction(function, b);
   }
 
   late final WasmFunctionImporter _importedFunctions =
@@ -469,7 +569,6 @@ class Translator with KernelNodes {
   List<w.ValueType> callFunction(
       w.BaseFunction function, w.InstructionsBuilder b) {
     final targetModule = function.enclosingModule;
-    // TODO(natebiggs): Consider inlining function body in some scenarios.
     if (targetModule == b.module) {
       b.call(function);
     } else if (isMainModule(targetModule)) {
@@ -482,26 +581,79 @@ class Translator with KernelNodes {
       b.ref_as_non_null();
       b.call_ref(function.type);
     }
-    return function.type.outputs;
+    return b.emitUnreachableIfNoResult(function.type.outputs);
   }
 
-  void callDispatchTable(w.InstructionsBuilder b, SelectorInfo selector) {
-    // TODO(natebiggs): Handle dispatch to dynamic module overrideable members.
-    b.struct_get(topInfo.struct, FieldIndex.classId);
-    if (selector.offset! != 0) {
-      b.i32_const(selector.offset!);
-      b.i32_add();
+  void callDispatchTable(w.InstructionsBuilder b, SelectorInfo selector,
+      {Reference? interfaceTarget,
+      required bool useUncheckedEntry,
+      DispatchTable? table}) {
+    table ??= dispatchTable;
+    functions.recordSelectorUse(selector, useUncheckedEntry);
+
+    if (dynamicModuleSupportEnabled && selector.isDynamicModuleOverrideable) {
+      dynamicModuleInfo!.callOverrideableDispatch(b, selector, interfaceTarget!,
+          useUncheckedEntry: useUncheckedEntry);
+    } else {
+      b.struct_get(topInfo.struct, FieldIndex.classId);
+      final offset = selector.targets(unchecked: useUncheckedEntry).offset;
+      if (offset == null) {
+        b.unreachable();
+        return;
+      }
+
+      if (offset != 0) {
+        b.i32_const(offset);
+        b.i32_add();
+      }
+      final signature = selector.signature;
+      b.call_indirect(signature, table.getWasmTable(b.module));
+      b.emitUnreachableIfNoResult(signature.outputs);
     }
-    b.call_indirect(selector.signature, dispatchTable.getWasmTable(b.module));
-    functions.recordSelectorUse(selector);
   }
 
   Class classForType(DartType type) {
-    return type is InterfaceType
-        ? type.classNode
-        : type is TypeParameterType
-            ? classForType(type.bound)
-            : coreTypes.objectClass;
+    return toMostSpecificInterfaceType(type).classNode;
+  }
+
+  InterfaceType toMostSpecificInterfaceType(DartType originalType) {
+    var type = originalType;
+    while (type is TypeParameterType) {
+      type = type.bound;
+    }
+    while (type is StructuralParameterType) {
+      type = type.bound;
+    }
+    final objectType = coreTypes.objectNonNullableRawType;
+    final nullability = originalType.isPotentiallyNullable
+        ? Nullability.nullable
+        : Nullability.nonNullable;
+    return (switch (type) {
+      InterfaceType() => type,
+      FunctionType() => coreTypes.functionNonNullableRawType,
+      RecordType() => coreTypes.recordNonNullableRawType,
+      IntersectionType() => toMostSpecificInterfaceType(type.right),
+      ExtensionType() => toMostSpecificInterfaceType(type.extensionTypeErasure),
+      DynamicType() || VoidType() => objectType,
+      NullType() => objectType,
+      NeverType() => objectType,
+      FutureOrType() => objectType,
+      StructuralParameterType() ||
+      TypeParameterType() =>
+        throw 'unreachable, handled above',
+      TypedefType() => throw 'unreachable, should be desugared by CFE',
+      InvalidType() => throw 'unreachable, should be compile-time error',
+      AuxiliaryType() => throw 'unreachable, unused by dart2wasm',
+    })
+        .withDeclaredNullability(nullability);
+  }
+
+  void pushModuleId(w.InstructionsBuilder b) {
+    if (!isDynamicModule || b.module != dynamicModule) {
+      b.i64_const(0);
+    } else {
+      b.global_get(dynamicModuleInfo!.moduleIdGlobal);
+    }
   }
 
   /// Compute the runtime type of a tear-off. This is the signature of the
@@ -544,6 +696,13 @@ class Translator with KernelNodes {
   w.Tag getExceptionTag(w.ModuleBuilder module) =>
       exceptionTag.getExceptionTag(module);
 
+  w.ValueType translateReturnType(DartType type) {
+    if (type is NeverType && !type.isPotentiallyNullable) {
+      return const w.RefType.none(nullable: false);
+    }
+    return translateType(type);
+  }
+
   w.ValueType translateType(DartType type) {
     w.StorageType wasmType = translateStorageType(type);
     if (wasmType is w.ValueType) return wasmType;
@@ -567,7 +726,7 @@ class Translator with KernelNodes {
   bool isWasmType(Class cls) =>
       cls == wasmTypesBaseClass || _hasSuperclass(cls, wasmTypesBaseClass);
 
-  w.StorageType translateStorageType(DartType type) {
+  w.StorageType translateStorageType(DartType type, {bool unbox = true}) {
     bool nullable = type.isPotentiallyNullable;
     if (type is InterfaceType) {
       Class cls = type.classNode;
@@ -619,7 +778,8 @@ class Translator with KernelNodes {
       }
 
       // Other built-in type?
-      w.StorageType? builtin = builtinTypes[cls];
+      w.StorageType? builtin =
+          (unbox || !boxClasses.contains(cls)) ? builtinTypes[cls] : null;
       if (builtin != null) {
         if (!nullable) {
           return builtin;
@@ -640,7 +800,22 @@ class Translator with KernelNodes {
     if (type is DynamicType || type is VoidType) {
       return topInfo.nullableType;
     }
-    if (type is NullType || type is NeverType) {
+    if (type is NullType) {
+      return const w.RefType.none(nullable: true);
+    }
+    if (type is NeverType) {
+      // We should translate `Never` to a bottom type in wasm. Though right now
+      // for examples like this
+      //    ```
+      //    Never a;
+      //    try {
+      //      a = throw 'a;
+      //    } catch (e, s) {}
+      //    ```
+      // our code generator makes a local for `a` and tries to initialize it
+      // with a default value (of which there are none if we make it real
+      // bottom).
+      // => We make it nullable here.
       return const w.RefType.none(nullable: true);
     }
     if (type is TypeParameterType) {
@@ -679,8 +854,10 @@ class Translator with KernelNodes {
     while (type is TypeParameterType) {
       type = type.bound;
     }
-    return wasmArrayType(
-        translateStorageType(type), type.toText(defaultAstTextStrategy),
+    // If we write `WasmArray<BoxedInt>` we actually want an array of boxed
+    // integers and not a `WasmArray<WasmI64>`.
+    return wasmArrayType(translateStorageType(type, unbox: false),
+        type.toText(defaultAstTextStrategy),
         mutable: mutable);
   }
 
@@ -759,17 +936,25 @@ class Translator with KernelNodes {
     });
   }
 
-  ClosureImplementation getTearOffClosure(Procedure member) {
-    return tearOffFunctionCache.putIfAbsent(member, () {
+  ClosureImplementation getTearOffClosure(
+      Procedure member, w.ModuleBuilder closureModule) {
+    final innerCache = tearOffFunctionCache.putIfAbsent(member, () => {});
+    return innerCache.putIfAbsent(closureModule, () {
       assert(member.kind == ProcedureKind.Method);
-      w.BaseFunction target = functions.getFunction(member.reference);
-      return getClosure(member.function, target,
-          paramInfoForDirectCall(member.reference), "$member tear-off");
+      final reference =
+          getFunctionEntry(member.reference, uncheckedEntry: false);
+      w.BaseFunction target = functions.getFunction(reference);
+      return getClosure(member.function, target, closureModule,
+          paramInfoForDirectCall(reference), "$member tear-off");
     });
   }
 
-  ClosureImplementation getClosure(FunctionNode functionNode,
-      w.BaseFunction target, ParameterInfo paramInfo, String name) {
+  ClosureImplementation getClosure(
+      FunctionNode functionNode,
+      w.BaseFunction target,
+      w.ModuleBuilder closureModule,
+      ParameterInfo paramInfo,
+      String name) {
     // We compile a block multiple times in try-catch, to catch Dart exceptions
     // and then again to catch JS exceptions. We may also ask for
     // `ClosureImplementation` for a local function multiple times as we see
@@ -782,12 +967,11 @@ class Translator with KernelNodes {
     // will be the value returned by `paramInfoForDirectCall`. So the key for
     // this cache can be just `FunctionNode`, instead of `(FunctionNode,
     // ParameterInfo)`.
-    final existingImplementation = closureImplementations[functionNode];
+    final existingImplementation =
+        closureImplementations[functionNode]?[closureModule];
     if (existingImplementation != null) {
       return existingImplementation;
     }
-
-    final targetModule = target.enclosingModule;
 
     // Look up the closure representation for the signature.
     int typeCount = functionNode.typeParameters.length;
@@ -860,7 +1044,7 @@ class Translator with KernelNodes {
     w.BaseFunction makeTrampoline(
         w.FunctionType signature, int posArgCount, List<String> argNames) {
       final trampoline =
-          targetModule.functions.define(signature, "$name trampoline");
+          closureModule.functions.define(signature, "$name trampoline");
       compilationQueue.add(CompilationTask(
           trampoline,
           _ClosureTrampolineGenerator(this, trampoline, target, typeCount,
@@ -869,7 +1053,7 @@ class Translator with KernelNodes {
     }
 
     w.BaseFunction makeDynamicCallEntry() {
-      final function = targetModule.functions.define(
+      final function = closureModule.functions.define(
           dynamicCallVtableEntryFunctionType, "$name dynamic call entry");
       compilationQueue.add(CompilationTask(
           function,
@@ -892,7 +1076,7 @@ class Translator with KernelNodes {
       ib.ref_func(function);
     }
 
-    final vtable = targetModule.globals.define(w.GlobalType(
+    final vtable = closureModule.globals.define(w.GlobalType(
         w.RefType.def(representation.vtableStruct, nullable: false),
         mutable: false));
     final ib = vtable.initializer;
@@ -915,8 +1099,9 @@ class Translator with KernelNodes {
     ib.end();
 
     final implementation = ClosureImplementation(representation, functions,
-        dynamicCallEntry, vtable, targetModule, paramInfo);
-    closureImplementations[functionNode] = implementation;
+        dynamicCallEntry, vtable, closureModule, paramInfo);
+    (closureImplementations[functionNode] ??= {})[closureModule] =
+        implementation;
     return implementation;
   }
 
@@ -929,6 +1114,7 @@ class Translator with KernelNodes {
   }
 
   void convertType(w.InstructionsBuilder b, w.ValueType from, w.ValueType to) {
+    if (identical(from, to)) return;
     if (from == voidMarker || to == voidMarker) {
       if (from != voidMarker) {
         b.drop();
@@ -971,7 +1157,7 @@ class Translator with KernelNodes {
 
         w.Local temp = b.addLocal(from);
         b.local_set(temp);
-        b.i32_const(info.classId);
+        b.i32_const((info.classId as AbsoluteClassId).value);
         b.local_get(temp);
         b.struct_new(info.struct);
       } else if (from is w.RefType) {
@@ -992,25 +1178,167 @@ class Translator with KernelNodes {
     }
   }
 
-  w.FunctionType signatureForDispatchTableCall(Reference target) {
-    assert(target.asMember.isInstanceMember);
-    return dispatchTable.selectorForTarget(target).signature;
+  Reference getFunctionEntry(Reference target, {required bool uncheckedEntry}) {
+    final Member member = target.asMember;
+    if (member.isAbstract || !member.isInstanceMember) return target;
+
+    // Getters and tear-offs never have to check any parameters, so we don't
+    // have checked/unchecked entries for them.
+    if (target.isGetter || target.isTearOffReference) return target;
+
+    // We only generate checked & unchecked entry points if there's any
+    // parameters that may need to be checked.
+    if (needToCheckTypesFor(member)) {
+      return uncheckedEntry
+          ? member.uncheckedEntryReference
+          : member.checkedEntryReference;
+    }
+
+    return target;
   }
 
-  ParameterInfo paramInfoForDispatchTableCall(Reference target) {
-    assert(target.asMember.isInstanceMember);
-    return dispatchTable.selectorForTarget(target).paramInfo;
+  final Map<Member, bool> _needToCheck = {};
+  bool needToCheckTypesFor(Member member) {
+    if (options.omitImplicitTypeChecks) return false;
+
+    if (!member.isInstanceMember) return false;
+    if (member is Procedure && member.isGetter) return false;
+
+    return _needToCheck[member] ??= _needToCheckTypesFor(member);
   }
 
-  AstCallTarget directCallTarget(Reference target, bool useUncheckedEntry) {
+  bool _needToCheckTypesFor(Member member) {
+    // We may have global guarantee that all call sites can use the unchecked
+    // entrypoint.
+    final metadata = procedureAttributeMetadata[member]!;
+
+    // If there's only uses of the member via `this`, then we know that
+    // covariant parameters will type check correctly, except parameters that
+    // were marked explicitly with the `covariant` keyword.
+    final useUncheckedEntry =
+        !metadata.hasTearOffUses && !metadata.hasNonThisUses;
+
+    if (member is Field) {
+      return needToCheckImplicitSetterValue(member,
+          uncheckedEntry: useUncheckedEntry);
+    }
+
+    final (
+      :typeParameters,
+      :typeParametersToTypeCheck,
+      :positional,
+      :positionalToTypeCheck,
+      :named,
+      :namedToTypeCheck
+    ) = getParametersToCheck(member);
+
+    for (final typeParameter in typeParameters) {
+      if (needToCheckTypeParameter(typeParameter)) return true;
+    }
+    for (final parameter in positional) {
+      if (needToCheckParameter(parameter, uncheckedEntry: useUncheckedEntry)) {
+        return true;
+      }
+    }
+    for (final parameter in named) {
+      if (needToCheckParameter(parameter, uncheckedEntry: useUncheckedEntry)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  bool needToCheckImplicitSetterValue(Field field,
+      {required bool uncheckedEntry}) {
+    if (options.omitImplicitTypeChecks) return false;
+    if (field.isCovariantByDeclaration) return true;
+    if (!uncheckedEntry && field.isCovariantByClass) return true;
+    return false;
+  }
+
+  bool needToCheckTypeParameter(TypeParameter typeParameter) {
+    if (options.omitImplicitTypeChecks) return false;
+    return typeParameter.isCovariantByClass &&
+        typeParameter.bound != coreTypes.objectNullableRawType;
+  }
+
+  bool needToCheckParameter(VariableDeclaration parameter,
+      {required bool uncheckedEntry}) {
+    if (options.omitImplicitTypeChecks) return false;
+    if (canSkipImplicitCheck(parameter)) return false;
+    if (parameter.isCovariantByDeclaration) return true;
+    if (!uncheckedEntry && parameter.isCovariantByClass) return true;
+    return false;
+  }
+
+  ({
+    List<TypeParameter> typeParameters,
+    List<TypeParameter> typeParametersToTypeCheck,
+    List<VariableDeclaration> positional,
+    List<VariableDeclaration> positionalToTypeCheck,
+    List<VariableDeclaration> named,
+    List<VariableDeclaration> namedToTypeCheck
+  }) getParametersToCheck(Member member) {
+    final memberFunction = member.function!;
+    final List<TypeParameter> typeParameters = member is Constructor
+        ? member.enclosingClass.typeParameters
+        : member.function!.typeParameters;
+    final List<VariableDeclaration> positional =
+        memberFunction.positionalParameters;
+    final List<VariableDeclaration> named = memberFunction.namedParameters;
+
+    // If this is a CFE-inserted `forwarding-stub` then the types we have to
+    // check against are those from the forwarding target.
+    //
+    // This mirrors what the VM does in
+    //    - FlowGraphBuilder::BuildTypeArgumentTypeChecks
+    //    - FlowGraphBuilder::BuildArgumentTypeChecks
+    Procedure? forwardingTarget;
+    if (member is Procedure && member.isForwardingStub) {
+      forwardingTarget = member.concreteForwardingStubTarget as Procedure?;
+    }
+    final List<TypeParameter> typeParametersToTypeCheck =
+        forwardingTarget?.typeParameters ?? typeParameters;
+    final List<VariableDeclaration> positionalToTypeCheck =
+        forwardingTarget?.function.positionalParameters ?? positional;
+    final List<VariableDeclaration> namedToTypeCheck =
+        forwardingTarget?.function.namedParameters ?? named;
+    return (
+      typeParameters: typeParameters,
+      typeParametersToTypeCheck: typeParametersToTypeCheck,
+      positional: positional,
+      positionalToTypeCheck: positionalToTypeCheck,
+      named: named,
+      namedToTypeCheck: namedToTypeCheck,
+    );
+  }
+
+  DispatchTable dispatchTableForTarget(Reference target) {
+    if (!isDynamicModule) return dispatchTable;
+    if (moduleForReference(target) == dynamicModule) return dispatchTable;
+    assert(target.asMember.isDynamicModuleCallable(coreTypes));
+    return dynamicMainModuleDispatchTable!;
+  }
+
+  AstCallTarget directCallTarget(Reference target) {
     final signature = signatureForDirectCall(target);
-    return AstCallTarget(signature, this, target, useUncheckedEntry);
+    return AstCallTarget(signature, this, target);
   }
 
   w.FunctionType signatureForDirectCall(Reference target) {
-    if (target.asMember.isInstanceMember) {
-      final selector = dispatchTable.selectorForTarget(target);
-      if (selector.targetSet.contains(target)) {
+    return _signatureFromDispatchTable(target, dispatchTableForTarget(target));
+  }
+
+  w.FunctionType signatureForMainModule(Reference target) {
+    return _signatureFromDispatchTable(target, dynamicMainModuleDispatchTable!);
+  }
+
+  w.FunctionType _signatureFromDispatchTable(
+      Reference target, DispatchTable table) {
+    if (target.asMember.isInstanceMember && !target.isBodyReference) {
+      final selector = table.selectorForTarget(target);
+      if (selector.containsTarget(target)) {
         return selector.signature;
       }
     }
@@ -1019,8 +1347,9 @@ class Translator with KernelNodes {
 
   ParameterInfo paramInfoForDirectCall(Reference target) {
     if (target.asMember.isInstanceMember) {
-      final selector = dispatchTable.selectorForTarget(target);
-      if (selector.targetSet.contains(target)) {
+      final table = dispatchTableForTarget(target);
+      final selector = table.selectorForTarget(target);
+      if (selector.containsTarget(target)) {
         return selector.paramInfo;
       }
     }
@@ -1077,7 +1406,9 @@ class Translator with KernelNodes {
   }
 
   Member? singleTarget(TreeNode node) {
-    return directCallMetadata[node]?.targetMember;
+    final member = directCallMetadata[node]?.targetMember;
+    if (!dynamicModuleSupportEnabled || member == null) return member;
+    return member.isDynamicModuleOverrideable(coreTypes) ? null : member;
   }
 
   /// Direct call information of a [FunctionInvocation] based on TFA's direct
@@ -1152,8 +1483,9 @@ class Translator with KernelNodes {
     return inferredArgTypeMetadata[node]?.skipCheck ?? false;
   }
 
-  bool canUseUncheckedEntry(InstanceInvocationExpression node) {
-    if (node is ThisExpression) return true;
+  bool canUseUncheckedEntry(Expression receiver, Expression node) {
+    if (receiver is ThisExpression) return true;
+    if (node is InstanceInvocation && node.isInvariant) return true;
     return inferredTypeMetadata[node]?.skipCheck ?? false;
   }
 
@@ -1169,12 +1501,29 @@ class Translator with KernelNodes {
     final isCovariant =
         node.isCovariantByDeclaration || node.isCovariantByClass;
     if (isCovariant) {
+      // If [node] is a parameter of a `operator==` method, then the argument to
+      // it cannot be nullable.
+      final member = node.parent!.parent;
+      if (member is Procedure && member.name.text == '==') {
+        return coreTypes.objectNonNullableRawType;
+      }
       // The type argument of a static type is not required to conform
       // to the bounds of the type variable. Thus, any object can be
       // passed to a parameter that is covariant by class.
       return coreTypes.objectNullableRawType;
     }
 
+    return node.type;
+  }
+
+  // The type to use assuming the argument was already checked (in case a
+  // covariant check is needed).
+  DartType typeOfCheckedParameterVariable(VariableDeclaration node) {
+    // We have a guarantee that inferred types are correct.
+    final inferredType = _inferredTypeOfParameterVariable(node);
+    if (inferredType != null) {
+      return inferredType;
+    }
     return node.type;
   }
 
@@ -1194,10 +1543,6 @@ class Translator with KernelNodes {
     return translateType(typeOfParameterVariable(node, isRequired));
   }
 
-  w.ValueType translateTypeOfReturnValue(Member node) {
-    return translateType(typeOfReturnValue(node));
-  }
-
   w.ValueType translateTypeOfField(Field node) {
     return translateType(typeOfField(node));
   }
@@ -1207,16 +1552,18 @@ class Translator with KernelNodes {
   }
 
   DartType? _inferredTypeOfParameterVariable(VariableDeclaration node) {
-    return _filterInferredType(node.type, inferredArgTypeMetadata[node]);
+    return _filterInferredType(node.type,
+        dynamicModuleSupportEnabled ? null : inferredArgTypeMetadata[node]);
   }
 
   DartType? _inferredTypeOfReturnValue(Member node) {
-    return _filterInferredType(
-        node.function!.returnType, inferredReturnTypeMetadata[node]);
+    return _filterInferredType(node.function!.returnType,
+        dynamicModuleSupportEnabled ? null : inferredReturnTypeMetadata[node]);
   }
 
   DartType? _inferredTypeOfField(Field node) {
-    return _filterInferredType(node.type, inferredTypeMetadata[node]);
+    return _filterInferredType(node.type,
+        dynamicModuleSupportEnabled ? null : inferredTypeMetadata[node]);
   }
 
   DartType? _inferredTypeOfLocalVariable(VariableDeclaration node) {
@@ -1265,9 +1612,15 @@ class Translator with KernelNodes {
     return InterfaceType(concreteClass, nullability, typeArguments);
   }
 
-  bool shouldInline(
-      Reference target, w.FunctionType signature, bool useUncheckedEntry) {
+  bool shouldInline(Reference target, w.FunctionType signature) {
     if (!options.inlining) return false;
+
+    // Unchecked entry point functions perform very little, mainly optional
+    // parameter handling and then call the real body function.
+    //
+    // By inlining them we can often avoid downcasts and sometimes boxing. The
+    // force inlining here seem to even lead to overall size decreases.
+    if (target.isUncheckedEntryReference) return true;
 
     final member = target.asMember;
     if (getPragma<bool>(member, "wasm:never-inline", true) == true) {
@@ -1287,9 +1640,9 @@ class Translator with KernelNodes {
       return false;
     }
 
-    final nodeCount =
-        NodeCounter(options.omitImplicitTypeChecks || useUncheckedEntry)
-            .countNodes(member);
+    final nodeCount = NodeCounter(
+            options.omitImplicitTypeChecks || target.isUncheckedEntryReference)
+        .countNodes(member);
 
     // Special cases for iterator inlining:
     //   class ... implements Iterable<T> {
@@ -1331,10 +1684,16 @@ class Translator with KernelNodes {
     if (membersContainingInnerFunctions.contains(member)) return false;
     if (membersBeingGenerated.contains(member)) {
       // Guard against recursive inlining.
+      //
       // Though we allow inlining calls to constructor initializer & body
       // functions while generating the constructor.
+      //
+      // We also allow inlining calls to the member body functions as any
+      // recursive inlining would call to checked or unchecked entry which would
+      // disallow it.
       if (!target.isInitializerReference &&
-          !target.isConstructorBodyReference) {
+          !target.isConstructorBodyReference &&
+          !target.isBodyReference) {
         return false;
       }
     }
@@ -1406,20 +1765,57 @@ class Translator with KernelNodes {
     if (internalizedString != null) {
       return internalizedString;
     }
-    final i = internalizedStringsForJSRuntime.length;
-    internalizedString = module.globals.import('s', '$i',
-        w.GlobalType(w.RefType.extern(nullable: true), mutable: false));
+
+    bool hasUnpairedSurrogate(String str) {
+      for (int i = 0; i < str.length; i++) {
+        int codeUnit = str.codeUnitAt(i);
+        if (codeUnit >= 0xD800 && codeUnit <= 0xDBFF) {
+          if (i + 1 >= str.length ||
+              str.codeUnitAt(i + 1) < 0xDC00 ||
+              str.codeUnitAt(i + 1) > 0xDFFF) {
+            return true;
+          } else {
+            i++;
+          }
+        } else if (codeUnit >= 0xDC00 && codeUnit <= 0xDFFF) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    if (!options.requireJsStringBuiltin || hasUnpairedSurrogate(s)) {
+      // Unpaired surrogates can't be encoded as UTF-8, import them from JS
+      // runtime.
+      final i = internalizedStringsForJSRuntime.length;
+      internalizedString = module.globals.import('s', '$i',
+          w.GlobalType(w.RefType.extern(nullable: true), mutable: false));
+      internalizedStringsForJSRuntime.add(s);
+    } else {
+      internalizedString = module.globals.import(
+        'S',
+        s,
+        w.GlobalType(w.RefType.extern(nullable: true), mutable: false),
+      );
+    }
     _internalizedStringGlobals[(module, s)] = internalizedString;
-    internalizedStringsForJSRuntime.add(s);
     return internalizedString;
   }
 }
 
 class CompilationQueue {
+  final Translator translator;
   final List<CompilationTask> _pending = [];
 
+  CompilationQueue(this.translator);
+
   bool get isEmpty => _pending.isEmpty;
-  void add(CompilationTask entry) => _pending.add(entry);
+  void add(CompilationTask entry) {
+    assert(!translator.isDynamicModule ||
+        entry.function.enclosingModule == translator.dynamicModule);
+    _pending.add(entry);
+  }
+
   CompilationTask pop() => _pending.removeLast();
 }
 
@@ -1936,14 +2332,20 @@ class PolymorphicDispatchers {
   final Translator translator;
   final w.ModuleBuilder callingModule;
   final cache = <SelectorInfo, PolymorphicDispatcherCallTarget>{};
+  final uncheckedCache = <SelectorInfo, PolymorphicDispatcherCallTarget>{};
 
   PolymorphicDispatchers(this.translator, this.callingModule);
 
-  CallTarget getPolymorphicDispatcher(SelectorInfo selector) {
-    assert(selector.targetRanges.length > 1);
-    return cache.putIfAbsent(selector, () {
+  CallTarget getPolymorphicDispatcher(SelectorInfo selector,
+      {required bool useUncheckedEntry}) {
+    assert(
+        selector.targets(unchecked: useUncheckedEntry).targetRanges.length > 1);
+    return (useUncheckedEntry && selector.useMultipleEntryPoints
+            ? uncheckedCache
+            : cache)
+        .putIfAbsent(selector, () {
       return PolymorphicDispatcherCallTarget(
-          translator, selector, callingModule);
+          translator, selector, callingModule, useUncheckedEntry);
     });
   }
 }
@@ -1952,10 +2354,12 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
   final Translator translator;
   final SelectorInfo selector;
   final w.ModuleBuilder callingModule;
+  final bool useUncheckedEntry;
 
-  PolymorphicDispatcherCallTarget(
-      this.translator, this.selector, this.callingModule)
-      : super(selector.signature);
+  PolymorphicDispatcherCallTarget(this.translator, this.selector,
+      this.callingModule, this.useUncheckedEntry)
+      : assert(!selector.isDynamicModuleOverrideable),
+        super(selector.signature);
 
   @override
   String get name => '${selector.name} (polymorphic dispatcher)';
@@ -1964,11 +2368,16 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
   bool get supportsInlining => true;
 
   @override
-  bool get shouldInline => selector.staticDispatchRanges.length <= 2;
+  bool get shouldInline =>
+      selector
+          .targets(unchecked: useUncheckedEntry)
+          .staticDispatchRanges
+          .length <=
+      2;
 
   @override
-  CodeGenerator get inliningCodeGen =>
-      PolymorphicDispatcherCodeGenerator(translator, selector);
+  CodeGenerator get inliningCodeGen => PolymorphicDispatcherCodeGenerator(
+      translator, selector, useUncheckedEntry);
 
   @override
   late final w.BaseFunction function = (() {
@@ -1984,20 +2393,25 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
 class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
   final Translator translator;
   final SelectorInfo selector;
+  final bool useUncheckedEntry;
 
-  PolymorphicDispatcherCodeGenerator(this.translator, this.selector);
+  PolymorphicDispatcherCodeGenerator(
+      this.translator, this.selector, this.useUncheckedEntry)
+      : assert(!selector.isDynamicModuleOverrideable);
 
   @override
   void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
       w.Label? returnLabel) {
     final signature = selector.signature;
 
-    final targetRanges = selector.staticDispatchRanges
+    final targets = selector.targets(unchecked: useUncheckedEntry);
+
+    final targetRanges = targets.staticDispatchRanges
         .map((entry) => (range: entry.range, value: entry.target))
         .toList();
 
     final bool needFallback =
-        selector.targetRanges.length > selector.staticDispatchRanges.length;
+        targets.targetRanges.length > targets.staticDispatchRanges.length;
 
     void emitDirectCall(Reference target) {
       for (int i = 0; i < signature.inputs.length; ++i) {
@@ -2011,7 +2425,8 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
         b.local_get(paramLocals[i]);
       }
       b.local_get(paramLocals[0]);
-      translator.callDispatchTable(b, selector);
+      translator.callDispatchTable(b, selector,
+          useUncheckedEntry: useUncheckedEntry);
     }
 
     b.local_get(paramLocals[0]);
@@ -2054,14 +2469,14 @@ class DummyValuesCollector {
     dummyStructGlobal = dummyStructGlobalInit;
   }
 
-  w.Global? _prepareDummyValue(w.ModuleBuilder module, w.ValueType type) {
+  w.Global? prepareDummyValue(w.ModuleBuilder module, w.ValueType type) {
     if (type is w.RefType && !type.nullable) {
       w.HeapType heapType = type.heapType;
       return _dummyValues.putIfAbsent(heapType, () {
         if (heapType is w.DefType) {
           if (heapType is w.StructType) {
             for (w.FieldType field in heapType.fields) {
-              _prepareDummyValue(module, field.type.unpacked);
+              prepareDummyValue(module, field.type.unpacked);
             }
             final global =
                 module.globals.define(w.GlobalType(type, mutable: false));
@@ -2119,7 +2534,7 @@ class DummyValuesCollector {
             b.ref_null(heapType.bottomType);
           } else {
             translator.globals
-                .readGlobal(b, _prepareDummyValue(b.module, type)!);
+                .readGlobal(b, prepareDummyValue(b.module, type)!);
           }
         } else {
           throw "Unsupported global type $type ($type)";
@@ -2170,6 +2585,10 @@ abstract class _WasmImporter<T extends w.Exportable> {
           _translator.nameForModule(key.enclosingModule), key.exportedName);
     });
   }
+
+  bool has(T key) {
+    return _map.containsKey(key);
+  }
 }
 
 class WasmFunctionImporter extends _WasmImporter<w.BaseFunction> {
@@ -2179,7 +2598,7 @@ class WasmFunctionImporter extends _WasmImporter<w.BaseFunction> {
   w.BaseFunction _import(w.ModuleBuilder importingModule,
       w.BaseFunction definition, String moduleName, String importName) {
     return importingModule.functions
-        .import(moduleName, importName, definition.type);
+        .import(moduleName, importName, definition.type, definition.name);
   }
 }
 

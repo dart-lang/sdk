@@ -59,10 +59,9 @@ FieldDeclaration
     type: NamedType
       name: F
       question: ?
-      element: <testLibraryFragment>::@typeAlias::F
       element2: <testLibrary>::@typeAlias::F
       type: T Function<T>(int, T)?
-        alias: <testLibraryFragment>::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
     variables
       VariableDeclaration
         name: f
@@ -249,14 +248,13 @@ FormalParameterList
   parameter: FunctionTypedFormalParameter
     returnType: NamedType
       name: void
-      element: <null>
       element2: <null>
       type: void
     name: p1
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment>::@function::f1::@parameter::p1
+    declaredElement: <testLibraryFragment>::@function::f1::@formalParameter::p1
       type: void Function()
   rightParenthesis: )
 ''');
@@ -268,14 +266,13 @@ FormalParameterList
   parameter: FunctionTypedFormalParameter
     returnType: NamedType
       name: void
-      element: <null>
       element2: <null>
       type: void
     name: p2
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment>::@function::f2::@parameter::p2
+    declaredElement: <testLibraryFragment>::@function::f2::@formalParameter::p2
       type: void Function()?
   rightParenthesis: )
 ''');
@@ -289,7 +286,6 @@ FormalParameterList
     parameter: FunctionTypedFormalParameter
       returnType: NamedType
         name: void
-        element: <null>
         element2: <null>
         type: void
       name: p3
@@ -324,7 +320,6 @@ FormalParameterList
   parameter: FieldFormalParameter
     type: NamedType
       name: void
-      element: <null>
       element2: <null>
       type: void
     thisKeyword: this
@@ -333,7 +328,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment>::@class::A::@constructor::f1::@parameter::f1
+    declaredElement: <testLibraryFragment>::@class::A::@constructor::f1::@formalParameter::f1
       type: void Function()
   rightParenthesis: )
 ''');
@@ -345,7 +340,6 @@ FormalParameterList
   parameter: FieldFormalParameter
     type: NamedType
       name: void
-      element: <null>
       element2: <null>
       type: void
     thisKeyword: this
@@ -354,7 +348,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment>::@class::A::@constructor::f2::@parameter::f2
+    declaredElement: <testLibraryFragment>::@class::A::@constructor::f2::@formalParameter::f2
       type: void Function()?
   rightParenthesis: )
 ''');
@@ -368,7 +362,6 @@ FormalParameterList
     parameter: FieldFormalParameter
       type: NamedType
         name: void
-        element: <null>
         element2: <null>
         type: void
       thisKeyword: this
@@ -406,14 +399,13 @@ FormalParameterList
   parameter: FunctionTypedFormalParameter
     returnType: NamedType
       name: void
-      element: <null>
       element2: <null>
       type: void
     name: p1
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: f1@13::@parameter::p1
+    declaredElement: f1@13::@formalParameter::p1
       type: void Function()
   rightParenthesis: )
 ''');
@@ -425,14 +417,13 @@ FormalParameterList
   parameter: FunctionTypedFormalParameter
     returnType: NamedType
       name: void
-      element: <null>
       element2: <null>
       type: void
     name: p2
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: f2@37::@parameter::p2
+    declaredElement: f2@37::@formalParameter::p2
       type: void Function()?
   rightParenthesis: )
 ''');
@@ -446,16 +437,15 @@ FormalParameterList
     parameter: FunctionTypedFormalParameter
       returnType: NamedType
         name: void
-        element: <null>
         element2: <null>
         type: void
       name: p3
       parameters: FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
-      declaredElement: f3@62::@parameter::p3
+      declaredElement: f3@62::@formalParameter::p3
         type: void Function()?
-    declaredElement: f3@62::@parameter::p3
+    declaredElement: f3@62::@formalParameter::p3
       type: void Function()?
   rightDelimiter: }
   rightParenthesis: )

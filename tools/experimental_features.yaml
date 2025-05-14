@@ -24,6 +24,7 @@
 #
 # kernel:
 #   dart pkg/front_end/tool/cfe.dart generate-experimental-flags
+#   dart pkg/front_end/tool/update_expectations.dart
 #
 # vm:
 #   dart tools/generate_experimental_flags.dart
@@ -45,10 +46,10 @@
 #    experiment is disabled by default, but may be enabled by specifying the
 #    flag on the command line. (e.g. --enable-experiment=non-nullable)
 #
-#    A version less than this version may be specified in a .packages file
-#    or in a library language version override (e.g. // @dart = 2.1)
+#    A version less than this version may be specified in a package config file
+#    or in a library language version override (e.g. // @dart = 2.12)
 #    to disable this feature. For more on library language version override, see
-#    https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/language-versioning.md
+#    https://dart.dev/to/language-version-override
 #
 # 3. expired: (optional boolean)
 #    If true, then the experiment can no longer be enabled by specifying the
@@ -109,7 +110,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '3.7.0'
+current-version: '3.8.0'
 
 features:
   variance:
@@ -124,12 +125,11 @@ features:
 
   native-assets:
     help: "Compile and bundle native assets."
+    channels: [ "main", "dev" ]
 
   record-use:
     help: "Output arguments used by static functions."
-
-  null-aware-elements:
-    help: "Null-aware elements and map entries in collections."
+    channels: [ "main", "dev" ]
 
   enhanced-parts:
     experimentalReleaseVersion: '3.6.0'
@@ -145,11 +145,15 @@ features:
   inference-update-4:
     help: "A bundle of updates to type inference."
 
-  enum-shorthands:
-    help: "Shorter dot syntax for enum values."
+  dot-shorthands:
+    help: "Shorter dot syntax for static accesses."
 
   getter-setter-error:
     help: "Stop reporting errors about mismatching types in a getter/setter pair."
+
+  sound-flow-analysis:
+    # See https://github.com/dart-lang/language/issues/3100
+    help: "Assume sound null safety when computing type promotion, reachability, and definite assignment."
 
 # Experiment flag only used for testing.
   test-experiment:
@@ -164,6 +168,17 @@ features:
 # Shipped flags should be marked retired the following stable release.
 #
 
+  null-aware-elements:
+    enabledIn: '3.8.0'
+    validation: |
+      List<int> foo(int? x) => [?x];
+      main() {
+        if (foo(null).isEmpty) {
+          print('feature enabled');
+        }
+      }
+    help: "Null-aware elements and map entries in collections."
+
   inference-using-bounds:
     enabledIn: '3.7.0'
     validation: |
@@ -174,6 +189,7 @@ features:
         print('feature enabled');
       }
     help: "Use type parameter bounds more extensively in type inference."
+    expired: true
 
   wildcard-variables:
     enabledIn: '3.7.0'
@@ -184,6 +200,7 @@ features:
         print('feature enabled');
       }
     help: "Local declarations and parameters named `_` are non-binding."
+    expired: true
 
   digit-separators:
     enabledIn: '3.6.0'

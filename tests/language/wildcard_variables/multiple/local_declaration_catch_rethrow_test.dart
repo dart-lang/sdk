@@ -4,8 +4,6 @@
 
 // Tests multiple catch clause wildcard variable declarations with rethrow.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'package:expect/expect.dart';
 
 void main() {

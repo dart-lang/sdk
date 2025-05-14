@@ -13,28 +13,13 @@ import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
         TargetLibrariesSpecification;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/kernel.dart'
-    show
-        CanonicalName,
-        Component,
-        Location,
-        NonNullableByDefaultCompiledMode,
-        Version;
+    show CanonicalName, Component, Location, Version;
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
-import 'package:macros/src/executor/isolated_executor.dart'
-    as isolated_executor;
-import 'package:macros/src/executor/multi_executor.dart';
-import 'package:macros/src/executor/process_executor.dart' as process_executor;
-import 'package:macros/src/executor/serialization.dart' show SerializationMode;
 import 'package:package_config/package_config.dart';
 
 import '../api_prototype/compiler_options.dart'
-    show
-        CompilerOptions,
-        InvocationMode,
-        HooksForTesting,
-        Verbosity,
-        DiagnosticMessage;
+    show CompilerOptions, HooksForTesting, Verbosity, DiagnosticMessage;
 import '../api_prototype/experimental_flags.dart' as flags;
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -48,7 +33,6 @@ import '../codes/cfe_codes.dart'
         PlainAndColorizedString,
         messageCantInferPackagesFromManyInputs,
         messageCantInferPackagesFromPackageUri,
-        messageCompilingWithoutSoundNullSafety,
         messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
         messageMissingInput,
         noLength,
@@ -64,11 +48,9 @@ import '../codes/cfe_codes.dart'
         templateSdkRootNotFound,
         templateSdkSpecificationNotFound,
         templateSdkSummaryNotFound;
-import '../macros/macro_serializer.dart' show MacroSerializer;
 import 'command_line_reporting.dart' as command_line_reporting;
 import 'compiler_context.dart';
 import 'messages.dart' show getLocation;
-import 'nnbd_mode.dart';
 import 'problems.dart' show DebugAbort, unimplemented;
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
@@ -211,8 +193,6 @@ class ProcessedOptions {
   // Coverage-ignore(suite): Not run.
   bool get emitDeps => _raw.emitDeps;
 
-  NnbdMode get nnbdMode => _raw.nnbdMode;
-
   // Coverage-ignore(suite): Not run.
   bool get enableUnscheduledExperiments => _raw.enableUnscheduledExperiments;
 
@@ -230,11 +210,6 @@ class ProcessedOptions {
 
   /// The number of fatal diagnostics encountered so far.
   int fatalDiagnosticCount = 0;
-
-  MacroSerializer? _macroSerializer;
-  // Coverage-ignore(suite): Not run.
-  MacroSerializer get macroSerializer =>
-      _macroSerializer ??= _raw.macroSerializer ?? new MacroSerializer();
 
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
   ProcessedOptions({CompilerOptions? options, List<Uri>? inputs, this.output})
@@ -367,22 +342,6 @@ class ProcessedOptions {
     reportNoSourceLine(message.withoutLocation(), severity);
   }
 
-  /// If `CompilerOptions.invocationModes` contains `InvocationMode.compile`, an
-  /// info message about the null safety compilation mode is emitted.
-  void reportNullSafetyCompilationModeInfo() {
-    if (_raw.invocationModes.contains(InvocationMode.compile)) {
-      // Coverage-ignore-block(suite): Not run.
-      switch (nnbdMode) {
-        case NnbdMode.Weak:
-          reportWithoutLocation(messageCompilingWithoutSoundNullSafety,
-              messageCompilingWithoutSoundNullSafety.severity);
-          break;
-        case NnbdMode.Strong:
-          break;
-      }
-    }
-  }
-
   /// Returns `true` if the options have been validated.
   bool get haveBeenValidated => _validated;
 
@@ -490,8 +449,7 @@ class ProcessedOptions {
   Target? _target;
   Target get target => _target ??= _raw.target ??
       // Coverage-ignore(suite): Not run.
-      new NoneTarget(
-          new TargetFlags(soundNullSafety: nnbdMode == NnbdMode.Strong));
+      new NoneTarget(new TargetFlags());
 
   /// Returns the global state of the experimental features.
   flags.GlobalFeatures get globalFeatures => _raw.globalFeatures;
@@ -514,23 +472,6 @@ class ProcessedOptions {
     return _raw.isExperimentEnabledInLibraryByVersion(flag, importUri, version);
   }
 
-  Component _validateNullSafetyMode(Component component) {
-    if (component.mode == NonNullableByDefaultCompiledMode.Invalid) {
-      throw new FormatException(
-          'Provided .dill file for the following libraries has an invalid null '
-          'safety mode and does not support null safety:\n'
-          '${component.libraries.join('\n')}');
-    }
-    if (nnbdMode == NnbdMode.Strong &&
-        component.mode != NonNullableByDefaultCompiledMode.Strong) {
-      throw new FormatException(
-          'Provided .dill file for the following libraries does not '
-          'support sound null safety:\n'
-          '${component.libraries.join('\n')}');
-    }
-    return component;
-  }
-
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
   Future<Component?> loadSdkSummary(CanonicalName? nameRoot) async {
@@ -550,7 +491,6 @@ class ProcessedOptions {
     if (_sdkSummaryComponent != null) {
       throw new StateError("sdkSummary already loaded.");
     }
-    _validateNullSafetyMode(platform);
     _sdkSummaryComponent = platform;
   }
 
@@ -588,7 +528,7 @@ class ProcessedOptions {
             disableLazyReading: false,
             alwaysCreateNewNamedNodes: alwaysCreateNewNamedNodes)
         .readComponent(component);
-    return _validateNullSafetyMode(component);
+    return component;
   }
 
   /// Get the [UriTranslator] which resolves "package:" and "dart:" URIs.
@@ -969,71 +909,9 @@ class ProcessedOptions {
     }
   }
 
-  // Coverage-ignore(suite): Not run.
-  MultiMacroExecutor get macroExecutor {
-    if (_raw.macroExecutor != null) return _raw.macroExecutor!;
-
-    MultiMacroExecutor executor = _raw.macroExecutor = new MultiMacroExecutor();
-    // Either set up or reset the state for macros based on experiment status.
-    List<ExecutorFactoryToken> registeredMacroExecutors =
-        <ExecutorFactoryToken>[];
-    if (globalFeatures.macros.isEnabled && _raw.precompiledMacros != null) {
-      // TODO: Handle multiple macro libraries compiled to a single precompiled
-      // kernel file.
-      for (List<String> parts
-          in _raw.precompiledMacros!.map((arg) => arg.split(';'))) {
-        Set<Uri> libraries = parts
-            .skip(1)
-            .map(Uri.parse)
-            .where((library) => !executor.libraryIsRegistered(library))
-            .toSet();
-        if (libraries.isEmpty) {
-          continue;
-        }
-        Uri programUri = Uri.base.resolve(parts[0]);
-        if (parts[0].endsWith('.dill')) {
-          // It's kernel, run as an isolate.
-          registeredMacroExecutors.add(executor.registerExecutorFactory(
-              () => isolated_executor.start(macroSerializationMode, programUri),
-              libraries));
-        } else {
-          // Otherwise, run as an executable.
-          registeredMacroExecutors.add(executor.registerExecutorFactory(
-              () => process_executor.start(
-                  macroSerializationMode,
-                  process_executor.CommunicationChannel.socket,
-                  programUri.toFilePath()),
-              libraries));
-          break;
-        }
-      }
-    }
-
-    return executor;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  SerializationMode get macroSerializationMode =>
-      _raw.macroSerializationMode ??= SerializationMode.byteData;
-
-  // Coverage-ignore(suite): Not run.
-  /// The currently running precompilations.
-  Set<Uri> get runningPrecompilations => _raw.runningPrecompilations;
-
   CompilerOptions get rawOptionsForTesting => _raw;
 
   HooksForTesting? get hooksForTesting => _raw.hooksForTesting;
-
-  // Coverage-ignore(suite): Not run.
-  bool get showGeneratedMacroSourcesForTesting =>
-      _raw.showGeneratedMacroSourcesForTesting;
-
-  // Coverage-ignore(suite): Not run.
-  /// Disposes macro executor and serializer if configured.
-  Future<void> dispose() async {
-    await _raw.macroExecutor?.closeAndReset();
-    await macroSerializer.close();
-  }
 
   // Coverage-ignore(suite): Not run.
   bool equivalent(ProcessedOptions other,

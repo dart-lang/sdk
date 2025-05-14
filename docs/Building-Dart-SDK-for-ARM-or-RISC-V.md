@@ -2,6 +2,8 @@
 
 The Dart VM runs on a variety of ARM processors on Linux and Android. This document explains how to build the Dart VM and SDK to target these platforms.
 
+> **Note**: You must follow the steps in [Building.md](https://github.com/dart-lang/sdk/blob/main/docs/Building.md) to set up the environment and properly fetch the source code. Cloning the repository or obtaining the source code through other means will not result in a successful build.
+
 # Cross-compiling
 
 The build scripts download a Clang toolchain that can target IA32, X64, ARM, ARM64 or RISCV64 and run on an X64 or ARM64 host. For these cases, you do not need to install a cross-compiler yourself. For other cases, like building on a RISCV64 host or targeting RISCV32, you will need to manually install a toolchain.
@@ -62,4 +64,33 @@ You can create Debian packages targeting ARM or RISC-V as follows:
 ```
 $ ./tools/linux_dist_support/create_tarball.py
 $ ./tools/linux_dist_support/create_debian_packages.py -a {ia32, x64, arm, arm64, riscv64}
+```
+
+# Testing
+
+In addition to cross-compiling the Dart SDK, test items can also be cross-compiled. Even without the corresponding hardware, you can quickly verify if the source code modifications you made are correct. Below is a simple method for development on the RISCV64 platform for your reference.
+
+Cross-compile the test items on X64 Linux to RISCV64 and perform correctness check:
+1. Follow the steps above to cross-compile the RISCV64 sdk.
+2. Cross-compile the test items by running: `./tools/build.py --mode release --arch riscv64 most run_ffi_unit_tests`.
+3. Install the necessary QEMU dependencies: `sudo apt install qemu-user qemu-user-static qemu-system`.
+4. Run the test items, e.g., `tests/lib`:
+
+```bash
+export QEMU_LD_PREFIX=/usr/riscv64-linux-gnu
+
+./tools/test.py \
+  --runtime vm \
+  --progress color \
+  --arch riscv64 \
+  --mode release \
+  --time \
+  --tasks 8 \
+  lib
+```
+
+If you have configured QEMU for RISCV64, you can merge steps 3 and 4 into a single command (omitting some print parameters):
+
+```bash
+./tools/test.py -r vm -m release -a riscv64 --use-qemu lib
 ```

@@ -2,24 +2,263 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../utils/aot_snapshot.gni")
 import("../../utils/application_snapshot.gni")
 
 # All samples.
 group("all") {
-  deps = [ ":run_kernel" ]
+  deps = [
+    ":aot",
+    ":kernel",
+  ]
+}
+
+group("aot") {
+  deps = [
+    ":run_main_aot",
+    ":run_timer_aot",
+    ":run_timer_async_aot",
+    ":run_two_programs_aot",
+  ]
+
+  # FFI can't execute on the VM's simulator
+  if (dart_target_arch == host_cpu) {
+    deps += [ ":run_futures_aot" ]
+  }
+}
+
+group("kernel") {
+  deps = [
+    ":run_main_kernel",
+    ":run_timer_async_kernel",
+    ":run_timer_kernel",
+    ":run_two_programs_kernel",
+  ]
+
+  # FFI can't execute on the VM's simulator
+  if (dart_target_arch == host_cpu) {
+    deps += [ ":run_futures_kernel" ]
+  }
+}
+
+_all_configs = [
+  {
+    suffix = "_kernel"
+    dart_shared_lib = "../../runtime/engine:dart_engine_jit_shared"
+    dart_snapshot_kind = "kernel"
+    gen_kernel_args = [ "--link-platform" ]
+    snapshot_target = "application_snapshot"
+    training_args = []  # Not used
+  },
+  {
+    suffix = "_aot"
+    dart_shared_lib = "../../runtime/engine:dart_engine_aot_shared"
+    snapshot_target = "aot_snapshot"
+
+    # AOT snapshots as shared libraries on Windows are not
+    # supported, and in fact we don't build AOT samples on
+    # Windows. However, GN evaluation model will still
+    # evaluate the `aot_snapshot` template on Windows,
+    # and it will fail the assert if as_shared_library is
+    # true, and the current platform is Windows.
+    as_shared_library = !is_win
+  },
+]
+
+template("sample") {
+  configurable_deps = []
+  if (defined(invoker.configurable_deps)) {
+    configurable_deps += invoker.configurable_deps
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+  foreach(conf, _all_configs) {
+    executable("${target_name}${conf.suffix}") {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      if (!defined(include_dirs)) {
+        include_dirs = []
+      }
+
+      include_dirs += [
+        ".",
+        "../../runtime",
+        "../../runtime/engine",
+      ]
+
+      # Otherwise build with --no-clang (jit) or MSAN (aot) fails.
+      if (is_linux) {
+        if (!defined(ldflags)) {
+          ldflags = []
+        }
+        ldflags += [ "-Wl,--allow-shlib-undefined" ]
+      }
+      deps = [ conf.dart_shared_lib ]
+      foreach(dep, configurable_deps) {
+        deps += [ "${dep}${conf.suffix}" ]
+      }
+      deps += extra_deps
+    }
+  }
+}
+
+template("snapshots") {
+  configurable_deps = []
+  if (defined(invoker.configurable_deps)) {
+    configurable_deps += invoker.configurable_deps
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+  foreach(conf, _all_configs) {
+    target(conf.snapshot_target, "${target_name}${conf.suffix}") {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      if (defined(conf.dart_snapshot_kind)) {
+        dart_snapshot_kind = conf.dart_snapshot_kind
+      }
+      if (defined(conf.training_args)) {
+        training_args = conf.training_args
+      }
+      if (defined(conf.gen_kernel_args)) {
+        gen_kernel_args = conf.gen_kernel_args
+      }
+      if (defined(conf.as_shared_library)) {
+        as_shared_library = conf.as_shared_library
+      }
+      deps = []
+      foreach(dep, configurable_deps) {
+        deps += [ "${dep}${conf.suffix}" ]
+      }
+      deps += extra_deps
+    }
+  }
+}
+
+_dart_root = get_path_info("../..", "abspath")
+
+template("shims") {
+  name = target_name
+  if (defined(invoker.name)) {
+    name = invoker.name
+  }
+  configurable_deps = []
+  if (defined(invoker.configurable_deps)) {
+    configurable_deps += invoker.configurable_deps
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+
+  foreach(conf, _all_configs) {
+    shared_library("${target_name}${conf.suffix}") {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "name",
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      output_name = "${name}${conf.suffix}"
+      if (!defined(include_dirs)) {
+        include_dirs = []
+      }
+      include_dirs += [
+        ".",
+        "../../runtime",
+        "../../runtime/engine",
+      ]
+      if (is_mac) {
+        if (!defined(ldflags)) {
+          ldflags = []
+        }
+        ldflags += [ "-Wl,-install_name,@rpath/lib${output_name}.dylib" ]
+      }
+      sources = [
+        "$name.cc",
+        "$name.h",
+      ]
+      public = [ "$name.h" ]
+      deps = [ conf.dart_shared_lib ]
+      foreach(dep, configurable_deps) {
+        deps += [ "$dep${conf.suffix}" ]
+      }
+      deps += extra_deps
+    }
+  }
 }
 
 # Sample binary to run given kernel snapshot.
-executable("run_kernel") {
-  sources = [ "run_kernel.cc" ]
-  deps = [ "../../runtime/bin:dart_embedder_runtime_jit" ]
-  include_dirs = [ "../../runtime" ]
-  data_deps = [ ":hello_kernel" ]
+sample("run_main") {
+  sources = [ "run_main.cc" ]
+  configurable_deps = [ ":hello" ]
 }
 
-# Kernel snapshot of ./hello.dart.
-application_snapshot("hello_kernel") {
+snapshots("hello") {
   main_dart = "hello.dart"
-  dart_snapshot_kind = "kernel"
-  training_args = []  # Not used
+}
+
+# Sample binary to run two snapshots simultaneously.
+sample("run_two_programs") {
+  sources = [ "run_two_programs.cc" ]
+  configurable_deps = [
+    ":program1",
+    ":program2",
+  ]
+}
+
+snapshots("program1") {
+  main_dart = "program1.dart"
+}
+
+snapshots("program2") {
+  main_dart = "program2.dart"
+}
+
+snapshots("timer") {
+  main_dart = "timer.dart"
+}
+
+shims("timer_library") {
+  name = "timer"
+}
+
+sample("run_timer") {
+  sources = [ "run_timer.cc" ]
+  configurable_deps = [
+    ":timer",
+    ":timer_library",
+  ]
+}
+
+sample("run_timer_async") {
+  sources = [ "run_timer_async.cc" ]
+  configurable_deps = [
+    ":timer",
+    ":timer_library",
+  ]
+}
+
+# FFI can't execute on the VM's simulator
+if (dart_target_arch == host_cpu) {
+  snapshots("futures") {
+    main_dart = "futures.dart"
+  }
+
+  sample("run_futures") {
+    sources = [ "run_futures.cc" ]
+    configurable_deps = [ ":futures" ]
+  }
 }

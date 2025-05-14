@@ -14,7 +14,9 @@ void registerTypeArgument<X>() {
 }
 
 void runAndCheckForTypeArgument(
-    Type expectedArgument, void Function() functionToRun) {
+  Type expectedArgument,
+  void Function() functionToRun,
+) {
   argument = null;
   functionToRun();
   Expect.equals(expectedArgument, argument);

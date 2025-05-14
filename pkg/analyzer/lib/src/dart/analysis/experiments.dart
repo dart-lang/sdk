@@ -93,7 +93,6 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   factory ExperimentStatus.fromStrings2({
     required Version sdkLanguageVersion,
     required List<String> flags,
-    // TODO(scheglov): use restrictEnableFlagsToVersion
   }) {
     var explicitFlags = decodeExplicitFlags(flags);
 
@@ -112,10 +111,12 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
     );
   }
 
-  factory ExperimentStatus.latestLanguageVersion() {
+  factory ExperimentStatus.latestLanguageVersion({
+    List<String> flags = const [],
+  }) {
     return ExperimentStatus.fromStrings2(
       sdkLanguageVersion: currentVersion,
-      flags: [],
+      flags: flags,
     );
   }
 

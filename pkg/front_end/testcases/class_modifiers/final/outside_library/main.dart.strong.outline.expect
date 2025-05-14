@@ -41,8 +41,8 @@ final class ImplementsFinalClass extends core::Object implements mai::A {
     ;
 }
 class EnumImplementsFinalMixin extends core::_Enum implements mai::A /*isEnum*/  {
-  static const field core::List<self::EnumImplementsFinalMixin> values = const <self::EnumImplementsFinalMixin>[self::EnumImplementsFinalMixin::x];
   enum-element static const field self::EnumImplementsFinalMixin x = const self::EnumImplementsFinalMixin::•(0, "x");
+  static const field core::List<self::EnumImplementsFinalMixin> values = const <self::EnumImplementsFinalMixin>[self::EnumImplementsFinalMixin::x];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalMixin
     : super core::_Enum::•(#index, #name)
     ;
@@ -51,11 +51,11 @@ class EnumImplementsFinalMixin extends core::_Enum implements mai::A /*isEnum*/ 
 }
 abstract base class MixinOnA extends mai::A /*isMixinDeclaration*/  {
 }
+abstract base class MixinOnAB extends self::_MixinOnAB&A&B /*isMixinDeclaration*/  {
+}
 abstract class _MixinOnAB&A&B extends core::Object implements mai::A, mai::B /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_MixinOnAB&A&B
     ;
-}
-abstract base class MixinOnAB extends self::_MixinOnAB&A&B /*isMixinDeclaration*/  {
 }
 
 library;
@@ -73,6 +73,6 @@ final class B extends core::Object {
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:11:6 -> ListConstant(const <EnumImplementsFinalMixin>[const EnumImplementsFinalMixin{_Enum.index: 0, _Enum._name: "x"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:11:46 -> InstanceConstant(const EnumImplementsFinalMixin{_Enum.index: 0, _Enum._name: "x"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:11:6 -> ListConstant(const <EnumImplementsFinalMixin>[const EnumImplementsFinalMixin{_Enum.index: 0, _Enum._name: "x"}])
 Extra constant evaluation: evaluated: 7, effectively constant: 2

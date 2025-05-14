@@ -20,8 +20,8 @@ class String {
     int? end,
   ]) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (charCodes == null) throw new ArgumentError.notNull("charCodes");
-    if (start == null) throw new ArgumentError.notNull("start");
+    if (charCodes == null) throw ArgumentError.notNull("charCodes");
+    if (start == null) throw ArgumentError.notNull("start");
     return _StringBase.createFromCharCodes(charCodes, start, end, null);
   }
 
@@ -43,7 +43,7 @@ class String {
           .._setAt(1, low);
       }
     }
-    throw new RangeError.range(charCode, 0, 0x10ffff);
+    throw RangeError.range(charCode, 0, 0x10ffff);
   }
 
   @patch
@@ -96,7 +96,7 @@ abstract final class _StringBase implements String {
   static const int _maxJoinReplaceOneByteStringLength = 500;
 
   factory _StringBase._uninstantiable() {
-    throw new UnsupportedError("_StringBase can't be instantiated");
+    throw UnsupportedError("_StringBase can't be instantiated");
   }
 
   @pragma("vm:recognized", "asm-intrinsic")
@@ -170,7 +170,7 @@ abstract final class _StringBase implements String {
 
     final int actualLimit = limit ?? _scanCodeUnits(typedCharCodes, start, end);
     if (actualLimit < 0) {
-      throw new ArgumentError(typedCharCodes);
+      throw ArgumentError(typedCharCodes);
     }
     if (actualLimit <= _maxLatin1) {
       return _createOneByteString(typedCharCodes, start, len);
@@ -192,7 +192,7 @@ abstract final class _StringBase implements String {
     int bits = 0;
     for (int i = start; i < end; i++) {
       int code = charCodes[i];
-      if (code is! _Smi) throw new ArgumentError(charCodes);
+      if (code is! _Smi) throw ArgumentError(charCodes);
       bits |= code;
     }
     return bits;
@@ -375,7 +375,7 @@ abstract final class _StringBase implements String {
 
   bool startsWith(Pattern pattern, [int index = 0]) {
     if ((index < 0) || (index > this.length)) {
-      throw new RangeError.range(index, 0, this.length);
+      throw RangeError.range(index, 0, this.length);
     }
     if (pattern is String) {
       return _substringMatches(index, pattern);
@@ -385,12 +385,21 @@ abstract final class _StringBase implements String {
 
   int indexOf(Pattern pattern, [int start = 0]) {
     if ((start < 0) || (start > this.length)) {
-      throw new RangeError.range(start, 0, this.length, "start");
+      throw RangeError.range(start, 0, this.length, "start");
     }
     if (pattern is String) {
       String other = pattern;
-      int maxIndex = this.length - other.length;
-      // TODO: Use an efficient string search (e.g. BMH).
+      var otherLength = other.length;
+      if (otherLength == 0) return start;
+      if (otherLength == 1) {
+        int codeUnit = other.codeUnitAt(0);
+        for (var index = start; index < this.length; index++) {
+          if (codeUnit == this.codeUnitAt(index)) return index;
+        }
+        return -1;
+      }
+      int maxIndex = this.length - otherLength;
+      // TODO: Use an efficient string search (e.g., BMH).
       for (int index = start; index <= maxIndex; index++) {
         if (_substringMatches(index, other)) {
           return index;
@@ -399,8 +408,6 @@ abstract final class _StringBase implements String {
       return -1;
     }
     for (int i = start; i <= this.length; i++) {
-      // TODO(11276); This has quadratic behavior because matchAsPrefix tries
-      // to find a later match too. Optimize matchAsPrefix to avoid this.
       if (pattern.matchAsPrefix(this, i) != null) return i;
     }
     return -1;
@@ -410,7 +417,7 @@ abstract final class _StringBase implements String {
     if (start == null) {
       start = this.length;
     } else if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
+      throw RangeError.range(start, 0, this.length);
     }
     if (pattern is String) {
       String other = pattern;
@@ -424,8 +431,6 @@ abstract final class _StringBase implements String {
       return -1;
     }
     for (int i = start; i >= 0; i--) {
-      // TODO(11276); This has quadratic behavior because matchAsPrefix tries
-      // to find a later match too. Optimize matchAsPrefix to avoid this.
       if (pattern.matchAsPrefix(this, i) != null) return i;
     }
     return -1;
@@ -575,7 +580,7 @@ abstract final class _StringBase implements String {
   String operator *(int times) {
     if (times <= 0) return "";
     if (times == 1) return this;
-    StringBuffer buffer = new StringBuffer(this);
+    StringBuffer buffer = StringBuffer(this);
     for (int i = 1; i < times; i++) {
       buffer.write(this);
     }
@@ -585,7 +590,7 @@ abstract final class _StringBase implements String {
   String padLeft(int width, [String padding = ' ']) {
     int delta = width - this.length;
     if (delta <= 0) return this;
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     for (int i = 0; i < delta; i++) {
       buffer.write(padding);
     }
@@ -596,7 +601,7 @@ abstract final class _StringBase implements String {
   String padRight(int width, [String padding = ' ']) {
     int delta = width - this.length;
     if (delta <= 0) return this;
-    StringBuffer buffer = new StringBuffer(this);
+    StringBuffer buffer = StringBuffer(this);
     for (int i = 0; i < delta; i++) {
       buffer.write(padding);
     }
@@ -604,13 +609,10 @@ abstract final class _StringBase implements String {
   }
 
   bool contains(Pattern pattern, [int startIndex = 0]) {
-    if (pattern is String) {
-      if (startIndex < 0 || startIndex > this.length) {
-        throw new RangeError.range(startIndex, 0, this.length);
-      }
+    if (startIndex >= 0 && startIndex <= this.length) {
       return indexOf(pattern, startIndex) >= 0;
     }
-    return pattern.allMatches(this.substring(startIndex)).isNotEmpty;
+    throw RangeError.range(startIndex, 0, this.length, "startIndex");
   }
 
   String replaceFirst(
@@ -618,16 +620,6 @@ abstract final class _StringBase implements String {
     String replacement, [
     int startIndex = 0,
   ]) {
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (pattern == null) {
-      throw new ArgumentError.notNull("pattern");
-    }
-    if (replacement == null) {
-      throw new ArgumentError.notNull("replacement");
-    }
-    if (startIndex == null) {
-      throw new ArgumentError.notNull("startIndex");
-    }
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
     Iterator iterator =
         startIndex == 0
@@ -679,8 +671,8 @@ abstract final class _StringBase implements String {
   }
 
   String replaceAll(Pattern pattern, String replacement) {
-    if (pattern == null) throw new ArgumentError.notNull("pattern");
-    if (replacement == null) throw new ArgumentError.notNull("replacement");
+    if (pattern == null) throw ArgumentError.notNull("pattern");
+    if (replacement == null) throw ArgumentError.notNull("replacement");
 
     int startIndex = 0;
     // String fragments that replace the prefix [this] up to [startIndex].
@@ -708,7 +700,7 @@ abstract final class _StringBase implements String {
     if (replacementIsOneByte &&
         length < _maxJoinReplaceOneByteStringLength &&
         this._isOneByte) {
-      // TODO(lrn): Is there a cut-off point, or is runtime always faster?
+      // TODO: Is there a cut-off point, or is runtime always faster?
       return _joinReplaceAllOneByteResult(this, matches, length);
     }
     return _joinReplaceAllResult(this, matches, length, replacementIsOneByte);
@@ -778,8 +770,8 @@ abstract final class _StringBase implements String {
   );
 
   String replaceAllMapped(Pattern pattern, String replace(Match match)) {
-    if (pattern == null) throw new ArgumentError.notNull("pattern");
-    if (replace == null) throw new ArgumentError.notNull("replace");
+    if (pattern == null) throw ArgumentError.notNull("pattern");
+    if (replace == null) throw ArgumentError.notNull("replace");
     List matches = [];
     int length = 0;
     int startIndex = 0;
@@ -813,9 +805,9 @@ abstract final class _StringBase implements String {
     String replace(Match match), [
     int startIndex = 0,
   ]) {
-    if (pattern == null) throw new ArgumentError.notNull("pattern");
-    if (replace == null) throw new ArgumentError.notNull("replace");
-    if (startIndex == null) throw new ArgumentError.notNull("startIndex");
+    if (pattern == null) throw ArgumentError.notNull("pattern");
+    if (replace == null) throw ArgumentError.notNull("replace");
+    if (startIndex == null) throw ArgumentError.notNull("startIndex");
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
 
     var matches = pattern.allMatches(this, startIndex).iterator;
@@ -833,12 +825,12 @@ abstract final class _StringBase implements String {
     String onNonMatch(String nonMatch),
   ) {
     // Pattern is the empty string.
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     int length = this.length;
     int i = 0;
     buffer.write(onNonMatch(""));
     while (i < length) {
-      buffer.write(onMatch(new _StringMatch(i, this, "")));
+      buffer.write(onMatch(_StringMatch(i, this, "")));
       // Special case to avoid splitting a surrogate pair.
       int code = this.codeUnitAt(i);
       if ((code & ~0x3FF) == 0xD800 && length > i + 1) {
@@ -854,7 +846,7 @@ abstract final class _StringBase implements String {
       buffer.write(onNonMatch(this[i]));
       i++;
     }
-    buffer.write(onMatch(new _StringMatch(i, this, "")));
+    buffer.write(onMatch(_StringMatch(i, this, "")));
     buffer.write(onNonMatch(""));
     return buffer.toString();
   }
@@ -865,7 +857,7 @@ abstract final class _StringBase implements String {
     String onNonMatch(String nonMatch)?,
   }) {
     if (pattern == null) {
-      throw new ArgumentError.notNull("pattern");
+      throw ArgumentError.notNull("pattern");
     }
     onMatch ??= _matchString;
     onNonMatch ??= _stringIdentity;
@@ -875,7 +867,7 @@ abstract final class _StringBase implements String {
         return _splitMapJoinEmptyString(onMatch, onNonMatch);
       }
     }
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     int startIndex = 0;
     for (Match match in pattern.allMatches(this)) {
       buffer.write(onNonMatch(this.substring(startIndex, match.start)));
@@ -940,23 +932,19 @@ abstract final class _StringBase implements String {
 
   static ArgumentError _interpolationError(Object? o, Object? result) {
     // Since Dart 2.0, [result] can only be null.
-    return new ArgumentError.value(
-      o,
-      "object",
-      "toString method returned 'null'",
-    );
+    return ArgumentError.value(o, "object", "toString method returned 'null'");
   }
 
   Iterable<Match> allMatches(String string, [int start = 0]) {
     if (start < 0 || start > string.length) {
-      throw new RangeError.range(start, 0, string.length, "start");
+      throw RangeError.range(start, 0, string.length, "start");
     }
-    return new _StringAllMatchesIterable(string, this, start);
+    return _StringAllMatchesIterable(string, this, start);
   }
 
   Match? matchAsPrefix(String string, [int start = 0]) {
     if (start < 0 || start > string.length) {
-      throw new RangeError.range(start, 0, string.length);
+      throw RangeError.range(start, 0, string.length);
     }
     if (start + this.length > string.length) return null;
     for (int i = 0; i < this.length; i++) {
@@ -964,12 +952,12 @@ abstract final class _StringBase implements String {
         return null;
       }
     }
-    return new _StringMatch(start, string, this);
+    return _StringMatch(start, string, this);
   }
 
   List<String> split(Pattern pattern) {
     if ((pattern is String) && pattern.isEmpty) {
-      List<String> result = new List<String>.generate(
+      List<String> result = List<String>.generate(
         this.length,
         (int i) => this[i],
       );
@@ -1007,9 +995,9 @@ abstract final class _StringBase implements String {
     return result;
   }
 
-  List<int> get codeUnits => new CodeUnits(this);
+  List<int> get codeUnits => CodeUnits(this);
 
-  Runes get runes => new Runes(this);
+  Runes get runes => Runes(this);
 
   @pragma("vm:external-name", "String_toUpperCase")
   external String toUpperCase();
@@ -1454,7 +1442,7 @@ final class _StringMatch implements Match {
 
   String group(int group) {
     if (group != 0) {
-      throw new RangeError.value(group);
+      throw RangeError.value(group);
     }
     return pattern;
   }
@@ -1480,12 +1468,12 @@ final class _StringAllMatchesIterable extends Iterable<Match> {
   _StringAllMatchesIterable(this._input, this._pattern, this._index);
 
   Iterator<Match> get iterator =>
-      new _StringAllMatchesIterator(_input, _pattern, _index);
+      _StringAllMatchesIterator(_input, _pattern, _index);
 
   Match get first {
     int index = _input.indexOf(_pattern, _index);
     if (index >= 0) {
-      return new _StringMatch(index, _input, _pattern);
+      return _StringMatch(index, _input, _pattern);
     }
     throw IterableElementError.noElement();
   }
@@ -1511,7 +1499,7 @@ final class _StringAllMatchesIterator implements Iterator<Match> {
       return false;
     }
     int end = index + _pattern.length;
-    _current = new _StringMatch(index, _input, _pattern);
+    _current = _StringMatch(index, _input, _pattern);
     // Empty match, don't start at same location again.
     if (end == _index) end++;
     _index = end;

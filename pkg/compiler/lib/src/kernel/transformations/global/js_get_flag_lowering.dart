@@ -58,9 +58,6 @@ class JsGetFlagLowering {
     'USE_CONTENT_SECURITY_POLICY' =>
       _options.features.useContentSecurityPolicy.isEnabled,
     'VARIANCE' => _options.enableVariance,
-    'LEGACY' => _options.useLegacySubtyping,
-    'EXTRA_NULL_SAFETY_CHECKS' => _options.experimentNullSafetyChecks,
-    'PRINT_LEGACY_STARS' => _options.printLegacyStars,
     _ => null,
   };
 

@@ -51,7 +51,7 @@ class InterpreterSetjmpBuffer {
   void Longjmp() {
     // "This" is now the last setjmp buffer.
     interpreter_->set_last_setjmp_buffer(this);
-    longjmp(buffer_, 1);
+    DART_LONGJMP(buffer_, 1);
   }
 
   explicit InterpreterSetjmpBuffer(Interpreter* interpreter) {
@@ -532,7 +532,7 @@ static DART_NOINLINE bool InvokeRuntime(Thread* thread,
                                         RuntimeFunction drt,
                                         const NativeArguments& args) {
   InterpreterSetjmpBuffer buffer(interpreter);
-  if (!setjmp(buffer.buffer_)) {
+  if (!DART_SETJMP(buffer.buffer_)) {
     thread->set_vm_tag(reinterpret_cast<uword>(drt));
     drt(args);
     thread->set_vm_tag(VMTag::kDartInterpretedTagId);
@@ -581,7 +581,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   Exit(thread, *FP, call_top + 1, *pc);
   {
     InterpreterSetjmpBuffer buffer(this);
-    if (!setjmp(buffer.buffer_)) {
+    if (!DART_SETJMP(buffer.buffer_)) {
 #if defined(USING_SIMULATOR)
       // We need to beware that bouncing between the interpreter and the
       // simulator may exhaust the C stack before exhausting either the
@@ -1828,7 +1828,8 @@ SwitchDispatch:
       // Check the interpreter's own stack limit for actual interpreter's stack
       // overflows, and also the thread's stack limit for scheduled interrupts.
       if (reinterpret_cast<uword>(SP) >= overflow_stack_limit() ||
-          thread->HasScheduledInterrupts()) {
+          thread->HasScheduledInterrupts() ||
+          !thread->os_thread()->HasStackHeadroom()) {
         Exit(thread, FP, SP + 1, pc);
         INVOKE_RUNTIME(DRT_InterruptOrStackOverflow,
                        NativeArguments(thread, 0, nullptr, nullptr));
@@ -3568,33 +3569,60 @@ SwitchDispatch:
     ClosureDataPtr data = ClosureData::RawCast(function->untag()->data());
     FunctionPtr target = Function::RawCast(data->untag()->parent_function());
 
-    const intptr_t type_args_len =
-        InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+    intptr_t type_args_len = InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
     const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
     const intptr_t argc =
         InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
     ObjectPtr* argv = FrameArguments(FP, argc);
 
-    if (type_args_len > 0) {
-      // Replace closure receiver with type arguments.
-      argv[1] = argv[0];
-    } else if (Function::KindOf(target) == UntaggedFunction::kConstructor) {
-      // Factory constructors always take type arguments.
-      FunctionTypePtr signature =
-          FunctionType::RawCast(function->untag()->signature());
-      TypeParametersPtr type_params = signature->untag()->type_parameters();
-      TypeArgumentsPtr type_args = (type_params == null_value)
-                                       ? TypeArguments::null()
-                                       : type_params->untag()->defaults();
-      argv[0] = type_args;
+    TypeParametersPtr type_params =
+        FunctionType::RawCast(function->untag()->signature())
+            ->untag()
+            ->type_parameters();
+    if (type_params == null_value) {
+      if (type_args_len > 0) {
+        SP[1] = function;
+        goto NoSuchMethodFromPrologue;
+      }
+      if (Function::KindOf(target) == UntaggedFunction::kConstructor) {
+        // Factory constructors always take type arguments.
+        // Replace closure receiver with type arguments.
+        argv[0] = TypeArguments::null();
+      }
+    } else {
+      TypeArgumentsPtr delayed_type_arguments =
+          Closure::RawCast(argv[receiver_idx])
+              ->untag()
+              ->delayed_type_arguments();
+      if (delayed_type_arguments != Object::empty_type_arguments().ptr()) {
+        if (type_args_len > 0) {
+          SP[1] = function;
+          goto NoSuchMethodFromPrologue;
+        }
+        // Replace closure receiver with type arguments.
+        argv[0] = delayed_type_arguments;
+        type_args_len =
+            Smi::Value(type_params->untag()->names()->untag()->length());
+      } else if (type_args_len > 0) {
+        // Replace closure receiver with type arguments.
+        argv[1] = argv[0];
+      } else if (Function::KindOf(target) == UntaggedFunction::kConstructor) {
+        // Factory constructors always take type arguments.
+        // Replace closure receiver with type arguments.
+        argv[0] = type_params->untag()->defaults();
+        type_args_len =
+            Smi::Value(type_params->untag()->names()->untag()->length());
+      }
     }
+
     SP[1] = target;
     SP[2] = 0;  // Space for result.
     SP[3] = argdesc_;
     SP[4] = target;
-    Exit(thread, FP, SP + 5, pc);
+    SP[5] = Smi::New(type_args_len);
+    Exit(thread, FP, SP + 6, pc);
     INVOKE_RUNTIME(DRT_AdjustArgumentsDesciptorForImplicitClosure,
-                   NativeArguments(thread, 2, SP + 3, SP + 2));
+                   NativeArguments(thread, 3, SP + 3, SP + 2));
     argdesc_ = Array::RawCast(SP[2]);
 
     goto TailCallSP1;
@@ -3703,9 +3731,10 @@ SwitchDispatch:
       SP[2] = 0;  // Space for result.
       SP[3] = argdesc_;
       SP[4] = SP[1];  // Target.
-      Exit(thread, FP, SP + 5, pc);
+      SP[5] = 0;      // New type_args_len.
+      Exit(thread, FP, SP + 6, pc);
       INVOKE_RUNTIME(DRT_AdjustArgumentsDesciptorForImplicitClosure,
-                     NativeArguments(thread, 2, SP + 3, SP + 2));
+                     NativeArguments(thread, 3, SP + 3, SP + 2));
       argdesc_ = Array::RawCast(SP[2]);
     }
 
@@ -3898,11 +3927,6 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   }
   ASSERT(buf != nullptr);
   ASSERT(last_setjmp_buffer() == buf);
-
-  // The C++ caller has not cleaned up the stack memory of C++ frames.
-  // Prepare for unwinding frames by destroying all the stack resources
-  // in the previous C++ frames.
-  StackResource::Unwind(thread);
 
   fp_ = reinterpret_cast<ObjectPtr*>(fp);
 

@@ -21,10 +21,7 @@ enum TestMode {
   jsStringImplReceiverAndArguments,
 }
 
-enum Position {
-  jsStringImplReceiver,
-  jsStringImplArgument,
-}
+enum Position { jsStringImplReceiver, jsStringImplArgument }
 
 bool useJSStringImpl(Position pos, TestMode mode) =>
     (pos == Position.jsStringImplReceiver &&
@@ -155,7 +152,7 @@ void testStartsWith(TestMode mode) {
   Expect.throws(() => rstr.startsWith(aEmptyStr, -1));
   Expect.throws(() => rstr.startsWith(aEmptyStr, 4));
 
-  final regexp = new RegExp('s(?:tr?)?');
+  final regexp = RegExp('s(?:tr?)?');
   Expect.isTrue(rstr.startsWith(regexp));
   Expect.isFalse(rstrstr.startsWith(regexp, 1));
   Expect.isFalse(rstrstr.startsWith(regexp, 2));
@@ -307,7 +304,9 @@ void testReplaceAll(TestMode mode) {
   Expect.equals('AtoBtoCDtoE', r('AfromBfromCDfromE').replaceAll(aFrom, aTo));
   Expect.equals('toABtoCDtoE', r('fromABfromCDfromE').replaceAll(aFrom, aTo));
   Expect.equals(
-      'toABtoCDtoEto', r('fromABfromCDfromEfrom').replaceAll(aFrom, aTo));
+    'toABtoCDtoEto',
+    r('fromABfromCDfromEfrom').replaceAll(aFrom, aTo),
+  );
   Expect.equals('ABC', r('ABC').replaceAll(aFrom, aTo));
   Expect.equals('', r('').replaceAll(aFrom, aTo));
   Expect.equals('fro', r('fro').replaceAll(aFrom, aTo));
@@ -319,7 +318,9 @@ void testReplaceAll(TestMode mode) {
   Expect.equals('toAtoBtoCto', r('ABC').replaceAll(aEmptyStr, aTo));
   Expect.equals('aXXcaXXdae', r('abcabdae').replaceAll(RegExp('b'), a('XX')));
   Expect.equals(
-      'aXXcaXXdae', r('abcabdae').replaceAll(RegExpWrap('b'), a('XX')));
+    'aXXcaXXdae',
+    r('abcabdae').replaceAll(RegExpWrap('b'), a('XX')),
+  );
 }
 
 void testReplaceAllMapped(TestMode mode) {
@@ -332,10 +333,14 @@ void testReplaceAllMapped(TestMode mode) {
   Expect.equals('bcbde', r('abcabdae').replaceAllMapped(a('a'), (m) => a('')));
   Expect.equals('[]', r('').replaceAllMapped(a(''), mark));
   Expect.equals('[]A[]B[]C[]', r('ABC').replaceAllMapped(a(''), mark));
-  Expect.equals('aXXcaXXdae',
-      r('abcabdae').replaceAllMapped(RegExp('b'), (_) => a('XX')));
-  Expect.equals('aXXcaXXdae',
-      r('abcabdae').replaceAllMapped(RegExpWrap('b'), (_) => a('XX')));
+  Expect.equals(
+    'aXXcaXXdae',
+    r('abcabdae').replaceAllMapped(RegExp('b'), (_) => a('XX')),
+  );
+  Expect.equals(
+    'aXXcaXXdae',
+    r('abcabdae').replaceAllMapped(RegExpWrap('b'), (_) => a('XX')),
+  );
 }
 
 void testCompareTo(TestMode mode) {
@@ -365,24 +370,20 @@ void testCharCodes() {
 }
 
 void testRepeat() {
-  List<String> testStrings = [
-    '',
-    '\x00',
-    'a',
-    'ab',
-    '\x80',
-    '\xff',
-    '\u2028',
-    'abcdef\u2028',
-    '\u{10002}',
-    'abcdef\u{10002}'
-  ].map(jsStringImpl).toList();
-  List<int> counts = [
-    0,
-    1,
-    2,
-    10,
-  ];
+  List<String> testStrings =
+      [
+        '',
+        '\x00',
+        'a',
+        'ab',
+        '\x80',
+        '\xff',
+        '\u2028',
+        'abcdef\u2028',
+        '\u{10002}',
+        'abcdef\u{10002}',
+      ].map(jsStringImpl).toList();
+  List<int> counts = [0, 1, 2, 10];
   void testRepeat(String str, int repeat) {
     String expect;
     if (repeat <= 0) {
@@ -390,7 +391,7 @@ void testRepeat() {
     } else if (repeat == 1) {
       expect = str;
     } else {
-      StringBuffer buf = new StringBuffer();
+      StringBuffer buf = StringBuffer();
       for (int i = 0; i < repeat; i++) {
         buf.write(str);
       }
@@ -420,7 +421,9 @@ void testPadLeft(TestMode mode) {
   Expect.equals('xyzxyzxyzxyzxyz', r('').padLeft(5, a('xyz')));
   Expect.equals('xyzxyzxyzxyza', r('a').padLeft(5, a('xyz')));
   Expect.equals(
-      '\u{10002}\u{10002}\u{10002}aa', r('aa').padLeft(5, a('\u{10002}')));
+    '\u{10002}\u{10002}\u{10002}aa',
+    r('aa').padLeft(5, a('\u{10002}')),
+  );
 }
 
 void testPadRight(TestMode mode) {
@@ -436,7 +439,9 @@ void testPadRight(TestMode mode) {
   Expect.equals('xyzxyzxyzxyzxyz', r('').padRight(5, a('xyz')));
   Expect.equals('axyzxyzxyzxyz', r('a').padRight(5, a('xyz')));
   Expect.equals(
-      'aa\u{10002}\u{10002}\u{10002}', r('aa').padRight(5, a('\u{10002}')));
+    'aa\u{10002}\u{10002}\u{10002}',
+    r('aa').padRight(5, a('\u{10002}')),
+  );
   Expect.equals('a', r('a').padRight(10, a('')));
 }
 
@@ -544,7 +549,9 @@ void testMatch(TestMode mode) {
     for (final match in matches) {
       Expect.equals(astr.indexOf(expected, start), match.start);
       Expect.equals(
-          astr.indexOf(expected, start) + helloPattern.length, match.end);
+        astr.indexOf(expected, start) + helloPattern.length,
+        match.end,
+      );
       Expect.equals(helloPattern, match.pattern);
       Expect.equals(astr, match.input);
       Expect.equals(helloPattern, match[0]);
@@ -692,39 +699,57 @@ void testReplace(TestMode mode) {
 
   // Test replaceFirst
   Expect.equals(
-      'AtoBtoCDtoE', r('AfromBtoCDtoE').replaceFirst(a('from'), a('to')));
+    'AtoBtoCDtoE',
+    r('AfromBtoCDtoE').replaceFirst(a('from'), a('to')),
+  );
   Expect.equals(
-      'toABtoCDtoE', r('fromABtoCDtoE').replaceFirst(a('from'), a('to')));
+    'toABtoCDtoE',
+    r('fromABtoCDtoE').replaceFirst(a('from'), a('to')),
+  );
   Expect.equals(
-      'toABtoCDtoEto', r('fromABtoCDtoEto').replaceFirst(a('from'), a('to')));
+    'toABtoCDtoEto',
+    r('fromABtoCDtoEto').replaceFirst(a('from'), a('to')),
+  );
   Expect.equals('ABC', r('ABC').replaceFirst(a('from'), a('to')));
   Expect.equals('', r('').replaceFirst(a('from'), a('to')));
-  Expect.equals('foo-AAA-foo-bar',
-      r('foo-bar-foo-bar').replaceFirst(a('bar'), a('AAA'), 4));
-  Expect.equals('foo-bar-foo-bar',
-      r('foo-bar-foo-bar').replaceFirst(RegExp(r'^foo'), a(''), 8));
+  Expect.equals(
+    'foo-AAA-foo-bar',
+    r('foo-bar-foo-bar').replaceFirst(a('bar'), a('AAA'), 4),
+  );
+  Expect.equals(
+    'foo-bar-foo-bar',
+    r('foo-bar-foo-bar').replaceFirst(RegExp(r'^foo'), a(''), 8),
+  );
   Expect.throwsRangeError(() => r('hello').replaceFirst(a('h'), a('X'), -1));
   Expect.throwsRangeError(() => r('hello').replaceFirst(a('h'), a('X'), 6));
 
   // Test replaceFirstMapped.
-  Expect.equals('AtoBtoCDtoE',
-      r('AfromBtoCDtoE').replaceFirstMapped(a('from'), (_) => a('to')));
+  Expect.equals(
+    'AtoBtoCDtoE',
+    r('AfromBtoCDtoE').replaceFirstMapped(a('from'), (_) => a('to')),
+  );
   Expect.equals('ABC', r('ABC').replaceFirstMapped(a('from'), (_) => a('to')));
   Expect.equals('', r('').replaceFirstMapped(a('from'), (_) => a('to')));
-  Expect.equals('foo-AAA-foo-bar',
-      r('foo-bar-foo-bar').replaceFirstMapped(a('bar'), (_) => a('AAA'), 4));
   Expect.equals(
+    'foo-AAA-foo-bar',
+    r('foo-bar-foo-bar').replaceFirstMapped(a('bar'), (_) => a('AAA'), 4),
+  );
+  Expect.equals(
+    'foo-bar-foo-bar',
+    r('foo-bar-foo-bar').replaceFirstMapped(RegExp(r'^foo'), (_) => a(''), 8),
+  );
+  Expect.throwsRangeError(
+    () => r('hello').replaceFirstMapped(a('h'), (_) => a('X'), -1),
+  );
+  Expect.throwsRangeError(
+    () => r('hello').replaceFirstMapped(a('h'), (_) => a('X'), 6),
+  );
+  Expect.equals(
+    'foo-BAR-foo-bar',
+    r(
       'foo-bar-foo-bar',
-      r('foo-bar-foo-bar')
-          .replaceFirstMapped(RegExp(r'^foo'), (_) => a(''), 8));
-  Expect.throwsRangeError(
-      () => r('hello').replaceFirstMapped(a('h'), (_) => a('X'), -1));
-  Expect.throwsRangeError(
-      () => r('hello').replaceFirstMapped(a('h'), (_) => a('X'), 6));
-  Expect.equals(
-      'foo-BAR-foo-bar',
-      r('foo-bar-foo-bar')
-          .replaceFirstMapped(a('bar'), (v) => a(v[0]!.toUpperCase())));
+    ).replaceFirstMapped(a('bar'), (v) => a(v[0]!.toUpperCase())),
+  );
 
   for (final string in [r(''), r('x'), r('foo'), r('x\u2000z')]) {
     for (final replacement in [a(''), a('foo'), a(string)]) {
@@ -733,12 +758,18 @@ void testReplace(TestMode mode) {
         for (int end = start; end <= string.length; end++) {
           expect =
               string.substring(0, start) + replacement + string.substring(end);
-          Expect.equals(expect, string.replaceRange(start, end, replacement),
-              "'$string'[$start:$end]='$replacement'");
+          Expect.equals(
+            expect,
+            string.replaceRange(start, end, replacement),
+            "'$string'[$start:$end]='$replacement'",
+          );
         }
         // Reuse expect from 'end == string.length' case when omitting end.
-        Expect.equals(expect, string.replaceRange(start, null, replacement),
-            "'$string'[$start:]='$replacement'");
+        Expect.equals(
+          expect,
+          string.replaceRange(start, null, replacement),
+          "'$string'[$start:]='$replacement'",
+        );
       }
     }
     Expect.throws(() => string.replaceRange(-1, 0, 'x'));
@@ -752,27 +783,41 @@ void testSplitMapJoin(TestMode mode) {
   String mark(Match m) => a('[${m[0]}]');
   String rest(String s) => a('<${s}>');
 
-  Expect.equals('<a>[b]<ca>[b]<dae>',
-      r('abcabdae').splitMapJoin(a('b'), onMatch: mark, onNonMatch: rest));
-  Expect.equals('<abcabdae>',
-      r('abcabdae').splitMapJoin(a('f'), onMatch: mark, onNonMatch: rest));
   Expect.equals(
-      '<>', r('').splitMapJoin(a('from'), onMatch: mark, onNonMatch: rest));
+    '<a>[b]<ca>[b]<dae>',
+    r('abcabdae').splitMapJoin(a('b'), onMatch: mark, onNonMatch: rest),
+  );
   Expect.equals(
-      '<>[]<>', r('').splitMapJoin(a(''), onMatch: mark, onNonMatch: rest));
-  Expect.equals('<>[]<A>[]<B>[]<C>[]<>',
-      r('ABC').splitMapJoin(a(''), onMatch: mark, onNonMatch: rest));
+    '<abcabdae>',
+    r('abcabdae').splitMapJoin(a('f'), onMatch: mark, onNonMatch: rest),
+  );
   Expect.equals(
-      '[a]bc[a]bd[a]e', r('abcabdae').splitMapJoin(a('a'), onMatch: mark));
+    '<>',
+    r('').splitMapJoin(a('from'), onMatch: mark, onNonMatch: rest),
+  );
   Expect.equals(
-      '<>a<bc>a<bd>a<e>', r('abcabdae').splitMapJoin(a('a'), onNonMatch: rest));
+    '<>[]<>',
+    r('').splitMapJoin(a(''), onMatch: mark, onNonMatch: rest),
+  );
+  Expect.equals(
+    '<>[]<A>[]<B>[]<C>[]<>',
+    r('ABC').splitMapJoin(a(''), onMatch: mark, onNonMatch: rest),
+  );
+  Expect.equals(
+    '[a]bc[a]bd[a]e',
+    r('abcabdae').splitMapJoin(a('a'), onMatch: mark),
+  );
+  Expect.equals(
+    '<>a<bc>a<bd>a<e>',
+    r('abcabdae').splitMapJoin(a('a'), onNonMatch: rest),
+  );
 }
 
 void main() {
   for (final mode in [
     TestMode.jsStringImplReceiver,
     TestMode.jsStringImplArgument,
-    TestMode.jsStringImplReceiverAndArguments
+    TestMode.jsStringImplReceiverAndArguments,
   ]) {
     testLength(mode);
     testConcat(mode);

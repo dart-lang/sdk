@@ -6,9 +6,9 @@
 /// Two-dimensional vector graphics with support for events and animation.
 ///
 /// > [!Note]
-/// > New projects should prefer to use
-/// > [package:web](https://pub.dev/packages/web). For existing projects, see
-/// > our [migration guide](https://dart.dev/go/package-web).
+/// > This core library is deprecated, and scheduled for removal in late 2025.
+/// > It has been replaced by [package:web](https://pub.dev/packages/web).
+/// > The [migration guide](https://dart.dev/go/package-web) has more details.
 ///
 /// For details about the features and syntax of SVG, a W3C standard,
 /// refer to the

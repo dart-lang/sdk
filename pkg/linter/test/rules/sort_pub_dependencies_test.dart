@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortPubDependenciesTest);
   });
@@ -48,7 +48,8 @@ dependencies:
   }
 
   test_dependencies_unsorted() async {
-    await assertPubspecDiagnostics(r'''
+    await assertPubspecDiagnostics(
+      r'''
 name: fancy
 version: 1.1.1
 
@@ -57,13 +58,14 @@ dependencies:
   flutter:
     sdk: flutter
   bbb: ^0.15.8
-''', [
-      lint(86, 3),
-    ]);
+''',
+      [lint(86, 3)],
+    );
   }
 
   test_dependencyOverrides_unsorted() async {
-    await assertPubspecDiagnostics(r'''
+    await assertPubspecDiagnostics(
+      r'''
 name: fancy
 version: 1.1.1
 
@@ -72,13 +74,14 @@ dependency_overrides:
   flutter:
     sdk: flutter
   bbb: ^0.15.8
-''', [
-      lint(94, 3),
-    ]);
+''',
+      [lint(94, 3)],
+    );
   }
 
   test_devDependencies_unsorted() async {
-    await assertPubspecDiagnostics(r'''
+    await assertPubspecDiagnostics(
+      r'''
 name: fancy
 version: 1.1.1
 
@@ -87,8 +90,8 @@ dev_dependencies:
   flutter:
     sdk: flutter
   bbb: ^0.15.8
-''', [
-      lint(90, 3),
-    ]);
+''',
+      [lint(90, 3)],
+    );
   }
 }

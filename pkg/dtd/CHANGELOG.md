@@ -1,3 +1,8 @@
+## 2.5.0
+
+- Update SDK constraints to `^3.5.0`.
+- Add `isClosed` getter to `DartToolingDaemon`.
+
 ## 2.4.0
 
 - Bump `unified_analytics` dependency to ^7.0.0.

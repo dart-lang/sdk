@@ -217,7 +217,7 @@ class TypeParserEnvironment {
   /* TreeNode | StructuralParameter */ Object lookupDeclaration(String name) {
     Object? result = _declarations[name];
     if (result == null && _parent != null) {
-      return _parent!.lookupDeclaration(name);
+      return _parent.lookupDeclaration(name);
     }
     if (result == null) throw "Not found: $name";
     return result;
@@ -266,7 +266,7 @@ class TypeParserEnvironment {
   /// Use this in subclasses to add support for additional predefined types.
   DartType? getPredefinedNamedType(String name) {
     if (_parent != null) {
-      return _parent!.getPredefinedNamedType(name);
+      return _parent.getPredefinedNamedType(name);
     }
     return null;
   }

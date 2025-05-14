@@ -50,14 +50,23 @@ class LegacyExtendsFinal extends mai::LegacyImplementFinalCore {
     : super mai::LegacyImplementFinalCore::•()
     ;
 }
-abstract class _LegacyWithBase&Object&LegacyImplementBaseCore<E extends col::LinkedListEntry<self::_LegacyWithBase&Object&LegacyImplementBaseCore::E> = col::LinkedListEntry<dynamic>> extends core::Object implements mai::LegacyImplementBaseCore<self::_LegacyWithBase&Object&LegacyImplementBaseCore::E> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_LegacyWithBase&Object&LegacyImplementBaseCore<self::_LegacyWithBase&Object&LegacyImplementBaseCore::E>
-    : super core::Object::•()
-    ;
-}
 abstract class LegacyWithBase<E extends col::LinkedListEntry<self::LegacyWithBase::E> = col::LinkedListEntry<dynamic>> extends self::_LegacyWithBase&Object&LegacyImplementBaseCore<self::LegacyWithBase::E> {
   synthetic constructor •() → self::LegacyWithBase<self::LegacyWithBase::E>
     : super self::_LegacyWithBase&Object&LegacyImplementBaseCore::•()
+    ;
+}
+class LegacyWithFinal extends self::_LegacyWithFinal&Object&LegacyImplementFinalCore {
+  synthetic constructor •() → self::LegacyWithFinal
+    : super self::_LegacyWithFinal&Object&LegacyImplementFinalCore::•()
+    ;
+}
+abstract class LegacyOnBase<E extends col::LinkedListEntry<self::LegacyOnBase::E> = col::LinkedListEntry<dynamic>> extends mai::LegacyImplementBaseCore<self::LegacyOnBase::E> /*isMixinDeclaration*/  {
+}
+abstract class LegacyOnFinal extends mai::LegacyImplementFinalCore /*isMixinDeclaration*/  {
+}
+abstract class _LegacyWithBase&Object&LegacyImplementBaseCore<E extends col::LinkedListEntry<self::_LegacyWithBase&Object&LegacyImplementBaseCore::E> = col::LinkedListEntry<dynamic>> extends core::Object implements mai::LegacyImplementBaseCore<self::_LegacyWithBase&Object&LegacyImplementBaseCore::E> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_LegacyWithBase&Object&LegacyImplementBaseCore<self::_LegacyWithBase&Object&LegacyImplementBaseCore::E>
+    : super core::Object::•()
     ;
 }
 abstract class _LegacyWithFinal&Object&LegacyImplementFinalCore extends core::Object implements mai::LegacyImplementFinalCore /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
@@ -70,15 +79,6 @@ abstract class _LegacyWithFinal&Object&LegacyImplementFinalCore extends core::Ob
     return 1;
   method /* from org-dartlang-testcase:///main_lib.dart */ toString() → core::String
     return "Bad";
-}
-class LegacyWithFinal extends self::_LegacyWithFinal&Object&LegacyImplementFinalCore {
-  synthetic constructor •() → self::LegacyWithFinal
-    : super self::_LegacyWithFinal&Object&LegacyImplementFinalCore::•()
-    ;
-}
-abstract class LegacyOnBase<E extends col::LinkedListEntry<self::LegacyOnBase::E> = col::LinkedListEntry<dynamic>> extends mai::LegacyImplementBaseCore<self::LegacyOnBase::E> /*isMixinDeclaration*/  {
-}
-abstract class LegacyOnFinal extends mai::LegacyImplementFinalCore /*isMixinDeclaration*/  {
 }
 
 library;

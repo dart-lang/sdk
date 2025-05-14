@@ -205,6 +205,9 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     gn_args['host_cpu'] = HostCpuForArch(arch)
     gn_args['target_cpu'] = TargetCpuForArch(arch)
     gn_args['dart_target_arch'] = DartTargetCpuForArch(arch)
+    if gn_args['target_cpu'] == gn_args['dart_target_arch'] and arch.startswith(
+            'sim'):
+        gn_args['dart_force_simulator'] = True
     gn_args['dart_use_compressed_pointers'] = IsCompressedPointerArch(arch)
 
     # Configure Crashpad library if it is used.

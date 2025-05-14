@@ -279,8 +279,7 @@ enum E {
   final int test = 42;
 }
 ''');
-    // Enums can have only final fields, and final fields cannot be encapsulated
-    // right now.
+    // Enums can have only final fields.
     await assertNoAssistAt('test = 42');
   }
 
@@ -300,7 +299,13 @@ class A {
   final int test = 42;
 }
 ''');
-    await assertNoAssistAt('test =');
+    await assertHasAssistAt('test =', '''
+class A {
+  int _test = 42;
+
+  int get test => _test;
+}
+''');
   }
 
   Future<void> test_hasType() async {

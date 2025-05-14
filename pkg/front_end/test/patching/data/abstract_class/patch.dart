@@ -8,6 +8,6 @@ import 'dart:_internal';
 @patch
 class Class {
   @patch
-  /*member: Class.classMethod:patch*/
+  /*member: Class.classMethod:*/
   void classMethod() {}
 }

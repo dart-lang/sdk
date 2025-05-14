@@ -7,7 +7,9 @@ name: test_runner
 publish_to: none
 
 environment:
-  sdk: '>=3.4.0 <4.0.0'
+  sdk: ^3.5.0
+
+resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
@@ -17,6 +19,7 @@ dependencies:
   package_config: any
   path: any
   pool: any
+  shell_arg_splitter: any
   smith: any
   status_file: any
   webdriver: any

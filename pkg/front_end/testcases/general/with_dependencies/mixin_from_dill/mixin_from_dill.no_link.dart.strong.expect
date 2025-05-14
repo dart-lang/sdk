@@ -26,15 +26,6 @@ library;
 import self as mix;
 import "dart:core" as core;
 
-abstract class _Foo&B&D = mix::B with mix::D /*isAnonymousMixin*/  {
-  synthetic constructor •() → mix::_Foo&B&D
-    : super mix::B::•()
-    ;
-  mixin-super-stub operator ==(core::Object dynamic) → core::bool
-    return super.{mix::D::==}(dynamic);
-  mixin-super-stub method x() → void
-    return super.{mix::D::x}();
-}
 class Foo extends mix::_Foo&B&D {
   synthetic constructor •() → mix::Foo
     : super mix::_Foo&B&D::•()
@@ -66,20 +57,20 @@ abstract class D extends core::Object implements mix::C /*isMixinDeclaration*/  
     core::print("D.x");
   }
 }
+abstract class _Foo&B&D = mix::B with mix::D /*isAnonymousMixin*/  {
+  synthetic constructor •() → mix::_Foo&B&D
+    : super mix::B::•()
+    ;
+  mixin-super-stub operator ==(core::Object dynamic) → core::bool
+    return super.{mix::D::==}(dynamic);
+  mixin-super-stub method x() → void
+    return super.{mix::D::x}();
+}
 
 library;
 import self as mix2;
 import "dart:core" as core;
 
-abstract class _Foo&B&D = mix2::B with mix2::D /*isAnonymousMixin*/  {
-  synthetic constructor •() → mix2::_Foo&B&D
-    : super mix2::B::•()
-    ;
-  mixin-super-stub operator ==(core::Object dynamic) → core::bool
-    return super.{mix2::D::==}(dynamic);
-  mixin-super-stub method x() → void
-    return super.{mix2::D::x}();
-}
 class Foo extends mix2::_Foo&B&D {
   synthetic constructor •() → mix2::Foo
     : super mix2::_Foo&B&D::•()
@@ -110,4 +101,13 @@ abstract class D extends core::Object implements mix2::C /*isMixinDeclaration*/ 
   method x() → void {
     core::print("D.x");
   }
+}
+abstract class _Foo&B&D = mix2::B with mix2::D /*isAnonymousMixin*/  {
+  synthetic constructor •() → mix2::_Foo&B&D
+    : super mix2::B::•()
+    ;
+  mixin-super-stub operator ==(core::Object dynamic) → core::bool
+    return super.{mix2::D::==}(dynamic);
+  mixin-super-stub method x() → void
+    return super.{mix2::D::x}();
 }

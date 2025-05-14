@@ -19,7 +19,7 @@ class _RawSynchronousSocket implements RawSynchronousSocket {
 
   static RawSynchronousSocket connectSync(host, int port) {
     _throwOnBadPort(port);
-    return new _RawSynchronousSocket(
+    return _RawSynchronousSocket(
       _NativeSynchronousSocket.connectSync(host, port),
     );
   }
@@ -65,7 +65,7 @@ base class _NativeSynchronousSocket
 
   static _NativeSynchronousSocket connectSync(host, int port) {
     if (host == null) {
-      throw new ArgumentError("Parameter host cannot be null");
+      throw ArgumentError("Parameter host cannot be null");
     }
     late List<_InternetAddress> addresses;
     var error = null;
@@ -89,7 +89,7 @@ base class _NativeSynchronousSocket
         throw error;
       }
       var address = it.current;
-      var socket = new _NativeSynchronousSocket();
+      var socket = _NativeSynchronousSocket();
       socket.localAddress = address;
       var result = socket._nativeCreateConnectSync(address._in_addr, port);
       if (result is OSError) {
@@ -178,14 +178,14 @@ base class _NativeSynchronousSocket
     int? port,
   ]) {
     if (error is OSError) {
-      return new SocketException(
+      return SocketException(
         message,
         osError: error,
         address: address,
         port: port,
       );
     } else {
-      return new SocketException(message, address: address, port: port);
+      return SocketException(message, address: address, port: port);
     }
   }
 
@@ -199,7 +199,7 @@ base class _NativeSynchronousSocket
     }
     return <_InternetAddress>[
       for (int i = 0; i < response.length; ++i)
-        new _InternetAddress(
+        _InternetAddress(
           InternetAddressType._from(response[i][0]),
           response[i][1],
           host,
@@ -214,7 +214,7 @@ base class _NativeSynchronousSocket
     ArgumentError.checkNotNull(start, "start");
     _checkAvailable();
     if (isClosedRead) {
-      throw new SocketException("Socket is closed for reading");
+      throw SocketException("Socket is closed for reading");
     }
     end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) {
@@ -222,7 +222,7 @@ base class _NativeSynchronousSocket
     }
     var result = _nativeReadInto(buffer, start, end - start);
     if (result is OSError) {
-      throw new SocketException("readIntoSync failed", osError: result);
+      throw SocketException("readIntoSync failed", osError: result);
     }
     return result;
   }
@@ -230,11 +230,11 @@ base class _NativeSynchronousSocket
   List<int>? readSync(int len) {
     _checkAvailable();
     if (isClosedRead) {
-      throw new SocketException("Socket is closed for reading");
+      throw SocketException("Socket is closed for reading");
     }
 
     if ((len != null) && (len < 0)) {
-      throw new ArgumentError("Illegal length $len");
+      throw ArgumentError("Illegal length $len");
     }
     if (len == 0) {
       return null;
@@ -261,7 +261,7 @@ base class _NativeSynchronousSocket
         closeSync();
         break;
       default:
-        throw new ArgumentError(direction);
+        throw ArgumentError(direction);
     }
   }
 
@@ -295,7 +295,7 @@ base class _NativeSynchronousSocket
     ArgumentError.checkNotNull(start, "start");
     _checkAvailable();
     if (isClosedWrite) {
-      throw new SocketException("Socket is closed for writing");
+      throw SocketException("Socket is closed for writing");
     }
     end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) {
@@ -312,7 +312,7 @@ base class _NativeSynchronousSocket
       end - (start - bufferAndStart.start),
     );
     if (result is OSError) {
-      throw new SocketException("writeFromSync failed", osError: result);
+      throw SocketException("writeFromSync failed", osError: result);
     }
   }
 

@@ -222,8 +222,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
   __ Ret();
 }
 
-static void GenerateExitSafepointStubCommon(Assembler* assembler,
-                                            uword runtime_entry_offset) {
+void StubCodeCompiler::GenerateExitSafepointStub() {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
@@ -231,29 +230,14 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
   SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
   __ ReserveAlignedFrameSpace(0);
 
-  // Set the execution state to VM while waiting for the safepoint to end.
-  // This isn't strictly necessary but enables tests to check that we're not
-  // in native code anymore. See tests/ffi/function_gc_test.dart for example.
-  __ LoadImmediate(R0, target::Thread::vm_execution_state());
-  __ str(R0, Address(THR, target::Thread::execution_state_offset()));
+  __ VerifyNotInGenerated(R0);
 
-  __ ldr(R0, Address(THR, runtime_entry_offset));
+  __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ blx(R0);
   RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR), 0));
 
   __ PopRegisters(all_registers);
   __ Ret();
-}
-
-void StubCodeCompiler::GenerateExitSafepointStub() {
-  GenerateExitSafepointStubCommon(
-      assembler, kExitSafepointRuntimeEntry.OffsetFromThread());
-}
-
-void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub() {
-  GenerateExitSafepointStubCommon(
-      assembler,
-      kExitSafepointIgnoreUnwindInProgressRuntimeEntry.OffsetFromThread());
 }
 
 // Call a native function within a safepoint.
@@ -446,15 +430,16 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Exit the temporary isolate.
   {
-    __ EnterFrame(1 << FP, 0);
-    __ ReserveAlignedFrameSpace(0);
-
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitTemporaryIsolate, R4);
+        FfiCallbackMetadata::kExitTemporaryIsolate, R0);
 
-    __ blx(R4);
+    CLOBBERS_LR(__ PopList((1 << LR) | (1 << THR) | (1 << R4) | (1 << R5)));
 
-    __ LeaveFrame(1 << FP);
+    // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
+    // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
+    // enough for VM shutdown.
+    __ bx(R0);
+    __ Breakpoint();
   }
 
   __ Bind(&done);
@@ -2790,7 +2775,7 @@ void StubCodeCompiler::GenerateInterpretCallStub() {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ LoadFromOffset(kWord, R8, THR, target::Thread::vm_tag_offset());
+    __ LoadFromOffset(R8, THR, target::Thread::vm_tag_offset());
     __ CompareImmediate(R8, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
@@ -2799,10 +2784,9 @@ void StubCodeCompiler::GenerateInterpretCallStub() {
 #endif
 
   // Adjust arguments count for type arguments vector.
-  __ LoadFieldFromOffset(kWord, R2, R4,
-                         target::ArgumentsDescriptor::count_offset());
+  __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::count_offset());
   __ SmiUntag(R2);
-  __ LoadFieldFromOffset(kWord, R1, R4,
+  __ LoadFieldFromOffset(R1, R4,
                          target::ArgumentsDescriptor::type_args_len_offset());
   __ cmp(R1, Operand(0));
   __ AddImmediate(R2, R2, 1, NE);  // Include the type arguments.
@@ -2828,31 +2812,29 @@ void StubCodeCompiler::GenerateInterpretCallStub() {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ StoreToOffset(kWord, FP, THR,
-                   target::Thread::top_exit_frame_info_offset());
+  __ StoreToOffset(FP, THR, target::Thread::top_exit_frame_info_offset());
 
   // Mark that the thread exited generated code through a runtime call.
   __ LoadImmediate(R5, target::Thread::exit_through_runtime_call());
-  __ StoreToOffset(kWord, R5, THR, target::Thread::exit_through_ffi_offset());
+  __ StoreToOffset(R5, THR, target::Thread::exit_through_ffi_offset());
 
   // Mark that the thread is executing VM code.
-  __ LoadFromOffset(kWord, R5, THR,
+  __ LoadFromOffset(R5, THR,
                     target::Thread::interpret_call_entry_point_offset());
-  __ StoreToOffset(kWord, R5, THR, target::Thread::vm_tag_offset());
+  __ StoreToOffset(R5, THR, target::Thread::vm_tag_offset());
 
   __ blx(R5);
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());
+  __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
 
   // Mark that the thread has not exited generated Dart code.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, THR, target::Thread::exit_through_ffi_offset());
+  __ StoreToOffset(R2, THR, target::Thread::exit_through_ffi_offset());
 
   // Reset exit frame information in Isolate's mutator thread structure.
-  __ StoreToOffset(kWord, R2, THR,
-                   target::Thread::top_exit_frame_info_offset());
+  __ StoreToOffset(R2, THR, target::Thread::top_exit_frame_info_offset());
 
   __ LeaveStubFrame();
   __ Ret();
@@ -3061,32 +3043,13 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
   COMPILE_ASSERT(kStackTraceObjectReg == R1);
   COMPILE_ASSERT(IsAbiPreservedRegister(R4));
   COMPILE_ASSERT(IsAbiPreservedRegister(THR));
-  __ mov(IP, Operand(R1));  // Copy Stack pointer into IP.
-  // TransitionGeneratedToNative might clobber LR if it takes the slow path.
   __ mov(R4, Operand(R0));   // Program counter.
   __ mov(THR, Operand(R3));  // Thread.
   __ mov(FP, Operand(R2));   // Frame_pointer.
-  __ mov(SP, Operand(IP));   // Set Stack pointer.
+  __ mov(SP, Operand(R1));   // Set Stack pointer.
 #if defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
-  Label exit_through_non_ffi;
-  Register tmp1 = R0, tmp2 = R1;
-  // Check if we exited generated from FFI. If so do transition - this is needed
-  // because normally runtime calls transition back to generated via destructor
-  // of TransitionGeneratedToVM/Native that is part of runtime boilerplate
-  // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
-  // have this boilerplate, don't have this stack resource, have to transition
-  // explicitly.
-  __ LoadFromOffset(tmp1, THR,
-                    compiler::target::Thread::exit_through_ffi_offset());
-  __ LoadImmediate(tmp2, target::Thread::exit_through_ffi());
-  __ cmp(tmp1, Operand(tmp2));
-  __ b(&exit_through_non_ffi, NE);
-  __ TransitionNativeToGenerated(tmp1, tmp2,
-                                 /*leave_safepoint=*/true,
-                                 /*ignore_unwind_in_progress=*/true);
-  __ Bind(&exit_through_non_ffi);
 
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId);
@@ -3110,7 +3073,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
 //
 // The arguments are stored in the Thread object.
 // Does not return.
-void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
+static void GenerateRunExceptionHandler(Assembler* assembler,
+                                        bool unbox_exception) {
   WRITES_RETURN_ADDRESS_TO_LR(
       __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset()));
 
@@ -3122,6 +3086,15 @@ void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
   // Exception object.
   __ LoadFromOffset(R0, THR, target::Thread::active_exception_offset());
   __ StoreToOffset(R2, THR, target::Thread::active_exception_offset());
+  if (unbox_exception) {
+    compiler::Label not_smi, done;
+    __ BranchIfNotSmi(R0, &not_smi);
+    __ SmiUntag(R0);
+    __ Jump(&done);
+    __ Bind(&not_smi);
+    __ ldr(R0, FieldAddress(R0, Mint::value_offset()));
+    __ Bind(&done);
+  }
 
   // StackTrace object.
   __ LoadFromOffset(R1, THR, target::Thread::active_stacktrace_offset());
@@ -3129,6 +3102,14 @@ void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
 
   READS_RETURN_ADDRESS_FROM_LR(
       __ bx(LR));  // Jump to the exception handler code.
+}
+
+void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
+  GenerateRunExceptionHandler(assembler, false);
+}
+
+void StubCodeCompiler::GenerateRunExceptionHandlerUnboxStub() {
+  GenerateRunExceptionHandler(assembler, true);
 }
 
 // Deoptimize a frame on the call stack before rewinding.

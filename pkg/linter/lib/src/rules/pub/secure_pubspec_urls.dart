@@ -10,10 +10,7 @@ const _desc = r'Use secure urls in `pubspec.yaml`.';
 
 class SecurePubspecUrls extends LintRule {
   SecurePubspecUrls()
-      : super(
-          name: LintNames.secure_pubspec_urls,
-          description: _desc,
-        );
+    : super(name: LintNames.secure_pubspec_urls, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.secure_pubspec_urls;

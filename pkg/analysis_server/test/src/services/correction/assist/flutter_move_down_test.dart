@@ -32,7 +32,7 @@ void f() {
   Column(
     children: <Widget>[
       Text('aaa'),
-      /*caret*/Text('bbbbbb'),
+      ^Text('bbbbbb'),
       Text('ccccccccc'),
     ],
   );
@@ -61,7 +61,7 @@ void f() {
     children: <Widget>[
       Text('aaa'),
       Text('bbb'),
-      /*caret*/Text('ccc'),
+      ^Text('ccc'),
     ],
   );
 }
@@ -74,7 +74,7 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Center(
-    child: /*caret*/Text('aaa'),
+    child: ^Text('aaa'),
   );
 }
 ''');

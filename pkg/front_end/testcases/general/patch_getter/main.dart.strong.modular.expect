@@ -46,6 +46,14 @@ extension Extension on core::int {
   get instanceGetter = test::Extension|get#instanceGetter;
   static get staticGetter = get test::Extension|staticGetter;
 }
+static method methodInOrigin() → dynamic {
+  test::topLevelGetter;
+  test::Class::staticGetter;
+  test::Extension|staticGetter;
+  test::Class c = new test::Class::•();
+  c.{test::Class::instanceGetter}{core::int};
+  test::Extension|get#instanceGetter(0);
+}
 @#C1
 static get /* from org-dartlang-testcase:///patch_lib.dart */ topLevelGetter() → core::int
   return 42;
@@ -55,14 +63,6 @@ static extension-member method /* from org-dartlang-testcase:///patch_lib.dart *
 @#C1
 static extension-member get /* from org-dartlang-testcase:///patch_lib.dart */ Extension|staticGetter() → core::int
   return 42;
-static method methodInOrigin() → dynamic {
-  test::topLevelGetter;
-  test::Class::staticGetter;
-  test::Extension|staticGetter;
-  test::Class c = new test::Class::•();
-  c.{test::Class::instanceGetter}{core::int};
-  test::Extension|get#instanceGetter(0);
-}
 static method /* from org-dartlang-testcase:///patch_lib.dart */ methodInPatch() → dynamic {
   test::topLevelGetter;
   test::Class::staticGetter;

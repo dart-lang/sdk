@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_error_utils";
 import 'dart:_boxed_int' show intHashCode;
 import 'dart:_internal' show doubleToIntBits, intBitsToDouble;
-import 'dart:_js_helper' show JS, jsStringToDartString;
+import 'dart:_js_helper' show JS;
 import 'dart:_string';
 import 'dart:_wasm';
 
@@ -293,7 +294,7 @@ final class BoxedDouble implements double {
 
   num clamp(num lowerLimit, num upperLimit) {
     if (lowerLimit.compareTo(upperLimit) > 0) {
-      throw new ArgumentError(lowerLimit);
+      throw ArgumentError(lowerLimit);
     }
     if (lowerLimit.isNaN) return lowerLimit;
     if (this.compareTo(lowerLimit) < 0) return lowerLimit;
@@ -317,44 +318,54 @@ final class BoxedDouble implements double {
   static const int CACHE_SIZE_LOG2 = 3;
   static const int CACHE_LENGTH = 1 << (CACHE_SIZE_LOG2 + 1);
   static const int CACHE_MASK = CACHE_LENGTH - 1;
-  // Each key (double) followed by its toString result.
-  static final List _cache = new List.filled(CACHE_LENGTH, null);
+  // Each cached double value, represented as it's 64-bits.
+  @pragma("wasm:initialize-at-startup")
+  static final WasmArray<int> _cacheKeys = WasmArray<int>.filled(
+    CACHE_LENGTH,
+    doubleToIntBits(1.0),
+  );
+  // The toString() of the double value with same index in [_cacheKeys].
+  @pragma("wasm:initialize-at-startup")
+  static final WasmArray<String> _cacheValues = WasmArray<String>.filled(
+    CACHE_LENGTH,
+    '1.0',
+  );
   static int _cacheEvictIndex = 0;
 
   String toString() {
-    // TODO(koda): Consider starting at most recently inserted.
-    for (int i = 0; i < CACHE_LENGTH; i += 2) {
-      // Need 'identical' to handle negative zero, etc.
-      if (identical(_cache[i], this)) {
-        return _cache[i + 1];
+    final int bits = doubleToIntBits(value);
+
+    if (bits == doubleToIntBits(0.0)) return '0.0';
+    if (bits == doubleToIntBits(-0.0)) return '-0.0';
+    if (bits == doubleToIntBits(1.0)) return '1.0';
+    if (bits == doubleToIntBits(-1.0)) return '-1.0';
+
+    for (int i = 0; i < CACHE_LENGTH; i++) {
+      // Special cases such as -0.0/0.0 and NaN are never inserted into the
+      // cache.
+      if (bits == _cacheKeys[i]) {
+        return _cacheValues[i];
       }
     }
-    // TODO(koda): Consider optimizing all small integral values.
     if (isNaN) return "NaN";
-    if (this == double.infinity) return "Infinity";
-    if (this == -double.infinity) return "-Infinity";
-    if (this == 0) {
-      if (isNegative) {
-        return "-0.0";
-      } else {
-        return "0.0";
-      }
+    if (isInfinite) {
+      if (isNegative) return "-Infinity";
+      return "Infinity";
     }
-    String result = jsStringToDartString(
-      JSStringImpl(
-        JS<WasmExternRef?>(
-          'Function.prototype.call.bind(Number.prototype.toString)',
-          WasmF64.fromDouble(value),
-        ),
+
+    String result = JSStringImpl(
+      JS<WasmExternRef?>(
+        'Function.prototype.call.bind(Number.prototype.toString)',
+        WasmF64.fromDouble(value),
       ),
     );
     if (this % 1.0 == 0.0 && result.indexOf('e') == -1) {
       result = '$result.0';
     }
     // Replace the least recently inserted entry.
-    _cache[_cacheEvictIndex] = this;
-    _cache[_cacheEvictIndex + 1] = result;
-    _cacheEvictIndex = (_cacheEvictIndex + 2) & CACHE_MASK;
+    _cacheKeys[_cacheEvictIndex] = bits;
+    _cacheValues[_cacheEvictIndex] = result;
+    _cacheEvictIndex = (_cacheEvictIndex + 1) & CACHE_MASK;
     return result;
   }
 
@@ -362,10 +373,12 @@ final class BoxedDouble implements double {
     // See ECMAScript-262, 15.7.4.5 for details.
 
     // Step 2.
-    // fractionDigits < 0 || fractionDigits > 20
-    if (fractionDigits.gtU(20)) {
-      throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
-    }
+    // 0 <= fractionDigits <= 20
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(
+      fractionDigits,
+      20,
+      "fractionDigits",
+    );
 
     // Step 3.
     double x = this;
@@ -387,13 +400,11 @@ final class BoxedDouble implements double {
     return result;
   }
 
-  String _toStringAsFixed(int fractionDigits) => jsStringToDartString(
-    JSStringImpl(
-      JS<WasmExternRef>(
-        "(d, digits) => d.toFixed(digits)",
-        value,
-        fractionDigits.toDouble(),
-      ),
+  String _toStringAsFixed(int fractionDigits) => JSStringImpl(
+    JS<WasmExternRef>(
+      "(d, digits) => d.toFixed(digits)",
+      value,
+      fractionDigits.toDouble(),
     ),
   );
 
@@ -406,10 +417,12 @@ final class BoxedDouble implements double {
 
     // Step 7.
     if (fractionDigits != null) {
-      // fractionDigits < 0 || fractionDigits > 20
-      if (fractionDigits.gtU(20)) {
-        throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
-      }
+      // 0 <= fractionDigits <= 20
+      RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(
+        fractionDigits,
+        20,
+        "fractionDigits",
+      );
     }
 
     if (isNaN) return "NaN";
@@ -421,18 +434,15 @@ final class BoxedDouble implements double {
     return result;
   }
 
-  String _toStringAsExponential(int? fractionDigits) {
-    final jsString = JSStringImpl(
-      fractionDigits == null
-          ? JS<WasmExternRef>("d => d.toExponential()", value)
-          : JS<WasmExternRef>(
-            "(d, f) => d.toExponential(f)",
-            value,
-            fractionDigits.toDouble(),
-          ),
-    );
-    return jsStringToDartString(jsString);
-  }
+  String _toStringAsExponential(int? fractionDigits) => JSStringImpl(
+    fractionDigits == null
+        ? JS<WasmExternRef>("d => d.toExponential()", value)
+        : JS<WasmExternRef>(
+          "(d, f) => d.toExponential(f)",
+          value,
+          fractionDigits.toDouble(),
+        ),
+  );
 
   String toStringAsPrecision(int precision) {
     // See ECMAScript-262, 15.7.4.7 for details.
@@ -442,9 +452,7 @@ final class BoxedDouble implements double {
     // look at the fractionDigits first.
 
     // Step 8.
-    if (precision < 1 || precision > 21) {
-      throw new RangeError.range(precision, 1, 21, "precision");
-    }
+    RangeErrorUtils.checkValueInInterval(precision, 1, 21, "precision");
 
     if (isNaN) return "NaN";
     if (this == double.infinity) return "Infinity";
@@ -455,13 +463,11 @@ final class BoxedDouble implements double {
     return result;
   }
 
-  String _toStringAsPrecision(int fractionDigits) => jsStringToDartString(
-    JSStringImpl(
-      JS<WasmExternRef>(
-        "(d, precision) => d.toPrecision(precision)",
-        value,
-        fractionDigits.toDouble(),
-      ),
+  String _toStringAsPrecision(int fractionDigits) => JSStringImpl(
+    JS<WasmExternRef>(
+      "(d, precision) => d.toPrecision(precision)",
+      value,
+      fractionDigits.toDouble(),
     ),
   );
 

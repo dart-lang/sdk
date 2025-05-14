@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DiagnosticDescribeAllPropertiesTest);
   });
@@ -21,14 +21,15 @@ class DiagnosticDescribeAllPropertiesTest extends LintRuleTest {
   String get lintRule => LintNames.diagnostic_describe_all_properties;
 
   test_field() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/foundation.dart';
 class MyWidget with Diagnosticable {
   bool p = false;
 }
-''', [
-      lint(86, 1),
-    ]);
+''',
+      [lint(86, 1)],
+    );
   }
 
   test_field_collectionOfWidgets() async {
@@ -96,14 +97,15 @@ class MyWidget with Diagnosticable {
   }
 
   test_field_string() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/foundation.dart';
 class MyWidget with Diagnosticable {
   String p = '';
 }
-''', [
-      lint(88, 1),
-    ]);
+''',
+      [lint(88, 1)],
+    );
   }
 
   test_field_widget() async {
@@ -117,14 +119,15 @@ class MyWidget with Diagnosticable {
   }
 
   test_getter_string() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/foundation.dart';
 class MyWidget with Diagnosticable {
   String get p => '';
 }
-''', [
-      lint(92, 1),
-    ]);
+''',
+      [lint(92, 1)],
+    );
   }
 
   test_getter_widget() async {

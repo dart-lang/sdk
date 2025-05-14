@@ -145,12 +145,10 @@ class NeverTests<T> {
   Future<Never> h2<S extends T, R extends S>(Null x) => throw "Unused";
 
   void Function<S0 extends FutureOr<R>, S1 extends R, S2 extends R?>()
-      i1<R>() =>
-          <T0 extends FutureOr<R>, T1 extends R, T2 extends R?>() {};
+  i1<R>() => <T0 extends FutureOr<R>, T1 extends R, T2 extends R?>() {};
 
   void Function<S0 extends Future<Never>, S1 extends Never, S2 extends Null>()
-      i2<R>() =>
-          <R0 extends Future<Never>, R1 extends Never, R2 extends Null>() {};
+  i2<R>() => <R0 extends Future<Never>, R1 extends Never, R2 extends Null>() {};
 }
 
 void neverBoundTests() {

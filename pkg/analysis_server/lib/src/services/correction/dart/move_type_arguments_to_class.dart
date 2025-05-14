@@ -5,8 +5,8 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -16,9 +16,8 @@ class MoveTypeArgumentsToClass extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS;
@@ -41,7 +40,7 @@ class MoveTypeArgumentsToClass extends ResolvedCorrectionProducer {
     }
 
     var type = namedType.typeOrThrow;
-    if (type is InterfaceType) {
+    if (type is InterfaceTypeImpl) {
       var element = type.element3;
       if (element.typeParameters2.length == typeArguments.arguments.length) {
         await builder.addDartFileEdit(file, (builder) {

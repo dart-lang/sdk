@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
@@ -32,7 +33,9 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   String get name => 'PluginActionsComputer';
 
   @override
-  Future<List<CodeActionWithPriority>> getAssistActions() async {
+  Future<List<CodeActionWithPriority>> getAssistActions({
+    OperationPerformance? performance,
+  }) async {
     // These assists are only provided as literal CodeActions.
     if (!supportsLiterals) {
       return [];
@@ -49,7 +52,9 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<CodeActionWithPriority>> getFixActions() async {
+  Future<List<CodeActionWithPriority>> getFixActions(
+    OperationPerformance? performance,
+  ) async {
     // These fixes are only provided as literal CodeActions.
     if (!supportsLiterals) {
       return [];
@@ -66,14 +71,21 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions() async => [];
+  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+    OperationPerformance? performance,
+  ) async => [];
 
   @override
   Future<List<Either2<CodeAction, Command>>> getSourceActions() async => [];
 
   CodeActionWithPriority _convertAssist(plugin.PrioritizedSourceChange assist) {
     return (
-      action: createAssistAction(assist.change, path, lineInfo),
+      action: createAssistAction(
+        assist.change,
+        'assist from plugin',
+        path,
+        lineInfo,
+      ),
       priority: assist.priority,
     );
   }
@@ -90,7 +102,13 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
     );
     return fixes.fixes.map(
       (fix) => (
-        action: createFixAction(fix.change, diagnostic, path, lineInfo),
+        action: createFixAction(
+          fix.change,
+          'fix from plugin',
+          diagnostic,
+          path,
+          lineInfo,
+        ),
         priority: fix.priority,
       ),
     );

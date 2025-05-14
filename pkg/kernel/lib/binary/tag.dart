@@ -226,7 +226,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 122;
+  static const int BinaryFormatVersion = 124;
 }
 
 abstract class ConstantTag {
@@ -273,4 +273,15 @@ bool isValidSdkHash(String sdkHash) {
   return (sdkHash == sdkHashNull ||
       expectedSdkHash == sdkHashNull ||
       sdkHash == expectedSdkHash);
+}
+
+/// These should match with what is written in
+/// BinaryPrinter.writeComponentIndex.
+const int fixedFieldsBeforeLibraries = 9;
+const int fixedFieldsAfterLibraries = 2;
+int numberOfFixedFields(int numberOfLibraries) {
+  return fixedFieldsBeforeLibraries +
+      numberOfLibraries +
+      1 +
+      fixedFieldsAfterLibraries;
 }

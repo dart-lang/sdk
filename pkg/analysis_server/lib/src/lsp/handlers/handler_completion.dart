@@ -485,7 +485,7 @@ class CompletionHandler
             resolutionInfo = DartCompletionResolutionInfo(
               file: unit.path,
               importUris: [importUri.toString()],
-              ref: ElementLocation2.forElement(element)?.encoding,
+              ref: ElementLocation.forElement(element)?.encoding,
             );
           }
         } else if (item is OverrideSuggestion) {
@@ -497,7 +497,7 @@ class CompletionHandler
             resolutionInfo = DartCompletionResolutionInfo(
               file: unit.path,
               importUris: importUris.map((uri) => uri.toString()).toList(),
-              ref: ElementLocation2.forElement(element)?.encoding,
+              ref: ElementLocation.forElement(element)?.encoding,
             );
           }
         }

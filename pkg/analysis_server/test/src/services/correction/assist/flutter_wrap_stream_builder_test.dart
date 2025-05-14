@@ -26,18 +26,45 @@ class FlutterWrapStreamBuilderTest extends AssistProcessorTest {
     writeTestPackageConfig(flutter: true);
   }
 
+  Future<void> test_aroundBuilder() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+void f(Stream<int> s) {
+  ^Builder(
+    builder: (context) => Text(''),
+  );
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_aroundStreamBuilder() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 void f(Stream<int> s) {
-  /*caret*/StreamBuilder(
+  ^StreamBuilder(
     stream: s,
-    builder: (context, snapshot) => Text(''),
+    builder: (context, asyncSnapshot) => Text(''),
   );
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+import 'package:flutter/widgets.dart';
+
+void f(Stream<int> s) {
+  StreamBuilder(
+    stream: stream,
+    builder: (context, asyncSnapshot) {
+      return StreamBuilder(
+        stream: s,
+        builder: (context, asyncSnapshot) => Text(''),
+      );
+    }
+  );
+}
+''');
   }
 
   Future<void> test_aroundText() async {
@@ -45,16 +72,16 @@ void f(Stream<int> s) {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  /*caret*/Text('a');
+  ^Text('a');
 }
 ''');
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 
 void f() {
-  StreamBuilder<Object>(
-    stream: null,
-    builder: (context, snapshot) {
+  StreamBuilder(
+    stream: stream,
+    builder: (context, asyncSnapshot) {
       return Text('a');
     }
   );
@@ -71,7 +98,7 @@ class TestWidget extends StatelessWidget {
   const TestWidget({super.key});
   @override
   Widget build(BuildContext context) {
-    return const /*caret*/Text('hi');
+    return const ^Text('hi');
   }
 }
 ''');
@@ -82,9 +109,9 @@ class TestWidget extends StatelessWidget {
   const TestWidget({super.key});
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Object>(
-      stream: null,
-      builder: (context, snapshot) {
+    return StreamBuilder(
+      stream: stream,
+      builder: (context, asyncSnapshot) {
         return const Text('hi');
       }
     );
@@ -102,7 +129,7 @@ class TestWidget extends StatelessWidget {
   const TestWidget({super.key});
   @override
   Widget build(BuildContext context) {
-    return const /*caret*/Text('hi');
+    return const ^Text('hi');
   }
 }
 ''');
@@ -113,9 +140,9 @@ class TestWidget extends StatelessWidget {
   const TestWidget({super.key});
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Object>(
-      stream: null,
-      builder: (context, snapshot) {
+    return StreamBuilder(
+      stream: stream,
+      builder: (context, asyncSnapshot) {
         return const Text('hi');
       },
     );

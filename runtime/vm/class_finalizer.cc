@@ -199,7 +199,7 @@ bool ClassFinalizer::ProcessPendingClasses() {
   }
 
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     GrowableObjectArray& class_array = GrowableObjectArray::Handle();
     class_array = object_store->pending_classes();
     ASSERT(!class_array.IsNull());
@@ -589,10 +589,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   if (is_future_subtype && !cls.is_abstract()) {
     MarkClassCanBeFuture(zone, cls);
   }
-  if (cls.is_dynamically_extendable()) {
-    MarkClassHasDynamicallyExtendableSubtypes(zone, cls);
-  }
-
   ClassHiearchyUpdater(zone).Register(cls);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -687,25 +683,6 @@ void ClassFinalizer::MarkClassCanBeFuture(Zone* zone, const Class& cls) {
   }
 }
 
-void ClassFinalizer::MarkClassHasDynamicallyExtendableSubtypes(
-    Zone* zone,
-    const Class& cls) {
-  if (cls.has_dynamically_extendable_subtypes()) return;
-
-  cls.set_has_dynamically_extendable_subtypes(true);
-
-  Class& base = Class::Handle(zone, cls.SuperClass());
-  if (!base.IsNull()) {
-    MarkClassHasDynamicallyExtendableSubtypes(zone, base);
-  }
-  auto& interfaces = Array::Handle(zone, cls.interfaces());
-  auto& type = AbstractType::Handle(zone);
-  for (intptr_t i = 0; i < interfaces.Length(); ++i) {
-    type ^= interfaces.At(i);
-    base = type.type_class();
-    MarkClassHasDynamicallyExtendableSubtypes(zone, base);
-  }
-}
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 void ClassFinalizer::FinalizeClass(const Class& cls) {
@@ -850,7 +827,7 @@ ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
   ASSERT(!cls.is_finalized());
 
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     cls.EnsureDeclarationLoaded();
     ASSERT(cls.is_type_finalized());
     ClassFinalizer::FinalizeClass(cls);

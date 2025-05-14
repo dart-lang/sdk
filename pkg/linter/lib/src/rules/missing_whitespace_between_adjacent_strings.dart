@@ -11,10 +11,10 @@ const _desc = r'Missing whitespace between adjacent strings.';
 
 class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
   MissingWhitespaceBetweenAdjacentStrings()
-      : super(
-          name: LintNames.missing_whitespace_between_adjacent_strings,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.missing_whitespace_between_adjacent_strings,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -22,7 +22,9 @@ class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addAdjacentStrings(this, visitor);
   }
@@ -42,8 +44,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (_isRegExpInstanceCreation(parentParent) ||
           parentParent is MethodInvocation &&
               parentParent.realTarget == null &&
-              const ['RegExp', 'matches']
-                  .contains(parentParent.methodName.name)) {
+              const [
+                'RegExp',
+                'matches',
+              ].contains(parentParent.methodName.name)) {
         return;
       }
     }
@@ -84,8 +88,9 @@ extension on StringLiteral {
       return last.value.isEmpty || last.value.endsWithWhitespace;
     }
     throw ArgumentError(
-        'Expected SimpleStringLiteral or StringInterpolation, but got '
-        '$runtimeType');
+      'Expected SimpleStringLiteral or StringInterpolation, but got '
+      '$runtimeType',
+    );
   }
 
   /// Returns whether this contains whitespace, where any
@@ -95,8 +100,9 @@ extension on StringLiteral {
     if (self is SimpleStringLiteral) {
       return self.value.hasWhitespace;
     } else if (self is StringInterpolation) {
-      return self.elements
-          .any((e) => e is InterpolationString && e.value.hasWhitespace);
+      return self.elements.any(
+        (e) => e is InterpolationString && e.value.hasWhitespace,
+      );
     }
     return false;
   }
@@ -112,8 +118,9 @@ extension on StringLiteral {
       return first.value.isEmpty || first.value.startsWithWhitespace;
     }
     throw ArgumentError(
-        'Expected SimpleStringLiteral or StringInterpolation, but got '
-        '$runtimeType');
+      'Expected SimpleStringLiteral or StringInterpolation, but got '
+      '$runtimeType',
+    );
   }
 }
 

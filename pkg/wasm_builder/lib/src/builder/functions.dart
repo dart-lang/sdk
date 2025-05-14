@@ -6,8 +6,6 @@ import '../ir/ir.dart' as ir;
 import 'builder.dart';
 import 'util.dart';
 
-part 'function.dart';
-
 /// The interface for the functions in a module.
 class FunctionsBuilder with Builder<ir.Functions> {
   final ModuleBuilder _module;
@@ -65,6 +63,7 @@ class FunctionsBuilder with Builder<ir.Functions> {
   /// Declare [function] as a module element so it can be used in a constant
   /// context.
   void declare(ir.BaseFunction function) {
+    assert(function.enclosingModule == _module);
     _declaredFunctions.add(function);
   }
 

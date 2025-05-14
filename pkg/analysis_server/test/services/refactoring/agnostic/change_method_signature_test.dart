@@ -111,7 +111,6 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   String _elementToReferenceString(Element2 element) {
     var enclosingElement = element.enclosingElement2;
     var reference = switch (element) {
-      ElementImpl() => element.reference,
       ElementImpl2() =>
         element.reference ?? (element.firstFragment as ElementImpl).reference,
       _ => null,
@@ -362,7 +361,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@class::A::@method::test
+element: self::@fragment::self::@class::A::@method::test
 formalParameters
   id: 0
     kind: requiredPositional
@@ -1473,38 +1472,6 @@ class A {
 
 class B extends A {
   B() : super(a: 0);
-}
-''');
-  }
-
-  Future<void> test_classMethod_optionalNamed_in_macro_remove() async {
-    addMacros([declareInLibraryMacro()]);
-    await _analyzeValidSelection(r'''
-import 'macros.dart';
-
-@DeclareInType('void foo() {  test(a: 0, b: 1, c: 2);}')
-class A {
-  void ^test({int a, int b, int c}) {}
-}
-''');
-
-    var signatureUpdate = MethodSignatureUpdate(
-      formalParameters: [
-        FormalParameterUpdate(id: 0, kind: FormalParameterKind.optionalNamed),
-        FormalParameterUpdate(id: 2, kind: FormalParameterKind.optionalNamed),
-      ],
-      removedNamedFormalParameters: {'b'},
-      formalParametersTrailingComma: TrailingComma.ifPresent,
-      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
-    );
-
-    await _assertUpdate(signatureUpdate, r'''
->>>>>>> /home/test/lib/test.dart
-import 'macros.dart';
-
-@DeclareInType('void foo() {  test(a: 0, b: 1, c: 2);}')
-class A {
-  void test({int a, int c}) {}
 }
 ''');
   }

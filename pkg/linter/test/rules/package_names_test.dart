@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PackageNamesTest);
   });
@@ -21,30 +21,30 @@ class PackageNamesTest extends LintRuleTest {
   String get lintRule => LintNames.package_names;
 
   test_lowerCamelCase() async {
-    await assertPubspecDiagnostics(r'''
+    await assertPubspecDiagnostics(
+      r'''
 name: fooBar
 version: 0.0.1
-''', [
-      lint(6, 6),
-    ]);
+''',
+      [lint(6, 6)],
+    );
   }
 
   test_oneUpperWord() async {
-    await assertPubspecDiagnostics(r'''
+    await assertPubspecDiagnostics(
+      r'''
 name: Foo
 version: 0.0.1
-''', [
-      lint(6, 3),
-    ]);
+''',
+      [lint(6, 3)],
+    );
   }
 
   test_oneWord() async {
-    await assertNoPubspecDiagnostics(
-      r'''
+    await assertNoPubspecDiagnostics(r'''
 name: foo
 version: 0.0.1
-''',
-    );
+''');
   }
 
   test_snakeCase() async {
@@ -55,11 +55,12 @@ version: 0.0.1
   }
 
   test_upperCamelCase() async {
-    await assertPubspecDiagnostics(r'''
+    await assertPubspecDiagnostics(
+      r'''
 name: FooBar
 version: 0.0.1
-''', [
-      lint(6, 6),
-    ]);
+''',
+      [lint(6, 6)],
+    );
   }
 }

@@ -94,12 +94,12 @@ class _CiderDartFixContextImpl extends DartFixContext {
         var libraryElement = await _fileResolver.getLibraryByUri2(
           uriStr: file.uriStr,
         );
-        TopLevelDeclarations.addElement2(result, libraryElement, name);
+        TopLevelDeclarations.addElement(result, libraryElement, name);
       }
     }
     return result;
   }
 
   @override
-  Stream<LibraryElement2> librariesWithExtensions(String memberName) async* {}
+  Stream<LibraryElement2> librariesWithExtensions(Name memberName) async* {}
 }

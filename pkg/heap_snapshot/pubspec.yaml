@@ -3,11 +3,10 @@ name: heap_snapshot
 publish_to: none
 
 environment:
-  sdk: '>=2.17.0 <3.0.0'
+  sdk: ^3.5.0
+
+resolution: workspace
 
 dependencies:
   vm_service: any
 
-dependency_overrides:
-  vm_service:
-    path: ../vm_service

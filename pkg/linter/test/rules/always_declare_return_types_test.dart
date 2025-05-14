@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AlwaysDeclareReturnTypesTest);
   });
@@ -33,9 +33,7 @@ augment class A {
 ''');
 
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [
-      lint(39, 1),
-    ]);
+    await assertDiagnosticsInFile(b.path, [lint(39, 1)]);
   }
 
   test_augmentationTopLevelFunction() async {
@@ -50,9 +48,7 @@ f() { }
 ''');
 
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [
-      lint(19, 1),
-    ]);
+    await assertDiagnosticsInFile(b.path, [lint(19, 1)]);
   }
 
   /// Augmentation target chain variations tested in
@@ -74,9 +70,7 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(28, 1),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(28, 1)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
@@ -93,9 +87,7 @@ part of 'a.dart';
 augment f() { }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(16, 1),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(16, 1)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
@@ -113,20 +105,19 @@ augment dynamic f() { }
 augment f() { }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(16, 1),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(16, 1)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_extensionMethod() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int {
   f() {}
 }
-''', [
-      lint(23, 1),
-    ]);
+''',
+      [lint(23, 1)],
+    );
   }
 
   test_instanceSetter() async {
@@ -138,13 +129,14 @@ class C {
   }
 
   test_method_expressionBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   f() => 42;
 }
-''', [
-      lint(12, 1),
-    ]);
+''',
+      [lint(12, 1)],
+    );
   }
 
   test_method_testUnderscore_notInPubPackageTest_hasReturnType() async {
@@ -156,13 +148,14 @@ class A {
   }
 
   test_method_testUnderscore_notInPubPackageTest_noReturnType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   test_foo() {}
 }
-''', [
-      lint(12, 8),
-    ]);
+''',
+      [lint(12, 8)],
+    );
   }
 
   test_method_withReturnType() async {
@@ -199,9 +192,7 @@ class MyTest {
 }
 ''');
 
-    await assertDiagnosticsInFile(file.path, [
-      lint(17, 3),
-    ]);
+    await assertDiagnosticsInFile(file.path, [lint(17, 3)]);
   }
 
   test_pubPackageTest_method_soloTest_noReturnType() async {
@@ -249,11 +240,12 @@ int f() => 7;
   }
 
   test_topLevelFunction_expressionBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() => 7;
-''', [
-      lint(0, 1),
-    ]);
+''',
+      [lint(0, 1)],
+    );
   }
 
   test_topLevelFunction_expressionBody_withReturnType() async {
@@ -263,11 +255,12 @@ void f() { }
   }
 
   test_topLevelFunction_noReturn() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {}
-''', [
-      lint(0, 1),
-    ]);
+''',
+      [lint(0, 1)],
+    );
   }
 
   test_topLevelSetter() async {
@@ -277,11 +270,12 @@ set f(int p) {}
   }
 
   test_typedef_oldStyle() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 typedef t(int x);
-''', [
-      lint(8, 1),
-    ]);
+''',
+      [lint(8, 1)],
+    );
   }
 
   test_typedef_oldStyle_withReturnType() async {

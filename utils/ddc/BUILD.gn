@@ -12,8 +12,6 @@ import("../create_timestamp.gni")
 
 sdk_outline_dill = "$root_out_dir/ddc_outline.dill"
 sdk_full_dill = "$root_out_dir/ddc_platform.dill"
-sdk_outline_unsound_dill = "$root_out_dir/ddc_outline_unsound.dill"
-sdk_full_unsound_dill = "$root_out_dir/ddc_platform_unsound.dill"
 
 sdk_root = "../../sdk"
 pkg_root = "../../pkg"
@@ -120,7 +118,6 @@ group("ddc_stable_test_local") {
   deps = [
     ":ddc_stable_sdk",
     ":ddc_stable_test_pkg",
-    ":ddc_stable_unsound_sdk",
   ]
 }
 
@@ -134,8 +131,6 @@ group("ddc_canary_test_local") {
     ":ddc_canary_sdk",
     ":ddc_canary_sdk_ddc_module",
     ":ddc_canary_test_pkg",
-    ":ddc_canary_unsound_sdk",
-    ":ddc_canary_unsound_sdk_ddc_module",
   ]
 }
 
@@ -156,11 +151,8 @@ group("ddc_stable_test_pkg") {
   deps = [
     ":ddc_test_pkg_outline",
     ":expect_stable_js",
-    ":expect_stable_unsound_js",
     ":js_stable_js",
-    ":js_stable_unsound_js",
     ":meta_stable_js",
-    ":meta_stable_unsound_js",
   ]
 }
 
@@ -170,59 +162,31 @@ group("ddc_canary_test_pkg") {
     ":ddc_test_pkg_outline",
     ":expect_canary_ddc_js",
     ":expect_canary_js",
-    ":expect_canary_unsound_ddc_js",
-    ":expect_canary_unsound_js",
     ":js_canary_ddc_js",
     ":js_canary_js",
-    ":js_canary_unsound_ddc_js",
-    ":js_canary_unsound_js",
     ":meta_canary_ddc_js",
     ":meta_canary_js",
-    ":meta_canary_unsound_ddc_js",
-    ":meta_canary_unsound_js",
   ]
 }
 
 group("ddc_test_pkg_outline") {
   deps = [
     ":expect_outline",
-    ":expect_outline_unsound",
     ":js_outline",
-    ":js_outline_unsound",
     ":meta_outline",
-    ":meta_outline_unsound",
   ]
 }
 
 template("ddc_compile") {
   assert(defined(invoker.package),
          "Need 'package' in $target_name (the name of the package)")
-  assert(defined(invoker.sound_null_safety),
-         "Need 'sound_null_safety' in $target_name.")
   assert(defined(invoker.canary), "Need 'canary' in $target_name.")
   assert(defined(invoker.modules), "Need 'modules' in $target_name.")
 
-  # Determine one of four possible directories for the JavaScript output to be
-  # generated:
-  #
-  # out/gen/ddc
-  #          |- canary/pkg
-  #          |- canary_unsound/pkg
-  #          |- stable/pkg
-  #          |- stable_unsound/pkg
   if (invoker.canary) {
-    js_gen_dir = "$target_gen_dir/canary"
+    js_gen_dir = "$target_gen_dir/canary/pkg"
   } else {
-    js_gen_dir = "$target_gen_dir/stable"
-  }
-  if (invoker.sound_null_safety) {
-    platform_dep = ":ddc_platform"
-    sdk_outline = sdk_outline_dill
-    js_gen_dir = "$js_gen_dir/pkg"
-  } else {
-    platform_dep = ":ddc_platform_unsound"
-    sdk_outline = sdk_outline_unsound_dill
-    js_gen_dir = "${js_gen_dir}_unsound/pkg"
+    js_gen_dir = "$target_gen_dir/stable/pkg"
   }
 
   # Other optional invoker parameters:
@@ -238,16 +202,16 @@ template("ddc_compile") {
     script = "../../pkg/dev_compiler/bin/dartdevc.dart"
     package_name = invoker.package
     out_dir = rebase_path("$js_gen_dir")
-    sdk_path = rebase_path(sdk_outline)
+    sdk_path = rebase_path(sdk_outline_dill)
     pkg_root = rebase_path("$root_build_dir/../../pkg")
 
     deps = [
       ":ddc_files_stamp",
-      platform_dep,
+      ":ddc_platform",
     ]
 
     inputs = [
-      sdk_outline,
+      sdk_outline_dill,
       "$target_gen_dir/ddc_files.stamp",
     ]
 
@@ -291,12 +255,6 @@ template("ddc_compile") {
       args += invoker.args
     }
 
-    if (invoker.sound_null_safety) {
-      args += [ "--sound-null-safety" ]
-    } else {
-      args += [ "--no-sound-null-safety" ]
-    }
-
     if (invoker.canary) {
       args += [ "--canary" ]
     }
@@ -307,29 +265,18 @@ template("ddc_compile") {
 template("package_kernel_outline") {
   assert(defined(invoker.package),
          "Need 'package' in $target_name (the name of the package)")
-  assert(defined(invoker.sound_null_safety),
-         "Need 'sound_null_safety' in $target_name.")
 
   module = invoker.package
   output = "$target_gen_dir/${module}_outline"
-
-  if (invoker.sound_null_safety) {
-    platform_dep = ":ddc_platform"
-    sdk_outline = rebase_path(sdk_outline_dill)
-    output = "$output.dill"
-  } else {
-    platform_dep = ":ddc_platform_unsound"
-    sdk_outline = rebase_path(sdk_outline_unsound_dill)
-    output = "${output}_unsound.dill"
-  }
+  sdk_outline = rebase_path(sdk_outline_dill)
 
   package_config =
       rebase_path("$root_out_dir/../../.dart_tool/package_config.json")
 
   prebuilt_dart_action(target_name) {
     deps = [
+      ":ddc_platform",
       "../bazel:kernel_worker_files_stamp",
-      platform_dep,
     ]
     script = "../bazel/kernel_worker.dart"
     outputs = [ output ]
@@ -344,13 +291,8 @@ template("package_kernel_outline") {
       "--source",
       "package:$module/$module.dart",
       "--output",
-      rebase_path(output),
+      rebase_path("$output.dill"),
     ]
-    if (invoker.sound_null_safety) {
-      args += [ "--sound-null-safety" ]
-    } else {
-      args += [ "--no-sound-null-safety" ]
-    }
     if (defined(invoker.extra_libraries)) {
       foreach(lib, invoker.extra_libraries) {
         args += [
@@ -369,17 +311,6 @@ package_kernel_outline("expect_outline") {
     "legacy/minitest",
     "legacy/async_minitest",
   ]
-  sound_null_safety = true
-}
-
-package_kernel_outline("expect_outline_unsound") {
-  package = "expect"
-  extra_libraries = [
-    "async_helper",
-    "legacy/minitest",
-    "legacy/async_minitest",
-  ]
-  sound_null_safety = false
 }
 
 ddc_compile("expect_stable_js") {
@@ -394,7 +325,6 @@ ddc_compile("expect_stable_js") {
     "amd",
     "ddc",
   ]
-  sound_null_safety = true
 }
 
 ddc_compile("expect_canary_js") {
@@ -406,7 +336,6 @@ ddc_compile("expect_canary_js") {
   ]
   canary = true
   modules = [ "amd" ]
-  sound_null_safety = true
 }
 
 ddc_compile("expect_canary_ddc_js") {
@@ -418,58 +347,11 @@ ddc_compile("expect_canary_ddc_js") {
   ]
   canary = true
   modules = [ "ddc" ]
-  sound_null_safety = true
-}
-
-ddc_compile("expect_stable_unsound_js") {
-  package = "expect"
-  extra_libraries = [
-    "async_helper",
-    "legacy/minitest",
-    "legacy/async_minitest",
-  ]
-  canary = false
-  modules = [
-    "amd",
-    "ddc",
-  ]
-  sound_null_safety = false
-}
-
-ddc_compile("expect_canary_unsound_js") {
-  package = "expect"
-  extra_libraries = [
-    "async_helper",
-    "legacy/minitest",
-    "legacy/async_minitest",
-  ]
-  canary = true
-  modules = [ "amd" ]
-  sound_null_safety = false
-}
-
-ddc_compile("expect_canary_unsound_ddc_js") {
-  package = "expect"
-  extra_libraries = [
-    "async_helper",
-    "legacy/minitest",
-    "legacy/async_minitest",
-  ]
-  canary = true
-  modules = [ "ddc" ]
-  sound_null_safety = false
 }
 
 package_kernel_outline("js_outline") {
   package = "js"
   extra_libraries = [ "js_util" ]
-  sound_null_safety = true
-}
-
-package_kernel_outline("js_outline_unsound") {
-  package = "js"
-  extra_libraries = [ "js_util" ]
-  sound_null_safety = false
 }
 
 ddc_compile("js_stable_js") {
@@ -480,7 +362,6 @@ ddc_compile("js_stable_js") {
     "amd",
     "ddc",
   ]
-  sound_null_safety = true
 }
 
 ddc_compile("js_canary_js") {
@@ -488,7 +369,6 @@ ddc_compile("js_canary_js") {
   extra_libraries = [ "js_util" ]
   canary = true
   modules = [ "amd" ]
-  sound_null_safety = true
 }
 
 ddc_compile("js_canary_ddc_js") {
@@ -496,44 +376,10 @@ ddc_compile("js_canary_ddc_js") {
   extra_libraries = [ "js_util" ]
   canary = true
   modules = [ "ddc" ]
-  sound_null_safety = true
-}
-
-ddc_compile("js_stable_unsound_js") {
-  package = "js"
-  extra_libraries = [ "js_util" ]
-  canary = false
-  modules = [
-    "amd",
-    "ddc",
-  ]
-  sound_null_safety = false
-}
-
-ddc_compile("js_canary_unsound_js") {
-  package = "js"
-  extra_libraries = [ "js_util" ]
-  canary = true
-  modules = [ "amd" ]
-  sound_null_safety = false
-}
-
-ddc_compile("js_canary_unsound_ddc_js") {
-  package = "js"
-  extra_libraries = [ "js_util" ]
-  canary = true
-  modules = [ "ddc" ]
-  sound_null_safety = false
 }
 
 package_kernel_outline("meta_outline") {
   package = "meta"
-  sound_null_safety = true
-}
-
-package_kernel_outline("meta_outline_unsound") {
-  package = "meta"
-  sound_null_safety = false
 }
 
 ddc_compile("meta_stable_js") {
@@ -543,124 +389,60 @@ ddc_compile("meta_stable_js") {
     "amd",
     "ddc",
   ]
-  sound_null_safety = true
 }
 
 ddc_compile("meta_canary_js") {
   package = "meta"
   canary = true
   modules = [ "amd" ]
-  sound_null_safety = true
 }
 
 ddc_compile("meta_canary_ddc_js") {
   package = "meta"
   canary = true
   modules = [ "ddc" ]
-  sound_null_safety = true
 }
 
-ddc_compile("meta_stable_unsound_js") {
-  package = "meta"
-  canary = false
-  modules = [
-    "amd",
-    "ddc",
+compile_platform("ddc_platform") {
+  single_root_scheme = "org-dartlang-sdk"
+  single_root_base = rebase_path("$sdk_root/")
+  libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
+
+  args = [
+    "--target=dartdevc",
+    "dart:core",
   ]
-  sound_null_safety = false
-}
 
-ddc_compile("meta_canary_unsound_js") {
-  package = "meta"
-  canary = true
-  modules = [ "amd" ]
-  sound_null_safety = false
-}
-
-ddc_compile("meta_canary_unsound_ddc_js") {
-  package = "meta"
-  canary = true
-  modules = [ "ddc" ]
-  sound_null_safety = false
-}
-
-template("compile_ddc_platform") {
-  assert(defined(invoker.sound_null_safety),
-         "Need 'sound_null_safety' in $target_name.")
-
-  compile_platform(target_name) {
-    single_root_scheme = "org-dartlang-sdk"
-    single_root_base = rebase_path("$sdk_root/")
-    libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
-
-    args = [
-      "--target=dartdevc",
-      "dart:core",
-    ]
-
-    if (invoker.sound_null_safety) {
-      args += [ "--nnbd-strong" ]
-
-      outputs = [
-        sdk_full_dill,
-        sdk_outline_dill,
-      ]
-    } else {
-      args += [ "--nnbd-weak" ]
-
-      outputs = [
-        sdk_full_unsound_dill,
-        sdk_outline_unsound_dill,
-      ]
-    }
-  }
-}
-
-compile_ddc_platform("ddc_platform") {
-  sound_null_safety = true
-}
-
-compile_ddc_platform("ddc_platform_unsound") {
-  sound_null_safety = false
+  outputs = [
+    sdk_full_dill,
+    sdk_outline_dill,
+  ]
 }
 
 # Compiles the DDC SDK JavaScript modules from the platform .dill file.
 template("ddc_compile_sdk") {
-  assert(defined(invoker.sound_null_safety),
-         "Need 'sound_null_safety' in $target_name.")
   assert(defined(invoker.canary), "Need 'canary' in $target_name.")
   assert(defined(invoker.modules), "Need 'modules' in $target_name.")
 
-  # Determine one of four possible directories for the JavaScript output to be
+  # Determine one of two possible directories for the JavaScript output to be
   # generated:
   #
   # out/gen/ddc
   #          |- canary/sdk
-  #          |- canary_unsound/sdk
   #          |- stable/sdk
-  #          |- stable_unsound/sdk
   if (invoker.canary) {
-    js_gen_dir = "$target_gen_dir/canary"
+    js_gen_dir = "$target_gen_dir/canary/sdk"
   } else {
-    js_gen_dir = "$target_gen_dir/stable"
-  }
-  if (invoker.sound_null_safety) {
-    platform_dep = ":ddc_platform"
-    platform_input = sdk_full_dill
-    js_gen_dir = "$js_gen_dir/sdk"
-  } else {
-    platform_dep = ":ddc_platform_unsound"
-    platform_input = sdk_full_unsound_dill
-    js_gen_dir = "${js_gen_dir}_unsound/sdk"
+    js_gen_dir = "$target_gen_dir/stable/sdk"
   }
 
   prebuilt_dart_action(target_name) {
     deps = [
       ":ddc_files_stamp",
-      platform_dep,
+      ":ddc_platform",
     ]
 
-    inputs = [ platform_input ]
+    inputs = [ sdk_full_dill ]
 
     outputs = []
     args = []
@@ -695,14 +477,8 @@ template("ddc_compile_sdk") {
       # These JavaScript files and source maps are no longer packaged into the
       # released SDK.
       rebase_path("$target_gen_dir/../../../dart-sdk"),
-      rebase_path("$platform_input"),
+      rebase_path("$sdk_full_dill"),
     ]
-
-    if (invoker.sound_null_safety) {
-      args += [ "--sound-null-safety" ]
-    } else {
-      args += [ "--no-sound-null-safety" ]
-    }
 
     if (invoker.canary) {
       args += [ "--canary" ]
@@ -718,18 +494,6 @@ ddc_compile_sdk("ddc_stable_sdk") {
     "es6",
     "ddc",
   ]
-  sound_null_safety = true
-}
-
-ddc_compile_sdk("ddc_stable_unsound_sdk") {
-  canary = false
-  modules = [
-    "amd",
-    "common",
-    "es6",
-    "ddc",
-  ]
-  sound_null_safety = false
 }
 
 ddc_compile_sdk("ddc_canary_sdk") {
@@ -739,7 +503,6 @@ ddc_compile_sdk("ddc_canary_sdk") {
     "common",
     "es6",
   ]
-  sound_null_safety = true
 }
 
 # Compiles the DDC SDK JavaScript modules from the platform .dill file in the
@@ -751,27 +514,4 @@ ddc_compile_sdk("ddc_canary_sdk") {
 ddc_compile_sdk("ddc_canary_sdk_ddc_module") {
   canary = true
   modules = [ "ddc" ]
-  sound_null_safety = true
-}
-
-ddc_compile_sdk("ddc_canary_unsound_sdk") {
-  canary = true
-  modules = [
-    "amd",
-    "common",
-    "es6",
-  ]
-  sound_null_safety = false
-}
-
-# Compiles the DDC SDK JavaScript modules from the platform .dill file in the
-# "ddc" module format only.
-#
-# This allows for them to be built individually (only passing one `--modules`
-# flag value) so that when also passing the `--canary` flag it will trigger
-# DDC to enable the option for the new library bundle format.
-ddc_compile_sdk("ddc_canary_unsound_sdk_ddc_module") {
-  canary = true
-  modules = [ "ddc" ]
-  sound_null_safety = false
 }

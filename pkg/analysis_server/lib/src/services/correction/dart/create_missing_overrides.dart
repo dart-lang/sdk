@@ -19,9 +19,8 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [
@@ -43,10 +42,8 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
       return;
     }
     var signatures = [
-      ...InheritanceOverrideVerifier.missingOverrides2(targetDeclaration),
-      ...InheritanceOverrideVerifier.missingMustBeOverridden2(
-        targetDeclaration,
-      ),
+      ...InheritanceOverrideVerifier.missingOverrides(targetDeclaration),
+      ...InheritanceOverrideVerifier.missingMustBeOverridden(targetDeclaration),
     ];
     // Sort by name, getters before setters.
     signatures.sort((ExecutableElement2 a, ExecutableElement2 b) {

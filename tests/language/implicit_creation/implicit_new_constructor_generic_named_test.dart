@@ -8,8 +8,8 @@ import "package:expect/expect.dart";
 
 class C<T> {
   final T x;
-  C(this.x);  // Not const constructor.
-  const C.c(this.x);  // Const constructor.
+  C(this.x); // Not const constructor.
+  const C.c(this.x); // Const constructor.
 
   operator <(other) => this;
   operator >(other) => other;
@@ -24,7 +24,7 @@ T id<T>(T x) => x;
 main() {
   const cc = const C<int>.c(42); // Canonicalized.
   var x = 42; // Avoid constant parameter for constant constructor.
-  var c0 = new C<int>.c(x);  // Original syntax.
+  var c0 = new C<int>.c(x); // Original syntax.
 
   // Uses of `C<int>.c(x)` in various contexts.
   var c1 = C<int>.c(x);
@@ -52,15 +52,31 @@ main() {
       Expect.fail("Should not be const");
       break;
     default:
-      // Success.
+    // Success.
   }
 
   for (C<int>.c(x); false; C<int>.c(x), C<int>.c(x)) {
     Expect.fail("Unreachable");
   }
 
-  var values =
-      [cc, c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14];
+  var values = [
+    cc,
+    c0,
+    c1,
+    c2,
+    c3,
+    c4,
+    c5,
+    c6,
+    c7,
+    c8,
+    c9,
+    c10,
+    c11,
+    c12,
+    c13,
+    c14,
+  ];
   Expect.allDistinct(values); // Non of them create constants.
   for (var value in values) {
     Expect.isTrue(value is C<int>);

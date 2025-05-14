@@ -192,8 +192,12 @@ main() {
   Expect.isFalse(inferDynamic(0));
   Expect.isTrue(inferBound(D(0)));
   Expect.isFalse(inferBound(0));
-  Expect.isTrue(E<int, String>(0, '')
-      .inferEnclosingTypeParameters(E<Set<String>, Set<int>>({''}, {0})));
+  Expect.isTrue(
+    E<int, String>(
+      0,
+      '',
+    ).inferEnclosingTypeParameters(E<Set<String>, Set<int>>({''}, {0})),
+  );
   Expect.isTrue(fBounded(F2()));
   Expect.isFalse(fBounded(0));
   Expect.isTrue(partialInference(G2(0, {0})));

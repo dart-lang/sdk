@@ -1332,8 +1332,8 @@ enum CodegenUriConverterKind {
   ///
   /// Throws if this value is [none].
   String get namedArgumentString => switch (this) {
-    optionalParameter || requiredParameter =>
-      'clientUriConverter: clientUriConverter',
+    optionalParameter ||
+    requiredParameter => 'clientUriConverter: clientUriConverter',
     _ => throw "'namedArgumentString' cannot be used for 'none'",
   };
 

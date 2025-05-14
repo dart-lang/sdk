@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryRawStringsTest);
   });
@@ -18,11 +18,12 @@ class UnnecessaryRawStringsTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_raw_strings;
 
   test_doubleQuotes_raw() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var s = r"a b c d";
-''', [
-      lint(8, 10),
-    ]);
+''',
+      [lint(8, 10)],
+    );
   }
 
   test_doubleQuotes_raw_containsBackslash() async {
@@ -44,11 +45,12 @@ var s = 'a b c d';
   }
 
   test_singleQuote_raw() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var s = r'a b c d';
-''', [
-      lint(8, 10),
-    ]);
+''',
+      [lint(8, 10)],
+    );
   }
 
   test_singleQuote_raw_containsBackslash() async {
@@ -64,11 +66,12 @@ var s = r'a b c$d';
   }
 
   test_tripleDoubleQuotes_raw() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var s = r"""a b c d""";
-''', [
-      lint(8, 14),
-    ]);
+''',
+      [lint(8, 14)],
+    );
   }
 
   test_tripleDoubleQuotes_raw_containsBackslash() async {
@@ -84,11 +87,12 @@ var s = r"""a b c$d""";
   }
 
   test_tripleSingleQuote_raw() async {
-    await assertDiagnostics(r"""
+    await assertDiagnostics(
+      r"""
 var s = r'''a b c d''';
-""", [
-      lint(8, 14),
-    ]);
+""",
+      [lint(8, 14)],
+    );
   }
 
   test_tripleSingleQuote_raw_containsBackslash() async {

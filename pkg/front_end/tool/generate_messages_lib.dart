@@ -44,8 +44,8 @@ Messages generateMessagesFilesRaw(
 
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
-// Instead modify 'pkg/front_end/messages.yaml' and run
-// 'pkg/front_end/tool/cfe generate-messages' to update.
+// Instead modify 'pkg/front_end/messages.yaml' and defer to it for the
+// commands to update this file.
 
 // ignore_for_file: lines_longer_than_80_chars
 """;

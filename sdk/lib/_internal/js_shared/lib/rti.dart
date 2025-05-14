@@ -16,8 +16,7 @@ import 'dart:_foreign_helper'
         JS_GET_NAME,
         JS_STRING_CONCAT,
         RAW_DART_FUNCTION_REF,
-        TYPE_REF,
-        LEGACY_TYPE_REF;
+        TYPE_REF;
 import 'dart:_interceptors'
     show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
 import 'dart:_js_helper'
@@ -29,46 +28,9 @@ import 'dart:_js_names'
 import 'dart:_js_shared_embedded_names';
 import 'dart:_recipe_syntax';
 
-typedef OnExtraNullSafetyError = void Function(TypeError, StackTrace);
-
-Object? onExtraNullSafetyError;
-
-bool _reportingExtraNullSafetyError = false;
-
-@pragma('dart2js:as:trust')
-void _onExtraNullSafetyError(TypeError error, StackTrace trace) {
-  if (JS_GET_FLAG('DEV_COMPILER')) {
-    throw error;
-  } else if (!_reportingExtraNullSafetyError) {
-    // If [onExtraNullSafetyError] itself produces an extra null safety error,
-    // this avoids blowing the stack.
-    _reportingExtraNullSafetyError = true;
-    try {
-      if (onExtraNullSafetyError != null) {
-        (onExtraNullSafetyError as OnExtraNullSafetyError)(error, trace);
-      }
-    } finally {
-      _reportingExtraNullSafetyError = false;
-    }
-  }
-}
-
-class _InteropNullAssertionError extends _Error implements TypeError {
-  _InteropNullAssertionError()
-    : super('Non-nullable interop API returned null value.');
-}
-
 /// Called from generated code.
-Object? _interopNullAssertion(Object? value) {
-  if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-    if (value == null) {
-      _onExtraNullSafetyError(_InteropNullAssertionError(), StackTrace.current);
-    }
-    return value;
-  } else {
-    return value!;
-  }
-}
+@pragma('dart2js:prefer-inline')
+Object? _interopNullAssertion(Object? value) => value!;
 
 /// The name of a property on the constructor function of Dart Object
 /// and interceptor types, used for caching Rti types.
@@ -162,8 +124,6 @@ class Rti {
   /// If kind == kindInterface, holds the first type argument (if any).
   /// If kind == kindFutureOr, holds Future<T> where T is the base type.
   /// - This case is lazily initialized during subtype checks.
-  /// If kind == kindStar, holds T? where T is the base type.
-  /// - This case is lazily initialized during subtype checks.
   @pragma('dart2js:noElision')
   Object? _precomputed1;
 
@@ -171,23 +131,6 @@ class Rti {
 
   static void _setPrecomputed1(Rti rti, Object? precomputed) {
     rti._precomputed1 = precomputed;
-  }
-
-  static Rti _unstar(Rti rti) =>
-      _getKind(rti) == kindStar ? _getStarArgument(rti) : rti;
-
-  static Rti _getQuestionFromStar(Object? universe, Rti rti) {
-    assert(_getKind(rti) == kindStar);
-    Rti? question = _Utils.asRtiOrNull(_getPrecomputed1(rti));
-    if (question == null) {
-      question = _Universe._lookupQuestionRti(
-        universe,
-        _getStarArgument(rti),
-        true,
-      );
-      Rti._setPrecomputed1(rti, question);
-    }
-    return question;
   }
 
   static Rti _getFutureFromFutureOr(Object? universe, Rti rti) {
@@ -260,21 +203,20 @@ class Rti {
   static const int kindAny = 4; // Dart1-style 'dynamic' for JS-interop.
   static const int kindErased = 5;
   // Unary terms.
-  static const int kindStar = 6;
-  static const int kindQuestion = 7;
-  static const int kindFutureOr = 8;
+  static const int kindQuestion = 6;
+  static const int kindFutureOr = 7;
   // More complex terms.
-  static const int kindInterface = 9;
+  static const int kindInterface = 8;
   // A vector of type parameters from enclosing functions and closures.
-  static const int kindBinding = 10;
-  static const int kindRecord = 11;
-  static const int kindFunction = 12;
-  static const int kindGenericFunction = 13;
-  static const int kindGenericFunctionParameter = 14;
+  static const int kindBinding = 9;
+  static const int kindRecord = 10;
+  static const int kindFunction = 11;
+  static const int kindGenericFunction = 12;
+  static const int kindGenericFunctionParameter = 13;
 
   static bool _isUnionOfFunctionType(Rti rti) {
     int kind = Rti._getKind(rti);
-    if (kind == kindStar || kind == kindQuestion || kind == kindFutureOr) {
+    if (kind == kindQuestion || kind == kindFutureOr) {
       return _isUnionOfFunctionType(_Utils.asRti(_getPrimary(rti)));
     }
     return kind == kindFunction || kind == kindGenericFunction;
@@ -343,11 +285,6 @@ class Rti {
   static JSArray _getRecordFields(Rti rti) {
     assert(_getKind(rti) == kindRecord);
     return JS('JSUnmodifiableArray', '#', _getRest(rti));
-  }
-
-  static Rti _getStarArgument(Rti rti) {
-    assert(_getKind(rti) == kindStar);
-    return _Utils.asRti(_getPrimary(rti));
   }
 
   static Rti _getQuestionArgument(Rti rti) {
@@ -436,24 +373,6 @@ class Rti {
   static void _setCanonicalRecipe(Rti rti, String s) {
     rti._canonicalRecipe = s;
   }
-
-  /// Returns the canonical recipe for [rti] with the all legacy type markers
-  /// (* stars) erased.
-  static String getLegacyErasedRecipe(Rti rti) {
-    var s = _getCanonicalRecipe(rti);
-    return JS('String', '#.replace(/\\*/g, "")', s);
-  }
-}
-
-// TODO(nshahan): Make private and change the argument type to rti once this
-// method is no longer called from outside the library.
-Rti getLegacyErasedRti(Object? rti) {
-  // When preserving the legacy stars in the runtime type no legacy erasure
-  // happens so the cached version cannot be used.
-  assert(!JS_GET_FLAG('PRINT_LEGACY_STARS'));
-  var originalType = _Utils.asRti(rti);
-  return Rti._getCachedRuntimeType(originalType)?._rti ??
-      _createAndCacheRuntimeType(originalType)._rti;
 }
 
 @pragma('dart2js:types:trust')
@@ -576,14 +495,19 @@ Rti _rtiBind(Rti environment, Rti types) {
 /// app (such as after a hot reload).
 void resetRtiSubtypeCaches() {
   var universe = _theUniverse();
-  var cache = _Universe.evalCache(universe);
-  var values = _Utils.mapValues(cache);
-  var length = _Utils.arrayLength(values);
+  var evalCache = _Universe.evalCache(universe);
+  var cacheValues = _Utils.mapValues(evalCache);
+  var length = _Utils.arrayLength(cacheValues);
   for (int i = 0; i < length; i++) {
-    Rti rti = _Utils.asRti(_Utils.arrayAt(values, i));
+    Rti rti = _Utils.asRti(_Utils.arrayAt(cacheValues, i));
     var sCache = Rti._getRawIsSubtypeCache(rti);
     if (sCache != null) {
       _Utils.mapClear(sCache);
+    }
+    // Clear eval caches on RTIs that are type environments.
+    var rtiCache = Rti._getEvalCache(rti);
+    if (rtiCache != null) {
+      _Utils.mapClear(rtiCache);
     }
   }
 }
@@ -688,16 +612,6 @@ Rti _substitute(Object? universe, Rti rti, Object? typeArguments, int depth) {
     case Rti.kindVoid:
     case Rti.kindAny:
       return rti;
-    case Rti.kindStar:
-      Rti baseType = _Utils.asRti(Rti._getPrimary(rti));
-      Rti substitutedBaseType = _substitute(
-        universe,
-        baseType,
-        typeArguments,
-        depth,
-      );
-      if (_Utils.isIdentical(substitutedBaseType, baseType)) return rti;
-      return _Universe._lookupStarRti(universe, substitutedBaseType, true);
     case Rti.kindQuestion:
       Rti baseType = _Utils.asRti(Rti._getPrimary(rti));
       Rti substitutedBaseType = _substitute(
@@ -729,8 +643,9 @@ Rti _substitute(Object? universe, Rti rti, Object? typeArguments, int depth) {
       if (_Utils.isIdentical(
         substitutedInterfaceTypeArguments,
         interfaceTypeArguments,
-      ))
+      )) {
         return rti;
+      }
       return _Universe._lookupInterfaceRti(
         universe,
         Rti._getInterfaceName(rti),
@@ -747,8 +662,9 @@ Rti _substitute(Object? universe, Rti rti, Object? typeArguments, int depth) {
         depth,
       );
       if (_Utils.isIdentical(substitutedBase, base) &&
-          _Utils.isIdentical(substitutedArguments, arguments))
+          _Utils.isIdentical(substitutedArguments, arguments)) {
         return rti;
+      }
       return _Universe._lookupBindingRti(
         universe,
         substitutedBase,
@@ -782,8 +698,12 @@ Rti _substitute(Object? universe, Rti rti, Object? typeArguments, int depth) {
             depth,
           );
       if (_Utils.isIdentical(substitutedReturnType, returnType) &&
-          _Utils.isIdentical(substitutedFunctionParameters, functionParameters))
+          _Utils.isIdentical(
+            substitutedFunctionParameters,
+            functionParameters,
+          )) {
         return rti;
+      }
       return _Universe._lookupFunctionRti(
         universe,
         substitutedReturnType,
@@ -801,8 +721,9 @@ Rti _substitute(Object? universe, Rti rti, Object? typeArguments, int depth) {
       Rti base = Rti._getGenericFunctionBase(rti);
       Rti substitutedBase = _substitute(universe, base, typeArguments, depth);
       if (_Utils.isIdentical(substitutedBounds, bounds) &&
-          _Utils.isIdentical(substitutedBase, base))
+          _Utils.isIdentical(substitutedBase, base)) {
         return rti;
+      }
       return _Universe._lookupGenericFunctionRti(
         universe,
         substitutedBase,
@@ -911,8 +832,9 @@ _FunctionParameters _substituteFunctionParameters(
   );
   if (_Utils.isIdentical(substitutedRequiredPositional, requiredPositional) &&
       _Utils.isIdentical(substitutedOptionalPositional, optionalPositional) &&
-      _Utils.isIdentical(substitutedNamed, named))
+      _Utils.isIdentical(substitutedNamed, named)) {
     return functionParameters;
+  }
   _FunctionParameters result = _FunctionParameters.allocate();
   _FunctionParameters._setRequiredPositional(
     result,
@@ -1208,23 +1130,9 @@ Type createRuntimeType(Rti rti) {
 }
 
 _Type _createAndCacheRuntimeType(Rti rti) {
-  final type = _createRuntimeType(rti);
+  final type = _Type(rti);
   Rti._setCachedRuntimeType(rti, type);
   return type;
-}
-
-_Type _createRuntimeType(Rti rti) {
-  if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
-    return _Type(rti);
-  }
-  String recipe = Rti._getCanonicalRecipe(rti);
-  String starErasedRecipe = Rti.getLegacyErasedRecipe(rti);
-  if (starErasedRecipe == recipe) {
-    return _Type(rti);
-  }
-  Rti starErasedRti = _Universe.eval(_theUniverse(), starErasedRecipe, true);
-  return Rti._getCachedRuntimeType(starErasedRti) ??
-      _createAndCacheRuntimeType(starErasedRti);
 }
 
 Rti evaluateRtiForRecord(String recordRecipe, List valuesList) {
@@ -1313,10 +1221,13 @@ bool _installSpecializedIsTest(Object? object) {
   if (isObjectType(testRti)) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isObject));
   }
-  if (isDefinitelyTopType(testRti)) {
+  if (isTopType(testRti)) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isTop));
   }
-  if (Rti._getKind(testRti) == Rti.kindQuestion) {
+
+  int kind = Rti._getKind(testRti);
+
+  if (kind == Rti.kindQuestion) {
     return _finishIsFn(
       testRti,
       object,
@@ -1324,40 +1235,27 @@ bool _installSpecializedIsTest(Object? object) {
     );
   }
 
-  // `o is T*` generally behaves like `o is T`.
-  // The exceptions are `Object*` (handled above) and `Never*`
-  //
-  //   `null is Never`  --> `false`
-  //   `null is Never*` --> `true`
-  if (Rti._getKind(testRti) == Rti.kindNever) {
+  if (kind == Rti.kindNever) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isNever));
   }
 
-  Rti unstarred = Rti._unstar(testRti);
-  int unstarredKind = Rti._getKind(unstarred);
-
-  if (unstarredKind == Rti.kindFutureOr) {
+  if (kind == Rti.kindFutureOr) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isFutureOr));
   }
 
-  var isFn = _simpleSpecializedIsTest(unstarred);
+  var isFn = _simpleSpecializedIsTest(testRti);
   if (isFn != null) {
     return _finishIsFn(testRti, object, isFn);
   }
 
-  if (unstarredKind == Rti.kindInterface) {
-    String name = Rti._getInterfaceName(unstarred);
-    var arguments = Rti._getInterfaceTypeArguments(unstarred);
+  if (kind == Rti.kindInterface) {
+    String name = Rti._getInterfaceName(testRti);
+    var arguments = Rti._getInterfaceTypeArguments(testRti);
     // This recognizes interface types instantiated with Top, which includes the
     // common case of interfaces that have no type parameters.
     // TODO(sra): Can we easily recognize other interface types instantiated to
     // bounds?
-    if (JS(
-      'bool',
-      '#.every(#)',
-      arguments,
-      RAW_DART_FUNCTION_REF(isDefinitelyTopType),
-    )) {
+    if (JS('bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
       Object propertyName =
           JS_GET_FLAG('DEV_COMPILER')
               // DDC uses a JavaScript symbol when tagging the type to hide them
@@ -1379,8 +1277,8 @@ bool _installSpecializedIsTest(Object? object) {
       );
     }
     // fall through to general implementation.
-  } else if (unstarredKind == Rti.kindRecord) {
-    isFn = _recordSpecializedIsTest(unstarred);
+  } else if (kind == Rti.kindRecord) {
+    isFn = _recordSpecializedIsTest(testRti);
     return _finishIsFn(testRti, object, isFn);
   }
   return _finishIsFn(
@@ -1432,29 +1330,37 @@ Object? _installSpecializedAsCheck(Object? object) {
   Rti testRti = _Utils.asRti(JS('', 'this'));
 
   var asFn = RAW_DART_FUNCTION_REF(_generalAsCheckImplementation);
-  if (isDefinitelyTopType(testRti)) {
+  if (isTopType(testRti)) {
     asFn = RAW_DART_FUNCTION_REF(_asTop);
   } else if (isObjectType(testRti)) {
     asFn = RAW_DART_FUNCTION_REF(_asObject);
-  } else if (JS_GET_FLAG('LEGACY') &&
-          !JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS') ||
-      isNullable(testRti)) {
+  } else if (isNullable(testRti)) {
     asFn = RAW_DART_FUNCTION_REF(_generalNullableAsCheckImplementation);
+  }
+  if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
+    asFn = RAW_DART_FUNCTION_REF(_asInt);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<int?>())) {
+    asFn = RAW_DART_FUNCTION_REF(_asIntQ);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<String>())) {
+    asFn = RAW_DART_FUNCTION_REF(_asString);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<String?>())) {
+    asFn = RAW_DART_FUNCTION_REF(_asStringQ);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
+    asFn = RAW_DART_FUNCTION_REF(_asBool);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<bool?>())) {
+    asFn = RAW_DART_FUNCTION_REF(_asBoolQ);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<num>())) {
+    asFn = RAW_DART_FUNCTION_REF(_asNum);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<num?>())) {
+    asFn = RAW_DART_FUNCTION_REF(_asNumQ);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<double>())) {
+    asFn = RAW_DART_FUNCTION_REF(_asDouble);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<double?>())) {
+    asFn = RAW_DART_FUNCTION_REF(_asDoubleQ);
   }
 
   Rti._setAsCheckFunction(testRti, asFn);
   return Rti._asCheck(testRti, object);
-}
-
-bool _nullIs(Rti testRti) {
-  int kind = Rti._getKind(testRti);
-  return isSoundTopType(testRti) ||
-      isLegacyObjectType(testRti) ||
-      _Utils.isIdentical(testRti, LEGACY_TYPE_REF<Never>()) ||
-      kind == Rti.kindQuestion ||
-      kind == Rti.kindStar && _nullIs(Rti._getStarArgument(testRti)) ||
-      kind == Rti.kindFutureOr && _nullIs(Rti._getFutureOrArgument(testRti)) ||
-      isNullType(testRti);
 }
 
 /// Called from generated code.
@@ -1462,7 +1368,7 @@ bool _generalIsTestImplementation(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  if (object == null) return _nullIs(testRti);
+  if (object == null) return isNullable(testRti);
   Rti objectRti = instanceOrFunctionType(object, testRti);
   return isSubtype(_theUniverse(), objectRti, testRti);
 }
@@ -1487,7 +1393,7 @@ bool _isTestViaProperty(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  if (object == null) return _nullIs(testRti);
+  if (object == null) return isNullable(testRti);
   var tag = Rti._getSpecializedTestResource(testRti);
 
   // This test is redundant with getInterceptor below, but getInterceptor does
@@ -1507,7 +1413,7 @@ bool _isListTestViaProperty(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  if (object == null) return _nullIs(testRti);
+  if (object == null) return isNullable(testRti);
 
   // Only JavaScript values with `typeof x == "object"` are Dart Lists. Other
   // typeof results (undefined/string/number/boolean/function/symbol/bigint) are
@@ -1531,6 +1437,7 @@ bool _isListTestViaProperty(Object? object) {
 
 /// General unspecialized 'as' check that works for any type.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 Object? _generalAsCheckImplementation(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
@@ -1540,44 +1447,32 @@ Object? _generalAsCheckImplementation(Object? object) {
     if (isNullable(testRti)) {
       return object;
     }
-    if (JS_GET_FLAG('LEGACY')) {
-      if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-        _onExtraNullSafetyError(
-          _failedAsCheckError(object, testRti),
-          StackTrace.current,
-        );
-      }
-      return object;
-    }
-  } else if (Rti._isCheck(testRti, object))
+  } else if (Rti._isCheck(testRti, object)) {
     return object;
-  _failedAsCheck(object, testRti);
+  }
+  throw _errorForAsCheck(object, testRti);
 }
 
 /// General 'as' check for types that accept `null`.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 Object? _generalNullableAsCheckImplementation(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  if (object == null) {
+  if (object == null || Rti._isCheck(testRti, object)) {
     return object;
-  } else if (Rti._isCheck(testRti, object))
-    return object;
-  _failedAsCheck(object, testRti);
+  }
+  throw _errorForAsCheck(object, testRti);
 }
 
-_TypeError _failedAsCheckError(Object? object, Rti testRti) {
+_TypeError _errorForAsCheck(Object? object, Rti testRti) {
   String message = _Error.compose(object, _rtiToString(testRti, null));
   return _TypeError.fromMessage(message);
 }
 
-@pragma('dart2js:prefer-inline')
-Never _failedAsCheck(Object? object, Rti testRti) {
-  throw _failedAsCheckError(object, testRti);
-}
-
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 Rti checkTypeBound(Rti type, Rti bound, String variable, String methodName) {
   if (isSubtype(_theUniverse(), type, bound)) return type;
   String message =
@@ -1588,6 +1483,7 @@ Rti checkTypeBound(Rti type, Rti bound, String variable, String methodName) {
 }
 
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 Never throwTypeError(String message) {
   throw _TypeError.fromMessage(message);
 }
@@ -1630,12 +1526,8 @@ class _TypeError extends _Error implements TypeError {
 /// Called from generated code via Rti `_is` method.
 bool _isFutureOr(Object? object) {
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  Rti unstarred = Rti._unstar(testRti);
-  return Rti._isCheck(Rti._getFutureOrArgument(unstarred), object) ||
-      Rti._isCheck(
-        Rti._getFutureFromFutureOr(_theUniverse(), unstarred),
-        object,
-      );
+  return Rti._isCheck(Rti._getFutureOrArgument(testRti), object) ||
+      Rti._isCheck(Rti._getFutureFromFutureOr(_theUniverse(), testRti), object);
 }
 
 /// Specialization for 'is Object'.
@@ -1646,17 +1538,9 @@ bool _isObject(Object? object) {
 
 /// Specialization for 'as Object'.
 /// Called from generated code via Rti `_as` method.
+@pragma('dart2js:stack-starts-at-throw')
 Object? _asObject(Object? object) {
   if (object != null) return object;
-  if (JS_GET_FLAG('LEGACY')) {
-    if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      _onExtraNullSafetyError(
-        _TypeError.forType(object, 'Object'),
-        StackTrace.current,
-      );
-    }
-    return object;
-  }
   throw _TypeError.forType(object, 'Object');
 }
 
@@ -1688,31 +1572,16 @@ bool _isBool(Object? object) {
 
 /// Specialization for 'as bool'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 bool _asBool(Object? object) {
   if (true == object) return true;
   if (false == object) return false;
   throw _TypeError.forType(object, 'bool');
 }
 
-/// Specialization for 'as bool*'.
-/// Called from generated code.
-bool? _asBoolS(dynamic object) {
-  if (true == object) return true;
-  if (false == object) return false;
-  if (object == null) {
-    if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      _onExtraNullSafetyError(
-        _TypeError.forType(object, 'bool'),
-        StackTrace.current,
-      );
-    }
-    return _Utils.asNull(object);
-  }
-  throw _TypeError.forType(object, 'bool');
-}
-
 /// Specialization for 'as bool?'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 bool? _asBoolQ(dynamic object) {
   if (true == object) return true;
   if (false == object) return false;
@@ -1722,29 +1591,15 @@ bool? _asBoolQ(dynamic object) {
 
 /// Specialization for 'as double'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 double _asDouble(Object? object) {
   if (_isNum(object)) return _Utils.asDouble(object);
   throw _TypeError.forType(object, 'double');
 }
 
-/// Specialization for 'as double*'.
-/// Called from generated code.
-double? _asDoubleS(dynamic object) {
-  if (_isNum(object)) return _Utils.asDouble(object);
-  if (object == null) {
-    if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      _onExtraNullSafetyError(
-        _TypeError.forType(object, 'double'),
-        StackTrace.current,
-      );
-    }
-    return _Utils.asNull(object);
-  }
-  throw _TypeError.forType(object, 'double');
-}
-
 /// Specialization for 'as double?'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 double? _asDoubleQ(dynamic object) {
   if (_isNum(object)) return _Utils.asDouble(object);
   if (object == null) return _Utils.asNull(object);
@@ -1760,29 +1615,15 @@ bool _isInt(Object? object) {
 
 /// Specialization for 'as int'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 int _asInt(Object? object) {
   if (_isInt(object)) return _Utils.asInt(object);
   throw _TypeError.forType(object, 'int');
 }
 
-/// Specialization for 'as int*'.
-/// Called from generated code.
-int? _asIntS(dynamic object) {
-  if (_isInt(object)) return _Utils.asInt(object);
-  if (object == null) {
-    if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      _onExtraNullSafetyError(
-        _TypeError.forType(object, 'int'),
-        StackTrace.current,
-      );
-    }
-    return _Utils.asNull(object);
-  }
-  throw _TypeError.forType(object, 'int');
-}
-
 /// Specialization for 'as int?'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 int? _asIntQ(dynamic object) {
   if (_isInt(object)) return _Utils.asInt(object);
   if (object == null) return _Utils.asNull(object);
@@ -1797,29 +1638,15 @@ bool _isNum(Object? object) {
 
 /// Specialization for 'as num'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 num _asNum(Object? object) {
   if (_isNum(object)) return _Utils.asNum(object);
   throw _TypeError.forType(object, 'num');
 }
 
-/// Specialization for 'as num*'.
-/// Called from generated code.
-num? _asNumS(dynamic object) {
-  if (_isNum(object)) return _Utils.asNum(object);
-  if (object == null) {
-    if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      _onExtraNullSafetyError(
-        _TypeError.forType(object, 'num'),
-        StackTrace.current,
-      );
-    }
-    return _Utils.asNull(object);
-  }
-  throw _TypeError.forType(object, 'num');
-}
-
 /// Specialization for 'as num?'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 num? _asNumQ(dynamic object) {
   if (_isNum(object)) return _Utils.asNum(object);
   if (object == null) return _Utils.asNull(object);
@@ -1834,29 +1661,15 @@ bool _isString(Object? object) {
 
 /// Specialization for 'as String'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 String _asString(Object? object) {
   if (_isString(object)) return _Utils.asString(object);
   throw _TypeError.forType(object, 'String');
 }
 
-/// Specialization for 'as String*'.
-/// Called from generated code.
-String? _asStringS(dynamic object) {
-  if (_isString(object)) return _Utils.asString(object);
-  if (object == null) {
-    if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      _onExtraNullSafetyError(
-        _TypeError.forType(object, 'String'),
-        StackTrace.current,
-      );
-    }
-    return _Utils.asNull(object);
-  }
-  throw _TypeError.forType(object, 'String');
-}
-
 /// Specialization for 'as String?'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 String? _asStringQ(dynamic object) {
   if (_isString(object)) return _Utils.asString(object);
   if (object == null) return _Utils.asNull(object);
@@ -1931,7 +1744,7 @@ String _functionRtiToString(
       typeParametersText += typeSep;
       typeParametersText += genericContext[genericContext.length - 1 - i];
       Rti boundRti = _Utils.asRti(_Utils.arrayAt(bounds, i));
-      if (!isDefinitelyTopType(boundRti)) {
+      if (!isTopType(boundRti)) {
         typeParametersText +=
             ' extends ' + _rtiToString(boundRti, genericContext);
       }
@@ -2017,12 +1830,9 @@ String _functionRtiToString(
 
 /// Returns a human readable version of [rti].
 ///
-/// The result only differs from `createRuntimeType(rti).toString()` in that
-/// this version does preserve legacy (*) information that can be printed if the
-/// option is enabled.
+/// The result is equivalent to `createRuntimeType(rti).toString()`.
 ///
-/// Called by the DDC runtime library for type error messages in code that
-/// supports unsound null safety features.
+/// Called by the DDC runtime library for type error messages.
 String rtiToString(Object rti) => _rtiToString(_Utils.asRti(rti), null);
 
 String _rtiToString(Rti rti, List<String>? genericContext) {
@@ -2033,21 +1843,6 @@ String _rtiToString(Rti rti, List<String>? genericContext) {
   if (kind == Rti.kindVoid) return 'void';
   if (kind == Rti.kindNever) return 'Never';
   if (kind == Rti.kindAny) return 'any';
-
-  if (kind == Rti.kindStar) {
-    Rti starArgument = Rti._getStarArgument(rti);
-    String s = _rtiToString(starArgument, genericContext);
-    if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
-      int argumentKind = Rti._getKind(starArgument);
-      if (argumentKind == Rti.kindFunction ||
-          argumentKind == Rti.kindGenericFunction) {
-        s = '(' + s + ')';
-      }
-      return s + '*';
-    } else {
-      return s;
-    }
-  }
 
   if (kind == Rti.kindQuestion) {
     Rti questionArgument = Rti._getQuestionArgument(rti);
@@ -2187,11 +1982,6 @@ String _rtiToDebugString(Rti rti) {
   if (kind == Rti.kindVoid) return 'void';
   if (kind == Rti.kindNever) return 'Never';
   if (kind == Rti.kindAny) return 'any';
-
-  if (kind == Rti.kindStar) {
-    Rti starArgument = Rti._getStarArgument(rti);
-    return 'star(${_rtiToDebugString(starArgument)})';
-  }
 
   if (kind == Rti.kindQuestion) {
     Rti questionArgument = Rti._getQuestionArgument(rti);
@@ -2520,8 +2310,6 @@ class _Universe {
   static String _canonicalRecipeOfAny() =>
       _recipeJoin(Recipe.pushAnyExtensionString, Recipe.extensionOpString);
 
-  static String _canonicalRecipeOfStar(Rti baseType) =>
-      _recipeJoin(Rti._getCanonicalRecipe(baseType), Recipe.wrapStarString);
   static String _canonicalRecipeOfQuestion(Rti baseType) =>
       _recipeJoin(Rti._getCanonicalRecipe(baseType), Recipe.wrapQuestionString);
   static String _canonicalRecipeOfFutureOr(Rti baseType) =>
@@ -2579,40 +2367,6 @@ class _Universe {
     return _installTypeTests(universe, rti);
   }
 
-  static Rti _lookupStarRti(Object? universe, Rti baseType, bool normalize) {
-    String key = _canonicalRecipeOfStar(baseType);
-    var cache = evalCache(universe);
-    var probe = _Utils.mapGet(cache, key);
-    if (probe != null) return _Utils.asRti(probe);
-    return _installRti(
-      universe,
-      key,
-      _createStarRti(universe, baseType, key, normalize),
-    );
-  }
-
-  static Rti _createStarRti(
-    Object? universe,
-    Rti baseType,
-    String key,
-    bool normalize,
-  ) {
-    if (normalize) {
-      int baseKind = Rti._getKind(baseType);
-      if (isSoundTopType(baseType) ||
-          isNullType(baseType) ||
-          baseKind == Rti.kindQuestion ||
-          baseKind == Rti.kindStar) {
-        return baseType;
-      }
-    }
-    Rti rti = Rti.allocate();
-    Rti._setKind(rti, Rti.kindStar);
-    Rti._setPrimary(rti, baseType);
-    Rti._setCanonicalRecipe(rti, key);
-    return _installTypeTests(universe, rti);
-  }
-
   static Rti _lookupQuestionRti(
     Object? universe,
     Rti baseType,
@@ -2637,24 +2391,14 @@ class _Universe {
   ) {
     if (normalize) {
       int baseKind = Rti._getKind(baseType);
-      if (isSoundTopType(baseType) ||
+      if (isTopType(baseType) ||
           isNullType(baseType) ||
           baseKind == Rti.kindQuestion ||
           baseKind == Rti.kindFutureOr &&
               isNullable(Rti._getFutureOrArgument(baseType))) {
         return baseType;
-      } else if (baseKind == Rti.kindNever ||
-          _Utils.isIdentical(baseType, LEGACY_TYPE_REF<Never>())) {
+      } else if (baseKind == Rti.kindNever) {
         return TYPE_REF<Null>();
-      } else if (baseKind == Rti.kindStar) {
-        Rti starArgument = Rti._getStarArgument(baseType);
-        int starArgumentKind = Rti._getKind(starArgument);
-        if (starArgumentKind == Rti.kindFutureOr &&
-            isNullable(Rti._getFutureOrArgument(starArgument))) {
-          return starArgument;
-        } else {
-          return Rti._getQuestionFromStar(universe, baseType);
-        }
       }
     }
     Rti rti = Rti.allocate();
@@ -2688,9 +2432,7 @@ class _Universe {
   ) {
     if (normalize) {
       int baseKind = Rti._getKind(baseType);
-      if (isSoundTopType(baseType) ||
-          isObjectType(baseType) ||
-          isLegacyObjectType(baseType)) {
+      if (isTopType(baseType) || isObjectType(baseType)) {
         return baseType;
       } else if (baseKind == Rti.kindNever) {
         return _lookupFutureRti(universe, baseType);
@@ -3298,18 +3040,6 @@ class _Parser {
             handleExtendedOperations(parser, stack);
             break;
 
-          case Recipe.wrapStar:
-            var u = universe(parser);
-            push(
-              stack,
-              _Universe._lookupStarRti(
-                u,
-                toType(u, environment(parser), pop(stack)),
-                normalize(parser),
-              ),
-            );
-            break;
-
           case Recipe.wrapQuestion:
             var u = universe(parser);
             push(
@@ -3697,53 +3427,15 @@ class Variance {
 
 // -------- Subtype tests ------------------------------------------------------
 
-class _InconsistentSubtypingError extends _Error implements TypeError {
-  _InconsistentSubtypingError._fromMessage(String message)
-    : super('Inconsistent subtyping: $message');
-
-  _InconsistentSubtypingError._forTypes(Rti s, Rti t)
-    : this._fromMessage(_compose(s, t));
-
-  static String _compose(Rti s, Rti t) =>
-      '${_rtiToString(s, null)} is a subtype of ${_rtiToString(t, null)} with '
-      'unsound null safety but not with sound null safety.';
-}
-
-const int _subtypeResultFalse = 0;
-const int _subtypeResultTrue = 1;
-const int _subtypeResultInconsistent = 2;
-
 // Future entry point from compiled code.
 bool isSubtype(Object? universe, Rti s, Rti t) {
   var sCache = Rti._getIsSubtypeCache(s);
-  var result = _Utils.mapGet(sCache, t);
+  var result = _Utils.asBoolOrNull(_Utils.mapGet(sCache, t));
   if (result == null) {
-    result = _isSubtypeUncached(universe, s, t);
+    result = _isSubtype(universe, s, null, t, null);
     _Utils.mapSet(sCache, t, result);
   }
-  if (_subtypeResultFalse == result) return false;
-  if (_subtypeResultTrue == result) return true;
-  if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-    _onExtraNullSafetyError(
-      _InconsistentSubtypingError._forTypes(s, t),
-      StackTrace.current,
-    );
-  }
-  return true;
-}
-
-int _isSubtypeUncached(Object? universe, Rti s, Rti t) {
-  if (JS_GET_FLAG('LEGACY') && JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-    bool soundResult = _isSubtype(universe, s, null, t, null, false);
-    if (soundResult) return _subtypeResultTrue;
-    bool legacyResult = _isSubtype(universe, s, null, t, null, true);
-    if (legacyResult) return _subtypeResultInconsistent;
-    return _subtypeResultFalse;
-  } else {
-    return _isSubtype(universe, s, null, t, null, JS_GET_FLAG('LEGACY'))
-        ? _subtypeResultTrue
-        : _subtypeResultFalse;
-  }
+  return result;
 }
 
 /// Based on
@@ -3761,51 +3453,28 @@ int _isSubtypeUncached(Object? universe, Rti s, Rti t) {
 /// check performed at the usual place in order to completely eliminate the
 /// case.
 /// - Function type rules are applied before interface type rules.
-///
-/// [s] is considered a legacy subtype of [t] if [s] would be a subtype of [t]
-/// in a modification of the NNBD rules in which `?` on types were ignored, `*`
-/// were added to each type, and `required` parameters were treated as
-/// optional. In effect, `Never` is equivalent to `Null`, `Null` is restored to
-/// the bottom of the type hierarchy, `Object` is treated as nullable, and
-/// `required` is ignored on named parameters. This should provide the same
-/// subtyping results as pre-NNBD Dart.
-bool _isSubtype(
-  Object? universe,
-  Rti s,
-  Object? sEnv,
-  Rti t,
-  Object? tEnv,
-  bool isLegacy,
-) {
-  if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS') && !isLegacy) {
-    // With unsound null safety, the CFE may still produce legacy types in
-    // constants even when all files are migrated. In order to simulate sound
-    // null safety, we simply "unwrap" the legacy types.
-    s = Rti._unstar(s);
-    t = Rti._unstar(t);
-  }
-
+bool _isSubtype(Object? universe, Rti s, Object? sEnv, Rti t, Object? tEnv) {
   // Reflexivity:
   if (_Utils.isIdentical(s, t)) return true;
 
   // Right Top:
-  if (isTopType(t, isLegacy)) return true;
+  if (isTopType(t)) return true;
 
   int sKind = Rti._getKind(s);
   if (sKind == Rti.kindAny) return true;
 
   // Left Top:
-  if (isSoundTopType(s)) return false;
+  if (isTopType(s)) return false;
 
   // Left Bottom:
-  if (isBottomType(s, isLegacy)) return true;
+  if (isBottomType(s)) return true;
 
   // Left Type Variable Bound 1:
   bool leftTypeVariable = sKind == Rti.kindGenericFunctionParameter;
   if (leftTypeVariable) {
     int index = Rti._getGenericFunctionParameterIndex(s);
     Rti bound = _Utils.asRti(_Utils.arrayAt(sEnv, index));
-    if (_isSubtype(universe, bound, sEnv, t, tEnv, isLegacy)) return true;
+    if (_isSubtype(universe, bound, sEnv, t, tEnv)) return true;
   }
 
   int tKind = Rti._getKind(t);
@@ -3813,81 +3482,24 @@ bool _isSubtype(
   // Left Null:
   // Note: Interchanging the Left Null and Right Object rules allows us to
   // reduce casework.
-  if (!isLegacy && isNullType(s)) {
+  if (isNullType(s)) {
     if (tKind == Rti.kindFutureOr) {
-      return _isSubtype(
-        universe,
-        s,
-        sEnv,
-        Rti._getFutureOrArgument(t),
-        tEnv,
-        isLegacy,
-      );
+      return _isSubtype(universe, s, sEnv, Rti._getFutureOrArgument(t), tEnv);
     }
-    return isNullType(t) || tKind == Rti.kindQuestion || tKind == Rti.kindStar;
+    return isNullType(t) || tKind == Rti.kindQuestion;
   }
 
   // Right Object:
-  if (!isLegacy && isObjectType(t)) {
+  if (isObjectType(t)) {
     if (sKind == Rti.kindFutureOr) {
-      return _isSubtype(
-        universe,
-        Rti._getFutureOrArgument(s),
-        sEnv,
-        t,
-        tEnv,
-        isLegacy,
-      );
-    }
-    if (sKind == Rti.kindStar) {
-      return _isSubtype(
-        universe,
-        Rti._getStarArgument(s),
-        sEnv,
-        t,
-        tEnv,
-        isLegacy,
-      );
+      return _isSubtype(universe, Rti._getFutureOrArgument(s), sEnv, t, tEnv);
     }
     return sKind != Rti.kindQuestion;
   }
 
-  // Left Legacy:
-  if (sKind == Rti.kindStar) {
-    return _isSubtype(
-      universe,
-      Rti._getStarArgument(s),
-      sEnv,
-      t,
-      tEnv,
-      isLegacy,
-    );
-  }
-
-  // Right Legacy:
-  if (tKind == Rti.kindStar) {
-    return _isSubtype(
-      universe,
-      s,
-      sEnv,
-      isLegacy
-          ? Rti._getStarArgument(t)
-          : Rti._getQuestionFromStar(universe, t),
-      tEnv,
-      isLegacy,
-    );
-  }
-
   // Left FutureOr:
   if (sKind == Rti.kindFutureOr) {
-    if (!_isSubtype(
-      universe,
-      Rti._getFutureOrArgument(s),
-      sEnv,
-      t,
-      tEnv,
-      isLegacy,
-    )) {
+    if (!_isSubtype(universe, Rti._getFutureOrArgument(s), sEnv, t, tEnv)) {
       return false;
     }
     return _isSubtype(
@@ -3896,22 +3508,13 @@ bool _isSubtype(
       sEnv,
       t,
       tEnv,
-      isLegacy,
     );
   }
 
   // Left Nullable:
   if (sKind == Rti.kindQuestion) {
-    return (isLegacy ||
-            _isSubtype(universe, TYPE_REF<Null>(), sEnv, t, tEnv, isLegacy)) &&
-        _isSubtype(
-          universe,
-          Rti._getQuestionArgument(s),
-          sEnv,
-          t,
-          tEnv,
-          isLegacy,
-        );
+    return (_isSubtype(universe, TYPE_REF<Null>(), sEnv, t, tEnv)) &&
+        _isSubtype(universe, Rti._getQuestionArgument(s), sEnv, t, tEnv);
   }
 
   // Type Variable Reflexivity 1 is subsumed by Reflexivity and therefore
@@ -3921,14 +3524,7 @@ bool _isSubtype(
 
   // Right FutureOr:
   if (tKind == Rti.kindFutureOr) {
-    if (_isSubtype(
-      universe,
-      s,
-      sEnv,
-      Rti._getFutureOrArgument(t),
-      tEnv,
-      isLegacy,
-    )) {
+    if (_isSubtype(universe, s, sEnv, Rti._getFutureOrArgument(t), tEnv)) {
       return true;
     }
     return _isSubtype(
@@ -3937,22 +3533,13 @@ bool _isSubtype(
       sEnv,
       Rti._getFutureFromFutureOr(universe, t),
       tEnv,
-      isLegacy,
     );
   }
 
   // Right Nullable:
   if (tKind == Rti.kindQuestion) {
-    return (!isLegacy &&
-            _isSubtype(universe, s, sEnv, TYPE_REF<Null>(), tEnv, isLegacy)) ||
-        _isSubtype(
-          universe,
-          s,
-          sEnv,
-          Rti._getQuestionArgument(t),
-          tEnv,
-          isLegacy,
-        );
+    return (_isSubtype(universe, s, sEnv, TYPE_REF<Null>(), tEnv)) ||
+        _isSubtype(universe, s, sEnv, Rti._getQuestionArgument(t), tEnv);
   }
 
   // Left Promoted Variable does not apply at runtime.
@@ -3988,8 +3575,8 @@ bool _isSubtype(
     for (int i = 0; i < sLength; i++) {
       var sBound = _Utils.asRti(_Utils.arrayAt(sBounds, i));
       var tBound = _Utils.asRti(_Utils.arrayAt(tBounds, i));
-      if (!_isSubtype(universe, sBound, sEnv, tBound, tEnv, isLegacy) ||
-          !_isSubtype(universe, tBound, tEnv, sBound, sEnv, isLegacy)) {
+      if (!_isSubtype(universe, sBound, sEnv, tBound, tEnv) ||
+          !_isSubtype(universe, tBound, tEnv, sBound, sEnv)) {
         return false;
       }
     }
@@ -4000,24 +3587,23 @@ bool _isSubtype(
       sEnv,
       Rti._getGenericFunctionBase(t),
       tEnv,
-      isLegacy,
     );
   }
   if (tKind == Rti.kindFunction) {
     if (isJsFunctionType(s)) return true;
     if (sKind != Rti.kindFunction) return false;
-    return _isFunctionSubtype(universe, s, sEnv, t, tEnv, isLegacy);
+    return _isFunctionSubtype(universe, s, sEnv, t, tEnv);
   }
 
   // Interface Compositionality + Super-Interface:
   if (sKind == Rti.kindInterface) {
     if (tKind != Rti.kindInterface) return false;
-    return _isInterfaceSubtype(universe, s, sEnv, t, tEnv, isLegacy);
+    return _isInterfaceSubtype(universe, s, sEnv, t, tEnv);
   }
 
   // Record Types:
   if (sKind == Rti.kindRecord && tKind == Rti.kindRecord) {
-    return _isRecordSubtype(universe, s, sEnv, t, tEnv, isLegacy);
+    return _isRecordSubtype(universe, s, sEnv, t, tEnv);
   }
 
   return false;
@@ -4029,14 +3615,13 @@ bool _isFunctionSubtype(
   Object? sEnv,
   Rti t,
   Object? tEnv,
-  bool isLegacy,
 ) {
   assert(Rti._getKind(s) == Rti.kindFunction);
   assert(Rti._getKind(t) == Rti.kindFunction);
 
   Rti sReturnType = Rti._getReturnType(s);
   Rti tReturnType = Rti._getReturnType(t);
-  if (!_isSubtype(universe, sReturnType, sEnv, tReturnType, tEnv, isLegacy)) {
+  if (!_isSubtype(universe, sReturnType, sEnv, tReturnType, tEnv)) {
     return false;
   }
 
@@ -4064,13 +3649,14 @@ bool _isFunctionSubtype(
   int sOptionalPositionalLength = _Utils.arrayLength(sOptionalPositional);
   int tOptionalPositionalLength = _Utils.arrayLength(tOptionalPositional);
   if (sRequiredPositionalLength + sOptionalPositionalLength <
-      tRequiredPositionalLength + tOptionalPositionalLength)
+      tRequiredPositionalLength + tOptionalPositionalLength) {
     return false;
+  }
 
   for (int i = 0; i < sRequiredPositionalLength; i++) {
     Rti sParameter = _Utils.asRti(_Utils.arrayAt(sRequiredPositional, i));
     Rti tParameter = _Utils.asRti(_Utils.arrayAt(tRequiredPositional, i));
-    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv, isLegacy)) {
+    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv)) {
       return false;
     }
   }
@@ -4080,7 +3666,7 @@ bool _isFunctionSubtype(
     Rti tParameter = _Utils.asRti(
       _Utils.arrayAt(tRequiredPositional, sRequiredPositionalLength + i),
     );
-    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv, isLegacy)) {
+    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv)) {
       return false;
     }
   }
@@ -4090,7 +3676,7 @@ bool _isFunctionSubtype(
       _Utils.arrayAt(sOptionalPositional, requiredPositionalDelta + i),
     );
     Rti tParameter = _Utils.asRti(_Utils.arrayAt(tOptionalPositional, i));
-    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv, isLegacy)) {
+    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv)) {
       return false;
     }
   }
@@ -4108,27 +3694,22 @@ bool _isFunctionSubtype(
       String sName = _Utils.asString(_Utils.arrayAt(sNamed, sIndex));
       sIndex += 3;
       if (_Utils.stringLessThan(tName, sName)) return false;
-      bool sIsRequired =
-          !isLegacy && _Utils.asBool(_Utils.arrayAt(sNamed, sIndex - 2));
+      bool sIsRequired = _Utils.asBool(_Utils.arrayAt(sNamed, sIndex - 2));
       if (_Utils.stringLessThan(sName, tName)) {
         if (sIsRequired) return false;
         continue;
       }
-      bool tIsRequired =
-          !isLegacy && _Utils.asBool(_Utils.arrayAt(tNamed, tIndex + 1));
+      bool tIsRequired = _Utils.asBool(_Utils.arrayAt(tNamed, tIndex + 1));
       if (sIsRequired && !tIsRequired) return false;
       Rti sType = _Utils.asRti(_Utils.arrayAt(sNamed, sIndex - 1));
       Rti tType = _Utils.asRti(_Utils.arrayAt(tNamed, tIndex + 2));
-      if (!_isSubtype(universe, tType, tEnv, sType, sEnv, isLegacy))
-        return false;
+      if (!_isSubtype(universe, tType, tEnv, sType, sEnv)) return false;
       break;
     }
   }
-  if (!isLegacy) {
-    while (sIndex < sNamedLength) {
-      if (_Utils.asBool(_Utils.arrayAt(sNamed, sIndex + 1))) return false;
-      sIndex += 3;
-    }
+  while (sIndex < sNamedLength) {
+    if (_Utils.asBool(_Utils.arrayAt(sNamed, sIndex + 1))) return false;
+    sIndex += 3;
   }
   return true;
 }
@@ -4139,7 +3720,6 @@ bool _isInterfaceSubtype(
   Object? sEnv,
   Rti t,
   Object? tEnv,
-  bool isLegacy,
 ) {
   String sName = Rti._getInterfaceName(s);
   String tName = Rti._getInterfaceName(t);
@@ -4180,7 +3760,6 @@ bool _isInterfaceSubtype(
       sEnv,
       tArgs,
       tEnv,
-      isLegacy,
     );
   }
 
@@ -4192,15 +3771,7 @@ bool _isInterfaceSubtype(
   if (JS_GET_FLAG("VARIANCE")) {
     sVariances = _Universe.findTypeParameterVariances(universe, sName);
   }
-  return _areArgumentsSubtypes(
-    universe,
-    sArgs,
-    sVariances,
-    sEnv,
-    tArgs,
-    tEnv,
-    isLegacy,
-  );
+  return _areArgumentsSubtypes(universe, sArgs, sVariances, sEnv, tArgs, tEnv);
 }
 
 bool _areArgumentsSubtypes(
@@ -4210,7 +3781,6 @@ bool _areArgumentsSubtypes(
   Object? sEnv,
   Object? tArgs,
   Object? tEnv,
-  bool isLegacy,
 ) {
   int length = _Utils.arrayLength(sArgs);
   assert(length == _Utils.arrayLength(tArgs));
@@ -4232,18 +3802,18 @@ bool _areArgumentsSubtypes(
       switch (sVariance) {
         case Variance.legacyCovariant:
         case Variance.covariant:
-          if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv, isLegacy)) {
+          if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) {
             return false;
           }
           break;
         case Variance.contravariant:
-          if (!_isSubtype(universe, tArg, tEnv, sArg, sEnv, isLegacy)) {
+          if (!_isSubtype(universe, tArg, tEnv, sArg, sEnv)) {
             return false;
           }
           break;
         case Variance.invariant:
-          if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv, isLegacy) ||
-              !_isSubtype(universe, tArg, tEnv, sArg, sEnv, isLegacy)) {
+          if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv) ||
+              !_isSubtype(universe, tArg, tEnv, sArg, sEnv)) {
             return false;
           }
           break;
@@ -4253,7 +3823,7 @@ bool _areArgumentsSubtypes(
           );
       }
     } else {
-      if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv, isLegacy)) {
+      if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) {
         return false;
       }
     }
@@ -4267,7 +3837,6 @@ bool _isRecordSubtype(
   Object? sEnv,
   Rti t,
   Object? tEnv,
-  bool isLegacy,
 ) {
   // `s` is a subtype of `t` if `s` and `t` have the same shape and the fields
   // of `s` are pairwise subtypes of the fields of `t`.
@@ -4283,7 +3852,7 @@ bool _isRecordSubtype(
   for (int i = 0; i < sCount; i++) {
     Rti sField = _Utils.asRti(_Utils.arrayAt(sFields, i));
     Rti tField = _Utils.asRti(_Utils.arrayAt(tFields, i));
-    if (!_isSubtype(universe, sField, sEnv, tField, tEnv, isLegacy)) {
+    if (!_isSubtype(universe, sField, sEnv, tField, tEnv)) {
       return false;
     }
   }
@@ -4293,31 +3862,13 @@ bool _isRecordSubtype(
 bool isNullable(Rti t) {
   int kind = Rti._getKind(t);
   return isNullType(t) ||
-      isSoundTopType(t) ||
+      isTopType(t) ||
       kind == Rti.kindQuestion ||
-      kind == Rti.kindStar && isNullable(Rti._getStarArgument(t)) ||
       kind == Rti.kindFutureOr && isNullable(Rti._getFutureOrArgument(t));
 }
 
-/// A wrapper for [isTopType] which only returns `true` if [t] is a top type for
-/// all null safety modes that may be used.
-///
-/// In particular, when extra runtime null safety checks are disabled, this
-/// function simply passes the usual null safety mode. When extra checks are
-/// enabled - i.e. both unsound and sound semantics may be used - this function
-/// only returns `true` for sound top types. This means this function can be
-/// used to detect top types in order to optimize type tests.
 @pragma('dart2js:parameter:trust')
-bool isDefinitelyTopType(Rti t) => isTopType(
-  t,
-  JS_GET_FLAG('LEGACY') && !JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS'),
-);
-
-@pragma('dart2js:parameter:trust')
-bool isTopType(Rti t, bool isLegacy) =>
-    isSoundTopType(t) || isLegacyObjectType(t) || isLegacy && isObjectType(t);
-
-bool isSoundTopType(Rti t) {
+bool isTopType(Rti t) {
   int kind = Rti._getKind(t);
   return kind == Rti.kindDynamic ||
       kind == Rti.kindVoid ||
@@ -4326,12 +3877,9 @@ bool isSoundTopType(Rti t) {
       isNullableObjectType(t);
 }
 
-bool isBottomType(Rti t, bool isLegacy) =>
-    Rti._getKind(t) == Rti.kindNever || isLegacy && isNullType(t);
+bool isBottomType(Rti t) => Rti._getKind(t) == Rti.kindNever;
 
 bool isObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object>());
-bool isLegacyObjectType(Rti t) =>
-    _Utils.isIdentical(t, LEGACY_TYPE_REF<Object>());
 bool isNullableObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object?>());
 bool isNullType(Rti t) =>
     _Utils.isIdentical(t, TYPE_REF<Null>()) ||
@@ -4344,6 +3892,7 @@ bool isRecordInterfaceType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Record>());
 class _Utils {
   static Null asNull(Object? o) => JS('Null', '#', o);
   static bool asBool(Object? o) => JS('bool', '#', o);
+  static bool? asBoolOrNull(Object? o) => JS('bool|Null', '#', o);
   static double asDouble(Object? o) => JS('double', '#', o);
   static int asInt(Object? o) => JS('int', '#', o);
   static num asNum(Object? o) => JS('num', '#', o);

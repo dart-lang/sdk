@@ -27,51 +27,6 @@ const b = a as int;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @10
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: num
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @14
-              staticType: int
-        static const b @23
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            AsExpression
-              expression: SimpleIdentifier
-                token: a @27
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: num
-              asOperator: as @29
-              type: NamedType
-                name: int @32
-                element: dart:core::<fragment>::@class::int
-                element2: dart:core::@class::int
-                type: int
-              staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: num
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -79,10 +34,26 @@ library
         hasInitializer a @10
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @14
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @23
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            AsExpression
+              expression: SimpleIdentifier
+                token: a @27
+                element: <testLibraryFragment>::@getter::a#element
+                staticType: num
+              asOperator: as @29
+              type: NamedType
+                name: int @32
+                element2: dart:core::@class::int
+                type: int
+              staticType: int
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -96,11 +67,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: num
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -118,61 +95,6 @@ const b = (a += 1);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @10
-              staticType: int
-        static const b @19
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            ParenthesizedExpression
-              leftParenthesis: ( @23
-              expression: AssignmentExpression
-                leftHandSide: SimpleIdentifier
-                  token: a @24
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                operator: += @26
-                rightHandSide: IntegerLiteral
-                  literal: 1 @29
-                  staticType: int
-                readElement: <testLibraryFragment>::@getter::a
-                readElement2: <testLibraryFragment>::@getter::a#element
-                readType: int
-                writeElement: <testLibraryFragment>::@getter::a
-                writeElement2: <testLibraryFragment>::@getter::a#element
-                writeType: InvalidType
-                staticElement: dart:core::<fragment>::@class::num::@method::+
-                element: dart:core::<fragment>::@class::num::@method::+#element
-                staticType: int
-              rightParenthesis: ) @30
-              staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -180,10 +102,34 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            ParenthesizedExpression
+              leftParenthesis: ( @23
+              expression: AssignmentExpression
+                leftHandSide: SimpleIdentifier
+                  token: a @24
+                  element: <null>
+                  staticType: null
+                operator: += @26
+                rightHandSide: IntegerLiteral
+                  literal: 1 @29
+                  staticType: int
+                readElement2: <testLibraryFragment>::@getter::a#element
+                readType: int
+                writeElement2: <testLibraryFragment>::@getter::a#element
+                writeType: InvalidType
+                element: dart:core::<fragment>::@class::num::@method::+#element
+                staticType: int
+              rightParenthesis: ) @30
+              staticType: int
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -197,11 +143,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -218,17 +170,14 @@ const a = 0..isEven..abs();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
             CascadeExpression
               target: IntegerLiteral
                 literal: 0 @10
@@ -238,7 +187,6 @@ library
                   operator: .. @11
                   propertyName: SimpleIdentifier
                     token: isEven @13
-                    staticElement: dart:core::<fragment>::@class::int::@getter::isEven
                     element: dart:core::<fragment>::@class::int::@getter::isEven#element
                     staticType: bool
                   staticType: bool
@@ -246,7 +194,6 @@ library
                   operator: .. @19
                   methodName: SimpleIdentifier
                     token: abs @21
-                    staticElement: dart:core::<fragment>::@class::int::@method::abs
                     element: dart:core::<fragment>::@class::int::@method::abs#element
                     staticType: int Function()
                   argumentList: ArgumentList
@@ -255,21 +202,6 @@ library
                   staticInvokeType: int Function()
                   staticType: int
               staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -280,6 +212,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -297,86 +232,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            static const f1 @29
-              reference: <testLibraryFragment>::@class::C::@field::f1
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: int
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                IntegerLiteral
-                  literal: 1 @34
-                  staticType: int
-            static const f2 @56
-              reference: <testLibraryFragment>::@class::C::@field::f2
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: int
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                PrefixedIdentifier
-                  prefix: SimpleIdentifier
-                    token: C @61
-                    staticElement: <testLibraryFragment>::@class::C
-                    element: <testLibrary>::@class::C
-                    staticType: null
-                  period: . @62
-                  identifier: SimpleIdentifier
-                    token: f1 @63
-                    staticElement: <testLibraryFragment>::@class::C::@getter::f1
-                    element: <testLibraryFragment>::@class::C::@getter::f1#element
-                    staticType: int
-                  staticElement: <testLibraryFragment>::@class::C::@getter::f1
-                  element: <testLibraryFragment>::@class::C::@getter::f1#element
-                  staticType: int
-            static const f3 @67
-              reference: <testLibraryFragment>::@class::C::@field::f3
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: int
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                PrefixedIdentifier
-                  prefix: SimpleIdentifier
-                    token: C @72
-                    staticElement: <testLibraryFragment>::@class::C
-                    element: <testLibrary>::@class::C
-                    staticType: null
-                  period: . @73
-                  identifier: SimpleIdentifier
-                    token: f2 @74
-                    staticElement: <testLibraryFragment>::@class::C::@getter::f2
-                    element: <testLibraryFragment>::@class::C::@getter::f2#element
-                    staticType: int
-                  staticElement: <testLibraryFragment>::@class::C::@getter::f2
-                  element: <testLibraryFragment>::@class::C::@getter::f2#element
-                  staticType: int
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic static get f1 @-1
-              reference: <testLibraryFragment>::@class::C::@getter::f1
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int
-            synthetic static get f2 @-1
-              reference: <testLibraryFragment>::@class::C::@getter::f2
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int
-            synthetic static get f3 @-1
-              reference: <testLibraryFragment>::@class::C::@getter::f3
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -388,14 +243,44 @@ library
             hasInitializer f1 @29
               reference: <testLibraryFragment>::@class::C::@field::f1
               element: <testLibraryFragment>::@class::C::@field::f1#element
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 1 @34
+                  staticType: int
               getter2: <testLibraryFragment>::@class::C::@getter::f1
             hasInitializer f2 @56
               reference: <testLibraryFragment>::@class::C::@field::f2
               element: <testLibraryFragment>::@class::C::@field::f2#element
+              initializer: expression_1
+                PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: C @61
+                    element: <testLibrary>::@class::C
+                    staticType: null
+                  period: . @62
+                  identifier: SimpleIdentifier
+                    token: f1 @63
+                    element: <testLibraryFragment>::@class::C::@getter::f1#element
+                    staticType: int
+                  element: <testLibraryFragment>::@class::C::@getter::f1#element
+                  staticType: int
               getter2: <testLibraryFragment>::@class::C::@getter::f2
             hasInitializer f3 @67
               reference: <testLibraryFragment>::@class::C::@field::f3
               element: <testLibraryFragment>::@class::C::@field::f3#element
+              initializer: expression_2
+                PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: C @72
+                    element: <testLibrary>::@class::C
+                    staticType: null
+                  period: . @73
+                  identifier: SimpleIdentifier
+                    token: f2 @74
+                    element: <testLibraryFragment>::@class::C::@getter::f2#element
+                    staticType: int
+                  element: <testLibraryFragment>::@class::C::@getter::f2#element
+                  staticType: int
               getter2: <testLibraryFragment>::@class::C::@getter::f3
           constructors
             synthetic new
@@ -420,14 +305,23 @@ library
         static const hasInitializer f1
           firstFragment: <testLibraryFragment>::@class::C::@field::f1
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::C::@field::f1
+            expression: expression_0
           getter: <testLibraryFragment>::@class::C::@getter::f1#element
         static const hasInitializer f2
           firstFragment: <testLibraryFragment>::@class::C::@field::f2
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::C::@field::f2
+            expression: expression_1
           getter: <testLibraryFragment>::@class::C::@getter::f2#element
         static const hasInitializer f3
           firstFragment: <testLibraryFragment>::@class::C::@field::f3
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::C::@field::f3
+            expression: expression_2
           getter: <testLibraryFragment>::@class::C::@getter::f3#element
       constructors
         synthetic new
@@ -455,117 +349,6 @@ const Object y = const C.named(0);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          fields
-            final t @23
-              reference: <testLibraryFragment>::@class::C::@field::t
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: T
-          constructors
-            const @34
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional final hasImplicitType this.t @41
-                  type: T
-                  field: <testLibraryFragment>::@class::C::@field::t
-            const named @55
-              reference: <testLibraryFragment>::@class::C::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::C
-              periodOffset: 54
-              nameEnd: 60
-              parameters
-                requiredPositional final hasImplicitType this.t @66
-                  type: T
-                  field: <testLibraryFragment>::@class::C::@field::t
-          accessors
-            synthetic get t @-1
-              reference: <testLibraryFragment>::@class::C::@getter::t
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: T
-      topLevelVariables
-        static const x @85
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @89
-              constructorName: ConstructorName
-                type: NamedType
-                  name: C @95
-                  element: <testLibraryFragment>::@class::C
-                  element2: <testLibrary>::@class::C
-                  type: C<int>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::C::@constructor::new
-                  substitution: {T: int}
-                element: <testLibraryFragment>::@class::C::@constructor::new#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @96
-                arguments
-                  IntegerLiteral
-                    literal: 0 @97
-                    staticType: int
-                rightParenthesis: ) @98
-              staticType: C<int>
-        static const y @114
-          reference: <testLibraryFragment>::@topLevelVariable::y
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @118
-              constructorName: ConstructorName
-                type: NamedType
-                  name: C @124
-                  element: <testLibraryFragment>::@class::C
-                  element2: <testLibrary>::@class::C
-                  type: C<int>
-                period: . @125
-                name: SimpleIdentifier
-                  token: named @126
-                  staticElement: ConstructorMember
-                    base: <testLibraryFragment>::@class::C::@constructor::named
-                    substitution: {T: dynamic}
-                  element: <testLibraryFragment>::@class::C::@constructor::named#element
-                  staticType: null
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::C::@constructor::named
-                  substitution: {T: int}
-                element: <testLibraryFragment>::@class::C::@constructor::named#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @131
-                arguments
-                  IntegerLiteral
-                    literal: 0 @132
-                    staticType: int
-                rightParenthesis: ) @133
-              staticType: C<int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-        synthetic static get y @-1
-          reference: <testLibraryFragment>::@getter::y
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -575,7 +358,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           fields
             t @23
               reference: <testLibraryFragment>::@class::C::@field::t
@@ -607,10 +390,55 @@ library
         hasInitializer x @85
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @89
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @95
+                  element2: <testLibrary>::@class::C
+                  type: C<int>
+                element: ConstructorMember
+                  baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+                  substitution: {T: int}
+              argumentList: ArgumentList
+                leftParenthesis: ( @96
+                arguments
+                  IntegerLiteral
+                    literal: 0 @97
+                    staticType: int
+                rightParenthesis: ) @98
+              staticType: C<int>
           getter2: <testLibraryFragment>::@getter::x
         hasInitializer y @114
           reference: <testLibraryFragment>::@topLevelVariable::y
           element: <testLibrary>::@topLevelVariable::y
+          initializer: expression_1
+            InstanceCreationExpression
+              keyword: const @118
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @124
+                  element2: <testLibrary>::@class::C
+                  type: C<int>
+                period: . @125
+                name: SimpleIdentifier
+                  token: named @126
+                  element: ConstructorMember
+                    baseElement: <testLibraryFragment>::@class::C::@constructor::named#element
+                    substitution: {T: dynamic}
+                  staticType: null
+                element: ConstructorMember
+                  baseElement: <testLibraryFragment>::@class::C::@constructor::named#element
+                  substitution: {T: int}
+              argumentList: ArgumentList
+                leftParenthesis: ( @131
+                arguments
+                  IntegerLiteral
+                    literal: 0 @132
+                    staticType: int
+                rightParenthesis: ) @133
+              staticType: C<int>
           getter2: <testLibraryFragment>::@getter::y
       getters
         synthetic get x
@@ -649,11 +477,17 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
     const hasInitializer y
       reference: <testLibrary>::@topLevelVariable::y
       firstFragment: <testLibraryFragment>::@topLevelVariable::y
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::y
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::y#element
   getters
     synthetic static get x
@@ -684,51 +518,6 @@ const v = A.named;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            named @14
-              reference: <testLibraryFragment>::@class::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 13
-              nameEnd: 19
-      topLevelVariables
-        static const v @31
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: A Function()
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            ConstructorReference
-              constructorName: ConstructorName
-                type: NamedType
-                  name: A @35
-                  element: <testLibraryFragment>::@class::A
-                  element2: <testLibrary>::@class::A
-                  type: null
-                period: . @36
-                name: SimpleIdentifier
-                  token: named @37
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::named
-                  element: <testLibraryFragment>::@class::A::@constructor::named#element
-                  staticType: null
-                staticElement: <testLibraryFragment>::@class::A::@constructor::named
-                element: <testLibraryFragment>::@class::A::@constructor::named#element
-              staticType: A Function()
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: A Function()
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -747,6 +536,20 @@ library
         hasInitializer v @31
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            ConstructorReference
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @35
+                  element2: <testLibrary>::@class::A
+                  type: null
+                period: . @36
+                name: SimpleIdentifier
+                  token: named @37
+                  element: <testLibraryFragment>::@class::A::@constructor::named#element
+                  staticType: null
+                element: <testLibraryFragment>::@class::A::@constructor::named#element
+              staticType: A Function()
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -764,6 +567,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A Function()
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -781,36 +587,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final f @22
-              reference: <testLibraryFragment>::@class::C::@field::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: int
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                IntegerLiteral
-                  literal: 42 @26
-                  staticType: int
-          constructors
-            const @38
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic get f @-1
-              reference: <testLibraryFragment>::@class::C::@getter::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -822,6 +598,10 @@ library
             hasInitializer f @22
               reference: <testLibraryFragment>::@class::C::@field::f
               element: <testLibraryFragment>::@class::C::@field::f#element
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 42 @26
+                  staticType: int
               getter2: <testLibraryFragment>::@class::C::@getter::f
           constructors
             const new
@@ -841,6 +621,9 @@ library
         final hasInitializer f
           firstFragment: <testLibraryFragment>::@class::C::@field::f
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::C::@field::f
+            expression: expression_0
           getter: <testLibraryFragment>::@class::C::@getter::f#element
       constructors
         const new
@@ -860,45 +643,6 @@ const void Function(int) v = f;
     checkElementText(library, '''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const v @44
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: void Function(int)
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            FunctionReference
-              function: SimpleIdentifier
-                token: f @48
-                staticElement: <testLibraryFragment>::@function::f
-                element: <testLibrary>::@function::f
-                staticType: void Function<T>(T)
-              staticType: void Function(int)
-              typeArgumentTypes
-                int
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: void Function(int)
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @7
-              defaultType: dynamic
-          parameters
-            requiredPositional a @12
-              type: T
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -906,6 +650,15 @@ library
         hasInitializer v @44
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            FunctionReference
+              function: SimpleIdentifier
+                token: f @48
+                element: <testLibrary>::@function::f
+                staticType: void Function<T>(T)
+              staticType: void Function(int)
+              typeArgumentTypes
+                int
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -917,7 +670,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
           formalParameters
             a @12
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -926,6 +679,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: void Function(int)
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -951,54 +707,6 @@ const v = f<int>;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const v @24
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: void Function(int)
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            FunctionReference
-              function: SimpleIdentifier
-                token: f @28
-                staticElement: <testLibraryFragment>::@function::f
-                element: <testLibrary>::@function::f
-                staticType: void Function<T>(T)
-              typeArguments: TypeArgumentList
-                leftBracket: < @29
-                arguments
-                  NamedType
-                    name: int @30
-                    element: dart:core::<fragment>::@class::int
-                    element2: dart:core::@class::int
-                    type: int
-                rightBracket: > @33
-              staticType: void Function(int)
-              typeArgumentTypes
-                int
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: void Function(int)
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @7
-              defaultType: dynamic
-          parameters
-            requiredPositional a @12
-              type: T
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1006,6 +714,23 @@ library
         hasInitializer v @24
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            FunctionReference
+              function: SimpleIdentifier
+                token: f @28
+                element: <testLibrary>::@function::f
+                staticType: void Function<T>(T)
+              typeArguments: TypeArgumentList
+                leftBracket: < @29
+                arguments
+                  NamedType
+                    name: int @30
+                    element2: dart:core::@class::int
+                    type: int
+                rightBracket: > @33
+              staticType: void Function(int)
+              typeArgumentTypes
+                int
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -1017,7 +742,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
           formalParameters
             a @12
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -1026,6 +751,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: void Function(int)
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -1052,17 +780,14 @@ const c = a[b];
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: List<int>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
             ListLiteral
               leftBracket: [ @10
               elements
@@ -1071,70 +796,34 @@ library
                   staticType: int
               rightBracket: ] @12
               staticType: List<int>
-        static const b @21
+          getter2: <testLibraryFragment>::@getter::a
+        hasInitializer b @21
           reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
             IntegerLiteral
               literal: 0 @25
               staticType: int
-        static const c @34
+          getter2: <testLibraryFragment>::@getter::b
+        hasInitializer c @34
           reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::c
+          initializer: expression_2
             IndexExpression
               target: SimpleIdentifier
                 token: a @38
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: List<int>
               leftBracket: [ @39
               index: SimpleIdentifier
                 token: b @40
-                staticElement: <testLibraryFragment>::@getter::b
                 element: <testLibraryFragment>::@getter::b#element
                 staticType: int
               rightBracket: ] @41
-              staticElement: MethodMember
-                base: dart:core::<fragment>::@class::List::@method::[]
+              element: MethodMember
+                baseElement: dart:core::<fragment>::@class::List::@method::[]#element
                 substitution: {E: int}
-              element: dart:core::<fragment>::@class::List::@method::[]#element
               staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<int>
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get c @-1
-          reference: <testLibraryFragment>::@getter::c
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibrary>::@topLevelVariable::a
-          getter2: <testLibraryFragment>::@getter::a
-        hasInitializer b @21
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibrary>::@topLevelVariable::b
-          getter2: <testLibraryFragment>::@getter::b
-        hasInitializer c @34
-          reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
       getters
         synthetic get a
@@ -1151,16 +840,25 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: List<int>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
     const hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::c
+        expression: expression_2
       getter: <testLibraryFragment>::@getter::c#element
   getters
     synthetic static get a
@@ -1194,56 +892,51 @@ const List<P> values = [
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       classes
         class P @6
           reference: <testLibraryFragment>::@class::P
-          enclosingElement3: <testLibraryFragment>
+          element: <testLibrary>::@class::P
           typeParameters
-            covariant T @8
-              defaultType: dynamic
+            T @8
+              element: T@8
           constructors
-            const @21
+            const new
               reference: <testLibraryFragment>::@class::P::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::P
+              element: <testLibraryFragment>::@class::P::@constructor::new#element
+              typeName: P
+              typeNameOffset: 21
         class P1 @35
           reference: <testLibraryFragment>::@class::P1
-          enclosingElement3: <testLibraryFragment>
+          element: <testLibrary>::@class::P1
           typeParameters
-            covariant T @38
-              defaultType: dynamic
-          supertype: P<T>
+            T @38
+              element: T@38
           constructors
-            const @64
+            const new
               reference: <testLibraryFragment>::@class::P1::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::P1
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::P::@constructor::new
-                substitution: {T: T}
+              element: <testLibraryFragment>::@class::P1::@constructor::new#element
+              typeName: P1
+              typeNameOffset: 64
         class P2 @79
           reference: <testLibraryFragment>::@class::P2
-          enclosingElement3: <testLibraryFragment>
+          element: <testLibrary>::@class::P2
           typeParameters
-            covariant T @82
-              defaultType: dynamic
-          supertype: P<T>
+            T @82
+              element: T@82
           constructors
-            const @108
+            const new
               reference: <testLibraryFragment>::@class::P2::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::P2
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::P::@constructor::new
-                substitution: {T: T}
+              element: <testLibraryFragment>::@class::P2::@constructor::new#element
+              typeName: P2
+              typeNameOffset: 108
       topLevelVariables
-        static const values @131
+        hasInitializer values @131
           reference: <testLibraryFragment>::@topLevelVariable::values
-          enclosingElement3: <testLibraryFragment>
-          type: List<P<dynamic>>
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::values
+          initializer: expression_0
             ListLiteral
               leftBracket: [ @140
               elements
@@ -1251,13 +944,11 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: P1 @144
-                      element: <testLibraryFragment>::@class::P1
                       element2: <testLibrary>::@class::P1
                       type: P1<dynamic>
-                    staticElement: ConstructorMember
-                      base: <testLibraryFragment>::@class::P1::@constructor::new
+                    element: ConstructorMember
+                      baseElement: <testLibraryFragment>::@class::P1::@constructor::new#element
                       substitution: {T: dynamic}
-                    element: <testLibraryFragment>::@class::P1::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @146
                     rightParenthesis: ) @147
@@ -1271,81 +962,20 @@ library
                         arguments
                           NamedType
                             name: int @155
-                            element: dart:core::<fragment>::@class::int
                             element2: dart:core::@class::int
                             type: int
                         rightBracket: > @158
-                      element: <testLibraryFragment>::@class::P2
                       element2: <testLibrary>::@class::P2
                       type: P2<int>
-                    staticElement: ConstructorMember
-                      base: <testLibraryFragment>::@class::P2::@constructor::new
+                    element: ConstructorMember
+                      baseElement: <testLibraryFragment>::@class::P2::@constructor::new#element
                       substitution: {T: int}
-                    element: <testLibraryFragment>::@class::P2::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @159
                     rightParenthesis: ) @160
                   staticType: P2<int>
               rightBracket: ] @163
               staticType: List<P<dynamic>>
-      accessors
-        synthetic static get values @-1
-          reference: <testLibraryFragment>::@getter::values
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<P<dynamic>>
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class P @6
-          reference: <testLibraryFragment>::@class::P
-          element: <testLibrary>::@class::P
-          typeParameters
-            T @8
-              element: <not-implemented>
-          constructors
-            const new
-              reference: <testLibraryFragment>::@class::P::@constructor::new
-              element: <testLibraryFragment>::@class::P::@constructor::new#element
-              typeName: P
-              typeNameOffset: 21
-        class P1 @35
-          reference: <testLibraryFragment>::@class::P1
-          element: <testLibrary>::@class::P1
-          typeParameters
-            T @38
-              element: <not-implemented>
-          constructors
-            const new
-              reference: <testLibraryFragment>::@class::P1::@constructor::new
-              element: <testLibraryFragment>::@class::P1::@constructor::new#element
-              typeName: P1
-              typeNameOffset: 64
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::P::@constructor::new
-                substitution: {T: T}
-        class P2 @79
-          reference: <testLibraryFragment>::@class::P2
-          element: <testLibrary>::@class::P2
-          typeParameters
-            T @82
-              element: <not-implemented>
-          constructors
-            const new
-              reference: <testLibraryFragment>::@class::P2::@constructor::new
-              element: <testLibraryFragment>::@class::P2::@constructor::new#element
-              typeName: P2
-              typeNameOffset: 108
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::P::@constructor::new
-                substitution: {T: T}
-      topLevelVariables
-        hasInitializer values @131
-          reference: <testLibraryFragment>::@topLevelVariable::values
-          element: <testLibrary>::@topLevelVariable::values
           getter2: <testLibraryFragment>::@getter::values
       getters
         synthetic get values
@@ -1385,6 +1015,9 @@ library
       reference: <testLibrary>::@topLevelVariable::values
       firstFragment: <testLibraryFragment>::@topLevelVariable::values
       type: List<P<dynamic>>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::values
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::values#element
   getters
     synthetic static get values
@@ -1402,58 +1035,6 @@ int foo() => 42;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            static const f @25
-              reference: <testLibraryFragment>::@class::C::@field::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: int
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                BinaryExpression
-                  leftOperand: IntegerLiteral
-                    literal: 1 @29
-                    staticType: int
-                  operator: + @31
-                  rightOperand: MethodInvocation
-                    methodName: SimpleIdentifier
-                      token: foo @33
-                      staticElement: <testLibraryFragment>::@function::foo
-                      element: <testLibrary>::@function::foo
-                      staticType: int Function()
-                    argumentList: ArgumentList
-                      leftParenthesis: ( @36
-                      rightParenthesis: ) @37
-                    staticInvokeType: int Function()
-                    staticType: int
-                  staticElement: dart:core::<fragment>::@class::num::@method::+
-                  element: dart:core::<fragment>::@class::num::@method::+#element
-                  staticInvokeType: num Function(num)
-                  staticType: int
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic static get f @-1
-              reference: <testLibraryFragment>::@class::C::@getter::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int
-      functions
-        foo @46
-          reference: <testLibraryFragment>::@function::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1465,6 +1046,25 @@ library
             hasInitializer f @25
               reference: <testLibraryFragment>::@class::C::@field::f
               element: <testLibraryFragment>::@class::C::@field::f#element
+              initializer: expression_0
+                BinaryExpression
+                  leftOperand: IntegerLiteral
+                    literal: 1 @29
+                    staticType: int
+                  operator: + @31
+                  rightOperand: MethodInvocation
+                    methodName: SimpleIdentifier
+                      token: foo @33
+                      element: <testLibrary>::@function::foo
+                      staticType: int Function()
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @36
+                      rightParenthesis: ) @37
+                    staticInvokeType: int Function()
+                    staticType: int
+                  element: dart:core::<fragment>::@class::num::@method::+#element
+                  staticInvokeType: num Function(num)
+                  staticType: int
               getter2: <testLibraryFragment>::@class::C::@getter::f
           constructors
             synthetic new
@@ -1487,6 +1087,9 @@ library
         static const hasInitializer f
           firstFragment: <testLibraryFragment>::@class::C::@field::f
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::C::@field::f
+            expression: expression_0
           getter: <testLibraryFragment>::@class::C::@getter::f#element
       constructors
         synthetic new
@@ -1510,37 +1113,6 @@ class C {
 int foo() => 42;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final f @18
-              reference: <testLibraryFragment>::@class::C::@field::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: int
-              shouldUseTypeForInitializerInference: false
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic get f @-1
-              reference: <testLibraryFragment>::@class::C::@getter::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int
-      functions
-        foo @39
-          reference: <testLibraryFragment>::@function::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1598,30 +1170,6 @@ const v = () { return 0; };
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const v @6
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int Function()
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: _notSerializableExpression @-1
-              staticElement: <null>
-              element: <null>
-              staticType: null
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int Function()
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1629,6 +1177,11 @@ library
         hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            SimpleIdentifier
+              token: _notSerializableExpression @-1
+              element: <null>
+              staticType: null
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -1639,6 +1192,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int Function()
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -1655,31 +1211,6 @@ class A  {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const @19
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              constantInitializers
-                AssertInitializer
-                  assertKeyword: assert @25
-                  leftParenthesis: ( @31
-                  condition: SimpleIdentifier
-                    token: _notSerializableExpression @-1
-                    staticElement: <null>
-                    element: <null>
-                    staticType: null
-                  rightParenthesis: ) @46
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1693,16 +1224,6 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
               typeNameOffset: 19
-              constantInitializers
-                AssertInitializer
-                  assertKeyword: assert @25
-                  leftParenthesis: ( @31
-                  condition: SimpleIdentifier
-                    token: _notSerializableExpression @-1
-                    staticElement: <null>
-                    element: <null>
-                    staticType: null
-                  rightParenthesis: ) @46
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -1710,6 +1231,15 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          constantInitializers
+            AssertInitializer
+              assertKeyword: assert @25
+              leftParenthesis: ( @31
+              condition: SimpleIdentifier
+                token: _notSerializableExpression @-1
+                element: <null>
+                staticType: null
+              rightParenthesis: ) @46
 ''');
   }
 
@@ -1722,37 +1252,6 @@ class A  {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const @19
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              constantInitializers
-                AssertInitializer
-                  assertKeyword: assert @25
-                  leftParenthesis: ( @31
-                  condition: SimpleIdentifier
-                    token: b @32
-                    staticElement: <null>
-                    element: <null>
-                    staticType: InvalidType
-                  comma: , @33
-                  message: SimpleIdentifier
-                    token: _notSerializableExpression @-1
-                    staticElement: <null>
-                    element: <null>
-                    staticType: null
-                  rightParenthesis: ) @42
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1766,22 +1265,6 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
               typeNameOffset: 19
-              constantInitializers
-                AssertInitializer
-                  assertKeyword: assert @25
-                  leftParenthesis: ( @31
-                  condition: SimpleIdentifier
-                    token: b @32
-                    staticElement: <null>
-                    element: <null>
-                    staticType: InvalidType
-                  comma: , @33
-                  message: SimpleIdentifier
-                    token: _notSerializableExpression @-1
-                    staticElement: <null>
-                    element: <null>
-                    staticType: null
-                  rightParenthesis: ) @42
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -1789,6 +1272,20 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          constantInitializers
+            AssertInitializer
+              assertKeyword: assert @25
+              leftParenthesis: ( @31
+              condition: SimpleIdentifier
+                token: b @32
+                element: <null>
+                staticType: InvalidType
+              comma: , @33
+              message: SimpleIdentifier
+                token: _notSerializableExpression @-1
+                element: <null>
+                staticType: null
+              rightParenthesis: ) @42
 ''');
   }
 
@@ -1800,44 +1297,6 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final foo @26
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: Object?
-          constructors
-            const @39
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              constantInitializers
-                ConstructorFieldInitializer
-                  fieldName: SimpleIdentifier
-                    token: foo @45
-                    staticElement: <testLibraryFragment>::@class::A::@field::foo
-                    element: <testLibraryFragment>::@class::A::@field::foo#element
-                    staticType: null
-                  equals: = @49
-                  expression: SimpleIdentifier
-                    token: _notSerializableExpression @-1
-                    staticElement: <null>
-                    element: <null>
-                    staticType: null
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: Object?
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1858,19 +1317,6 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
               typeNameOffset: 39
-              constantInitializers
-                ConstructorFieldInitializer
-                  fieldName: SimpleIdentifier
-                    token: foo @45
-                    staticElement: <testLibraryFragment>::@class::A::@field::foo
-                    element: <testLibraryFragment>::@class::A::@field::foo#element
-                    staticType: null
-                  equals: = @49
-                  expression: SimpleIdentifier
-                    token: _notSerializableExpression @-1
-                    staticElement: <null>
-                    element: <null>
-                    staticType: null
           getters
             synthetic get foo
               reference: <testLibraryFragment>::@class::A::@getter::foo
@@ -1887,6 +1333,17 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          constantInitializers
+            ConstructorFieldInitializer
+              fieldName: SimpleIdentifier
+                token: foo @45
+                element: <testLibraryFragment>::@class::A::@field::foo#element
+                staticType: null
+              equals: = @49
+              expression: SimpleIdentifier
+                token: _notSerializableExpression @-1
+                element: <null>
+                staticType: null
       getters
         synthetic get foo
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
@@ -1900,30 +1357,6 @@ const v = () { return 0; } + 2;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const v @6
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: _notSerializableExpression @-1
-              staticElement: <null>
-              element: <null>
-              staticType: null
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1931,6 +1364,11 @@ library
         hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            SimpleIdentifier
+              token: _notSerializableExpression @-1
+              element: <null>
+              staticType: null
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -1941,6 +1379,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: InvalidType
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -1956,49 +1397,6 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const @18
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional a @27
-                  type: Object
-                requiredPositional b @37
-                  type: Object
-            const named @51
-              reference: <testLibraryFragment>::@class::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 50
-              nameEnd: 56
-              constantInitializers
-                RedirectingConstructorInvocation
-                  thisKeyword: this @61
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @65
-                    arguments
-                      IntegerLiteral
-                        literal: 0 @66
-                        staticType: int
-                      SimpleIdentifier
-                        token: _notSerializableExpression @-1
-                        staticElement: <null>
-                        element: <null>
-                        staticType: null
-                    rightParenthesis: ) @76
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              redirectedConstructor: <testLibraryFragment>::@class::A::@constructor::new
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2025,24 +1423,6 @@ library
               typeName: A
               typeNameOffset: 49
               periodOffset: 50
-              constantInitializers
-                RedirectingConstructorInvocation
-                  thisKeyword: this @61
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @65
-                    arguments
-                      IntegerLiteral
-                        literal: 0 @66
-                        staticType: int
-                      SimpleIdentifier
-                        token: _notSerializableExpression @-1
-                        staticElement: <null>
-                        element: <null>
-                        staticType: null
-                    rightParenthesis: ) @76
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              redirectedConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2057,6 +1437,21 @@ library
               type: Object
         const named
           firstFragment: <testLibraryFragment>::@class::A::@constructor::named
+          constantInitializers
+            RedirectingConstructorInvocation
+              thisKeyword: this @61
+              argumentList: ArgumentList
+                leftParenthesis: ( @65
+                arguments
+                  IntegerLiteral
+                    literal: 0 @66
+                    staticType: int
+                  SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    element: <null>
+                    staticType: null
+                rightParenthesis: ) @76
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
           redirectedConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
   }
@@ -2071,52 +1466,6 @@ class B extends A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const @18
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional a @27
-                  type: Object
-                requiredPositional b @37
-                  type: Object
-        class B @49
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: A
-          constructors
-            const @71
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @77
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @82
-                    arguments
-                      IntegerLiteral
-                        literal: 0 @83
-                        staticType: int
-                      SimpleIdentifier
-                        token: _notSerializableExpression @-1
-                        staticElement: <null>
-                        element: <null>
-                        staticType: null
-                    rightParenthesis: ) @93
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2146,24 +1495,6 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
               typeNameOffset: 71
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @77
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @82
-                    arguments
-                      IntegerLiteral
-                        literal: 0 @83
-                        staticType: int
-                      SimpleIdentifier
-                        token: _notSerializableExpression @-1
-                        staticElement: <null>
-                        element: <null>
-                        staticType: null
-                    rightParenthesis: ) @93
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2183,6 +1514,21 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @77
+              argumentList: ArgumentList
+                leftParenthesis: ( @82
+                arguments
+                  IntegerLiteral
+                    literal: 0 @83
+                    staticType: int
+                  SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    element: <null>
+                    staticType: null
+                rightParenthesis: ) @93
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
   }
@@ -2204,24 +1550,20 @@ const a = 'abc'.codeUnitAt(0);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
             MethodInvocation
               target: SimpleStringLiteral
                 literal: 'abc' @10
               operator: . @15
               methodName: SimpleIdentifier
                 token: codeUnitAt @16
-                staticElement: dart:core::<fragment>::@class::String::@method::codeUnitAt
                 element: dart:core::<fragment>::@class::String::@method::codeUnitAt#element
                 staticType: int Function(int)
               argumentList: ArgumentList
@@ -2233,21 +1575,6 @@ library
                 rightParenthesis: ) @28
               staticInvokeType: int Function(int)
               staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -2258,6 +1585,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -2272,30 +1602,6 @@ const v = (a,) = (0,);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const v @6
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: (int,)
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: _notSerializableExpression @-1
-              staticElement: <null>
-              element: <null>
-              staticType: null
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: (int,)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2303,6 +1609,11 @@ library
         hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            SimpleIdentifier
+              token: _notSerializableExpression @-1
+              element: <null>
+              staticType: null
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -2313,6 +1624,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: (int,)
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -2328,17 +1642,14 @@ int foo() => 42;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const v @6
+        hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @10
@@ -2347,7 +1658,6 @@ library
               rightOperand: MethodInvocation
                 methodName: SimpleIdentifier
                   token: foo @14
-                  staticElement: <testLibraryFragment>::@function::foo
                   element: <testLibrary>::@function::foo
                   staticType: int Function()
                 argumentList: ArgumentList
@@ -2355,30 +1665,9 @@ library
                   rightParenthesis: ) @18
                 staticInvokeType: int Function()
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::+
               element: dart:core::<fragment>::@class::num::@method::+#element
               staticInvokeType: num Function(num)
               staticType: int
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-      functions
-        foo @25
-          reference: <testLibraryFragment>::@function::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer v @6
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -2393,6 +1682,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -2412,30 +1704,6 @@ const a = 0 + switch (true) {_ => 1};
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: _notSerializableExpression @-1
-              staticElement: <null>
-              element: <null>
-              staticType: null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2443,6 +1711,11 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            SimpleIdentifier
+              token: _notSerializableExpression @-1
+              element: <null>
+              staticType: null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -2453,6 +1726,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -2468,52 +1744,6 @@ const bool b = a + 5;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @10
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @14
-              staticType: int
-        static const b @28
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: bool
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            BinaryExpression
-              leftOperand: SimpleIdentifier
-                token: a @32
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: int
-              operator: + @34
-              rightOperand: IntegerLiteral
-                literal: 5 @36
-                staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::+
-              element: dart:core::<fragment>::@class::num::@method::+#element
-              staticInvokeType: num Function(num)
-              staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2521,10 +1751,27 @@ library
         hasInitializer a @10
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @14
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @28
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            BinaryExpression
+              leftOperand: SimpleIdentifier
+                token: a @32
+                element: <testLibraryFragment>::@getter::a#element
+                staticType: int
+              operator: + @34
+              rightOperand: IntegerLiteral
+                literal: 5 @36
+                staticType: int
+              element: dart:core::<fragment>::@class::num::@method::+#element
+              staticInvokeType: num Function(num)
+              staticType: int
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -2538,11 +1785,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: bool
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -2562,89 +1815,6 @@ const V = const C<int, String>.named(1, '222');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant K @8
-              defaultType: dynamic
-            covariant V @11
-              defaultType: dynamic
-          constructors
-            const named @26
-              reference: <testLibraryFragment>::@class::C::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::C
-              periodOffset: 25
-              nameEnd: 31
-              parameters
-                requiredPositional k @34
-                  type: K
-                requiredPositional v @39
-                  type: V
-      topLevelVariables
-        static const V @51
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C<int, String>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @55
-              constructorName: ConstructorName
-                type: NamedType
-                  name: C @61
-                  typeArguments: TypeArgumentList
-                    leftBracket: < @62
-                    arguments
-                      NamedType
-                        name: int @63
-                        element: dart:core::<fragment>::@class::int
-                        element2: dart:core::@class::int
-                        type: int
-                      NamedType
-                        name: String @68
-                        element: dart:core::<fragment>::@class::String
-                        element2: dart:core::@class::String
-                        type: String
-                    rightBracket: > @74
-                  element: <testLibraryFragment>::@class::C
-                  element2: <testLibrary>::@class::C
-                  type: C<int, String>
-                period: . @75
-                name: SimpleIdentifier
-                  token: named @76
-                  staticElement: ConstructorMember
-                    base: <testLibraryFragment>::@class::C::@constructor::named
-                    substitution: {K: int, V: String}
-                  element: <testLibraryFragment>::@class::C::@constructor::named#element
-                  staticType: null
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::C::@constructor::named
-                  substitution: {K: int, V: String}
-                element: <testLibraryFragment>::@class::C::@constructor::named#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @81
-                arguments
-                  IntegerLiteral
-                    literal: 1 @82
-                    staticType: int
-                  SimpleStringLiteral
-                    literal: '222' @85
-                rightParenthesis: ) @90
-              staticType: C<int, String>
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C<int, String>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2654,9 +1824,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             K @8
-              element: <not-implemented>
+              element: K@8
             V @11
-              element: <not-implemented>
+              element: V@11
           constructors
             const named @26
               reference: <testLibraryFragment>::@class::C::@constructor::named
@@ -2673,6 +1843,46 @@ library
         hasInitializer V @51
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @55
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @61
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @62
+                    arguments
+                      NamedType
+                        name: int @63
+                        element2: dart:core::@class::int
+                        type: int
+                      NamedType
+                        name: String @68
+                        element2: dart:core::@class::String
+                        type: String
+                    rightBracket: > @74
+                  element2: <testLibrary>::@class::C
+                  type: C<int, String>
+                period: . @75
+                name: SimpleIdentifier
+                  token: named @76
+                  element: ConstructorMember
+                    baseElement: <testLibraryFragment>::@class::C::@constructor::named#element
+                    substitution: {K: int, V: String}
+                  staticType: null
+                element: ConstructorMember
+                  baseElement: <testLibraryFragment>::@class::C::@constructor::named#element
+                  substitution: {K: int, V: String}
+              argumentList: ArgumentList
+                leftParenthesis: ( @81
+                arguments
+                  IntegerLiteral
+                    literal: 1 @82
+                    staticType: int
+                  SimpleStringLiteral
+                    literal: '222' @85
+                rightParenthesis: ) @90
+              staticType: C<int, String>
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -2698,6 +1908,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C<int, String>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -2718,20 +1931,16 @@ const V = const C<int, String>.named(1, '222');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       libraryImports
         package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
       topLevelVariables
-        static const V @23
+        hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C<int, String>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @27
               constructorName: ConstructorName
@@ -2742,30 +1951,25 @@ library
                     arguments
                       NamedType
                         name: int @35
-                        element: dart:core::<fragment>::@class::int
                         element2: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @40
-                        element: dart:core::<fragment>::@class::String
                         element2: dart:core::@class::String
                         type: String
                     rightBracket: > @46
-                  element: package:test/a.dart::<fragment>::@class::C
                   element2: package:test/a.dart::@class::C
                   type: C<int, String>
                 period: . @47
                 name: SimpleIdentifier
                   token: named @48
-                  staticElement: ConstructorMember
-                    base: package:test/a.dart::<fragment>::@class::C::@constructor::named
+                  element: ConstructorMember
+                    baseElement: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
                     substitution: {K: int, V: String}
-                  element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
                   staticType: null
-                staticElement: ConstructorMember
-                  base: package:test/a.dart::<fragment>::@class::C::@constructor::named
+                element: ConstructorMember
+                  baseElement: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
                   substitution: {K: int, V: String}
-                element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
               argumentList: ArgumentList
                 leftParenthesis: ( @53
                 arguments
@@ -2776,23 +1980,6 @@ library
                     literal: '222' @57
                 rightParenthesis: ) @62
               staticType: C<int, String>
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C<int, String>
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      libraryImports
-        package:test/a.dart
-      topLevelVariables
-        hasInitializer V @23
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          element: <testLibrary>::@topLevelVariable::V
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -2803,6 +1990,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C<int, String>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -2823,81 +2013,6 @@ const V = const p.C<int, String>.named(1, '222');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @28
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C<int, String>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @32
-              constructorName: ConstructorName
-                type: NamedType
-                  importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
-                    element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix2::p
-                  name: C @40
-                  typeArguments: TypeArgumentList
-                    leftBracket: < @41
-                    arguments
-                      NamedType
-                        name: int @42
-                        element: dart:core::<fragment>::@class::int
-                        element2: dart:core::@class::int
-                        type: int
-                      NamedType
-                        name: String @47
-                        element: dart:core::<fragment>::@class::String
-                        element2: dart:core::@class::String
-                        type: String
-                    rightBracket: > @53
-                  element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::@class::C
-                  type: C<int, String>
-                period: . @54
-                name: SimpleIdentifier
-                  token: named @55
-                  staticElement: ConstructorMember
-                    base: package:test/a.dart::<fragment>::@class::C::@constructor::named
-                    substitution: {K: int, V: String}
-                  element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
-                  staticType: null
-                staticElement: ConstructorMember
-                  base: package:test/a.dart::<fragment>::@class::C::@constructor::named
-                  substitution: {K: int, V: String}
-                element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @60
-                arguments
-                  IntegerLiteral
-                    literal: 1 @61
-                    staticType: int
-                  SimpleStringLiteral
-                    literal: '222' @64
-                rightParenthesis: ) @69
-              staticType: C<int, String>
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C<int, String>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2910,6 +2025,50 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @32
+              constructorName: ConstructorName
+                type: NamedType
+                  importPrefix: ImportPrefixReference
+                    name: p @38
+                    period: . @39
+                    element2: <testLibraryFragment>::@prefix2::p
+                  name: C @40
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @41
+                    arguments
+                      NamedType
+                        name: int @42
+                        element2: dart:core::@class::int
+                        type: int
+                      NamedType
+                        name: String @47
+                        element2: dart:core::@class::String
+                        type: String
+                    rightBracket: > @53
+                  element2: package:test/a.dart::@class::C
+                  type: C<int, String>
+                period: . @54
+                name: SimpleIdentifier
+                  token: named @55
+                  element: ConstructorMember
+                    baseElement: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+                    substitution: {K: int, V: String}
+                  staticType: null
+                element: ConstructorMember
+                  baseElement: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+                  substitution: {K: int, V: String}
+              argumentList: ArgumentList
+                leftParenthesis: ( @60
+                arguments
+                  IntegerLiteral
+                    literal: 1 @61
+                    staticType: int
+                  SimpleStringLiteral
+                    literal: '222' @64
+                rightParenthesis: ) @69
+              staticType: C<int, String>
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -2920,6 +2079,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C<int, String>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -2937,54 +2099,6 @@ const V = const C();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant K @8
-              defaultType: dynamic
-            covariant V @11
-              defaultType: dynamic
-          constructors
-            const @24
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      topLevelVariables
-        static const V @37
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C<dynamic, dynamic>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @41
-              constructorName: ConstructorName
-                type: NamedType
-                  name: C @47
-                  element: <testLibraryFragment>::@class::C
-                  element2: <testLibrary>::@class::C
-                  type: C<dynamic, dynamic>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::C::@constructor::new
-                  substitution: {K: dynamic, V: dynamic}
-                element: <testLibraryFragment>::@class::C::@constructor::new#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @48
-                rightParenthesis: ) @49
-              staticType: C<dynamic, dynamic>
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C<dynamic, dynamic>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2994,9 +2108,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             K @8
-              element: <not-implemented>
+              element: K@8
             V @11
-              element: <not-implemented>
+              element: V@11
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -3007,6 +2121,21 @@ library
         hasInitializer V @37
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @41
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @47
+                  element2: <testLibrary>::@class::C
+                  type: C<dynamic, dynamic>
+                element: ConstructorMember
+                  baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+                  substitution: {K: dynamic, V: dynamic}
+              argumentList: ArgumentList
+                leftParenthesis: ( @48
+                rightParenthesis: ) @49
+              staticType: C<dynamic, dynamic>
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -3027,6 +2156,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C<dynamic, dynamic>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -3045,70 +2177,6 @@ const Object a = const A(0);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          fields
-            final t @23
-              reference: <testLibraryFragment>::@class::A::@field::t
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: T
-          constructors
-            const @34
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional final hasImplicitType this.t @41
-                  type: T
-                  field: <testLibraryFragment>::@class::A::@field::t
-          accessors
-            synthetic get t @-1
-              reference: <testLibraryFragment>::@class::A::@getter::t
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: T
-      topLevelVariables
-        static const a @60
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @64
-              constructorName: ConstructorName
-                type: NamedType
-                  name: A @70
-                  element: <testLibraryFragment>::@class::A
-                  element2: <testLibrary>::@class::A
-                  type: A<int>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::A::@constructor::new
-                  substitution: {T: int}
-                element: <testLibraryFragment>::@class::A::@constructor::new#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @71
-                arguments
-                  IntegerLiteral
-                    literal: 0 @72
-                    staticType: int
-                rightParenthesis: ) @73
-              staticType: A<int>
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3118,7 +2186,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           fields
             t @23
               reference: <testLibraryFragment>::@class::A::@field::t
@@ -3141,6 +2209,25 @@ library
         hasInitializer a @60
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @64
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @70
+                  element2: <testLibrary>::@class::A
+                  type: A<int>
+                element: ConstructorMember
+                  baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+                  substitution: {T: int}
+              argumentList: ArgumentList
+                leftParenthesis: ( @71
+                arguments
+                  IntegerLiteral
+                    literal: 0 @72
+                    staticType: int
+                rightParenthesis: ) @73
+              staticType: A<int>
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -3171,6 +2258,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -3188,68 +2278,6 @@ const V = const C<int, String>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant K @8
-              defaultType: dynamic
-            covariant V @11
-              defaultType: dynamic
-          constructors
-            const @24
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      topLevelVariables
-        static const V @37
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C<int, String>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @41
-              constructorName: ConstructorName
-                type: NamedType
-                  name: C @47
-                  typeArguments: TypeArgumentList
-                    leftBracket: < @48
-                    arguments
-                      NamedType
-                        name: int @49
-                        element: dart:core::<fragment>::@class::int
-                        element2: dart:core::@class::int
-                        type: int
-                      NamedType
-                        name: String @54
-                        element: dart:core::<fragment>::@class::String
-                        element2: dart:core::@class::String
-                        type: String
-                    rightBracket: > @60
-                  element: <testLibraryFragment>::@class::C
-                  element2: <testLibrary>::@class::C
-                  type: C<int, String>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::C::@constructor::new
-                  substitution: {K: int, V: String}
-                element: <testLibraryFragment>::@class::C::@constructor::new#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @61
-                rightParenthesis: ) @62
-              staticType: C<int, String>
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C<int, String>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3259,9 +2287,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             K @8
-              element: <not-implemented>
+              element: K@8
             V @11
-              element: <not-implemented>
+              element: V@11
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -3272,6 +2300,33 @@ library
         hasInitializer V @37
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @41
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @47
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @48
+                    arguments
+                      NamedType
+                        name: int @49
+                        element2: dart:core::@class::int
+                        type: int
+                      NamedType
+                        name: String @54
+                        element2: dart:core::@class::String
+                        type: String
+                    rightBracket: > @60
+                  element2: <testLibrary>::@class::C
+                  type: C<int, String>
+                element: ConstructorMember
+                  baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+                  substitution: {K: int, V: String}
+              argumentList: ArgumentList
+                leftParenthesis: ( @61
+                rightParenthesis: ) @62
+              staticType: C<int, String>
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -3292,6 +2347,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C<int, String>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -3312,20 +2370,16 @@ const V = const C<int, String>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       libraryImports
         package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
       topLevelVariables
-        static const V @23
+        hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C<int, String>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @27
               constructorName: ConstructorName
@@ -3336,43 +2390,22 @@ library
                     arguments
                       NamedType
                         name: int @35
-                        element: dart:core::<fragment>::@class::int
                         element2: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @40
-                        element: dart:core::<fragment>::@class::String
                         element2: dart:core::@class::String
                         type: String
                     rightBracket: > @46
-                  element: package:test/a.dart::<fragment>::@class::C
                   element2: package:test/a.dart::@class::C
                   type: C<int, String>
-                staticElement: ConstructorMember
-                  base: package:test/a.dart::<fragment>::@class::C::@constructor::new
+                element: ConstructorMember
+                  baseElement: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
                   substitution: {K: int, V: String}
-                element: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @47
                 rightParenthesis: ) @48
               staticType: C<int, String>
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C<int, String>
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      libraryImports
-        package:test/a.dart
-      topLevelVariables
-        hasInitializer V @23
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          element: <testLibrary>::@topLevelVariable::V
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -3383,6 +2416,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C<int, String>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -3403,67 +2439,6 @@ const V = const p.C<int, String>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @28
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C<int, String>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @32
-              constructorName: ConstructorName
-                type: NamedType
-                  importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
-                    element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix2::p
-                  name: C @40
-                  typeArguments: TypeArgumentList
-                    leftBracket: < @41
-                    arguments
-                      NamedType
-                        name: int @42
-                        element: dart:core::<fragment>::@class::int
-                        element2: dart:core::@class::int
-                        type: int
-                      NamedType
-                        name: String @47
-                        element: dart:core::<fragment>::@class::String
-                        element2: dart:core::@class::String
-                        type: String
-                    rightBracket: > @53
-                  element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::@class::C
-                  type: C<int, String>
-                staticElement: ConstructorMember
-                  base: package:test/a.dart::<fragment>::@class::C::@constructor::new
-                  substitution: {K: int, V: String}
-                element: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @54
-                rightParenthesis: ) @55
-              staticType: C<int, String>
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C<int, String>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3476,6 +2451,37 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @32
+              constructorName: ConstructorName
+                type: NamedType
+                  importPrefix: ImportPrefixReference
+                    name: p @38
+                    period: . @39
+                    element2: <testLibraryFragment>::@prefix2::p
+                  name: C @40
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @41
+                    arguments
+                      NamedType
+                        name: int @42
+                        element2: dart:core::@class::int
+                        type: int
+                      NamedType
+                        name: String @47
+                        element2: dart:core::@class::String
+                        type: String
+                    rightBracket: > @53
+                  element2: package:test/a.dart::@class::C
+                  type: C<int, String>
+                element: ConstructorMember
+                  baseElement: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
+                  substitution: {K: int, V: String}
+              argumentList: ArgumentList
+                leftParenthesis: ( @54
+                rightParenthesis: ) @55
+              staticType: C<int, String>
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -3486,6 +2492,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C<int, String>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -3501,99 +2510,6 @@ class C {
 const V = const C.named(true, 1, 2, d: 'ccc', e: 3.4);
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const named @20
-              reference: <testLibraryFragment>::@class::C::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::C
-              periodOffset: 19
-              nameEnd: 25
-              parameters
-                requiredPositional a @31
-                  type: bool
-                requiredPositional b @38
-                  type: int
-                requiredPositional c @45
-                  type: int
-                optionalNamed default d @56
-                  reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::d
-                  type: String
-                optionalNamed default e @66
-                  reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::e
-                  type: double
-      topLevelVariables
-        static const V @79
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @83
-              constructorName: ConstructorName
-                type: NamedType
-                  name: C @89
-                  element: <testLibraryFragment>::@class::C
-                  element2: <testLibrary>::@class::C
-                  type: C
-                period: . @90
-                name: SimpleIdentifier
-                  token: named @91
-                  staticElement: <testLibraryFragment>::@class::C::@constructor::named
-                  element: <testLibraryFragment>::@class::C::@constructor::named#element
-                  staticType: null
-                staticElement: <testLibraryFragment>::@class::C::@constructor::named
-                element: <testLibraryFragment>::@class::C::@constructor::named#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @96
-                arguments
-                  BooleanLiteral
-                    literal: true @97
-                    staticType: bool
-                  IntegerLiteral
-                    literal: 1 @103
-                    staticType: int
-                  IntegerLiteral
-                    literal: 2 @106
-                    staticType: int
-                  NamedExpression
-                    name: Label
-                      label: SimpleIdentifier
-                        token: d @109
-                        staticElement: <testLibraryFragment>::@class::C::@constructor::named::@parameter::d
-                        element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::d#element
-                        staticType: null
-                      colon: : @110
-                    expression: SimpleStringLiteral
-                      literal: 'ccc' @112
-                  NamedExpression
-                    name: Label
-                      label: SimpleIdentifier
-                        token: e @119
-                        staticElement: <testLibraryFragment>::@class::C::@constructor::named::@parameter::e
-                        element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::e#element
-                        staticType: null
-                      colon: : @120
-                    expression: DoubleLiteral
-                      literal: 3.4 @122
-                      staticType: double
-                rightParenthesis: ) @125
-              staticType: C
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3627,6 +2543,53 @@ library
         hasInitializer V @79
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @83
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @89
+                  element2: <testLibrary>::@class::C
+                  type: C
+                period: . @90
+                name: SimpleIdentifier
+                  token: named @91
+                  element: <testLibraryFragment>::@class::C::@constructor::named#element
+                  staticType: null
+                element: <testLibraryFragment>::@class::C::@constructor::named#element
+              argumentList: ArgumentList
+                leftParenthesis: ( @96
+                arguments
+                  BooleanLiteral
+                    literal: true @97
+                    staticType: bool
+                  IntegerLiteral
+                    literal: 1 @103
+                    staticType: int
+                  IntegerLiteral
+                    literal: 2 @106
+                    staticType: int
+                  NamedExpression
+                    name: Label
+                      label: SimpleIdentifier
+                        token: d @109
+                        element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::d#element
+                        staticType: null
+                      colon: : @110
+                    expression: SimpleStringLiteral
+                      literal: 'ccc' @112
+                  NamedExpression
+                    name: Label
+                      label: SimpleIdentifier
+                        token: e @119
+                        element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::e#element
+                        staticType: null
+                      colon: : @120
+                    expression: DoubleLiteral
+                      literal: 3.4 @122
+                      staticType: double
+                rightParenthesis: ) @125
+              staticType: C
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -3657,6 +2620,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -3677,48 +2643,6 @@ const V = const C.named();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @23
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @27
-              constructorName: ConstructorName
-                type: NamedType
-                  name: C @33
-                  element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::@class::C
-                  type: C
-                period: . @34
-                name: SimpleIdentifier
-                  token: named @35
-                  staticElement: package:test/a.dart::<fragment>::@class::C::@constructor::named
-                  element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
-                  staticType: null
-                staticElement: package:test/a.dart::<fragment>::@class::C::@constructor::named
-                element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @40
-                rightParenthesis: ) @41
-              staticType: C
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3728,6 +2652,24 @@ library
         hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @27
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @33
+                  element2: package:test/a.dart::@class::C
+                  type: C
+                period: . @34
+                name: SimpleIdentifier
+                  token: named @35
+                  element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+                  staticType: null
+                element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+              argumentList: ArgumentList
+                leftParenthesis: ( @40
+                rightParenthesis: ) @41
+              staticType: C
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -3738,6 +2680,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -3758,57 +2703,6 @@ const V = const p.C.named();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @28
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @32
-              constructorName: ConstructorName
-                type: NamedType
-                  importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
-                    element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix2::p
-                  name: C @40
-                  element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::@class::C
-                  type: C
-                period: . @41
-                name: SimpleIdentifier
-                  token: named @42
-                  staticElement: package:test/a.dart::<fragment>::@class::C::@constructor::named
-                  element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
-                  staticType: null
-                staticElement: package:test/a.dart::<fragment>::@class::C::@constructor::named
-                element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @47
-                rightParenthesis: ) @48
-              staticType: C
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3821,6 +2715,28 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @32
+              constructorName: ConstructorName
+                type: NamedType
+                  importPrefix: ImportPrefixReference
+                    name: p @38
+                    period: . @39
+                    element2: <testLibraryFragment>::@prefix2::p
+                  name: C @40
+                  element2: package:test/a.dart::@class::C
+                  type: C
+                period: . @41
+                name: SimpleIdentifier
+                  token: named @42
+                  element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+                  staticType: null
+                element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+              argumentList: ArgumentList
+                leftParenthesis: ( @47
+                rightParenthesis: ) @48
+              staticType: C
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -3831,6 +2747,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -3844,53 +2763,6 @@ class C {}
 const V = const C.named();
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      topLevelVariables
-        static const V @17
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @21
-              constructorName: ConstructorName
-                type: NamedType
-                  name: C @27
-                  element: <testLibraryFragment>::@class::C
-                  element2: <testLibrary>::@class::C
-                  type: C
-                period: . @28
-                name: SimpleIdentifier
-                  token: named @29
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                staticElement: <null>
-                element: <null>
-              argumentList: ArgumentList
-                leftParenthesis: ( @34
-                rightParenthesis: ) @35
-              staticType: C
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3909,6 +2781,24 @@ library
         hasInitializer V @17
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @21
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @27
+                  element2: <testLibrary>::@class::C
+                  type: C
+                period: . @28
+                name: SimpleIdentifier
+                  token: named @29
+                  element: <null>
+                  staticType: null
+                element: <null>
+              argumentList: ArgumentList
+                leftParenthesis: ( @34
+                rightParenthesis: ) @35
+              staticType: C
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -3926,6 +2816,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -3940,44 +2833,6 @@ const V = const C.named();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const V @6
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @10
-              constructorName: ConstructorName
-                type: NamedType
-                  importPrefix: ImportPrefixReference
-                    name: C @16
-                    period: . @17
-                    element: <null>
-                    element2: <null>
-                  name: named @18
-                  element: <null>
-                  element2: <null>
-                  type: InvalidType
-                staticElement: <null>
-                element: <null>
-              argumentList: ArgumentList
-                leftParenthesis: ( @23
-                rightParenthesis: ) @24
-              staticType: InvalidType
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3985,6 +2840,23 @@ library
         hasInitializer V @6
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @10
+              constructorName: ConstructorName
+                type: NamedType
+                  importPrefix: ImportPrefixReference
+                    name: C @16
+                    period: . @17
+                    element2: <null>
+                  name: named @18
+                  element2: <null>
+                  type: InvalidType
+                element: <null>
+              argumentList: ArgumentList
+                leftParenthesis: ( @23
+                rightParenthesis: ) @24
+              staticType: InvalidType
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -3995,6 +2867,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: InvalidType
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -4014,57 +2889,6 @@ const V = const p.C.named();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @28
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @32
-              constructorName: ConstructorName
-                type: NamedType
-                  importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
-                    element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix2::p
-                  name: C @40
-                  element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::@class::C
-                  type: C
-                period: . @41
-                name: SimpleIdentifier
-                  token: named @42
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                staticElement: <null>
-                element: <null>
-              argumentList: ArgumentList
-                leftParenthesis: ( @47
-                rightParenthesis: ) @48
-              staticType: C
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4077,6 +2901,28 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @32
+              constructorName: ConstructorName
+                type: NamedType
+                  importPrefix: ImportPrefixReference
+                    name: p @38
+                    period: . @39
+                    element2: <testLibraryFragment>::@prefix2::p
+                  name: C @40
+                  element2: package:test/a.dart::@class::C
+                  type: C
+                period: . @41
+                name: SimpleIdentifier
+                  token: named @42
+                  element: <null>
+                  staticType: null
+                element: <null>
+              argumentList: ArgumentList
+                leftParenthesis: ( @47
+                rightParenthesis: ) @48
+              staticType: C
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -4087,6 +2933,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -4103,57 +2952,6 @@ const V = const p.C.named();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @28
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @32
-              constructorName: ConstructorName
-                type: NamedType
-                  importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
-                    element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix2::p
-                  name: C @40
-                  element: <null>
-                  element2: <null>
-                  type: InvalidType
-                period: . @41
-                name: SimpleIdentifier
-                  token: named @42
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                staticElement: <null>
-                element: <null>
-              argumentList: ArgumentList
-                leftParenthesis: ( @47
-                rightParenthesis: ) @48
-              staticType: InvalidType
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4166,6 +2964,28 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @32
+              constructorName: ConstructorName
+                type: NamedType
+                  importPrefix: ImportPrefixReference
+                    name: p @38
+                    period: . @39
+                    element2: <testLibraryFragment>::@prefix2::p
+                  name: C @40
+                  element2: <null>
+                  type: InvalidType
+                period: . @41
+                name: SimpleIdentifier
+                  token: named @42
+                  element: <null>
+                  staticType: null
+                element: <null>
+              argumentList: ArgumentList
+                leftParenthesis: ( @47
+                rightParenthesis: ) @48
+              staticType: InvalidType
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -4176,6 +2996,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: InvalidType
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -4190,50 +3013,6 @@ const V = const p.C.named();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const V @6
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @10
-              constructorName: ConstructorName
-                type: NamedType
-                  importPrefix: ImportPrefixReference
-                    name: p @16
-                    period: . @17
-                    element: <null>
-                    element2: <null>
-                  name: C @18
-                  element: <null>
-                  element2: <null>
-                  type: InvalidType
-                period: . @19
-                name: SimpleIdentifier
-                  token: named @20
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                staticElement: <null>
-                element: <null>
-              argumentList: ArgumentList
-                leftParenthesis: ( @25
-                rightParenthesis: ) @26
-              staticType: InvalidType
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4241,6 +3020,28 @@ library
         hasInitializer V @6
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @10
+              constructorName: ConstructorName
+                type: NamedType
+                  importPrefix: ImportPrefixReference
+                    name: p @16
+                    period: . @17
+                    element2: <null>
+                  name: C @18
+                  element2: <null>
+                  type: InvalidType
+                period: . @19
+                name: SimpleIdentifier
+                  token: named @20
+                  element: <null>
+                  staticType: null
+                element: <null>
+              argumentList: ArgumentList
+                leftParenthesis: ( @25
+                rightParenthesis: ) @26
+              staticType: InvalidType
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -4251,6 +3052,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: InvalidType
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -4266,56 +3070,6 @@ const V = const C.named();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      topLevelVariables
-        static const V @20
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C<dynamic>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @24
-              constructorName: ConstructorName
-                type: NamedType
-                  name: C @30
-                  element: <testLibraryFragment>::@class::C
-                  element2: <testLibrary>::@class::C
-                  type: C<dynamic>
-                period: . @31
-                name: SimpleIdentifier
-                  token: named @32
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                staticElement: <null>
-                element: <null>
-              argumentList: ArgumentList
-                leftParenthesis: ( @37
-                rightParenthesis: ) @38
-              staticType: C<dynamic>
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C<dynamic>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4325,7 +3079,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -4335,6 +3089,24 @@ library
         hasInitializer V @20
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @24
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @30
+                  element2: <testLibrary>::@class::C
+                  type: C<dynamic>
+                period: . @31
+                name: SimpleIdentifier
+                  token: named @32
+                  element: <null>
+                  staticType: null
+                element: <null>
+              argumentList: ArgumentList
+                leftParenthesis: ( @37
+                rightParenthesis: ) @38
+              staticType: C<dynamic>
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -4354,6 +3126,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C<dynamic>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -4369,47 +3144,6 @@ class C {
 const V = const C();
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const @18
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      topLevelVariables
-        static const V @31
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @35
-              constructorName: ConstructorName
-                type: NamedType
-                  name: C @41
-                  element: <testLibraryFragment>::@class::C
-                  element2: <testLibrary>::@class::C
-                  type: C
-                staticElement: <testLibraryFragment>::@class::C::@constructor::new
-                element: <testLibraryFragment>::@class::C::@constructor::new#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @42
-                rightParenthesis: ) @43
-              staticType: C
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -4429,6 +3163,19 @@ library
         hasInitializer V @31
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @35
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @41
+                  element2: <testLibrary>::@class::C
+                  type: C
+                element: <testLibraryFragment>::@class::C::@constructor::new#element
+              argumentList: ArgumentList
+                leftParenthesis: ( @42
+                rightParenthesis: ) @43
+              staticType: C
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -4446,6 +3193,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -4466,42 +3216,6 @@ const V = const C();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @23
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @27
-              constructorName: ConstructorName
-                type: NamedType
-                  name: C @33
-                  element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::@class::C
-                  type: C
-                staticElement: package:test/a.dart::<fragment>::@class::C::@constructor::new
-                element: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @34
-                rightParenthesis: ) @35
-              staticType: C
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4511,6 +3225,19 @@ library
         hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @27
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @33
+                  element2: package:test/a.dart::@class::C
+                  type: C
+                element: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
+              argumentList: ArgumentList
+                leftParenthesis: ( @34
+                rightParenthesis: ) @35
+              staticType: C
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -4521,6 +3248,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -4541,51 +3271,6 @@ const V = const p.C();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @28
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: C
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @32
-              constructorName: ConstructorName
-                type: NamedType
-                  importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
-                    element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix2::p
-                  name: C @40
-                  element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::@class::C
-                  type: C
-                staticElement: package:test/a.dart::<fragment>::@class::C::@constructor::new
-                element: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @41
-                rightParenthesis: ) @42
-              staticType: C
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4598,6 +3283,23 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @32
+              constructorName: ConstructorName
+                type: NamedType
+                  importPrefix: ImportPrefixReference
+                    name: p @38
+                    period: . @39
+                    element2: <testLibraryFragment>::@prefix2::p
+                  name: C @40
+                  element2: package:test/a.dart::@class::C
+                  type: C
+                element: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
+              argumentList: ArgumentList
+                leftParenthesis: ( @41
+                rightParenthesis: ) @42
+              staticType: C
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -4608,6 +3310,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: C
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -4622,39 +3327,6 @@ const V = const C();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const V @6
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @10
-              constructorName: ConstructorName
-                type: NamedType
-                  name: C @16
-                  element: <null>
-                  element2: <null>
-                  type: InvalidType
-                staticElement: <null>
-                element: <null>
-              argumentList: ArgumentList
-                leftParenthesis: ( @17
-                rightParenthesis: ) @18
-              staticType: InvalidType
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4662,6 +3334,19 @@ library
         hasInitializer V @6
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @10
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @16
+                  element2: <null>
+                  type: InvalidType
+                element: <null>
+              argumentList: ArgumentList
+                leftParenthesis: ( @17
+                rightParenthesis: ) @18
+              staticType: InvalidType
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -4672,6 +3357,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: InvalidType
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -4688,51 +3376,6 @@ const V = const p.C();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @28
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @32
-              constructorName: ConstructorName
-                type: NamedType
-                  importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
-                    element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix2::p
-                  name: C @40
-                  element: <null>
-                  element2: <null>
-                  type: InvalidType
-                staticElement: <null>
-                element: <null>
-              argumentList: ArgumentList
-                leftParenthesis: ( @41
-                rightParenthesis: ) @42
-              staticType: InvalidType
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4745,6 +3388,23 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @32
+              constructorName: ConstructorName
+                type: NamedType
+                  importPrefix: ImportPrefixReference
+                    name: p @38
+                    period: . @39
+                    element2: <testLibraryFragment>::@prefix2::p
+                  name: C @40
+                  element2: <null>
+                  type: InvalidType
+                element: <null>
+              argumentList: ArgumentList
+                leftParenthesis: ( @41
+                rightParenthesis: ) @42
+              staticType: InvalidType
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -4755,6 +3415,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: InvalidType
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -4769,44 +3432,6 @@ const V = const p.C();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const V @6
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              keyword: const @10
-              constructorName: ConstructorName
-                type: NamedType
-                  importPrefix: ImportPrefixReference
-                    name: p @16
-                    period: . @17
-                    element: <null>
-                    element2: <null>
-                  name: C @18
-                  element: <null>
-                  element2: <null>
-                  type: InvalidType
-                staticElement: <null>
-                element: <null>
-              argumentList: ArgumentList
-                leftParenthesis: ( @19
-                rightParenthesis: ) @20
-              staticType: InvalidType
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4814,6 +3439,23 @@ library
         hasInitializer V @6
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            InstanceCreationExpression
+              keyword: const @10
+              constructorName: ConstructorName
+                type: NamedType
+                  importPrefix: ImportPrefixReference
+                    name: p @16
+                    period: . @17
+                    element2: <null>
+                  name: C @18
+                  element2: <null>
+                  type: InvalidType
+                element: <null>
+              argumentList: ArgumentList
+                leftParenthesis: ( @19
+                rightParenthesis: ) @20
+              staticType: InvalidType
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -4824,6 +3466,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: InvalidType
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -4839,51 +3484,6 @@ const b = a is int;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @10
-              staticType: int
-        static const b @19
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: bool
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IsExpression
-              expression: SimpleIdentifier
-                token: a @23
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: int
-              isOperator: is @25
-              type: NamedType
-                name: int @28
-                element: dart:core::<fragment>::@class::int
-                element2: dart:core::@class::int
-                type: int
-              staticType: bool
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4891,10 +3491,26 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            IsExpression
+              expression: SimpleIdentifier
+                token: a @23
+                element: <testLibraryFragment>::@getter::a#element
+                staticType: int
+              isOperator: is @25
+              type: NamedType
+                name: int @28
+                element2: dart:core::@class::int
+                type: int
+              staticType: bool
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -4908,11 +3524,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: bool
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -4932,70 +3554,6 @@ const int v = C.F.length;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            static const F @32
-              reference: <testLibraryFragment>::@class::C::@field::F
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: String
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                SimpleStringLiteral
-                  literal: '' @36
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic static get F @-1
-              reference: <testLibraryFragment>::@class::C::@getter::F
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: String
-      topLevelVariables
-        static const v @52
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            PropertyAccess
-              target: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: C @56
-                  staticElement: <testLibraryFragment>::@class::C
-                  element: <testLibrary>::@class::C
-                  staticType: null
-                period: . @57
-                identifier: SimpleIdentifier
-                  token: F @58
-                  staticElement: <testLibraryFragment>::@class::C::@getter::F
-                  element: <testLibraryFragment>::@class::C::@getter::F#element
-                  staticType: String
-                staticElement: <testLibraryFragment>::@class::C::@getter::F
-                element: <testLibraryFragment>::@class::C::@getter::F#element
-                staticType: String
-              operator: . @59
-              propertyName: SimpleIdentifier
-                token: length @60
-                staticElement: dart:core::<fragment>::@class::String::@getter::length
-                element: dart:core::<fragment>::@class::String::@getter::length#element
-                staticType: int
-              staticType: int
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5007,6 +3565,9 @@ library
             hasInitializer F @32
               reference: <testLibraryFragment>::@class::C::@field::F
               element: <testLibraryFragment>::@class::C::@field::F#element
+              initializer: expression_0
+                SimpleStringLiteral
+                  literal: '' @36
               getter2: <testLibraryFragment>::@class::C::@getter::F
           constructors
             synthetic new
@@ -5021,6 +3582,26 @@ library
         hasInitializer v @52
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_1
+            PropertyAccess
+              target: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: C @56
+                  element: <testLibrary>::@class::C
+                  staticType: null
+                period: . @57
+                identifier: SimpleIdentifier
+                  token: F @58
+                  element: <testLibraryFragment>::@class::C::@getter::F#element
+                  staticType: String
+                element: <testLibraryFragment>::@class::C::@getter::F#element
+                staticType: String
+              operator: . @59
+              propertyName: SimpleIdentifier
+                token: length @60
+                element: dart:core::<fragment>::@class::String::@getter::length#element
+                staticType: int
+              staticType: int
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -5034,6 +3615,9 @@ library
         static const hasInitializer F
           firstFragment: <testLibraryFragment>::@class::C::@field::F
           type: String
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::C::@field::F
+            expression: expression_0
           getter: <testLibraryFragment>::@class::C::@getter::F#element
       constructors
         synthetic new
@@ -5046,6 +3630,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -5066,51 +3653,6 @@ const int v = C.F.length;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const v @27
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            PropertyAccess
-              target: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: C @31
-                  staticElement: package:test/a.dart::<fragment>::@class::C
-                  element: package:test/a.dart::@class::C
-                  staticType: null
-                period: . @32
-                identifier: SimpleIdentifier
-                  token: F @33
-                  staticElement: package:test/a.dart::<fragment>::@class::C::@getter::F
-                  element: package:test/a.dart::<fragment>::@class::C::@getter::F#element
-                  staticType: String
-                staticElement: package:test/a.dart::<fragment>::@class::C::@getter::F
-                element: package:test/a.dart::<fragment>::@class::C::@getter::F#element
-                staticType: String
-              operator: . @34
-              propertyName: SimpleIdentifier
-                token: length @35
-                staticElement: dart:core::<fragment>::@class::String::@getter::length
-                element: dart:core::<fragment>::@class::String::@getter::length#element
-                staticType: int
-              staticType: int
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5120,6 +3662,26 @@ library
         hasInitializer v @27
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            PropertyAccess
+              target: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: C @31
+                  element: package:test/a.dart::@class::C
+                  staticType: null
+                period: . @32
+                identifier: SimpleIdentifier
+                  token: F @33
+                  element: package:test/a.dart::<fragment>::@class::C::@getter::F#element
+                  staticType: String
+                element: package:test/a.dart::<fragment>::@class::C::@getter::F#element
+                staticType: String
+              operator: . @34
+              propertyName: SimpleIdentifier
+                token: length @35
+                element: dart:core::<fragment>::@class::String::@getter::length#element
+                staticType: int
+              staticType: int
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -5130,6 +3692,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -5150,63 +3715,6 @@ const int v = p.C.F.length;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const v @32
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            PropertyAccess
-              target: PropertyAccess
-                target: PrefixedIdentifier
-                  prefix: SimpleIdentifier
-                    token: p @36
-                    staticElement: <testLibraryFragment>::@prefix::p
-                    element: <testLibraryFragment>::@prefix2::p
-                    staticType: null
-                  period: . @37
-                  identifier: SimpleIdentifier
-                    token: C @38
-                    staticElement: package:test/a.dart::<fragment>::@class::C
-                    element: package:test/a.dart::@class::C
-                    staticType: null
-                  staticElement: package:test/a.dart::<fragment>::@class::C
-                  element: package:test/a.dart::@class::C
-                  staticType: null
-                operator: . @39
-                propertyName: SimpleIdentifier
-                  token: F @40
-                  staticElement: package:test/a.dart::<fragment>::@class::C::@getter::F
-                  element: package:test/a.dart::<fragment>::@class::C::@getter::F#element
-                  staticType: String
-                staticType: String
-              operator: . @41
-              propertyName: SimpleIdentifier
-                token: length @42
-                staticElement: dart:core::<fragment>::@class::String::@getter::length
-                element: dart:core::<fragment>::@class::String::@getter::length#element
-                staticType: int
-              staticType: int
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5219,6 +3727,33 @@ library
         hasInitializer v @32
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            PropertyAccess
+              target: PropertyAccess
+                target: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: p @36
+                    element: <testLibraryFragment>::@prefix2::p
+                    staticType: null
+                  period: . @37
+                  identifier: SimpleIdentifier
+                    token: C @38
+                    element: package:test/a.dart::@class::C
+                    staticType: null
+                  element: package:test/a.dart::@class::C
+                  staticType: null
+                operator: . @39
+                propertyName: SimpleIdentifier
+                  token: F @40
+                  element: package:test/a.dart::<fragment>::@class::C::@getter::F#element
+                  staticType: String
+                staticType: String
+              operator: . @41
+              propertyName: SimpleIdentifier
+                token: length @42
+                element: dart:core::<fragment>::@class::String::@getter::length#element
+                staticType: int
+              staticType: int
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -5229,6 +3764,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -5243,35 +3781,6 @@ const v = 'abc'.length;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const v @6
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PropertyAccess
-              target: SimpleStringLiteral
-                literal: 'abc' @10
-              operator: . @15
-              propertyName: SimpleIdentifier
-                token: length @16
-                staticElement: dart:core::<fragment>::@class::String::@getter::length
-                element: dart:core::<fragment>::@class::String::@getter::length#element
-                staticType: int
-              staticType: int
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5279,6 +3788,16 @@ library
         hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            PropertyAccess
+              target: SimpleStringLiteral
+                literal: 'abc' @10
+              operator: . @15
+              propertyName: SimpleIdentifier
+                token: length @16
+                element: dart:core::<fragment>::@class::String::@getter::length#element
+                staticType: int
+              staticType: int
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -5289,6 +3808,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -5304,52 +3826,6 @@ const v = S.length;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const S @13
-          reference: <testLibraryFragment>::@topLevelVariable::S
-          enclosingElement3: <testLibraryFragment>
-          type: String
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            SimpleStringLiteral
-              literal: 'abc' @17
-        static const v @30
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: S @34
-                staticElement: <testLibraryFragment>::@getter::S
-                element: <testLibraryFragment>::@getter::S#element
-                staticType: String
-              period: . @35
-              identifier: SimpleIdentifier
-                token: length @36
-                staticElement: dart:core::<fragment>::@class::String::@getter::length
-                element: dart:core::<fragment>::@class::String::@getter::length#element
-                staticType: int
-              staticElement: dart:core::<fragment>::@class::String::@getter::length
-              element: dart:core::<fragment>::@class::String::@getter::length#element
-              staticType: int
-      accessors
-        synthetic static get S @-1
-          reference: <testLibraryFragment>::@getter::S
-          enclosingElement3: <testLibraryFragment>
-          returnType: String
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5357,10 +3833,26 @@ library
         hasInitializer S @13
           reference: <testLibraryFragment>::@topLevelVariable::S
           element: <testLibrary>::@topLevelVariable::S
+          initializer: expression_0
+            SimpleStringLiteral
+              literal: 'abc' @17
           getter2: <testLibraryFragment>::@getter::S
         hasInitializer v @30
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_1
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: S @34
+                element: <testLibraryFragment>::@getter::S#element
+                staticType: String
+              period: . @35
+              identifier: SimpleIdentifier
+                token: length @36
+                element: dart:core::<fragment>::@class::String::@getter::length#element
+                staticType: int
+              element: dart:core::<fragment>::@class::String::@getter::length#element
+              staticType: int
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get S
@@ -5374,11 +3866,17 @@ library
       reference: <testLibrary>::@topLevelVariable::S
       firstFragment: <testLibraryFragment>::@topLevelVariable::S
       type: String
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::S
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::S#element
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get S
@@ -5399,43 +3897,6 @@ const v = S.length;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const v @23
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: S @27
-                staticElement: package:test/a.dart::<fragment>::@getter::S
-                element: package:test/a.dart::<fragment>::@getter::S#element
-                staticType: String
-              period: . @28
-              identifier: SimpleIdentifier
-                token: length @29
-                staticElement: dart:core::<fragment>::@class::String::@getter::length
-                element: dart:core::<fragment>::@class::String::@getter::length#element
-                staticType: int
-              staticElement: dart:core::<fragment>::@class::String::@getter::length
-              element: dart:core::<fragment>::@class::String::@getter::length#element
-              staticType: int
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5445,6 +3906,19 @@ library
         hasInitializer v @23
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: S @27
+                element: package:test/a.dart::<fragment>::@getter::S#element
+                staticType: String
+              period: . @28
+              identifier: SimpleIdentifier
+                token: length @29
+                element: dart:core::<fragment>::@class::String::@getter::length#element
+                staticType: int
+              element: dart:core::<fragment>::@class::String::@getter::length#element
+              staticType: int
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -5455,6 +3929,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -5473,55 +3950,6 @@ const v = p.S.length;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const v @28
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PropertyAccess
-              target: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: p @32
-                  staticElement: <testLibraryFragment>::@prefix::p
-                  element: <testLibraryFragment>::@prefix2::p
-                  staticType: null
-                period: . @33
-                identifier: SimpleIdentifier
-                  token: S @34
-                  staticElement: package:test/a.dart::<fragment>::@getter::S
-                  element: package:test/a.dart::<fragment>::@getter::S#element
-                  staticType: String
-                staticElement: package:test/a.dart::<fragment>::@getter::S
-                element: package:test/a.dart::<fragment>::@getter::S#element
-                staticType: String
-              operator: . @35
-              propertyName: SimpleIdentifier
-                token: length @36
-                staticElement: dart:core::<fragment>::@class::String::@getter::length
-                element: dart:core::<fragment>::@class::String::@getter::length#element
-                staticType: int
-              staticType: int
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5534,6 +3962,26 @@ library
         hasInitializer v @28
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            PropertyAccess
+              target: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: p @32
+                  element: <testLibraryFragment>::@prefix2::p
+                  staticType: null
+                period: . @33
+                identifier: SimpleIdentifier
+                  token: S @34
+                  element: package:test/a.dart::<fragment>::@getter::S#element
+                  staticType: String
+                element: package:test/a.dart::<fragment>::@getter::S#element
+                staticType: String
+              operator: . @35
+              propertyName: SimpleIdentifier
+                token: length @36
+                element: dart:core::<fragment>::@class::String::@getter::length#element
+                staticType: int
+              staticType: int
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -5544,6 +3992,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -5559,53 +4010,6 @@ class C {
 const v = C.length;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            static length @23
-              reference: <testLibraryFragment>::@class::C::@method::length
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int
-      topLevelVariables
-        static const v @47
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int Function()
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: C @51
-                staticElement: <testLibraryFragment>::@class::C
-                element: <testLibrary>::@class::C
-                staticType: null
-              period: . @52
-              identifier: SimpleIdentifier
-                token: length @53
-                staticElement: <testLibraryFragment>::@class::C::@method::length
-                element: <testLibraryFragment>::@class::C::@method::length#element
-                staticType: int Function()
-              staticElement: <testLibraryFragment>::@class::C::@method::length
-              element: <testLibraryFragment>::@class::C::@method::length#element
-              staticType: int Function()
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int Function()
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -5628,6 +4032,19 @@ library
         hasInitializer v @47
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: C @51
+                element: <testLibrary>::@class::C
+                staticType: null
+              period: . @52
+              identifier: SimpleIdentifier
+                token: length @53
+                element: <testLibraryFragment>::@class::C::@method::length#element
+                staticType: int Function()
+              element: <testLibraryFragment>::@class::C::@method::length#element
+              staticType: int Function()
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -5642,13 +4059,15 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static length
-          reference: <testLibrary>::@class::C::@method::length
           firstFragment: <testLibraryFragment>::@class::C::@method::length
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int Function()
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -5663,17 +4082,14 @@ const Object x = const <int>[if (true) 1];
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const x @13
+        hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
             ListLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -5681,7 +4097,6 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
@@ -5699,21 +4114,6 @@ library
                     staticType: int
               rightBracket: ] @40
               staticType: List<int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer x @13
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -5724,6 +4124,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -5738,17 +4141,14 @@ const Object x = const <int>[if (true) 1 else 2];
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const x @13
+        hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
             ListLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -5756,7 +4156,6 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
@@ -5778,21 +4177,6 @@ library
                     staticType: int
               rightBracket: ] @47
               staticType: List<int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer x @13
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -5803,6 +4187,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -5820,17 +4207,14 @@ const Object x = const [1];
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const x @13
+        hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
             ListLiteral
               constKeyword: const @17
               leftBracket: [ @23
@@ -5840,21 +4224,6 @@ library
                   staticType: int
               rightBracket: ] @25
               staticType: List<int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer x @13
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -5865,6 +4234,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -5879,17 +4251,14 @@ const Object x = const <int>[...<int>[1]];
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const x @13
+        hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
             ListLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -5897,7 +4266,6 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
@@ -5911,7 +4279,6 @@ library
                       arguments
                         NamedType
                           name: int @33
-                          element: dart:core::<fragment>::@class::int
                           element2: dart:core::@class::int
                           type: int
                       rightBracket: > @36
@@ -5924,21 +4291,6 @@ library
                     staticType: List<int>
               rightBracket: ] @40
               staticType: List<int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer x @13
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -5949,6 +4301,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -5963,17 +4318,14 @@ const Object x = const <int>[...?<int>[1]];
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const x @13
+        hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
             ListLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -5981,7 +4333,6 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
@@ -5995,7 +4346,6 @@ library
                       arguments
                         NamedType
                           name: int @34
-                          element: dart:core::<fragment>::@class::int
                           element2: dart:core::@class::int
                           type: int
                       rightBracket: > @37
@@ -6008,21 +4358,6 @@ library
                     staticType: List<int>
               rightBracket: ] @41
               staticType: List<int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer x @13
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -6033,6 +4368,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -6047,17 +4385,14 @@ const Object x = const <int, int>{if (true) 1: 2};
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const x @13
+        hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -6065,12 +4400,10 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                   NamedType
                     name: int @29
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @32
@@ -6094,21 +4427,6 @@ library
               rightBracket: } @48
               isMap: true
               staticType: Map<int, int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer x @13
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -6119,6 +4437,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -6136,17 +4457,14 @@ const Object x = const {1: 1.0};
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const x @13
+        hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               leftBracket: { @23
@@ -6162,21 +4480,6 @@ library
               rightBracket: } @30
               isMap: true
               staticType: Map<int, double>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer x @13
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -6187,6 +4490,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -6201,17 +4507,14 @@ const Object x = const <int, int>{...<int, int>{1: 2}};
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const x @13
+        hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -6219,12 +4522,10 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                   NamedType
                     name: int @29
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @32
@@ -6238,12 +4539,10 @@ library
                       arguments
                         NamedType
                           name: int @38
-                          element: dart:core::<fragment>::@class::int
                           element2: dart:core::@class::int
                           type: int
                         NamedType
                           name: int @43
-                          element: dart:core::<fragment>::@class::int
                           element2: dart:core::@class::int
                           type: int
                       rightBracket: > @46
@@ -6263,21 +4562,6 @@ library
               rightBracket: } @53
               isMap: true
               staticType: Map<int, int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer x @13
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -6288,6 +4572,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -6302,17 +4589,14 @@ const Object x = const <int, int>{...?<int, int>{1: 2}};
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const x @13
+        hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -6320,12 +4604,10 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                   NamedType
                     name: int @29
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @32
@@ -6339,12 +4621,10 @@ library
                       arguments
                         NamedType
                           name: int @39
-                          element: dart:core::<fragment>::@class::int
                           element2: dart:core::@class::int
                           type: int
                         NamedType
                           name: int @44
-                          element: dart:core::<fragment>::@class::int
                           element2: dart:core::@class::int
                           type: int
                       rightBracket: > @47
@@ -6364,21 +4644,6 @@ library
               rightBracket: } @54
               isMap: true
               staticType: Map<int, int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer x @13
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -6389,6 +4654,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -6404,21 +4672,17 @@ const b = f<int>(0);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const b @24
+        hasInitializer b @24
           reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_0
             MethodInvocation
               methodName: SimpleIdentifier
                 token: f @28
-                staticElement: <testLibraryFragment>::@function::f
                 element: <testLibrary>::@function::f
                 staticType: T Function<T>(T)
               typeArguments: TypeArgumentList
@@ -6426,7 +4690,6 @@ library
                 arguments
                   NamedType
                     name: int @30
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @33
@@ -6441,32 +4704,6 @@ library
               staticType: int
               typeArgumentTypes
                 int
-      accessors
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-      functions
-        f @2
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @4
-              defaultType: dynamic
-          parameters
-            requiredPositional a @9
-              type: T
-          returnType: T
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer b @24
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get b
@@ -6478,7 +4715,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @4
-              element: <not-implemented>
+              element: T@4
           formalParameters
             a @9
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -6487,6 +4724,9 @@ library
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get b
@@ -6515,47 +4755,6 @@ int foo() => 42;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final x @18
-              reference: <testLibraryFragment>::@class::C::@field::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: dynamic
-          constructors
-            const @29
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                optionalNamed default final hasImplicitType this.x @37
-                  reference: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
-                  type: dynamic
-                  constantInitializer
-                    SimpleIdentifier
-                      token: foo @40
-                      staticElement: <testLibraryFragment>::@function::foo
-                      element: <testLibrary>::@function::foo
-                      staticType: int Function()
-                  field: <testLibraryFragment>::@class::C::@field::x
-          accessors
-            synthetic get x @-1
-              reference: <testLibraryFragment>::@class::C::@getter::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: dynamic
-      functions
-        foo @53
-          reference: <testLibraryFragment>::@function::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6578,6 +4777,11 @@ library
                 default this.x @37
                   reference: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+                  initializer: expression_0
+                    SimpleIdentifier
+                      token: foo @40
+                      element: <testLibrary>::@function::foo
+                      staticType: int Function()
           getters
             synthetic get x
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -6602,6 +4806,9 @@ library
             optionalNamed final hasImplicitType x
               firstFragment: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
               type: dynamic
+              constantInitializer
+                fragment: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
+                expression: expression_0
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
@@ -6623,49 +4830,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final x @18
-              reference: <testLibraryFragment>::@class::C::@field::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: dynamic
-          constructors
-            const @29
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                optionalNamed default final hasImplicitType this.x @37
-                  reference: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
-                  type: dynamic
-                  constantInitializer
-                    BinaryExpression
-                      leftOperand: IntegerLiteral
-                        literal: 1 @40
-                        staticType: int
-                      operator: + @42
-                      rightOperand: IntegerLiteral
-                        literal: 2 @44
-                        staticType: int
-                      staticElement: dart:core::<fragment>::@class::num::@method::+
-                      element: dart:core::<fragment>::@class::num::@method::+#element
-                      staticInvokeType: num Function(num)
-                      staticType: int
-                  field: <testLibraryFragment>::@class::C::@field::x
-          accessors
-            synthetic get x @-1
-              reference: <testLibraryFragment>::@class::C::@getter::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6688,6 +4852,18 @@ library
                 default this.x @37
                   reference: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+                  initializer: expression_0
+                    BinaryExpression
+                      leftOperand: IntegerLiteral
+                        literal: 1 @40
+                        staticType: int
+                      operator: + @42
+                      rightOperand: IntegerLiteral
+                        literal: 2 @44
+                        staticType: int
+                      element: dart:core::<fragment>::@class::num::@method::+#element
+                      staticInvokeType: num Function(num)
+                      staticType: int
           getters
             synthetic get x
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -6708,6 +4884,9 @@ library
             optionalNamed final hasImplicitType x
               firstFragment: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
               type: dynamic
+              constantInitializer
+                fragment: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
+                expression: expression_0
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
@@ -6722,48 +4901,6 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final x @18
-              reference: <testLibraryFragment>::@class::C::@field::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: dynamic
-          constructors
-            const @29
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                optionalPositional default final hasImplicitType this.x @37
-                  type: dynamic
-                  constantInitializer
-                    BinaryExpression
-                      leftOperand: IntegerLiteral
-                        literal: 1 @41
-                        staticType: int
-                      operator: + @43
-                      rightOperand: IntegerLiteral
-                        literal: 2 @45
-                        staticType: int
-                      staticElement: dart:core::<fragment>::@class::num::@method::+
-                      element: dart:core::<fragment>::@class::num::@method::+#element
-                      staticInvokeType: num Function(num)
-                      staticType: int
-                  field: <testLibraryFragment>::@class::C::@field::x
-          accessors
-            synthetic get x @-1
-              reference: <testLibraryFragment>::@class::C::@getter::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -6787,6 +4924,18 @@ library
               formalParameters
                 default this.x @37
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+                  initializer: expression_0
+                    BinaryExpression
+                      leftOperand: IntegerLiteral
+                        literal: 1 @41
+                        staticType: int
+                      operator: + @43
+                      rightOperand: IntegerLiteral
+                        literal: 2 @45
+                        staticType: int
+                      element: dart:core::<fragment>::@class::num::@method::+#element
+                      staticInvokeType: num Function(num)
+                      staticType: int
           getters
             synthetic get x
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -6806,6 +4955,8 @@ library
           formalParameters
             optionalPositional final hasImplicitType x
               type: dynamic
+              constantInitializer
+                expression: expression_0
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
@@ -6826,118 +4977,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const positional @20
-              reference: <testLibraryFragment>::@class::C::@constructor::positional
-              enclosingElement3: <testLibraryFragment>::@class::C
-              periodOffset: 19
-              nameEnd: 30
-              parameters
-                optionalPositional default hasImplicitType p @32
-                  type: dynamic
-                  constantInitializer
-                    BinaryExpression
-                      leftOperand: IntegerLiteral
-                        literal: 1 @36
-                        staticType: int
-                      operator: + @38
-                      rightOperand: IntegerLiteral
-                        literal: 2 @40
-                        staticType: int
-                      staticElement: dart:core::<fragment>::@class::num::@method::+
-                      element: dart:core::<fragment>::@class::num::@method::+#element
-                      staticInvokeType: num Function(num)
-                      staticType: int
-            const named @55
-              reference: <testLibraryFragment>::@class::C::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::C
-              periodOffset: 54
-              nameEnd: 60
-              parameters
-                optionalNamed default hasImplicitType p @62
-                  reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::p
-                  type: dynamic
-                  constantInitializer
-                    BinaryExpression
-                      leftOperand: IntegerLiteral
-                        literal: 1 @65
-                        staticType: int
-                      operator: + @67
-                      rightOperand: IntegerLiteral
-                        literal: 2 @69
-                        staticType: int
-                      staticElement: dart:core::<fragment>::@class::num::@method::+
-                      element: dart:core::<fragment>::@class::num::@method::+#element
-                      staticInvokeType: num Function(num)
-                      staticType: int
-          methods
-            methodPositional @81
-              reference: <testLibraryFragment>::@class::C::@method::methodPositional
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                optionalPositional default hasImplicitType p @99
-                  type: dynamic
-                  constantInitializer
-                    BinaryExpression
-                      leftOperand: IntegerLiteral
-                        literal: 1 @103
-                        staticType: int
-                      operator: + @105
-                      rightOperand: IntegerLiteral
-                        literal: 2 @107
-                        staticType: int
-                      staticElement: dart:core::<fragment>::@class::num::@method::+
-                      element: dart:core::<fragment>::@class::num::@method::+#element
-                      staticInvokeType: num Function(num)
-                      staticType: int
-              returnType: void
-            methodPositionalWithoutDefault @121
-              reference: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                optionalPositional default hasImplicitType p @153
-                  type: dynamic
-              returnType: void
-            methodNamed @167
-              reference: <testLibraryFragment>::@class::C::@method::methodNamed
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                optionalNamed default hasImplicitType p @180
-                  reference: <testLibraryFragment>::@class::C::@method::methodNamed::@parameter::p
-                  type: dynamic
-                  constantInitializer
-                    BinaryExpression
-                      leftOperand: IntegerLiteral
-                        literal: 1 @183
-                        staticType: int
-                      operator: + @185
-                      rightOperand: IntegerLiteral
-                        literal: 2 @187
-                        staticType: int
-                      staticElement: dart:core::<fragment>::@class::num::@method::+
-                      element: dart:core::<fragment>::@class::num::@method::+#element
-                      staticInvokeType: num Function(num)
-                      staticType: int
-              returnType: void
-            methodNamedWithoutDefault @201
-              reference: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                optionalNamed default hasImplicitType p @228
-                  reference: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault::@parameter::p
-                  type: dynamic
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6955,6 +4994,18 @@ library
               formalParameters
                 default p @32
                   element: <testLibraryFragment>::@class::C::@constructor::positional::@parameter::p#element
+                  initializer: expression_0
+                    BinaryExpression
+                      leftOperand: IntegerLiteral
+                        literal: 1 @36
+                        staticType: int
+                      operator: + @38
+                      rightOperand: IntegerLiteral
+                        literal: 2 @40
+                        staticType: int
+                      element: dart:core::<fragment>::@class::num::@method::+#element
+                      staticInvokeType: num Function(num)
+                      staticType: int
             const named @55
               reference: <testLibraryFragment>::@class::C::@constructor::named
               element: <testLibraryFragment>::@class::C::@constructor::named#element
@@ -6965,6 +5016,18 @@ library
                 default p @62
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::p
                   element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::p#element
+                  initializer: expression_1
+                    BinaryExpression
+                      leftOperand: IntegerLiteral
+                        literal: 1 @65
+                        staticType: int
+                      operator: + @67
+                      rightOperand: IntegerLiteral
+                        literal: 2 @69
+                        staticType: int
+                      element: dart:core::<fragment>::@class::num::@method::+#element
+                      staticInvokeType: num Function(num)
+                      staticType: int
           methods
             methodPositional @81
               reference: <testLibraryFragment>::@class::C::@method::methodPositional
@@ -6972,6 +5035,18 @@ library
               formalParameters
                 default p @99
                   element: <testLibraryFragment>::@class::C::@method::methodPositional::@parameter::p#element
+                  initializer: expression_2
+                    BinaryExpression
+                      leftOperand: IntegerLiteral
+                        literal: 1 @103
+                        staticType: int
+                      operator: + @105
+                      rightOperand: IntegerLiteral
+                        literal: 2 @107
+                        staticType: int
+                      element: dart:core::<fragment>::@class::num::@method::+#element
+                      staticInvokeType: num Function(num)
+                      staticType: int
             methodPositionalWithoutDefault @121
               reference: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault
               element: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault#element
@@ -6985,6 +5060,18 @@ library
                 default p @180
                   reference: <testLibraryFragment>::@class::C::@method::methodNamed::@parameter::p
                   element: <testLibraryFragment>::@class::C::@method::methodNamed::@parameter::p#element
+                  initializer: expression_3
+                    BinaryExpression
+                      leftOperand: IntegerLiteral
+                        literal: 1 @183
+                        staticType: int
+                      operator: + @185
+                      rightOperand: IntegerLiteral
+                        literal: 2 @187
+                        staticType: int
+                      element: dart:core::<fragment>::@class::num::@method::+#element
+                      staticInvokeType: num Function(num)
+                      staticType: int
             methodNamedWithoutDefault @201
               reference: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault
               element: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault#element
@@ -7002,34 +5089,40 @@ library
           formalParameters
             optionalPositional hasImplicitType p
               type: dynamic
+              constantInitializer
+                expression: expression_0
         const named
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
           formalParameters
             optionalNamed hasImplicitType p
               firstFragment: <testLibraryFragment>::@class::C::@constructor::named::@parameter::p
               type: dynamic
+              constantInitializer
+                fragment: <testLibraryFragment>::@class::C::@constructor::named::@parameter::p
+                expression: expression_1
       methods
         methodPositional
-          reference: <testLibrary>::@class::C::@method::methodPositional
           firstFragment: <testLibraryFragment>::@class::C::@method::methodPositional
           formalParameters
             optionalPositional hasImplicitType p
               type: dynamic
+              constantInitializer
+                expression: expression_2
         methodPositionalWithoutDefault
-          reference: <testLibrary>::@class::C::@method::methodPositionalWithoutDefault
           firstFragment: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault
           formalParameters
             optionalPositional hasImplicitType p
               type: dynamic
         methodNamed
-          reference: <testLibrary>::@class::C::@method::methodNamed
           firstFragment: <testLibraryFragment>::@class::C::@method::methodNamed
           formalParameters
             optionalNamed hasImplicitType p
               firstFragment: <testLibraryFragment>::@class::C::@method::methodNamed::@parameter::p
               type: dynamic
+              constantInitializer
+                fragment: <testLibraryFragment>::@class::C::@method::methodNamed::@parameter::p
+                expression: expression_3
         methodNamedWithoutDefault
-          reference: <testLibrary>::@class::C::@method::methodNamedWithoutDefault
           firstFragment: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault
           formalParameters
             optionalNamed hasImplicitType p
@@ -7046,54 +5139,6 @@ const b = a++;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @10
-              staticType: int
-        static const b @19
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PostfixExpression
-              operand: SimpleIdentifier
-                token: a @23
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              operator: ++ @24
-              readElement: <testLibraryFragment>::@getter::a
-              readElement2: <testLibraryFragment>::@getter::a#element
-              readType: int
-              writeElement: <testLibraryFragment>::@getter::a
-              writeElement2: <testLibraryFragment>::@getter::a#element
-              writeType: InvalidType
-              staticElement: dart:core::<fragment>::@class::num::@method::+
-              element: dart:core::<fragment>::@class::num::@method::+#element
-              staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7101,10 +5146,27 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            PostfixExpression
+              operand: SimpleIdentifier
+                token: a @23
+                element: <null>
+                staticType: null
+              operator: ++ @24
+              readElement2: <testLibraryFragment>::@getter::a#element
+              readType: int
+              writeElement2: <testLibraryFragment>::@getter::a#element
+              writeType: InvalidType
+              element: dart:core::<fragment>::@class::num::@method::+#element
+              staticType: int
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -7118,11 +5180,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -7140,48 +5208,6 @@ const b = a!;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @11
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int?
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @15
-              staticType: int
-        static const b @24
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PostfixExpression
-              operand: SimpleIdentifier
-                token: a @28
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: int?
-              operator: ! @29
-              staticElement: <null>
-              element: <null>
-              staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int?
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7189,10 +5215,23 @@ library
         hasInitializer a @11
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @15
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @24
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            PostfixExpression
+              operand: SimpleIdentifier
+                token: a @28
+                element: <testLibraryFragment>::@getter::a#element
+                staticType: int?
+              operator: ! @29
+              element: <null>
+              staticType: int
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -7206,11 +5245,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int?
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -7228,48 +5273,6 @@ const b = -a;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @10
-              staticType: int
-        static const b @19
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixExpression
-              operator: - @23
-              operand: SimpleIdentifier
-                token: a @24
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: int
-              staticElement: dart:core::<fragment>::@class::int::@method::unary-
-              element: dart:core::<fragment>::@class::int::@method::unary-#element
-              staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7277,10 +5280,23 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            PrefixExpression
+              operator: - @23
+              operand: SimpleIdentifier
+                token: a @24
+                element: <testLibraryFragment>::@getter::a#element
+                staticType: int
+              element: dart:core::<fragment>::@class::int::@method::unary-#element
+              staticType: int
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -7294,11 +5310,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -7322,38 +5344,6 @@ const b = -a;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const b @23
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixExpression
-              operator: - @27
-              operand: SimpleIdentifier
-                token: a @28
-                staticElement: package:test/a.dart::<fragment>::@getter::a
-                element: package:test/a.dart::<fragment>::@getter::a#element
-                staticType: Object
-              staticElement: package:test/a.dart::<fragment>::@extension::E::@method::unary-
-              element: package:test/a.dart::<fragment>::@extension::E::@method::unary-#element
-              staticType: int
-      accessors
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7363,6 +5353,15 @@ library
         hasInitializer b @23
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_0
+            PrefixExpression
+              operator: - @27
+              operand: SimpleIdentifier
+                token: a @28
+                element: package:test/a.dart::<fragment>::@getter::a#element
+                staticType: Object
+              element: package:test/a.dart::<fragment>::@extension::E::@method::unary-#element
+              staticType: int
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get b
@@ -7373,6 +5372,9 @@ library
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get b
@@ -7388,54 +5390,6 @@ const b = ++a;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @10
-              staticType: int
-        static const b @19
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixExpression
-              operator: ++ @23
-              operand: SimpleIdentifier
-                token: a @25
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              readElement: <testLibraryFragment>::@getter::a
-              readElement2: <testLibraryFragment>::@getter::a#element
-              readType: int
-              writeElement: <testLibraryFragment>::@getter::a
-              writeElement2: <testLibraryFragment>::@getter::a#element
-              writeType: InvalidType
-              staticElement: dart:core::<fragment>::@class::num::@method::+
-              element: dart:core::<fragment>::@class::num::@method::+#element
-              staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7443,10 +5397,27 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            PrefixExpression
+              operator: ++ @23
+              operand: SimpleIdentifier
+                token: a @25
+                element: <null>
+                staticType: null
+              readElement2: <testLibraryFragment>::@getter::a#element
+              readType: int
+              writeElement2: <testLibraryFragment>::@getter::a#element
+              writeType: InvalidType
+              element: dart:core::<fragment>::@class::num::@method::+#element
+              staticType: int
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -7460,11 +5431,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -7482,61 +5459,6 @@ const b = (a, a: a);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @10
-              staticType: int
-        static const b @19
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: (int, {int a})
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            RecordLiteral
-              leftParenthesis: ( @23
-              fields
-                SimpleIdentifier
-                  token: a @24
-                  staticElement: <testLibraryFragment>::@getter::a
-                  element: <testLibraryFragment>::@getter::a#element
-                  staticType: int
-                NamedExpression
-                  name: Label
-                    label: SimpleIdentifier
-                      token: a @27
-                      staticElement: <null>
-                      element: <null>
-                      staticType: null
-                    colon: : @28
-                  expression: SimpleIdentifier
-                    token: a @30
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: int
-              rightParenthesis: ) @31
-              staticType: (int, {int a})
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: (int, {int a})
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7544,10 +5466,35 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            RecordLiteral
+              leftParenthesis: ( @23
+              fields
+                SimpleIdentifier
+                  token: a @24
+                  element: <testLibraryFragment>::@getter::a#element
+                  staticType: int
+                NamedExpression
+                  name: Label
+                    label: SimpleIdentifier
+                      token: a @27
+                      element: <null>
+                      staticType: null
+                    colon: : @28
+                  expression: SimpleIdentifier
+                    token: a @30
+                    element: <testLibraryFragment>::@getter::a#element
+                    staticType: int
+              rightParenthesis: ) @31
+              staticType: (int, {int a})
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -7561,11 +5508,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: (int, {int a})
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -7583,62 +5536,6 @@ const b = const (a, a: a);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @10
-              staticType: int
-        static const b @19
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: (int, {int a})
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            RecordLiteral
-              constKeyword: const @23
-              leftParenthesis: ( @29
-              fields
-                SimpleIdentifier
-                  token: a @30
-                  staticElement: <testLibraryFragment>::@getter::a
-                  element: <testLibraryFragment>::@getter::a#element
-                  staticType: int
-                NamedExpression
-                  name: Label
-                    label: SimpleIdentifier
-                      token: a @33
-                      staticElement: <null>
-                      element: <null>
-                      staticType: null
-                    colon: : @34
-                  expression: SimpleIdentifier
-                    token: a @36
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: int
-              rightParenthesis: ) @37
-              staticType: (int, {int a})
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: (int, {int a})
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7646,10 +5543,36 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            RecordLiteral
+              constKeyword: const @23
+              leftParenthesis: ( @29
+              fields
+                SimpleIdentifier
+                  token: a @30
+                  element: <testLibraryFragment>::@getter::a#element
+                  staticType: int
+                NamedExpression
+                  name: Label
+                    label: SimpleIdentifier
+                      token: a @33
+                      element: <null>
+                      staticType: null
+                    colon: : @34
+                  expression: SimpleIdentifier
+                    token: a @36
+                    element: <testLibraryFragment>::@getter::a#element
+                    staticType: int
+              rightParenthesis: ) @37
+              staticType: (int, {int a})
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -7663,11 +5586,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: (int, {int a})
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -7687,63 +5616,6 @@ const V = C.F;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            static const F @29
-              reference: <testLibraryFragment>::@class::C::@field::F
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: int
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                IntegerLiteral
-                  literal: 42 @33
-                  staticType: int
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic static get F @-1
-              reference: <testLibraryFragment>::@class::C::@getter::F
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int
-      topLevelVariables
-        static const V @45
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: C @49
-                staticElement: <testLibraryFragment>::@class::C
-                element: <testLibrary>::@class::C
-                staticType: null
-              period: . @50
-              identifier: SimpleIdentifier
-                token: F @51
-                staticElement: <testLibraryFragment>::@class::C::@getter::F
-                element: <testLibraryFragment>::@class::C::@getter::F#element
-                staticType: int
-              staticElement: <testLibraryFragment>::@class::C::@getter::F
-              element: <testLibraryFragment>::@class::C::@getter::F#element
-              staticType: int
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7755,6 +5627,10 @@ library
             hasInitializer F @29
               reference: <testLibraryFragment>::@class::C::@field::F
               element: <testLibraryFragment>::@class::C::@field::F#element
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 42 @33
+                  staticType: int
               getter2: <testLibraryFragment>::@class::C::@getter::F
           constructors
             synthetic new
@@ -7769,6 +5645,19 @@ library
         hasInitializer V @45
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_1
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: C @49
+                element: <testLibrary>::@class::C
+                staticType: null
+              period: . @50
+              identifier: SimpleIdentifier
+                token: F @51
+                element: <testLibraryFragment>::@class::C::@getter::F#element
+                staticType: int
+              element: <testLibraryFragment>::@class::C::@getter::F#element
+              staticType: int
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -7782,6 +5671,9 @@ library
         static const hasInitializer F
           firstFragment: <testLibraryFragment>::@class::C::@field::F
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::C::@field::F
+            expression: expression_0
           getter: <testLibraryFragment>::@class::C::@getter::F#element
       constructors
         synthetic new
@@ -7794,6 +5686,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -7814,43 +5709,6 @@ const V = C.F;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @23
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: C @27
-                staticElement: package:test/a.dart::<fragment>::@class::C
-                element: package:test/a.dart::@class::C
-                staticType: null
-              period: . @28
-              identifier: SimpleIdentifier
-                token: F @29
-                staticElement: package:test/a.dart::<fragment>::@class::C::@getter::F
-                element: package:test/a.dart::<fragment>::@class::C::@getter::F#element
-                staticType: int
-              staticElement: package:test/a.dart::<fragment>::@class::C::@getter::F
-              element: package:test/a.dart::<fragment>::@class::C::@getter::F#element
-              staticType: int
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7860,6 +5718,19 @@ library
         hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: C @27
+                element: package:test/a.dart::@class::C
+                staticType: null
+              period: . @28
+              identifier: SimpleIdentifier
+                token: F @29
+                element: package:test/a.dart::<fragment>::@class::C::@getter::F#element
+                staticType: int
+              element: package:test/a.dart::<fragment>::@class::C::@getter::F#element
+              staticType: int
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -7870,6 +5741,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -7890,55 +5764,6 @@ const V = p.C.F;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @28
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PropertyAccess
-              target: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: p @32
-                  staticElement: <testLibraryFragment>::@prefix::p
-                  element: <testLibraryFragment>::@prefix2::p
-                  staticType: null
-                period: . @33
-                identifier: SimpleIdentifier
-                  token: C @34
-                  staticElement: package:test/a.dart::<fragment>::@class::C
-                  element: package:test/a.dart::@class::C
-                  staticType: null
-                staticElement: package:test/a.dart::<fragment>::@class::C
-                element: package:test/a.dart::@class::C
-                staticType: null
-              operator: . @35
-              propertyName: SimpleIdentifier
-                token: F @36
-                staticElement: package:test/a.dart::<fragment>::@class::C::@getter::F
-                element: package:test/a.dart::<fragment>::@class::C::@getter::F#element
-                staticType: int
-              staticType: int
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7951,6 +5776,26 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            PropertyAccess
+              target: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: p @32
+                  element: <testLibraryFragment>::@prefix2::p
+                  staticType: null
+                period: . @33
+                identifier: SimpleIdentifier
+                  token: C @34
+                  element: package:test/a.dart::@class::C
+                  staticType: null
+                element: package:test/a.dart::@class::C
+                staticType: null
+              operator: . @35
+              propertyName: SimpleIdentifier
+                token: F @36
+                element: package:test/a.dart::<fragment>::@class::C::@getter::F#element
+                staticType: int
+              staticType: int
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -7961,6 +5806,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -7976,58 +5824,6 @@ class C {
 const V = C.m;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            static m @23
-              reference: <testLibraryFragment>::@class::C::@method::m
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional a @29
-                  type: int
-                requiredPositional b @39
-                  type: String
-              returnType: int
-      topLevelVariables
-        static const V @57
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: int Function(int, String)
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: C @61
-                staticElement: <testLibraryFragment>::@class::C
-                element: <testLibrary>::@class::C
-                staticType: null
-              period: . @62
-              identifier: SimpleIdentifier
-                token: m @63
-                staticElement: <testLibraryFragment>::@class::C::@method::m
-                element: <testLibraryFragment>::@class::C::@method::m#element
-                staticType: int Function(int, String)
-              staticElement: <testLibraryFragment>::@class::C::@method::m
-              element: <testLibraryFragment>::@class::C::@method::m#element
-              staticType: int Function(int, String)
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: int Function(int, String)
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -8055,6 +5851,19 @@ library
         hasInitializer V @57
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: C @61
+                element: <testLibrary>::@class::C
+                staticType: null
+              period: . @62
+              identifier: SimpleIdentifier
+                token: m @63
+                element: <testLibraryFragment>::@class::C::@method::m#element
+                staticType: int Function(int, String)
+              element: <testLibraryFragment>::@class::C::@method::m#element
+              staticType: int Function(int, String)
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -8069,7 +5878,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a
@@ -8081,6 +5889,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: int Function(int, String)
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -8101,43 +5912,6 @@ const V = C.m;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @23
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: int Function(int, String)
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: C @27
-                staticElement: package:test/a.dart::<fragment>::@class::C
-                element: package:test/a.dart::@class::C
-                staticType: null
-              period: . @28
-              identifier: SimpleIdentifier
-                token: m @29
-                staticElement: package:test/a.dart::<fragment>::@class::C::@method::m
-                element: package:test/a.dart::<fragment>::@class::C::@method::m#element
-                staticType: int Function(int, String)
-              staticElement: package:test/a.dart::<fragment>::@class::C::@method::m
-              element: package:test/a.dart::<fragment>::@class::C::@method::m#element
-              staticType: int Function(int, String)
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: int Function(int, String)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -8147,6 +5921,19 @@ library
         hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: C @27
+                element: package:test/a.dart::@class::C
+                staticType: null
+              period: . @28
+              identifier: SimpleIdentifier
+                token: m @29
+                element: package:test/a.dart::<fragment>::@class::C::@method::m#element
+                staticType: int Function(int, String)
+              element: package:test/a.dart::<fragment>::@class::C::@method::m#element
+              staticType: int Function(int, String)
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -8157,6 +5944,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: int Function(int, String)
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -8177,55 +5967,6 @@ const V = p.C.m;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @28
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: int Function(int, String)
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PropertyAccess
-              target: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: p @32
-                  staticElement: <testLibraryFragment>::@prefix::p
-                  element: <testLibraryFragment>::@prefix2::p
-                  staticType: null
-                period: . @33
-                identifier: SimpleIdentifier
-                  token: C @34
-                  staticElement: package:test/a.dart::<fragment>::@class::C
-                  element: package:test/a.dart::@class::C
-                  staticType: null
-                staticElement: package:test/a.dart::<fragment>::@class::C
-                element: package:test/a.dart::@class::C
-                staticType: null
-              operator: . @35
-              propertyName: SimpleIdentifier
-                token: m @36
-                staticElement: package:test/a.dart::<fragment>::@class::C::@method::m
-                element: package:test/a.dart::<fragment>::@class::C::@method::m#element
-                staticType: int Function(int, String)
-              staticType: int Function(int, String)
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: int Function(int, String)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -8238,6 +5979,26 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            PropertyAccess
+              target: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: p @32
+                  element: <testLibraryFragment>::@prefix2::p
+                  staticType: null
+                period: . @33
+                identifier: SimpleIdentifier
+                  token: C @34
+                  element: package:test/a.dart::@class::C
+                  staticType: null
+                element: package:test/a.dart::@class::C
+                staticType: null
+              operator: . @35
+              propertyName: SimpleIdentifier
+                token: m @36
+                element: package:test/a.dart::<fragment>::@class::C::@method::m#element
+                staticType: int Function(int, String)
+              staticType: int Function(int, String)
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -8248,6 +6009,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: int Function(int, String)
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -8264,58 +6028,6 @@ extension E on A {
 const x = E.f;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      extensions
-        E @21
-          reference: <testLibraryFragment>::@extension::E
-          enclosingElement3: <testLibraryFragment>
-          extendedType: A
-          methods
-            static f @44
-              reference: <testLibraryFragment>::@extension::E::@method::f
-              enclosingElement3: <testLibraryFragment>::@extension::E
-              returnType: void
-      topLevelVariables
-        static const x @59
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: void Function()
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: E @63
-                staticElement: <testLibraryFragment>::@extension::E
-                element: <testLibrary>::@extension::E
-                staticType: null
-              period: . @64
-              identifier: SimpleIdentifier
-                token: f @65
-                staticElement: <testLibraryFragment>::@extension::E::@method::f
-                element: <testLibraryFragment>::@extension::E::@method::f#element
-                staticType: void Function()
-              staticElement: <testLibraryFragment>::@extension::E::@method::f
-              element: <testLibraryFragment>::@extension::E::@method::f#element
-              staticType: void Function()
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: void Function()
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -8342,6 +6054,19 @@ library
         hasInitializer x @59
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: E @63
+                element: <testLibrary>::@extension::E
+                staticType: null
+              period: . @64
+              identifier: SimpleIdentifier
+                token: f @65
+                element: <testLibraryFragment>::@extension::E::@method::f#element
+                staticType: void Function()
+              element: <testLibraryFragment>::@extension::E::@method::f#element
+              staticType: void Function()
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -8360,13 +6085,15 @@ library
       firstFragment: <testLibraryFragment>::@extension::E
       methods
         static f
-          reference: <testLibrary>::@extension::E::@method::f
           firstFragment: <testLibraryFragment>::@extension::E::@method::f
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: void Function()
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -8382,35 +6109,6 @@ const V = foo;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const V @15
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic Function()
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: foo @19
-              staticElement: <testLibraryFragment>::@function::foo
-              element: <testLibrary>::@function::foo
-              staticType: dynamic Function()
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic Function()
-      functions
-        foo @0
-          reference: <testLibraryFragment>::@function::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -8418,6 +6116,11 @@ library
         hasInitializer V @15
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            SimpleIdentifier
+              token: foo @19
+              element: <testLibrary>::@function::foo
+              staticType: dynamic Function()
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -8432,6 +6135,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: dynamic Function()
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -8452,43 +6158,6 @@ const V = foo;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const V @26
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: R Function<P, R>(P)
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: foo @30
-              staticElement: <testLibraryFragment>::@function::foo
-              element: <testLibrary>::@function::foo
-              staticType: R Function<P, R>(P)
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: R Function<P, R>(P)
-      functions
-        foo @2
-          reference: <testLibraryFragment>::@function::foo
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant P @6
-              defaultType: dynamic
-            covariant R @9
-              defaultType: dynamic
-          parameters
-            requiredPositional p @14
-              type: P
-          returnType: R
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -8496,6 +6165,11 @@ library
         hasInitializer V @26
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            SimpleIdentifier
+              token: foo @30
+              element: <testLibrary>::@function::foo
+              staticType: R Function<P, R>(P)
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -8507,9 +6181,9 @@ library
           element: <testLibrary>::@function::foo
           typeParameters
             P @6
-              element: <not-implemented>
+              element: P@6
             R @9
-              element: <not-implemented>
+              element: R@9
           formalParameters
             p @14
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
@@ -8518,6 +6192,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: R Function<P, R>(P)
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -8547,33 +6224,6 @@ const V = foo;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @23
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic Function()
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: foo @27
-              staticElement: package:test/a.dart::<fragment>::@function::foo
-              element: package:test/a.dart::@function::foo
-              staticType: dynamic Function()
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic Function()
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -8583,6 +6233,11 @@ library
         hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            SimpleIdentifier
+              token: foo @27
+              element: package:test/a.dart::@function::foo
+              staticType: dynamic Function()
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -8593,6 +6248,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: dynamic Function()
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -8611,47 +6269,6 @@ const V = p.foo;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @28
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic Function()
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: p @32
-                staticElement: <testLibraryFragment>::@prefix::p
-                element: <testLibraryFragment>::@prefix2::p
-                staticType: null
-              period: . @33
-              identifier: SimpleIdentifier
-                token: foo @34
-                staticElement: package:test/a.dart::<fragment>::@function::foo
-                element: package:test/a.dart::@function::foo
-                staticType: dynamic Function()
-              staticElement: package:test/a.dart::<fragment>::@function::foo
-              element: package:test/a.dart::@function::foo
-              staticType: dynamic Function()
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic Function()
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -8664,6 +6281,19 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: p @32
+                element: <testLibraryFragment>::@prefix2::p
+                staticType: null
+              period: . @33
+              identifier: SimpleIdentifier
+                token: foo @34
+                element: package:test/a.dart::@function::foo
+                staticType: dynamic Function()
+              element: package:test/a.dart::@function::foo
+              staticType: dynamic Function()
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -8674,6 +6304,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: dynamic Function()
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -8689,52 +6322,6 @@ const B = A + 2;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const A @6
-          reference: <testLibraryFragment>::@topLevelVariable::A
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 1 @10
-              staticType: int
-        static const B @19
-          reference: <testLibraryFragment>::@topLevelVariable::B
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            BinaryExpression
-              leftOperand: SimpleIdentifier
-                token: A @23
-                staticElement: <testLibraryFragment>::@getter::A
-                element: <testLibraryFragment>::@getter::A#element
-                staticType: int
-              operator: + @25
-              rightOperand: IntegerLiteral
-                literal: 2 @27
-                staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::+
-              element: dart:core::<fragment>::@class::num::@method::+#element
-              staticInvokeType: num Function(num)
-              staticType: int
-      accessors
-        synthetic static get A @-1
-          reference: <testLibraryFragment>::@getter::A
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get B @-1
-          reference: <testLibraryFragment>::@getter::B
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -8742,10 +6329,27 @@ library
         hasInitializer A @6
           reference: <testLibraryFragment>::@topLevelVariable::A
           element: <testLibrary>::@topLevelVariable::A
+          initializer: expression_0
+            IntegerLiteral
+              literal: 1 @10
+              staticType: int
           getter2: <testLibraryFragment>::@getter::A
         hasInitializer B @19
           reference: <testLibraryFragment>::@topLevelVariable::B
           element: <testLibrary>::@topLevelVariable::B
+          initializer: expression_1
+            BinaryExpression
+              leftOperand: SimpleIdentifier
+                token: A @23
+                element: <testLibraryFragment>::@getter::A#element
+                staticType: int
+              operator: + @25
+              rightOperand: IntegerLiteral
+                literal: 2 @27
+                staticType: int
+              element: dart:core::<fragment>::@class::num::@method::+#element
+              staticInvokeType: num Function(num)
+              staticType: int
           getter2: <testLibraryFragment>::@getter::B
       getters
         synthetic get A
@@ -8759,11 +6363,17 @@ library
       reference: <testLibrary>::@topLevelVariable::A
       firstFragment: <testLibraryFragment>::@topLevelVariable::A
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::A
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::A#element
     const hasInitializer B
       reference: <testLibrary>::@topLevelVariable::B
       firstFragment: <testLibraryFragment>::@topLevelVariable::B
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::B
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::B#element
   getters
     synthetic static get A
@@ -8784,42 +6394,6 @@ const B = A + 2;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const B @23
-          reference: <testLibraryFragment>::@topLevelVariable::B
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            BinaryExpression
-              leftOperand: SimpleIdentifier
-                token: A @27
-                staticElement: package:test/a.dart::<fragment>::@getter::A
-                element: package:test/a.dart::<fragment>::@getter::A#element
-                staticType: int
-              operator: + @29
-              rightOperand: IntegerLiteral
-                literal: 2 @31
-                staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::+
-              element: dart:core::<fragment>::@class::num::@method::+#element
-              staticInvokeType: num Function(num)
-              staticType: int
-      accessors
-        synthetic static get B @-1
-          reference: <testLibraryFragment>::@getter::B
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -8829,6 +6403,19 @@ library
         hasInitializer B @23
           reference: <testLibraryFragment>::@topLevelVariable::B
           element: <testLibrary>::@topLevelVariable::B
+          initializer: expression_0
+            BinaryExpression
+              leftOperand: SimpleIdentifier
+                token: A @27
+                element: package:test/a.dart::<fragment>::@getter::A#element
+                staticType: int
+              operator: + @29
+              rightOperand: IntegerLiteral
+                literal: 2 @31
+                staticType: int
+              element: dart:core::<fragment>::@class::num::@method::+#element
+              staticInvokeType: num Function(num)
+              staticType: int
           getter2: <testLibraryFragment>::@getter::B
       getters
         synthetic get B
@@ -8839,6 +6426,9 @@ library
       reference: <testLibrary>::@topLevelVariable::B
       firstFragment: <testLibraryFragment>::@topLevelVariable::B
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::B
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::B#element
   getters
     synthetic static get B
@@ -8857,56 +6447,6 @@ const B = p.A + 2;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const B @28
-          reference: <testLibraryFragment>::@topLevelVariable::B
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            BinaryExpression
-              leftOperand: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: p @32
-                  staticElement: <testLibraryFragment>::@prefix::p
-                  element: <testLibraryFragment>::@prefix2::p
-                  staticType: null
-                period: . @33
-                identifier: SimpleIdentifier
-                  token: A @34
-                  staticElement: package:test/a.dart::<fragment>::@getter::A
-                  element: package:test/a.dart::<fragment>::@getter::A#element
-                  staticType: int
-                staticElement: package:test/a.dart::<fragment>::@getter::A
-                element: package:test/a.dart::<fragment>::@getter::A#element
-                staticType: int
-              operator: + @36
-              rightOperand: IntegerLiteral
-                literal: 2 @38
-                staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::+
-              element: dart:core::<fragment>::@class::num::@method::+#element
-              staticInvokeType: num Function(num)
-              staticType: int
-      accessors
-        synthetic static get B @-1
-          reference: <testLibraryFragment>::@getter::B
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -8919,6 +6459,27 @@ library
         hasInitializer B @28
           reference: <testLibraryFragment>::@topLevelVariable::B
           element: <testLibrary>::@topLevelVariable::B
+          initializer: expression_0
+            BinaryExpression
+              leftOperand: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: p @32
+                  element: <testLibraryFragment>::@prefix2::p
+                  staticType: null
+                period: . @33
+                identifier: SimpleIdentifier
+                  token: A @34
+                  element: package:test/a.dart::<fragment>::@getter::A#element
+                  staticType: int
+                element: package:test/a.dart::<fragment>::@getter::A#element
+                staticType: int
+              operator: + @36
+              rightOperand: IntegerLiteral
+                literal: 2 @38
+                staticType: int
+              element: dart:core::<fragment>::@class::num::@method::+#element
+              staticInvokeType: num Function(num)
+              staticType: int
           getter2: <testLibraryFragment>::@getter::B
       getters
         synthetic get B
@@ -8929,6 +6490,9 @@ library
       reference: <testLibrary>::@topLevelVariable::B
       firstFragment: <testLibraryFragment>::@topLevelVariable::B
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::B
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::B#element
   getters
     synthetic static get B
@@ -8953,258 +6517,6 @@ const vFunctionTypeAlias = F;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-        class D @17
-          reference: <testLibraryFragment>::@class::D
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @19
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::D
-      enums
-        enum E @30
-          reference: <testLibraryFragment>::@enum::E
-          enclosingElement3: <testLibraryFragment>
-          supertype: Enum
-          fields
-            static const enumConstant a @33
-              reference: <testLibraryFragment>::@enum::E::@field::a
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-            static const enumConstant b @36
-              reference: <testLibraryFragment>::@enum::E::@field::b
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-            static const enumConstant c @39
-              reference: <testLibraryFragment>::@enum::E::@field::c
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-            synthetic static const values @-1
-              reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: List<E>
-              constantInitializer
-                ListLiteral
-                  leftBracket: [ @0
-                  elements
-                    SimpleIdentifier
-                      token: a @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::a
-                      element: <testLibraryFragment>::@enum::E::@getter::a#element
-                      staticType: E
-                    SimpleIdentifier
-                      token: b @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::b
-                      element: <testLibraryFragment>::@enum::E::@getter::b#element
-                      staticType: E
-                    SimpleIdentifier
-                      token: c @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::c
-                      element: <testLibraryFragment>::@enum::E::@getter::c#element
-                      staticType: E
-                  rightBracket: ] @0
-                  staticType: List<E>
-          constructors
-            synthetic const @-1
-              reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@enum::E
-          accessors
-            synthetic static get a @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::a
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-            synthetic static get b @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::b
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-            synthetic static get c @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::c
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-            synthetic static get values @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: List<E>
-      typeAliases
-        functionTypeAliasBased F @50
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: dynamic Function(int, String)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional a @56
-                type: int
-              requiredPositional b @66
-                type: String
-            returnType: dynamic
-      topLevelVariables
-        static const vDynamic @76
-          reference: <testLibraryFragment>::@topLevelVariable::vDynamic
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: dynamic @87
-              staticElement: dynamic@-1
-              element: dynamic
-              staticType: Type
-        static const vNull @102
-          reference: <testLibraryFragment>::@topLevelVariable::vNull
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: Null @110
-              staticElement: dart:core::<fragment>::@class::Null
-              element: dart:core::@class::Null
-              staticType: Type
-        static const vObject @122
-          reference: <testLibraryFragment>::@topLevelVariable::vObject
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: Object @132
-              staticElement: dart:core::<fragment>::@class::Object
-              element: dart:core::@class::Object
-              staticType: Type
-        static const vClass @146
-          reference: <testLibraryFragment>::@topLevelVariable::vClass
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: C @155
-              staticElement: <testLibraryFragment>::@class::C
-              element: <testLibrary>::@class::C
-              staticType: Type
-        static const vGenericClass @164
-          reference: <testLibraryFragment>::@topLevelVariable::vGenericClass
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: D @180
-              staticElement: <testLibraryFragment>::@class::D
-              element: <testLibrary>::@class::D
-              staticType: Type
-        static const vEnum @189
-          reference: <testLibraryFragment>::@topLevelVariable::vEnum
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: E @197
-              staticElement: <testLibraryFragment>::@enum::E
-              element: <testLibrary>::@enum::E
-              staticType: Type
-        static const vFunctionTypeAlias @206
-          reference: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: F @227
-              staticElement: <testLibraryFragment>::@typeAlias::F
-              element: <testLibrary>::@typeAlias::F
-              staticType: Type
-      accessors
-        synthetic static get vDynamic @-1
-          reference: <testLibraryFragment>::@getter::vDynamic
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-        synthetic static get vNull @-1
-          reference: <testLibraryFragment>::@getter::vNull
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-        synthetic static get vObject @-1
-          reference: <testLibraryFragment>::@getter::vObject
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-        synthetic static get vClass @-1
-          reference: <testLibraryFragment>::@getter::vClass
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-        synthetic static get vGenericClass @-1
-          reference: <testLibraryFragment>::@getter::vGenericClass
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-        synthetic static get vEnum @-1
-          reference: <testLibraryFragment>::@getter::vEnum
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-        synthetic static get vFunctionTypeAlias @-1
-          reference: <testLibraryFragment>::@getter::vFunctionTypeAlias
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -9222,7 +6534,7 @@ library
           element: <testLibrary>::@class::D
           typeParameters
             T @19
-              element: <not-implemented>
+              element: T@19
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
@@ -9236,18 +6548,72 @@ library
             hasInitializer a @33
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::a
             hasInitializer b @36
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
+              initializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::b
             hasInitializer c @39
               reference: <testLibraryFragment>::@enum::E::@field::c
               element: <testLibraryFragment>::@enum::E::@field::c#element
+              initializer: expression_2
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::c
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
+              initializer: expression_3
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: a @-1
+                      element: <testLibraryFragment>::@enum::E::@getter::a#element
+                      staticType: E
+                    SimpleIdentifier
+                      token: b @-1
+                      element: <testLibraryFragment>::@enum::E::@getter::b#element
+                      staticType: E
+                    SimpleIdentifier
+                      token: c @-1
+                      element: <testLibraryFragment>::@enum::E::@getter::c#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
             synthetic const new
@@ -9275,30 +6641,65 @@ library
         hasInitializer vDynamic @76
           reference: <testLibraryFragment>::@topLevelVariable::vDynamic
           element: <testLibrary>::@topLevelVariable::vDynamic
+          initializer: expression_4
+            SimpleIdentifier
+              token: dynamic @87
+              element: dynamic
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::vDynamic
         hasInitializer vNull @102
           reference: <testLibraryFragment>::@topLevelVariable::vNull
           element: <testLibrary>::@topLevelVariable::vNull
+          initializer: expression_5
+            SimpleIdentifier
+              token: Null @110
+              element: dart:core::@class::Null
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::vNull
         hasInitializer vObject @122
           reference: <testLibraryFragment>::@topLevelVariable::vObject
           element: <testLibrary>::@topLevelVariable::vObject
+          initializer: expression_6
+            SimpleIdentifier
+              token: Object @132
+              element: dart:core::@class::Object
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::vObject
         hasInitializer vClass @146
           reference: <testLibraryFragment>::@topLevelVariable::vClass
           element: <testLibrary>::@topLevelVariable::vClass
+          initializer: expression_7
+            SimpleIdentifier
+              token: C @155
+              element: <testLibrary>::@class::C
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::vClass
         hasInitializer vGenericClass @164
           reference: <testLibraryFragment>::@topLevelVariable::vGenericClass
           element: <testLibrary>::@topLevelVariable::vGenericClass
+          initializer: expression_8
+            SimpleIdentifier
+              token: D @180
+              element: <testLibrary>::@class::D
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::vGenericClass
         hasInitializer vEnum @189
           reference: <testLibraryFragment>::@topLevelVariable::vEnum
           element: <testLibrary>::@topLevelVariable::vEnum
+          initializer: expression_9
+            SimpleIdentifier
+              token: E @197
+              element: <testLibrary>::@enum::E
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::vEnum
         hasInitializer vFunctionTypeAlias @206
           reference: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
+          initializer: expression_10
+            SimpleIdentifier
+              token: F @227
+              element: <testLibrary>::@typeAlias::F
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::vFunctionTypeAlias
       getters
         synthetic get vDynamic
@@ -9346,18 +6747,30 @@ library
         static const enumConstant hasInitializer a
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::a
+            expression: expression_0
           getter: <testLibraryFragment>::@enum::E::@getter::a#element
         static const enumConstant hasInitializer b
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::b
+            expression: expression_1
           getter: <testLibraryFragment>::@enum::E::@getter::b#element
         static const enumConstant hasInitializer c
           firstFragment: <testLibraryFragment>::@enum::E::@field::c
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::c
+            expression: expression_2
           getter: <testLibraryFragment>::@enum::E::@getter::c#element
         synthetic static const values
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
           type: List<E>
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::values
+            expression: expression_3
           getter: <testLibraryFragment>::@enum::E::@getter::values#element
       constructors
         synthetic const new
@@ -9380,36 +6793,57 @@ library
       reference: <testLibrary>::@topLevelVariable::vDynamic
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDynamic
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vDynamic
+        expression: expression_4
       getter: <testLibraryFragment>::@getter::vDynamic#element
     const hasInitializer vNull
       reference: <testLibrary>::@topLevelVariable::vNull
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNull
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vNull
+        expression: expression_5
       getter: <testLibraryFragment>::@getter::vNull#element
     const hasInitializer vObject
       reference: <testLibrary>::@topLevelVariable::vObject
       firstFragment: <testLibraryFragment>::@topLevelVariable::vObject
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vObject
+        expression: expression_6
       getter: <testLibraryFragment>::@getter::vObject#element
     const hasInitializer vClass
       reference: <testLibrary>::@topLevelVariable::vClass
       firstFragment: <testLibraryFragment>::@topLevelVariable::vClass
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vClass
+        expression: expression_7
       getter: <testLibraryFragment>::@getter::vClass#element
     const hasInitializer vGenericClass
       reference: <testLibrary>::@topLevelVariable::vGenericClass
       firstFragment: <testLibraryFragment>::@topLevelVariable::vGenericClass
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vGenericClass
+        expression: expression_8
       getter: <testLibraryFragment>::@getter::vGenericClass#element
     const hasInitializer vEnum
       reference: <testLibrary>::@topLevelVariable::vEnum
       firstFragment: <testLibraryFragment>::@topLevelVariable::vEnum
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vEnum
+        expression: expression_9
       getter: <testLibraryFragment>::@getter::vEnum#element
     const hasInitializer vFunctionTypeAlias
       reference: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
       firstFragment: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
+        expression: expression_10
       getter: <testLibraryFragment>::@getter::vFunctionTypeAlias#element
   getters
     synthetic static get vDynamic
@@ -9437,38 +6871,6 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @19
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final f @31
-              reference: <testLibraryFragment>::@class::C::@field::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: List<dynamic Function()>
-              shouldUseTypeForInitializerInference: false
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic get f @-1
-              reference: <testLibraryFragment>::@class::C::@getter::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: List<dynamic Function()>
-      typeAliases
-        functionTypeAliasBased F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -9533,63 +6935,6 @@ const vFunctionTypeAlias = F;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const vClass @23
-          reference: <testLibraryFragment>::@topLevelVariable::vClass
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: C @32
-              staticElement: package:test/a.dart::<fragment>::@class::C
-              element: package:test/a.dart::@class::C
-              staticType: Type
-        static const vEnum @41
-          reference: <testLibraryFragment>::@topLevelVariable::vEnum
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: E @49
-              staticElement: package:test/a.dart::<fragment>::@enum::E
-              element: package:test/a.dart::@enum::E
-              staticType: Type
-        static const vFunctionTypeAlias @58
-          reference: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: F @79
-              staticElement: package:test/a.dart::<fragment>::@typeAlias::F
-              element: package:test/a.dart::@typeAlias::F
-              staticType: Type
-      accessors
-        synthetic static get vClass @-1
-          reference: <testLibraryFragment>::@getter::vClass
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-        synthetic static get vEnum @-1
-          reference: <testLibraryFragment>::@getter::vEnum
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-        synthetic static get vFunctionTypeAlias @-1
-          reference: <testLibraryFragment>::@getter::vFunctionTypeAlias
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -9599,14 +6944,29 @@ library
         hasInitializer vClass @23
           reference: <testLibraryFragment>::@topLevelVariable::vClass
           element: <testLibrary>::@topLevelVariable::vClass
+          initializer: expression_0
+            SimpleIdentifier
+              token: C @32
+              element: package:test/a.dart::@class::C
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::vClass
         hasInitializer vEnum @41
           reference: <testLibraryFragment>::@topLevelVariable::vEnum
           element: <testLibrary>::@topLevelVariable::vEnum
+          initializer: expression_1
+            SimpleIdentifier
+              token: E @49
+              element: package:test/a.dart::@enum::E
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::vEnum
         hasInitializer vFunctionTypeAlias @58
           reference: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
+          initializer: expression_2
+            SimpleIdentifier
+              token: F @79
+              element: package:test/a.dart::@typeAlias::F
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::vFunctionTypeAlias
       getters
         synthetic get vClass
@@ -9623,16 +6983,25 @@ library
       reference: <testLibrary>::@topLevelVariable::vClass
       firstFragment: <testLibraryFragment>::@topLevelVariable::vClass
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vClass
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::vClass#element
     const hasInitializer vEnum
       reference: <testLibrary>::@topLevelVariable::vEnum
       firstFragment: <testLibraryFragment>::@topLevelVariable::vEnum
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vEnum
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::vEnum#element
     const hasInitializer vFunctionTypeAlias
       reference: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
       firstFragment: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
+        expression: expression_2
       getter: <testLibraryFragment>::@getter::vFunctionTypeAlias#element
   getters
     synthetic static get vClass
@@ -9659,97 +7028,6 @@ const vFunctionTypeAlias = p.F;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const vClass @28
-          reference: <testLibraryFragment>::@topLevelVariable::vClass
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: p @37
-                staticElement: <testLibraryFragment>::@prefix::p
-                element: <testLibraryFragment>::@prefix2::p
-                staticType: null
-              period: . @38
-              identifier: SimpleIdentifier
-                token: C @39
-                staticElement: package:test/a.dart::<fragment>::@class::C
-                element: package:test/a.dart::@class::C
-                staticType: Type
-              staticElement: package:test/a.dart::<fragment>::@class::C
-              element: package:test/a.dart::@class::C
-              staticType: Type
-        static const vEnum @48
-          reference: <testLibraryFragment>::@topLevelVariable::vEnum
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: p @56
-                staticElement: <testLibraryFragment>::@prefix::p
-                element: <testLibraryFragment>::@prefix2::p
-                staticType: null
-              period: . @57
-              identifier: SimpleIdentifier
-                token: E @58
-                staticElement: package:test/a.dart::<fragment>::@enum::E
-                element: package:test/a.dart::@enum::E
-                staticType: Type
-              staticElement: package:test/a.dart::<fragment>::@enum::E
-              element: package:test/a.dart::@enum::E
-              staticType: Type
-        static const vFunctionTypeAlias @67
-          reference: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: p @88
-                staticElement: <testLibraryFragment>::@prefix::p
-                element: <testLibraryFragment>::@prefix2::p
-                staticType: null
-              period: . @89
-              identifier: SimpleIdentifier
-                token: F @90
-                staticElement: package:test/a.dart::<fragment>::@typeAlias::F
-                element: package:test/a.dart::@typeAlias::F
-                staticType: Type
-              staticElement: package:test/a.dart::<fragment>::@typeAlias::F
-              element: package:test/a.dart::@typeAlias::F
-              staticType: Type
-      accessors
-        synthetic static get vClass @-1
-          reference: <testLibraryFragment>::@getter::vClass
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-        synthetic static get vEnum @-1
-          reference: <testLibraryFragment>::@getter::vEnum
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-        synthetic static get vFunctionTypeAlias @-1
-          reference: <testLibraryFragment>::@getter::vFunctionTypeAlias
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -9762,14 +7040,53 @@ library
         hasInitializer vClass @28
           reference: <testLibraryFragment>::@topLevelVariable::vClass
           element: <testLibrary>::@topLevelVariable::vClass
+          initializer: expression_0
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: p @37
+                element: <testLibraryFragment>::@prefix2::p
+                staticType: null
+              period: . @38
+              identifier: SimpleIdentifier
+                token: C @39
+                element: package:test/a.dart::@class::C
+                staticType: Type
+              element: package:test/a.dart::@class::C
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::vClass
         hasInitializer vEnum @48
           reference: <testLibraryFragment>::@topLevelVariable::vEnum
           element: <testLibrary>::@topLevelVariable::vEnum
+          initializer: expression_1
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: p @56
+                element: <testLibraryFragment>::@prefix2::p
+                staticType: null
+              period: . @57
+              identifier: SimpleIdentifier
+                token: E @58
+                element: package:test/a.dart::@enum::E
+                staticType: Type
+              element: package:test/a.dart::@enum::E
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::vEnum
         hasInitializer vFunctionTypeAlias @67
           reference: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
+          initializer: expression_2
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: p @88
+                element: <testLibraryFragment>::@prefix2::p
+                staticType: null
+              period: . @89
+              identifier: SimpleIdentifier
+                token: F @90
+                element: package:test/a.dart::@typeAlias::F
+                staticType: Type
+              element: package:test/a.dart::@typeAlias::F
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::vFunctionTypeAlias
       getters
         synthetic get vClass
@@ -9786,16 +7103,25 @@ library
       reference: <testLibrary>::@topLevelVariable::vClass
       firstFragment: <testLibraryFragment>::@topLevelVariable::vClass
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vClass
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::vClass#element
     const hasInitializer vEnum
       reference: <testLibrary>::@topLevelVariable::vEnum
       firstFragment: <testLibraryFragment>::@topLevelVariable::vEnum
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vEnum
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::vEnum#element
     const hasInitializer vFunctionTypeAlias
       reference: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
       firstFragment: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
+        expression: expression_2
       getter: <testLibraryFragment>::@getter::vFunctionTypeAlias#element
   getters
     synthetic static get vClass
@@ -9816,35 +7142,6 @@ class C<T> {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          fields
-            final f @21
-              reference: <testLibraryFragment>::@class::C::@field::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: List<T>
-              shouldUseTypeForInitializerInference: false
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic get f @-1
-              reference: <testLibraryFragment>::@class::C::@getter::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: List<T>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -9854,7 +7151,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           fields
             hasInitializer f @21
               reference: <testLibraryFragment>::@class::C::@field::f
@@ -9896,30 +7193,6 @@ const V = foo;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const V @6
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SimpleIdentifier
-              token: foo @10
-              staticElement: <null>
-              element: <null>
-              staticType: InvalidType
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -9927,6 +7200,11 @@ library
         hasInitializer V @6
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            SimpleIdentifier
+              token: foo @10
+              element: <null>
+              staticType: InvalidType
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -9937,6 +7215,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: InvalidType
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -9950,48 +7231,6 @@ class C {}
 const V = C.foo;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      topLevelVariables
-        static const V @17
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: C @21
-                staticElement: <testLibraryFragment>::@class::C
-                element: <testLibrary>::@class::C
-                staticType: null
-              period: . @22
-              identifier: SimpleIdentifier
-                token: foo @23
-                staticElement: <null>
-                element: <null>
-                staticType: InvalidType
-              staticElement: <null>
-              element: <null>
-              staticType: InvalidType
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -10010,6 +7249,19 @@ library
         hasInitializer V @17
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: C @21
+                element: <testLibrary>::@class::C
+                staticType: null
+              period: . @22
+              identifier: SimpleIdentifier
+                token: foo @23
+                element: <null>
+                staticType: InvalidType
+              element: <null>
+              staticType: InvalidType
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -10027,6 +7279,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: InvalidType
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -10045,55 +7300,6 @@ const V = p.C.foo;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/foo.dart as p @21
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @21
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const V @30
-          reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            PropertyAccess
-              target: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: p @34
-                  staticElement: <testLibraryFragment>::@prefix::p
-                  element: <testLibraryFragment>::@prefix2::p
-                  staticType: null
-                period: . @35
-                identifier: SimpleIdentifier
-                  token: C @36
-                  staticElement: package:test/foo.dart::<fragment>::@class::C
-                  element: package:test/foo.dart::@class::C
-                  staticType: null
-                staticElement: package:test/foo.dart::<fragment>::@class::C
-                element: package:test/foo.dart::@class::C
-                staticType: null
-              operator: . @37
-              propertyName: SimpleIdentifier
-                token: foo @38
-                staticElement: <null>
-                element: <null>
-                staticType: InvalidType
-              staticType: InvalidType
-      accessors
-        synthetic static get V @-1
-          reference: <testLibraryFragment>::@getter::V
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -10106,6 +7312,26 @@ library
         hasInitializer V @30
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
+          initializer: expression_0
+            PropertyAccess
+              target: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: p @34
+                  element: <testLibraryFragment>::@prefix2::p
+                  staticType: null
+                period: . @35
+                identifier: SimpleIdentifier
+                  token: C @36
+                  element: package:test/foo.dart::@class::C
+                  staticType: null
+                element: package:test/foo.dart::@class::C
+                staticType: null
+              operator: . @37
+              propertyName: SimpleIdentifier
+                token: foo @38
+                element: <null>
+                staticType: InvalidType
+              staticType: InvalidType
           getter2: <testLibraryFragment>::@getter::V
       getters
         synthetic get V
@@ -10116,6 +7342,9 @@ library
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: InvalidType
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::V
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::V#element
   getters
     synthetic static get V
@@ -10130,17 +7359,14 @@ const Object x = const <int>{if (true) 1};
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const x @13
+        hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -10148,7 +7374,6 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
@@ -10167,21 +7392,6 @@ library
               rightBracket: } @40
               isMap: false
               staticType: Set<int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer x @13
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -10192,6 +7402,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -10209,17 +7422,14 @@ const Object x = const {1};
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const x @13
+        hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               leftBracket: { @23
@@ -10230,21 +7440,6 @@ library
               rightBracket: } @25
               isMap: false
               staticType: Set<int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer x @13
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -10255,6 +7450,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -10269,17 +7467,14 @@ const Object x = const <int>{...<int>{1}};
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const x @13
+        hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -10287,7 +7482,6 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
@@ -10301,7 +7495,6 @@ library
                       arguments
                         NamedType
                           name: int @33
-                          element: dart:core::<fragment>::@class::int
                           element2: dart:core::@class::int
                           type: int
                       rightBracket: > @36
@@ -10316,21 +7509,6 @@ library
               rightBracket: } @40
               isMap: false
               staticType: Set<int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer x @13
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -10341,6 +7519,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -10355,17 +7536,14 @@ const Object x = const <int>{...?<int>{1}};
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const x @13
+        hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Object
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -10373,7 +7551,6 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
@@ -10387,7 +7564,6 @@ library
                       arguments
                         NamedType
                           name: int @34
-                          element: dart:core::<fragment>::@class::int
                           element2: dart:core::@class::int
                           type: int
                       rightBracket: > @37
@@ -10402,21 +7578,6 @@ library
               rightBracket: } @41
               isMap: false
               staticType: Set<int>
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Object
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer x @13
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -10427,6 +7588,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Object
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -10458,17 +7622,14 @@ const vLessEqual = 1 <= 2;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const vEqual @6
+        hasInitializer vEqual @6
           reference: <testLibraryFragment>::@topLevelVariable::vEqual
-          enclosingElement3: <testLibraryFragment>
-          type: bool
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vEqual
+          initializer: expression_0
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @15
@@ -10477,16 +7638,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @20
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::==
               element: dart:core::<fragment>::@class::num::@method::==#element
               staticInvokeType: bool Function(Object)
               staticType: bool
-        static const vAnd @29
+          getter2: <testLibraryFragment>::@getter::vEqual
+        hasInitializer vAnd @29
           reference: <testLibraryFragment>::@topLevelVariable::vAnd
-          enclosingElement3: <testLibraryFragment>
-          type: bool
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vAnd
+          initializer: expression_1
             BinaryExpression
               leftOperand: BooleanLiteral
                 literal: true @36
@@ -10495,16 +7654,14 @@ library
               rightOperand: BooleanLiteral
                 literal: false @44
                 staticType: bool
-              staticElement: <null>
               element: <null>
               staticInvokeType: null
               staticType: bool
-        static const vOr @57
+          getter2: <testLibraryFragment>::@getter::vAnd
+        hasInitializer vOr @57
           reference: <testLibraryFragment>::@topLevelVariable::vOr
-          enclosingElement3: <testLibraryFragment>
-          type: bool
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vOr
+          initializer: expression_2
             BinaryExpression
               leftOperand: BooleanLiteral
                 literal: false @63
@@ -10513,16 +7670,14 @@ library
               rightOperand: BooleanLiteral
                 literal: true @72
                 staticType: bool
-              staticElement: <null>
               element: <null>
               staticInvokeType: null
               staticType: bool
-        static const vBitXor @84
+          getter2: <testLibraryFragment>::@getter::vOr
+        hasInitializer vBitXor @84
           reference: <testLibraryFragment>::@topLevelVariable::vBitXor
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vBitXor
+          initializer: expression_3
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @94
@@ -10531,16 +7686,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @98
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::int::@method::^
               element: dart:core::<fragment>::@class::int::@method::^#element
               staticInvokeType: int Function(int)
               staticType: int
-        static const vBitAnd @107
+          getter2: <testLibraryFragment>::@getter::vBitXor
+        hasInitializer vBitAnd @107
           reference: <testLibraryFragment>::@topLevelVariable::vBitAnd
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vBitAnd
+          initializer: expression_4
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @117
@@ -10549,16 +7702,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @121
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::int::@method::&
               element: dart:core::<fragment>::@class::int::@method::&#element
               staticInvokeType: int Function(int)
               staticType: int
-        static const vBitOr @130
+          getter2: <testLibraryFragment>::@getter::vBitAnd
+        hasInitializer vBitOr @130
           reference: <testLibraryFragment>::@topLevelVariable::vBitOr
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vBitOr
+          initializer: expression_5
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @139
@@ -10567,16 +7718,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @143
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::int::@method::|
               element: dart:core::<fragment>::@class::int::@method::|#element
               staticInvokeType: int Function(int)
               staticType: int
-        static const vBitShiftLeft @152
+          getter2: <testLibraryFragment>::@getter::vBitOr
+        hasInitializer vBitShiftLeft @152
           reference: <testLibraryFragment>::@topLevelVariable::vBitShiftLeft
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vBitShiftLeft
+          initializer: expression_6
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @168
@@ -10585,16 +7734,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @173
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::int::@method::<<
               element: dart:core::<fragment>::@class::int::@method::<<#element
               staticInvokeType: int Function(int)
               staticType: int
-        static const vBitShiftRight @182
+          getter2: <testLibraryFragment>::@getter::vBitShiftLeft
+        hasInitializer vBitShiftRight @182
           reference: <testLibraryFragment>::@topLevelVariable::vBitShiftRight
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vBitShiftRight
+          initializer: expression_7
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @199
@@ -10603,16 +7750,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @204
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::int::@method::>>
               element: dart:core::<fragment>::@class::int::@method::>>#element
               staticInvokeType: int Function(int)
               staticType: int
-        static const vAdd @213
+          getter2: <testLibraryFragment>::@getter::vBitShiftRight
+        hasInitializer vAdd @213
           reference: <testLibraryFragment>::@topLevelVariable::vAdd
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vAdd
+          initializer: expression_8
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @220
@@ -10621,16 +7766,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @224
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::+
               element: dart:core::<fragment>::@class::num::@method::+#element
               staticInvokeType: num Function(num)
               staticType: int
-        static const vSubtract @233
+          getter2: <testLibraryFragment>::@getter::vAdd
+        hasInitializer vSubtract @233
           reference: <testLibraryFragment>::@topLevelVariable::vSubtract
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vSubtract
+          initializer: expression_9
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @245
@@ -10639,16 +7782,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @249
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::-
               element: dart:core::<fragment>::@class::num::@method::-#element
               staticInvokeType: num Function(num)
               staticType: int
-        static const vMiltiply @258
+          getter2: <testLibraryFragment>::@getter::vSubtract
+        hasInitializer vMiltiply @258
           reference: <testLibraryFragment>::@topLevelVariable::vMiltiply
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vMiltiply
+          initializer: expression_10
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @270
@@ -10657,16 +7798,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @274
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::*
               element: dart:core::<fragment>::@class::num::@method::*#element
               staticInvokeType: num Function(num)
               staticType: int
-        static const vDivide @283
+          getter2: <testLibraryFragment>::@getter::vMiltiply
+        hasInitializer vDivide @283
           reference: <testLibraryFragment>::@topLevelVariable::vDivide
-          enclosingElement3: <testLibraryFragment>
-          type: double
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vDivide
+          initializer: expression_11
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @293
@@ -10675,16 +7814,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @297
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::/
               element: dart:core::<fragment>::@class::num::@method::/#element
               staticInvokeType: double Function(num)
               staticType: double
-        static const vFloorDivide @306
+          getter2: <testLibraryFragment>::@getter::vDivide
+        hasInitializer vFloorDivide @306
           reference: <testLibraryFragment>::@topLevelVariable::vFloorDivide
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vFloorDivide
+          initializer: expression_12
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @321
@@ -10693,16 +7830,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @326
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::~/
               element: dart:core::<fragment>::@class::num::@method::~/#element
               staticInvokeType: int Function(num)
               staticType: int
-        static const vModulo @335
+          getter2: <testLibraryFragment>::@getter::vFloorDivide
+        hasInitializer vModulo @335
           reference: <testLibraryFragment>::@topLevelVariable::vModulo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vModulo
+          initializer: expression_13
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @345
@@ -10711,16 +7846,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @349
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::%
               element: dart:core::<fragment>::@class::num::@method::%#element
               staticInvokeType: num Function(num)
               staticType: int
-        static const vGreater @358
+          getter2: <testLibraryFragment>::@getter::vModulo
+        hasInitializer vGreater @358
           reference: <testLibraryFragment>::@topLevelVariable::vGreater
-          enclosingElement3: <testLibraryFragment>
-          type: bool
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vGreater
+          initializer: expression_14
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @369
@@ -10729,16 +7862,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @373
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::>
               element: dart:core::<fragment>::@class::num::@method::>#element
               staticInvokeType: bool Function(num)
               staticType: bool
-        static const vGreaterEqual @382
+          getter2: <testLibraryFragment>::@getter::vGreater
+        hasInitializer vGreaterEqual @382
           reference: <testLibraryFragment>::@topLevelVariable::vGreaterEqual
-          enclosingElement3: <testLibraryFragment>
-          type: bool
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vGreaterEqual
+          initializer: expression_15
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @398
@@ -10747,16 +7878,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @403
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::>=
               element: dart:core::<fragment>::@class::num::@method::>=#element
               staticInvokeType: bool Function(num)
               staticType: bool
-        static const vLess @412
+          getter2: <testLibraryFragment>::@getter::vGreaterEqual
+        hasInitializer vLess @412
           reference: <testLibraryFragment>::@topLevelVariable::vLess
-          enclosingElement3: <testLibraryFragment>
-          type: bool
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vLess
+          initializer: expression_16
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @420
@@ -10765,16 +7894,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @424
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::<
               element: dart:core::<fragment>::@class::num::@method::<#element
               staticInvokeType: bool Function(num)
               staticType: bool
-        static const vLessEqual @433
+          getter2: <testLibraryFragment>::@getter::vLess
+        hasInitializer vLessEqual @433
           reference: <testLibraryFragment>::@topLevelVariable::vLessEqual
-          enclosingElement3: <testLibraryFragment>
-          type: bool
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vLessEqual
+          initializer: expression_17
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @446
@@ -10783,161 +7910,9 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @451
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::<=
               element: dart:core::<fragment>::@class::num::@method::<=#element
               staticInvokeType: bool Function(num)
               staticType: bool
-      accessors
-        synthetic static get vEqual @-1
-          reference: <testLibraryFragment>::@getter::vEqual
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-        synthetic static get vAnd @-1
-          reference: <testLibraryFragment>::@getter::vAnd
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-        synthetic static get vOr @-1
-          reference: <testLibraryFragment>::@getter::vOr
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-        synthetic static get vBitXor @-1
-          reference: <testLibraryFragment>::@getter::vBitXor
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vBitAnd @-1
-          reference: <testLibraryFragment>::@getter::vBitAnd
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vBitOr @-1
-          reference: <testLibraryFragment>::@getter::vBitOr
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vBitShiftLeft @-1
-          reference: <testLibraryFragment>::@getter::vBitShiftLeft
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vBitShiftRight @-1
-          reference: <testLibraryFragment>::@getter::vBitShiftRight
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vAdd @-1
-          reference: <testLibraryFragment>::@getter::vAdd
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vSubtract @-1
-          reference: <testLibraryFragment>::@getter::vSubtract
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vMiltiply @-1
-          reference: <testLibraryFragment>::@getter::vMiltiply
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vDivide @-1
-          reference: <testLibraryFragment>::@getter::vDivide
-          enclosingElement3: <testLibraryFragment>
-          returnType: double
-        synthetic static get vFloorDivide @-1
-          reference: <testLibraryFragment>::@getter::vFloorDivide
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vModulo @-1
-          reference: <testLibraryFragment>::@getter::vModulo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vGreater @-1
-          reference: <testLibraryFragment>::@getter::vGreater
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-        synthetic static get vGreaterEqual @-1
-          reference: <testLibraryFragment>::@getter::vGreaterEqual
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-        synthetic static get vLess @-1
-          reference: <testLibraryFragment>::@getter::vLess
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-        synthetic static get vLessEqual @-1
-          reference: <testLibraryFragment>::@getter::vLessEqual
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer vEqual @6
-          reference: <testLibraryFragment>::@topLevelVariable::vEqual
-          element: <testLibrary>::@topLevelVariable::vEqual
-          getter2: <testLibraryFragment>::@getter::vEqual
-        hasInitializer vAnd @29
-          reference: <testLibraryFragment>::@topLevelVariable::vAnd
-          element: <testLibrary>::@topLevelVariable::vAnd
-          getter2: <testLibraryFragment>::@getter::vAnd
-        hasInitializer vOr @57
-          reference: <testLibraryFragment>::@topLevelVariable::vOr
-          element: <testLibrary>::@topLevelVariable::vOr
-          getter2: <testLibraryFragment>::@getter::vOr
-        hasInitializer vBitXor @84
-          reference: <testLibraryFragment>::@topLevelVariable::vBitXor
-          element: <testLibrary>::@topLevelVariable::vBitXor
-          getter2: <testLibraryFragment>::@getter::vBitXor
-        hasInitializer vBitAnd @107
-          reference: <testLibraryFragment>::@topLevelVariable::vBitAnd
-          element: <testLibrary>::@topLevelVariable::vBitAnd
-          getter2: <testLibraryFragment>::@getter::vBitAnd
-        hasInitializer vBitOr @130
-          reference: <testLibraryFragment>::@topLevelVariable::vBitOr
-          element: <testLibrary>::@topLevelVariable::vBitOr
-          getter2: <testLibraryFragment>::@getter::vBitOr
-        hasInitializer vBitShiftLeft @152
-          reference: <testLibraryFragment>::@topLevelVariable::vBitShiftLeft
-          element: <testLibrary>::@topLevelVariable::vBitShiftLeft
-          getter2: <testLibraryFragment>::@getter::vBitShiftLeft
-        hasInitializer vBitShiftRight @182
-          reference: <testLibraryFragment>::@topLevelVariable::vBitShiftRight
-          element: <testLibrary>::@topLevelVariable::vBitShiftRight
-          getter2: <testLibraryFragment>::@getter::vBitShiftRight
-        hasInitializer vAdd @213
-          reference: <testLibraryFragment>::@topLevelVariable::vAdd
-          element: <testLibrary>::@topLevelVariable::vAdd
-          getter2: <testLibraryFragment>::@getter::vAdd
-        hasInitializer vSubtract @233
-          reference: <testLibraryFragment>::@topLevelVariable::vSubtract
-          element: <testLibrary>::@topLevelVariable::vSubtract
-          getter2: <testLibraryFragment>::@getter::vSubtract
-        hasInitializer vMiltiply @258
-          reference: <testLibraryFragment>::@topLevelVariable::vMiltiply
-          element: <testLibrary>::@topLevelVariable::vMiltiply
-          getter2: <testLibraryFragment>::@getter::vMiltiply
-        hasInitializer vDivide @283
-          reference: <testLibraryFragment>::@topLevelVariable::vDivide
-          element: <testLibrary>::@topLevelVariable::vDivide
-          getter2: <testLibraryFragment>::@getter::vDivide
-        hasInitializer vFloorDivide @306
-          reference: <testLibraryFragment>::@topLevelVariable::vFloorDivide
-          element: <testLibrary>::@topLevelVariable::vFloorDivide
-          getter2: <testLibraryFragment>::@getter::vFloorDivide
-        hasInitializer vModulo @335
-          reference: <testLibraryFragment>::@topLevelVariable::vModulo
-          element: <testLibrary>::@topLevelVariable::vModulo
-          getter2: <testLibraryFragment>::@getter::vModulo
-        hasInitializer vGreater @358
-          reference: <testLibraryFragment>::@topLevelVariable::vGreater
-          element: <testLibrary>::@topLevelVariable::vGreater
-          getter2: <testLibraryFragment>::@getter::vGreater
-        hasInitializer vGreaterEqual @382
-          reference: <testLibraryFragment>::@topLevelVariable::vGreaterEqual
-          element: <testLibrary>::@topLevelVariable::vGreaterEqual
-          getter2: <testLibraryFragment>::@getter::vGreaterEqual
-        hasInitializer vLess @412
-          reference: <testLibraryFragment>::@topLevelVariable::vLess
-          element: <testLibrary>::@topLevelVariable::vLess
-          getter2: <testLibraryFragment>::@getter::vLess
-        hasInitializer vLessEqual @433
-          reference: <testLibraryFragment>::@topLevelVariable::vLessEqual
-          element: <testLibrary>::@topLevelVariable::vLessEqual
           getter2: <testLibraryFragment>::@getter::vLessEqual
       getters
         synthetic get vEqual
@@ -10999,91 +7974,145 @@ library
       reference: <testLibrary>::@topLevelVariable::vEqual
       firstFragment: <testLibraryFragment>::@topLevelVariable::vEqual
       type: bool
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vEqual
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::vEqual#element
     const hasInitializer vAnd
       reference: <testLibrary>::@topLevelVariable::vAnd
       firstFragment: <testLibraryFragment>::@topLevelVariable::vAnd
       type: bool
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vAnd
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::vAnd#element
     const hasInitializer vOr
       reference: <testLibrary>::@topLevelVariable::vOr
       firstFragment: <testLibraryFragment>::@topLevelVariable::vOr
       type: bool
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vOr
+        expression: expression_2
       getter: <testLibraryFragment>::@getter::vOr#element
     const hasInitializer vBitXor
       reference: <testLibrary>::@topLevelVariable::vBitXor
       firstFragment: <testLibraryFragment>::@topLevelVariable::vBitXor
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vBitXor
+        expression: expression_3
       getter: <testLibraryFragment>::@getter::vBitXor#element
     const hasInitializer vBitAnd
       reference: <testLibrary>::@topLevelVariable::vBitAnd
       firstFragment: <testLibraryFragment>::@topLevelVariable::vBitAnd
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vBitAnd
+        expression: expression_4
       getter: <testLibraryFragment>::@getter::vBitAnd#element
     const hasInitializer vBitOr
       reference: <testLibrary>::@topLevelVariable::vBitOr
       firstFragment: <testLibraryFragment>::@topLevelVariable::vBitOr
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vBitOr
+        expression: expression_5
       getter: <testLibraryFragment>::@getter::vBitOr#element
     const hasInitializer vBitShiftLeft
       reference: <testLibrary>::@topLevelVariable::vBitShiftLeft
       firstFragment: <testLibraryFragment>::@topLevelVariable::vBitShiftLeft
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vBitShiftLeft
+        expression: expression_6
       getter: <testLibraryFragment>::@getter::vBitShiftLeft#element
     const hasInitializer vBitShiftRight
       reference: <testLibrary>::@topLevelVariable::vBitShiftRight
       firstFragment: <testLibraryFragment>::@topLevelVariable::vBitShiftRight
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vBitShiftRight
+        expression: expression_7
       getter: <testLibraryFragment>::@getter::vBitShiftRight#element
     const hasInitializer vAdd
       reference: <testLibrary>::@topLevelVariable::vAdd
       firstFragment: <testLibraryFragment>::@topLevelVariable::vAdd
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vAdd
+        expression: expression_8
       getter: <testLibraryFragment>::@getter::vAdd#element
     const hasInitializer vSubtract
       reference: <testLibrary>::@topLevelVariable::vSubtract
       firstFragment: <testLibraryFragment>::@topLevelVariable::vSubtract
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vSubtract
+        expression: expression_9
       getter: <testLibraryFragment>::@getter::vSubtract#element
     const hasInitializer vMiltiply
       reference: <testLibrary>::@topLevelVariable::vMiltiply
       firstFragment: <testLibraryFragment>::@topLevelVariable::vMiltiply
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vMiltiply
+        expression: expression_10
       getter: <testLibraryFragment>::@getter::vMiltiply#element
     const hasInitializer vDivide
       reference: <testLibrary>::@topLevelVariable::vDivide
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDivide
       type: double
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vDivide
+        expression: expression_11
       getter: <testLibraryFragment>::@getter::vDivide#element
     const hasInitializer vFloorDivide
       reference: <testLibrary>::@topLevelVariable::vFloorDivide
       firstFragment: <testLibraryFragment>::@topLevelVariable::vFloorDivide
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vFloorDivide
+        expression: expression_12
       getter: <testLibraryFragment>::@getter::vFloorDivide#element
     const hasInitializer vModulo
       reference: <testLibrary>::@topLevelVariable::vModulo
       firstFragment: <testLibraryFragment>::@topLevelVariable::vModulo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vModulo
+        expression: expression_13
       getter: <testLibraryFragment>::@getter::vModulo#element
     const hasInitializer vGreater
       reference: <testLibrary>::@topLevelVariable::vGreater
       firstFragment: <testLibraryFragment>::@topLevelVariable::vGreater
       type: bool
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vGreater
+        expression: expression_14
       getter: <testLibraryFragment>::@getter::vGreater#element
     const hasInitializer vGreaterEqual
       reference: <testLibrary>::@topLevelVariable::vGreaterEqual
       firstFragment: <testLibraryFragment>::@topLevelVariable::vGreaterEqual
       type: bool
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vGreaterEqual
+        expression: expression_15
       getter: <testLibraryFragment>::@getter::vGreaterEqual#element
     const hasInitializer vLess
       reference: <testLibrary>::@topLevelVariable::vLess
       firstFragment: <testLibraryFragment>::@topLevelVariable::vLess
       type: bool
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vLess
+        expression: expression_16
       getter: <testLibraryFragment>::@getter::vLess#element
     const hasInitializer vLessEqual
       reference: <testLibrary>::@topLevelVariable::vLessEqual
       firstFragment: <testLibraryFragment>::@topLevelVariable::vLessEqual
       type: bool
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vLessEqual
+        expression: expression_17
       getter: <testLibraryFragment>::@getter::vLessEqual#element
   getters
     synthetic static get vEqual
@@ -11132,17 +8161,14 @@ const vConditional = (1 == 2) ? 11 : 22;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const vConditional @6
+        hasInitializer vConditional @6
           reference: <testLibraryFragment>::@topLevelVariable::vConditional
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vConditional
+          initializer: expression_0
             ConditionalExpression
               condition: ParenthesizedExpression
                 leftParenthesis: ( @21
@@ -11154,7 +8180,6 @@ library
                   rightOperand: IntegerLiteral
                     literal: 2 @27
                     staticType: int
-                  staticElement: dart:core::<fragment>::@class::num::@method::==
                   element: dart:core::<fragment>::@class::num::@method::==#element
                   staticInvokeType: bool Function(Object)
                   staticType: bool
@@ -11169,21 +8194,6 @@ library
                 literal: 22 @37
                 staticType: int
               staticType: int
-      accessors
-        synthetic static get vConditional @-1
-          reference: <testLibraryFragment>::@getter::vConditional
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer vConditional @6
-          reference: <testLibraryFragment>::@topLevelVariable::vConditional
-          element: <testLibrary>::@topLevelVariable::vConditional
           getter2: <testLibraryFragment>::@getter::vConditional
       getters
         synthetic get vConditional
@@ -11194,6 +8204,9 @@ library
       reference: <testLibrary>::@topLevelVariable::vConditional
       firstFragment: <testLibraryFragment>::@topLevelVariable::vConditional
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vConditional
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::vConditional#element
   getters
     synthetic static get vConditional
@@ -11208,17 +8221,14 @@ const vIdentical = (1 == 2) ? 11 : 22;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const vIdentical @6
+        hasInitializer vIdentical @6
           reference: <testLibraryFragment>::@topLevelVariable::vIdentical
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vIdentical
+          initializer: expression_0
             ConditionalExpression
               condition: ParenthesizedExpression
                 leftParenthesis: ( @19
@@ -11230,7 +8240,6 @@ library
                   rightOperand: IntegerLiteral
                     literal: 2 @25
                     staticType: int
-                  staticElement: dart:core::<fragment>::@class::num::@method::==
                   element: dart:core::<fragment>::@class::num::@method::==#element
                   staticInvokeType: bool Function(Object)
                   staticType: bool
@@ -11245,21 +8254,6 @@ library
                 literal: 22 @35
                 staticType: int
               staticType: int
-      accessors
-        synthetic static get vIdentical @-1
-          reference: <testLibraryFragment>::@getter::vIdentical
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer vIdentical @6
-          reference: <testLibraryFragment>::@topLevelVariable::vIdentical
-          element: <testLibrary>::@topLevelVariable::vIdentical
           getter2: <testLibraryFragment>::@getter::vIdentical
       getters
         synthetic get vIdentical
@@ -11270,6 +8264,9 @@ library
       reference: <testLibrary>::@topLevelVariable::vIdentical
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIdentical
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vIdentical
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::vIdentical#element
   getters
     synthetic static get vIdentical
@@ -11284,17 +8281,14 @@ const vIfNull = 1 ?? 2.0;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const vIfNull @6
+        hasInitializer vIfNull @6
           reference: <testLibraryFragment>::@topLevelVariable::vIfNull
-          enclosingElement3: <testLibraryFragment>
-          type: num
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vIfNull
+          initializer: expression_0
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @16
@@ -11303,25 +8297,9 @@ library
               rightOperand: DoubleLiteral
                 literal: 2.0 @21
                 staticType: double
-              staticElement: <null>
               element: <null>
               staticInvokeType: null
               staticType: num
-      accessors
-        synthetic static get vIfNull @-1
-          reference: <testLibraryFragment>::@getter::vIfNull
-          enclosingElement3: <testLibraryFragment>
-          returnType: num
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer vIfNull @6
-          reference: <testLibraryFragment>::@topLevelVariable::vIfNull
-          element: <testLibrary>::@topLevelVariable::vIfNull
           getter2: <testLibraryFragment>::@getter::vIfNull
       getters
         synthetic get vIfNull
@@ -11332,6 +8310,9 @@ library
       reference: <testLibrary>::@topLevelVariable::vIfNull
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIfNull
       type: num
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vIfNull
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::vIfNull#element
   getters
     synthetic static get vIfNull
@@ -11358,111 +8339,97 @@ const vSymbol = #aaa.bbb.ccc;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const vNull @6
+        hasInitializer vNull @6
           reference: <testLibraryFragment>::@topLevelVariable::vNull
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vNull
+          initializer: expression_0
             NullLiteral
               literal: null @14
               staticType: Null
-        static const vBoolFalse @26
+          getter2: <testLibraryFragment>::@getter::vNull
+        hasInitializer vBoolFalse @26
           reference: <testLibraryFragment>::@topLevelVariable::vBoolFalse
-          enclosingElement3: <testLibraryFragment>
-          type: bool
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vBoolFalse
+          initializer: expression_1
             BooleanLiteral
               literal: false @39
               staticType: bool
-        static const vBoolTrue @52
+          getter2: <testLibraryFragment>::@getter::vBoolFalse
+        hasInitializer vBoolTrue @52
           reference: <testLibraryFragment>::@topLevelVariable::vBoolTrue
-          enclosingElement3: <testLibraryFragment>
-          type: bool
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vBoolTrue
+          initializer: expression_2
             BooleanLiteral
               literal: true @64
               staticType: bool
-        static const vIntPositive @76
+          getter2: <testLibraryFragment>::@getter::vBoolTrue
+        hasInitializer vIntPositive @76
           reference: <testLibraryFragment>::@topLevelVariable::vIntPositive
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vIntPositive
+          initializer: expression_3
             IntegerLiteral
               literal: 1 @91
               staticType: int
-        static const vIntNegative @100
+          getter2: <testLibraryFragment>::@getter::vIntPositive
+        hasInitializer vIntNegative @100
           reference: <testLibraryFragment>::@topLevelVariable::vIntNegative
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vIntNegative
+          initializer: expression_4
             PrefixExpression
               operator: - @115
               operand: IntegerLiteral
                 literal: 2 @116
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::int::@method::unary-
               element: dart:core::<fragment>::@class::int::@method::unary-#element
               staticType: int
-        static const vIntLong1 @125
+          getter2: <testLibraryFragment>::@getter::vIntNegative
+        hasInitializer vIntLong1 @125
           reference: <testLibraryFragment>::@topLevelVariable::vIntLong1
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vIntLong1
+          initializer: expression_5
             IntegerLiteral
               literal: 0x7FFFFFFFFFFFFFFF @137
               staticType: int
-        static const vIntLong2 @163
+          getter2: <testLibraryFragment>::@getter::vIntLong1
+        hasInitializer vIntLong2 @163
           reference: <testLibraryFragment>::@topLevelVariable::vIntLong2
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vIntLong2
+          initializer: expression_6
             IntegerLiteral
               literal: 0xFFFFFFFFFFFFFFFF @175
               staticType: int
-        static const vIntLong3 @201
+          getter2: <testLibraryFragment>::@getter::vIntLong2
+        hasInitializer vIntLong3 @201
           reference: <testLibraryFragment>::@topLevelVariable::vIntLong3
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vIntLong3
+          initializer: expression_7
             IntegerLiteral
               literal: 0x8000000000000000 @213
               staticType: int
-        static const vDouble @239
+          getter2: <testLibraryFragment>::@getter::vIntLong3
+        hasInitializer vDouble @239
           reference: <testLibraryFragment>::@topLevelVariable::vDouble
-          enclosingElement3: <testLibraryFragment>
-          type: double
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vDouble
+          initializer: expression_8
             DoubleLiteral
               literal: 2.3 @249
               staticType: double
-        static const vString @260
+          getter2: <testLibraryFragment>::@getter::vDouble
+        hasInitializer vString @260
           reference: <testLibraryFragment>::@topLevelVariable::vString
-          enclosingElement3: <testLibraryFragment>
-          type: String
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vString
+          initializer: expression_9
             SimpleStringLiteral
               literal: 'abc' @270
-        static const vStringConcat @283
+          getter2: <testLibraryFragment>::@getter::vString
+        hasInitializer vStringConcat @283
           reference: <testLibraryFragment>::@topLevelVariable::vStringConcat
-          enclosingElement3: <testLibraryFragment>
-          type: String
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vStringConcat
+          initializer: expression_10
             AdjacentStrings
               strings
                 SimpleStringLiteral
@@ -11471,12 +8438,11 @@ library
                   literal: 'bbb' @305
               staticType: String
               stringValue: aaabbb
-        static const vStringInterpolation @318
+          getter2: <testLibraryFragment>::@getter::vStringConcat
+        hasInitializer vStringInterpolation @318
           reference: <testLibraryFragment>::@topLevelVariable::vStringInterpolation
-          enclosingElement3: <testLibraryFragment>
-          type: String
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vStringInterpolation
+          initializer: expression_11
             StringInterpolation
               elements
                 InterpolationString
@@ -11499,12 +8465,11 @@ library
                   contents:  bbb' @359
               staticType: String
               stringValue: null
-        static const vSymbol @372
+          getter2: <testLibraryFragment>::@getter::vStringInterpolation
+        hasInitializer vSymbol @372
           reference: <testLibraryFragment>::@topLevelVariable::vSymbol
-          enclosingElement3: <testLibraryFragment>
-          type: Symbol
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vSymbol
+          initializer: expression_12
             SymbolLiteral
               poundSign: # @382
               components
@@ -11514,117 +8479,6 @@ library
                   offset: 387
                 ccc
                   offset: 391
-      accessors
-        synthetic static get vNull @-1
-          reference: <testLibraryFragment>::@getter::vNull
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        synthetic static get vBoolFalse @-1
-          reference: <testLibraryFragment>::@getter::vBoolFalse
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-        synthetic static get vBoolTrue @-1
-          reference: <testLibraryFragment>::@getter::vBoolTrue
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-        synthetic static get vIntPositive @-1
-          reference: <testLibraryFragment>::@getter::vIntPositive
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vIntNegative @-1
-          reference: <testLibraryFragment>::@getter::vIntNegative
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vIntLong1 @-1
-          reference: <testLibraryFragment>::@getter::vIntLong1
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vIntLong2 @-1
-          reference: <testLibraryFragment>::@getter::vIntLong2
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vIntLong3 @-1
-          reference: <testLibraryFragment>::@getter::vIntLong3
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vDouble @-1
-          reference: <testLibraryFragment>::@getter::vDouble
-          enclosingElement3: <testLibraryFragment>
-          returnType: double
-        synthetic static get vString @-1
-          reference: <testLibraryFragment>::@getter::vString
-          enclosingElement3: <testLibraryFragment>
-          returnType: String
-        synthetic static get vStringConcat @-1
-          reference: <testLibraryFragment>::@getter::vStringConcat
-          enclosingElement3: <testLibraryFragment>
-          returnType: String
-        synthetic static get vStringInterpolation @-1
-          reference: <testLibraryFragment>::@getter::vStringInterpolation
-          enclosingElement3: <testLibraryFragment>
-          returnType: String
-        synthetic static get vSymbol @-1
-          reference: <testLibraryFragment>::@getter::vSymbol
-          enclosingElement3: <testLibraryFragment>
-          returnType: Symbol
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer vNull @6
-          reference: <testLibraryFragment>::@topLevelVariable::vNull
-          element: <testLibrary>::@topLevelVariable::vNull
-          getter2: <testLibraryFragment>::@getter::vNull
-        hasInitializer vBoolFalse @26
-          reference: <testLibraryFragment>::@topLevelVariable::vBoolFalse
-          element: <testLibrary>::@topLevelVariable::vBoolFalse
-          getter2: <testLibraryFragment>::@getter::vBoolFalse
-        hasInitializer vBoolTrue @52
-          reference: <testLibraryFragment>::@topLevelVariable::vBoolTrue
-          element: <testLibrary>::@topLevelVariable::vBoolTrue
-          getter2: <testLibraryFragment>::@getter::vBoolTrue
-        hasInitializer vIntPositive @76
-          reference: <testLibraryFragment>::@topLevelVariable::vIntPositive
-          element: <testLibrary>::@topLevelVariable::vIntPositive
-          getter2: <testLibraryFragment>::@getter::vIntPositive
-        hasInitializer vIntNegative @100
-          reference: <testLibraryFragment>::@topLevelVariable::vIntNegative
-          element: <testLibrary>::@topLevelVariable::vIntNegative
-          getter2: <testLibraryFragment>::@getter::vIntNegative
-        hasInitializer vIntLong1 @125
-          reference: <testLibraryFragment>::@topLevelVariable::vIntLong1
-          element: <testLibrary>::@topLevelVariable::vIntLong1
-          getter2: <testLibraryFragment>::@getter::vIntLong1
-        hasInitializer vIntLong2 @163
-          reference: <testLibraryFragment>::@topLevelVariable::vIntLong2
-          element: <testLibrary>::@topLevelVariable::vIntLong2
-          getter2: <testLibraryFragment>::@getter::vIntLong2
-        hasInitializer vIntLong3 @201
-          reference: <testLibraryFragment>::@topLevelVariable::vIntLong3
-          element: <testLibrary>::@topLevelVariable::vIntLong3
-          getter2: <testLibraryFragment>::@getter::vIntLong3
-        hasInitializer vDouble @239
-          reference: <testLibraryFragment>::@topLevelVariable::vDouble
-          element: <testLibrary>::@topLevelVariable::vDouble
-          getter2: <testLibraryFragment>::@getter::vDouble
-        hasInitializer vString @260
-          reference: <testLibraryFragment>::@topLevelVariable::vString
-          element: <testLibrary>::@topLevelVariable::vString
-          getter2: <testLibraryFragment>::@getter::vString
-        hasInitializer vStringConcat @283
-          reference: <testLibraryFragment>::@topLevelVariable::vStringConcat
-          element: <testLibrary>::@topLevelVariable::vStringConcat
-          getter2: <testLibraryFragment>::@getter::vStringConcat
-        hasInitializer vStringInterpolation @318
-          reference: <testLibraryFragment>::@topLevelVariable::vStringInterpolation
-          element: <testLibrary>::@topLevelVariable::vStringInterpolation
-          getter2: <testLibraryFragment>::@getter::vStringInterpolation
-        hasInitializer vSymbol @372
-          reference: <testLibraryFragment>::@topLevelVariable::vSymbol
-          element: <testLibrary>::@topLevelVariable::vSymbol
           getter2: <testLibraryFragment>::@getter::vSymbol
       getters
         synthetic get vNull
@@ -11671,66 +8525,105 @@ library
       reference: <testLibrary>::@topLevelVariable::vNull
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNull
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vNull
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::vNull#element
     const hasInitializer vBoolFalse
       reference: <testLibrary>::@topLevelVariable::vBoolFalse
       firstFragment: <testLibraryFragment>::@topLevelVariable::vBoolFalse
       type: bool
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vBoolFalse
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::vBoolFalse#element
     const hasInitializer vBoolTrue
       reference: <testLibrary>::@topLevelVariable::vBoolTrue
       firstFragment: <testLibraryFragment>::@topLevelVariable::vBoolTrue
       type: bool
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vBoolTrue
+        expression: expression_2
       getter: <testLibraryFragment>::@getter::vBoolTrue#element
     const hasInitializer vIntPositive
       reference: <testLibrary>::@topLevelVariable::vIntPositive
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIntPositive
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vIntPositive
+        expression: expression_3
       getter: <testLibraryFragment>::@getter::vIntPositive#element
     const hasInitializer vIntNegative
       reference: <testLibrary>::@topLevelVariable::vIntNegative
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIntNegative
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vIntNegative
+        expression: expression_4
       getter: <testLibraryFragment>::@getter::vIntNegative#element
     const hasInitializer vIntLong1
       reference: <testLibrary>::@topLevelVariable::vIntLong1
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIntLong1
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vIntLong1
+        expression: expression_5
       getter: <testLibraryFragment>::@getter::vIntLong1#element
     const hasInitializer vIntLong2
       reference: <testLibrary>::@topLevelVariable::vIntLong2
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIntLong2
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vIntLong2
+        expression: expression_6
       getter: <testLibraryFragment>::@getter::vIntLong2#element
     const hasInitializer vIntLong3
       reference: <testLibrary>::@topLevelVariable::vIntLong3
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIntLong3
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vIntLong3
+        expression: expression_7
       getter: <testLibraryFragment>::@getter::vIntLong3#element
     const hasInitializer vDouble
       reference: <testLibrary>::@topLevelVariable::vDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDouble
       type: double
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vDouble
+        expression: expression_8
       getter: <testLibraryFragment>::@getter::vDouble#element
     const hasInitializer vString
       reference: <testLibrary>::@topLevelVariable::vString
       firstFragment: <testLibraryFragment>::@topLevelVariable::vString
       type: String
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vString
+        expression: expression_9
       getter: <testLibraryFragment>::@getter::vString#element
     const hasInitializer vStringConcat
       reference: <testLibrary>::@topLevelVariable::vStringConcat
       firstFragment: <testLibraryFragment>::@topLevelVariable::vStringConcat
       type: String
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vStringConcat
+        expression: expression_10
       getter: <testLibraryFragment>::@getter::vStringConcat#element
     const hasInitializer vStringInterpolation
       reference: <testLibrary>::@topLevelVariable::vStringInterpolation
       firstFragment: <testLibraryFragment>::@topLevelVariable::vStringInterpolation
       type: String
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vStringInterpolation
+        expression: expression_11
       getter: <testLibraryFragment>::@getter::vStringInterpolation#element
     const hasInitializer vSymbol
       reference: <testLibrary>::@topLevelVariable::vSymbol
       firstFragment: <testLibraryFragment>::@topLevelVariable::vSymbol
       type: Symbol
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vSymbol
+        expression: expression_12
       getter: <testLibraryFragment>::@getter::vSymbol#element
   getters
     synthetic static get vNull
@@ -11770,55 +8663,6 @@ const b = a?.toString();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @11
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int?
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @15
-              staticType: int
-        static const b @24
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: String?
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            MethodInvocation
-              target: SimpleIdentifier
-                token: a @28
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: int?
-              operator: ?. @29
-              methodName: SimpleIdentifier
-                token: toString @31
-                staticElement: dart:core::<fragment>::@class::int::@method::toString
-                element: dart:core::<fragment>::@class::int::@method::toString#element
-                staticType: String Function()
-              argumentList: ArgumentList
-                leftParenthesis: ( @39
-                rightParenthesis: ) @40
-              staticInvokeType: String Function()
-              staticType: String?
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int?
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: String?
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -11826,10 +8670,30 @@ library
         hasInitializer a @11
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @15
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @24
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            MethodInvocation
+              target: SimpleIdentifier
+                token: a @28
+                element: <testLibraryFragment>::@getter::a#element
+                staticType: int?
+              operator: ?. @29
+              methodName: SimpleIdentifier
+                token: toString @31
+                element: dart:core::<fragment>::@class::int::@method::toString#element
+                staticType: String Function()
+              argumentList: ArgumentList
+                leftParenthesis: ( @39
+                rightParenthesis: ) @40
+              staticInvokeType: String Function()
+              staticType: String?
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -11843,11 +8707,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int?
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: String?
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -11865,30 +8735,25 @@ const b = a?..toString();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const a @11
+        hasInitializer a @11
           reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int?
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @15
               staticType: int
-        static const b @24
+          getter2: <testLibraryFragment>::@getter::a
+        hasInitializer b @24
           reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: int?
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
             CascadeExpression
               target: SimpleIdentifier
                 token: a @28
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: int?
               cascadeSections
@@ -11896,7 +8761,6 @@ library
                   operator: ?.. @29
                   methodName: SimpleIdentifier
                     token: toString @32
-                    staticElement: dart:core::<fragment>::@class::int::@method::toString
                     element: dart:core::<fragment>::@class::int::@method::toString#element
                     staticType: String Function()
                   argumentList: ArgumentList
@@ -11905,29 +8769,6 @@ library
                   staticInvokeType: String Function()
                   staticType: String
               staticType: int?
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int?
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: int?
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer a @11
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibrary>::@topLevelVariable::a
-          getter2: <testLibraryFragment>::@getter::a
-        hasInitializer b @24
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -11941,11 +8782,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int?
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: int?
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -11966,55 +8813,6 @@ const List<int?> b = [
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @14
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: String?
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            SimpleStringLiteral
-              literal: '' @18
-        static const b @40
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: List<int?>
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            ListLiteral
-              leftBracket: [ @44
-              elements
-                PropertyAccess
-                  target: SimpleIdentifier
-                    token: a @48
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: String?
-                  operator: ?. @49
-                  propertyName: SimpleIdentifier
-                    token: length @51
-                    staticElement: dart:core::<fragment>::@class::String::@getter::length
-                    element: dart:core::<fragment>::@class::String::@getter::length#element
-                    staticType: int
-                  staticType: int?
-              rightBracket: ] @59
-              staticType: List<int?>
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: String?
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<int?>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -12022,10 +8820,30 @@ library
         hasInitializer a @14
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            SimpleStringLiteral
+              literal: '' @18
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @40
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            ListLiteral
+              leftBracket: [ @44
+              elements
+                PropertyAccess
+                  target: SimpleIdentifier
+                    token: a @48
+                    element: <testLibraryFragment>::@getter::a#element
+                    staticType: String?
+                  operator: ?. @49
+                  propertyName: SimpleIdentifier
+                    token: length @51
+                    element: dart:core::<fragment>::@class::String::@getter::length#element
+                    staticType: int
+                  staticType: int?
+              rightBracket: ] @59
+              staticType: List<int?>
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -12039,11 +8857,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: String?
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: List<int?>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -12062,17 +8886,14 @@ const int v3 = ('aaa' + 'bbb').length;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const v1 @10
+        hasInitializer v1 @10
           reference: <testLibraryFragment>::@topLevelVariable::v1
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::v1
+          initializer: expression_0
             BinaryExpression
               leftOperand: ParenthesizedExpression
                 leftParenthesis: ( @15
@@ -12084,7 +8905,6 @@ library
                   rightOperand: IntegerLiteral
                     literal: 2 @20
                     staticType: int
-                  staticElement: dart:core::<fragment>::@class::num::@method::+
                   element: dart:core::<fragment>::@class::num::@method::+#element
                   staticInvokeType: num Function(num)
                   staticType: int
@@ -12094,16 +8914,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 3 @25
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::*
               element: dart:core::<fragment>::@class::num::@method::*#element
               staticInvokeType: num Function(num)
               staticType: int
-        static const v2 @38
+          getter2: <testLibraryFragment>::@getter::v1
+        hasInitializer v2 @38
           reference: <testLibraryFragment>::@topLevelVariable::v2
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::v2
+          initializer: expression_1
             PrefixExpression
               operator: - @43
               operand: ParenthesizedExpression
@@ -12116,21 +8934,18 @@ library
                   rightOperand: IntegerLiteral
                     literal: 2 @49
                     staticType: int
-                  staticElement: dart:core::<fragment>::@class::num::@method::+
                   element: dart:core::<fragment>::@class::num::@method::+#element
                   staticInvokeType: num Function(num)
                   staticType: int
                 rightParenthesis: ) @50
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::int::@method::unary-
               element: dart:core::<fragment>::@class::int::@method::unary-#element
               staticType: int
-        static const v3 @63
+          getter2: <testLibraryFragment>::@getter::v2
+        hasInitializer v3 @63
           reference: <testLibraryFragment>::@topLevelVariable::v3
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::v3
+          initializer: expression_2
             PropertyAccess
               target: ParenthesizedExpression
                 leftParenthesis: ( @68
@@ -12140,7 +8955,6 @@ library
                   operator: + @75
                   rightOperand: SimpleStringLiteral
                     literal: 'bbb' @77
-                  staticElement: dart:core::<fragment>::@class::String::@method::+
                   element: dart:core::<fragment>::@class::String::@method::+#element
                   staticInvokeType: String Function(String)
                   staticType: String
@@ -12149,41 +8963,9 @@ library
               operator: . @83
               propertyName: SimpleIdentifier
                 token: length @84
-                staticElement: dart:core::<fragment>::@class::String::@getter::length
                 element: dart:core::<fragment>::@class::String::@getter::length#element
                 staticType: int
               staticType: int
-      accessors
-        synthetic static get v1 @-1
-          reference: <testLibraryFragment>::@getter::v1
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get v2 @-1
-          reference: <testLibraryFragment>::@getter::v2
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get v3 @-1
-          reference: <testLibraryFragment>::@getter::v3
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer v1 @10
-          reference: <testLibraryFragment>::@topLevelVariable::v1
-          element: <testLibrary>::@topLevelVariable::v1
-          getter2: <testLibraryFragment>::@getter::v1
-        hasInitializer v2 @38
-          reference: <testLibraryFragment>::@topLevelVariable::v2
-          element: <testLibrary>::@topLevelVariable::v2
-          getter2: <testLibraryFragment>::@getter::v2
-        hasInitializer v3 @63
-          reference: <testLibraryFragment>::@topLevelVariable::v3
-          element: <testLibrary>::@topLevelVariable::v3
           getter2: <testLibraryFragment>::@getter::v3
       getters
         synthetic get v1
@@ -12200,16 +8982,25 @@ library
       reference: <testLibrary>::@topLevelVariable::v1
       firstFragment: <testLibraryFragment>::@topLevelVariable::v1
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v1
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v1#element
     const hasInitializer v2
       reference: <testLibrary>::@topLevelVariable::v2
       firstFragment: <testLibraryFragment>::@topLevelVariable::v2
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v2
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::v2#element
     const hasInitializer v3
       reference: <testLibrary>::@topLevelVariable::v3
       firstFragment: <testLibraryFragment>::@topLevelVariable::v3
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v3
+        expression: expression_2
       getter: <testLibraryFragment>::@getter::v3#element
   getters
     synthetic static get v1
@@ -12231,17 +9022,14 @@ const vComplement = ~1;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const vNotEqual @6
+        hasInitializer vNotEqual @6
           reference: <testLibraryFragment>::@topLevelVariable::vNotEqual
-          enclosingElement3: <testLibraryFragment>
-          type: bool
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vNotEqual
+          initializer: expression_0
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @18
@@ -12250,91 +9038,45 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @23
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::==
               element: dart:core::<fragment>::@class::num::@method::==#element
               staticInvokeType: bool Function(Object)
               staticType: bool
-        static const vNot @32
+          getter2: <testLibraryFragment>::@getter::vNotEqual
+        hasInitializer vNot @32
           reference: <testLibraryFragment>::@topLevelVariable::vNot
-          enclosingElement3: <testLibraryFragment>
-          type: bool
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vNot
+          initializer: expression_1
             PrefixExpression
               operator: ! @39
               operand: BooleanLiteral
                 literal: true @40
                 staticType: bool
-              staticElement: <null>
               element: <null>
               staticType: bool
-        static const vNegate @52
+          getter2: <testLibraryFragment>::@getter::vNot
+        hasInitializer vNegate @52
           reference: <testLibraryFragment>::@topLevelVariable::vNegate
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vNegate
+          initializer: expression_2
             PrefixExpression
               operator: - @62
               operand: IntegerLiteral
                 literal: 1 @63
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::int::@method::unary-
               element: dart:core::<fragment>::@class::int::@method::unary-#element
               staticType: int
-        static const vComplement @72
+          getter2: <testLibraryFragment>::@getter::vNegate
+        hasInitializer vComplement @72
           reference: <testLibraryFragment>::@topLevelVariable::vComplement
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vComplement
+          initializer: expression_3
             PrefixExpression
               operator: ~ @86
               operand: IntegerLiteral
                 literal: 1 @87
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::int::@method::~
               element: dart:core::<fragment>::@class::int::@method::~#element
               staticType: int
-      accessors
-        synthetic static get vNotEqual @-1
-          reference: <testLibraryFragment>::@getter::vNotEqual
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-        synthetic static get vNot @-1
-          reference: <testLibraryFragment>::@getter::vNot
-          enclosingElement3: <testLibraryFragment>
-          returnType: bool
-        synthetic static get vNegate @-1
-          reference: <testLibraryFragment>::@getter::vNegate
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get vComplement @-1
-          reference: <testLibraryFragment>::@getter::vComplement
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer vNotEqual @6
-          reference: <testLibraryFragment>::@topLevelVariable::vNotEqual
-          element: <testLibrary>::@topLevelVariable::vNotEqual
-          getter2: <testLibraryFragment>::@getter::vNotEqual
-        hasInitializer vNot @32
-          reference: <testLibraryFragment>::@topLevelVariable::vNot
-          element: <testLibrary>::@topLevelVariable::vNot
-          getter2: <testLibraryFragment>::@getter::vNot
-        hasInitializer vNegate @52
-          reference: <testLibraryFragment>::@topLevelVariable::vNegate
-          element: <testLibrary>::@topLevelVariable::vNegate
-          getter2: <testLibraryFragment>::@getter::vNegate
-        hasInitializer vComplement @72
-          reference: <testLibraryFragment>::@topLevelVariable::vComplement
-          element: <testLibrary>::@topLevelVariable::vComplement
           getter2: <testLibraryFragment>::@getter::vComplement
       getters
         synthetic get vNotEqual
@@ -12354,21 +9096,33 @@ library
       reference: <testLibrary>::@topLevelVariable::vNotEqual
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNotEqual
       type: bool
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vNotEqual
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::vNotEqual#element
     const hasInitializer vNot
       reference: <testLibrary>::@topLevelVariable::vNot
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNot
       type: bool
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vNot
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::vNot#element
     const hasInitializer vNegate
       reference: <testLibrary>::@topLevelVariable::vNegate
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNegate
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vNegate
+        expression: expression_2
       getter: <testLibraryFragment>::@getter::vNegate#element
     const hasInitializer vComplement
       reference: <testLibrary>::@topLevelVariable::vComplement
       firstFragment: <testLibraryFragment>::@topLevelVariable::vComplement
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vComplement
+        expression: expression_3
       getter: <testLibraryFragment>::@getter::vComplement#element
   getters
     synthetic static get vNotEqual
@@ -12389,28 +9143,6 @@ const vSuper = super;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const vSuper @6
-          reference: <testLibraryFragment>::@topLevelVariable::vSuper
-          enclosingElement3: <testLibraryFragment>
-          type: InvalidType
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            SuperExpression
-              superKeyword: super @15
-              staticType: InvalidType
-      accessors
-        synthetic static get vSuper @-1
-          reference: <testLibraryFragment>::@getter::vSuper
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -12418,6 +9150,10 @@ library
         hasInitializer vSuper @6
           reference: <testLibraryFragment>::@topLevelVariable::vSuper
           element: <testLibrary>::@topLevelVariable::vSuper
+          initializer: expression_0
+            SuperExpression
+              superKeyword: super @15
+              staticType: InvalidType
           getter2: <testLibraryFragment>::@getter::vSuper
       getters
         synthetic get vSuper
@@ -12428,6 +9164,9 @@ library
       reference: <testLibrary>::@topLevelVariable::vSuper
       firstFragment: <testLibraryFragment>::@topLevelVariable::vSuper
       type: InvalidType
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vSuper
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::vSuper#element
   getters
     synthetic static get vSuper
@@ -12442,28 +9181,6 @@ const vThis = this;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const vThis @6
-          reference: <testLibraryFragment>::@topLevelVariable::vThis
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            ThisExpression
-              thisKeyword: this @14
-              staticType: dynamic
-      accessors
-        synthetic static get vThis @-1
-          reference: <testLibraryFragment>::@getter::vThis
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -12471,6 +9188,10 @@ library
         hasInitializer vThis @6
           reference: <testLibraryFragment>::@topLevelVariable::vThis
           element: <testLibrary>::@topLevelVariable::vThis
+          initializer: expression_0
+            ThisExpression
+              thisKeyword: this @14
+              staticType: dynamic
           getter2: <testLibraryFragment>::@getter::vThis
       getters
         synthetic get vThis
@@ -12481,6 +9202,9 @@ library
       reference: <testLibrary>::@topLevelVariable::vThis
       firstFragment: <testLibraryFragment>::@topLevelVariable::vThis
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vThis
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::vThis#element
   getters
     synthetic static get vThis
@@ -12495,31 +9219,6 @@ const c = throw 42;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const c @6
-          reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingElement3: <testLibraryFragment>
-          type: Never
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            ThrowExpression
-              throwKeyword: throw @10
-              expression: IntegerLiteral
-                literal: 42 @16
-                staticType: int
-              staticType: Never
-      accessors
-        synthetic static get c @-1
-          reference: <testLibraryFragment>::@getter::c
-          enclosingElement3: <testLibraryFragment>
-          returnType: Never
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -12527,6 +9226,13 @@ library
         hasInitializer c @6
           reference: <testLibraryFragment>::@topLevelVariable::c
           element: <testLibrary>::@topLevelVariable::c
+          initializer: expression_0
+            ThrowExpression
+              throwKeyword: throw @10
+              expression: IntegerLiteral
+                literal: 42 @16
+                staticType: int
+              staticType: Never
           getter2: <testLibraryFragment>::@getter::c
       getters
         synthetic get c
@@ -12537,6 +9243,9 @@ library
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: Never
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::c
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::c#element
   getters
     synthetic static get c
@@ -12556,17 +9265,14 @@ const vInterfaceWithTypeArguments2 = const <Map<int, List<String>>>[];
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const vNull @6
+        hasInitializer vNull @6
           reference: <testLibraryFragment>::@topLevelVariable::vNull
-          enclosingElement3: <testLibraryFragment>
-          type: List<Null>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vNull
+          initializer: expression_0
             ListLiteral
               constKeyword: const @14
               typeArguments: TypeArgumentList
@@ -12574,19 +9280,17 @@ library
                 arguments
                   NamedType
                     name: Null @21
-                    element: dart:core::<fragment>::@class::Null
                     element2: dart:core::@class::Null
                     type: Null
                 rightBracket: > @25
               leftBracket: [ @26
               rightBracket: ] @27
               staticType: List<Null>
-        static const vDynamic @36
+          getter2: <testLibraryFragment>::@getter::vNull
+        hasInitializer vDynamic @36
           reference: <testLibraryFragment>::@topLevelVariable::vDynamic
-          enclosingElement3: <testLibraryFragment>
-          type: List<dynamic>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vDynamic
+          initializer: expression_1
             ListLiteral
               constKeyword: const @47
               typeArguments: TypeArgumentList
@@ -12594,7 +9298,6 @@ library
                 arguments
                   NamedType
                     name: dynamic @54
-                    element: dynamic@-1
                     element2: dynamic
                     type: dynamic
                 rightBracket: > @61
@@ -12611,12 +9314,11 @@ library
                   staticType: int
               rightBracket: ] @70
               staticType: List<dynamic>
-        static const vInterfaceNoTypeParameters @79
+          getter2: <testLibraryFragment>::@getter::vDynamic
+        hasInitializer vInterfaceNoTypeParameters @79
           reference: <testLibraryFragment>::@topLevelVariable::vInterfaceNoTypeParameters
-          enclosingElement3: <testLibraryFragment>
-          type: List<int>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vInterfaceNoTypeParameters
+          initializer: expression_2
             ListLiteral
               constKeyword: const @108
               typeArguments: TypeArgumentList
@@ -12624,7 +9326,6 @@ library
                 arguments
                   NamedType
                     name: int @115
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @118
@@ -12641,12 +9342,11 @@ library
                   staticType: int
               rightBracket: ] @127
               staticType: List<int>
-        static const vInterfaceNoTypeArguments @136
+          getter2: <testLibraryFragment>::@getter::vInterfaceNoTypeParameters
+        hasInitializer vInterfaceNoTypeArguments @136
           reference: <testLibraryFragment>::@topLevelVariable::vInterfaceNoTypeArguments
-          enclosingElement3: <testLibraryFragment>
-          type: List<List<dynamic>>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vInterfaceNoTypeArguments
+          initializer: expression_3
             ListLiteral
               constKeyword: const @164
               typeArguments: TypeArgumentList
@@ -12654,19 +9354,17 @@ library
                 arguments
                   NamedType
                     name: List @171
-                    element: dart:core::<fragment>::@class::List
                     element2: dart:core::@class::List
                     type: List<dynamic>
                 rightBracket: > @175
               leftBracket: [ @176
               rightBracket: ] @177
               staticType: List<List<dynamic>>
-        static const vInterfaceWithTypeArguments @186
+          getter2: <testLibraryFragment>::@getter::vInterfaceNoTypeArguments
+        hasInitializer vInterfaceWithTypeArguments @186
           reference: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
-          enclosingElement3: <testLibraryFragment>
-          type: List<List<String>>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
+          initializer: expression_4
             ListLiteral
               constKeyword: const @216
               typeArguments: TypeArgumentList
@@ -12679,23 +9377,20 @@ library
                       arguments
                         NamedType
                           name: String @228
-                          element: dart:core::<fragment>::@class::String
                           element2: dart:core::@class::String
                           type: String
                       rightBracket: > @234
-                    element: dart:core::<fragment>::@class::List
                     element2: dart:core::@class::List
                     type: List<String>
                 rightBracket: > @235
               leftBracket: [ @236
               rightBracket: ] @237
               staticType: List<List<String>>
-        static const vInterfaceWithTypeArguments2 @246
+          getter2: <testLibraryFragment>::@getter::vInterfaceWithTypeArguments
+        hasInitializer vInterfaceWithTypeArguments2 @246
           reference: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments2
-          enclosingElement3: <testLibraryFragment>
-          type: List<Map<int, List<String>>>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments2
+          initializer: expression_5
             ListLiteral
               constKeyword: const @277
               typeArguments: TypeArgumentList
@@ -12708,7 +9403,6 @@ library
                       arguments
                         NamedType
                           name: int @288
-                          element: dart:core::<fragment>::@class::int
                           element2: dart:core::@class::int
                           type: int
                         NamedType
@@ -12718,76 +9412,18 @@ library
                             arguments
                               NamedType
                                 name: String @298
-                                element: dart:core::<fragment>::@class::String
                                 element2: dart:core::@class::String
                                 type: String
                             rightBracket: > @304
-                          element: dart:core::<fragment>::@class::List
                           element2: dart:core::@class::List
                           type: List<String>
                       rightBracket: > @305
-                    element: dart:core::<fragment>::@class::Map
                     element2: dart:core::@class::Map
                     type: Map<int, List<String>>
                 rightBracket: > @306
               leftBracket: [ @307
               rightBracket: ] @308
               staticType: List<Map<int, List<String>>>
-      accessors
-        synthetic static get vNull @-1
-          reference: <testLibraryFragment>::@getter::vNull
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<Null>
-        synthetic static get vDynamic @-1
-          reference: <testLibraryFragment>::@getter::vDynamic
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<dynamic>
-        synthetic static get vInterfaceNoTypeParameters @-1
-          reference: <testLibraryFragment>::@getter::vInterfaceNoTypeParameters
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<int>
-        synthetic static get vInterfaceNoTypeArguments @-1
-          reference: <testLibraryFragment>::@getter::vInterfaceNoTypeArguments
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<List<dynamic>>
-        synthetic static get vInterfaceWithTypeArguments @-1
-          reference: <testLibraryFragment>::@getter::vInterfaceWithTypeArguments
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<List<String>>
-        synthetic static get vInterfaceWithTypeArguments2 @-1
-          reference: <testLibraryFragment>::@getter::vInterfaceWithTypeArguments2
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<Map<int, List<String>>>
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer vNull @6
-          reference: <testLibraryFragment>::@topLevelVariable::vNull
-          element: <testLibrary>::@topLevelVariable::vNull
-          getter2: <testLibraryFragment>::@getter::vNull
-        hasInitializer vDynamic @36
-          reference: <testLibraryFragment>::@topLevelVariable::vDynamic
-          element: <testLibrary>::@topLevelVariable::vDynamic
-          getter2: <testLibraryFragment>::@getter::vDynamic
-        hasInitializer vInterfaceNoTypeParameters @79
-          reference: <testLibraryFragment>::@topLevelVariable::vInterfaceNoTypeParameters
-          element: <testLibrary>::@topLevelVariable::vInterfaceNoTypeParameters
-          getter2: <testLibraryFragment>::@getter::vInterfaceNoTypeParameters
-        hasInitializer vInterfaceNoTypeArguments @136
-          reference: <testLibraryFragment>::@topLevelVariable::vInterfaceNoTypeArguments
-          element: <testLibrary>::@topLevelVariable::vInterfaceNoTypeArguments
-          getter2: <testLibraryFragment>::@getter::vInterfaceNoTypeArguments
-        hasInitializer vInterfaceWithTypeArguments @186
-          reference: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
-          element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
-          getter2: <testLibraryFragment>::@getter::vInterfaceWithTypeArguments
-        hasInitializer vInterfaceWithTypeArguments2 @246
-          reference: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments2
-          element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments2
           getter2: <testLibraryFragment>::@getter::vInterfaceWithTypeArguments2
       getters
         synthetic get vNull
@@ -12813,31 +9449,49 @@ library
       reference: <testLibrary>::@topLevelVariable::vNull
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNull
       type: List<Null>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vNull
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::vNull#element
     const hasInitializer vDynamic
       reference: <testLibrary>::@topLevelVariable::vDynamic
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDynamic
       type: List<dynamic>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vDynamic
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::vDynamic#element
     const hasInitializer vInterfaceNoTypeParameters
       reference: <testLibrary>::@topLevelVariable::vInterfaceNoTypeParameters
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInterfaceNoTypeParameters
       type: List<int>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vInterfaceNoTypeParameters
+        expression: expression_2
       getter: <testLibraryFragment>::@getter::vInterfaceNoTypeParameters#element
     const hasInitializer vInterfaceNoTypeArguments
       reference: <testLibrary>::@topLevelVariable::vInterfaceNoTypeArguments
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInterfaceNoTypeArguments
       type: List<List<dynamic>>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vInterfaceNoTypeArguments
+        expression: expression_3
       getter: <testLibraryFragment>::@getter::vInterfaceNoTypeArguments#element
     const hasInitializer vInterfaceWithTypeArguments
       reference: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
       type: List<List<String>>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
+        expression: expression_4
       getter: <testLibraryFragment>::@getter::vInterfaceWithTypeArguments#element
     const hasInitializer vInterfaceWithTypeArguments2
       reference: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments2
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments2
       type: List<Map<int, List<String>>>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments2
+        expression: expression_5
       getter: <testLibraryFragment>::@getter::vInterfaceWithTypeArguments2#element
   getters
     synthetic static get vNull
@@ -12864,42 +9518,6 @@ const v = const <C>[];
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const v @23
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: List<C>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            ListLiteral
-              constKeyword: const @27
-              typeArguments: TypeArgumentList
-                leftBracket: < @33
-                arguments
-                  NamedType
-                    name: C @34
-                    element: package:test/a.dart::<fragment>::@class::C
-                    element2: package:test/a.dart::@class::C
-                    type: C
-                rightBracket: > @35
-              leftBracket: [ @36
-              rightBracket: ] @37
-              staticType: List<C>
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<C>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -12909,6 +9527,20 @@ library
         hasInitializer v @23
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            ListLiteral
+              constKeyword: const @27
+              typeArguments: TypeArgumentList
+                leftBracket: < @33
+                arguments
+                  NamedType
+                    name: C @34
+                    element2: package:test/a.dart::@class::C
+                    type: C
+                rightBracket: > @35
+              leftBracket: [ @36
+              rightBracket: ] @37
+              staticType: List<C>
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -12919,6 +9551,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: List<C>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -12935,51 +9570,6 @@ const v = const <p.C>[];
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as p @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        p @19
-          reference: <testLibraryFragment>::@prefix::p
-          enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        static const v @28
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: List<C>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            ListLiteral
-              constKeyword: const @32
-              typeArguments: TypeArgumentList
-                leftBracket: < @38
-                arguments
-                  NamedType
-                    importPrefix: ImportPrefixReference
-                      name: p @39
-                      period: . @40
-                      element: <testLibraryFragment>::@prefix::p
-                      element2: <testLibraryFragment>::@prefix2::p
-                    name: C @41
-                    element: package:test/a.dart::<fragment>::@class::C
-                    element2: package:test/a.dart::@class::C
-                    type: C
-                rightBracket: > @42
-              leftBracket: [ @43
-              rightBracket: ] @44
-              staticType: List<C>
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<C>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -12992,6 +9582,24 @@ library
         hasInitializer v @28
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            ListLiteral
+              constKeyword: const @32
+              typeArguments: TypeArgumentList
+                leftBracket: < @38
+                arguments
+                  NamedType
+                    importPrefix: ImportPrefixReference
+                      name: p @39
+                      period: . @40
+                      element2: <testLibraryFragment>::@prefix2::p
+                    name: C @41
+                    element2: package:test/a.dart::@class::C
+                    type: C
+                rightBracket: > @42
+              leftBracket: [ @43
+              rightBracket: ] @44
+              staticType: List<C>
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -13002,6 +9610,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: List<C>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -13017,49 +9628,6 @@ const v = const <F>[];
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @12
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: int Function(String)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional id @21
-                type: String
-            returnType: int
-      topLevelVariables
-        static const v @32
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: List<int Function(String)>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            ListLiteral
-              constKeyword: const @36
-              typeArguments: TypeArgumentList
-                leftBracket: < @42
-                arguments
-                  NamedType
-                    name: F @43
-                    element: <testLibraryFragment>::@typeAlias::F
-                    element2: <testLibrary>::@typeAlias::F
-                    type: int Function(String)
-                      alias: <testLibraryFragment>::@typeAlias::F
-                rightBracket: > @44
-              leftBracket: [ @45
-              rightBracket: ] @46
-              staticType: List<int Function(String)>
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<int Function(String)>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -13071,6 +9639,21 @@ library
         hasInitializer v @32
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            ListLiteral
+              constKeyword: const @36
+              typeArguments: TypeArgumentList
+                leftBracket: < @42
+                arguments
+                  NamedType
+                    name: F @43
+                    element2: <testLibrary>::@typeAlias::F
+                    type: int Function(String)
+                      alias: <testLibrary>::@typeAlias::F
+                rightBracket: > @44
+              leftBracket: [ @45
+              rightBracket: ] @46
+              staticType: List<int Function(String)>
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -13085,6 +9668,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: List<int Function(String)>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -13102,17 +9688,14 @@ const vInterfaceWithTypeArguments = const <int, List<String>>{};
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const vDynamic1 @6
+        hasInitializer vDynamic1 @6
           reference: <testLibraryFragment>::@topLevelVariable::vDynamic1
-          enclosingElement3: <testLibraryFragment>
-          type: Map<dynamic, int>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vDynamic1
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @18
               typeArguments: TypeArgumentList
@@ -13120,12 +9703,10 @@ library
                 arguments
                   NamedType
                     name: dynamic @25
-                    element: dynamic@-1
                     element2: dynamic
                     type: dynamic
                   NamedType
                     name: int @34
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @37
@@ -13133,12 +9714,11 @@ library
               rightBracket: } @39
               isMap: true
               staticType: Map<dynamic, int>
-        static const vDynamic2 @48
+          getter2: <testLibraryFragment>::@getter::vDynamic1
+        hasInitializer vDynamic2 @48
           reference: <testLibraryFragment>::@topLevelVariable::vDynamic2
-          enclosingElement3: <testLibraryFragment>
-          type: Map<int, dynamic>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vDynamic2
+          initializer: expression_1
             SetOrMapLiteral
               constKeyword: const @60
               typeArguments: TypeArgumentList
@@ -13146,12 +9726,10 @@ library
                 arguments
                   NamedType
                     name: int @67
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                   NamedType
                     name: dynamic @72
-                    element: dynamic@-1
                     element2: dynamic
                     type: dynamic
                 rightBracket: > @79
@@ -13159,12 +9737,11 @@ library
               rightBracket: } @81
               isMap: true
               staticType: Map<int, dynamic>
-        static const vInterface @90
+          getter2: <testLibraryFragment>::@getter::vDynamic2
+        hasInitializer vInterface @90
           reference: <testLibraryFragment>::@topLevelVariable::vInterface
-          enclosingElement3: <testLibraryFragment>
-          type: Map<int, String>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vInterface
+          initializer: expression_2
             SetOrMapLiteral
               constKeyword: const @103
               typeArguments: TypeArgumentList
@@ -13172,12 +9749,10 @@ library
                 arguments
                   NamedType
                     name: int @110
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                   NamedType
                     name: String @115
-                    element: dart:core::<fragment>::@class::String
                     element2: dart:core::@class::String
                     type: String
                 rightBracket: > @121
@@ -13185,12 +9760,11 @@ library
               rightBracket: } @123
               isMap: true
               staticType: Map<int, String>
-        static const vInterfaceWithTypeArguments @132
+          getter2: <testLibraryFragment>::@getter::vInterface
+        hasInitializer vInterfaceWithTypeArguments @132
           reference: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
-          enclosingElement3: <testLibraryFragment>
-          type: Map<int, List<String>>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
+          initializer: expression_3
             SetOrMapLiteral
               constKeyword: const @162
               typeArguments: TypeArgumentList
@@ -13198,7 +9772,6 @@ library
                 arguments
                   NamedType
                     name: int @169
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                   NamedType
@@ -13208,11 +9781,9 @@ library
                       arguments
                         NamedType
                           name: String @179
-                          element: dart:core::<fragment>::@class::String
                           element2: dart:core::@class::String
                           type: String
                       rightBracket: > @185
-                    element: dart:core::<fragment>::@class::List
                     element2: dart:core::@class::List
                     type: List<String>
                 rightBracket: > @186
@@ -13220,45 +9791,6 @@ library
               rightBracket: } @188
               isMap: true
               staticType: Map<int, List<String>>
-      accessors
-        synthetic static get vDynamic1 @-1
-          reference: <testLibraryFragment>::@getter::vDynamic1
-          enclosingElement3: <testLibraryFragment>
-          returnType: Map<dynamic, int>
-        synthetic static get vDynamic2 @-1
-          reference: <testLibraryFragment>::@getter::vDynamic2
-          enclosingElement3: <testLibraryFragment>
-          returnType: Map<int, dynamic>
-        synthetic static get vInterface @-1
-          reference: <testLibraryFragment>::@getter::vInterface
-          enclosingElement3: <testLibraryFragment>
-          returnType: Map<int, String>
-        synthetic static get vInterfaceWithTypeArguments @-1
-          reference: <testLibraryFragment>::@getter::vInterfaceWithTypeArguments
-          enclosingElement3: <testLibraryFragment>
-          returnType: Map<int, List<String>>
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer vDynamic1 @6
-          reference: <testLibraryFragment>::@topLevelVariable::vDynamic1
-          element: <testLibrary>::@topLevelVariable::vDynamic1
-          getter2: <testLibraryFragment>::@getter::vDynamic1
-        hasInitializer vDynamic2 @48
-          reference: <testLibraryFragment>::@topLevelVariable::vDynamic2
-          element: <testLibrary>::@topLevelVariable::vDynamic2
-          getter2: <testLibraryFragment>::@getter::vDynamic2
-        hasInitializer vInterface @90
-          reference: <testLibraryFragment>::@topLevelVariable::vInterface
-          element: <testLibrary>::@topLevelVariable::vInterface
-          getter2: <testLibraryFragment>::@getter::vInterface
-        hasInitializer vInterfaceWithTypeArguments @132
-          reference: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
-          element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
           getter2: <testLibraryFragment>::@getter::vInterfaceWithTypeArguments
       getters
         synthetic get vDynamic1
@@ -13278,21 +9810,33 @@ library
       reference: <testLibrary>::@topLevelVariable::vDynamic1
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDynamic1
       type: Map<dynamic, int>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vDynamic1
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::vDynamic1#element
     const hasInitializer vDynamic2
       reference: <testLibrary>::@topLevelVariable::vDynamic2
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDynamic2
       type: Map<int, dynamic>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vDynamic2
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::vDynamic2#element
     const hasInitializer vInterface
       reference: <testLibrary>::@topLevelVariable::vInterface
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInterface
       type: Map<int, String>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vInterface
+        expression: expression_2
       getter: <testLibraryFragment>::@getter::vInterface#element
     const hasInitializer vInterfaceWithTypeArguments
       reference: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
       type: Map<int, List<String>>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
+        expression: expression_3
       getter: <testLibraryFragment>::@getter::vInterfaceWithTypeArguments#element
   getters
     synthetic static get vDynamic1
@@ -13315,17 +9859,14 @@ const vInterfaceWithTypeArguments = const <List<String>>{};
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const vDynamic1 @6
+        hasInitializer vDynamic1 @6
           reference: <testLibraryFragment>::@topLevelVariable::vDynamic1
-          enclosingElement3: <testLibraryFragment>
-          type: Set<dynamic>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vDynamic1
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @18
               typeArguments: TypeArgumentList
@@ -13333,7 +9874,6 @@ library
                 arguments
                   NamedType
                     name: dynamic @25
-                    element: dynamic@-1
                     element2: dynamic
                     type: dynamic
                 rightBracket: > @32
@@ -13341,12 +9881,11 @@ library
               rightBracket: } @34
               isMap: false
               staticType: Set<dynamic>
-        static const vInterface @43
+          getter2: <testLibraryFragment>::@getter::vDynamic1
+        hasInitializer vInterface @43
           reference: <testLibraryFragment>::@topLevelVariable::vInterface
-          enclosingElement3: <testLibraryFragment>
-          type: Set<int>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vInterface
+          initializer: expression_1
             SetOrMapLiteral
               constKeyword: const @56
               typeArguments: TypeArgumentList
@@ -13354,7 +9893,6 @@ library
                 arguments
                   NamedType
                     name: int @63
-                    element: dart:core::<fragment>::@class::int
                     element2: dart:core::@class::int
                     type: int
                 rightBracket: > @66
@@ -13362,12 +9900,11 @@ library
               rightBracket: } @68
               isMap: false
               staticType: Set<int>
-        static const vInterfaceWithTypeArguments @77
+          getter2: <testLibraryFragment>::@getter::vInterface
+        hasInitializer vInterfaceWithTypeArguments @77
           reference: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
-          enclosingElement3: <testLibraryFragment>
-          type: Set<List<String>>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
+          initializer: expression_2
             SetOrMapLiteral
               constKeyword: const @107
               typeArguments: TypeArgumentList
@@ -13380,11 +9917,9 @@ library
                       arguments
                         NamedType
                           name: String @119
-                          element: dart:core::<fragment>::@class::String
                           element2: dart:core::@class::String
                           type: String
                       rightBracket: > @125
-                    element: dart:core::<fragment>::@class::List
                     element2: dart:core::@class::List
                     type: List<String>
                 rightBracket: > @126
@@ -13392,37 +9927,6 @@ library
               rightBracket: } @128
               isMap: false
               staticType: Set<List<String>>
-      accessors
-        synthetic static get vDynamic1 @-1
-          reference: <testLibraryFragment>::@getter::vDynamic1
-          enclosingElement3: <testLibraryFragment>
-          returnType: Set<dynamic>
-        synthetic static get vInterface @-1
-          reference: <testLibraryFragment>::@getter::vInterface
-          enclosingElement3: <testLibraryFragment>
-          returnType: Set<int>
-        synthetic static get vInterfaceWithTypeArguments @-1
-          reference: <testLibraryFragment>::@getter::vInterfaceWithTypeArguments
-          enclosingElement3: <testLibraryFragment>
-          returnType: Set<List<String>>
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer vDynamic1 @6
-          reference: <testLibraryFragment>::@topLevelVariable::vDynamic1
-          element: <testLibrary>::@topLevelVariable::vDynamic1
-          getter2: <testLibraryFragment>::@getter::vDynamic1
-        hasInitializer vInterface @43
-          reference: <testLibraryFragment>::@topLevelVariable::vInterface
-          element: <testLibrary>::@topLevelVariable::vInterface
-          getter2: <testLibraryFragment>::@getter::vInterface
-        hasInitializer vInterfaceWithTypeArguments @77
-          reference: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
-          element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
           getter2: <testLibraryFragment>::@getter::vInterfaceWithTypeArguments
       getters
         synthetic get vDynamic1
@@ -13439,16 +9943,25 @@ library
       reference: <testLibrary>::@topLevelVariable::vDynamic1
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDynamic1
       type: Set<dynamic>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vDynamic1
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::vDynamic1#element
     const hasInitializer vInterface
       reference: <testLibrary>::@topLevelVariable::vInterface
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInterface
       type: Set<int>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vInterface
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::vInterface#element
     const hasInitializer vInterfaceWithTypeArguments
       reference: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
       type: Set<List<String>>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
+        expression: expression_2
       getter: <testLibraryFragment>::@getter::vInterfaceWithTypeArguments#element
   getters
     synthetic static get vDynamic1
@@ -13467,17 +9980,14 @@ const v = const [1, 2, 3];
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const v @6
+        hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: List<int>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
             ListLiteral
               constKeyword: const @10
               leftBracket: [ @16
@@ -13493,21 +10003,6 @@ library
                   staticType: int
               rightBracket: ] @24
               staticType: List<int>
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<int>
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer v @6
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -13518,6 +10013,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: List<int>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -13532,17 +10030,14 @@ const v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const v @6
+        hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: Map<int, String>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @10
               leftBracket: { @16
@@ -13571,21 +10066,6 @@ library
               rightBracket: } @45
               isMap: true
               staticType: Map<int, String>
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: Map<int, String>
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer v @6
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -13596,6 +10076,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: Map<int, String>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -13610,17 +10093,14 @@ const v = const {0, 1, 2};
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const v @6
+        hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: Set<int>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @10
               leftBracket: { @16
@@ -13637,21 +10117,6 @@ library
               rightBracket: } @24
               isMap: false
               staticType: Set<int>
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: Set<int>
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer v @6
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -13662,6 +10127,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: Set<int>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -13676,17 +10144,14 @@ const v = List<int>;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
+  fragments
     <testLibraryFragment>
-      enclosingElement3: <null>
+      element: <testLibrary>
       topLevelVariables
-        static const v @6
+        hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
             TypeLiteral
               type: NamedType
                 name: List @10
@@ -13695,29 +10160,12 @@ library
                   arguments
                     NamedType
                       name: int @15
-                      element: dart:core::<fragment>::@class::int
                       element2: dart:core::@class::int
                       type: int
                   rightBracket: > @18
-                element: dart:core::<fragment>::@class::List
                 element2: dart:core::@class::List
                 type: List<int>
               staticType: Type
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        hasInitializer v @6
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -13728,6 +10176,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -13745,151 +10196,6 @@ final vIndex = E.a.index;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      enums
-        enum E @5
-          reference: <testLibraryFragment>::@enum::E
-          enclosingElement3: <testLibraryFragment>
-          supertype: Enum
-          fields
-            static const enumConstant a @8
-              reference: <testLibraryFragment>::@enum::E::@field::a
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-            static const enumConstant b @11
-              reference: <testLibraryFragment>::@enum::E::@field::b
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-            static const enumConstant c @14
-              reference: <testLibraryFragment>::@enum::E::@field::c
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-            synthetic static const values @-1
-              reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: List<E>
-              constantInitializer
-                ListLiteral
-                  leftBracket: [ @0
-                  elements
-                    SimpleIdentifier
-                      token: a @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::a
-                      element: <testLibraryFragment>::@enum::E::@getter::a#element
-                      staticType: E
-                    SimpleIdentifier
-                      token: b @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::b
-                      element: <testLibraryFragment>::@enum::E::@getter::b#element
-                      staticType: E
-                    SimpleIdentifier
-                      token: c @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::c
-                      element: <testLibraryFragment>::@enum::E::@getter::c#element
-                      staticType: E
-                  rightBracket: ] @0
-                  staticType: List<E>
-          constructors
-            synthetic const @-1
-              reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@enum::E
-          accessors
-            synthetic static get a @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::a
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-            synthetic static get b @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::b
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-            synthetic static get c @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::c
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-            synthetic static get values @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: List<E>
-      topLevelVariables
-        static final vValue @23
-          reference: <testLibraryFragment>::@topLevelVariable::vValue
-          enclosingElement3: <testLibraryFragment>
-          type: E
-          shouldUseTypeForInitializerInference: false
-        static final vValues @43
-          reference: <testLibraryFragment>::@topLevelVariable::vValues
-          enclosingElement3: <testLibraryFragment>
-          type: List<E>
-          shouldUseTypeForInitializerInference: false
-        static final vIndex @69
-          reference: <testLibraryFragment>::@topLevelVariable::vIndex
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get vValue @-1
-          reference: <testLibraryFragment>::@getter::vValue
-          enclosingElement3: <testLibraryFragment>
-          returnType: E
-        synthetic static get vValues @-1
-          reference: <testLibraryFragment>::@getter::vValues
-          enclosingElement3: <testLibraryFragment>
-          returnType: List<E>
-        synthetic static get vIndex @-1
-          reference: <testLibraryFragment>::@getter::vIndex
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -13901,18 +10207,72 @@ library
             hasInitializer a @8
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::a
             hasInitializer b @11
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
+              initializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::b
             hasInitializer c @14
               reference: <testLibraryFragment>::@enum::E::@field::c
               element: <testLibraryFragment>::@enum::E::@field::c#element
+              initializer: expression_2
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::c
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
+              initializer: expression_3
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: a @-1
+                      element: <testLibraryFragment>::@enum::E::@getter::a#element
+                      staticType: E
+                    SimpleIdentifier
+                      token: b @-1
+                      element: <testLibraryFragment>::@enum::E::@getter::b#element
+                      staticType: E
+                    SimpleIdentifier
+                      token: c @-1
+                      element: <testLibraryFragment>::@enum::E::@getter::c#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
             synthetic const new
@@ -13964,18 +10324,30 @@ library
         static const enumConstant hasInitializer a
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::a
+            expression: expression_0
           getter: <testLibraryFragment>::@enum::E::@getter::a#element
         static const enumConstant hasInitializer b
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::b
+            expression: expression_1
           getter: <testLibraryFragment>::@enum::E::@getter::b#element
         static const enumConstant hasInitializer c
           firstFragment: <testLibraryFragment>::@enum::E::@field::c
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::c
+            expression: expression_2
           getter: <testLibraryFragment>::@enum::E::@getter::c#element
         synthetic static const values
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
           type: List<E>
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::values
+            expression: expression_3
           getter: <testLibraryFragment>::@enum::E::@getter::values#element
       constructors
         synthetic const new
@@ -14023,77 +10395,6 @@ final vToString = E.a.toString();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      enums
-        enum E @5
-          reference: <testLibraryFragment>::@enum::E
-          enclosingElement3: <testLibraryFragment>
-          supertype: Enum
-          fields
-            static const enumConstant a @8
-              reference: <testLibraryFragment>::@enum::E::@field::a
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-            synthetic static const values @-1
-              reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: List<E>
-              constantInitializer
-                ListLiteral
-                  leftBracket: [ @0
-                  elements
-                    SimpleIdentifier
-                      token: a @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::a
-                      element: <testLibraryFragment>::@enum::E::@getter::a#element
-                      staticType: E
-                  rightBracket: ] @0
-                  staticType: List<E>
-          constructors
-            synthetic const @-1
-              reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@enum::E
-          accessors
-            synthetic static get a @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::a
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-            synthetic static get values @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: List<E>
-      topLevelVariables
-        static final vToString @17
-          reference: <testLibraryFragment>::@topLevelVariable::vToString
-          enclosingElement3: <testLibraryFragment>
-          type: String
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get vToString @-1
-          reference: <testLibraryFragment>::@getter::vToString
-          enclosingElement3: <testLibraryFragment>
-          returnType: String
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -14105,10 +10406,32 @@ library
             hasInitializer a @8
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::a
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: a @-1
+                      element: <testLibraryFragment>::@enum::E::@getter::a#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
             synthetic const new
@@ -14140,10 +10463,16 @@ library
         static const enumConstant hasInitializer a
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::a
+            expression: expression_0
           getter: <testLibraryFragment>::@enum::E::@getter::a#element
         synthetic static const values
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
           type: List<E>
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::values
+            expression: expression_1
           getter: <testLibraryFragment>::@enum::E::@getter::values#element
       constructors
         synthetic const new
@@ -14175,51 +10504,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            static const a @25
-              reference: <testLibraryFragment>::@class::C::@field::a
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: dynamic
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                SimpleIdentifier
-                  token: b @29
-                  staticElement: <testLibraryFragment>::@class::C::@getter::b
-                  element: <testLibraryFragment>::@class::C::@getter::b#element
-                  staticType: dynamic
-            static const b @47
-              reference: <testLibraryFragment>::@class::C::@field::b
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: dynamic
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                NullLiteral
-                  literal: null @51
-                  staticType: Null
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic static get a @-1
-              reference: <testLibraryFragment>::@class::C::@getter::a
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: dynamic
-            synthetic static get b @-1
-              reference: <testLibraryFragment>::@class::C::@getter::b
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -14231,10 +10515,19 @@ library
             hasInitializer a @25
               reference: <testLibraryFragment>::@class::C::@field::a
               element: <testLibraryFragment>::@class::C::@field::a#element
+              initializer: expression_0
+                SimpleIdentifier
+                  token: b @29
+                  element: <testLibraryFragment>::@class::C::@getter::b#element
+                  staticType: dynamic
               getter2: <testLibraryFragment>::@class::C::@getter::a
             hasInitializer b @47
               reference: <testLibraryFragment>::@class::C::@field::b
               element: <testLibraryFragment>::@class::C::@field::b#element
+              initializer: expression_1
+                NullLiteral
+                  literal: null @51
+                  staticType: Null
               getter2: <testLibraryFragment>::@class::C::@getter::b
           constructors
             synthetic new
@@ -14256,10 +10549,16 @@ library
         static const hasInitializer a
           firstFragment: <testLibraryFragment>::@class::C::@field::a
           type: dynamic
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::C::@field::a
+            expression: expression_0
           getter: <testLibraryFragment>::@class::C::@getter::a#element
         static const hasInitializer b
           firstFragment: <testLibraryFragment>::@class::C::@field::b
           type: dynamic
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::C::@field::b
+            expression: expression_1
           getter: <testLibraryFragment>::@class::C::@getter::b#element
       constructors
         synthetic new
@@ -14282,43 +10581,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            static const a @25
-              reference: <testLibraryFragment>::@class::C::@field::a
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: dynamic Function()
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                SimpleIdentifier
-                  token: m @29
-                  staticElement: <testLibraryFragment>::@class::C::@method::m
-                  element: <testLibraryFragment>::@class::C::@method::m#element
-                  staticType: dynamic Function()
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic static get a @-1
-              reference: <testLibraryFragment>::@class::C::@getter::a
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: dynamic Function()
-          methods
-            static m @41
-              reference: <testLibraryFragment>::@class::C::@method::m
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -14330,6 +10592,11 @@ library
             hasInitializer a @25
               reference: <testLibraryFragment>::@class::C::@field::a
               element: <testLibraryFragment>::@class::C::@field::a#element
+              initializer: expression_0
+                SimpleIdentifier
+                  token: m @29
+                  element: <testLibraryFragment>::@class::C::@method::m#element
+                  staticType: dynamic Function()
               getter2: <testLibraryFragment>::@class::C::@getter::a
           constructors
             synthetic new
@@ -14352,6 +10619,9 @@ library
         static const hasInitializer a
           firstFragment: <testLibraryFragment>::@class::C::@field::a
           type: dynamic Function()
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::C::@field::a
+            expression: expression_0
           getter: <testLibraryFragment>::@class::C::@getter::a#element
       constructors
         synthetic new
@@ -14361,7 +10631,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@getter::a
       methods
         static m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }

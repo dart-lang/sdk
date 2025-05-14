@@ -210,7 +210,7 @@ abstract final class DartFixKind {
   static const ADD_MISSING_REQUIRED_ARGUMENT = FixKind(
     'dart.fix.add.missingRequiredArgument',
     70,
-    "Add required argument '{0}'",
+    'Add {0} required argument{1}',
   );
   static const ADD_MISSING_SWITCH_CASES = FixKind(
     'dart.fix.add.missingSwitchCases',
@@ -387,6 +387,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Convert to block body everywhere in file',
   );
+  static const CONVERT_INTO_GETTER = FixKind(
+    'dart.fix.convert.getter',
+    DartFixKindPriority.standard,
+    "Convert '{0}' to a getter",
+  );
   static const CONVERT_FOR_EACH_TO_FOR_LOOP = FixKind(
     'dart.fix.convert.toForLoop',
     DartFixKindPriority.standard,
@@ -407,6 +412,17 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Convert to expression bodies everywhere in file',
   );
+  static const CONVERT_NULL_CHECK_TO_NULL_AWARE_ELEMENT_OR_ENTRY = FixKind(
+    'dart.fix.convert.nullCheckToNullAwareElement',
+    DartFixKindPriority.standard,
+    'Convert null check to null-aware element',
+  );
+  static const CONVERT_NULL_CHECK_TO_NULL_AWARE_ELEMENT_OR_ENTRY_MULTI =
+      FixKind(
+        'dart.fix.convert.nullCheckToNullAwareElement.multi',
+        DartFixKindPriority.inFile,
+        'Convert null check to null-aware element in file',
+      );
   static const CONVERT_QUOTES = FixKind(
     'dart.fix.convert.quotes',
     DartFixKindPriority.standard,
@@ -577,6 +593,26 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     "Convert to use '?.'",
   );
+  static const CONVERT_TO_NULL_AWARE_LIST_ELEMENT = FixKind(
+    'dart.fix.convert.toNullAwareListElement',
+    DartFixKindPriority.standard,
+    "Convert to use '?'",
+  );
+  static const CONVERT_TO_NULL_AWARE_MAP_ENTRY_KEY = FixKind(
+    'dart.fix.convert.toNullAwareMapEntryKey',
+    DartFixKindPriority.standard,
+    "Convert to use '?'",
+  );
+  static const CONVERT_TO_NULL_AWARE_MAP_ENTRY_VALUE = FixKind(
+    'dart.fix.convert.toNullAwareMayEntryValue',
+    DartFixKindPriority.standard,
+    "Convert to use '?'",
+  );
+  static const CONVERT_TO_NULL_AWARE_SET_ELEMENT = FixKind(
+    'dart.fix.convert.toNullAwareSetElement',
+    DartFixKindPriority.standard,
+    "Convert to use '?'",
+  );
   static const CONVERT_TO_NULL_AWARE_MULTI = FixKind(
     'dart.fix.convert.toNullAware.multi',
     DartFixKindPriority.inFile,
@@ -722,6 +758,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard - 20,
     "Create extension method '{0}'",
   );
+  static const CREATE_EXTENSION_OPERATOR = FixKind(
+    'dart.fix.create.extension.operator',
+    DartFixKindPriority.standard - 20,
+    "Create extension operator '{0}'",
+  );
   static const CREATE_EXTENSION_SETTER = FixKind(
     'dart.fix.create.extension.setter',
     DartFixKindPriority.standard - 20,
@@ -804,21 +845,6 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Extract local variable',
   );
-  static const IGNORE_ERROR_LINE = FixKind(
-    'dart.fix.ignore.line',
-    DartFixKindPriority.ignore,
-    "Ignore '{0}' for this line",
-  );
-  static const IGNORE_ERROR_FILE = FixKind(
-    'dart.fix.ignore.file',
-    DartFixKindPriority.ignore - 1,
-    "Ignore '{0}' for the whole file",
-  );
-  static const IGNORE_ERROR_ANALYSIS_FILE = FixKind(
-    'dart.fix.ignore.analysis',
-    DartFixKindPriority.ignore - 2,
-    "Ignore '{0}' in `analysis_options.yaml`",
-  );
   static const IMPORT_ASYNC = FixKind(
     'dart.fix.import.async',
     49,
@@ -827,7 +853,17 @@ abstract final class DartFixKind {
   static const IMPORT_LIBRARY_COMBINATOR = FixKind(
     'dart.fix.import.libraryCombinator',
     DartFixKindPriority.standard + 5,
-    "Update library '{0}' import",
+    "Import '{0}' from {1}",
+  );
+  static const IMPORT_LIBRARY_COMBINATOR_MULTIPLE = FixKind(
+    'dart.fix.import.libraryCombinatorMultiple',
+    DartFixKindPriority.standard + 5,
+    "Import '{0}' and {1} other{2} from {3}",
+  );
+  static const IMPORT_LIBRARY_HIDE = FixKind(
+    'dart.fix.import.libraryHide',
+    DartFixKindPriority.standard,
+    "Hide others to use '{0}' from '{1}'{2}",
   );
   static const IMPORT_LIBRARY_PREFIX = FixKind(
     'dart.fix.import.libraryPrefix',
@@ -894,6 +930,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 1,
     "Import library '{0}' with 'show'",
   );
+  static const IMPORT_LIBRARY_REMOVE_SHOW = FixKind(
+    'dart.fix.import.libraryRemoveShow',
+    DartFixKindPriority.standard - 1,
+    "Remove show to use '{0}' from '{1}'{2}",
+  );
   static const IMPORT_LIBRARY_SDK = FixKind(
     'dart.fix.import.librarySdk',
     DartFixKindPriority.standard + 4,
@@ -904,15 +945,15 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 4,
     "Import library '{0}' with prefix '{1}'",
   );
-  static const IMPORT_LIBRARY_SDK_PREFIXED_SHOW = FixKind(
-    'dart.fix.import.librarySdkPrefixedShow',
-    DartFixKindPriority.standard + 4,
-    "Import library '{0}' with prefix '{1}' and 'show'",
-  );
   static const IMPORT_LIBRARY_SDK_SHOW = FixKind(
     'dart.fix.import.librarySdkShow',
     DartFixKindPriority.standard + 4,
     "Import library '{0}' with 'show'",
+  );
+  static const IMPORT_LIBRARY_SDK_PREFIXED_SHOW = FixKind(
+    'dart.fix.import.librarySdkPrefixedShow',
+    DartFixKindPriority.standard + 4,
+    "Import library '{0}' with prefix '{1}' and 'show'",
   );
   static const INLINE_INVOCATION = FixKind(
     'dart.fix.inlineInvocation',
@@ -979,7 +1020,6 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Make final',
   );
-
   // TODO(pq): consider parameterizing: 'Make {fields} final...'
   static const MAKE_FINAL_MULTI = FixKind(
     'dart.fix.makeFinal.multi',
@@ -1030,6 +1070,38 @@ abstract final class DartFixKind {
     'dart.fix.matchEmptyMap',
     DartFixKindPriority.standard,
     'Match an empty map',
+  );
+
+  /// Used when the user has at least one `show` combinator to suggest merging
+  /// using `show`.
+  static const MERGE_COMBINATORS_SHOW_SHOW = FixKind(
+    'dart.fix.mergeCombinatorsShow.show',
+    DartFixKindPriority.standard + 1,
+    "Merge combinators into a single 'show'",
+  );
+
+  /// Used when the user has only `hide` combinators to suggest merging using
+  /// `show`.
+  static const MERGE_COMBINATORS_SHOW_HIDE = FixKind(
+    'dart.fix.mergeCombinatorsShow.hide',
+    DartFixKindPriority.standard,
+    "Merge combinators into a single 'show'",
+  );
+
+  /// Used when the user has only `hide` combinators to suggest merging using
+  /// `hide`.
+  static const MERGE_COMBINATORS_HIDE_HIDE = FixKind(
+    'dart.fix.mergeCombinatorsHide.hide',
+    DartFixKindPriority.standard + 1,
+    "Merge combinators into a single 'hide'",
+  );
+
+  /// Used when the user has at least one `show` combinator to suggest merging
+  /// using `hide`.
+  static const MERGE_COMBINATORS_HIDE_SHOW = FixKind(
+    'dart.fix.mergeCombinatorsHide.show',
+    DartFixKindPriority.standard,
+    "Merge combinators into a single 'hide'",
   );
   static const MOVE_ANNOTATION_TO_LIBRARY_DIRECTIVE = FixKind(
     'dart.fix.moveAnnotationToLibraryDirective',
@@ -1102,22 +1174,22 @@ abstract final class DartFixKind {
   static const REMOVE_AWAIT = FixKind(
     'dart.fix.remove.await',
     DartFixKindPriority.standard,
-    'Remove await',
+    "Remove 'await'",
   );
   static const REMOVE_AWAIT_MULTI = FixKind(
     'dart.fix.remove.await.multi',
     DartFixKindPriority.inFile,
-    'Remove awaits in file',
+    "Remove 'await's in file",
   );
   static const REMOVE_BREAK = FixKind(
     'dart.fix.remove.break',
     DartFixKindPriority.standard,
-    'Remove break',
+    "Remove 'break'",
   );
   static const REMOVE_BREAK_MULTI = FixKind(
     'dart.fix.remove.break.multi',
     DartFixKindPriority.inFile,
-    'Remove unnecessary breaks in file',
+    "Remove unnecessary 'break's in file",
   );
   static const REMOVE_CHARACTER = FixKind(
     'dart.fix.remove.character',
@@ -1134,6 +1206,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Remove {0}commas from {1} everywhere in file',
   );
+  static const REMOVE_COMMENT = FixKind(
+    'dart.fix.remove.comment',
+    DartFixKindPriority.standard,
+    'Remove the comment',
+  );
   static const REMOVE_COMPARISON = FixKind(
     'dart.fix.remove.comparison',
     DartFixKindPriority.standard,
@@ -1147,7 +1224,7 @@ abstract final class DartFixKind {
   static const REMOVE_CONST = FixKind(
     'dart.fix.remove.const',
     DartFixKindPriority.standard,
-    'Remove const',
+    "Remove 'const'",
   );
   static const REMOVE_CONSTRUCTOR = FixKind(
     'dart.fix.remove.constructor',
@@ -1177,12 +1254,12 @@ abstract final class DartFixKind {
   static const REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE = FixKind(
     'dart.fix.remove.deprecatedNewInCommentReference',
     DartFixKindPriority.standard,
-    'Remove deprecated new keyword',
+    "Remove deprecated 'new' keyword",
   );
   static const REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE_MULTI = FixKind(
     'dart.fix.remove.deprecatedNewInCommentReference.multi',
     DartFixKindPriority.inFile,
-    'Remove deprecated new keyword in file',
+    "Remove deprecated 'new' keyword in file",
   );
   static const REMOVE_DUPLICATE_CASE = FixKind(
     'dart.fix.remove.duplicateCase',
@@ -1265,6 +1342,16 @@ abstract final class DartFixKind {
     'dart.fix.remove.ifNullOperator.multi',
     DartFixKindPriority.inFile,
     "Remove unnecessary '??' operators everywhere in file",
+  );
+  static const REMOVE_IGNORED_DIAGNOSTIC = FixKind(
+    'dart.fix.remove.ignored.diagnostic',
+    DartFixKindPriority.standard,
+    'Remove {0}',
+  );
+  static const REMOVE_IGNORED_DIAGNOSTIC_MULTI = FixKind(
+    'dart.fix.remove.ignored.diagnostic.multi',
+    DartFixKindPriority.inFile,
+    'Remove unnecessary ignored diagnostics everywhere in file',
   );
   static const REMOVE_INVOCATION = FixKind(
     'dart.fix.remove.invocation',
@@ -1491,7 +1578,7 @@ abstract final class DartFixKind {
   static const REMOVE_UNNECESSARY_CONST = FixKind(
     'dart.fix.remove.unnecessaryConst',
     DartFixKindPriority.standard,
-    'Remove unnecessary const keyword',
+    "Remove unnecessary 'const' keyword",
   );
   static const REMOVE_UNNECESSARY_CONST_MULTI = FixKind(
     'dart.fix.remove.unnecessaryConst.multi',
@@ -1507,6 +1594,16 @@ abstract final class DartFixKind {
     'dart.fix.remove.unnecessaryContainer.multi',
     DartFixKindPriority.inFile,
     "Remove unnecessary 'Container's in file",
+  );
+  static const REMOVE_UNNECESSARY_IGNORE_COMMENT = FixKind(
+    'dart.fix.remove.ignore.comment',
+    DartFixKindPriority.standard,
+    'Remove unnecessary ignore comment',
+  );
+  static const REMOVE_UNNECESSARY_IGNORE_COMMENT_MULTI = FixKind(
+    'dart.fix.remove.ignore.comment.multi',
+    DartFixKindPriority.inFile,
+    'Remove unnecessary ignore comments everywhere in file',
   );
   static const REMOVE_UNNECESSARY_LATE = FixKind(
     'dart.fix.remove.unnecessaryLate',
@@ -1934,6 +2031,16 @@ abstract final class DartFixKind {
     'dart.fix.replace.withNotNullAware',
     DartFixKindPriority.standard,
     "Replace with '{0}'",
+  );
+  static const REPLACE_WITH_NOT_NULL_AWARE_ELEMENT_OR_ENTRY = FixKind(
+    'dart.fix.replace.withNotNullAwareElementOrEntry',
+    DartFixKindPriority.standard,
+    "Remove the '?'",
+  );
+  static const REPLACE_WITH_NOT_NULL_AWARE_ELEMENT_OR_ENTRY_MULTI = FixKind(
+    'dart.fix.replace.withNotNullAwareElementOrEntry.multi',
+    DartFixKindPriority.inFile,
+    "Remove the '?' everywhere in file",
   );
   static const REPLACE_WITH_NOT_NULL_AWARE_MULTI = FixKind(
     'dart.fix.replace.withNotNullAware.multi',

@@ -32,8 +32,8 @@ typedef F6<T> = int Function(List<T>) Function();
 typedef F7<T> = Function Function(int, [Function]) Function();
 typedef F8<T> = Function Function(int, {core.List<core.int> x}) Function();
 typedef F9<T> = List<Function> Function(Function x) Function();
-typedef F10<T> = List<Function> Function(int y, [core.List<core.int> x])
-    Function();
+typedef F10<T> =
+    List<Function> Function(int y, [core.List<core.int> x]) Function();
 typedef F11<T> = core.List<core.int> Function([int]) Function();
 typedef F12<T> = core.List<core.int> Function({List<Function> x}) Function();
 typedef F13<T> = core.List<core.int> Function() Function();
@@ -102,7 +102,7 @@ class U56<T> {
   late List<A> Function<A>(int x) Function() x22;
 
   U56({this.tIsBool = false, this.tIsInt = false})
-      : tIsDynamic = !tIsBool && !tIsInt;
+    : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0(int x) => throw 'uncalled';
   List<Function> m1(List<T> x) => throw 'uncalled';
@@ -438,7 +438,8 @@ class U56<T> {
 
     Expect.isTrue(m8 is F8<T>);
     Expect.isTrue(
-        m8 is Function Function(int, {core.List<core.int> x}) Function());
+      m8 is Function Function(int, {core.List<core.int> x}) Function(),
+    );
     Expect.isTrue(confuse(m8) is F8<T>);
     // In checked mode, verifies the type.
     x8 = m8;
@@ -486,8 +487,9 @@ class U56<T> {
     }
 
     Expect.isTrue(m10 is F10<T>);
-    Expect.isTrue(m10 is List<Function> Function(int y, [core.List<core.int> x])
-        Function());
+    Expect.isTrue(
+      m10 is List<Function> Function(int y, [core.List<core.int> x]) Function(),
+    );
     Expect.isTrue(confuse(m10) is F10<T>);
     // In checked mode, verifies the type.
     x10 = m10;
@@ -536,7 +538,8 @@ class U56<T> {
 
     Expect.isTrue(m12 is F12<T>);
     Expect.isTrue(
-        m12 is core.List<core.int> Function({List<Function> x}) Function());
+      m12 is core.List<core.int> Function({List<Function> x}) Function(),
+    );
     Expect.isTrue(confuse(m12) is F12<T>);
     // In checked mode, verifies the type.
     x12 = m12;

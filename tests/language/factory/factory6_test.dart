@@ -16,7 +16,6 @@ class LinkFactory<T> {
   //                          ^^^
   // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_NON_CLASS
   // [cfe] Couldn't find constructor 'Foo'.
-  //                          ^
   // [cfe] Redirection constructor target not found: 'Foo'
 }
 

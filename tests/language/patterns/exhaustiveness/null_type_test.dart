@@ -22,8 +22,8 @@ void test(int? maybeInt) {
   result = switch (maybeInt) {
     null => 'null',
     Null _ => 'null',
-//         ^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+    //     ^^
+    // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
     int _ => 'int',
   };
 
@@ -31,8 +31,8 @@ void test(int? maybeInt) {
   result = switch (maybeInt) {
     Null _ => 'null',
     null => 'null',
-//       ^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+    //   ^^
+    // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
     int _ => 'int',
   };
 

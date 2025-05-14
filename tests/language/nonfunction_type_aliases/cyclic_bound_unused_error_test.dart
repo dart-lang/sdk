@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // This test verifies that cyclic type alias definitions cause a compile-time
 // error, when the cycle occurs via the bound, even if the bound variable is not
 // used in the expansion.

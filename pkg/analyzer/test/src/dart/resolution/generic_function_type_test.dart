@@ -62,10 +62,8 @@ TypeParameter
       atSign: @
       name: SimpleIdentifier
         token: a
-        staticElement: <testLibraryFragment>::@getter::a
         element: <testLibraryFragment>::@getter::a#element
         staticType: null
-      element: <testLibraryFragment>::@getter::a
       element2: <testLibraryFragment>::@getter::a#element
   name: T
   declaredElement: T@27

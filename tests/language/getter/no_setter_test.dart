@@ -10,26 +10,25 @@ class Example {
   static int get nextVar => _var++;
   Example() {
     nextVar = 1;
-//  ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'nextVar'.
+    // [error column 5, length 7]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'nextVar'.
     this.nextVar = 1;
     //   ^^^^^^^
-    // [cfe] The setter 'nextVar' isn't defined for the class 'Example'.
-    //   ^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] The setter 'nextVar' isn't defined for the class 'Example'.
   }
   static test() {
     nextVar = 0;
-//  ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'nextVar'.
+    // [error column 5, length 7]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'nextVar'.
     this.nextVar = 0;
-//  ^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
-// [cfe] Expected identifier, but got 'this'.
-//       ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [error column 5, length 4]
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
+    // [cfe] Expected identifier, but got 'this'.
+    //   ^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
   }
 }
 

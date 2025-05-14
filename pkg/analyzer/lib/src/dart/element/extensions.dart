@@ -2,24 +2,58 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:meta/meta_meta.dart';
 
 extension DartTypeExtension on DartType {
   bool get isExtensionType {
-    return element is ExtensionTypeElement;
+    return element3 is ExtensionTypeElement2;
   }
 }
 
 extension Element2Extension on Element2 {
+  TypeImpl? get firstParameterType {
+    var self = this;
+    if (self is MethodElement2OrMember) {
+      return self.formalParameters.firstOrNull?.type;
+    }
+    return null;
+  }
+
+  /// Return `true` if this element, the enclosing class (if there is one), or
+  /// the enclosing library, has been annotated with the `@doNotStore`
+  /// annotation.
+  bool get hasOrInheritsDoNotStore {
+    if (this case Annotatable annotatable) {
+      if (annotatable.metadata2.hasDoNotStore) {
+        return true;
+      }
+    }
+
+    var ancestor = enclosingElement2;
+    if (ancestor is InterfaceElement2) {
+      if (ancestor.metadata2.hasDoNotStore) {
+        return true;
+      }
+      ancestor = ancestor.enclosingElement2;
+    } else if (ancestor is ExtensionElement2) {
+      if (ancestor.metadata2.hasDoNotStore) {
+        return true;
+      }
+      ancestor = ancestor.enclosingElement2;
+    }
+
+    return ancestor is LibraryElement2 && ancestor.metadata2.hasDoNotStore;
+  }
+
   /// Return `true` if this element is an instance member of a class or mixin.
   ///
   /// Only [MethodElement2]s, [GetterElement]s, and  [SetterElement]s are
@@ -45,13 +79,21 @@ extension Element2Extension on Element2 {
   /// Whether this element is a wildcard variable.
   bool get isWildcardVariable {
     return name3 == '_' &&
-        (this is LocalVariableElement2 ||
+        (this is LocalFunctionElement ||
+            this is LocalVariableElement2 ||
             this is PrefixElement2 ||
             this is TypeParameterElement2 ||
             (this is FormalParameterElement &&
                 this is! FieldFormalParameterElement2 &&
                 this is! SuperFormalParameterElement2)) &&
-        library2.hasWildcardVariablesFeatureEnabled2;
+        library2.hasWildcardVariablesFeatureEnabled;
+  }
+}
+
+extension Element2OrNullExtension on Element2? {
+  /// Return true if this element is a wildcard variable.
+  bool get isWildcardVariable {
+    return this?.isWildcardVariable ?? false;
   }
 }
 
@@ -62,17 +104,16 @@ extension ElementAnnotationExtensions on ElementAnnotation {
 
   /// Return the target kinds defined for this [ElementAnnotation].
   Set<TargetKind> get targetKinds {
-    var element = this.element;
-    InterfaceElement? interfaceElement;
-    if (element is PropertyAccessorElement) {
-      if (element.isGetter) {
-        var type = element.returnType;
-        if (type is InterfaceType) {
-          interfaceElement = type.element;
-        }
+    var element = element2;
+    InterfaceElement2? interfaceElement;
+
+    if (element is GetterElement) {
+      var type = element.returnType;
+      if (type is InterfaceType) {
+        interfaceElement = type.element3;
       }
-    } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement3.augmented.firstFragment;
+    } else if (element is ConstructorElement2) {
+      interfaceElement = element.enclosingElement2;
     }
     if (interfaceElement == null) {
       return const <TargetKind>{};
@@ -104,86 +145,30 @@ extension ElementAnnotationExtensions on ElementAnnotation {
   }
 }
 
-extension ElementExtension on Element {
-  /// If this element is an augmentation, returns the declaration.
-  Element get augmentedDeclaration {
-    if (this case InstanceElement self) {
-      return self.augmented.firstFragment;
-    }
-    return this;
-  }
-
-  /// Return `true` if this element, the enclosing class (if there is one), or
-  /// the enclosing library, has been annotated with the `@doNotStore`
-  /// annotation.
-  bool get hasOrInheritsDoNotStore {
-    if (hasDoNotStore) {
-      return true;
-    }
-
-    var ancestor = enclosingElement3;
-    if (ancestor is InterfaceElement) {
-      if (ancestor.hasDoNotStore) {
-        return true;
-      }
-      ancestor = ancestor.enclosingElement3;
-    } else if (ancestor is ExtensionElement) {
-      if (ancestor.hasDoNotStore) {
-        return true;
-      }
-      ancestor = ancestor.enclosingElement3;
-    }
-
-    return ancestor is CompilationUnitElement && ancestor.library.hasDoNotStore;
-  }
-
-  /// Return `true` if this element is an instance member of a class or mixin.
-  ///
-  /// Only [MethodElement]s and [PropertyAccessorElement]s are supported.
-  /// We intentionally exclude [ConstructorElement]s - they can only be
-  /// invoked in instance creation expressions, and [FieldElement]s - they
-  /// cannot be invoked directly and are always accessed using corresponding
-  /// [PropertyAccessorElement]s.
-  bool get isInstanceMember {
-    assert(this is! PropertyInducingElement,
-        'Check the PropertyAccessorElement instead');
-    var this_ = this;
-    var enclosing = this_.enclosingElement3;
-    if (enclosing is InterfaceElement) {
-      return this_ is MethodElement && !this_.isStatic ||
-          this_ is PropertyAccessorElement && !this_.isStatic;
-    }
-    return false;
-  }
-
-  /// Return true if this element is a wildcard variable.
-  bool get isWildcardVariable {
-    return name == '_' &&
-        (this is LocalVariableElement ||
-            this is PrefixElement ||
-            this is TypeParameterElement ||
-            (this is ParameterElement &&
-                this is! FieldFormalParameterElement &&
-                this is! SuperFormalParameterElement)) &&
-        library.hasWildcardVariablesFeatureEnabled;
-  }
-}
-
-extension ExecutableElementExtension on ExecutableElement {
+extension ExecutableElement2Extension on ExecutableElement2 {
   /// Whether the enclosing element is the class `Object`.
   bool get isObjectMember {
-    var enclosing = enclosingElement3;
-    return enclosing is ClassElement && enclosing.isDartCoreObject;
+    var enclosing = enclosingElement2;
+    return enclosing is ClassElement2 && enclosing.isDartCoreObject;
   }
 }
 
-extension ExecutableElementExtensionQuestion on ExecutableElement? {
-  DartType? get firstParameterType {
-    var self = this;
-    if (self is MethodElement) {
-      return self.parameters.firstOrNull?.type;
-    }
-    return null;
+extension FormalParameterElementMixinExtension on FormalParameterElementMixin {
+  /// Returns [FormalParameterElementImpl] with the specified properties
+  /// replaced.
+  FormalParameterElementImpl copyWith({
+    TypeImpl? type,
+    ParameterKind? kind,
+    bool? isCovariant,
+  }) {
+    var firstFragment = this.firstFragment as ParameterElementImpl;
+    return FormalParameterElementImpl(
+      firstFragment.copyWith(
+        type: type,
+        kind: kind,
+        isCovariant: isCovariant,
+      ),
+    );
   }
 }
 
@@ -193,40 +178,23 @@ extension InterfaceTypeExtension on InterfaceType {
   }
 }
 
-extension LibraryExtension on LibraryElement? {
-  bool get hasWildcardVariablesFeatureEnabled {
-    var self = this;
-    return self?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
-  }
-}
-
 extension LibraryExtension2 on LibraryElement2? {
-  bool get hasWildcardVariablesFeatureEnabled2 =>
+  bool get hasWildcardVariablesFeatureEnabled =>
       this?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 }
 
-extension ParameterElementExtension on ParameterElement {
-  /// Return [ParameterElement] with the specified properties replaced.
+extension ParameterElementMixinExtension on ParameterElementMixin {
+  /// Return [ParameterElementImpl] with the specified properties replaced.
   ParameterElementImpl copyWith({
-    DartType? type,
+    TypeImpl? type,
     ParameterKind? kind,
     bool? isCovariant,
   }) {
     return ParameterElementImpl.synthetic(
-      name,
+      name.nullIfEmpty,
       type ?? this.type,
-      // ignore: deprecated_member_use_from_same_package
       kind ?? parameterKind,
     )..isExplicitlyCovariant = isCovariant ?? this.isCovariant;
-  }
-
-  /// Returns `this`, converted to a [ParameterElementImpl] if it isn't one
-  /// already.
-  ParameterElementImpl toImpl() {
-    return switch (this) {
-      ParameterElementImpl p => p,
-      _ => copyWith(),
-    };
   }
 }
 
@@ -243,23 +211,27 @@ extension RecordTypeExtension on RecordType {
 
   /// The [name] is either an actual name like `foo` in `({int foo})`, or
   /// the name of a positional field like `$1` in `(int, String)`.
-  RecordTypeField? fieldByName(String name) {
+  RecordTypeFieldImpl? fieldByName(String name) {
     return namedField(name) ?? positionalField(name);
   }
 
-  RecordTypeNamedField? namedField(String name) {
+  RecordTypeNamedFieldImpl? namedField(String name) {
     for (var field in namedFields) {
       if (field.name == name) {
-        return field;
+        // TODO(paulberry): eliminate this cast by changing the extension to
+        // only apply to `RecordTypeImpl`.
+        return field as RecordTypeNamedFieldImpl;
       }
     }
     return null;
   }
 
-  RecordTypePositionalField? positionalField(String name) {
+  RecordTypePositionalFieldImpl? positionalField(String name) {
     var index = positionalFieldIndex(name);
     if (index != null && index < positionalFields.length) {
-      return positionalFields[index];
+      // TODO(paulberry): eliminate this cast by changing the extension to only
+      // apply to `RecordTypeImpl`.
+      return positionalFields[index] as RecordTypePositionalFieldImpl;
     }
     return null;
   }

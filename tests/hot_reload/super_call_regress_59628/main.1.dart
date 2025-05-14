@@ -32,7 +32,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -19,7 +19,7 @@
    }
  }
  
@@ -41,9 +40,4 @@ Future<void> main() async {
  
  Future<void> main() async {
    Expect.equals('before', unrelatedChange());
-@@ -29,3 +29,4 @@
-   Expect.equals('after', unrelatedChange());
-   Expect.equals('A.method - B.method', b.method());
- }
-+
 */

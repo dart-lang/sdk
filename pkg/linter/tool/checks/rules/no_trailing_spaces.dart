@@ -9,22 +9,23 @@ import 'package:linter/src/analyzer.dart';
 const _desc = r"Don't create string literals with trailing spaces in tests.";
 
 class NoTrailingSpaces extends LintRule {
-  static const LintCode code = LintCode('no_trailing_spaces', _desc,
-      correctionMessage: 'Try removing the trailing spaces.',
-      hasPublishedDocs: true);
+  static const LintCode code = LintCode(
+    'no_trailing_spaces',
+    _desc,
+    correctionMessage: 'Try removing the trailing spaces.',
+    hasPublishedDocs: true,
+  );
 
-  NoTrailingSpaces()
-      : super(
-          name: 'no_trailing_spaces',
-          description: _desc,
-        );
+  NoTrailingSpaces() : super(name: 'no_trailing_spaces', description: _desc);
 
   @override
   LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     if (context.definingUnit.unit.inTestDir) {
       var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);

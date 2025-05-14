@@ -15,12 +15,20 @@ import '../metadata/direct_call.dart';
 /// analysis. Assumes strong mode and closed world.
 Component transformComponent(CoreTypes coreTypes, Component component) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  ClosedWorldClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes,
-          onAmbiguousSupertypes: ignoreAmbiguousSupertypes)
-      as ClosedWorldClassHierarchy;
+  ClosedWorldClassHierarchy hierarchy =
+      new ClassHierarchy(
+            component,
+            coreTypes,
+            onAmbiguousSupertypes: ignoreAmbiguousSupertypes,
+          )
+          as ClosedWorldClassHierarchy;
   final hierarchySubtypes = hierarchy.computeSubtypesInformation();
-  new CHADevirtualization(coreTypes, component, hierarchy, hierarchySubtypes)
-      .visitComponent(component);
+  new CHADevirtualization(
+    coreTypes,
+    component,
+    hierarchy,
+    hierarchySubtypes,
+  ).visitComponent(component);
   return component;
 }
 
@@ -36,11 +44,15 @@ abstract class Devirtualization extends RecursiveVisitor {
   final Set<Name> _objectMemberNames;
 
   Devirtualization(
-      CoreTypes coreTypes, Component component, ClassHierarchy hierarchy)
-      : _metadata = new DirectCallMetadataRepository(),
-        _objectMemberNames = new Set<Name>.from(hierarchy
+    CoreTypes coreTypes,
+    Component component,
+    ClassHierarchy hierarchy,
+  ) : _metadata = new DirectCallMetadataRepository(),
+      _objectMemberNames = new Set<Name>.from(
+        hierarchy
             .getInterfaceMembers(coreTypes.objectClass)
-            .map((Member m) => m.name)) {
+            .map((Member m) => m.name),
+      ) {
     component.addMetadataRepository(_metadata);
   }
 
@@ -83,13 +95,18 @@ abstract class Devirtualization extends RecursiveVisitor {
       directCall.checkReceiverForNull &&
       _objectMemberNames.contains(directCall.targetMember!.name);
 
-  DirectCallMetadata? getDirectCall(TreeNode node, Member? interfaceTarget,
-      {bool setter = false});
+  DirectCallMetadata? getDirectCall(
+    TreeNode node,
+    Member? interfaceTarget, {
+    bool setter = false,
+  });
 
   makeDirectCall(TreeNode node, Member? target, DirectCallMetadata directCall) {
     if (_trace) {
-      print("[devirt] Resolving ${target} to ${directCall.targetMember}"
-          " at ${node.location}");
+      print(
+        "[devirt] Resolving ${target} to ${directCall.targetMember}"
+        " at ${node.location}",
+      );
     }
     _metadata.mapping[node] = directCall;
   }
@@ -103,7 +120,10 @@ abstract class Devirtualization extends RecursiveVisitor {
   }
 
   void _handleMethodInvocation(
-      TreeNode node, Member? target, Arguments arguments) {
+    TreeNode node,
+    Member? target,
+    Arguments arguments,
+  ) {
     if (target != null && !isMethod(target)) {
       return;
     }
@@ -170,8 +190,11 @@ abstract class Devirtualization extends RecursiveVisitor {
   }
 
   void _handlePropertySet(TreeNode node, Member? target) {
-    final DirectCallMetadata? directCall =
-        getDirectCall(node, target, setter: true);
+    final DirectCallMetadata? directCall = getDirectCall(
+      node,
+      target,
+      setter: true,
+    );
     if (directCall != null) {
       makeDirectCall(node, target, directCall);
     }
@@ -203,13 +226,19 @@ abstract class Devirtualization extends RecursiveVisitor {
 class CHADevirtualization extends Devirtualization {
   final ClassHierarchySubtypes _hierarchySubtype;
 
-  CHADevirtualization(CoreTypes coreTypes, Component component,
-      ClosedWorldClassHierarchy hierarchy, this._hierarchySubtype)
-      : super(coreTypes, component, hierarchy);
+  CHADevirtualization(
+    CoreTypes coreTypes,
+    Component component,
+    ClosedWorldClassHierarchy hierarchy,
+    this._hierarchySubtype,
+  ) : super(coreTypes, component, hierarchy);
 
   @override
-  DirectCallMetadata? getDirectCall(TreeNode node, Member? interfaceTarget,
-      {bool setter = false}) {
+  DirectCallMetadata? getDirectCall(
+    TreeNode node,
+    Member? interfaceTarget, {
+    bool setter = false,
+  }) {
     if (interfaceTarget == null) {
       return null;
     }

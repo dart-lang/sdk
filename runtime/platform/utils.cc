@@ -8,8 +8,15 @@
 #include "platform/globals.h"
 
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
-    defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
+    defined(DART_HOST_OS_ANDROID)
 #include <dlfcn.h>
+#elif defined(DART_HOST_OS_FUCHSIA)
+#include <dlfcn.h>
+#include <fuchsia/io/cpp/fidl.h>
+#include <lib/fdio/directory.h>
+#include <lib/fdio/io.h>
+#include <zircon/dlfcn.h>
+#include <zircon/status.h>
 #endif
 
 namespace dart {
@@ -294,6 +301,28 @@ void* Utils::LoadDynamicLibrary(const char* library_path,
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
     defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
   handle = dlopen(library_path, RTLD_LAZY);
+#if defined(DART_HOST_OS_FUCHSIA)
+  if (handle == nullptr) {
+    // Fuchsia's search path is different.
+    // https://fuchsia.dev/fuchsia-src/concepts/process/program_loading#zircons_standard_elf_dynamic_linker
+    fuchsia::io::Flags flags =
+        fuchsia::io::PERM_READABLE | fuchsia::io::PERM_EXECUTABLE;
+    int fd = -1;
+    zx_status_t status = fdio_open3_fd(library_path, uint64_t{flags}, &fd);
+    if (status != ZX_OK) {
+      *error = strdup(zx_status_get_string(status));
+      return nullptr;
+    }
+    zx_handle_t vmo = ZX_HANDLE_INVALID;
+    status = fdio_get_vmo_exec(fd, &vmo);
+    close(fd);
+    if (status != ZX_OK) {
+      *error = strdup(zx_status_get_string(status));
+      return nullptr;
+    }
+    handle = dlopen_vmo(vmo, RTLD_LAZY);
+  }
+#endif  // defined(DART_HOST_OS_FUCHSIA)
 #elif defined(DART_HOST_OS_WINDOWS)
   SetLastError(0);  // Clear any errors.
 

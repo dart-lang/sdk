@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferIsNotEmptyTest);
   });
@@ -26,13 +26,14 @@ void f(Iterable<int> p) {
   }
 
   test_iterable_isEmpty_not() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(Iterable<int> p) {
   !p.isEmpty;
 }
-''', [
-      lint(28, 10),
-    ]);
+''',
+      [lint(28, 10)],
+    );
   }
 
   test_list_isEmpty() async {
@@ -42,27 +43,30 @@ var x = [].isEmpty;
   }
 
   test_list_isEmpty_doubleParens_not() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = !(([4].isEmpty));
-''', [
-      lint(8, 16),
-    ]);
+''',
+      [lint(8, 16)],
+    );
   }
 
   test_list_isEmpty_not() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = ![1].isEmpty;
-''', [
-      lint(8, 12),
-    ]);
+''',
+      [lint(8, 12)],
+    );
   }
 
   test_list_isEmpty_parens_not() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = !([3].isEmpty);
-''', [
-      lint(8, 14),
-    ]);
+''',
+      [lint(8, 14)],
+    );
   }
 
   test_map_isEmpty() async {
@@ -72,10 +76,11 @@ var x = {}.isEmpty;
   }
 
   test_map_isEmpty_not() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = !{2: 'a'}.isEmpty;
-''', [
-      lint(8, 17),
-    ]);
+''',
+      [lint(8, 17)],
+    );
   }
 }

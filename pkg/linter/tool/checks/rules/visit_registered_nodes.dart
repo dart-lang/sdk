@@ -11,23 +11,25 @@ import 'package:linter/src/analyzer.dart';
 const _desc = r"Declare 'visit' methods for all registered node types.";
 
 class VisitRegisteredNodes extends LintRule {
-  static const LintCode code = LintCode('visit_registered_nodes', _desc,
-      correctionMessage:
-          "Try declaring a 'visit' method for all registered node types.",
-      hasPublishedDocs: true);
+  static const LintCode code = LintCode(
+    'visit_registered_nodes',
+    _desc,
+    correctionMessage:
+        "Try declaring a 'visit' method for all registered node types.",
+    hasPublishedDocs: true,
+  );
 
   VisitRegisteredNodes()
-      : super(
-          name: 'visit_registered_nodes',
-          description: _desc,
-        );
+    : super(name: 'visit_registered_nodes', description: _desc);
 
   @override
   LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context.inheritanceManager);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -39,8 +41,11 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   _BodyVisitor(this.rule, this.inheritanceManager);
 
   bool implements(ClassElement2 visitor, String methodName) {
-    var member = inheritanceManager.getMember4(visitor, Name(null, methodName),
-        concrete: true);
+    var member = inheritanceManager.getMember4(
+      visitor,
+      Name(null, methodName),
+      concrete: true,
+    );
     // In general lint visitors should only inherit from SimpleAstVisitors
     // (and the method implementations inherited from there are only stubs).
     // (We might consider enforcing this since it's harder to ensure that

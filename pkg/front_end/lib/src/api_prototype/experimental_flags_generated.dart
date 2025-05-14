@@ -115,6 +115,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 6),
       experimentReleasedVersion: const Version(3, 6));
 
+  static const ExperimentalFlag dotShorthands = const ExperimentalFlag(
+      name: 'dot-shorthands',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
   static const ExperimentalFlag enhancedEnums = const ExperimentalFlag(
       name: 'enhanced-enums',
       isEnabledByDefault: true,
@@ -130,14 +138,6 @@ class ExperimentalFlag {
       enabledVersion: defaultLanguageVersion,
       experimentEnabledVersion: defaultLanguageVersion,
       experimentReleasedVersion: const Version(3, 6));
-
-  static const ExperimentalFlag enumShorthands = const ExperimentalFlag(
-      name: 'enum-shorthands',
-      isEnabledByDefault: false,
-      isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag extensionMethods = const ExperimentalFlag(
       name: 'extension-methods',
@@ -198,7 +198,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag inferenceUsingBounds = const ExperimentalFlag(
       name: 'inference-using-bounds',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 7),
       experimentEnabledVersion: const Version(3, 7),
       experimentReleasedVersion: const Version(3, 7));
@@ -253,11 +253,11 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag nullAwareElements = const ExperimentalFlag(
       name: 'null-aware-elements',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      enabledVersion: const Version(3, 8),
+      experimentEnabledVersion: const Version(3, 8),
+      experimentReleasedVersion: const Version(3, 8));
 
   static const ExperimentalFlag patterns = const ExperimentalFlag(
       name: 'patterns',
@@ -298,6 +298,14 @@ class ExperimentalFlag {
       enabledVersion: const Version(2, 0),
       experimentEnabledVersion: const Version(2, 0),
       experimentReleasedVersion: const Version(2, 0));
+
+  static const ExperimentalFlag soundFlowAnalysis = const ExperimentalFlag(
+      name: 'sound-flow-analysis',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag spreadCollections = const ExperimentalFlag(
       name: 'spread-collections',
@@ -358,7 +366,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag wildcardVariables = const ExperimentalFlag(
       name: 'wildcard-variables',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 7),
       experimentEnabledVersion: const Version(3, 7),
       experimentReleasedVersion: const Version(3, 7));
@@ -442,6 +450,10 @@ class GlobalFeatures {
   GlobalFeature get digitSeparators => _digitSeparators ??=
       _computeGlobalFeature(ExperimentalFlag.digitSeparators);
 
+  GlobalFeature? _dotShorthands;
+  GlobalFeature get dotShorthands =>
+      _dotShorthands ??= _computeGlobalFeature(ExperimentalFlag.dotShorthands);
+
   GlobalFeature? _enhancedEnums;
   GlobalFeature get enhancedEnums =>
       _enhancedEnums ??= _computeGlobalFeature(ExperimentalFlag.enhancedEnums);
@@ -449,10 +461,6 @@ class GlobalFeatures {
   GlobalFeature? _enhancedParts;
   GlobalFeature get enhancedParts =>
       _enhancedParts ??= _computeGlobalFeature(ExperimentalFlag.enhancedParts);
-
-  GlobalFeature? _enumShorthands;
-  GlobalFeature get enumShorthands => _enumShorthands ??=
-      _computeGlobalFeature(ExperimentalFlag.enumShorthands);
 
   GlobalFeature? _extensionMethods;
   GlobalFeature get extensionMethods => _extensionMethods ??=
@@ -533,6 +541,10 @@ class GlobalFeatures {
   GlobalFeature? _setLiterals;
   GlobalFeature get setLiterals =>
       _setLiterals ??= _computeGlobalFeature(ExperimentalFlag.setLiterals);
+
+  GlobalFeature? _soundFlowAnalysis;
+  GlobalFeature get soundFlowAnalysis => _soundFlowAnalysis ??=
+      _computeGlobalFeature(ExperimentalFlag.soundFlowAnalysis);
 
   GlobalFeature? _spreadCollections;
   GlobalFeature get spreadCollections => _spreadCollections ??=
@@ -621,6 +633,11 @@ class LibraryFeatures {
       _digitSeparators ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.digitSeparators, canonicalUri, libraryVersion);
 
+  LibraryFeature? _dotShorthands;
+  LibraryFeature get dotShorthands =>
+      _dotShorthands ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.dotShorthands, canonicalUri, libraryVersion);
+
   LibraryFeature? _enhancedEnums;
   LibraryFeature get enhancedEnums =>
       _enhancedEnums ??= globalFeatures._computeLibraryFeature(
@@ -630,11 +647,6 @@ class LibraryFeatures {
   LibraryFeature get enhancedParts =>
       _enhancedParts ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.enhancedParts, canonicalUri, libraryVersion);
-
-  LibraryFeature? _enumShorthands;
-  LibraryFeature get enumShorthands =>
-      _enumShorthands ??= globalFeatures._computeLibraryFeature(
-          ExperimentalFlag.enumShorthands, canonicalUri, libraryVersion);
 
   LibraryFeature? _extensionMethods;
   LibraryFeature get extensionMethods =>
@@ -740,6 +752,11 @@ class LibraryFeatures {
       _setLiterals ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.setLiterals, canonicalUri, libraryVersion);
 
+  LibraryFeature? _soundFlowAnalysis;
+  LibraryFeature get soundFlowAnalysis =>
+      _soundFlowAnalysis ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.soundFlowAnalysis, canonicalUri, libraryVersion);
+
   LibraryFeature? _spreadCollections;
   LibraryFeature get spreadCollections =>
       _spreadCollections ??= globalFeatures._computeLibraryFeature(
@@ -798,12 +815,12 @@ class LibraryFeatures {
         return controlFlowCollections;
       case shared.ExperimentalFlag.digitSeparators:
         return digitSeparators;
+      case shared.ExperimentalFlag.dotShorthands:
+        return dotShorthands;
       case shared.ExperimentalFlag.enhancedEnums:
         return enhancedEnums;
       case shared.ExperimentalFlag.enhancedParts:
         return enhancedParts;
-      case shared.ExperimentalFlag.enumShorthands:
-        return enumShorthands;
       case shared.ExperimentalFlag.extensionMethods:
         return extensionMethods;
       case shared.ExperimentalFlag.genericMetadata:
@@ -844,6 +861,8 @@ class LibraryFeatures {
         return sealedClass;
       case shared.ExperimentalFlag.setLiterals:
         return setLiterals;
+      case shared.ExperimentalFlag.soundFlowAnalysis:
+        return soundFlowAnalysis;
       case shared.ExperimentalFlag.spreadCollections:
         return spreadCollections;
       case shared.ExperimentalFlag.superParameters:
@@ -882,12 +901,12 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.controlFlowCollections;
     case "digit-separators":
       return ExperimentalFlag.digitSeparators;
+    case "dot-shorthands":
+      return ExperimentalFlag.dotShorthands;
     case "enhanced-enums":
       return ExperimentalFlag.enhancedEnums;
     case "enhanced-parts":
       return ExperimentalFlag.enhancedParts;
-    case "enum-shorthands":
-      return ExperimentalFlag.enumShorthands;
     case "extension-methods":
       return ExperimentalFlag.extensionMethods;
     case "generic-metadata":
@@ -928,6 +947,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.sealedClass;
     case "set-literals":
       return ExperimentalFlag.setLiterals;
+    case "sound-flow-analysis":
+      return ExperimentalFlag.soundFlowAnalysis;
     case "spread-collections":
       return ExperimentalFlag.spreadCollections;
     case "super-parameters":
@@ -965,12 +986,12 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.controlFlowCollections.isEnabledByDefault,
   ExperimentalFlag.digitSeparators:
       ExperimentalFlag.digitSeparators.isEnabledByDefault,
+  ExperimentalFlag.dotShorthands:
+      ExperimentalFlag.dotShorthands.isEnabledByDefault,
   ExperimentalFlag.enhancedEnums:
       ExperimentalFlag.enhancedEnums.isEnabledByDefault,
   ExperimentalFlag.enhancedParts:
       ExperimentalFlag.enhancedParts.isEnabledByDefault,
-  ExperimentalFlag.enumShorthands:
-      ExperimentalFlag.enumShorthands.isEnabledByDefault,
   ExperimentalFlag.extensionMethods:
       ExperimentalFlag.extensionMethods.isEnabledByDefault,
   ExperimentalFlag.genericMetadata:
@@ -1003,6 +1024,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
   ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass.isEnabledByDefault,
   ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals.isEnabledByDefault,
+  ExperimentalFlag.soundFlowAnalysis:
+      ExperimentalFlag.soundFlowAnalysis.isEnabledByDefault,
   ExperimentalFlag.spreadCollections:
       ExperimentalFlag.spreadCollections.isEnabledByDefault,
   ExperimentalFlag.superParameters:
@@ -1039,9 +1062,9 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.controlFlowCollections:
       ExperimentalFlag.controlFlowCollections,
   shared.ExperimentalFlag.digitSeparators: ExperimentalFlag.digitSeparators,
+  shared.ExperimentalFlag.dotShorthands: ExperimentalFlag.dotShorthands,
   shared.ExperimentalFlag.enhancedEnums: ExperimentalFlag.enhancedEnums,
   shared.ExperimentalFlag.enhancedParts: ExperimentalFlag.enhancedParts,
-  shared.ExperimentalFlag.enumShorthands: ExperimentalFlag.enumShorthands,
   shared.ExperimentalFlag.extensionMethods: ExperimentalFlag.extensionMethods,
   shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
   shared.ExperimentalFlag.getterSetterError: ExperimentalFlag.getterSetterError,
@@ -1065,6 +1088,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.records: ExperimentalFlag.records,
   shared.ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass,
   shared.ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals,
+  shared.ExperimentalFlag.soundFlowAnalysis: ExperimentalFlag.soundFlowAnalysis,
   shared.ExperimentalFlag.spreadCollections: ExperimentalFlag.spreadCollections,
   shared.ExperimentalFlag.superParameters: ExperimentalFlag.superParameters,
   shared.ExperimentalFlag.testExperiment: ExperimentalFlag.testExperiment,

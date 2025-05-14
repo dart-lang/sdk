@@ -1,5 +1,8 @@
 # This is just a stub, not the real node_preamble package
 name: node_preamble
 environment:
-  sdk: ^3.7.0-0
+  sdk: ^3.7.0
+
+resolution: workspace
+
 publish_to: none

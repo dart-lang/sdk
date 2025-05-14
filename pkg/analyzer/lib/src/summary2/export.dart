@@ -61,6 +61,7 @@ class ExportedReferenceExported extends ExportedReference {
   });
 
   void addLocation(ExportLocation location) {
+    // This list is very small, contains on it is probably ok.
     if (!locations.contains(location)) {
       locations.add(location);
     }

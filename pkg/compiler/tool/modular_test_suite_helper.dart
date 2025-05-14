@@ -20,7 +20,6 @@ import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/runner.dart';
 import 'package:modular_test/src/suite.dart';
-import 'package:modular_test/src/steps/macro_precompile_aot.dart';
 import 'package:modular_test/src/steps/util.dart';
 import 'package:path/path.dart' as p;
 
@@ -30,7 +29,6 @@ Uri packageConfigUri = sdkRoot.resolve(packageConfigJsonPath);
 late Options _options;
 late String _dart2jsScript;
 late String _kernelWorkerAotScript;
-late String _kernelWorkerScript;
 
 const dillSummaryId = DataId("summary.dill");
 const dillId = DataId("full.dill");
@@ -128,7 +126,6 @@ abstract class CFEStep extends IOModularStep {
       sources = getSources(module);
     }
 
-    var isAot = File(_kernelWorkerAotScript).existsSync();
     var script = _kernelWorkerAotScript;
     var sdkPath = p.dirname(p.dirname(Platform.resolvedExecutable));
     var executable = p.absolute(
@@ -136,15 +133,9 @@ abstract class CFEStep extends IOModularStep {
       'bin',
       Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
     );
-    if (!isAot) {
-      // This can be removed once we stop supporting ia32 architecture.
-      script = _kernelWorkerScript;
-      executable = Platform.resolvedExecutable;
-    }
 
     List<String> args = [
       script,
-      '--sound-null-safety',
       ...stepArguments,
       '--exclude-non-sources',
       '--multi-root',
@@ -157,11 +148,6 @@ abstract class CFEStep extends IOModularStep {
       ...(transitiveDependencies.expand(
         (m) => ['--input-summary', '${toUri(m, inputData)}'],
       )),
-      ...transitiveDependencies
-          .where((m) => m.macroConstructors.isNotEmpty)
-          .expand(
-            (m) => ['--precompiled-macro', '${precompiledMacroArg(m, toUri)};'],
-          ),
       ...(sources.expand((String uri) => ['--source', uri])),
       ...(flags.expand((String flag) => ['--enable-experiment', flag])),
     ];
@@ -196,10 +182,7 @@ class OutlineDillCompilationStep extends CFEStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [
-    dillSummaryId,
-    precompiledMacroId,
-  ];
+  List<DataId> get dependencyDataNeeded => const [dillSummaryId];
 
   @override
   List<DataId> get moduleDataNeeded => const [];
@@ -229,10 +212,7 @@ class FullDillCompilationStep extends CFEStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [
-    dillSummaryId,
-    precompiledMacroId,
-  ];
+  List<DataId> get dependencyDataNeeded => const [dillSummaryId];
 
   @override
   List<DataId> get moduleDataNeeded => const [];
@@ -354,7 +334,6 @@ class ComputeClosedWorldStep extends IOModularStep {
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       if (_options.useSdk) '--invoker=modular_test',
-      Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -410,7 +389,6 @@ class GlobalAnalysisStep extends IOModularStep {
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       if (_options.useSdk) '--invoker=modular_test',
-      Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -476,7 +454,6 @@ class Dart2jsCodegenStep extends IOModularStep {
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       if (_options.useSdk) '--invoker=modular_test',
-      Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -540,7 +517,6 @@ class Dart2jsEmissionStep extends IOModularStep {
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       if (_options.useSdk) '--invoker=modular_test',
-      Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
@@ -606,7 +582,6 @@ class Dart2jsDumpInfoStep extends IOModularStep {
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       if (_options.useSdk) '--invoker=modular_test',
-      Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
@@ -754,10 +729,6 @@ Future<void> resolveScripts(Options options) async {
   _kernelWorkerAotScript = await resolve(
     'utils/bazel/kernel_worker.dart',
     'snapshots/kernel_worker_aot.dart.snapshot',
-  );
-  _kernelWorkerScript = await resolve(
-    'utils/bazel/kernel_worker.dart',
-    'snapshots/kernel_worker.dart.snapshot',
   );
 }
 

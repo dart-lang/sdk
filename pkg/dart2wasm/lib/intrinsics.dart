@@ -4,12 +4,14 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'abi.dart' show kWasmAbiEnumIndex;
 import 'class_info.dart';
 import 'code_generator.dart';
 import 'dynamic_forwarders.dart';
+import 'dynamic_modules.dart';
 import 'translator.dart';
 import 'types.dart';
 import 'util.dart';
@@ -163,6 +165,7 @@ enum StaticIntrinsic {
   intBitsToFloat('dart:_internal', null, 'intBitsToFloat'),
   doubleToIntBits('dart:_internal', null, 'doubleToIntBits'),
   intBitsToDouble('dart:_internal', null, 'intBitsToDouble'),
+  exportWasmFunction('dart:_internal', null, 'exportWasmFunction'),
   getID('dart:_internal', 'ClassID', 'getID'),
   loadInt8('dart:ffi', null, '_loadInt8'),
   loadUint8('dart:ffi', null, '_loadUint8'),
@@ -187,7 +190,8 @@ enum StaticIntrinsic {
   storeFloat('dart:ffi', null, '_storeFloat'),
   storeFloatUnaligned('dart:ffi', null, '_storeFloatUnaligned'),
   storeDouble('dart:ffi', null, '_storeDouble'),
-  storeDoubleUnaligned('dart:ffi', null, '_storeDoubleUnaligned');
+  storeDoubleUnaligned('dart:ffi', null, '_storeDoubleUnaligned'),
+  ;
 
   final String library;
   final String? cls;
@@ -764,6 +768,10 @@ class Intrinsifier {
 
     // ClassID getters
     if (cls?.name == 'ClassID') {
+      if (target.name.text == 'maxClassId') {
+        codeGen.b.i32_const(translator.classIdNumbering.maxClassId);
+        return w.NumType.i32;
+      }
       final libAndClassName = translator.getPragma(target, "wasm:class-id");
       if (libAndClassName != null) {
         List<String> libAndClassNameParts = libAndClassName.split("#");
@@ -778,8 +786,8 @@ class Intrinsifier {
                 orElse: () =>
                     throw 'Class $className not found in library $lib '
                         '(${target.location})');
-        int classId = translator.classInfo[cls]!.classId;
-        b.i32_const(classId);
+        ClassId classId = translator.classInfo[cls]!.classId;
+        b.pushClassIdToStack(translator, classId);
         return w.NumType.i32;
       }
 
@@ -787,6 +795,13 @@ class Intrinsifier {
         b.i32_const(
             translator.classIdNumbering.firstNonMasqueradedInterfaceClassCid);
         return w.NumType.i32;
+      }
+    }
+
+    if (target.enclosingLibrary.name == 'dart._internal') {
+      if (target.name.text == '_numClassesForConstCaches') {
+        b.i64_const(translator.classIdNumbering.maxClassId);
+        return w.NumType.i64;
       }
     }
 
@@ -801,37 +816,12 @@ class Intrinsifier {
         case "_noSubstitutionIndex":
           b.i32_const(RuntimeTypeInformation.noSubstitutionIndex);
           return w.NumType.i32;
-        case "_typeRowDisplacementOffsets":
-          final type = translator
-              .translateStorageType(types.rtt.typeRowDisplacementOffsetsType)
-              .unpacked;
+        case "_mainModuleRtt":
+          final moduleRttType = translator.translateType(
+              InterfaceType(translator.moduleRtt, Nullability.nonNullable));
           translator.constants.instantiateConstant(
-              b, types.rtt.typeRowDisplacementOffsets, type);
-          return type;
-        case "_typeRowDisplacementTable":
-          final type = translator
-              .translateStorageType(types.rtt.typeRowDisplacementTableType)
-              .unpacked;
-          translator.constants
-              .instantiateConstant(b, types.rtt.typeRowDisplacementTable, type);
-          return type;
-        case "_typeRowDisplacementSubstTable":
-          final type = translator
-              .translateStorageType(types.rtt.typeRowDisplacementSubstTableType)
-              .unpacked;
-          translator.constants.instantiateConstant(
-              b, types.rtt.typeRowDisplacementSubstTable, type);
-          return type;
-        case "_typeNames":
-          final type =
-              translator.translateStorageType(types.rtt.typeNamesType).unpacked;
-          if (translator.options.minify) {
-            b.ref_null((type as w.RefType).heapType);
-          } else {
-            translator.constants
-                .instantiateConstant(b, types.rtt.typeNames, type);
-          }
-          return type;
+              b, translator.types.rtt.mainModuleRtt, moduleRttType);
+          return moduleRttType;
       }
     }
 
@@ -1034,35 +1024,65 @@ class Intrinsifier {
         return codeGen.voidMarker;
 
       case StaticIntrinsic.identical:
-        Expression first = node.arguments.positional[0];
-        Expression second = node.arguments.positional[1];
-        DartType boolType = translator.coreTypes.boolNonNullableRawType;
-        InterfaceType intType = translator.coreTypes.intNonNullableRawType;
-        DartType doubleType = translator.coreTypes.doubleNonNullableRawType;
-        List<DartType> types = [dartTypeOf(first), dartTypeOf(second)];
-        if (types.every((t) => t == intType)) {
+        // We can use reference equality for `identical()` except if one of the
+        // arguments can be a value type which would need to be compared by
+        // value instead of by reference.
+        //
+        // NOTE: Even though `bool` is a value type, it has only two singleton
+        // instances for `true` and `false` and we can therefore use reference
+        // equality for it. Other value types may have different objects
+        // containing the same value and need to be unboxed & compared by value.
+        //
+        // NOTE: We may get more value types in the future in Dart, for example
+        // for SIMD types, see: https://github.com/dart-lang/sdk/issues/43255
+
+        final first = node.arguments.positional[0];
+        final second = node.arguments.positional[1];
+
+        final firstType =
+            translator.toMostSpecificInterfaceType(dartTypeOf(first));
+        final secondType =
+            translator.toMostSpecificInterfaceType(dartTypeOf(second));
+
+        final intType = translator.boxedIntType;
+        if (firstType == intType && secondType == intType) {
           codeGen.translateExpression(first, w.NumType.i64);
           codeGen.translateExpression(second, w.NumType.i64);
           b.i64_eq();
           return w.NumType.i32;
         }
-        if (types.any((t) =>
-            t is InterfaceType &&
-            t != boolType &&
-            t != doubleType &&
-            !translator.hierarchy
-                .isSubInterfaceOf(intType.classNode, t.classNode))) {
-          codeGen.translateExpression(first, w.RefType.eq(nullable: true));
-          codeGen.translateExpression(second, w.RefType.eq(nullable: true));
+
+        final doubleType = translator.boxedDoubleType;
+        if (firstType == doubleType && secondType == doubleType) {
+          codeGen.translateExpression(first, w.NumType.f64);
+          b.i64_reinterpret_f64();
+          codeGen.translateExpression(second, w.NumType.f64);
+          b.i64_reinterpret_f64();
+          b.i64_eq();
+          return w.NumType.i32;
+        }
+
+        bool canBeValueType(DartType type) =>
+            translator.typeEnvironment.isSubtypeOf(
+                doubleType, type, SubtypeCheckMode.withNullabilities) ||
+            translator.typeEnvironment
+                .isSubtypeOf(intType, type, SubtypeCheckMode.withNullabilities);
+
+        if (!canBeValueType(firstType) || !canBeValueType(secondType)) {
+          final nullableEqRefType = w.RefType.eq(nullable: true);
+          codeGen.translateExpression(first, nullableEqRefType);
+          codeGen.translateExpression(second, nullableEqRefType);
           b.ref_eq();
           return w.NumType.i32;
         }
+
         return null;
       case StaticIntrinsic.isObjectClassId:
         final classId = node.arguments.positional.single;
 
-        final objectClassId = translator
-            .classIdNumbering.classIds[translator.coreTypes.objectClass]!;
+        final objectClassId = (translator.classIdNumbering
+                .classIds[translator.coreTypes.objectClass] as AbsoluteClassId)
+            .value;
 
         codeGen.translateExpression(classId, w.NumType.i32);
         b.emitClassIdRangeCheck([Range(objectClassId, objectClassId)]);
@@ -1071,21 +1091,36 @@ class Intrinsifier {
         final classId = node.arguments.positional.single;
 
         final ranges = translator.classIdNumbering
-            .getConcreteClassIdRanges(translator.coreTypes.functionClass);
+            .getConcreteClassIdRangeForMainModule(
+                translator.coreTypes.functionClass);
         assert(ranges.length <= 1);
 
         codeGen.translateExpression(classId, w.NumType.i32);
         b.emitClassIdRangeCheck(ranges);
+
         return w.NumType.i32;
       case StaticIntrinsic.isRecordClassId:
         final classId = node.arguments.positional.single;
-
         final ranges = translator.classIdNumbering
-            .getConcreteClassIdRanges(translator.coreTypes.recordClass);
+            .getConcreteClassIdRangeForMainModule(
+                translator.coreTypes.recordClass);
         assert(ranges.length <= 1);
 
-        codeGen.translateExpression(classId, w.NumType.i32);
-        b.emitClassIdRangeCheck(ranges);
+        if (translator.dynamicModuleSupportEnabled) {
+          final dynamicModuleRanges = translator.classIdNumbering
+              .getConcreteClassIdRangeForDynamicModule(
+                  translator.coreTypes.recordClass);
+          final classIdLocal = b.addLocal(w.NumType.i32);
+          codeGen.translateExpression(classId, w.NumType.i32);
+          b.local_tee(classIdLocal);
+          b.local_get(classIdLocal);
+          translator.dynamicModuleInfo!.callClassIdBranchBuiltIn(
+              BuiltinUpdatableFunctions.recordId, b,
+              skipDynamic: dynamicModuleRanges.isEmpty);
+        } else {
+          codeGen.translateExpression(classId, w.NumType.i32);
+          b.emitClassIdRangeCheck(ranges);
+        }
         return w.NumType.i32;
 
       // dart:_object_helper static functions.
@@ -1140,6 +1175,28 @@ class Intrinsifier {
             node.arguments.positional.single, w.NumType.i64);
         b.f64_reinterpret_i64();
         return w.NumType.f64;
+      case StaticIntrinsic.exportWasmFunction:
+        const error =
+            'The `dart:_internal:exportWasmFunction` expects its argument '
+            'to be a tear-off of a `@pragma(\'wasm:weak-export\', ...)` '
+            'annotated function';
+
+        // Sanity check argument.
+        final argument = node.arguments.positional.single;
+        if (argument is! ConstantExpression) throw error;
+        final constant = argument.constant;
+        if (constant is! StaticTearOffConstant) throw error;
+        final target = constant.target;
+        if (translator.getPragma(target, 'wasm:weak-export', '') == null) {
+          throw error;
+        }
+
+        // Ensure we compile the target function & export it.
+        translator.functions.getFunction(target.reference);
+
+        final topType = translator.topInfo.nullableType;
+        codeGen.translateExpression(NullLiteral(), topType);
+        return topType;
       case StaticIntrinsic.getID:
         ClassInfo info = translator.topInfo;
         codeGen.translateExpression(
@@ -1407,22 +1464,22 @@ class Intrinsifier {
       case StaticIntrinsic.externalizeNonNullable:
         final value = node.arguments.positional.single;
         codeGen.translateExpression(value, w.RefType.any(nullable: false));
-        b.extern_externalize();
+        b.extern_convert_any();
         return w.RefType.extern(nullable: false);
       case StaticIntrinsic.externalizeNullable:
         final value = node.arguments.positional.single;
         codeGen.translateExpression(value, w.RefType.any(nullable: true));
-        b.extern_externalize();
+        b.extern_convert_any();
         return w.RefType.extern(nullable: true);
       case StaticIntrinsic.internalizeNonNullable:
         final value = node.arguments.positional.single;
         codeGen.translateExpression(value, w.RefType.extern(nullable: false));
-        b.extern_internalize();
+        b.any_convert_extern();
         return w.RefType.any(nullable: false);
       case StaticIntrinsic.internalizeNullable:
         final value = node.arguments.positional.single;
         codeGen.translateExpression(value, w.RefType.extern(nullable: true));
-        b.extern_internalize();
+        b.any_convert_extern();
         return w.RefType.any(nullable: true);
       case StaticIntrinsic.wasmExternRefIsNull:
         final value = node.arguments.positional.single;
@@ -1434,13 +1491,13 @@ class Intrinsifier {
       case StaticIntrinsic.isSubClassOf:
         final baseClass =
             (node.arguments.types.single as InterfaceType).classNode;
-        final range =
-            translator.classIdNumbering.getConcreteSubclassRange(baseClass);
+        final ranges =
+            translator.classIdNumbering.getConcreteSubclassRanges(baseClass);
 
         final object = node.arguments.positional.single;
         codeGen.translateExpression(object, w.RefType.any(nullable: false));
         b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-        b.emitClassIdRangeCheck([range]);
+        b.emitClassIdRangeCheck(ranges);
         return w.NumType.i32;
     }
   }
@@ -1570,7 +1627,6 @@ class Intrinsifier {
       case MemberIntrinsic.identical:
         w.Local first = paramLocals[0];
         w.Local second = paramLocals[1];
-        ClassInfo boolInfo = translator.classInfo[translator.boxedBoolClass]!;
         ClassInfo intInfo = translator.classInfo[translator.boxedIntClass]!;
         ClassInfo doubleInfo =
             translator.classInfo[translator.boxedDoubleClass]!;
@@ -1598,24 +1654,13 @@ class Intrinsifier {
         b.i32_ne();
         b.br_if(fail);
 
-        // Both bool?
-        b.local_get(cid);
-        b.i32_const(boolInfo.classId);
-        b.i32_eq();
-        b.if_();
-        b.local_get(first);
-        b.ref_cast(boolInfo.nonNullableType);
-        b.struct_get(boolInfo.struct, FieldIndex.boxValue);
-        b.local_get(second);
-        b.ref_cast(boolInfo.nonNullableType);
-        b.struct_get(boolInfo.struct, FieldIndex.boxValue);
-        b.i32_eq();
-        b.return_();
-        b.end();
+        // Cannot be equal `bool`s as we have unique singleton objects for `true`
+        // and `false`. If they were equal bools we would have triggered the
+        // reference equality above.
 
         // Both int?
         b.local_get(cid);
-        b.i32_const(intInfo.classId);
+        b.i32_const((intInfo.classId as AbsoluteClassId).value);
         b.i32_eq();
         b.if_();
         b.local_get(first);
@@ -1630,7 +1675,7 @@ class Intrinsifier {
 
         // Both double?
         b.local_get(cid);
-        b.i32_const(doubleInfo.classId);
+        b.i32_const((doubleInfo.classId as AbsoluteClassId).value);
         b.i32_eq();
         b.if_();
         b.local_get(first);
@@ -1662,7 +1707,8 @@ class Intrinsifier {
         final w.Local nonNullArg =
             b.addLocal(translator.topInfo.nonNullableType);
         final List<int> classIds = translator.valueClasses.keys
-            .map((cls) => translator.classInfo[cls]!.classId)
+            .map((cls) =>
+                (translator.classInfo[cls]!.classId as AbsoluteClassId).value)
             .toList()
           ..sort();
 
@@ -1715,7 +1761,8 @@ class Intrinsifier {
         w.ArrayType arrayType =
             (functionType.outputs.single as w.RefType).heapType as w.ArrayType;
         w.Local object = paramLocals[0];
-        w.Local preciseObject = codeGen.addLocal(classInfo.nonNullableType);
+        w.Local preciseObject =
+            codeGen.addLocal(classInfo.nonNullableType, name: "this");
         b.local_get(object);
         b.ref_cast(classInfo.nonNullableType);
         b.local_set(preciseObject);
@@ -1948,6 +1995,7 @@ class Intrinsifier {
         final namedArgsListLocal =
             b.addLocal(translator.nullableObjectArrayTypeRef);
         b.local_get(namedArgsLocal);
+        b.local_get(closureLocal);
         codeGen.call(translator.namedParameterMapToArray.reference);
         b.local_set(namedArgsListLocal);
 

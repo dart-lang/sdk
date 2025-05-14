@@ -40,7 +40,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
-import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
@@ -205,7 +204,6 @@ abstract class Generator {
     } else {
       if (_helper.constantContext != ConstantContext.none &&
           selector.name != lengthName) {
-        // Coverage-ignore-block(suite): Not run.
         _helper.addProblem(
             messageNotAConstantExpression, fileOffset, token.length);
       }
@@ -1650,7 +1648,10 @@ class ExtensionInstanceAccessGenerator extends Generator {
     Procedure? readTarget;
     Procedure? invokeTarget;
     if (getterBuilder != null) {
-      if (getterBuilder.isGetter) {
+      if (getterBuilder.isField) {
+        assert(!getterBuilder.isStatic && getterBuilder.isExternal);
+        readTarget = getterBuilder.readTarget as Procedure?;
+      } else if (getterBuilder.isGetter) {
         assert(!getterBuilder.isStatic);
         readTarget = getterBuilder.readTarget as Procedure?;
       } else if (getterBuilder.isRegularMethod) {
@@ -1672,7 +1673,10 @@ class ExtensionInstanceAccessGenerator extends Generator {
     }
     Procedure? writeTarget;
     if (setterBuilder != null) {
-      if (setterBuilder.isSetter) {
+      if (setterBuilder.isField) {
+        assert(!setterBuilder.isStatic && setterBuilder.isExternal);
+        writeTarget = setterBuilder.writeTarget as Procedure?;
+      } else if (setterBuilder.isSetter) {
         assert(!setterBuilder.isStatic);
         writeTarget = setterBuilder.writeTarget as Procedure?;
         // Coverage-ignore-block(suite): Not run.
@@ -3085,14 +3089,6 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {required bool allowPotentiallyConstantType,
       required bool performTypeCanonicalization}) {
-    if (declaration is OmittedTypeDeclarationBuilder) {
-      // Coverage-ignore-block(suite): Not run.
-      // TODO(johnniwinther): Report errors when this occurs in-body or with
-      // type arguments.
-      // TODO(johnniwinther): Handle nullability.
-      return new DependentTypeBuilder(
-          (declaration as OmittedTypeDeclarationBuilder).omittedTypeBuilder);
-    }
     return new NamedTypeBuilderImpl(typeName, nullabilityBuilder,
         arguments: arguments,
         fileUri: _uri,
@@ -3189,9 +3185,6 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 InvalidTypeDeclarationBuilder() => false,
                 // Coverage-ignore(suite): Not run.
                 BuiltinTypeDeclarationBuilder() => false,
-                // Coverage-ignore(suite): Not run.
-                // TODO(johnniwinther): How should we handle this case?
-                OmittedTypeDeclarationBuilder() => false,
                 null => false,
               };
       bool isConstructorTearOff =
@@ -3457,7 +3450,6 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               offsetForToken(send.token), send.typeArguments, arguments,
               isTypeArgumentsInForest: send.isTypeArgumentsInForest);
     } else {
-      // Coverage-ignore-block(suite): Not run.
       // `SomeType?.toString` is the same as `SomeType.toString`, not
       // `(SomeType).toString`.
       return super.buildSelectorAccess(send, operatorOffset, isNullAware);
@@ -4447,6 +4439,7 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression qualifiedLookup(Token name) {
     return buildProblem();
   }
@@ -5071,6 +5064,7 @@ class PropertySelector extends Selector {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class AugmentSuperAccessGenerator extends Generator {
   final AugmentSuperTarget augmentSuperTarget;
 
@@ -5079,11 +5073,9 @@ class AugmentSuperAccessGenerator extends Generator {
       : super(helper, token);
 
   @override
-  // Coverage-ignore(suite): Not run.
   String get _debugName => "AugmentSuperGenerator";
 
   @override
-  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead {
     return unsupported("augment super.plainNameForRead", fileOffset, _uri);
   }
@@ -5165,7 +5157,6 @@ class AugmentSuperAccessGenerator extends Generator {
       return buildCompoundAssignment(binaryOperator, value,
           offset: offset, voidContext: voidContext, isPostIncDec: true);
     }
-    // Coverage-ignore-block(suite): Not run.
     VariableDeclarationImpl read =
         _helper.createVariableDeclarationForValue(_createRead());
     Expression binary = _helper.forest.createBinary(offset,
@@ -5195,7 +5186,6 @@ class AugmentSuperAccessGenerator extends Generator {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", augmentSuperTarget: ");
     sink.write(augmentSuperTarget);

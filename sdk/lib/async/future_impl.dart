@@ -24,11 +24,28 @@ AsyncError? _interceptError(Object error, StackTrace? stackTrace) {
   return replacement;
 }
 
+/// As [_interceptError], but an `AsyncError` of the error if not replaced.
+///
+/// Also like [_interceptUserError], but for errors that are already
+/// asynchronous.
+AsyncError _interceptCaughtError(Object error, StackTrace? stackTrace) =>
+    _interceptError(error, stackTrace) ?? AsyncError(error, stackTrace);
+
 /// Used for user-provided error and stack trace that are to become async
 /// errors.
 ///
 /// Allows `Zone.current.errorCallback` to intercept and modify the error,
 /// and sets the stack trace on the error as if it was thrown.
+///
+/// Used for errors given to async functions like [Completer.completeError]
+/// or [StreamController.addError].
+///
+/// For errors that are caught (and have therefore been thrown already)
+/// use [_interceptCaughtError], which doesn't try to set a stack trace on the
+/// error object.
+///
+/// Errors that are already asynchronous (coming out of streams or futures)
+/// should not call [Zone.errorCallback].
 AsyncError _interceptUserError(Object error, StackTrace? stackTrace) {
   var zone = Zone.current;
   if (!identical(zone, _rootZone)) {
@@ -56,20 +73,19 @@ AsyncError _interceptUserError(Object error, StackTrace? stackTrace) {
 abstract class _Completer<T> implements Completer<T> {
   @pragma("wasm:entry-point")
   @pragma("vm:entry-point")
-  final _Future<T> future = new _Future<T>();
+  final _Future<T> future = _Future<T>();
 
   // Overridden by either a synchronous or asynchronous implementation.
   void complete([FutureOr<T>? value]);
 
   @pragma("wasm:entry-point")
   void completeError(Object error, [StackTrace? stackTrace]) {
-    if (!future._mayComplete) throw new StateError("Future already completed");
-    AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
-    _completeError(error, stackTrace);
+    if (!future._mayComplete) throw StateError("Future already completed");
+    _completeErrorObject(_interceptUserError(error, stackTrace));
   }
 
   // Overridden by either a synchronous or asynchronous implementation.
-  void _completeError(Object error, StackTrace stackTrace);
+  void _completeErrorObject(AsyncError error);
 
   // The future's _isComplete doesn't take into account pending completions.
   // We therefore use _mayComplete.
@@ -81,12 +97,12 @@ abstract class _Completer<T> implements Completer<T> {
 class _AsyncCompleter<T> extends _Completer<T> {
   @pragma("wasm:entry-point")
   void complete([FutureOr<T>? value]) {
-    if (!future._mayComplete) throw new StateError("Future already completed");
+    if (!future._mayComplete) throw StateError("Future already completed");
     future._asyncComplete(value == null ? value as dynamic : value);
   }
 
-  void _completeError(Object error, StackTrace stackTrace) {
-    future._asyncCompleteError(error, stackTrace);
+  void _completeErrorObject(AsyncError error) {
+    future._asyncCompleteErrorObject(error);
   }
 }
 
@@ -96,12 +112,12 @@ class _AsyncCompleter<T> extends _Completer<T> {
 @pragma("vm:entry-point")
 class _SyncCompleter<T> extends _Completer<T> {
   void complete([FutureOr<T>? value]) {
-    if (!future._mayComplete) throw new StateError("Future already completed");
+    if (!future._mayComplete) throw StateError("Future already completed");
     future._complete(value == null ? value as dynamic : value);
   }
 
-  void _completeError(Object error, StackTrace stackTrace) {
-    future._completeError(error, stackTrace);
+  void _completeErrorObject(AsyncError error) {
+    future._completeErrorObject(error);
   }
 }
 
@@ -351,9 +367,8 @@ class _Future<T> implements Future<T> {
     _setValue(value);
   }
 
-  _Future.immediateError(var error, StackTrace stackTrace)
-    : _zone = Zone._current {
-    _asyncCompleteError(error, stackTrace);
+  _Future.immediateError(AsyncError error) : _zone = Zone._current {
+    _asyncCompleteErrorObject(error);
   }
 
   /// Creates a future that is already completed with the value.
@@ -396,8 +411,8 @@ class _Future<T> implements Future<T> {
         onError = _registerErrorHandler(onError, currentZone);
       }
     }
-    _Future<R> result = new _Future<R>();
-    _addListener(new _FutureListener<T, R>.then(result, f, onError));
+    _Future<R> result = _Future<R>();
+    _addListener(_FutureListener<T, R>.then(result, f, onError));
     return result;
   }
 
@@ -406,8 +421,8 @@ class _Future<T> implements Future<T> {
   /// Used by the implementation of `await` to listen to a future.
   /// The system created listeners are not registered in the zone.
   Future<E> _thenAwait<E>(FutureOr<E> f(T value), Function onError) {
-    _Future<E> result = new _Future<E>();
-    _addListener(new _FutureListener<T, E>.thenAwait(result, f, onError));
+    _Future<E> result = _Future<E>();
+    _addListener(_FutureListener<T, E>.thenAwait(result, f, onError));
     return result;
   }
 
@@ -427,12 +442,12 @@ class _Future<T> implements Future<T> {
   }
 
   Future<T> catchError(Function onError, {bool test(Object error)?}) {
-    _Future<T> result = new _Future<T>();
+    _Future<T> result = _Future<T>();
     if (!identical(result._zone, _rootZone)) {
       onError = _registerErrorHandler(onError, result._zone);
       if (test != null) test = result._zone.registerUnaryCallback(test);
     }
-    _addListener(new _FutureListener<T, T>.catchError(result, onError, test));
+    _addListener(_FutureListener<T, T>.catchError(result, onError, test));
     return result;
   }
 
@@ -454,15 +469,15 @@ class _Future<T> implements Future<T> {
   }
 
   Future<T> whenComplete(dynamic action()) {
-    _Future<T> result = new _Future<T>();
+    _Future<T> result = _Future<T>();
     if (!identical(result._zone, _rootZone)) {
       action = result._zone.registerCallback<dynamic>(action);
     }
-    _addListener(new _FutureListener<T, T>.whenComplete(result, action));
+    _addListener(_FutureListener<T, T>.whenComplete(result, action));
     return result;
   }
 
-  Stream<T> asStream() => new Stream<T>.fromFuture(this);
+  Stream<T> asStream() => Stream<T>.fromFuture(this);
 
   void _setPendingComplete() {
     assert(_mayComplete); // Aka. _stateIncomplete
@@ -495,10 +510,6 @@ class _Future<T> implements Future<T> {
     assert(!_isComplete); // But may have a completion pending.
     _state = _stateError | (_state & _stateIgnoreError);
     _resultOrListeners = error;
-  }
-
-  void _setError(Object error, StackTrace stackTrace) {
-    _setErrorObject(new AsyncError(error, stackTrace));
   }
 
   /// Copy the completion result of [source] into this future.
@@ -722,12 +733,16 @@ class _Future<T> implements Future<T> {
     _propagateToListeners(this, listeners);
   }
 
-  void _completeError(Object error, StackTrace stackTrace) {
+  void _completeErrorObject(AsyncError error) {
     assert(!_isComplete);
 
     _FutureListener? listeners = _removeListeners();
-    _setError(error, stackTrace);
+    _setErrorObject(error);
     _propagateToListeners(this, listeners);
+  }
+
+  void _completeError(Object error, StackTrace stackTrace) {
+    _completeErrorObject(AsyncError(error, stackTrace));
   }
 
   // Completes future in a later microtask.
@@ -809,11 +824,15 @@ class _Future<T> implements Future<T> {
   }
 
   void _asyncCompleteError(Object error, StackTrace stackTrace) {
+    _asyncCompleteErrorObject(AsyncError(error, stackTrace));
+  }
+
+  void _asyncCompleteErrorObject(AsyncError error) {
     assert(!_isComplete);
 
     _setPendingComplete();
     _zone.scheduleMicrotask(() {
-      _completeError(error, stackTrace);
+      _completeErrorObject(error);
     });
   }
 
@@ -895,7 +914,7 @@ class _Future<T> implements Future<T> {
             if (hasError && identical(source._error.error, e)) {
               listenerValueOrError = source._error;
             } else {
-              listenerValueOrError = new AsyncError(e, s);
+              listenerValueOrError = AsyncError(e, s);
             }
             listenerHasError = true;
             return;
@@ -919,7 +938,7 @@ class _Future<T> implements Future<T> {
                 joinedResult._completeWithResultOf(originalSource);
               },
               onError: (Object e, StackTrace s) {
-                joinedResult._completeError(e, s);
+                joinedResult._completeErrorObject(AsyncError(e, s));
               },
             );
             listenerValueOrError = joinedResult;
@@ -931,7 +950,7 @@ class _Future<T> implements Future<T> {
           try {
             listenerValueOrError = listener.handleValue(sourceResult);
           } catch (e, s) {
-            listenerValueOrError = new AsyncError(e, s);
+            listenerValueOrError = AsyncError(e, s);
             listenerHasError = true;
           }
         }
@@ -948,7 +967,7 @@ class _Future<T> implements Future<T> {
             if (identical(source._error.error, e)) {
               listenerValueOrError = source._error;
             } else {
-              listenerValueOrError = new AsyncError(e, s);
+              listenerValueOrError = AsyncError(e, s);
             }
             listenerHasError = true;
           }
@@ -1014,15 +1033,17 @@ class _Future<T> implements Future<T> {
 
   @pragma("vm:entry-point")
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?}) {
-    if (_isComplete) return new _Future.immediate(this);
+    if (_isComplete) return _Future.immediate(this);
     @pragma('vm:awaiter-link')
-    _Future<T> _future = new _Future<T>();
+    _Future<T> _future = _Future<T>();
     Timer timer;
     if (onTimeout == null) {
-      timer = new Timer(timeLimit, () {
-        _future._completeError(
-          new TimeoutException("Future not completed", timeLimit),
-          StackTrace.current,
+      timer = Timer(timeLimit, () {
+        _future._completeErrorObject(
+          AsyncError(
+            TimeoutException("Future not completed", timeLimit),
+            StackTrace.current,
+          ),
         );
       });
     } else {
@@ -1031,11 +1052,11 @@ class _Future<T> implements Future<T> {
         onTimeout,
       );
 
-      timer = new Timer(timeLimit, () {
+      timer = Timer(timeLimit, () {
         try {
           _future._complete(zone.run(onTimeoutHandler));
         } catch (e, s) {
-          _future._completeError(e, s);
+          _future._completeErrorObject(AsyncError(e, s));
         }
       });
     }
@@ -1049,7 +1070,7 @@ class _Future<T> implements Future<T> {
       onError: (Object e, StackTrace s) {
         if (timer.isActive) {
           timer.cancel();
-          _future._completeError(e, s);
+          _future._completeErrorObject(AsyncError(e, s));
         }
       },
     );

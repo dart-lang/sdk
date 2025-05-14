@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryStringEscapesTest);
   });
@@ -24,11 +24,12 @@ var x = '\\';
   }
 
   test_escapedColon() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = '\:';
-''', [
-      lint(9, 1),
-    ]);
+''',
+      [lint(9, 1)],
+    );
   }
 
   test_escapedDoubleQuotes_inDoubleQuotes() async {
@@ -38,11 +39,12 @@ var x = "\"";
   }
 
   test_escapedDoubleQuotes_inSingleQuotes() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = '\"';
-''', [
-      lint(9, 1),
-    ]);
+''',
+      [lint(9, 1)],
+    );
   }
 
   test_escapedDoubleQuotes_inSingleQuotes_raw() async {
@@ -58,11 +60,12 @@ var x = """text"\""text""";
   }
 
   test_escapedDoubleQuotes_inThreeDoubleQuotes() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = """\"text""";
-''', [
-      lint(11, 1),
-    ]);
+''',
+      [lint(11, 1)],
+    );
   }
 
   test_escapedDoubleQuotes_inThreeDoubleQuotes_atEnd() async {
@@ -72,19 +75,21 @@ var x = """text\"""";
   }
 
   test_escapedDoubleQuotes_inThreeSingleQuotes() async {
-    await assertDiagnostics(r"""
+    await assertDiagnostics(
+      r"""
 var x = '''\"''';
-""", [
-      lint(11, 1),
-    ]);
+""",
+      [lint(11, 1)],
+    );
   }
 
   test_escapedLowerA() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = '\a';
-''', [
-      lint(9, 1),
-    ]);
+''',
+      [lint(9, 1)],
+    );
   }
 
   test_escapedLowerDollar() async {
@@ -112,11 +117,12 @@ var x = '\t';
   }
 
   test_escapedSingleQuote_inDoubleQuotes() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = "\'";
-''', [
-      lint(9, 1),
-    ]);
+''',
+      [lint(9, 1)],
+    );
   }
 
   test_escapedSingleQuote_inDoubleQuotes_raw() async {
@@ -138,19 +144,21 @@ var x = '''text'\''text''';
   }
 
   test_escapedSingleQuote_inThreeDoubleQuotes() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = """\'""";
-''', [
-      lint(11, 1),
-    ]);
+''',
+      [lint(11, 1)],
+    );
   }
 
   test_escapedSingleQuote_inThreeSingleQuotes() async {
-    await assertDiagnostics(r"""
+    await assertDiagnostics(
+      r"""
 var x = '''\'text''';
-""", [
-      lint(11, 1),
-    ]);
+""",
+      [lint(11, 1)],
+    );
   }
 
   test_escapedSingleQuote_inThreeSingleQuotes_atEnd() async {
@@ -198,13 +206,16 @@ var x = '''text\'\'\'text''';
   test_unterminatedStringLiteral() async {
     // Note that putting `''` on the new line is important to get a token
     // with `'\` with no closing quote.
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 String unclosedQuote() => '\
 '';
-''', [
-      // Ensure linter does not crash.
-      error(ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED, 27, 1),
-      error(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 27, 1),
-    ]);
+''',
+      [
+        // Ensure linter does not crash.
+        error(ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED, 27, 1),
+        error(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 27, 1),
+      ],
+    );
   }
 }

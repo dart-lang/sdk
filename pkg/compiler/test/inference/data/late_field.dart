@@ -4,18 +4,19 @@
 
 import 'package:compiler/src/util/testing.dart';
 
-/*member: Foo.:[exact=Foo]*/
+/*member: Foo.:[exact=Foo|powerset=0]*/
 class Foo {
-  /*member: Foo._#Foo#x#AI:[sentinel|exact=JSUInt31]*/
-  /*member: Foo.x:[exact=JSUInt31]*/
-  late int /*[exact=Foo]*/ /*update: [exact=Foo]*/ x = 42;
+  /*member: Foo._#Foo#x#AI:[sentinel|exact=JSUInt31|powerset=2]*/
+  /*member: Foo.x:[exact=JSUInt31|powerset=0]*/
+  late int /*[exact=Foo|powerset=0]*/ /*update: [exact=Foo|powerset=0]*/ x = 42;
 }
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 void main() {
   makeLive(test(Foo()));
 }
 
 @pragma('dart2js:noInline')
-/*member: test:[exact=JSUInt31]*/
-int test(Foo /*[exact=Foo]*/ foo) => foo. /*[exact=Foo]*/ x;
+/*member: test:[exact=JSUInt31|powerset=0]*/
+int test(Foo /*[exact=Foo|powerset=0]*/ foo) =>
+    foo. /*[exact=Foo|powerset=0]*/ x;

@@ -11,6 +11,7 @@ import "dart:_internal"
         TypeTest,
         unsafeCast;
 import "dart:_list" show GrowableList;
+import "dart:_object_helper";
 import "dart:_wasm";
 
 import "dart:collection";
@@ -102,7 +103,7 @@ mixin _UnmodifiableSetMixin<E> implements LinkedHashSet<E> {
 /// field type nullable.
 @pragma("wasm:entry-point")
 final WasmArray<WasmI32> _uninitializedHashBaseIndex =
-    const WasmArray<WasmI32>.literal([const WasmI32(0)]);
+    const WasmArray<WasmI32>.literal([WasmI32(0)]);
 
 /// The object marking uninitialized [_HashFieldBase._data] fields.
 ///
@@ -113,6 +114,7 @@ final WasmArray<Object?> _uninitializedHashBaseData =
 
 /// The object marking deleted data in [_HashFieldBase._data] and absent values
 /// in `_getValueOrData` methods.
+@pragma("wasm:initialize-at-startup")
 final Object _deletedDataMarker = Object();
 
 /// Base class for all (immutable and mutable) linked hash map and set
@@ -310,9 +312,7 @@ base class _ConstMap<K, V> extends _HashFieldBase
         _ImmutableLinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
   factory _ConstMap._uninstantiable() {
-    throw new UnsupportedError(
-      "_ConstMap can only be allocated by the compiler",
-    );
+    throw UnsupportedError("_ConstMap can only be allocated by the compiler");
   }
 }
 
@@ -459,7 +459,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
   /// This function is unsafe: it does not perform any type checking on
   /// keys and values assuming that caller has ensured that types are
   /// correct.
-  void _populateUnsafe(WasmArray<Object?> data, int usedData) {
+  void _populateUnsafeOnlyStringKeys(WasmArray<Object?> data, int usedData) {
     assert(usedData.isEven);
     int size = data.length;
     if (size == 0) {
@@ -486,7 +486,17 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     for (int i = 0; i < usedData; i += 2) {
       final key = unsafeCast<K>(data[i]);
       final value = unsafeCast<V>(data[i + 1]);
-      _set(key, value, _hashCode(key));
+
+      // Strings store their hash code in the object header's identity hash code
+      // field. So before doing a indirect call to obtain the hash code, we can
+      // check if it was already computed and if so just use it.
+      final int idHash = getIdentityHashField(unsafeCast<Object>(key));
+      if (idHash != 0) {
+        assert(idHash == key.hashCode);
+        _set(key, value, idHash);
+      } else {
+        _set(key, value, key.hashCode);
+      }
     }
   }
 
@@ -763,7 +773,7 @@ class _CompactIterator<E> implements Iterator<E> {
   E? _current;
 
   _CompactIterator(this._table, this._data, this._len, this._offset, this._step)
-      : _checkSum = _table._checkSum;
+    : _checkSum = _table._checkSum;
 
   bool moveNext() {
     if (_table._isModifiedSince(_data, _checkSum)) {
@@ -812,7 +822,7 @@ class _CompactEntriesIterator<K, V> implements Iterator<MapEntry<K, V>> {
   MapEntry<K, V>? _current;
 
   _CompactEntriesIterator(this._table, this._data, this._len)
-      : _checkSum = _table._checkSum;
+    : _checkSum = _table._checkSum;
 
   bool moveNext() {
     if (_table._isModifiedSince(_data, _checkSum)) {
@@ -1113,9 +1123,7 @@ base class _ConstSet<E> extends _HashFieldBase
         _ImmutableLinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
   factory _ConstSet._uninstantiable() {
-    throw new UnsupportedError(
-      "_ConstSet can only be allocated by the compiler",
-    );
+    throw UnsupportedError("_ConstSet can only be allocated by the compiler");
   }
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
@@ -1248,13 +1256,15 @@ base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
   ) : _validKey = validKey ?? TypeTest<E>().test;
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this);
-  Set<E> toSet() => CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
-    ..addAll(this);
+  Set<E> toSet() =>
+      CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
+        ..addAll(this);
 }
 
 @pragma('wasm:prefer-inline')
-Map<K, V> createMapFromKeyValueListUnsafe<K, V>(
+Map<K, V> createMapFromStringKeyValueListUnsafe<K, V>(
   WasmArray<Object?> keyValuePairData,
   int usedData,
 ) =>
-    DefaultMap<K, V>().._populateUnsafe(keyValuePairData, usedData);
+    DefaultMap<K, V>()
+      .._populateUnsafeOnlyStringKeys(keyValuePairData, usedData);

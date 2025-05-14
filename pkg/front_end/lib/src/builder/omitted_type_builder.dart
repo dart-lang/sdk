@@ -240,69 +240,6 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
   }
 }
 
-// Coverage-ignore(suite): Not run.
-/// A type defined in terms of another omitted type.
-///
-/// This is used in macro generated code to create type annotations from
-/// inferred types in the original code.
-class DependentTypeBuilder extends OmittedTypeBuilderImpl
-    with InferableTypeBuilderMixin
-    implements InferredTypeListener {
-  final OmittedTypeBuilder typeBuilder;
-
-  DependentTypeBuilder(this.typeBuilder) {
-    typeBuilder.registerInferredTypeListener(this);
-  }
-
-  @override
-  void onInferredType(DartType type) {
-    registerType(type);
-  }
-
-  @override
-  DartType build(LibraryBuilder library, TypeUse typeUse,
-      {ClassHierarchyBase? hierarchy}) {
-    if (hasType) {
-      return type;
-    }
-    if (hierarchy != null) {
-      return typeBuilder.build(library, typeUse, hierarchy: hierarchy);
-    } else {
-      InferableTypeUse inferableTypeUse =
-          new InferableTypeUse(library as SourceLibraryBuilder, this, typeUse);
-      library.loader.inferableTypes.registerInferableType(inferableTypeUse);
-      return new InferredType.fromInferableTypeUse(inferableTypeUse);
-    }
-  }
-
-  @override
-  DartType buildAliased(
-      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
-    return typeBuilder.buildAliased(library, typeUse, hierarchy);
-  }
-
-  @override
-  bool get isExplicit => false;
-
-  @override
-  String get debugName => 'DependentTypeBuilder';
-
-  @override
-  StringBuffer printOn(StringBuffer buffer) {
-    buffer.write('(dependency=');
-    buffer.write(typeBuilder);
-    buffer.write(')');
-    return buffer;
-  }
-
-  @override
-  Nullability computeNullability(
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
-    throw new UnimplementedError("$runtimeType.computeNullability");
-  }
-}
-
 /// Listener for the late computation of an inferred type.
 abstract class InferredTypeListener {
   /// Called when the type of an [InferableTypeBuilder] has been computed.

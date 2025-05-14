@@ -119,8 +119,9 @@ class Test4 extends Indexable<Iterable<int>?, Object?> {
     // - T <: S
     // Therefore the type of `e` is T = Iterable<num>.
     var iterableDouble = <double>[] as Iterable<double>;
-    contextIterable((this[0] ??= iterableDouble)
-      ..expectStaticType<Exactly<Iterable<num>>>());
+    contextIterable(
+      (this[0] ??= iterableDouble)..expectStaticType<Exactly<Iterable<num>>>(),
+    );
   }
 }
 
@@ -140,7 +141,8 @@ class Test5 extends Indexable<Function?, Function?> {
     // Therefore the type of `e` is T = Function.
     var callableClassInt = CallableClass<int>();
     context<Function>(
-        (this[0] ??= callableClassInt)..expectStaticType<Exactly<Function>>());
+      (this[0] ??= callableClassInt)..expectStaticType<Exactly<Function>>(),
+    );
   }
 }
 
@@ -182,7 +184,8 @@ class Test7 extends Indexable<C1<int>?, Object?> {
     // Therefore the type of `e` is S = B1<Object>.
     var c2Double = C2<double>();
     contextB1<Object>(
-        (this[0] ??= c2Double)..expectStaticType<Exactly<B1<Object>>>());
+      (this[0] ??= c2Double)..expectStaticType<Exactly<B1<Object>>>(),
+    );
   }
 }
 
@@ -203,7 +206,8 @@ class Test8 extends Indexable<Iterable<int>?, Object?> {
     // Therefore the type of `e` is S = Iterable<num>.
     var listNum = <num>[];
     context<Iterable<num>>(
-        (this[0] ??= listNum)..expectStaticType<Exactly<Iterable<num>>>());
+      (this[0] ??= listNum)..expectStaticType<Exactly<Iterable<num>>>(),
+    );
   }
 }
 
@@ -224,8 +228,10 @@ class Test9 extends Indexable<C1<int> Function()?, Function?> {
     // - T2' <: S
     // Therefore the type of `e` is S = B1<int> Function().
     var callableClassC2Int = CallableClass<C2<int>>();
-    context<B1<int> Function()>((this[0] ??= callableClassC2Int)
-      ..expectStaticType<Exactly<B1<int> Function()>>());
+    context<B1<int> Function()>(
+      (this[0] ??= callableClassC2Int)
+        ..expectStaticType<Exactly<B1<int> Function()>>(),
+    );
   }
 }
 
@@ -331,8 +337,9 @@ class Test13 extends Indexable<C1<int> Function()?, Function?> {
       // The fact that T2' <!: S precludes using S as static type.
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (this[0] ??= callableClassC2Int)
-        ..expectStaticType<Exactly<A Function()>>();
+      o =
+          (this[0] ??= callableClassC2Int)
+            ..expectStaticType<Exactly<A Function()>>();
     }
   }
 }
@@ -359,8 +366,9 @@ class Test14 extends Indexable<C1<int> Function()?, Function?> {
       // The fact that NonNull(T1) <!: S precludes using S as static type.
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (this[0] ??= callableClassC2Int)
-        ..expectStaticType<Exactly<A Function()>>();
+      o =
+          (this[0] ??= callableClassC2Int)
+            ..expectStaticType<Exactly<A Function()>>();
     }
   }
 }
@@ -387,8 +395,9 @@ class Test15 extends Indexable<C1<int> Function()?, Function?> {
       // The fact that NonNull(T1) <!: S precludes using S as static type.
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (this[0] ??= callableClassC2Int)
-        ..expectStaticType<Exactly<A Function()>>();
+      o =
+          (this[0] ??= callableClassC2Int)
+            ..expectStaticType<Exactly<A Function()>>();
     }
   }
 }

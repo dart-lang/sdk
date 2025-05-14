@@ -20,11 +20,11 @@ extension type ExtensionTypeMap<K, V>(Map<K, V> it) implements Map<K, V> {
 
 exhaustiveListExtensionType(ExtensionTypeList<A> list) {
   return switch (list) {
-      [] => 0,
-      [B()] => 1,
-      [C()] => 2,
-      [_, _, ...]=> 3,
-    };
+    [] => 0,
+    [B()] => 1,
+    [C()] => 2,
+    [_, _, ...] => 3,
+  };
 }
 
 exhaustiveMapExtensionType1(ExtensionTypeMap<int, A> map) {
@@ -68,7 +68,9 @@ exhaustiveMapGetter(ExtensionTypeMap<int, A> map) {
 exhaustiveMapGenericMethod(ExtensionTypeMap<int, A> map) {
   return switch (map) {
     ExtensionTypeMap(
-        :void Function<X>(int, A, void Function(X)) genericMethod) => 0,
+      :void Function<X>(int, A, void Function(X)) genericMethod,
+    ) =>
+      0,
   };
 }
 

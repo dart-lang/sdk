@@ -14,23 +14,22 @@ const _desc = r'Omit type annotations for local variables.';
 
 class OmitLocalVariableTypes extends LintRule {
   OmitLocalVariableTypes()
-      : super(
-          name: LintNames.omit_local_variable_types,
-          description: _desc,
-        );
+    : super(name: LintNames.omit_local_variable_types, description: _desc);
 
   @override
   List<String> get incompatibleRules => const [
-        LintNames.always_specify_types,
-        LintNames.specify_nonobvious_local_variable_types,
-      ];
+    LintNames.always_specify_types,
+    LintNames.specify_nonobvious_local_variable_types,
+  ];
 
   @override
   LintCode get lintCode => LinterLintCode.omit_local_variable_types;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context.typeProvider);
     registry.addForStatement(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);

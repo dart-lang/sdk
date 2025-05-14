@@ -2,6 +2,30 @@ library;
 import self as self;
 import "dart:core" as core;
 
+class B extends self::_B&Object&M1&M2 {
+  constructor •(dynamic value) → self::B
+    ;
+}
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
+  method m() → dynamic
+    ;
+}
+abstract class M2 extends core::Object /*isMixinDeclaration*/  {
+  method m() → dynamic
+    ;
+}
+class C extends self::_C&Object&M1&M2 {
+  constructor •(dynamic value) → self::C
+    ;
+}
+abstract class G1<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  method m() → dynamic
+    ;
+}
+class D<S extends core::Object? = dynamic> extends self::_D&Object&G1<self::D::S%> {
+  synthetic constructor •() → self::D<self::D::S%>
+    ;
+}
 abstract class _B&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_B&Object&M1
     : super core::Object::•()
@@ -15,18 +39,6 @@ abstract class _B&Object&M1&M2 = self::_B&Object&M1 with self::M2 /*isAnonymousM
     ;
   mixin-super-stub method m() → dynamic
     return super.{self::M2::m}();
-}
-class B extends self::_B&Object&M1&M2 {
-  constructor •(dynamic value) → self::B
-    ;
-}
-abstract class M1 extends core::Object /*isMixinDeclaration*/  {
-  method m() → dynamic
-    ;
-}
-abstract class M2 extends core::Object /*isMixinDeclaration*/  {
-  method m() → dynamic
-    ;
 }
 abstract class _C&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&M1
@@ -42,24 +54,12 @@ abstract class _C&Object&M1&M2 = self::_C&Object&M1 with self::M2 /*isAnonymousM
   mixin-super-stub method m() → dynamic
     return super.{self::M2::m}();
 }
-class C extends self::_C&Object&M1&M2 {
-  constructor •(dynamic value) → self::C
-    ;
-}
-abstract class G1<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
-  method m() → dynamic
-    ;
-}
 abstract class _D&Object&G1<S extends core::Object? = dynamic> = core::Object with self::G1<self::_D&Object&G1::S%> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_D&Object&G1<self::_D&Object&G1::S%>
     : super core::Object::•()
     ;
   mixin-super-stub method m() → dynamic
     return super.{self::G1::m}();
-}
-class D<S extends core::Object? = dynamic> extends self::_D&Object&G1<self::D::S%> {
-  synthetic constructor •() → self::D<self::D::S%>
-    ;
 }
 static method main() → dynamic
   ;

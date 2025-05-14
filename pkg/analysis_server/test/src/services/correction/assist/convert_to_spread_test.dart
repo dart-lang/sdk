@@ -24,7 +24,7 @@ class ConvertToSpreadTest extends AssistProcessorTest {
     await resolveTestCode('''
 bool condition = false;
 var things;
-var l = ['a']..add/*caret*/All(condition ? things : const []);
+var l = ['a']..add^All(condition ? things : const []);
 ''');
     await assertHasAssist('''
 bool condition = false;
@@ -37,7 +37,7 @@ var l = ['a', if (condition) ...things];
     await resolveTestCode('''
 bool condition = false;
 var things;
-var l = ['a']..add/*caret*/All(condition ? things : []);
+var l = ['a']..add^All(condition ? things : []);
 ''');
     await assertHasAssist('''
 bool condition = false;
@@ -50,7 +50,7 @@ var l = ['a', if (condition) ...things];
     await resolveTestCode('''
 f() {
   var ints = [1, 2, 3];
-  print(['a']..addAl/*caret*/l(ints.map((i) => i.toString()))..addAll(['c']));
+  print(['a']..addAl^l(ints.map((i) => i.toString()))..addAll(['c']));
 }
 ''');
     await assertHasAssist('''
@@ -67,7 +67,7 @@ f() {
     await resolveTestCode('''
 f() {
   var ints = [1, 2, 3];
-  print(['a']..addAl/*caret*/l(ints.map((i) => i.toString()))..addAll(['c']));
+  print(['a']..addAl^l(ints.map((i) => i.toString()))..addAll(['c']));
 }
 ''');
     await assertNoAssist();
@@ -77,7 +77,7 @@ f() {
     await resolveTestCode('''
 f() {
   var ints = [1, 2, 3];
-  print([]..addAl/*caret*/l(ints.map((i) => i.toString()))..addAll(['c']));
+  print([]..addAl^l(ints.map((i) => i.toString()))..addAll(['c']));
 }
 ''');
     await assertHasAssist('''
@@ -91,7 +91,7 @@ f() {
   Future<void> test_addAll_literal() async {
     // This case is covered by the INLINE_INVOCATION assist.
     await resolveTestCode('''
-var l = ['a']..add/*caret*/All(['b'])..addAll(['c']);
+var l = ['a']..add^All(['b'])..addAll(['c']);
 ''');
     await assertNoAssist();
   }
@@ -99,14 +99,14 @@ var l = ['a']..add/*caret*/All(['b'])..addAll(['c']);
   Future<void> test_addAll_nonLiteralTarget() async {
     await resolveTestCode('''
 var l1 = [];
-var l2 = l1..addAl/*caret*/l(['b'])..addAll(['c']);
+var l2 = l1..addAl^l(['b'])..addAll(['c']);
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_addAll_notFirst() async {
     await resolveTestCode('''
-var l = ['a']..addAll(['b'])../*caret*/addAll(['c']);
+var l = ['a']..addAll(['b'])..^addAll(['c']);
 ''');
     await assertNoAssist();
   }
@@ -114,7 +114,7 @@ var l = ['a']..addAll(['b'])../*caret*/addAll(['c']);
   Future<void> test_addAll_nullAware_const() async {
     await resolveTestCode('''
 var things;
-var l = ['a']..add/*caret*/All(things ?? const []);
+var l = ['a']..add^All(things ?? const []);
 ''');
     await assertHasAssist('''
 var things;
@@ -125,7 +125,7 @@ var l = ['a', ...?things];
   Future<void> test_addAll_nullAware_nonConst() async {
     await resolveTestCode('''
 var things;
-var l = ['a']..add/*caret*/All(things ?? []);
+var l = ['a']..add^All(things ?? []);
 ''');
     await assertHasAssist('''
 var things;

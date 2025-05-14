@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
@@ -44,7 +42,6 @@ AssertInitializer
   condition: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
@@ -52,8 +49,8 @@ AssertInitializer
       arguments
         IntegerLiteral
           literal: 0
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@function::foo::@parameter::_
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
             substitution: {T: bool}
           staticType: int
       rightParenthesis: )
@@ -65,7 +62,6 @@ AssertInitializer
   message: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
@@ -73,8 +69,8 @@ AssertInitializer
       arguments
         IntegerLiteral
           literal: 1
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@function::foo::@parameter::_
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
             substitution: {T: dynamic}
           staticType: int
       rightParenthesis: )
@@ -103,7 +99,6 @@ AssertStatement
   condition: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
@@ -111,8 +106,8 @@ AssertStatement
       arguments
         IntegerLiteral
           literal: 0
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@function::foo::@parameter::_
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
             substitution: {T: bool}
           staticType: int
       rightParenthesis: )
@@ -124,7 +119,6 @@ AssertStatement
   message: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
@@ -132,8 +126,8 @@ AssertStatement
       arguments
         IntegerLiteral
           literal: 1
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@function::foo::@parameter::_
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
             substitution: {T: dynamic}
           staticType: int
       rightParenthesis: )
@@ -247,7 +241,7 @@ void test(List<A> listA, List<B> listB) {
         String vSearch, String vType, String fSearch, String fType) {
       var node = findNode.declaredIdentifier(vSearch);
 
-      var element = node.declaredElement as LocalVariableElement;
+      var element = node.declaredElement2 as LocalVariableElement2;
       assertType(element.type, vType);
 
       var invocation = findNode.methodInvocation(fSearch);
@@ -269,12 +263,12 @@ class C {
 }
 ''';
     await resolveTestCode(code);
-    ClassElement c = findElement.class_('C');
+    ClassElement2 c = findElement2.class_('C');
 
-    PropertyAccessorElement x = c.accessors[0];
+    SetterElement x = c.setters2[0];
     expect(x.returnType, VoidTypeImpl.instance);
 
-    MethodElement operator = c.methods[0];
+    MethodElement2 operator = c.methods2[0];
     expect(operator.displayName, '[]=');
     expect(operator.returnType, VoidTypeImpl.instance);
   }
@@ -290,12 +284,12 @@ class Derived extends Base {
   operator[]=(int x, int y) {}
 }''';
     await resolveTestCode(code);
-    ClassElement c = findElement.class_('Derived');
+    ClassElement2 c = findElement2.class_('Derived');
 
-    PropertyAccessorElement x = c.accessors[0];
+    SetterElement x = c.setters2[0];
     expect(x.returnType, VoidTypeImpl.instance);
 
-    MethodElement operator = c.methods[0];
+    MethodElement2 operator = c.methods2[0];
     expect(operator.displayName, '[]=');
     expect(operator.returnType, VoidTypeImpl.instance);
   }
@@ -307,12 +301,12 @@ var y = {};
 ''';
     await resolveTestCode(code);
     var xNode = findNode.variableDeclaration('x = ');
-    var xElement = xNode.declaredElement!;
-    assertType(xElement.type, 'List<dynamic>');
+    var xfragment = xNode.declaredFragment!;
+    assertType(xfragment.element.type, 'List<dynamic>');
 
     var yNode = findNode.variableDeclaration('y = ');
-    var yElement = yNode.declaredElement!;
-    assertType(yElement.type, 'Map<dynamic, dynamic>');
+    var yfragment = yNode.declaredFragment!;
+    assertType(yfragment.element.type, 'Map<dynamic, dynamic>');
   }
 
   test_listMap_null() async {
@@ -322,12 +316,12 @@ var y = {null: null};
 ''';
     await resolveTestCode(code);
     var xNode = findNode.variableDeclaration('x = ');
-    var xElement = xNode.declaredElement!;
-    assertType(xElement.type, 'List<Null>');
+    var xFragment = xNode.declaredFragment!;
+    assertType(xFragment.element.type, 'List<Null>');
 
     var yNode = findNode.variableDeclaration('y = ');
-    var yElement = yNode.declaredElement!;
-    assertType(yElement.type, 'Map<Null, Null>');
+    var yFragment = yNode.declaredFragment!;
+    assertType(yFragment.element.type, 'Map<Null, Null>');
   }
 
   test_logicalAnd() async {
@@ -345,7 +339,6 @@ BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>()
     argumentList: ArgumentList
@@ -359,18 +352,16 @@ BinaryExpression
   rightOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    parameter: <null>
+    correspondingParameter: <null>
     staticInvokeType: bool Function()
     staticType: bool
     typeArgumentTypes
       bool
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: bool
@@ -392,7 +383,6 @@ BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>()
     argumentList: ArgumentList
@@ -406,18 +396,16 @@ BinaryExpression
   rightOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    parameter: <null>
+    correspondingParameter: <null>
     staticInvokeType: bool Function()
     staticType: bool
     typeArgumentTypes
       bool
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: bool
@@ -475,12 +463,12 @@ main() {
 ''';
     await resolveTestCode(code);
     var xNode = findNode.variableDeclaration('x = ');
-    var xElement = xNode.declaredElement!;
-    expect(xElement.type, VoidTypeImpl.instance);
+    var xFragment = xNode.declaredFragment!;
+    expect(xFragment.element.type, VoidTypeImpl.instance);
 
     var yNode = findNode.variableDeclaration('y = ');
-    var yElement = yNode.declaredElement!;
-    expect(yElement.type, VoidTypeImpl.instance);
+    var yFragment = yNode.declaredFragment!;
+    expect(yFragment.element.type, VoidTypeImpl.instance);
   }
 
   test_voidType_topLevelFunction() async {
@@ -493,12 +481,12 @@ main() {
 ''';
     await resolveTestCode(code);
     var xNode = findNode.variableDeclaration('x = ');
-    var xElement = xNode.declaredElement!;
-    expect(xElement.type, VoidTypeImpl.instance);
+    var xFragment = xNode.declaredFragment!;
+    expect(xFragment.element.type, VoidTypeImpl.instance);
 
     var yNode = findNode.variableDeclaration('y = ');
-    var yElement = yNode.declaredElement!;
-    expect(yElement.type, VoidTypeImpl.instance);
+    var yFragment = yNode.declaredFragment!;
+    expect(yFragment.element.type, VoidTypeImpl.instance);
   }
 
   void _assertTypeAnnotations() {
@@ -528,7 +516,7 @@ main() {
         if (comment != null) {
           var expectedType = types[comment.offset];
           if (expectedType != null) {
-            var element = node.staticElement as VariableElement;
+            var element = node.element as VariableElement2;
             String actualType = typeString(element.type);
             expect(actualType, expectedType, reason: '@${comment.offset}');
           }

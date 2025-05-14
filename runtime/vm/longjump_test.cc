@@ -19,7 +19,7 @@ ISOLATE_UNIT_TEST_CASE(LongJump) {
   LongJumpScope* base = Thread::Current()->long_jump_base();
   {
     LongJumpScope jump;
-    if (setjmp(*jump.Set()) == 0) {
+    if (DART_SETJMP(*jump.Set()) == 0) {
       LongJumpHelper(&jump);
       UNREACHABLE();
     } else {

@@ -6,7 +6,7 @@ import '../../common/testing.dart' as helper;
 import 'package:expect/expect.dart';
 
 /// A dynamic module can use core libraries and language features.
-main() async {
+void main() async {
   final result = await helper.load('entry1.dart');
   Expect.isTrue(result);
   helper.done();

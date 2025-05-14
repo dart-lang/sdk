@@ -48,27 +48,28 @@ enum _Flag {
   isClosureParameter, // 6
   isInitializingFormal, // 7
   isVirtual, // 8
+  isOptionalNoDefault, // 9
   // ---Flags for [CallSiteTypeInformation]---
-  inLoop, // 9
+  inLoop, // 10
   // ---Flags for [DynamicCallSiteTypeInformation]---
-  isConditional, // 10
-  hasClosureCallTargets, // 11
-  targetsIncludeComplexNoSuchMethod, // 12
-  hasTargetsIncludeComplexNoSuchMethod, // 13
+  isConditional, // 11
+  hasClosureCallTargets, // 12
+  targetsIncludeComplexNoSuchMethod, // 13
+  hasTargetsIncludeComplexNoSuchMethod, // 14
   // ---Flags for [PhiElementTypeInformation]---
-  isTry, // 14
+  isTry, // 15
   // ---Flags for [ValueInMapTypeInformation]---
-  valueInMapNonNull, // 15
+  valueInMapNonNull, // 16
   // ---Flags for [MemberTypeInformation]---
-  isCalled, // 16
-  isCalledMoreThanOnce, // 17
+  isCalled, // 17
+  isCalledMoreThanOnce, // 18
   // ---Flags for [ApplyableTypeInformation]---
-  mightBePassedToFunctionApply, // 18
+  mightBePassedToFunctionApply, // 19
   // ---Flags for [InferredTypeInformation]---
-  inferred, // 19
+  inferred, // 20
   // ---Flags for [TracedTypeInformation]---
-  notBailedOut, // 20
-  analyzed, // 21
+  notBailedOut, // 21
+  analyzed, // 22
 }
 
 /// Common class for all nodes in the graph. The current nodes are:
@@ -598,10 +599,7 @@ class FieldTypeInformation extends MemberTypeInformation {
     AbstractValueDomain abstractValueDomain,
     this._member,
     DartType type,
-  ) : _type =
-          abstractValueDomain
-              .createFromStaticType(type, nullable: true)
-              .abstractValue,
+  ) : _type = abstractValueDomain.createFromStaticType(type).abstractValue,
       super._internal(abstractValueDomain, _member);
 
   @override
@@ -658,7 +656,7 @@ class GetterTypeInformation extends MemberTypeInformation {
     FunctionType type,
   ) : _type =
           abstractValueDomain
-              .createFromStaticType(type.returnType, nullable: true)
+              .createFromStaticType(type.returnType)
               .abstractValue,
       super._internal(abstractValueDomain, _member);
 
@@ -708,7 +706,7 @@ class MethodTypeInformation extends MemberTypeInformation {
     FunctionType type,
   ) : _type =
           abstractValueDomain
-              .createFromStaticType(type.returnType, nullable: true)
+              .createFromStaticType(type.returnType)
               .abstractValue,
       super._internal(abstractValueDomain, _member);
 
@@ -743,7 +741,7 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
     FunctionType type,
   ) : _type =
           abstractValueDomain
-              .createFromStaticType(type.returnType, nullable: true)
+              .createFromStaticType(type.returnType)
               .abstractValue,
       super._internal(abstractValueDomain, _member);
 
@@ -831,6 +829,9 @@ class ParameterTypeInformation extends ElementTypeInformation {
   bool get _isInitializingFormal => _flags.contains(_Flag.isInitializingFormal);
   bool _isTearOffClosureParameter = false;
   bool get _isVirtual => _flags.contains(_Flag.isVirtual);
+  bool get isOptionalNoDefault => _flags.contains(_Flag.isOptionalNoDefault);
+  set isOptionalNoDefault(bool value) =>
+      _flags = _flags.update(_Flag.isOptionalNoDefault, value);
 
   ParameterTypeInformation.localFunction(
     super.abstractValueDomain,
@@ -838,10 +839,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     this._parameter,
     DartType type,
     this._method,
-  ) : _type =
-          abstractValueDomain
-              .createFromStaticType(type, nullable: true)
-              .abstractValue,
+  ) : _type = abstractValueDomain.createFromStaticType(type).abstractValue,
       _inputType = abstractValueDomain.uncomputedType,
       super._internal() {
     _flags = _flags.add(_Flag.isClosureParameter);
@@ -854,10 +852,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     DartType type,
     this._method, {
     bool isInitializingFormal = false,
-  }) : _type =
-           abstractValueDomain
-               .createFromStaticType(type, nullable: true)
-               .abstractValue,
+  }) : _type = abstractValueDomain.createFromStaticType(type).abstractValue,
        _inputType = abstractValueDomain.uncomputedType,
        super._internal() {
     _flags = _flags.update(_Flag.isInitializingFormal, isInitializingFormal);
@@ -887,8 +882,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     DartType type,
     FunctionEntity method,
   ) {
-    final staticType =
-        domain.createFromStaticType(type, nullable: true).abstractValue;
+    final staticType = domain.createFromStaticType(type).abstractValue;
     // We include null in the type of `==` because it usually does not already
     // include null. When we narrow the inferred type using this static type
     // we want to allow for null so that downstream we can know if null flows
@@ -968,7 +962,11 @@ class ParameterTypeInformation extends ElementTypeInformation {
     AbstractValue mask,
     InferrerEngine inferrer,
   ) {
-    return _narrowType(inferrer.abstractValueDomain, mask, _type);
+    final staticType =
+        isOptionalNoDefault
+            ? inferrer.abstractValueDomain.includeNull(_type)
+            : _type;
+    return _narrowType(inferrer.abstractValueDomain, mask, staticType);
   }
 
   AbstractValue checkedType(InferrerEngine inferrer) {
@@ -2568,7 +2566,7 @@ class AwaitTypeInformation extends TypeInformation {
       ),
     );
     return inferrer.abstractValueDomain
-        .createFromStaticType(staticType, nullable: true)
+        .createFromStaticType(staticType)
         .abstractValue;
   }
 

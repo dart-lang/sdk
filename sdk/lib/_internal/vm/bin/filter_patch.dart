@@ -66,7 +66,7 @@ class RawZLibFilter {
     int strategy,
     List<int>? dictionary,
     bool raw,
-  ) => new _ZLibDeflateFilter(
+  ) => _ZLibDeflateFilter(
     gzip,
     level,
     windowBits,
@@ -81,5 +81,5 @@ class RawZLibFilter {
     int windowBits,
     List<int>? dictionary,
     bool raw,
-  ) => new _ZLibInflateFilter(gzip, windowBits, dictionary, raw);
+  ) => _ZLibInflateFilter(gzip, windowBits, dictionary, raw);
 }

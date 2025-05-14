@@ -453,7 +453,6 @@ f() {
     testUserDefinableOperatorWithSuper('*');
   }
 
-  @failingTest
   void test_stringInterpolation_unclosed() {
     // https://github.com/dart-lang/sdk/issues/946
     // TODO(brianwilkerson): Try to recover better. Ideally there would be a
@@ -565,7 +564,6 @@ f(a, _s_, b) {}
 ''');
   }
 
-  @failingTest
   void test_fieldFormalParameter_noPeriod_last() {
     testRecovery('''
 class C {
@@ -580,7 +578,6 @@ class C {
 ''');
   }
 
-  @failingTest
   void test_fieldFormalParameter_noPeriod_notLast() {
     testRecovery('''
 class C {

@@ -32,7 +32,10 @@ import 'package:analyzer/source/source_range.dart' as server;
 import 'package:analyzer/src/dart/analysis/search.dart'
     as server
     show DeclarationKind;
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart'
+    show IntExtension;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
@@ -511,8 +514,19 @@ lsp.Location? fragmentToLocation(
   var libraryFragment = fragment.libraryFragment!;
   var sourcePath = libraryFragment.source.fullName;
 
-  var nameOffset = fragment.nameOffset2;
-  var nameLength = fragment.name2?.length;
+  int? nameOffset;
+  int? nameLength;
+  if (fragment case PropertyAccessorElementImpl(
+    :var isSynthetic,
+    :var nonSynthetic,
+  ) when isSynthetic) {
+    var element = nonSynthetic;
+    nameOffset = element.nameOffset.nullIfNegative;
+    nameLength = element.name?.length;
+  } else {
+    nameOffset = fragment.nameOffset2;
+    nameLength = fragment.name2?.length;
+  }
 
   // For unnamed constructors, use the type name as the target location.
   if (nameOffset == null && fragment is ConstructorFragment) {
@@ -1436,22 +1450,6 @@ lsp.FoldingRangeKind? toFoldingRangeKind(server.FoldingKind kind) {
       // (class/functions/etc.).
       return null;
   }
-}
-
-List<lsp.DocumentHighlight> toHighlights(
-  server.LineInfo lineInfo,
-  List<server.Occurrences> occurrences,
-) {
-  return occurrences
-      .map(
-        (occurrence) => occurrence.offsets.map(
-          (offset) => lsp.DocumentHighlight(
-            range: toRange(lineInfo, offset, occurrence.length),
-          ),
-        ),
-      )
-      .flattenedToSet
-      .toList();
 }
 
 lsp.Location toLocation(

@@ -48,9 +48,9 @@ class E {
   var f;
   E() {}
   E.fun(x)
-      : f = (() {
-          return x + 13;
-        }) {}
+    : f = (() {
+        return x + 13;
+      }) {}
   static foo() {
     return 3;
   }

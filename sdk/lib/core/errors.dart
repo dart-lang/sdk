@@ -217,8 +217,7 @@ class ArgumentError extends Error {
   /// in the error message.
   ///
   /// Returns the [argument] if it is not null.
-  @Since("2.1")
-  static T checkNotNull<@Since("2.8") T>(T? argument, [String? name]) =>
+  static T checkNotNull<T>(T? argument, [String? name]) =>
       argument ?? (throw ArgumentError.notNull(name));
 
   // Helper functions for toString overridden in subclasses.

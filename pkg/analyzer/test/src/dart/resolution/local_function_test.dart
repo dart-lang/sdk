@@ -35,7 +35,6 @@ f() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: g
-    staticElement: g@8
     element: g@8
     staticType: Null Function()
   argumentList: ArgumentList
@@ -86,7 +85,6 @@ f(int a) {
 MethodInvocation
   methodName: SimpleIdentifier
     token: g
-    staticElement: g@44
     element: g@44
     staticType: Null Function()
   argumentList: ArgumentList
@@ -121,7 +119,6 @@ f(int a) {
 MethodInvocation
   methodName: SimpleIdentifier
     token: g
-    staticElement: g@60
     element: g@60
     staticType: Null Function()
   argumentList: ArgumentList

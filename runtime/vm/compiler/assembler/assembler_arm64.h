@@ -2111,10 +2111,11 @@ class Assembler : public AssemblerBase {
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(Register scratch,
                                    bool exit_safepoint,
-                                   bool ignore_unwind_in_progress = false,
                                    bool set_tag = true);
+  void VerifyInGenerated(Register scratch);
+  void VerifyNotInGenerated(Register scratch);
   void EnterFullSafepoint(Register scratch);
-  void ExitFullSafepoint(Register scratch, bool ignore_unwind_in_progress);
+  void ExitFullSafepoint(Register scratch);
 
   void CheckCodePointer();
   void RestoreCodePointer();
@@ -2340,7 +2341,11 @@ class Assembler : public AssemblerBase {
       EmitAddSubShiftExtOp(subtract ? SUB : ADD, crd, crn, o, os, set_flags);
     } else {
       ASSERT(o.type() == Operand::Extended);
-      ASSERT((rd != CSP) && (rn != ZR));
+      if (set_flags) {
+        ASSERT((rd != CSP) && (rn != ZR));
+      } else {
+        ASSERT((rd != ZR) && (rn != ZR));
+      }
       EmitAddSubShiftExtOp(subtract ? SUB : ADD, crd, crn, o, os, set_flags);
     }
   }

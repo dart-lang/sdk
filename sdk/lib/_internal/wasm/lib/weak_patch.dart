@@ -17,7 +17,7 @@ void _checkValidWeakTarget(Object object) {
       (object is Pointer) ||
       (object is Struct) ||
       (object is Union)) {
-    throw new ArgumentError.value(
+    throw ArgumentError.value(
       object,
       "A string, number, boolean, record, Pointer, Struct or Union "
       "can't be a weak target",
@@ -26,7 +26,7 @@ void _checkValidWeakTarget(Object object) {
 }
 
 @patch
-class Expando<T> {
+class Expando<T extends Object> {
   WasmExternRef? _jsWeakMap;
 
   @patch

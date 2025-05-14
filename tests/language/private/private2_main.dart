@@ -8,9 +8,7 @@ part of Private2Test;
 class A {
   var _f;
   var g;
-  A()
-      : _f = 42,
-        g = 43;
+  A() : _f = 42, g = 43;
 }
 
 class C extends B {

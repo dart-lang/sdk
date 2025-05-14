@@ -7,9 +7,7 @@ import 'package:expect/expect.dart';
 import '../../common/testing.dart' as helper;
 import 'modules/common.dart';
 
-// It is an error to load a module that provides a second definition for
-// a library that already exists in the application.
-main() async {
+void main() async {
   final a1 = await helper.load('entry1.dart') as A;
   final a2 = await helper.load('entry2.dart') as A;
   Expect.equals(a1.getString(), 'B');

@@ -11,15 +11,12 @@ import 'package:vm_service_protos/vm_service_protos.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-int fib(n) {
-  if (n < 0) return 0;
-  if (n == 0) return 1;
-  return fib(n - 1) + fib(n - 2);
-}
-
 void testeeDo() {
   print('Testee doing something.');
-  fib(44);
+  final stopwatch = Stopwatch();
+  stopwatch.start();
+  while (stopwatch.elapsedMilliseconds < 5000) {}
+  stopwatch.stop();
   print('Testee did something.');
 }
 
@@ -66,6 +63,19 @@ Iterable<PerfSample> extractPerfSamplesFromTracePackets(
 final tests = <IsolateTest>[
   hasStoppedAtExit,
   (VmService service, IsolateRef isolateRef) async {
+    // This test is calling |getPerfettoCpuSamples| twice: with and without
+    // filter and expects to get consistent results. However profiler will
+    // continue running and recording samples while this is happening which
+    // means the buffer can overflow and old samples will be lost.
+    //
+    // The best way to avoid this would be to pause the profiler, but
+    // service API does not provide a way to do it: setting profiler flag to
+    // false will stop profiler entirely and discard accumulated samples.
+    //
+    // Instead we resort to bumping profile_period to 1h to stabilize this
+    // test.
+    await service.setFlag('profile_period', '60000000');
+
     final result = await service.getPerfettoCpuSamples(isolateRef.id!);
     expect(result.type, 'PerfettoCpuSamples');
     expect(result.samplePeriod, isPositive);
@@ -80,18 +90,52 @@ final tests = <IsolateTest>[
     int frameCount = 0;
     int callstackCount = 0;
     int perfSampleCount = 0;
+    final seenFrames = <int>{};
+    final seenCallstacks = <int>{};
     for (final packet in packets) {
+      if (packet.sequenceFlags &
+              TracePacket_SequenceFlags.SEQ_INCREMENTAL_STATE_CLEARED.value !=
+          0) {
+        seenCallstacks.clear();
+      }
+
       if (packet.hasInternedData()) {
         frameCount += packet.internedData.frames.length;
         callstackCount += packet.internedData.callstacks.length;
+
+        for (var frame in packet.internedData.frames) {
+          expect(frame.iid.toInt(), isNot(0));
+          seenFrames.add(frame.iid.toInt());
+        }
+        for (var callstack in packet.internedData.callstacks) {
+          for (var frame in callstack.frameIds) {
+            expect(frame.toInt(), isIn(seenFrames));
+          }
+
+          expect(callstack.iid.toInt(), isNot(0));
+          seenCallstacks.add(callstack.iid.toInt());
+        }
       }
       if (packet.hasPerfSample()) {
         perfSampleCount += 1;
+
+        // Check that packet correctly indicates dependency on incremental
+        // state and that incremental state contains interned callstack
+        // for this sample.
+        expect(
+          packet.sequenceFlags &
+                  TracePacket_SequenceFlags.SEQ_NEEDS_INCREMENTAL_STATE.value !=
+              0,
+          isTrue,
+        );
+        expect(packet.perfSample.callstackIid.toInt(), isIn(seenCallstacks));
       }
     }
     expect(frameCount, isPositive);
     expect(callstackCount, isPositive);
-    expect(perfSampleCount, callstackCount);
+    // Note: we will have more perfSampleCount than we have callstacks because
+    // callstacks are interned.
+    expect(perfSampleCount, greaterThanOrEqualTo(callstackCount));
 
     // Calculate the time window of events.
     final timeOriginNanos = computeTimeOriginNanos(packets);

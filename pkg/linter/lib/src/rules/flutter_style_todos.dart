@@ -8,27 +8,28 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Use Flutter TODO format: '
+const _desc =
+    r'Use Flutter TODO format: '
     '// TODO(username): message, https://URL-to-issue.';
 
 class FlutterStyleTodos extends LintRule {
   static final _todoRegExp = RegExp(r'//+\s*TODO\b', caseSensitive: false);
 
-  static final RegExp _todoExpectedRegExp =
-      RegExp(r'// TODO\([a-zA-Z0-9][-a-zA-Z0-9\.]*\): ');
+  static final RegExp _todoExpectedRegExp = RegExp(
+    r'// TODO\([a-zA-Z0-9][-a-zA-Z0-9\.]*\): ',
+  );
 
   FlutterStyleTodos()
-      : super(
-          name: LintNames.flutter_style_todos,
-          description: _desc,
-        );
+    : super(name: LintNames.flutter_style_todos, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.flutter_style_todos;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }

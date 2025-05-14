@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analysis_server_plugin/src/plugin_server.dart';
+library;
+
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:math' show max;
@@ -76,24 +79,26 @@ import 'package:analysis_server/src/handler/legacy/server_shutdown.dart';
 import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart' as lsp;
 import 'package:analysis_server/src/lsp/client_configuration.dart' as lsp;
+import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
+import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/debounce_requests.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
-import 'package:analysis_server/src/server/message_scheduler.dart';
-import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
+import 'package:analysis_server/src/utilities/extensions/resource_provider.dart';
 import 'package:analysis_server/src/utilities/process.dart';
+import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -111,6 +116,7 @@ import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation_dart.dart';
 import 'package:http/http.dart' as http;
+import 'package:language_server_protocol/json_parsing.dart' as lsp;
 import 'package:meta/meta.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:watcher/watcher.dart';
@@ -264,9 +270,14 @@ class LegacyAnalysisServer extends AnalysisServer {
   late final FutureOr<InitializedStateMessageHandler> lspInitialized =
       InitializedStateMessageHandler(this);
 
-  /// A flag indicating the value of the 'analyzing' parameter sent in the last
-  /// status message to the client.
+  /// Whether either the last status message sent to the client or the last
+  /// status message sent from any [PluginServer] indicated `isWorking: true`.
+  @visibleForTesting
   bool statusAnalyzing = false;
+
+  /// Whether the analysis server is currently analyzing (not including any
+  /// plugins).
+  bool serverStatusAnalyzing = false;
 
   /// A set of the [ServerService]s to send notifications for.
   Set<ServerService> serverServices = {};
@@ -292,8 +303,8 @@ class LegacyAnalysisServer extends AnalysisServer {
   ServerSetClientCapabilitiesParams _clientCapabilities =
       ServerSetClientCapabilitiesParams([]);
 
-  @override
-  final editorClientCapabilities = lsp.fixedBasicLspClientCapabilities;
+  /// See [editorClientCapabilities].
+  var _editorClientCapabilities = lsp.fixedBasicLspClientCapabilities;
 
   @override
   final lsp.LspClientConfiguration lspClientConfiguration;
@@ -318,6 +329,9 @@ class LegacyAnalysisServer extends AnalysisServer {
   int nextSearchId = 0;
 
   /// The [Completer] that completes when analysis is complete.
+  ///
+  /// This Completer is not used for communicating to the client whether we are
+  /// analyzing; it is only used by some 'search_find' handlers, and in some tests.
   Completer<void>? _onAnalysisCompleteCompleter;
 
   /// The controller that is notified when analysis is started.
@@ -420,6 +434,30 @@ class LegacyAnalysisServer extends AnalysisServer {
       discardedRequests,
     ).listen(handleRequestOrResponse, onDone: done, onError: error);
     _newRefactoringManager();
+
+    pluginManager.initializedCompleter.future.then((_) {
+      // Perform "on idle" tasks in case the `pluginManger` determines that no
+      // plugins should be run, _after_ the analysis server has reported its
+      // final `isAnalyzing: false` status.
+      _performOnIdleActions(
+        // Use the existing plugin analyzing status.
+        isPluginAnalyzing: notificationManager.pluginStatusAnalyzing,
+      );
+    });
+
+    notificationManager.pluginAnalysisStatusChanges.listen((
+      pluginStatusAnalyzing,
+    ) {
+      if (!pluginManager.initializedCompleter.isCompleted) {
+        // Without `this.`, some portion of the analyzer believes we are accessing
+        // the super parameter, instead of the field in the super class.
+        // See https://github.com/dart-lang/sdk/issues/59996.
+        // ignore: unnecessary_this
+        this.pluginManager.initializedCompleter.complete();
+      } else {
+        _performOnIdleActions(isPluginAnalyzing: pluginStatusAnalyzing);
+      }
+    });
   }
 
   /// The most recently registered set of client capabilities. The default is to
@@ -441,11 +479,36 @@ class LegacyAnalysisServer extends AnalysisServer {
     } else {
       uriConverter = ClientUriConverter.noop(resourceProvider.pathContext);
     }
+
+    if (capabilities.lspCapabilities
+        case Map<Object?, Object?> lspCapabilities) {
+      // First validate the capabilities so we can get a better message if it's
+      // invalid.
+      var reporter = lsp.LspJsonReporter();
+      if (!lsp.ClientCapabilities.canParse(lspCapabilities, reporter)) {
+        throw RequestError(
+          RequestErrorCode.INVALID_PARAMETER,
+          "The 'lspCapabilities' parameter was invalid: ${reporter.errors.join(', ')}",
+        );
+      }
+
+      _editorClientCapabilities = lsp.LspClientCapabilities(
+        lsp.ClientCapabilities.fromJson(lspCapabilities.cast<String, Object>()),
+      );
+    }
   }
 
+  @override
+  lsp.LspClientCapabilities get editorClientCapabilities =>
+      _editorClientCapabilities;
+
   /// The [Future] that completes when analysis is complete.
+  ///
+  /// This Future is not used for communicating to the client whether we are
+  /// analyzing; it is only used by 'search_find' handlers, tests, and for
+  /// performance calculations.
   Future<void> get onAnalysisComplete {
-    if (isAnalysisComplete()) {
+    if (_isAnalysisComplete) {
       return Future.value();
     }
     var completer = _onAnalysisCompleteCompleter ??= Completer<void>();
@@ -501,6 +564,9 @@ class LegacyAnalysisServer extends AnalysisServer {
   @protected
   bool get supportsShowMessageRequest =>
       clientCapabilities.requests.contains('showMessageRequest');
+
+  // TODO(srawlins): Do we need to alter this to account for plugin status?
+  bool get _isAnalysisComplete => !analysisDriverScheduler.isWorking;
 
   void cancelRequest(String id) {
     cancellationTokens[id]?.cancel();
@@ -656,25 +722,6 @@ class LegacyAnalysisServer extends AnalysisServer {
     sendLspNotifications = true;
   }
 
-  /// Return `true` if the [path] is both absolute and normalized.
-  bool isAbsoluteAndNormalized(String path) {
-    var pathContext = resourceProvider.pathContext;
-    return pathContext.isAbsolute(path) && pathContext.normalize(path) == path;
-  }
-
-  /// Return `true` if analysis is complete.
-  bool isAnalysisComplete() {
-    return !analysisDriverScheduler.isWorking;
-  }
-
-  /// Return `true` if the given path is a valid `FilePath`.
-  ///
-  /// This means that it is absolute and normalized.
-  bool isValidFilePath(String path) {
-    return resourceProvider.pathContext.isAbsolute(path) &&
-        resourceProvider.pathContext.normalize(path) == path;
-  }
-
   @override
   void notifyFlutterWidgetDescriptions(String path) {
     flutterWidgetDescriptions.flush();
@@ -692,6 +739,52 @@ class LegacyAnalysisServer extends AnalysisServer {
         notification,
       ).toNotification(clientUriConverter: uriConverter),
     );
+  }
+
+  /// Sends an LSP request to the server (wrapped in 'lsp.handle') and unwraps
+  /// the LSP response from the result of the legacy response.
+  @override
+  Future<lsp.ResponseMessage> sendLspRequest(
+    lsp.Method method,
+    Object params,
+  ) async {
+    var id = nextServerRequestId++;
+
+    // Build the complete LSP RequestMessage to send.
+    var lspMessage = lsp.RequestMessage(
+      id: lsp.Either2<int, String>.t1(id),
+      jsonrpc: lsp.jsonRpcVersion,
+      method: method,
+      params: params,
+    );
+
+    // Wrap the LSP message inside a call to lsp.handle.
+    var response = await sendRequest(
+      Request(
+        id.toString(),
+        LSP_REQUEST_HANDLE,
+        LspHandleParams(lspMessage).toJson(clientUriConverter: uriConverter),
+      ),
+    );
+
+    // Unwrap the LSP response from the legacy response.
+    var result = LspHandleResult.fromResponse(
+      response,
+      clientUriConverter: uriConverter,
+    );
+    var lspResponse = result.lspResponse;
+
+    return lspResponse is Map<String, Object?>
+        ? lsp.ResponseMessage.fromJson(lspResponse)
+        : lsp.ResponseMessage(
+          jsonrpc: lsp.jsonRpcVersion,
+          error: lsp.ResponseError(
+            code: lsp.ServerErrorCodes.UnhandledError,
+            message:
+                "The client responded to a '$method' LSP request but"
+                ' did not include a valid response in the lspResponse field',
+          ),
+        );
   }
 
   /// Send the given [notification] to the client.
@@ -717,7 +810,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// If the [path] is not a valid file path, that is absolute and normalized,
   /// send an error response, and return `true`. If OK then return `false`.
   bool sendResponseErrorIfInvalidFilePath(Request request, String path) {
-    if (!isAbsoluteAndNormalized(path)) {
+    if (!resourceProvider.isAbsoluteAndNormalized(path)) {
       sendResponse(Response.invalidFilePathFormat(request, path));
       return true;
     }
@@ -764,43 +857,20 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
   void sendStatusNotificationNew(analysis.AnalysisStatus status) {
-    var isAnalyzing = status.isWorking;
-    if (isAnalyzing) {
+    var isServerAnalyzing = status.isWorking;
+    if (isServerAnalyzing) {
       _onAnalysisStartedController.add(true);
     }
     var onAnalysisCompleteCompleter = _onAnalysisCompleteCompleter;
-    if (onAnalysisCompleteCompleter != null && !isAnalyzing) {
+    if (onAnalysisCompleteCompleter != null && !isServerAnalyzing) {
       onAnalysisCompleteCompleter.complete();
       _onAnalysisCompleteCompleter = null;
     }
-    // Perform on-idle actions.
-    if (!isAnalyzing) {
-      if (generalAnalysisServices.contains(
-        GeneralAnalysisService.ANALYZED_FILES,
-      )) {
-        sendAnalysisNotificationAnalyzedFiles(this);
-      }
-      _scheduleAnalysisImplementedNotification();
-      filesResolvedSinceLastIdle.clear();
-    }
-    // Only send status when subscribed.
-    if (!serverServices.contains(ServerService.STATUS)) {
-      return;
-    }
-    // Only send status when it changes
-    if (statusAnalyzing == isAnalyzing) {
-      return;
-    }
-    statusAnalyzing = isAnalyzing;
-    if (!isAnalyzing) {
-      // Only send analysis analytics after analysis is complete.
-      reportAnalysisAnalytics();
-    }
-    var analysis = AnalysisStatus(isAnalyzing);
-    channel.sendNotification(
-      ServerStatusParams(
-        analysis: analysis,
-      ).toNotification(clientUriConverter: uriConverter),
+    serverStatusAnalyzing = isServerAnalyzing;
+
+    _performOnIdleActions(
+      // Use the existing plugin analyzing status.
+      isPluginAnalyzing: notificationManager.pluginStatusAnalyzing,
     );
   }
 
@@ -857,16 +927,18 @@ class LegacyAnalysisServer extends AnalysisServer {
     List<GeneralAnalysisService> subscriptions,
   ) {
     var newServices = subscriptions.toSet();
-    if (newServices.contains(GeneralAnalysisService.ANALYZED_FILES) &&
-        !generalAnalysisServices.contains(
-          GeneralAnalysisService.ANALYZED_FILES,
-        ) &&
-        isAnalysisComplete()) {
+    var newServicesContainsAnalyzedFiles = newServices.contains(
+      GeneralAnalysisService.ANALYZED_FILES,
+    );
+    var generalServicesContainsAnalyzedFiles = generalAnalysisServices.contains(
+      GeneralAnalysisService.ANALYZED_FILES,
+    );
+    if (newServicesContainsAnalyzedFiles &&
+        !generalServicesContainsAnalyzedFiles &&
+        _isAnalysisComplete) {
       sendAnalysisNotificationAnalyzedFiles(this);
-    } else if (!newServices.contains(GeneralAnalysisService.ANALYZED_FILES) &&
-        generalAnalysisServices.contains(
-          GeneralAnalysisService.ANALYZED_FILES,
-        )) {
+    } else if (!newServicesContainsAnalyzedFiles &&
+        generalServicesContainsAnalyzedFiles) {
       prevAnalyzedFiles = null;
     }
     generalAnalysisServices = newServices;
@@ -1044,6 +1116,46 @@ class LegacyAnalysisServer extends AnalysisServer {
     _refactoringManager = RefactoringManager(this, refactoringWorkspace);
   }
 
+  /// Performs "on idle" actions, given either a new status for whether the
+  /// server is analyzing, or a new status for whether the plugin isolate is
+  /// analyzing.
+  void _performOnIdleActions({required bool isPluginAnalyzing}) {
+    // Perform on-idle actions.
+    var isAnalyzing =
+        serverStatusAnalyzing ||
+        isPluginAnalyzing ||
+        !pluginManager.initializedCompleter.isCompleted;
+    if (!serverStatusAnalyzing) {
+      if (generalAnalysisServices.contains(
+        GeneralAnalysisService.ANALYZED_FILES,
+      )) {
+        sendAnalysisNotificationAnalyzedFiles(this);
+      }
+      _scheduleAnalysisImplementedNotification();
+      filesResolvedSinceLastIdle.clear();
+    }
+    // Only send status when subscribed.
+    if (!serverServices.contains(ServerService.STATUS)) {
+      return;
+    }
+
+    // Only send status when it changes.
+    if (statusAnalyzing == isAnalyzing) {
+      return;
+    }
+    statusAnalyzing = isAnalyzing;
+    if (!serverStatusAnalyzing) {
+      // Only send analysis analytics after analysis is complete.
+      reportAnalysisAnalytics();
+    }
+    var analysis = AnalysisStatus(isAnalyzing);
+    channel.sendNotification(
+      ServerStatusParams(
+        analysis: analysis,
+      ).toNotification(clientUriConverter: uriConverter),
+    );
+  }
+
   void _scheduleAnalysisImplementedNotification() {
     var subscribed = analysisServices[AnalysisService.IMPLEMENTED];
     if (subscribed == null) {
@@ -1078,7 +1190,7 @@ class LegacyAnalysisServer extends AnalysisServer {
       // the fully resolved unit, and processed with sending analysis
       // notifications as it happens after content changes.
       if (file_paths.isDart(resourceProvider.pathContext, file)) {
-        getResolvedUnit(file, sendCachedToStream: true);
+        getResolvedUnit(file, sendCachedToStream: true, interactive: false);
       }
     }
   }

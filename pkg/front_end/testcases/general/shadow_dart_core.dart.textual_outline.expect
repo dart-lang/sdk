@@ -1,0 +1,5 @@
+import 'shadow_dart_core_lib.dart';
+
+part 'shadow_dart_core_part.dart';
+
+void method1(Duration d) {}

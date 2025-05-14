@@ -15,7 +15,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 typedef StaticOptions = Either2<bool, ReferenceOptions>;
 
@@ -67,7 +66,7 @@ class ReferencesHandler
     var node = NodeLocator(offset).searchWithin(result.unit);
     node = _getReferenceTargetNode(node);
 
-    var element = switch (server.getElementOfNode2(node)) {
+    var element = switch (server.getElementOfNode(node)) {
       FieldFormalParameterElement2(:var field2?) => field2,
       PropertyAccessorElement2(:var variable3?) => variable3,
       (var element) => element,

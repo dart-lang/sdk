@@ -211,6 +211,22 @@ table AnalysisDriverUnitIndex {
   /// specific unit where the element is declared.
   elementUnits:[uint] (id: 5);
 
+  /// Support for indexing `part` and `part of` directives.
+  ///
+  /// This is the index into [unitLibraryUris] and [unitUnitUris].
+  /// This is the library fragment referenced by the directive.
+  libFragmentRefTargets:[uint] (id: 21);
+
+  /// Support for indexing `part` and `part of` directives.
+  ///
+  /// The offset of the URI in the directive.
+  libFragmentRefUriLengths:[uint] (id: 23);
+
+  /// Support for indexing `part` and `part of` directives.
+  ///
+  /// The offset of the URI in the directive.
+  libFragmentRefUriOffsets:[uint] (id: 22);
+
   /// Identifier of the null string in [strings].
   nullStringId:uint (id: 1);
 

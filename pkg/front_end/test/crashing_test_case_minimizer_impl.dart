@@ -1028,7 +1028,9 @@ worlds:
         String? textualOutlined = textualOutline(
                 data!, _getScannerConfiguration(languageVersion),
                 enablePatterns:
-                    languageVersion >= ExperimentalFlag.patterns.enabledVersion)
+                    languageVersion >= ExperimentalFlag.patterns.enabledVersion,
+                enableEnhancedParts: languageVersion >=
+                    ExperimentalFlag.enhancedParts.enabledVersion)
             ?.replaceAll(RegExp(r'\n+'), "\n");
 
         bool outlined = false;
@@ -2073,7 +2075,6 @@ worlds:
     }
 
     TargetFlags targetFlags = new TargetFlags(
-        soundNullSafety: false,
         trackWidgetCreation: _settings.widgetTransformation);
     Target target;
     switch (_settings.targetString) {

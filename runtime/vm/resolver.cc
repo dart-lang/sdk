@@ -40,6 +40,8 @@ static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
                 zone,
                 Function::DemangleDynamicInvocationForwarderName(function_name))
           : &function_name;
+  const String& dispatcher_name =
+      Function::DropImplicitCallPrefix(function_name);
 
   const bool is_getter = Field::IsGetterName(*demangled_name);
   const String* const method_name_to_extract =
@@ -53,7 +55,7 @@ static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
     if (is_dyn_call) {
       // If a dyn:* forwarder already exists, return it.
       function = cls.GetInvocationDispatcher(
-          function_name, Array::null_array(),
+          dispatcher_name, Array::null_array(),
           UntaggedFunction::kDynamicInvocationForwarder,
           /*create_if_absent=*/false);
       if (!function.IsNull()) return function.ptr();
@@ -67,7 +69,7 @@ static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (allow_add && is_dyn_call && !function.IsNull()) {
       // In JIT mode, lazily create a dyn:* forwarder if one is required.
-      function = function.GetDynamicInvocationForwarder(function_name);
+      function = function.GetDynamicInvocationForwarder(dispatcher_name);
     }
 #endif
     if (!function.IsNull()) return function.ptr();

@@ -9,7 +9,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import 'list_factory_specializer.dart';
+import 'factory_specializer.dart';
 import 'util.dart';
 
 void transformLibraries(
@@ -63,7 +63,7 @@ class _WasmTransformer extends Transformer {
   final List<_AsyncStarFrame> _asyncStarFrames = [];
   bool _enclosingIsAsyncStar = false;
 
-  final ListFactorySpecializer _listFactorySpecializer;
+  final FactorySpecializer _factorySpecializer;
 
   final PushPopWasmArrayTransformer _pushPopWasmArrayTransformer;
 
@@ -119,7 +119,7 @@ class _WasmTransformer extends Transformer {
             .getTopLevelProcedure("dart:_internal", "loadLibrary"),
         _checkLibraryIsLoaded = coreTypes.index
             .getTopLevelProcedure("dart:_internal", "checkLibraryIsLoaded"),
-        _listFactorySpecializer = ListFactorySpecializer(coreTypes),
+        _factorySpecializer = FactorySpecializer(coreTypes),
         _pushPopWasmArrayTransformer = PushPopWasmArrayTransformer(coreTypes);
 
   @override
@@ -738,8 +738,14 @@ class _WasmTransformer extends Transformer {
       node.target = _trySetStackTrace;
     }
 
-    return _pushPopWasmArrayTransformer.transformStaticInvocation(
-        _listFactorySpecializer.transformStaticInvocation(node));
+    TreeNode transformed =
+        _pushPopWasmArrayTransformer.transformStaticInvocation(node);
+
+    if (transformed is StaticInvocation) {
+      transformed = _factorySpecializer.transformStaticInvocation(transformed);
+    }
+
+    return transformed;
   }
 
   @override

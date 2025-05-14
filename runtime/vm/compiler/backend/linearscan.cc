@@ -95,7 +95,7 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
       instructions_(),
       block_entries_(),
       extra_loop_info_(),
-      liveness_(flow_graph),
+      liveness_(&flow_graph),
       vreg_count_(flow_graph.max_vreg()),
       live_ranges_(flow_graph.max_vreg()),
       unallocated_cpu_(),
@@ -179,6 +179,10 @@ void SSALivenessAnalysis::ComputeInitialSets() {
     // Iterate backwards starting at the last instruction.
     for (BackwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
+
+      if (current->MayThrow()) {
+        does_block_have_throw.Add(i);
+      }
 
       // Initialize location summary for instruction.
       current->InitializeLocationSummary(zone(), true);  // opt
@@ -3087,10 +3091,6 @@ void FlowGraphAllocator::AllocateUnallocatedRanges() {
       if (dst.IsRegister() || dst.IsFpuRegister()) {
         if (range->spill_slot().IsInvalid()) {
           AllocateSpillSlotFor(range);
-          auto try_entry = catch_entry->PredecessorAt(0)->AsTryEntry();
-          auto try_body = try_entry->try_body();
-          AddMoveAt(try_body->start_pos() + 1, range->spill_slot(),
-                    range->assigned_location());
         }
       }
     }
@@ -3353,6 +3353,12 @@ void FlowGraphAllocator::ResolveControlFlow() {
           }
         }
       } else {
+        TRACE_ALLOC(THR_Print("inserting eager spill to %s at %" Pd
+                              " for range v%" Pd " allocated to %s\n",
+                              range->spill_slot().ToCString(),
+                              range->Start() + 1, range->vreg(),
+                              range->assigned_location().ToCString()));
+
         AddMoveAt(range->Start() + 1, range->spill_slot(),
                   range->assigned_location());
       }

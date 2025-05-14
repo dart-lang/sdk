@@ -20,7 +20,7 @@ class _LibraryPrefix {
   @pragma("vm:external-name", "LibraryPrefix_issueLoad")
   external static void _issueLoad(Object unit);
 
-  static final _loads = new Map<Object, Completer<void>>();
+  static final _loads = Map<Object, Completer<void>>();
 }
 
 class _DeferredNotLoadedError extends Error implements NoSuchMethodError {
@@ -46,7 +46,7 @@ void _completeLoads(Object unit, String? errorMessage, bool transientError) {
   Completer<void>? load = _LibraryPrefix._loads[unit];
   if (load == null) {
     // Embedder loaded even though prefix.loadLibrary() wasn't called.
-    _LibraryPrefix._loads[unit] = load = new Completer<void>();
+    _LibraryPrefix._loads[unit] = load = Completer<void>();
   }
   if (errorMessage == null) {
     load.complete(null);
@@ -54,7 +54,7 @@ void _completeLoads(Object unit, String? errorMessage, bool transientError) {
     if (transientError) {
       _LibraryPrefix._loads.remove(unit);
     }
-    load.completeError(new DeferredLoadException(errorMessage));
+    load.completeError(DeferredLoadException(errorMessage));
   }
 }
 
@@ -69,7 +69,7 @@ Future<void> _loadLibrary(_LibraryPrefix prefix) async {
     if (unit != 1) {
       Completer<void>? load = _LibraryPrefix._loads[unit];
       if (load == null) {
-        _LibraryPrefix._loads[unit] = load = new Completer<void>();
+        _LibraryPrefix._loads[unit] = load = Completer<void>();
         _LibraryPrefix._issueLoad(unit);
       }
       await load.future;
@@ -78,7 +78,7 @@ Future<void> _loadLibrary(_LibraryPrefix prefix) async {
   // Ensure the prefix's future does not complete until the next Turn even
   // when loading is a no-op or synchronous. Helps applications avoid writing
   // code that only works when loading isn't really deferred.
-  await new Future<void>(() {
+  await Future<void>(() {
     prefix._setLoaded();
   });
 }
@@ -87,6 +87,6 @@ Future<void> _loadLibrary(_LibraryPrefix prefix) async {
 @pragma("vm:never-inline") // Don't duplicate prefix checking code.
 void _checkLoaded(_LibraryPrefix prefix) {
   if (!prefix._isLoaded()) {
-    throw new _DeferredNotLoadedError(prefix);
+    throw _DeferredNotLoadedError(prefix);
   }
 }

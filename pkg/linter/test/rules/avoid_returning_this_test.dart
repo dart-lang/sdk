@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidReturningThisTest);
   });
@@ -95,15 +95,16 @@ class A {
   }
 
   test_methodReturnsThis() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A m() {
     return this;
   }
 }
-''', [
-      lint(31, 4),
-    ]);
+''',
+      [lint(31, 4)],
+    );
   }
 
   test_methodReturnsThis_arrow_subclassOfGeneric_definedInInterface() async {
@@ -131,7 +132,8 @@ class E implements C<E> {
   }
 
   test_methodReturnsThis_containsFunctionExpressionWithBlockBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int x = 1;
   A m() {
@@ -142,13 +144,14 @@ class A {
     return this;
   }
 }
-''', [
-      lint(99, 4),
-    ]);
+''',
+      [lint(99, 4)],
+    );
   }
 
   test_methodReturnsThis_containsFunctionExpressionWithExpressionBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int x = 1;
   A m() {
@@ -157,20 +160,21 @@ class A {
     return this;
   }
 }
-''', [
-      lint(75, 4),
-    ]);
+''',
+      [lint(75, 4)],
+    );
   }
 
   test_methodReturnsThis_inEnum() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 enum A {
   a, b, c;
   A m() => this;
 }
-''', [
-      lint(24, 1),
-    ]);
+''',
+      [lint(24, 1)],
+    );
   }
 
   test_methodReturnsThis_otherReturnType() async {
@@ -198,16 +202,17 @@ class B extends A {
   }
 
   test_methodReturnsThis_subclass_notDefinedInInterface() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {}
 class B extends A{
   B m() {
     return this;
   }
 }
-''', [
-      lint(51, 4),
-    ]);
+''',
+      [lint(51, 4)],
+    );
   }
 
   test_operatorReturnsThis() async {

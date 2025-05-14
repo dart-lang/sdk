@@ -63,19 +63,12 @@ class ErrorCodeDocumentationBlock extends ErrorCodeDocumentationPart {
       required this.fileType,
       this.languageVersion,
       this.uri});
-
-  @override
-  String formatForDocumentation() => ['```$fileType', text, '```'].join('\n');
 }
 
 /// A portion of an error code's documentation.  This could be free form
 /// markdown text ([ErrorCodeDocumentationText]) or a code block
 /// ([ErrorCodeDocumentationBlock]).
-abstract class ErrorCodeDocumentationPart {
-  /// Formats this documentation part as text suitable for inclusion in the
-  /// analyzer's `diagnostics.md` file.
-  String formatForDocumentation();
-}
+abstract class ErrorCodeDocumentationPart {}
 
 /// An [ErrorCodeDocumentationPart] containing free form markdown text.
 class ErrorCodeDocumentationText extends ErrorCodeDocumentationPart {
@@ -83,9 +76,6 @@ class ErrorCodeDocumentationText extends ErrorCodeDocumentationPart {
   final String text;
 
   ErrorCodeDocumentationText(this.text);
-
-  @override
-  String formatForDocumentation() => text;
 }
 
 class _ErrorCodeDocumentationParser {

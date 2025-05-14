@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseStringInPartOfDirectivesTest);
   });
@@ -25,11 +25,12 @@ class UseStringInPartOfDirectivesTest extends LintRuleTest {
 library lib;
 part '$testFileName';
 ''');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of lib;
-''', [
-      error(ParserErrorCode.PART_OF_NAME, 8, 3),
-    ]);
+''',
+      [error(ParserErrorCode.PART_OF_NAME, 8, 3)],
+    );
   }
 
   test_part_of_with_library_name_preEnhancedParts() async {
@@ -47,9 +48,7 @@ part '$testFileName';
 
 part of lib;
 ''',
-      [
-        lint(40, 12),
-      ],
+      [lint(40, 12)],
     );
   }
 

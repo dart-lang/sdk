@@ -24,12 +24,6 @@ abstract class DartSnippetProducer extends SnippetProducer {
   final LibraryElement2 libraryElement;
   final bool useSuperParams;
 
-  /// Elements that need to be imported for generated code to be valid.
-  ///
-  /// Calling [addImports] will add any required imports to the supplied
-  /// builder.
-  final Set<Element2> requiredElementImports = {};
-
   /// A cache of mappings from Elements to their public Library Elements.
   ///
   /// Callers can share this cache across multiple snippet producers to avoid
@@ -53,13 +47,26 @@ abstract class DartSnippetProducer extends SnippetProducer {
           .codeStyleOptions;
 
   bool get isInTestDirectory => request.unit.unit.inTestDir;
+}
+
+abstract class FlutterSnippetProducer extends DartSnippetProducer {
+  late ClassElement2? _classWidget;
+  late ClassElement2? _classPlaceholder;
+
+  /// Elements that need to be imported for generated code to be valid.
+  ///
+  /// Calling [addImports] will add any required imports to the supplied
+  /// builder.
+  final Set<Element2> _requiredElementImports = {};
+
+  FlutterSnippetProducer(super.request, {required super.elementImportCache});
 
   /// Adds public imports for any elements fetched by [getClass] and [getMixin]
   /// to [builder].
   Future<void> addImports(DartFileEditBuilder builder) async {
     var dartBuilder = builder as DartFileEditBuilderImpl;
     await Future.wait(
-      requiredElementImports.map(
+      _requiredElementImports.map(
         (element) => dartBuilder.importElementLibrary(
           element,
           resultCache: _elementImportCache,
@@ -67,18 +74,11 @@ abstract class DartSnippetProducer extends SnippetProducer {
       ),
     );
   }
-}
-
-abstract class FlutterSnippetProducer extends DartSnippetProducer {
-  late ClassElement2? classWidget;
-  late ClassElement2? classPlaceholder;
-
-  FlutterSnippetProducer(super.request, {required super.elementImportCache});
 
   Future<ClassElement2?> getClass(String name) async {
     var class_ = await sessionHelper.getFlutterClass(name);
     if (class_ != null) {
-      requiredElementImports.add(class_);
+      _requiredElementImports.add(class_);
     }
     return class_;
   }
@@ -86,7 +86,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   Future<MixinElement2?> getMixin(String name) async {
     var mixin = await sessionHelper.getMixin(widgetsUri, name);
     if (mixin != null) {
-      requiredElementImports.add(mixin);
+      _requiredElementImports.add(mixin);
     }
     return mixin;
   }
@@ -102,11 +102,11 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   @override
   @mustCallSuper
   Future<bool> isValid() async {
-    if ((classWidget = await getClass('Widget')) == null) {
+    if ((_classWidget = await getClass('Widget')) == null) {
       return false;
     }
 
-    if ((classPlaceholder = await getClass('Placeholder')) == null) {
+    if ((_classPlaceholder = await getClass('Placeholder')) == null) {
       return false;
     }
 
@@ -124,8 +124,8 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
   void writeBuildMethod(DartEditBuilder builder) {
     // Checked by isValid() before this will be called.
     var classBuildContext = this.classBuildContext!;
-    var classWidget = this.classWidget!;
-    var classPlaceholder = this.classPlaceholder!;
+    var classWidget = _classWidget!;
+    var classPlaceholder = _classPlaceholder!;
 
     // Add the build method.
     builder.writeln('  @override');

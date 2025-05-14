@@ -5,14 +5,15 @@
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/type_system_base.dart';
 
 mixin StringTypes on AbstractTypeSystemTest {
-  final Map<String, DartType> _types = {};
+  final Map<String, TypeImpl> _types = {};
 
-  void assertExpectedString(DartType type, String? expectedString) {
+  void assertExpectedString(TypeImpl type, String? expectedString) {
     if (expectedString != null) {
       var typeStr = typeString(type);
 
@@ -82,20 +83,20 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineRecordTypes();
   }
 
-  DartType typeOfString(String str) {
+  TypeImpl typeOfString(String str) {
     var type = _types[str];
     if (type == null) {
-      fail('No DartType for: $str');
+      fail('No TypeImpl for: $str');
     }
     return type;
   }
 
-  String typesString(List<DartType> types) {
+  String typesString(List<TypeImpl> types) {
     var str = types.map(typeString).join('\n');
     return '$str\n';
   }
 
-  String typeString(DartType type) {
+  String typeString(TypeImpl type) {
     return type.getDisplayString() + _typeParametersStr(type);
   }
 
@@ -126,14 +127,14 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType(
       'num Function(num)',
       functionTypeNone(
-        parameters: [requiredParameter(type: numNone)],
+        formalParameters: [requiredParameter(type: numNone)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num Function(num)?',
       functionTypeQuestion(
-        parameters: [requiredParameter(type: numNone)],
+        formalParameters: [requiredParameter(type: numNone)],
         returnType: numNone,
       ),
     );
@@ -141,14 +142,14 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType(
       'num Function(int)',
       functionTypeNone(
-        parameters: [requiredParameter(type: intNone)],
+        formalParameters: [requiredParameter(type: intNone)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num Function(int)?',
       functionTypeQuestion(
-        parameters: [requiredParameter(type: intNone)],
+        formalParameters: [requiredParameter(type: intNone)],
         returnType: numNone,
       ),
     );
@@ -156,14 +157,14 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType(
       'int Function(num)',
       functionTypeNone(
-        parameters: [requiredParameter(type: numNone)],
+        formalParameters: [requiredParameter(type: numNone)],
         returnType: intNone,
       ),
     );
     _defineType(
       'int Function(int)',
       functionTypeNone(
-        parameters: [requiredParameter(type: intNone)],
+        formalParameters: [requiredParameter(type: intNone)],
         returnType: intNone,
       ),
     );
@@ -171,21 +172,21 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType(
       'num Function(num?)',
       functionTypeNone(
-        parameters: [requiredParameter(type: numQuestion)],
+        formalParameters: [requiredParameter(type: numQuestion)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num? Function(num)',
       functionTypeNone(
-        parameters: [requiredParameter(type: numNone)],
+        formalParameters: [requiredParameter(type: numNone)],
         returnType: numQuestion,
       ),
     );
     _defineType(
       'num? Function(num?)',
       functionTypeNone(
-        parameters: [requiredParameter(type: numQuestion)],
+        formalParameters: [requiredParameter(type: numQuestion)],
         returnType: numQuestion,
       ),
     );
@@ -193,28 +194,28 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType(
       'num Function({num x})',
       functionTypeNone(
-        parameters: [namedParameter(name: 'x', type: numNone)],
+        formalParameters: [namedParameter(name: 'x', type: numNone)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num Function({num? x})',
       functionTypeNone(
-        parameters: [namedParameter(name: 'x', type: numQuestion)],
+        formalParameters: [namedParameter(name: 'x', type: numQuestion)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num? Function({num x})',
       functionTypeNone(
-        parameters: [namedParameter(name: 'x', type: numNone)],
+        formalParameters: [namedParameter(name: 'x', type: numNone)],
         returnType: numQuestion,
       ),
     );
     _defineType(
       'num? Function({num? x})',
       functionTypeNone(
-        parameters: [namedParameter(name: 'x', type: numQuestion)],
+        formalParameters: [namedParameter(name: 'x', type: numQuestion)],
         returnType: numQuestion,
       ),
     );
@@ -222,28 +223,28 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType(
       'num Function([num])',
       functionTypeNone(
-        parameters: [positionalParameter(type: numNone)],
+        formalParameters: [positionalParameter(type: numNone)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num Function([num?])',
       functionTypeNone(
-        parameters: [positionalParameter(type: numQuestion)],
+        formalParameters: [positionalParameter(type: numQuestion)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num? Function([num])',
       functionTypeNone(
-        parameters: [positionalParameter(type: numNone)],
+        formalParameters: [positionalParameter(type: numNone)],
         returnType: numQuestion,
       ),
     );
     _defineType(
       'num? Function([num?])',
       functionTypeNone(
-        parameters: [positionalParameter(type: numQuestion)],
+        formalParameters: [positionalParameter(type: numQuestion)],
         returnType: numQuestion,
       ),
     );
@@ -354,8 +355,8 @@ mixin StringTypes on AbstractTypeSystemTest {
 
     void mixed(
       String str,
-      List<DartType> positionalTypes,
-      Map<String, DartType> namedTypes,
+      List<TypeImpl> positionalTypes,
+      Map<String, TypeImpl> namedTypes,
     ) {
       var type = recordTypeNone(
         positionalTypes: positionalTypes,
@@ -364,11 +365,11 @@ mixin StringTypes on AbstractTypeSystemTest {
       _defineType(str, type);
     }
 
-    void allPositional(String str, List<DartType> types) {
+    void allPositional(String str, List<TypeImpl> types) {
       mixed(str, types, const {});
     }
 
-    void allPositionalQuestion(String str, List<DartType> types) {
+    void allPositionalQuestion(String str, List<TypeImpl> types) {
       var type = recordTypeQuestion(
         positionalTypes: types,
       );
@@ -394,11 +395,11 @@ mixin StringTypes on AbstractTypeSystemTest {
     allPositional('(num, String)', [numNone, stringNone]);
     allPositional('(Never, Never)', [neverNone, neverNone]);
 
-    void allNamed(String str, Map<String, DartType> types) {
+    void allNamed(String str, Map<String, TypeImpl> types) {
       mixed(str, const [], types);
     }
 
-    void allNamedQuestion(String str, Map<String, DartType> types) {
+    void allNamedQuestion(String str, Map<String, TypeImpl> types) {
       var type = recordTypeQuestion(
         namedTypes: types,
       );
@@ -430,7 +431,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     mixed('(int, {String f2})', [intNone], {'f2': stringNone});
   }
 
-  void _defineType(String str, DartType type) {
+  void _defineType(String str, TypeImpl type) {
     if (typeString(type) != str) {
       fail('Expected: $str\nActual: ${typeString(type)}');
     }
@@ -452,7 +453,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     _types[str] = type;
   }
 
-  String _typeParametersStr(DartType type) {
+  String _typeParametersStr(TypeImpl type) {
     var typeStr = '';
 
     var typeParameterCollector = _TypeParameterCollector();

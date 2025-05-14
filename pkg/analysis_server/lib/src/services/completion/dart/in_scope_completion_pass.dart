@@ -678,6 +678,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitComment(Comment node) {
+    node.visitChildren(this);
+  }
+
+  @override
   void visitCommentReference(CommentReference node) {
     collector.completionLocation = 'CommentReference_identifier';
     declarationHelper(preferNonInvocation: true).addLexicalDeclarations(node);
@@ -785,9 +790,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (node.parent is ConstructorReference) {
       var element = node.type.element2;
       if (element is InterfaceElement2) {
-        declarationHelper(
-          preferNonInvocation: true,
-        ).addConstructorNamesForElement(element: element);
         declarationHelper(
           preferNonInvocation: true,
         ).addStaticMembersOfElement(element);
@@ -1128,6 +1130,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset == node.offset) {
       _forCompilationUnitMemberBefore(node);
       return;
+    } else if (node.documentationComment.coversOffset(offset)) {
+      return node.documentationComment?.accept(this);
     } else if (offset < node.extensionKeyword.offset) {
       // There are no modifiers for extensions.
       return;
@@ -1519,6 +1523,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (offset >= node.equals.end && offset <= node.semicolon.offset) {
       collector.completionLocation = 'GenericTypeAlias_type';
       _forTypeAnnotation(node);
+    } else if (node.documentationComment.coversOffset(offset)) {
+      node.documentationComment?.accept(this);
     }
   }
 
@@ -2256,12 +2262,21 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
               mustBeAssignable: mustBeAssignable,
             ).addDeclarationsThroughImportPrefix(element);
           } else {
-            declarationHelper(
+            var helper = declarationHelper(
               mustBeAssignable: mustBeAssignable,
               preferNonInvocation:
-                  element is InterfaceElement2 &&
-                  state.request.shouldSuggestTearOff2(element),
-            ).addStaticMembersOfElement(element);
+                  node.parent is CommentReference ||
+                  (element is InterfaceElement2 &&
+                      state.request.shouldSuggestTearOff(element)),
+            );
+            if (node.parent is CommentReference) {
+              if (element is InterfaceElement2) {
+                helper.addInstanceMembersOfType(element.thisType);
+              } else if (element is ExtensionElement2) {
+                helper.addMembersFromExtensionElement(element);
+              }
+            }
+            helper.addStaticMembersOfElement(element);
           }
         }
       }
@@ -4024,9 +4039,10 @@ extension on AstNode {
     while (enclosingMember != null) {
       if (enclosingMember is MethodDeclaration) {
         return enclosingMember.isStatic;
-      } else if (enclosingMember is FunctionBody &&
-          enclosingMember.parent is ConstructorDeclaration) {
-        return false;
+      } else if (enclosingMember.parent case ConstructorDeclaration(
+        :var factoryKeyword,
+      ) when enclosingMember is FunctionBody) {
+        return factoryKeyword != null;
       } else if (enclosingMember is VariableDeclarationList &&
           enclosingMember.parent is FieldDeclaration) {
         return !enclosingMember.isLate;

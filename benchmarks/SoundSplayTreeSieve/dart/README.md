@@ -15,13 +15,13 @@ CollectionSieves-SoundSplayTreeSet-removeLoop(RunTime): 4344.902386117137 us.
 
 **Dart2JS**
 ```
-$ sdk/bin/dart2js_developer benchmarks/SoundSplayTreeSieve/dart/SoundSplayTreeSieve.dart --enable-experiment=variance --experiment-new-rti --out=soundsplay_d2js.js
+$ sdk/bin/dart2js_developer benchmarks/SoundSplayTreeSieve/dart/SoundSplayTreeSieve.dart --enable-experiment=variance --out=soundsplay_d2js.js
 $ third_party/d8/linux/d8 soundsplay_d2js.js
 ```
 
 **Dart2JS (Omit implicit checks)**
 ```
-$ sdk/bin/dart2js_developer benchmarks/SoundSplayTreeSieve/dart/SoundSplayTreeSieve.dart --enable-experiment=variance --experiment-new-rti --omit-implicit-checks --out=soundsplay_d2js_omit.js --lax-runtime-type-to-string
+$ sdk/bin/dart2js_developer benchmarks/SoundSplayTreeSieve/dart/SoundSplayTreeSieve.dart --enable-experiment=variance --omit-implicit-checks --out=soundsplay_d2js_omit.js --lax-runtime-type-to-string
 $ third_party/d8/linux/d8 soundsplay_d2js_omit.js
 ```
 

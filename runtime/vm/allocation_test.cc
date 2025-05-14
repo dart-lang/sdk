@@ -92,7 +92,7 @@ static void StackAllocatedLongJumpHelper(int* ptr, LongJumpScope* jump) {
 ISOLATE_UNIT_TEST_CASE(StackAllocatedLongJump) {
   LongJumpScope jump;
   int data = 1;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     StackAllocatedLongJumpHelper(&data, &jump);
     UNREACHABLE();
   } else {
@@ -145,7 +145,7 @@ ISOLATE_UNIT_TEST_CASE(StackResourceLongJump) {
   {
     LongJumpScope jump;
     int data = 1;
-    if (setjmp(*jump.Set()) == 0) {
+    if (DART_SETJMP(*jump.Set()) == 0) {
       StackResourceLongJumpHelper(&data, &jump);
       UNREACHABLE();
     } else {

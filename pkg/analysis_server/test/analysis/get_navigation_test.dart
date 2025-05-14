@@ -211,6 +211,40 @@ final foo = {"key": ?Foo()};
     expect(target.length, 3);
   }
 
+  Future<void> test_documentation() async {
+    addTestFile('''
+/// [math]
+import 'dart:math' as math;
+''');
+    await waitForTasksFinished();
+    await _getNavigation(search: 'math]');
+    expect(regions, hasLength(1));
+    assertHasRegionString('math');
+    expect(testTargets, hasLength(1));
+    var target = targets[regions.first.targets.first];
+    expect(target.kind, ElementKind.PREFIX);
+    expect(target.offset, findOffset('math;'));
+    expect(target.length, 4);
+  }
+
+  Future<void> test_documentation_library() async {
+    addTestFile('''
+/// [math]
+library;
+
+import 'dart:math' as math;
+''');
+    await waitForTasksFinished();
+    await _getNavigation(search: 'math]');
+    expect(regions, hasLength(1));
+    assertHasRegionString('math');
+    expect(testTargets, hasLength(1));
+    var target = targets[regions.first.targets.first];
+    expect(target.kind, ElementKind.PREFIX);
+    expect(target.offset, findOffset('math;'));
+    expect(target.length, 4);
+  }
+
   Future<void> test_field_underscore() async {
     addTestFile('''
 class C {

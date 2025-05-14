@@ -12,7 +12,9 @@ main() {
   group('debug mode', () {
     late DapTestSession dap;
     setUp(() async {
-      dap = await DapTestSession.setUp();
+      // Temporarily enable verbose logging to help track down
+      // https://github.com/dart-lang/sdk/issues/55685
+      dap = await DapTestSession.setUp(forceVerboseLogging: true);
     });
     tearDown(() => dap.tearDown());
 
@@ -73,20 +75,6 @@ main() {
         exceptionPauseMode: 'All',
       );
     });
-    // These tests can be slow due to starting up the external server process.
-  }, timeout: Timeout.none);
-
-  group('debug mode (verbose)', () {
-    late DapTestSession dap;
-    setUp(() async {
-      dap = await DapTestSession.setUp(
-        // This boolean is temporarily set to `true` to aid debugging
-        // this test and will be reverted (and this additional group removed)
-        // soon.
-        forceVerboseLogging: true,
-      );
-    });
-    tearDown(() => dap.tearDown());
 
     test('parses line/column information from stack traces', () async {
       final client = dap.client;

@@ -315,7 +315,7 @@ class DefinitionHandler
     }
   }
 
-  static Future<ElementDeclarationResult?> _parsedDeclaration(
+  static Future<FragmentDeclarationResult?> _parsedDeclaration(
     Fragment fragment,
   ) async {
     var session = fragment.element.session;
@@ -334,7 +334,7 @@ class DefinitionHandler
       return null;
     }
 
-    return parsedLibrary.getElementDeclaration2(fragment);
+    return parsedLibrary.getFragmentDeclaration(fragment);
   }
 }
 

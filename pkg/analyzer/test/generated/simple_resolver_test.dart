@@ -8,7 +8,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
-import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -498,7 +497,6 @@ import 'a.dart';
 
 void f(EEE e) {}
 ''');
-    verifyTestResolved();
   }
 
   test_extractedMethodAsConstant() async {
@@ -510,7 +508,6 @@ abstract class Comparable<T> {
 class A {
   void sort([compare = Comparable.compare]) {}
 }''');
-    verifyTestResolved();
   }
 
   test_fieldFormalParameter() async {
@@ -520,7 +517,6 @@ class A {
   int y;
   A(this.x) : y = x {}
 }''');
-    verifyTestResolved();
 
     var xParameter = findNode.fieldFormalParameter('this.x');
 
@@ -530,7 +526,6 @@ class A {
     assertResolvedNodeText(findNode.simple('x {}'), r'''
 SimpleIdentifier
   token: x
-  staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x
   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x#element
   staticType: int
 ''');
@@ -547,7 +542,6 @@ f() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 65, 1),
     ]);
-    verifyTestResolved();
   }
 
   test_forLoops_nonConflicting() async {
@@ -558,7 +552,6 @@ f() {
   for (int i = 0; i < 3; i++) {
   }
 }''');
-    verifyTestResolved();
   }
 
   test_functionTypeAlias() async {
@@ -570,7 +563,6 @@ class A {
     if (p(e)) {}
   }
 }''');
-    verifyTestResolved();
   }
 
   test_getter_fromMixins_bare_identifier() async {
@@ -588,14 +580,12 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    verifyTestResolved();
 
     // Verify that the getter for "x" in C.f() refers to the getter defined in
     // M2.
     assertResolvedNodeText(findNode.simple('x;'), r'''
 SimpleIdentifier
   token: x
-  staticElement: <testLibraryFragment>::@mixin::M2::@getter::x
   element: <testLibraryFragment>::@mixin::M2::@getter::x#element
   staticType: dynamic
 ''');
@@ -617,14 +607,12 @@ void main() {
 ''', [
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1),
     ]);
-    verifyTestResolved();
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
     assertResolvedNodeText(findNode.simple('x;'), r'''
 SimpleIdentifier
   token: x
-  staticElement: <testLibraryFragment>::@mixin::M2::@getter::x
   element: <testLibraryFragment>::@mixin::M2::@getter::x#element
   staticType: dynamic
 ''');
@@ -646,7 +634,6 @@ main() {
   foo = 0;
 }
 A a = A();''');
-    verifyTestResolved();
   }
 
   test_import_prefix() async {
@@ -660,7 +647,6 @@ import 'a.dart' as _a;
 main() {
   _a.f(0);
 }''');
-    verifyTestResolved();
   }
 
   test_import_prefix_doesNotExist() async {
@@ -688,7 +674,6 @@ class H extends D<p.W> {
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
     ]);
-    verifyTestResolved();
   }
 
   test_import_show_doesNotExist() async {
@@ -728,7 +713,6 @@ import 'sub folder/a.dart';
 main() {
   foo();
 }''');
-    verifyTestResolved();
   }
 
   test_indexExpression_typeParameters() async {
@@ -741,7 +725,6 @@ f() {
   List<List<List<int>>> c = [];
   c[0][0][0];
 }''');
-    verifyTestResolved();
   }
 
   test_indexExpression_typeParameters_invalidAssignmentWarning() async {
@@ -752,7 +735,6 @@ f() {
 }''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 4),
     ]);
-    verifyTestResolved();
   }
 
   test_indirectOperatorThroughCall() async {
@@ -772,7 +754,6 @@ g(int x) {}
 main() {
   g(f()[0]);
 }''');
-    verifyTestResolved();
   }
 
   test_invoke_dynamicThroughGetter() async {
@@ -783,7 +764,6 @@ class A {
     X.last;
   }
 }''');
-    verifyTestResolved();
   }
 
   test_isValidMixin_badSuperclass() async {
@@ -793,7 +773,6 @@ class B {}
 class C = Object with A;''', [
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 54, 1),
     ]);
-    verifyTestResolved();
 
     var a = findElement2.class_('A');
     expect(a.isValidMixin, isFalse);
@@ -807,7 +786,6 @@ class A {
 class C = Object with A;''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 43, 1),
     ]);
-    verifyTestResolved();
 
     var a = findElement2.class_('A');
     expect(a.isValidMixin, isFalse);
@@ -819,7 +797,6 @@ mixin class A {
   factory A() => throw 0;
 }
 class C = Object with A;''');
-    verifyTestResolved();
 
     var a = findElement2.class_('A');
     expect(a.isValidMixin, isTrue);
@@ -833,7 +810,6 @@ mixin class A {
   }
 }
 class C = Object with A;''');
-    verifyTestResolved();
 
     var a = findElement2.class_('A');
     expect(a.isValidMixin, isTrue);
@@ -843,7 +819,6 @@ class C = Object with A;''');
     await assertNoErrorsInCode('''
 mixin class A {}
 class C = Object with A;''');
-    verifyTestResolved();
 
     var a = findElement2.class_('A');
     expect(a.isValidMixin, isTrue);
@@ -861,7 +836,6 @@ void doSwitch(int target) {
       continue l1;
   }
 }''');
-    verifyTestResolved();
   }
 
   test_labels_switch_language219() async {
@@ -877,7 +851,6 @@ void doSwitch(int target) {
       continue l1;
   }
 }''');
-    verifyTestResolved();
   }
 
   test_localVariable_types_invoked() async {
@@ -895,7 +868,6 @@ main() {
     await assertNoErrorsInCode(r'''
 const A = null;
 @A class C<A> {}''');
-    verifyTestResolved();
 
     var annotations = findElement2.class_('C').metadata2.annotations;
     expect(annotations, hasLength(1));
@@ -906,10 +878,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -921,7 +891,6 @@ const A = null;
 class D {}
 mixin E {}
 ''');
-    verifyTestResolved();
 
     var annotations = findElement2.class_('C').metadata2.annotations;
     expect(annotations, hasLength(1));
@@ -932,10 +901,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -945,7 +912,6 @@ Annotation
 const A = null;
 @A enum E { A, B }
 ''');
-    verifyTestResolved();
 
     var annotations = findElement2.enum_('E').metadata2.annotations;
     expect(annotations, hasLength(1));
@@ -956,10 +922,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -968,7 +932,6 @@ Annotation
     await assertNoErrorsInCode(r'''
 const A = null;
 @A extension E<A> on List<A> {}''');
-    verifyTestResolved();
 
     var annotations = findElement2.extension_('E').metadata2.annotations;
     expect(annotations, hasLength(1));
@@ -979,10 +942,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -993,7 +954,6 @@ const A = null;
 class C {
   @A int f = 1;
 }''');
-    verifyTestResolved();
 
     var metadata = findElement2.field('f').metadata2.annotations;
     expect(metadata, hasLength(1));
@@ -1006,7 +966,6 @@ class C {
   int f;
   C(@A this.f);
 }''');
-    verifyTestResolved();
 
     var metadata = findElement2.fieldFormalParameter('f').metadata2.annotations;
     expect(metadata, hasLength(1));
@@ -1016,7 +975,6 @@ class C {
     await assertNoErrorsInCode(r'''
 const A = null;
 @A f() {}''');
-    verifyTestResolved();
 
     var annotations = findElement2.topFunction('f').metadata2.annotations;
     expect(annotations, hasLength(1));
@@ -1026,7 +984,6 @@ const A = null;
     await assertNoErrorsInCode(r'''
 const A = null;
 @A f<A>() {}''');
-    verifyTestResolved();
 
     var annotations = findElement2.topFunction('f').metadata2.annotations;
     expect(annotations, hasLength(1));
@@ -1037,10 +994,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1050,7 +1005,6 @@ Annotation
 const A = null;
 @A typedef F<A>(int A);
 ''');
-    verifyTestResolved();
 
     var annotations = findElement2.typeAlias('F').metadata2.annotations;
     expect(annotations, hasLength(1));
@@ -1061,10 +1015,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1073,7 +1025,6 @@ Annotation
     await assertNoErrorsInCode(r'''
 const A = null;
 f(@A int p(int x)) {}''');
-    verifyTestResolved();
 
     var metadata = findElement2.parameter('p').metadata2.annotations;
     expect(metadata, hasLength(1));
@@ -1083,7 +1034,6 @@ f(@A int p(int x)) {}''');
     await assertNoErrorsInCode(r'''
 const A = null;
 f(@A int p<A>(int x)) {}''');
-    verifyTestResolved();
 
     var annotations = findElement2.parameter('p').metadata2.annotations;
     expect(annotations, hasLength(1));
@@ -1094,10 +1044,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1107,7 +1055,6 @@ Annotation
 const A = null;
 @A typedef F<A> = A Function();
 ''');
-    verifyTestResolved();
 
     var annotations = findElement2.typeAlias('F').metadata2.annotations;
     expect(annotations, hasLength(1));
@@ -1118,10 +1065,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1130,7 +1075,6 @@ Annotation
     await assertNoErrorsInCode(r'''
 @A library lib;
 const A = null;''');
-    verifyTestResolved();
 
     var metadata = result.libraryElement2.metadata2.annotations;
     expect(metadata, hasLength(1));
@@ -1142,7 +1086,6 @@ const A = null;
 class C {
   @A void m() {}
 }''');
-    verifyTestResolved();
 
     var metadata = findElement2.method('m').metadata2.annotations;
     expect(metadata, hasLength(1));
@@ -1154,7 +1097,6 @@ const A = null;
 class C {
   @A void m<A>() {}
 }''');
-    verifyTestResolved();
 
     var annotations = findElement2.method('m').metadata2.annotations;
     expect(annotations, hasLength(1));
@@ -1165,10 +1107,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1177,7 +1117,6 @@ Annotation
     await assertNoErrorsInCode(r'''
 const A = null;
 @A mixin M<A> on Object {}''');
-    verifyTestResolved();
 
     var annotations = findElement2.mixin('M').metadata2.annotations;
     expect(annotations, hasLength(1));
@@ -1188,10 +1127,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1200,7 +1137,6 @@ Annotation
     await assertNoErrorsInCode(r'''
 const A = null;
 f({@A int p = 0}) {}''');
-    verifyTestResolved();
 
     var metadata = findElement2.parameter('p').metadata2.annotations;
     expect(metadata, hasLength(1));
@@ -1210,7 +1146,6 @@ f({@A int p = 0}) {}''');
     await assertNoErrorsInCode(r'''
 const A = null;
 f([@A int p = 0]) {}''');
-    verifyTestResolved();
 
     var metadata = findElement2.parameter('p').metadata2.annotations;
     expect(metadata, hasLength(1));
@@ -1220,7 +1155,6 @@ f([@A int p = 0]) {}''');
     await assertNoErrorsInCode(r'''
 const A = null;
 f(@A p1, @A int p2) {}''');
-    verifyTestResolved();
 
     expect(findElement2.parameter('p1').metadata2.annotations, hasLength(1));
     expect(findElement2.parameter('p2').metadata2.annotations, hasLength(1));
@@ -1230,7 +1164,6 @@ f(@A p1, @A int p2) {}''');
     await assertNoErrorsInCode(r'''
 const A = null;
 @A typedef F<A>();''');
-    verifyTestResolved();
 
     expect(
       findElement2.typeAlias('F').metadata2.annotations,
@@ -1243,10 +1176,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1264,7 +1195,6 @@ class C extends B with A {
   bar() => super.bar();
   foo() => super.foo();
 }''');
-    verifyTestResolved();
   }
 
   test_method_fromMixins() async {
@@ -1281,12 +1211,10 @@ void main() {
   new C().f();
 }
 ''');
-    verifyTestResolved();
 
     assertResolvedNodeText(findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
-  staticElement: <testLibraryFragment>::@mixin::M2::@method::f
   element: <testLibraryFragment>::@mixin::M2::@method::f#element
   staticType: void Function()
 ''');
@@ -1307,12 +1235,10 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    verifyTestResolved();
 
     assertResolvedNodeText(findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
-  staticElement: <testLibraryFragment>::@mixin::M2::@method::f
   element: <testLibraryFragment>::@mixin::M2::@method::f#element
   staticType: void Function()
 ''');
@@ -1332,12 +1258,10 @@ void main() {
   new C().f();
 }
 ''');
-    verifyTestResolved();
 
     assertResolvedNodeText(findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
-  staticElement: <testLibraryFragment>::@mixin::M2::@method::f
   element: <testLibraryFragment>::@mixin::M2::@method::f#element
   staticType: void Function()
 ''');
@@ -1355,7 +1279,6 @@ class C extends B {
 f(C c) {
   c.m1();
 }''');
-    verifyTestResolved();
   }
 
   test_methodCascades() async {
@@ -1369,7 +1292,6 @@ class A {
      ..m2();
   }
 }''');
-    verifyTestResolved();
   }
 
   test_methodCascades_withSetter() async {
@@ -1385,7 +1307,6 @@ class A {
      ..m2();
   }
 }''');
-    verifyTestResolved();
   }
 
   test_resolveAgainstNull() async {
@@ -1393,7 +1314,6 @@ class A {
 f(var p) {
   return null == p;
 }''');
-    verifyTestResolved();
   }
 
   test_setter_static() async {
@@ -1404,14 +1324,6 @@ set s(x) {
 main() {
   s = 123;
 }''');
-    verifyTestResolved();
-  }
-
-  /// Verify that all of the identifiers in the [result] have been resolved.
-  void verifyTestResolved() {
-    var verifier = ResolutionVerifier();
-    result.unit.accept(verifier);
-    verifier.assertResolved();
   }
 
   /// Resolve the test file and verify that the arguments in a specific method

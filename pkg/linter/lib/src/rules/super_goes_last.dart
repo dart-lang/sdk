@@ -9,11 +9,11 @@ const _desc =
 
 class SuperGoesLast extends LintRule {
   SuperGoesLast()
-      : super(
-          name: LintNames.super_goes_last,
-          description: _desc,
-          state: State.removed(since: dart3),
-        );
+    : super(
+        name: LintNames.super_goes_last,
+        description: _desc,
+        state: State.removed(since: dart3),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

@@ -55,9 +55,8 @@ class ChangeTo extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_proposedName];
@@ -139,7 +138,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
       for (var importElement
           in unitResult.libraryElement2.firstFragment.libraryImports2) {
         if (importElement.prefix2?.element.name3 == prefixName) {
-          var namespace = getImportNamespace2(importElement);
+          var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);
         }
       }
@@ -168,7 +167,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
     } else if (targetIdentifierElement is ExtensionElement2) {
       _updateFinderWithExtensionMembers(finder, targetIdentifierElement);
     } else {
-      var interfaceElement = getTargetInterfaceElement2(target);
+      var interfaceElement = getTargetInterfaceElement(target);
       if (interfaceElement != null) {
         _updateFinderWithClassMembers(finder, interfaceElement);
       }
@@ -246,7 +245,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
       for (var importElement
           in unitResult.libraryElement2.firstFragment.libraryImports2) {
         if (importElement.prefix2?.element.name3 == prefixName) {
-          var namespace = getImportNamespace2(importElement);
+          var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);
         }
       }

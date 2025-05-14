@@ -42,72 +42,49 @@ class CoreTypes {
 
   final LibraryIndex index;
 
-  InterfaceType? _objectLegacyRawType;
   InterfaceType? _objectNullableRawType;
   InterfaceType? _objectNonNullableRawType;
   InterfaceType? _deprecatedNullType;
-  InterfaceType? _boolLegacyRawType;
   InterfaceType? _boolNullableRawType;
   InterfaceType? _boolNonNullableRawType;
-  InterfaceType? _intLegacyRawType;
   InterfaceType? _intNullableRawType;
   InterfaceType? _intNonNullableRawType;
-  InterfaceType? _numLegacyRawType;
   InterfaceType? _numNullableRawType;
   InterfaceType? _numNonNullableRawType;
-  InterfaceType? _doubleLegacyRawType;
   InterfaceType? _doubleNullableRawType;
   InterfaceType? _doubleNonNullableRawType;
-  InterfaceType? _stringLegacyRawType;
   InterfaceType? _stringNullableRawType;
   InterfaceType? _stringNonNullableRawType;
-  InterfaceType? _listLegacyRawType;
   InterfaceType? _listNullableRawType;
   InterfaceType? _listNonNullableRawType;
-  InterfaceType? _setLegacyRawType;
   InterfaceType? _setNullableRawType;
   InterfaceType? _setNonNullableRawType;
-  InterfaceType? _mapLegacyRawType;
   InterfaceType? _mapNullableRawType;
   InterfaceType? _mapNonNullableRawType;
-  InterfaceType? _iterableLegacyRawType;
   InterfaceType? _iterableNullableRawType;
   InterfaceType? _iterableNonNullableRawType;
-  InterfaceType? _iteratorLegacyRawType;
   InterfaceType? _iteratorNullableRawType;
   InterfaceType? _iteratorNonNullableRawType;
-  InterfaceType? _symbolLegacyRawType;
   InterfaceType? _symbolNullableRawType;
   InterfaceType? _symbolNonNullableRawType;
-  InterfaceType? _typeLegacyRawType;
   InterfaceType? _typeNullableRawType;
   InterfaceType? _typeNonNullableRawType;
-  InterfaceType? _functionLegacyRawType;
   InterfaceType? _functionNullableRawType;
   InterfaceType? _functionNonNullableRawType;
-  InterfaceType? _recordLegacyRawType;
   InterfaceType? _recordNullableRawType;
   InterfaceType? _recordNonNullableRawType;
-  InterfaceType? _invocationLegacyRawType;
   InterfaceType? _invocationNullableRawType;
   InterfaceType? _invocationNonNullableRawType;
-  InterfaceType? _invocationMirrorLegacyRawType;
   InterfaceType? _invocationMirrorNullableRawType;
   InterfaceType? _invocationMirrorNonNullableRawType;
-  InterfaceType? _futureLegacyRawType;
   InterfaceType? _futureNullableRawType;
   InterfaceType? _futureNonNullableRawType;
-  InterfaceType? _stackTraceLegacyRawType;
   InterfaceType? _stackTraceNullableRawType;
   InterfaceType? _stackTraceNonNullableRawType;
-  InterfaceType? _streamLegacyRawType;
   InterfaceType? _streamNullableRawType;
   InterfaceType? _streamNonNullableRawType;
-  InterfaceType? _pragmaLegacyRawType;
   InterfaceType? _pragmaNullableRawType;
   InterfaceType? _pragmaNonNullableRawType;
-  final Map<Class, InterfaceType> _legacyRawTypes =
-      new Map<Class, InterfaceType>.identity();
   final Map<Class, InterfaceType> _nullableRawTypes =
       new Map<Class, InterfaceType>.identity();
   final Map<Class, InterfaceType> _nonNullableRawTypes =
@@ -356,11 +333,6 @@ class CoreTypes {
   late final Procedure jsGetFlag =
       index.getTopLevelProcedure('dart:_foreign_helper', 'JS_GET_FLAG');
 
-  InterfaceType get objectLegacyRawType {
-    return _objectLegacyRawType ??= _legacyRawTypes[objectClass] ??=
-        new InterfaceType(objectClass, Nullability.legacy, const <DartType>[]);
-  }
-
   InterfaceType get objectNullableRawType {
     return _objectNullableRawType ??= _nullableRawTypes[objectClass] ??=
         new InterfaceType(
@@ -375,13 +347,12 @@ class CoreTypes {
 
   InterfaceType objectRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return objectLegacyRawType;
       case Nullability.nullable:
         return objectNullableRawType;
       case Nullability.nonNullable:
         return objectNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
@@ -392,11 +363,6 @@ class CoreTypes {
     return _deprecatedNullType ??= _nullableRawTypes[deprecatedNullClass] ??=
         new InterfaceType(
             deprecatedNullClass, Nullability.nullable, const <DartType>[]);
-  }
-
-  InterfaceType get boolLegacyRawType {
-    return _boolLegacyRawType ??= _legacyRawTypes[boolClass] ??=
-        new InterfaceType(boolClass, Nullability.legacy, const <DartType>[]);
   }
 
   InterfaceType get boolNullableRawType {
@@ -412,21 +378,15 @@ class CoreTypes {
 
   InterfaceType boolRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return boolLegacyRawType;
       case Nullability.nullable:
         return boolNullableRawType;
       case Nullability.nonNullable:
         return boolNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get intLegacyRawType {
-    return _intLegacyRawType ??= _legacyRawTypes[intClass] ??=
-        new InterfaceType(intClass, Nullability.legacy, const <DartType>[]);
   }
 
   InterfaceType get intNullableRawType {
@@ -442,21 +402,15 @@ class CoreTypes {
 
   InterfaceType intRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return intLegacyRawType;
       case Nullability.nullable:
         return intNullableRawType;
       case Nullability.nonNullable:
         return intNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get numLegacyRawType {
-    return _numLegacyRawType ??= _legacyRawTypes[numClass] ??=
-        new InterfaceType(numClass, Nullability.legacy, const <DartType>[]);
   }
 
   InterfaceType get numNullableRawType {
@@ -472,21 +426,15 @@ class CoreTypes {
 
   InterfaceType numRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return numLegacyRawType;
       case Nullability.nullable:
         return numNullableRawType;
       case Nullability.nonNullable:
         return numNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get doubleLegacyRawType {
-    return _doubleLegacyRawType ??= _legacyRawTypes[doubleClass] ??=
-        new InterfaceType(doubleClass, Nullability.legacy, const <DartType>[]);
   }
 
   InterfaceType get doubleNullableRawType {
@@ -503,21 +451,15 @@ class CoreTypes {
 
   InterfaceType doubleRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return doubleLegacyRawType;
       case Nullability.nullable:
         return doubleNullableRawType;
       case Nullability.nonNullable:
         return doubleNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get stringLegacyRawType {
-    return _stringLegacyRawType ??= _legacyRawTypes[stringClass] ??=
-        new InterfaceType(stringClass, Nullability.legacy, const <DartType>[]);
   }
 
   InterfaceType get stringNullableRawType {
@@ -534,22 +476,15 @@ class CoreTypes {
 
   InterfaceType stringRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return stringLegacyRawType;
       case Nullability.nullable:
         return stringNullableRawType;
       case Nullability.nonNullable:
         return stringNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get listLegacyRawType {
-    return _listLegacyRawType ??= _legacyRawTypes[listClass] ??=
-        new InterfaceType(listClass, Nullability.legacy,
-            const <DartType>[const DynamicType()]);
   }
 
   InterfaceType get listNullableRawType {
@@ -566,22 +501,15 @@ class CoreTypes {
 
   InterfaceType listRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return listLegacyRawType;
       case Nullability.nullable:
         return listNullableRawType;
       case Nullability.nonNullable:
         return listNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get setLegacyRawType {
-    return _setLegacyRawType ??= _legacyRawTypes[setClass] ??=
-        new InterfaceType(setClass, Nullability.legacy,
-            const <DartType>[const DynamicType()]);
   }
 
   InterfaceType get setNullableRawType {
@@ -598,22 +526,15 @@ class CoreTypes {
 
   InterfaceType setRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return setLegacyRawType;
       case Nullability.nullable:
         return setNullableRawType;
       case Nullability.nonNullable:
         return setNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get mapLegacyRawType {
-    return _mapLegacyRawType ??= _legacyRawTypes[mapClass] ??=
-        new InterfaceType(mapClass, Nullability.legacy,
-            const <DartType>[const DynamicType(), const DynamicType()]);
   }
 
   InterfaceType get mapNullableRawType {
@@ -630,22 +551,15 @@ class CoreTypes {
 
   InterfaceType mapRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return mapLegacyRawType;
       case Nullability.nullable:
         return mapNullableRawType;
       case Nullability.nonNullable:
         return mapNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get iterableLegacyRawType {
-    return _iterableLegacyRawType ??= _legacyRawTypes[iterableClass] ??=
-        new InterfaceType(iterableClass, Nullability.legacy,
-            const <DartType>[const DynamicType()]);
   }
 
   InterfaceType get iterableNullableRawType {
@@ -662,22 +576,15 @@ class CoreTypes {
 
   InterfaceType iterableRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return iterableLegacyRawType;
       case Nullability.nullable:
         return iterableNullableRawType;
       case Nullability.nonNullable:
         return iterableNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get iteratorLegacyRawType {
-    return _iteratorLegacyRawType ??= _legacyRawTypes[iteratorClass] ??=
-        new InterfaceType(iteratorClass, Nullability.legacy,
-            const <DartType>[const DynamicType()]);
   }
 
   InterfaceType get iteratorNullableRawType {
@@ -694,21 +601,15 @@ class CoreTypes {
 
   InterfaceType iteratorRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return iteratorLegacyRawType;
       case Nullability.nullable:
         return iteratorNullableRawType;
       case Nullability.nonNullable:
         return iteratorNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get symbolLegacyRawType {
-    return _symbolLegacyRawType ??= _legacyRawTypes[symbolClass] ??=
-        new InterfaceType(symbolClass, Nullability.legacy, const <DartType>[]);
   }
 
   InterfaceType get symbolNullableRawType {
@@ -725,21 +626,15 @@ class CoreTypes {
 
   InterfaceType symbolRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return symbolLegacyRawType;
       case Nullability.nullable:
         return symbolNullableRawType;
       case Nullability.nonNullable:
         return symbolNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get typeLegacyRawType {
-    return _typeLegacyRawType ??= _legacyRawTypes[typeClass] ??=
-        new InterfaceType(typeClass, Nullability.legacy, const <DartType>[]);
   }
 
   InterfaceType get typeNullableRawType {
@@ -755,22 +650,15 @@ class CoreTypes {
 
   InterfaceType typeRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return typeLegacyRawType;
       case Nullability.nullable:
         return typeNullableRawType;
       case Nullability.nonNullable:
         return typeNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get functionLegacyRawType {
-    return _functionLegacyRawType ??= _legacyRawTypes[functionClass] ??=
-        new InterfaceType(
-            functionClass, Nullability.legacy, const <DartType>[]);
   }
 
   InterfaceType get functionNullableRawType {
@@ -787,21 +675,15 @@ class CoreTypes {
 
   InterfaceType functionRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return functionLegacyRawType;
       case Nullability.nullable:
         return functionNullableRawType;
       case Nullability.nonNullable:
         return functionNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get recordLegacyRawType {
-    return _recordLegacyRawType ??= _legacyRawTypes[recordClass] ??=
-        new InterfaceType(recordClass, Nullability.legacy, const <DartType>[]);
   }
 
   InterfaceType get recordNullableRawType {
@@ -818,22 +700,15 @@ class CoreTypes {
 
   InterfaceType recordRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return recordLegacyRawType;
       case Nullability.nullable:
         return recordNullableRawType;
       case Nullability.nonNullable:
         return recordNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get invocationLegacyRawType {
-    return _invocationLegacyRawType ??= _legacyRawTypes[invocationClass] ??=
-        new InterfaceType(
-            invocationClass, Nullability.legacy, const <DartType>[]);
   }
 
   InterfaceType get invocationNullableRawType {
@@ -850,22 +725,15 @@ class CoreTypes {
 
   InterfaceType invocationRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return invocationLegacyRawType;
       case Nullability.nullable:
         return invocationNullableRawType;
       case Nullability.nonNullable:
         return invocationNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get invocationMirrorLegacyRawType {
-    return _invocationMirrorLegacyRawType ??=
-        _legacyRawTypes[invocationMirrorClass] ??= new InterfaceType(
-            invocationMirrorClass, Nullability.legacy, const <DartType>[]);
   }
 
   InterfaceType get invocationMirrorNullableRawType {
@@ -882,22 +750,15 @@ class CoreTypes {
 
   InterfaceType invocationMirrorRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return invocationMirrorLegacyRawType;
       case Nullability.nullable:
         return invocationMirrorNullableRawType;
       case Nullability.nonNullable:
         return invocationMirrorNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get futureLegacyRawType {
-    return _futureLegacyRawType ??= _legacyRawTypes[futureClass] ??=
-        new InterfaceType(futureClass, Nullability.legacy,
-            const <DartType>[const DynamicType()]);
   }
 
   InterfaceType get futureNullableRawType {
@@ -914,22 +775,15 @@ class CoreTypes {
 
   InterfaceType futureRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return futureLegacyRawType;
       case Nullability.nullable:
         return futureNullableRawType;
       case Nullability.nonNullable:
         return futureNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get stackTraceLegacyRawType {
-    return _stackTraceLegacyRawType ??= _legacyRawTypes[stackTraceClass] ??=
-        new InterfaceType(
-            stackTraceClass, Nullability.legacy, const <DartType>[]);
   }
 
   InterfaceType get stackTraceNullableRawType {
@@ -946,22 +800,15 @@ class CoreTypes {
 
   InterfaceType stackTraceRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return stackTraceLegacyRawType;
       case Nullability.nullable:
         return stackTraceNullableRawType;
       case Nullability.nonNullable:
         return stackTraceNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get streamLegacyRawType {
-    return _streamLegacyRawType ??= _legacyRawTypes[streamClass] ??=
-        new InterfaceType(streamClass, Nullability.legacy,
-            const <DartType>[const DynamicType()]);
   }
 
   InterfaceType get streamNullableRawType {
@@ -978,21 +825,15 @@ class CoreTypes {
 
   InterfaceType streamRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return streamLegacyRawType;
       case Nullability.nullable:
         return streamNullableRawType;
       case Nullability.nonNullable:
         return streamNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType get pragmaLegacyRawType {
-    return _pragmaLegacyRawType ??= _legacyRawTypes[pragmaClass] ??=
-        new InterfaceType(pragmaClass, Nullability.legacy, const <DartType>[]);
   }
 
   InterfaceType get pragmaNullableRawType {
@@ -1009,26 +850,15 @@ class CoreTypes {
 
   InterfaceType pragmaRawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return pragmaLegacyRawType;
       case Nullability.nullable:
         return pragmaNullableRawType;
       case Nullability.nonNullable:
         return pragmaNonNullableRawType;
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType legacyRawType(Class klass) {
-    // TODO(cstefantsova): Consider using computeBounds instead of DynamicType
-    // here.
-    return _legacyRawTypes[klass] ??= new InterfaceType(
-        klass,
-        Nullability.legacy,
-        new List<DartType>.filled(
-            klass.typeParameters.length, const DynamicType()));
   }
 
   InterfaceType nullableRawType(Class klass) {
@@ -1053,13 +883,12 @@ class CoreTypes {
 
   InterfaceType rawType(Class klass, Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        return legacyRawType(klass);
       case Nullability.nullable:
         return nullableRawType(klass);
       case Nullability.nonNullable:
         return nonNullableRawType(klass);
       case Nullability.undetermined:
+      case Nullability.legacy:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }

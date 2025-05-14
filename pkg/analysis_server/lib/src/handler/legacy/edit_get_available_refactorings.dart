@@ -9,7 +9,6 @@ import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// The handler for the `edit.getAvailableRefactorings` request.
@@ -34,10 +33,6 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
     var length = params.length;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-    if (isMacroGenerated(file)) {
-      sendResult(EditGetAvailableRefactoringsResult([]));
       return;
     }
 
@@ -80,7 +75,7 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
     var resolvedUnit = await server.getResolvedUnit(file);
     if (resolvedUnit != null) {
       var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-      var element = server.getElementOfNode2(node);
+      var element = server.getElementOfNode(node);
       if (element != null) {
         var refactoringWorkspace = server.refactoringWorkspace;
         // try CONVERT_METHOD_TO_GETTER
@@ -94,7 +89,7 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
           }
         }
         // try RENAME
-        var renameRefactoring = RenameRefactoring.create2(
+        var renameRefactoring = RenameRefactoring.create(
           refactoringWorkspace,
           resolvedUnit,
           element,

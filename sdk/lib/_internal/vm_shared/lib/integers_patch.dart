@@ -48,7 +48,7 @@ class int {
 
   @patch
   static int parse(String source, {int? radix, int onError(String source)?}) {
-    if (source == null) throw new ArgumentError("The source must not be null");
+    if (source == null) throw ArgumentError("The source must not be null");
     if (source.isEmpty) {
       return _handleFormatError(onError, source, 0, radix, null) as int;
     }
@@ -57,7 +57,7 @@ class int {
       int? result = _tryParseSmi(source, 0, source.length - 1);
       if (result != null) return result;
     } else if (radix < 2 || radix > 36) {
-      throw new RangeError("Radix $radix not in range 2..36");
+      throw RangeError("Radix $radix not in range 2..36");
     }
     // Split here so improve odds of parse being inlined and the checks omitted.
     return _parse(unsafeCast<_StringBase>(source), radix, onError) as int;
@@ -106,14 +106,14 @@ class int {
 
   @patch
   static int? tryParse(String source, {int? radix}) {
-    if (source == null) throw new ArgumentError("The source must not be null");
+    if (source == null) throw ArgumentError("The source must not be null");
     if (source.isEmpty) return null;
     if (radix == null || radix == 10) {
       // Try parsing immediately, without trimming whitespace.
       int? result = _tryParseSmi(source, 0, source.length - 1);
       if (result != null) return result;
     } else if (radix < 2 || radix > 36) {
-      throw new RangeError("Radix $radix not in range 2..36");
+      throw RangeError("Radix $radix not in range 2..36");
     }
     return _parse(unsafeCast<_StringBase>(source), radix, _kNull);
   }
@@ -129,12 +129,12 @@ class int {
   ) {
     if (onError != null) return onError(source);
     if (message != null) {
-      throw new FormatException(message, source, index);
+      throw FormatException(message, source, index);
     }
     if (radix == null) {
-      throw new FormatException("Invalid number", source, index);
+      throw FormatException("Invalid number", source, index);
     }
-    throw new FormatException("Invalid radix-$radix number", source, index);
+    throw FormatException("Invalid radix-$radix number", source, index);
   }
 
   static int? _parseRadix(
@@ -254,7 +254,7 @@ class int {
   // For each radix, 2-36, how many digits are guaranteed to fit in a smi,
   // and magnitude of such a block (radix ** digit-count).
   // 32-bit limit/multiplier at (radix - 2)*4, 64-bit limit at (radix-2)*4+2
-  static const _PARSE_LIMITS = const [
+  static const _PARSE_LIMITS = [
     30, 1073741824, 62, 4611686018427387904, // radix: 2
     18, 387420489, 39, 4052555153018976267,
     15, 1073741824, 30, 1152921504606846976,
@@ -295,11 +295,8 @@ class int {
   static const _maxInt64 = 0x7fffffffffffffff;
   static const _minInt64 = -0x8000000000000000;
 
-  static const _int64UnsignedOverflowLimits = const [0xfffffffff, 0xf];
-  static const _int64UnsignedSmiOverflowLimits = const [
-    0xfffffff,
-    0xfffffffffffffff,
-  ];
+  static const _int64UnsignedOverflowLimits = [0xfffffffff, 0xf];
+  static const _int64UnsignedSmiOverflowLimits = [0xfffffff, 0xfffffffffffffff];
 
   /// Calculation of the expression
   ///
@@ -316,7 +313,7 @@ class int {
   /// * `[tableIndex*2 + 1]` = negative limit for result
   /// * `[tableIndex*2 + 2]` = limit for smi if result is exactly at positive limit
   /// * `[tableIndex*2 + 3]` = limit for smi if result is exactly at negative limit
-  static final Int64List _int64OverflowLimits = new Int64List(
+  static final Int64List _int64OverflowLimits = Int64List(
     _PARSE_LIMITS.length * 2,
   );
 

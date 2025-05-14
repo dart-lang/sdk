@@ -37,26 +37,6 @@ part 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryExports
-        dart:io
-          enclosingElement3: <testLibraryFragment>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      libraryExports
-        dart:math
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -82,33 +62,6 @@ part 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      libraryExports
-        dart:math
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          metadata
-            Annotation
-              atSign: @ @21
-              name: SimpleIdentifier
-                token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                element: dart:core::<fragment>::@getter::deprecated#element
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-              element2: dart:core::<fragment>::@getter::deprecated#element
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -132,26 +85,6 @@ part 'a.dart';
 ''');
 
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:io
-          enclosingElement3: <testLibraryFragment>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      libraryImports
-        dart:math
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -183,33 +116,6 @@ part 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      libraryImports
-        dart:math
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          metadata
-            Annotation
-              atSign: @ @21
-              name: SimpleIdentifier
-                token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                element: dart:core::<fragment>::@getter::deprecated#element
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-              element2: dart:core::<fragment>::@getter::deprecated#element
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -225,10 +131,8 @@ library
               atSign: @ @21
               name: SimpleIdentifier
                 token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
                 element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
               element2: dart:core::<fragment>::@getter::deprecated#element
 ''');
   }
@@ -427,11 +331,13 @@ part 'a.dart';
 package:test/test.dart
   prefix.exitCode
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::<fragment>::@getter::exitCode#element
+    setter: dart:io::<fragment>::@setter::exitCode#element
 package:test/a.dart
   prefix.exitCode
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::<fragment>::@getter::exitCode#element
+    setter: dart:io::<fragment>::@setter::exitCode#element
 ''');
   }
 
@@ -468,31 +374,31 @@ part 'a.dart';
 package:test/test.dart
   prefix.File
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibraryFragment>::@prefix2::prefix
     getter: <null>
 package:test/a.dart
   prefix.File
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:math::@class::Random
 package:test/aa.dart
   prefix.File
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:math::@class::Random
 package:test/aaa.dart
   prefix.File
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:math::@class::Random
 ''');
   }
 
@@ -523,24 +429,24 @@ part 'a.dart';
 package:test/test.dart
   prefix.File
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibraryFragment>::@prefix2::prefix
     getter: <null>
 package:test/a.dart
   prefix.File
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibraryFragment>::@prefix2::prefix
     getter: <null>
 package:test/aa.dart
   prefix.File
     prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:math::@class::Random
 ''');
   }
 
@@ -575,7 +481,7 @@ package:test/test.dart
     getter: <null>
   prefix.File
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibraryFragment>::@prefix2::prefix
     getter: <null>
@@ -587,7 +493,7 @@ package:test/a.dart
     getter: <null>
   prefix.Random
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:math::@class::Random
 package:test/aa.dart
   loadLibrary
     getter: <null>
@@ -596,6 +502,209 @@ package:test/aa.dart
     getter: <null>
   prefix.Random
     prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
+    getter: dart:math::@class::Random
+''');
+  }
+
+  test_scope_hasPrefix_lookup_ambiguous_notSdk_both() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+var foo = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+var foo = 1.2;
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart' as prefix;
+import 'b.dart' as prefix;
+''');
+
+    _assertScopeLookups(library, [
+      Uri.parse('package:test/test.dart'),
+    ], [
+      'prefix.foo',
+    ], r'''
+package:test/test.dart
+  prefix.foo
+    prefix: <testLibraryFragment>::@prefix2::prefix
+    getter: multiplyDefinedElement
+      package:test/a.dart::<fragment>::@getter::foo#element
+      package:test/b.dart::<fragment>::@getter::foo#element
+    setter: multiplyDefinedElement
+      package:test/a.dart::<fragment>::@setter::foo#element
+      package:test/b.dart::<fragment>::@setter::foo#element
+''');
+  }
+
+  test_scope_hasPrefix_lookup_ambiguous_notSdk_first() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+var pi = 4;
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart' as prefix;
+import 'dart:math' as prefix;
+''');
+
+    _assertScopeLookups(library, [
+      Uri.parse('package:test/test.dart'),
+    ], [
+      'prefix.pi',
+    ], r'''
+package:test/test.dart
+  prefix.pi
+    prefix: <testLibraryFragment>::@prefix2::prefix
+    getter: package:test/a.dart::<fragment>::@getter::pi#element
+    setter: package:test/a.dart::<fragment>::@setter::pi#element
+''');
+  }
+
+  test_scope_hasPrefix_lookup_ambiguous_notSdk_second() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+var pi = 4;
+''');
+
+    var library = await buildLibrary(r'''
+import 'dart:math' as prefix;
+import 'a.dart' as prefix;
+''');
+
+    _assertScopeLookups(library, [
+      Uri.parse('package:test/test.dart'),
+    ], [
+      'prefix.pi',
+    ], r'''
+package:test/test.dart
+  prefix.pi
+    prefix: <testLibraryFragment>::@prefix2::prefix
+    getter: package:test/a.dart::<fragment>::@getter::pi#element
+    setter: package:test/a.dart::<fragment>::@setter::pi#element
+''');
+  }
+
+  test_scope_hasPrefix_lookup_ambiguous_same() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+var foo = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart' as prefix;
+import 'b.dart' as prefix;
+''');
+
+    _assertScopeLookups(library, [
+      Uri.parse('package:test/test.dart'),
+    ], [
+      'prefix.foo',
+    ], r'''
+package:test/test.dart
+  prefix.foo
+    prefix: <testLibraryFragment>::@prefix2::prefix
+    getter: package:test/a.dart::<fragment>::@getter::foo#element
+    setter: package:test/a.dart::<fragment>::@setter::foo#element
+''');
+  }
+
+  test_scope_hasPrefix_lookup_differentPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+var foo = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+var bar = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart' as prefix;
+import 'b.dart' as prefix2;
+''');
+
+    _assertScopeLookups(library, [
+      Uri.parse('package:test/test.dart'),
+    ], [
+      'prefix.foo',
+      'prefix.bar',
+      'prefix2.foo',
+      'prefix2.bar',
+    ], r'''
+package:test/test.dart
+  prefix.foo
+    prefix: <testLibraryFragment>::@prefix2::prefix
+    getter: package:test/a.dart::<fragment>::@getter::foo#element
+    setter: package:test/a.dart::<fragment>::@setter::foo#element
+  prefix.bar
+    prefix: <testLibraryFragment>::@prefix2::prefix
+    getter: <null>
+  prefix2.foo
+    prefix2: <testLibraryFragment>::@prefix2::prefix2
+    getter: <null>
+  prefix2.bar
+    prefix2: <testLibraryFragment>::@prefix2::prefix2
+    getter: package:test/b.dart::<fragment>::@getter::bar#element
+    setter: package:test/b.dart::<fragment>::@setter::bar#element
+''');
+  }
+
+  test_scope_hasPrefix_lookup_notFound() async {
+    var library = await buildLibrary(r'''
+import 'dart:math' as math;
+''');
+
+    _assertScopeLookups(library, [
+      Uri.parse('package:test/test.dart'),
+    ], [
+      'math.noSuchElement',
+    ], r'''
+package:test/test.dart
+  math.noSuchElement
+    math: <testLibraryFragment>::@prefix2::math
+    getter: <null>
+''');
+  }
+
+  test_scope_hasPrefix_lookup_respectsCombinator_hide() async {
+    var library = await buildLibrary(r'''
+import 'dart:math' as math hide sin;
+''');
+
+    _assertScopeLookups(library, [
+      Uri.parse('package:test/test.dart'),
+    ], [
+      'math.sin',
+      'math.cos',
+    ], r'''
+package:test/test.dart
+  math.sin
+    math: <testLibraryFragment>::@prefix2::math
+    getter: <null>
+  math.cos
+    math: <testLibraryFragment>::@prefix2::math
+    getter: dart:math::@function::cos
+''');
+  }
+
+  test_scope_hasPrefix_lookup_respectsCombinator_show() async {
+    var library = await buildLibrary(r'''
+import 'dart:math' as math show sin;
+''');
+
+    _assertScopeLookups(library, [
+      Uri.parse('package:test/test.dart'),
+    ], [
+      'math.sin',
+      'math.cos',
+    ], r'''
+package:test/test.dart
+  math.sin
+    math: <testLibraryFragment>::@prefix2::math
+    getter: dart:math::@function::sin
+  math.cos
+    math: <testLibraryFragment>::@prefix2::math
     getter: <null>
 ''');
   }
@@ -632,24 +741,24 @@ part 'a.dart';
 package:test/test.dart
   prefix.File
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Directory
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::Directory
 package:test/a.dart
   prefix.File
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Directory
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: package:test/x.dart::@class::Directory
 package:test/aa.dart
   prefix.File
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Directory
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: package:test/x.dart::@class::Directory
 ''');
   }
 
@@ -1273,14 +1382,14 @@ part 'a.dart';
 package:test/test.dart
   _.X
     _: <testLibraryFragment>::@prefix2::_
-    getter: <null>
+    getter: package:test/x.dart::@extension::X
   accessibleExtensions
     dart:core::@extension::EnumName
     package:test/x.dart::@extension::X
 package:test/a.dart
   _.X
     _: <testLibraryFragment>::@prefix2::_
-    getter: <null>
+    getter: package:test/x.dart::@extension::X
   accessibleExtensions
     dart:core::@extension::EnumName
     package:test/x.dart::@extension::X
@@ -1325,9 +1434,9 @@ package:test/a.dart
 
           void writeResult(ScopeLookupResult result) {
             sink.withIndent(() {
-              elementPrinter.writelnNamedElement2('getter', result.getter2);
+              elementPrinter.writeNamedElement2('getter', result.getter2);
               if (result.setter2 case var setter?) {
-                elementPrinter.writelnNamedElement2('setter', setter);
+                elementPrinter.writeNamedElement2('setter', setter);
               }
             });
           }
@@ -1342,12 +1451,12 @@ package:test/a.dart
             var importPrefix = prefixLookup.getter2;
             if (importPrefix == null) {
               sink.withIndent(() {
-                elementPrinter.writelnNamedElement2(prefixName, importPrefix);
+                elementPrinter.writeNamedElement2(prefixName, importPrefix);
               });
             } else {
               importPrefix as PrefixElementImpl2;
               sink.withIndent(() {
-                elementPrinter.writelnNamedElement2(prefixName, importPrefix);
+                elementPrinter.writeNamedElement2(prefixName, importPrefix);
               });
               var result = importPrefix.scope.lookup(rawName);
               writeResult(result);

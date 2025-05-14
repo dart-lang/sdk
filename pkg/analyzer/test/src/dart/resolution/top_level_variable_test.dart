@@ -35,7 +35,6 @@ VariableDeclaration
   initializer: MethodInvocation
     methodName: SimpleIdentifier
       token: f
-      staticElement: <testLibraryFragment>::@function::f
       element: <testLibrary>::@function::f
       staticType: T? Function<T>(T Function(), int Function(T))
     argumentList: ArgumentList
@@ -43,10 +42,9 @@ VariableDeclaration
       arguments
         SimpleIdentifier
           token: g
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@function::f::@parameter::a
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@function::f::@parameter::a#element
             substitution: {T: String}
-          staticElement: <testLibraryFragment>::@function::g
           element: <testLibrary>::@function::g
           staticType: String Function()
         FunctionExpression
@@ -54,7 +52,7 @@ VariableDeclaration
             leftParenthesis: (
             parameter: SimpleFormalParameter
               name: z
-              declaredElement: @99::@parameter::z
+              declaredElement: null@null::@formalParameter::z
                 type: Object?
             rightParenthesis: )
           body: ExpressionFunctionBody
@@ -62,22 +60,19 @@ VariableDeclaration
             expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
-                staticElement: @99::@parameter::z
                 element: @99::@parameter::z#element
                 staticType: Object?
               period: .
               identifier: SimpleIdentifier
                 token: length
-                staticElement: <null>
                 element: <null>
                 staticType: InvalidType
-              staticElement: <null>
               element: <null>
               staticType: InvalidType
-          declaredElement: @99
+          declaredElement: null@null
             type: InvalidType Function(Object?)
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@function::f::@parameter::b
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@function::f::@parameter::b#element
             substitution: {T: String}
           staticType: InvalidType Function(Object?)
       rightParenthesis: )
@@ -105,7 +100,6 @@ VariableDeclaration
   initializer: MethodInvocation
     methodName: SimpleIdentifier
       token: f
-      staticElement: <testLibraryFragment>::@function::f
       element: <testLibrary>::@function::f
       staticType: T? Function<T>(T Function(), int Function(T))
     argumentList: ArgumentList
@@ -113,10 +107,9 @@ VariableDeclaration
       arguments
         SimpleIdentifier
           token: g
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@function::f::@parameter::a
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@function::f::@parameter::a#element
             substitution: {T: String}
-          staticElement: <testLibraryFragment>::@function::g
           element: <testLibrary>::@function::g
           staticType: String Function()
         FunctionExpression
@@ -124,7 +117,7 @@ VariableDeclaration
             leftParenthesis: (
             parameter: SimpleFormalParameter
               name: z
-              declaredElement: @107::@parameter::z
+              declaredElement: null@null::@formalParameter::z
                 type: String
             rightParenthesis: )
           body: ExpressionFunctionBody
@@ -132,22 +125,19 @@ VariableDeclaration
             expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
-                staticElement: @107::@parameter::z
                 element: @107::@parameter::z#element
                 staticType: String
               period: .
               identifier: SimpleIdentifier
                 token: length
-                staticElement: dart:core::<fragment>::@class::String::@getter::length
                 element: dart:core::<fragment>::@class::String::@getter::length#element
                 staticType: int
-              staticElement: dart:core::<fragment>::@class::String::@getter::length
               element: dart:core::<fragment>::@class::String::@getter::length#element
               staticType: int
-          declaredElement: @107
+          declaredElement: null@null
             type: int Function(String)
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@function::f::@parameter::b
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@function::f::@parameter::b#element
             substitution: {T: String}
           staticType: int Function(String)
       rightParenthesis: )

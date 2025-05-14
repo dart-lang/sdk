@@ -12,18 +12,16 @@ import '../util/flutter_utils.dart';
 const _desc = r'Avoid `print` calls in production code.';
 
 class AvoidPrint extends LintRule {
-  AvoidPrint()
-      : super(
-          name: LintNames.avoid_print,
-          description: _desc,
-        );
+  AvoidPrint() : super(name: LintNames.avoid_print, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_print;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }

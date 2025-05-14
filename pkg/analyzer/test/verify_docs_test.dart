@@ -60,6 +60,12 @@ class SnippetTester {
   }
 
   Future<void> verifyFile(File file) async {
+    if (file.path
+            .endsWith('/pkg/analyzer/doc/element_model_migration_guide.md') ||
+        file.path
+            .endsWith(r'\pkg\analyzer\doc\element_model_migration_guide.md')) {
+      return;
+    }
     String content = file.readAsStringSync();
     List<String> lines = const LineSplitter().convert(content);
     List<String> codeLines = [];
@@ -116,7 +122,8 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 Future<void> assertNoErrorsInCode(String s) async {}

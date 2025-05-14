@@ -69,6 +69,7 @@ class _HttpProfileData {
     _updated();
   }
 
+  /// Adds an HTTP request event to the timeline and the list of events.
   void requestEvent(String name, {Map? arguments}) {
     _timeline.instant(name, arguments: arguments);
     requestEvents.add(_HttpProfileEvent(name, arguments));
@@ -131,19 +132,8 @@ class _HttpProfileData {
     _updated();
   }
 
+  /// Marks the response as "started."
   void startResponse({required HttpClientResponse response}) {
-    List<Map<String, dynamic>> formatRedirectInfo() {
-      final redirects = <Map<String, dynamic>>[];
-      for (final redirect in response.redirects) {
-        redirects.add({
-          'location': redirect.location.toString(),
-          'method': redirect.method,
-          'statusCode': redirect.statusCode,
-        });
-      }
-      return redirects;
-    }
-
     responseDetails = <String, dynamic>{
       'headers': formatHeaders(response.headers),
       'compressionState': response.compressionState.toString(),
@@ -153,7 +143,14 @@ class _HttpProfileData {
       'isRedirect': response.isRedirect,
       'persistentConnection': response.persistentConnection,
       'reasonPhrase': response.reasonPhrase,
-      'redirects': formatRedirectInfo(),
+      'redirects': [
+        for (final redirect in response.redirects)
+          {
+            'location': redirect.location.toString(),
+            'method': redirect.method,
+            'statusCode': redirect.statusCode,
+          },
+      ],
       'statusCode': response.statusCode,
     };
 
@@ -180,6 +177,7 @@ class _HttpProfileData {
     _updated();
   }
 
+  /// Marks the response as "finished."
   void finishResponse() {
     // Guard against the response being completed more than once or being
     // completed before the response actually finished starting.
@@ -191,9 +189,10 @@ class _HttpProfileData {
     _updated();
   }
 
+  /// Marks the response as "finished" with an error.
   void finishResponseWithError(String error) {
-    // Return if finishResponseWithError has already been called. Can happen if
-    // the response stream is listened to with `cancelOnError: false`.
+    // Return if `finishResponseWithError` has already been called. Can happen
+    // if the response stream is listened to with `cancelOnError: false`.
     if (!responseInProgress!) return;
     responseInProgress = false;
     responseEndTimestamp = DateTime.now().microsecondsSinceEpoch;
@@ -241,9 +240,16 @@ class _HttpProfileData {
 
   void _updated() => _lastUpdateTime = DateTime.now().microsecondsSinceEpoch;
 
-  static final String isolateId = Service.getIsolateID(Isolate.current)!;
+  static final String isolateId = Service.getIsolateId(Isolate.current)!;
 
   bool requestInProgress = true;
+
+  /// Whether the response-processing has started, and has not yet finished.
+  ///
+  /// This field has three meaningful states:
+  /// * `null`: processing the response has not started.
+  /// * `true`: processing the response has started.
+  /// * `false`: processing the response has finished.
   bool? responseInProgress;
 
   late final String id;
@@ -614,9 +620,6 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
       super(_incoming) {
     // Set uri for potential exceptions.
     _incoming.uri = _httpRequest.uri;
-    // Ensure the response profile is completed, even if the response stream is
-    // never actually listened to.
-    _incoming.dataDone.then((_) => _profileData?.finishResponse());
   }
 
   static HttpClientResponseCompressionState _getCompressionState(
@@ -773,11 +776,14 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
   }
 
   bool get _shouldAuthenticate {
-    // Only try to authenticate if there is a challenge in the response.
+    // Only try to authenticate if there is a challenge in the response and
+    // the client has credentials or an authentication function.
     List<String>? challenge = headers[HttpHeaders.wwwAuthenticateHeader];
     return statusCode == HttpStatus.unauthorized &&
         challenge != null &&
-        challenge.length == 1;
+        challenge.length == 1 &&
+        (_httpClient._credentials.isNotEmpty ||
+            _httpClient._authenticate != null);
   }
 
   Future<HttpClientResponse> _authenticate(bool proxyAuth) {
@@ -868,13 +874,13 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
       // For basic authentication don't retry already used credentials
       // as they must have already been added to the request causing
       // this authenticate response.
-      if (cr.scheme == _AuthenticationScheme.BASIC && !cr.used) {
+      if (cr.scheme == _AuthenticationScheme.Basic && !cr.used) {
         // Credentials were found, prepare for retrying the request.
         return retry();
       }
 
       // Digest authentication only supports the MD5 algorithm.
-      if (cr.scheme == _AuthenticationScheme.DIGEST) {
+      if (cr.scheme == _AuthenticationScheme.Digest) {
         var algorithm = header.parameters["algorithm"];
         if (algorithm == null || algorithm.toLowerCase() == "md5") {
           var nonce = cr.nonce;
@@ -1484,6 +1490,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   final _HttpClient _httpClient;
   final _HttpClientConnection _httpClientConnection;
 
+  /// A [Completer] that completes when the response has been fully received,
+  /// including any redirects and authentications.
   final Completer<HttpClientResponse> _responseCompleter =
       Completer<HttpClientResponse>();
 
@@ -1524,6 +1532,11 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
         // 'certificate': response.certificate,
         response: response,
       );
+      (response as _HttpClientResponse)._incoming.dataDone.then(
+        // Ensure the response profile is finished, even if the response stream
+        // is never listened to.
+        (_) => _profileData?.finishResponse(),
+      );
     }, onError: (e) {});
   }
 
@@ -1556,7 +1569,10 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   HttpConnectionInfo? get connectionInfo =>
       _httpClientConnection.connectionInfo;
 
-  void _onIncoming(_HttpIncoming incoming) {
+  /// Handles [incoming] by possibly following redirects, possibly
+  /// authenticating, and completing [_responseCompleter] when the response is
+  /// complete.
+  void _handleIncoming(_HttpIncoming incoming) {
     if (_aborted) {
       return;
     }
@@ -2374,7 +2390,7 @@ class _HttpClientConnection {
             // requests the client to start using a new nonce for proxy
             // authentication.
             if (proxyCreds != null &&
-                proxyCreds.scheme == _AuthenticationScheme.DIGEST) {
+                proxyCreds.scheme == _AuthenticationScheme.Digest) {
               var authInfo = incoming.headers["proxy-authentication-info"];
               if (authInfo != null && authInfo.length == 1) {
                 var header = _HeaderValue.parse(
@@ -2387,7 +2403,7 @@ class _HttpClientConnection {
             }
             // For digest authentication check if the server requests the
             // client to start using a new nonce.
-            if (creds != null && creds.scheme == _AuthenticationScheme.DIGEST) {
+            if (creds != null && creds.scheme == _AuthenticationScheme.Digest) {
               var authInfo = incoming.headers["authentication-info"];
               if (authInfo != null && authInfo.length == 1) {
                 var header = _HeaderValue.parse(
@@ -2398,7 +2414,7 @@ class _HttpClientConnection {
                 if (nextnonce != null) creds.nonce = nextnonce;
               }
             }
-            request._onIncoming(incoming);
+            request._handleIncoming(incoming);
           })
           // If we see a state error, we failed to get the 'first'
           // element.
@@ -2420,6 +2436,7 @@ class _HttpClientConnection {
     });
     Future<Socket?>.value(_streamFuture).catchError((e) {
       destroy();
+      return null;
     });
     return request;
   }
@@ -3892,42 +3909,37 @@ class _DetachedSocket extends Stream<Uint8List> implements Socket {
   }
 }
 
-class _AuthenticationScheme {
-  final int _scheme;
-
-  static const UNKNOWN = _AuthenticationScheme(-1);
-  static const BASIC = _AuthenticationScheme(0);
-  static const DIGEST = _AuthenticationScheme(1);
-
-  const _AuthenticationScheme(this._scheme);
+enum _AuthenticationScheme {
+  Unknown(),
+  Basic(),
+  Bearer(),
+  Digest();
 
   factory _AuthenticationScheme.fromString(String scheme) {
-    if (scheme.toLowerCase() == "basic") return BASIC;
-    if (scheme.toLowerCase() == "digest") return DIGEST;
-    return UNKNOWN;
+    final lower = scheme.toLowerCase();
+    return _AuthenticationScheme.values
+            .where((e) => e.name.toLowerCase() == lower)
+            .singleOrNull ??
+        Unknown;
   }
 
-  String toString() {
-    if (this == BASIC) return "Basic";
-    if (this == DIGEST) return "Digest";
-    return "Unknown";
-  }
+  String toString() => name;
 }
 
 abstract class _Credentials {
-  _HttpClientCredentials credentials;
-  String realm;
+  final _HttpClientCredentials credentials;
+  final String realm;
   bool used = false;
 
   // Digest specific fields.
-  String? ha1;
+  late final String? ha1;
   String? nonce;
   String? algorithm;
   String? qop;
   int? nonceCount;
 
   _Credentials(this.credentials, this.realm) {
-    if (credentials.scheme == _AuthenticationScheme.DIGEST) {
+    if (credentials.scheme == _AuthenticationScheme.Digest) {
       // Calculate the H(A1) value once. There is no mentioning of
       // username/password encoding in RFC 2617. However there is an
       // open draft for adding an additional accept-charset parameter to
@@ -3970,7 +3982,7 @@ class _SiteCredentials extends _Credentials {
   void authorize(HttpClientRequest request) {
     // Digest credentials cannot be used without a nonce from the
     // server.
-    if (credentials.scheme == _AuthenticationScheme.DIGEST && nonce == null) {
+    if (credentials.scheme == _AuthenticationScheme.Digest && nonce == null) {
       return;
     }
     credentials.authorize(this, request as _HttpClientRequest);
@@ -3993,7 +4005,7 @@ class _ProxyCredentials extends _Credentials {
   void authorize(HttpClientRequest request) {
     // Digest credentials cannot be used without a nonce from the
     // server.
-    if (credentials.scheme == _AuthenticationScheme.DIGEST && nonce == null) {
+    if (credentials.scheme == _AuthenticationScheme.Digest && nonce == null) {
       return;
     }
     credentials.authorizeProxy(this, request as _HttpClientRequest);
@@ -4013,7 +4025,7 @@ final class _HttpClientBasicCredentials extends _HttpClientCredentials
 
   _HttpClientBasicCredentials(this.username, this.password);
 
-  _AuthenticationScheme get scheme => _AuthenticationScheme.BASIC;
+  _AuthenticationScheme get scheme => _AuthenticationScheme.Basic;
 
   String authorization() {
     // There is no mentioning of username/password encoding in RFC
@@ -4035,6 +4047,33 @@ final class _HttpClientBasicCredentials extends _HttpClientCredentials
   }
 }
 
+final class _HttpClientBearerCredentials extends _HttpClientCredentials
+    implements HttpClientBearerCredentials {
+  String token;
+
+  _HttpClientBearerCredentials(this.token) {
+    // verify token according to RFC-6750 section 2.1
+    // https://www.rfc-editor.org/rfc/rfc6750.html#section-2.1
+    if (RegExp(r'[^0-9A-Za-z\-._~+/=]').hasMatch(token)) {
+      throw ArgumentError.value(token, "token", "Invalid characters");
+    }
+  }
+
+  _AuthenticationScheme get scheme => _AuthenticationScheme.Bearer;
+
+  String authorization() {
+    return "Bearer $token";
+  }
+
+  void authorize(_Credentials _, HttpClientRequest request) {
+    request.headers.set(HttpHeaders.authorizationHeader, authorization());
+  }
+
+  void authorizeProxy(_ProxyCredentials _, HttpClientRequest request) {
+    request.headers.set(HttpHeaders.proxyAuthorizationHeader, authorization());
+  }
+}
+
 final class _HttpClientDigestCredentials extends _HttpClientCredentials
     implements HttpClientDigestCredentials {
   String username;
@@ -4042,7 +4081,7 @@ final class _HttpClientDigestCredentials extends _HttpClientCredentials
 
   _HttpClientDigestCredentials(this.username, this.password);
 
-  _AuthenticationScheme get scheme => _AuthenticationScheme.DIGEST;
+  _AuthenticationScheme get scheme => _AuthenticationScheme.Digest;
 
   String authorization(_Credentials credentials, _HttpClientRequest request) {
     String requestUri = request._requestUri();

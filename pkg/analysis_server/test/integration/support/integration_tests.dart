@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
-import 'package:analyzer/file_system/file_system.dart' as analyzer_fs;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -21,7 +20,7 @@ import 'package:test/test.dart';
 
 import '../../analysis_server_base.dart' show analysisOptionsContent;
 import '../../support/configuration_files.dart';
-import '../../test_macros.dart' as macros;
+import '../../support/sdk_paths.dart';
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
@@ -72,7 +71,7 @@ void outOfTestExpect(
 }
 
 String _defaultFailFormatter(
-  actual,
+  dynamic actual,
   Matcher matcher,
   String? reason,
   Map<Object?, Object?> matchState,
@@ -105,7 +104,7 @@ typedef NotificationProcessor =
 
 /// Base class for analysis server integration tests.
 abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
-    with MockPackagesMixin, ConfigurationFilesMixin, macros.TestMacros {
+    with MockPackagesMixin, ConfigurationFilesMixin {
   /// Amount of time to give the server to respond to a shutdown request before
   /// forcibly terminating it.
   static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 60);
@@ -188,13 +187,6 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
 
   List<AnalysisError>? getErrors(String pathname) =>
       currentAnalysisErrors[pathname];
-
-  /// A wrapper around [writeFile] with a matching signature as the in-memory
-  /// tests so that [macros.TestMacros] can be used by both.
-  @override
-  analyzer_fs.File newFile(String filePath, String content) {
-    return resourceProvider.getFile(writeFile(filePath, content));
-  }
 
   /// Read a source file with the given absolute [pathname].
   String readFile(String pathname) => File(pathname).readAsStringSync();
@@ -551,19 +543,6 @@ class Server {
     }
   }
 
-  /// Find the root directory of the analysis_server package by proceeding
-  /// upward to the 'test' dir, and then going up one more directory.
-  String findRoot(String pathname) {
-    while (!['benchmark', 'test'].contains(path.basename(pathname))) {
-      var parent = path.dirname(pathname);
-      if (parent.length >= pathname.length) {
-        throw Exception("Can't find root directory");
-      }
-      pathname = parent;
-    }
-    return path.dirname(pathname);
-  }
-
   /// Return a future that will complete when all commands that have been sent
   /// to the server so far have been flushed to the OS buffer.
   Future<void> flushCommands() {
@@ -698,27 +677,7 @@ class Server {
     _time.start();
 
     var dartBinary = path.join(dartSdkPath, 'bin', 'dart');
-
-    // Setting the `TEST_SERVER_SNAPSHOT` env var to 'false' will disable the
-    // snapshot and run from source.
-    var useSnapshot = Platform.environment['TEST_SERVER_SNAPSHOT'] != 'false';
-    String serverPath;
-
-    if (useSnapshot) {
-      serverPath = path.normalize(
-        path.join(
-          dartSdkPath,
-          'bin',
-          'snapshots',
-          'analysis_server.dart.snapshot',
-        ),
-      );
-    } else {
-      var rootDir = findRoot(
-        Platform.script.toFilePath(windows: Platform.isWindows),
-      );
-      serverPath = path.normalize(path.join(rootDir, 'bin', 'server.dart'));
-    }
+    var serverPath = getAnalysisServerPath(dartSdkPath);
 
     var arguments = <String>['--disable-dart-dev', '--no-dds'];
     //
@@ -961,7 +920,7 @@ abstract class _RecursiveMatcher extends Matcher {
   /// the mismatch.  [describeSubstructure] is used to describe which
   /// substructure did not match.
   void checkSubstructure(
-    item,
+    Object? item,
     Matcher matcher,
     List<MismatchDescriber> mismatches,
     Description Function(Description) describeSubstructure,
@@ -990,7 +949,7 @@ abstract class _RecursiveMatcher extends Matcher {
 
   @override
   Description describeMismatch(
-    item,
+    Object? item,
     Description mismatchDescription,
     Map<Object?, Object?> matchState,
     bool verbose,
@@ -1035,7 +994,7 @@ abstract class _RecursiveMatcher extends Matcher {
 
   /// Populate [mismatches] with descriptions of all the ways in which [item]
   /// does not match.
-  void populateMismatches(item, List<MismatchDescriber> mismatches);
+  void populateMismatches(Object? item, List<MismatchDescriber> mismatches);
 
   /// Create a [MismatchDescriber] describing a mismatch with a simple string.
   MismatchDescriber simpleDescription(String description) => (

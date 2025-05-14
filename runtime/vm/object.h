@@ -508,12 +508,14 @@ class Object {
   V(Smi, smi_illegal_cid)                                                      \
   V(Smi, smi_zero)                                                             \
   V(ApiError, no_callbacks_error)                                              \
+  V(UnwindError, unwind_error)                                                 \
   V(UnwindError, unwind_in_progress_error)                                     \
   V(LanguageError, snapshot_writer_error)                                      \
   V(LanguageError, branch_offset_error)                                        \
   V(LanguageError, background_compilation_error)                               \
   V(LanguageError, no_debuggable_code_error)                                   \
   V(LanguageError, out_of_memory_error)                                        \
+  V(UnhandledException, unhandled_oom_exception)                               \
   V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
   V(Type, void_type)                                                           \
@@ -1143,15 +1145,6 @@ enum class TypeEquality {
   kCanonical = 0,
   kSyntactical = 1,
   kInSubtypeTest = 2,
-};
-
-// The NNBDCompiledMode reflects the mode in which constants of the library were
-// compiled by CFE.
-enum class NNBDCompiledMode {
-  kStrong = 0,
-  kWeak = 1,
-  kAgnostic = 2,
-  kInvalid = 3,
 };
 
 class Class : public Object {
@@ -2116,13 +2109,9 @@ class Class : public Object {
   // It means that variable of static type based on this class may hold
   // a Future instance.
   using CanBeFutureBit = BitField<uint32_t, bool, IsFutureSubtypeBit::kNextBit>;
-  // This class can be extended, implemented or mixed-in by
-  // a dynamically loaded class.
-  using IsDynamicallyExtendableBit =
-      BitField<uint32_t, bool, CanBeFutureBit::kNextBit>;
   // This class has a dynamically extendable subtype.
   using HasDynamicallyExtendableSubtypesBit =
-      BitField<uint32_t, bool, IsDynamicallyExtendableBit::kNextBit>;
+      BitField<uint32_t, bool, CanBeFutureBit::kNextBit>;
   // This class was loaded from bytecode at runtime.
   using IsDeclaredInBytecodeBit =
       BitField<uint32_t, bool, HasDynamicallyExtendableSubtypesBit::kNextBit>;
@@ -2194,11 +2183,6 @@ class Class : public Object {
 
   void set_can_be_future(bool value) const;
   bool can_be_future() const { return CanBeFutureBit::decode(state_bits()); }
-
-  void set_is_dynamically_extendable(bool value) const;
-  bool is_dynamically_extendable() const {
-    return IsDynamicallyExtendableBit::decode(state_bits());
-  }
 
   void set_has_dynamically_extendable_subtypes(bool value) const;
   bool has_dynamically_extendable_subtypes() const {
@@ -2982,6 +2966,29 @@ enum class EntryPointPragma {
   kCallOnly
 };
 
+struct EntryPointPragmaUtils : public AllStatic {
+  static constexpr bool AllowsCall(EntryPointPragma pragma) {
+    return pragma == EntryPointPragma::kAlways ||
+           pragma == EntryPointPragma::kCallOnly;
+  }
+
+  static constexpr bool AllowsGet(EntryPointPragma pragma) {
+    return pragma == EntryPointPragma::kAlways ||
+           pragma == EntryPointPragma::kGetterOnly;
+  }
+
+  static constexpr bool AllowsSet(EntryPointPragma pragma) {
+    return pragma == EntryPointPragma::kAlways ||
+           pragma == EntryPointPragma::kSetterOnly;
+  }
+
+  static constexpr bool AllowsAccess(EntryPointPragma pragma) {
+    // The CFE should ensure that non-kAlways annotations are appropriate
+    // for the given member.
+    return pragma != EntryPointPragma::kNever;
+  }
+};
+
 class Function : public Object {
  public:
   StringPtr name() const { return untag()->name(); }
@@ -3010,6 +3017,7 @@ class Function : public Object {
 
   bool FfiCSignatureContainsHandles() const;
   bool FfiCSignatureReturnsStruct() const;
+  bool FfiCSignatureReturnsHandle() const;
 
   // Can only be called on FFI trampolines.
   int32_t FfiCallbackId() const;
@@ -3328,10 +3336,6 @@ class Function : public Object {
   // Returns true if this function is _Closure.call, which implements the
   // Function interface for closures.
   bool IsClosureCallDispatcher() const;
-
-  // Returns true if this function is _Closure.get:call, which returns the
-  // closure object for invocation.
-  bool IsClosureCallGetter() const;
 
   bool IsDynamicInvocationForwarder() const {
     return kind() == UntaggedFunction::kDynamicInvocationForwarder;
@@ -4049,6 +4053,7 @@ class Function : public Object {
   static bool IsDynamicInvocationForwarderName(StringPtr name);
 
   static StringPtr DemangleDynamicInvocationForwarderName(const String& name);
+  static const String& DropImplicitCallPrefix(const String& name);
 
   static StringPtr CreateDynamicInvocationForwarderName(const String& name);
 
@@ -7100,7 +7105,7 @@ class Code : public Object {
     UNREACHABLE();
     return nullptr;
 #else
-    return untag()->var_descriptors();
+    return untag()->var_descriptors<std::memory_order_acquire>();
 #endif
   }
   void set_var_descriptors(const LocalVarDescriptors& value) const {
@@ -7108,7 +7113,7 @@ class Code : public Object {
     UNREACHABLE();
 #else
     ASSERT(value.IsOld());
-    untag()->set_var_descriptors(value.ptr());
+    untag()->set_var_descriptors<std::memory_order_release>(value.ptr());
 #endif
   }
 
@@ -8242,11 +8247,13 @@ class LanguageError : public Error {
 class UnhandledException : public Error {
  public:
   InstancePtr exception() const { return untag()->exception(); }
+  void set_exception(const Instance& exception) const;
   static intptr_t exception_offset() {
     return OFFSET_OF(UntaggedUnhandledException, exception_);
   }
 
   InstancePtr stacktrace() const { return untag()->stacktrace(); }
+  void set_stacktrace(const Instance& stacktrace) const;
   static intptr_t stacktrace_offset() {
     return OFFSET_OF(UntaggedUnhandledException, stacktrace_);
   }
@@ -8258,15 +8265,11 @@ class UnhandledException : public Error {
   static UnhandledExceptionPtr New(const Instance& exception,
                                    const Instance& stacktrace,
                                    Heap::Space space = Heap::kNew);
+  static UnhandledExceptionPtr New(Heap::Space space = Heap::kNew);
 
   virtual const char* ToErrorCString() const;
 
  private:
-  static UnhandledExceptionPtr New(Heap::Space space = Heap::kNew);
-
-  void set_exception(const Instance& exception) const;
-  void set_stacktrace(const Instance& stacktrace) const;
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UnhandledException, Error);
   friend class Class;
   friend class ObjectStore;
@@ -12616,7 +12619,7 @@ class DebuggerStackTrace;
 // Internal stacktrace object used in exceptions for printing stack traces.
 class StackTrace : public Instance {
  public:
-  static constexpr int kPreallocatedStackdepth = 90;
+  static constexpr int kFixedOOMStackdepth = 90;
 
   intptr_t Length() const;
 

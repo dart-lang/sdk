@@ -139,29 +139,29 @@ final class _Double implements double {
   }
 
   double _addFromInteger(int other) {
-    return new _Double.fromInteger(other)._add(this);
+    return _Double.fromInteger(other)._add(this);
   }
 
   double _subFromInteger(int other) {
-    return new _Double.fromInteger(other)._sub(this);
+    return _Double.fromInteger(other)._sub(this);
   }
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Double")
   double _mulFromInteger(int other) {
-    return new _Double.fromInteger(other)._mul(this);
+    return _Double.fromInteger(other)._mul(this);
   }
 
   int _truncDivFromInteger(int other) {
-    return (new _Double.fromInteger(other) / this).truncate();
+    return (_Double.fromInteger(other) / this).truncate();
   }
 
   double _moduloFromInteger(int other) {
-    return new _Double.fromInteger(other)._modulo(this);
+    return _Double.fromInteger(other)._modulo(this);
   }
 
   double _remainderFromInteger(int other) {
-    return new _Double.fromInteger(other)._remainder(this);
+    return _Double.fromInteger(other)._remainder(this);
   }
 
   @pragma("vm:external-name", "Double_greaterThanFromInteger")
@@ -223,13 +223,13 @@ final class _Double implements double {
   num clamp(num lowerLimit, num upperLimit) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (lowerLimit == null) {
-      throw new ArgumentError.notNull("lowerLimit");
+      throw ArgumentError.notNull("lowerLimit");
     }
     if (upperLimit == null) {
-      throw new ArgumentError.notNull("upperLimit");
+      throw ArgumentError.notNull("upperLimit");
     }
     if (lowerLimit.compareTo(upperLimit) > 0) {
-      throw new ArgumentError(lowerLimit);
+      throw ArgumentError(lowerLimit);
     }
     if (lowerLimit.isNaN) return lowerLimit;
     if (this.compareTo(lowerLimit) < 0) return lowerLimit;
@@ -249,7 +249,7 @@ final class _Double implements double {
   static const int CACHE_LENGTH = 1 << (CACHE_SIZE_LOG2 + 1);
   static const int CACHE_MASK = CACHE_LENGTH - 1;
   // Each key (double) followed by its toString result.
-  static final List _cache = new List.filled(CACHE_LENGTH, null);
+  static final List _cache = List.filled(CACHE_LENGTH, null);
   static int _cacheEvictIndex = 0;
 
   @pragma("vm:external-name", "Double_toString")
@@ -280,12 +280,12 @@ final class _Double implements double {
 
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (fractionDigits == null) {
-      throw new ArgumentError.notNull("fractionDigits");
+      throw ArgumentError.notNull("fractionDigits");
     }
 
     // Step 2.
     if (fractionDigits < 0 || fractionDigits > 20) {
-      throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
+      throw RangeError.range(fractionDigits, 0, 20, "fractionDigits");
     }
 
     // Step 3.
@@ -317,7 +317,7 @@ final class _Double implements double {
     // Step 7.
     if (fractionDigits != null) {
       if (fractionDigits < 0 || fractionDigits > 20) {
-        throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
+        throw RangeError.range(fractionDigits, 0, 20, "fractionDigits");
       }
     }
 
@@ -339,7 +339,7 @@ final class _Double implements double {
     // See ECMAScript-262, 15.7.4.7 for details.
 
     if (precision == null) {
-      throw new ArgumentError.notNull("precision");
+      throw ArgumentError.notNull("precision");
     }
     // The EcmaScript specification checks for NaN and Infinity before looking
     // at the fractionDigits. In Dart we are consistent with toStringAsFixed and
@@ -347,7 +347,7 @@ final class _Double implements double {
 
     // Step 8.
     if (precision < 1 || precision > 21) {
-      throw new RangeError.range(precision, 1, 21, "precision");
+      throw RangeError.range(precision, 1, 21, "precision");
     }
 
     if (isNaN) return "NaN";

@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferAdjacentStringConcatenationTest);
   });
@@ -24,19 +24,21 @@ var s = 'hello' ' world';
   }
 
   test_plusOperator() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var s = 'hello' + ' world';
-''', [
-      lint(16, 1),
-    ]);
+''',
+      [lint(16, 1)],
+    );
   }
 
   test_plusOperator_inListLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var list = ['this is' + ' not allowed'];
-''', [
-      lint(22, 1),
-    ]);
+''',
+      [lint(22, 1)],
+    );
   }
 
   test_plusOperator_nonStringLiteralLeft() async {

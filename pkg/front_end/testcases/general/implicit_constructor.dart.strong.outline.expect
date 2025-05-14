@@ -10,19 +10,19 @@ class B extends core::Object {
   synthetic constructor •() → self::B
     ;
 }
-abstract class _C&Object&M = core::Object with self::M /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_C&Object&M
-    : super core::Object::•()
-    ;
-  mixin-super-stub method mixinMethod() → void
-    return super.{self::M::mixinMethod}();
-}
 class C extends self::_C&Object&M {
   synthetic constructor •() → self::C
     ;
 }
 class D = core::Object with self::M /*hasConstConstructor*/  {
   const synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  mixin-super-stub method mixinMethod() → void
+    return super.{self::M::mixinMethod}();
+}
+abstract class _C&Object&M = core::Object with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&M
     : super core::Object::•()
     ;
   mixin-super-stub method mixinMethod() → void

@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryNullAwareAssignmentsTest);
   });
@@ -29,14 +29,15 @@ void f() {
   }
 
   test_localVariable_nullAssignment() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
   void f() {
     var x;
     x ??= null;
   }
-''', [
-      lint(28, 10),
-    ]);
+''',
+      [lint(28, 10)],
+    );
   }
 
   test_localVariable_otherAssignment() async {

@@ -213,7 +213,7 @@ class PowersetBitsDomain {
     // ConstantValue
     // TODO(fishythefish): Naively calling `getType` on
     // [LateSentinelConstantValue] will produce Never.
-    return createFromStaticType(value.getType(commonElements), nullable: false);
+    return createFromStaticType(value.getType(commonElements));
   }
 
   AbstractBool areDisjoint(int a, int b) {
@@ -455,7 +455,7 @@ class PowersetBitsDomain {
     return classInfo.exactBits;
   }
 
-  int createFromStaticType(DartType type, {required bool nullable}) {
+  int createFromStaticType(DartType type) {
     if (dartTypes.isTopType(type)) {
       // A cone of a top type includes all values. This would be 'precise' if we
       // tracked that.
@@ -466,26 +466,7 @@ class PowersetBitsDomain {
       return _createFromStaticType(type.baseType, true);
     }
 
-    if (type is LegacyType) {
-      DartType baseType = type.baseType;
-      if (baseType is NeverType) {
-        // Never* is same as Null, for both 'is' and 'as'.
-        return nullMask;
-      }
-
-      // Object* is a top type for both 'is' and 'as'. This is handled in the
-      // 'cone of top type' case above.
-
-      return _createFromStaticType(baseType, nullable);
-    }
-
-    if (dartTypes.useLegacySubtyping) {
-      // In legacy and weak mode, `String` is nullable depending on context.
-      return _createFromStaticType(type, nullable);
-    } else {
-      // In strong mode nullability comes from explicit NullableType.
-      return _createFromStaticType(type, false);
-    }
+    return _createFromStaticType(type, false);
   }
 
   int _createFromStaticType(DartType type, bool nullable) {

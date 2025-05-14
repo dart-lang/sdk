@@ -60,12 +60,11 @@ class TestExpressionCompiler {
     // Initialize DDC.
     var moduleName = p.basenameWithoutExtension(output.toFilePath());
 
-    var classHierarchy = compilerResult.classHierarchy!;
+    var classHierarchy = compilerResult.classHierarchy;
     var compilerOptions = Options(
       replCompile: true,
       moduleName: moduleName,
       experiments: experiments,
-      soundNullSafety: setup.soundNullSafety,
       emitDebugMetadata: true,
       canaryFeatures: setup.canaryFeatures,
       enableAsserts: setup.enableAsserts,

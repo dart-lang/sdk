@@ -121,13 +121,19 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   @pragma('dart2js:prefer-inline')
   static List<T> markFixedList<T>(List<T> list) {
     return JS(
-        'JSFixedArray', '#', HArrayFlagsSet(list, ArrayFlags.fixedLength));
+      'JSFixedArray',
+      '#',
+      HArrayFlagsSet(list, ArrayFlags.fixedLength),
+    );
   }
 
   @pragma('dart2js:prefer-inline')
   static List<T> markUnmodifiableList<T>(List list) {
-    return JS('JSUnmodifiableArray', '#',
-        HArrayFlagsSet(list, ArrayFlags.unmodifiable));
+    return JS(
+      'JSUnmodifiableArray',
+      '#',
+      HArrayFlagsSet(list, ArrayFlags.unmodifiable),
+    );
   }
 
   static bool isFixedLength(JSArray a) {
@@ -149,7 +155,12 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   checkMutable(String operation, String verb) {
     final int flags = HArrayFlagsGet(this);
     HArrayFlagsCheck(
-        this, flags, ArrayFlags.unmodifiableCheck, operation, verb);
+      this,
+      flags,
+      ArrayFlags.unmodifiableCheck,
+      operation,
+      verb,
+    );
   }
 
   checkGrowable(String operation, String verb) {
@@ -623,9 +634,8 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     // with an assignment like `a[i] = a[j]`.
 
     int undefineds = 0;
-    // The element type might exclude the possibility of there being `null`s,
-    // but only in sound null safety mode.
-    if (JS_GET_FLAG('LEGACY') || null is E) {
+    // The element type might exclude the possibility of there being `null`s.
+    if (null is E) {
       for (int i = 0; i < length; i++) {
         final E element = JS('', '#[#]', this, i);
         if (JS('', '# === void 0', element)) {
@@ -726,9 +736,10 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   List<E> toList({bool growable = true}) =>
       growable ? _toListGrowable() : _toListFixed();
 
-  List<E> _toListGrowable() =>
-      // slice(0) is slightly faster than slice()
-      JSArray<E>.markGrowable(JS('', '#.slice(0)', this));
+  List<E> _toListGrowable() {
+    // slice(0) is slightly faster than slice()
+    return JSArray<E>.markGrowable(JS('', '#.slice(0)', this));
+  }
 
   List<E> _toListFixed() => JSArray<E>.markFixed(JS('', '#.slice(0)', this));
 
@@ -768,8 +779,10 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   void _setLengthUnsafe(int newLength) {
     assert(newLength is int, throw ArgumentError.value(newLength, 'newLength'));
 
-    assert(newLength >= 0,
-        throw RangeError.range(newLength, 0, null, 'newLength'));
+    assert(
+      newLength >= 0,
+      throw RangeError.range(newLength, 0, null, 'newLength'),
+    );
 
     // JavaScript with throw a RangeError for numbers that are too big. The
     // message does not contain the value.
@@ -785,8 +798,12 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
 
   void operator []=(int index, E value) {
     final int flags = HArrayFlagsGet(this);
-    final checked =
-        HArrayFlagsCheck(this, flags, ArrayFlags.unmodifiableCheck, '[]=');
+    final checked = HArrayFlagsCheck(
+      this,
+      flags,
+      ArrayFlags.unmodifiableCheck,
+      '[]=',
+    );
 
     if (index is! int) throw diagnoseIndexError(this, index);
     // This form of the range test correctly rejects NaN.
@@ -864,9 +881,9 @@ class ArrayIterator<E> implements Iterator<E> {
   E? _current;
 
   ArrayIterator(JSArray<E> iterable)
-      : _iterable = iterable,
-        _length = iterable.length,
-        _index = 0;
+    : _iterable = iterable,
+      _length = iterable.length,
+      _index = 0;
 
   E get current => _current as E;
 

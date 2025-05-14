@@ -2,20 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
 
@@ -28,9 +26,8 @@ class AstResolver {
   final AnalysisErrorListener _errorListener =
       AnalysisErrorListener.NULL_LISTENER;
   final AnalysisOptions analysisOptions;
-  final InterfaceElement? enclosingClassElement;
-  final ExecutableElement? enclosingExecutableElement;
-  final AugmentableElement? enclosingAugmentation;
+  final InterfaceElementImpl2? enclosingClassElement;
+  final ExecutableElementImpl2? enclosingExecutableElement;
   late final _resolutionVisitor = ResolutionVisitor(
     unitElement: _unitElement,
     nameScope: _nameScope,
@@ -43,10 +40,12 @@ class AstResolver {
     ErrorReporter(_errorListener, _unitElement.source),
     nameScope: _nameScope,
   );
-  late final _flowAnalysis = FlowAnalysisHelper(false, _featureSet,
+  late final _typeAnalyzerOptions = computeTypeAnalyzerOptions(_featureSet);
+  late final _flowAnalysis = FlowAnalysisHelper(false,
       typeSystemOperations: TypeSystemOperations(
           _unitElement.library.typeSystem,
-          strictCasts: analysisOptions.strictCasts));
+          strictCasts: analysisOptions.strictCasts),
+      typeAnalyzerOptions: _typeAnalyzerOptions);
   late final _resolverVisitor = ResolverVisitor(
     _linker.inheritance,
     _unitElement.library,
@@ -58,6 +57,7 @@ class AstResolver {
     analysisOptions: analysisOptions,
     flowAnalysisHelper: _flowAnalysis,
     libraryFragment: _unitElement,
+    typeAnalyzerOptions: _typeAnalyzerOptions,
   );
 
   AstResolver(
@@ -67,7 +67,6 @@ class AstResolver {
     this.analysisOptions, {
     this.enclosingClassElement,
     this.enclosingExecutableElement,
-    this.enclosingAugmentation,
   }) : _featureSet = _unitElement.library.featureSet;
 
   void resolveAnnotation(AnnotationImpl node) {
@@ -101,7 +100,7 @@ class AstResolver {
 
   void resolveExpression(
     ExpressionImpl Function() getNode, {
-    DartType contextType = UnknownInferredType.instance,
+    TypeImpl contextType = UnknownInferredType.instance,
   }) {
     ExpressionImpl node = getNode();
     node.accept(_resolutionVisitor);
@@ -120,7 +119,6 @@ class AstResolver {
     _resolverVisitor.prepareEnclosingDeclarations(
       enclosingClassElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,
-      enclosingAugmentation: enclosingAugmentation,
     );
   }
 }

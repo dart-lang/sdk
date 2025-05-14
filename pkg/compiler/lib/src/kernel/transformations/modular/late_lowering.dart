@@ -31,12 +31,16 @@ bool _hasAssignableSuffix(String name) {
       name.endsWith(_lateAssignableInitializedSuffix);
 }
 
+bool isNameOfLateInstanceBackingField(String? name) {
+  return name != null &&
+      name.startsWith(_lateInstanceFieldPrefix) &&
+      (_hasFinalSuffix(name) || _hasAssignableSuffix(name));
+}
+
 bool isBackingFieldForLateInstanceField(Field field) {
   assert(!field.isStatic);
   if (!field.isInternalImplementation) return false;
-  final name = field.name.text;
-  return name.startsWith(_lateInstanceFieldPrefix) &&
-      (_hasFinalSuffix(name) || _hasAssignableSuffix(name));
+  return isNameOfLateInstanceBackingField(field.name.text);
 }
 
 bool isBackingFieldForLateFinalInstanceField(Field field) {

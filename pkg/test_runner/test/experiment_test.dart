@@ -10,7 +10,7 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 
 // SharedOptions=--enable-experiment=test-experiment
-main() {
+void main() {
   Expect.isTrue(Platform.executableArguments
       .contains("--enable-experiment=test-experiment"));
 }

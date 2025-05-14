@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryLibraryNameTest);
   });
@@ -18,11 +18,12 @@ class UnnecessaryLibraryNameTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_library_name;
 
   test_namedLibrary() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 library name;
-''', [
-      lint(8, 4),
-    ]);
+''',
+      [lint(8, 4)],
+    );
   }
 
   test_namedLibrary_preUnnamedLibraries() async {

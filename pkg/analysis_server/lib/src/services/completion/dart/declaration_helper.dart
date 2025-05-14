@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -402,6 +403,8 @@ class DeclarationHelper {
     if (parent is ClassMember) {
       assert(node is CommentReference);
       parent = parent.parent;
+    } else if (parent is Directive) {
+      parent = parent.parent;
     } else if (parent is CompilationUnit) {
       parent = containingMember;
     }
@@ -491,9 +494,10 @@ class DeclarationHelper {
           targetLibrary: libraryElement,
           // Ignore nullability, consistent with non-extension members.
           targetType:
-              type.isDartCoreNull
-                  ? type
-                  : library.typeSystem.promoteToNonNull(type),
+              (type.isDartCoreNull
+                      ? type
+                      : library.typeSystem.promoteToNonNull(type))
+                  as TypeImpl,
           strictCasts: false,
         );
     var importData = ImportData(
@@ -749,9 +753,10 @@ class DeclarationHelper {
       targetLibrary: libraryElement,
       // Ignore nullability, consistent with non-extension members.
       targetType:
-          type.isDartCoreNull
-              ? type
-              : libraryElement.typeSystem.promoteToNonNull(type),
+          (type.isDartCoreNull
+                  ? type
+                  : libraryElement.typeSystem.promoteToNonNull(type))
+              as TypeImpl,
       strictCasts: false,
     );
     for (var instantiatedExtension in applicableExtensions) {
@@ -1244,6 +1249,7 @@ class DeclarationHelper {
         _suggestProperty(
           accessor: accessor,
           referencingInterface: referencingInterface,
+          isInDeclaration: true,
         );
       }
     }
@@ -1253,13 +1259,18 @@ class DeclarationHelper {
         _suggestProperty(
           accessor: accessor,
           referencingInterface: referencingInterface,
+          isInDeclaration: true,
         );
       }
     }
 
     for (var field in element.fields2) {
       if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
-        _suggestField(field: field, referencingInterface: referencingInterface);
+        _suggestField(
+          field: field,
+          referencingInterface: referencingInterface,
+          isInDeclaration: true,
+        );
       }
     }
 
@@ -1731,6 +1742,10 @@ class DeclarationHelper {
           importData: importData,
           element: element,
           matcherScore: matcherScore,
+          kind:
+              preferNonInvocation
+                  ? CompletionSuggestionKind.IDENTIFIER
+                  : CompletionSuggestionKind.INVOCATION,
         );
         collector.addSuggestion(suggestion);
       }
@@ -1774,6 +1789,7 @@ class DeclarationHelper {
   void _suggestField({
     required FieldElement2 field,
     InterfaceElement2? referencingInterface,
+    bool isInDeclaration = false,
   }) {
     if (visibilityTracker.isVisible(element: field, importData: null)) {
       if ((mustBeAssignable && field.setter2 == null) ||
@@ -1786,6 +1802,7 @@ class DeclarationHelper {
           element: field,
           matcherScore: matcherScore,
           referencingInterface: referencingInterface,
+          isInDeclaration: isInDeclaration,
         );
         collector.addSuggestion(suggestion);
       }
@@ -1930,6 +1947,7 @@ class DeclarationHelper {
     bool ignoreVisibility = false,
     ImportData? importData,
     InterfaceElement2? referencingInterface,
+    bool isInDeclaration = false,
   }) {
     if (ignoreVisibility ||
         visibilityTracker.isVisible(
@@ -1956,6 +1974,7 @@ class DeclarationHelper {
                 element: variable,
                 matcherScore: matcherScore,
                 referencingInterface: referencingInterface,
+                isInDeclaration: isInDeclaration,
               );
               collector.addSuggestion(suggestion);
             }
@@ -2040,6 +2059,7 @@ class DeclarationHelper {
                     element: variable,
                     matcherScore: matcherScore,
                     referencingInterface: null,
+                    isInDeclaration: false,
                   );
                   collector.addSuggestion(suggestion);
                 }

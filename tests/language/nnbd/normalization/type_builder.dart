@@ -145,7 +145,7 @@ void checkTypeEqualities(TypeBuilder a, TypeBuilder b) {
     typeObjectOf(a),
     typeObjectOf(b),
     noSuchMethodTypeOf(a),
-    noSuchMethodTypeOf(b)
+    noSuchMethodTypeOf(b),
   ]);
 
   checkAllEquals([
@@ -154,7 +154,7 @@ void checkTypeEqualities(TypeBuilder a, TypeBuilder b) {
     noSuchMethodTypeOf($Rep(a)),
     noSuchMethodTypeOf($Rep(b)),
     runtimeTypeOfRepOf(a),
-    runtimeTypeOfRepOf(b)
+    runtimeTypeOfRepOf(b),
   ]);
 }
 

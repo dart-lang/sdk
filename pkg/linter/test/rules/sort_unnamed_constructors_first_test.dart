@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortUnnamedConstructorsFirstTest);
   });
@@ -29,16 +29,17 @@ class C {
   }
 
   test_class_unsorted() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C.named();
   C();
   // ignore: unused_element
   C._();
 }
-''', [
-      lint(25, 1),
-    ]);
+''',
+      [lint(25, 1)],
+    );
   }
 
   test_enum_sorted() async {
@@ -52,38 +53,43 @@ enum A {
   }
 
   test_enum_unsorted() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 enum A {
   a,b,c.aa();
   const A.aa();
   const A();
 }
-''', [
-      lint(47, 1),
-    ]);
+''',
+      [lint(47, 1)],
+    );
   }
 
   test_extensionType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type E.a(Object o) {
   void m() { }
   E.b(this.o);
   E(this.o);
 }
-''', [
-      lint(63, 1),
-    ]);
+''',
+      [lint(63, 1)],
+    );
   }
 
   test_extensionType_invalidConstructor() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type E(Object o) {
   void m() { }
   E(this.o);
 }
-''', [
-      // No lint.
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 46, 1),
-    ]);
+''',
+      [
+        // No lint.
+        error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 46, 1),
+      ],
+    );
   }
 }

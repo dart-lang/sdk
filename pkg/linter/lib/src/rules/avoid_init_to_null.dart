@@ -14,17 +14,16 @@ const _desc = r"Don't explicitly initialize variables to `null`.";
 
 class AvoidInitToNull extends LintRule {
   AvoidInitToNull()
-      : super(
-          name: LintNames.avoid_init_to_null,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_init_to_null, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_init_to_null;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addVariableDeclaration(this, visitor);
     registry.addDefaultFormalParameter(this, visitor);

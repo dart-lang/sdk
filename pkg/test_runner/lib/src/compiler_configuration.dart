@@ -105,6 +105,11 @@ abstract class CompilerConfiguration {
         return NoneCompilerConfiguration(configuration);
 
       case Compiler.dartkp:
+        // TODO(b/399714829): Test packages should be created at test-time, not
+        // build time.
+        if (configuration.system == System.fuchsia) {
+          return NoneCompilerConfiguration(configuration);
+        }
         return PrecompilerCompilerConfiguration(configuration);
 
       case Compiler.specParser:
@@ -455,11 +460,6 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.dart2jsOptions,
-      ..._nnbdModeArgument(_configuration),
-      if (_configuration.nnbdMode == NnbdMode.weak)
-        // Unsound platform dill files are no longer packaged in the SDK and
-        // must be read from the build directory during tests.
-        '--platform-binaries=${_configuration.buildDirectory}',
       ...args
     ];
   }
@@ -470,7 +470,6 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
     var compilerArguments = [
       ...arguments,
       ..._configuration.dart2jsOptions,
-      ..._nnbdModeArgument(_configuration),
     ];
 
     // TODO(athom): input filename extraction is copied from DDC. Maybe this
@@ -478,17 +477,11 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
     var inputFile = arguments.last;
     var inputFilename = Uri.file(inputFile).pathSegments.last;
     var out = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
-    var babel = _configuration.babel;
-    var babelOut = out;
-    if (babel.isNotEmpty) {
-      out = out.replaceAll('.js', '.raw.js');
-    }
     var commands = [
       computeCompilationCommand(out, compilerArguments, environmentOverrides),
-      if (babel.isNotEmpty) computeBabelCommand(out, babelOut, babel)
     ];
 
-    return CommandArtifact(commands, babelOut, 'application/javascript');
+    return CommandArtifact(commands, out, 'application/javascript');
   }
 
   @override
@@ -504,22 +497,6 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
     var preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
       ..add(artifact!.filename);
-  }
-
-  Command computeBabelCommand(String input, String output, String options) {
-    var uri = Repository.uri;
-    var babelTransform =
-        uri.resolve('pkg/test_runner/lib/src/babel_transform.js').toFilePath();
-    var babelStandalone =
-        uri.resolve('third_party/babel/babel.min.js').toFilePath();
-    return CompilationCommand(
-        'babel',
-        output,
-        [],
-        _configuration.runtimeConfiguration.d8FileName,
-        [babelTransform, "--", babelStandalone, options, input],
-        {},
-        alwaysCompile: true); // TODO(athom): ensure dependency tracking works.
   }
 }
 
@@ -609,7 +586,6 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     final isD8 = runtimeConfiguration is D8RuntimeConfiguration;
     return [
       if (isD8) ...[
-        '--shell-option=--turboshaft-wasm',
         '--shell-option=--experimental-wasm-imported-strings',
       ],
       wasmFilename,
@@ -622,8 +598,6 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
 
 /// Configuration for "ddc".
 class DevCompilerConfiguration extends CompilerConfiguration {
-  final bool _soundNullSafety;
-
   /// The output directory under `_configuration.buildDirectory` where DDC build
   /// targets are output.
   static final String ddcGenDir = 'gen/utils/ddc/';
@@ -638,14 +612,12 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   bool get _isIA32 => _configuration.architecture == Architecture.ia32;
 
   DevCompilerConfiguration(super.configuration)
-      : _soundNullSafety = configuration.nnbdMode == NnbdMode.strong,
-        buildOptionsDir = [
+      : buildOptionsDir = [
           ddcGenDir,
           if (configuration.ddcOptions.contains('--canary'))
             'canary'
           else
             'stable',
-          if (configuration.nnbdMode != NnbdMode.strong) '_unsound'
         ].join(),
         super._subclass();
 
@@ -676,7 +648,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       ..._configuration.sharedOptions,
       ..._configuration.ddcOptions,
       ..._experimentsArgument(_configuration, testFile),
-      if (_soundNullSafety) '--sound-null-safety' else '--no-sound-null-safety',
       // The file being compiled is the last argument.
       args.last
     ];
@@ -690,19 +661,14 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // DDC treats all of these as runtime flags for the bootstrapping code,
     // instead of a compiler option.
     var options = sharedOptions.toList();
-    options.remove('--null-assertions');
     options.remove('--native-null-assertions');
     options.remove('--interop-null-assertions');
-    if (!_useSdk || !_soundNullSafety) {
+    if (!_useSdk) {
       // If we're testing a built SDK, DDC will find its own summary.
-      //
-      // Unsound summary files are not longer bundled with the built SDK so they
-      // must always be specified manually.
       //
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
-      var sdkSummaryFile =
-          _soundNullSafety ? 'ddc_outline.dill' : 'ddc_outline_unsound.dill';
+      var sdkSummaryFile = 'ddc_outline.dill';
       var sdkSummary = Path(_configuration.buildDirectory)
           .append(sdkSummaryFile)
           .absolute
@@ -729,12 +695,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // The summaries are provided here during the compilation of the test and
       // the JavaScript will be loaded separately when the test is run.
       args.add("-s");
-      var outlineFilename = [
-        package,
-        '_outline',
-        if (!_soundNullSafety) '_unsound',
-        '.dill'
-      ].join();
+      var outlineFilename = '${package}_outline.dill';
 
       var summary = Path(_configuration.buildDirectory)
           .append('$ddcGenDir/$outlineFilename')
@@ -782,13 +743,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // the one below, otherwise it is susceptible to break, for example, if
       // library naming conventions were to change in the future.
       runFile = "$tempDir/$moduleName.d8.js";
-      var nonNullAsserts = arguments.contains('--null-assertions');
       var nativeNonNullAsserts = arguments.contains('--native-null-assertions');
       var jsInteropNonNullAsserts =
           arguments.contains('--interop-null-assertions');
-      var weakNullSafetyErrors =
-          arguments.contains('--weak-null-safety-errors');
-      var weakNullSafetyWarnings = !(weakNullSafetyErrors || _soundNullSafety);
       var repositoryUri = Uri.directory(Repository.dir.toNativePath());
       var dartLibraryPath = repositoryUri
           .resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js')
@@ -826,9 +783,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
         load("$outputFile");
 
         let sdk = dart_library.import("dart_sdk", "$appName");
-        sdk.dart.weakNullSafetyWarnings($weakNullSafetyWarnings);
-        sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
-        sdk.dart.nonNullAsserts($nonNullAsserts);
         sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
         sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
 
@@ -1558,9 +1512,6 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       ...options,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
-      if (_configuration.configuration.nnbdMode == NnbdMode.weak) ...[
-        "--nnbd-weak"
-      ]
     ];
     for (var argument in args) {
       if (argument == "--ignore-unrecognized-flags") continue;

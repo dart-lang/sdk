@@ -55,11 +55,13 @@ class LinterLintCode extends LintCode {
           out.writeln('  @Deprecated("$deprecatedMessage")');
         }
         out.writeln('  static const LintCode $errorName =');
-        out.writeln(codeInfo.toAnalyzerCode(
-          'LinterLintCode',
-          errorName,
-          sharedNameReference: 'LintNames.$lintName',
-        ));
+        out.writeln(
+          codeInfo.toAnalyzerCode(
+            'LinterLintCode',
+            errorName,
+            sharedNameReference: 'LintNames.$lintName',
+          ),
+        );
         out.writeln();
       }
 

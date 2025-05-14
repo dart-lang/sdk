@@ -23,9 +23,7 @@ class SurroundWithBlockTest extends AssistProcessorTest {
     await resolveTestCode('''
 void f() {
   while (true)
-// start
-    print(0);
-// end
+    [!print(0);!]
 }
 ''');
     await assertNoAssist();
@@ -34,10 +32,8 @@ void f() {
   Future<void> test_twoStatements() async {
     await resolveTestCode('''
 void f() {
-// start
-  print(0);
-  print(1);
-// end
+  [!print(0);
+  print(1);!]
 }
 ''');
     await assertHasAssist('''

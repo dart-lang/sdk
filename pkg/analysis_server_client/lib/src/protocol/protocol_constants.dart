@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.38.0';
+const String PROTOCOL_VERSION = '1.39.0';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -325,6 +325,8 @@ const String SERVER_NOTIFICATION_ERROR_MESSAGE = 'message';
 const String SERVER_NOTIFICATION_ERROR_STACK_TRACE = 'stackTrace';
 const String SERVER_NOTIFICATION_LOG = 'server.log';
 const String SERVER_NOTIFICATION_LOG_ENTRY = 'entry';
+const String SERVER_NOTIFICATION_PLUGIN_ERROR = 'server.pluginError';
+const String SERVER_NOTIFICATION_PLUGIN_ERROR_MESSAGE = 'message';
 const String SERVER_NOTIFICATION_STATUS = 'server.status';
 const String SERVER_NOTIFICATION_STATUS_ANALYSIS = 'analysis';
 const String SERVER_NOTIFICATION_STATUS_PUB = 'pub';
@@ -335,6 +337,8 @@ const String SERVER_REQUEST_OPEN_URL_REQUEST = 'server.openUrlRequest';
 const String SERVER_REQUEST_OPEN_URL_REQUEST_URL = 'url';
 const String SERVER_REQUEST_SET_CLIENT_CAPABILITIES =
     'server.setClientCapabilities';
+const String SERVER_REQUEST_SET_CLIENT_CAPABILITIES_LSP_CAPABILITIES =
+    'lspCapabilities';
 const String SERVER_REQUEST_SET_CLIENT_CAPABILITIES_REQUESTS = 'requests';
 const String SERVER_REQUEST_SET_CLIENT_CAPABILITIES_SUPPORTS_URIS =
     'supportsUris';

@@ -49,13 +49,13 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     AnalysisSessionHelper sessionHelper,
     this.interfaceElement,
     Element2 element,
-  ) : super.c2(workspace, sessionHelper, element);
+  ) : super(workspace, sessionHelper, element);
 
   @override
   String get refactoringName {
-    if (element2 is TypeParameterElement2) {
+    if (element is TypeParameterElement2) {
       return 'Rename Type Parameter';
-    } else if (element2 is FieldElement2) {
+    } else if (element is FieldElement2) {
       return 'Rename Field';
     }
     return 'Rename Method';
@@ -67,7 +67,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       searchEngine,
       sessionHelper,
       interfaceElement,
-      element2,
+      element,
       newName,
     );
     return _validator.validate();
@@ -76,7 +76,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
     var result = await super.checkInitialConditions();
-    if (element2 is MethodElement2 && (element2 as MethodElement2).isOperator) {
+    if (element is MethodElement2 && (element as MethodElement2).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }
     return result;
@@ -85,9 +85,9 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   RefactoringStatus checkNewName() {
     var result = super.checkNewName();
-    if (element2 is FieldElement2) {
+    if (element is FieldElement2) {
       result.addStatus(validateFieldName(newName));
-    } else if (element2 is MethodElement2) {
+    } else if (element is MethodElement2) {
       result.addStatus(validateMethodName(newName));
     }
     return result;
@@ -99,10 +99,10 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     // update declarations
     for (var renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement2) {
-        processor.addDeclarationEdit2(renameElement.getter2);
-        processor.addDeclarationEdit2(renameElement.setter2);
+        processor.addDeclarationEdit(renameElement.getter2);
+        processor.addDeclarationEdit(renameElement.setter2);
       } else {
-        processor.addDeclarationEdit2(renameElement);
+        processor.addDeclarationEdit(renameElement);
         if (!newName.startsWith('_')) {
           var interfaceElement = renameElement.enclosingElement2;
           if (interfaceElement is InterfaceElement2) {
@@ -110,7 +110,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
               for (var parameter in constructor.formalParameters) {
                 if (parameter is FieldFormalParameterElement2 &&
                     parameter.field2 == renameElement) {
-                  await workspace.searchEngine
+                  await searchEngine
                       .searchReferences(parameter)
                       .then(processor.addReferenceEdits);
                 }
@@ -127,11 +127,11 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       var nameRefs = getSourceReferences(nameMatches);
       for (var reference in nameRefs) {
         // ignore references from SDK and pub cache
-        if (!workspace.containsElement2(reference.element2)) {
+        if (!workspace.containsElement(reference.element)) {
           continue;
         }
         // check the element being renamed is accessible
-        if (!element2.isAccessibleIn2(reference.libraryElement2)) {
+        if (!element.isAccessibleIn2(reference.libraryElement)) {
           continue;
         }
         // add edit
@@ -146,7 +146,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   ) async {
     FieldFormalParameterFragment? fragment = element.firstFragment;
     while (fragment != null) {
-      var result = await sessionHelper.getElementDeclaration(fragment);
+      var result = await sessionHelper.getFragmentDeclaration(fragment);
       var node = result?.node;
       if (node is! DefaultFormalParameter) return;
       var parameter = node.parameter as FieldFormalParameter;
@@ -171,6 +171,10 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     }
   }
 
+  Future<void> _addThisEdit(SourceReference reference, String newName) async {
+    reference.addEdit(change, 'this.$newName');
+  }
+
   String _newPotentialId() {
     assert(includePotential);
     var id = potentialEditIds.length.toString();
@@ -180,10 +184,13 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   Future<void> _updateReferences() async {
     var references = getSourceReferences(_validator.references);
+    var unshadowed = getSourceReferences(
+      _validator.unshadowed,
+    ).map((r) => r.element);
 
     for (var reference in references) {
-      var element = reference.element2;
-      if (!workspace.containsElement2(element)) {
+      var element = reference.element;
+      if (!workspace.containsElement(element)) {
         continue;
       }
 
@@ -191,6 +198,12 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           element is FieldFormalParameterElement2 &&
           element.isNamed) {
         await _addPrivateNamedFormalParameterEdit(reference, element);
+        continue;
+      }
+
+      if (unshadowed.contains(reference.element) &&
+          reference.element is ExecutableElement2) {
+        await _addThisEdit(reference, newName);
         continue;
       }
 
@@ -230,7 +243,7 @@ class _BaseClassMemberValidator {
           getElementKindName(newNameMember),
           name,
         ),
-        newLocation_fromElement2(newNameMember),
+        newLocation_fromElement(newNameMember),
       );
     }
   }
@@ -244,7 +257,7 @@ class _BaseClassMemberValidator {
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
-      var nameElement = getSyntheticAccessorVariable(declaration.element2);
+      var nameElement = getSyntheticAccessorVariable(declaration.element);
       var nameClass = nameElement.enclosingElement2;
       // the renamed Element shadows a member of a superclass
       if (superClasses.contains(nameClass)) {
@@ -257,7 +270,7 @@ class _BaseClassMemberValidator {
             getElementKindName(nameElement),
             getElementQualifiedName(nameElement),
           ),
-          newLocation_fromElement2(nameElement),
+          newLocation_fromElement(nameElement),
         );
       }
       // the renamed Element is shadowed by a member of a subclass
@@ -269,7 +282,7 @@ class _BaseClassMemberValidator {
             getElementKindName(nameElement),
             getElementQualifiedName(nameElement),
           ),
-          newLocation_fromElement2(nameElement),
+          newLocation_fromElement(nameElement),
         );
       }
     }
@@ -305,7 +318,7 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
       result.addError(
         'Created ${elementKind.displayName} has the same name as the '
         "declaring ${interfaceElement.kind.displayName} '$name'.",
-        newLocation_fromElement2(interfaceElement),
+        newLocation_fromElement(interfaceElement),
       );
     }
     // check shadowing in the hierarchy
@@ -317,7 +330,7 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
 
 class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   final String name;
-  final List<LocalElement2> elements = [];
+  final List<Element2> elements = [];
 
   _LocalElementsCollector(this.name);
 
@@ -346,6 +359,30 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.element;
+    if (node.parent case AssignmentExpression(
+      :var writeElement2,
+      :var leftHandSide,
+    ) when node == leftHandSide) {
+      element = writeElement2;
+    }
+    if (element is! PropertyAccessorElement2) {
+      return;
+    }
+    if (element.name3 != name) {
+      return;
+    }
+    if (element is! GetterElement && element is! SetterElement) {
+      return;
+    }
+    if (element.variable3 case TopLevelVariableElement2 variable) {
+      elements.add(variable);
+    }
+    super.visitSimpleIdentifier(node);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.name.lexeme == name) {
       var element = node.declaredFragment?.element;
@@ -358,11 +395,19 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   }
 }
 
-class _MatchShadowedByLocal {
+class _MatchShadowedBy {
   final SearchMatch match;
-  final LocalElement2 localElement;
+  final Element2 element;
 
-  _MatchShadowedByLocal(this.match, this.localElement);
+  _MatchShadowedBy(this.match, this.element);
+}
+
+class _MatchShadowedByLocal extends _MatchShadowedBy {
+  @override
+  final LocalElement2 element;
+
+  _MatchShadowedByLocal(SearchMatch match, this.element)
+    : super(match, element);
 }
 
 /// Helper to check if the renamed [element] will cause any conflicts.
@@ -371,6 +416,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
 
   Set<Element2> elements = {};
   List<SearchMatch> references = [];
+  List<SearchMatch> unshadowed = [];
 
   _RenameClassMemberValidator(
     SearchEngine searchEngine,
@@ -398,21 +444,21 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
         result.addError(
           'Renamed ${elementKind.displayName} has the same name as the '
           "declaring ${enclosingElement.kind.displayName} '$name'.",
-          newLocation_fromElement2(element),
+          newLocation_fromElement(element),
         );
       }
     }
     // usage of the renamed Element is shadowed by a local element
     {
-      var conflict = await _getShadowingLocalElement();
+      var conflict = await _getLocalShadowingElement();
       if (conflict != null) {
-        var localElement = conflict.localElement;
+        var element = conflict.element;
         result.addError(
           format(
             "Usage of renamed {0} will be shadowed by {1} '{2}'.",
             elementKind.displayName,
-            getElementKindName(localElement),
-            localElement.displayName,
+            getElementKindName(element),
+            element.displayName,
           ),
           newLocation_fromMatch(conflict.match),
         );
@@ -426,11 +472,11 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     return result;
   }
 
-  Future<_MatchShadowedByLocal?> _getShadowingLocalElement() async {
-    var localElementMap = <LibraryFragment, List<LocalElement2>>{};
-    var visibleRangeMap = <LocalElement2, SourceRange>{};
+  Future<_MatchShadowedBy?> _getLocalShadowingElement() async {
+    var localElementMap = <LibraryFragment, List<Element2>>{};
+    var visibleRangeMap = <Element2, SourceRange>{};
 
-    Future<List<LocalElement2>> getLocalElements(Element2 element) async {
+    Future<List<Element2>> getLocalElements(Element2 element) async {
       var unitFragment = element.firstFragment.libraryFragment;
       if (unitFragment == null) {
         return const [];
@@ -463,12 +509,21 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
         continue;
       }
       // Check local elements that might shadow the reference.
-      var localElements = await getLocalElements(match.element2);
+      var localElements = await getLocalElements(match.element);
+      if (element.kind == ElementKind.FIELD) {
+        for (var element in localElements.avoidableShadowsForField) {
+          unshadowed.addAll(await searchEngine.searchReferences(element));
+          localElements.remove(element);
+        }
+      }
       for (var localElement in localElements) {
         var elementRange = visibleRangeMap[localElement];
         if (elementRange != null &&
             elementRange.intersects(match.sourceRange)) {
-          return _MatchShadowedByLocal(match, localElement);
+          if (localElement is LocalElement2) {
+            return _MatchShadowedByLocal(match, localElement);
+          }
+          return _MatchShadowedBy(match, localElement);
         }
       }
     }
@@ -500,7 +555,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       return;
     }
     for (var reference in references) {
-      var refElement = reference.element2;
+      var refElement = reference.element;
       var refLibrary = refElement.library2!;
       if (refLibrary != library) {
         var message = format(
@@ -511,5 +566,22 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
         result.addError(message, newLocation_fromMatch(reference));
       }
     }
+  }
+}
+
+extension on Element2 {
+  bool get canAvoidShadowForField {
+    return switch (kind) {
+      ElementKind.LOCAL_VARIABLE ||
+      ElementKind.TOP_LEVEL_VARIABLE ||
+      ElementKind.PARAMETER => true,
+      _ => false,
+    };
+  }
+}
+
+extension on List<Element2> {
+  List<Element2> get avoidableShadowsForField {
+    return where((e) => e.canAvoidShadowForField).toList();
   }
 }

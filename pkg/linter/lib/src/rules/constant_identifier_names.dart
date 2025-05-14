@@ -14,17 +14,16 @@ const _desc = r'Prefer using lowerCamelCase for constant names.';
 
 class ConstantIdentifierNames extends LintRule {
   ConstantIdentifierNames()
-      : super(
-          name: LintNames.constant_identifier_names,
-          description: _desc,
-        );
+    : super(name: LintNames.constant_identifier_names, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.constant_identifier_names;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addDeclaredVariablePattern(this, visitor);
     registry.addEnumConstantDeclaration(this, visitor);

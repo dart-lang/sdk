@@ -103,10 +103,10 @@ List<({Object asset, KernelAsset target})> _targetMapping(
   bool relocatable,
 ) {
   final codeAssets = assets
-      .where((asset) => asset.type == CodeAsset.type)
+      .where((asset) => asset.isCodeAsset)
       .map(CodeAsset.fromEncoded);
   final dataAssets = assets
-      .where((asset) => asset.type == DataAsset.type)
+      .where((asset) => asset.isDataAsset)
       .map(DataAsset.fromEncoded);
 
   return [

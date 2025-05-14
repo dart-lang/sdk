@@ -28,8 +28,6 @@ abstract class Recipe {
   static const int pushVoid = _tilde;
   static const String pushVoidString = _tildeString;
 
-  static const int wrapStar = _asterisk;
-  static const String wrapStarString = _asteriskString;
   static const int wrapQuestion = _question;
   static const String wrapQuestionString = _questionString;
   static const int wrapFutureOr = _slash;
@@ -187,7 +185,6 @@ abstract class Recipe {
     test("pushErased", pushErased, pushErasedString);
     test("pushDynamic", pushDynamic, pushDynamicString);
     test("pushVoid", pushVoid, pushVoidString);
-    test("wrapStar", wrapStar, wrapStarString);
     test("wrapQuestion", wrapQuestion, wrapQuestionString);
     test("wrapFutureOr", wrapFutureOr, wrapFutureOrString);
     test("startTypeArguments", startTypeArguments, startTypeArgumentsString);

@@ -22,7 +22,7 @@ main() {
   });
 }
 
-/// Tests of the fasta parser based on [ExpressionParserTestMixin].
+/// Tests of the parser based on [FastaParserTestCase].
 @reflectiveTest
 class ExpressionParserTest extends FastaParserTestCase {
   void test_binaryExpression_allOperators() {

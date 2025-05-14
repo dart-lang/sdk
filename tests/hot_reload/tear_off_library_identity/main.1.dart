@@ -22,9 +22,9 @@ Future<void> main() async {
   Expect.equals(f1, f2);
   Expect.identical(f1, f2);
 }
+
 /** DIFF **/
 /*
-@@ -9,7 +9,7 @@
  // https://github.com/dart-lang/sdk/blob/f34a2ed99fc1b34cedbd974a5801f8d922121126/runtime/vm/isolate_reload_test.cc#L1770
  
  var f1, f2;

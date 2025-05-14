@@ -62,15 +62,6 @@ class SubClass2 extends core::Object implements acc::SuperClass {
   no-such-method-forwarder method _inaccessibleMethod1() → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
-abstract class _SubClass3&Object&SuperClass = core::Object with acc::SuperClass /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_SubClass3&Object&SuperClass
-    : super core::Object::•()
-    ;
-  mixin-super-stub method _inaccessibleMethod1() → void
-    return super.{acc::SuperClass::_inaccessibleMethod1}();
-  mixin-super-stub method accessibleMethod() → void
-    return super.{acc::SuperClass::accessibleMethod}();
-}
 class SubClass3 extends self::_SubClass3&Object&SuperClass {
   synthetic constructor •() → self::SubClass3
     : super self::_SubClass3&Object&SuperClass::•()
@@ -101,15 +92,6 @@ abstract class AbstractSubClass2 extends core::Object implements acc::SuperClass
     : super core::Object::•()
     ;
 }
-abstract class _AbstractSubClass3&Object&SuperClass = core::Object with acc::SuperClass /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AbstractSubClass3&Object&SuperClass
-    : super core::Object::•()
-    ;
-  mixin-super-stub method _inaccessibleMethod1() → void
-    return super.{acc::SuperClass::_inaccessibleMethod1}();
-  mixin-super-stub method accessibleMethod() → void
-    return super.{acc::SuperClass::accessibleMethod}();
-}
 abstract class AbstractSubClass3 extends self::_AbstractSubClass3&Object&SuperClass {
   synthetic constructor •() → self::AbstractSubClass3
     : super self::_AbstractSubClass3&Object&SuperClass::•()
@@ -131,6 +113,24 @@ class SubAbstractSubClass3 extends self::AbstractSubClass3 {
   synthetic constructor •() → self::SubAbstractSubClass3
     : super self::AbstractSubClass3::•()
     ;
+}
+abstract class _SubClass3&Object&SuperClass = core::Object with acc::SuperClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClass3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  mixin-super-stub method _inaccessibleMethod1() → void
+    return super.{acc::SuperClass::_inaccessibleMethod1}();
+  mixin-super-stub method accessibleMethod() → void
+    return super.{acc::SuperClass::accessibleMethod}();
+}
+abstract class _AbstractSubClass3&Object&SuperClass = core::Object with acc::SuperClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClass3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  mixin-super-stub method _inaccessibleMethod1() → void
+    return super.{acc::SuperClass::_inaccessibleMethod1}();
+  mixin-super-stub method accessibleMethod() → void
+    return super.{acc::SuperClass::accessibleMethod}();
 }
 
 library;

@@ -19,8 +19,10 @@ final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 
 runTestCase(Uri source) async {
   final target = new VmTarget(new TargetFlags());
-  Component component =
-      await compileTestCaseToKernelProgram(source, target: target);
+  Component component = await compileTestCaseToKernelProgram(
+    source,
+    target: target,
+  );
 
   // Disrupt the import order as a way of simulating issue 42985.
   final reversed = component.libraries.reversed.toList();
@@ -44,12 +46,14 @@ runTestCase(Uri source) async {
 
 main() {
   group('deferred-loading', () {
-    final testCasesDir =
-        new Directory(pkgVmDir + '/testcases/transformations/deferred_loading');
+    final testCasesDir = new Directory(
+      pkgVmDir + '/testcases/transformations/deferred_loading',
+    );
 
-    for (var entry in testCasesDir
-        .listSync(recursive: true, followLinks: false)
-        .reversed) {
+    for (var entry
+        in testCasesDir
+            .listSync(recursive: true, followLinks: false)
+            .reversed) {
       if (entry.path.endsWith("main.dart")) {
         test(entry.path, () => runTestCase(entry.uri));
       }

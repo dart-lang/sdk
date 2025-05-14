@@ -584,9 +584,8 @@ class ContextManagerImpl implements ContextManager {
               fileContentCache: _fileContentCache,
               unlinkedUnitStore: _unlinkedUnitStore,
               infoDeclarationStore: _infoDeclarationStore,
-              updateAnalysisOptions2: ({
+              updateAnalysisOptions3: ({
                 required analysisOptions,
-                required contextRoot,
                 required sdk,
               }) {
                 if (_enabledExperiments.isNotEmpty) {

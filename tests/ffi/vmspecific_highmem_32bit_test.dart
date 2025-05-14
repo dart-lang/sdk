@@ -81,12 +81,12 @@ void testOnHighOrLowMemory(Pointer<Uint8> memory, int indexOffset) {
   testLoadsAndStores(indexOffset, memory.offsetBy(kIgnoreBytesPositive - 5));
   testLoadsAndStores(indexOffset, memory.offsetBy(kIgnoreBytesNegative - 5));
   final m2 = Pointer<Uint8>.fromAddress(kIgnoreBytesPositive + memory.address);
-  Expect.equals(memory, m2); //# 01: ok
-  Expect.equals(memory.address, m2.address); //# 01: ok
+  Expect.equals(memory, m2);
+  Expect.equals(memory.address, m2.address);
   testLoadsAndStores(indexOffset, m2);
   final m3 = Pointer<Uint8>.fromAddress(kIgnoreBytesNegative + memory.address);
-  Expect.equals(memory, m3); //# 01: ok
-  Expect.equals(memory.address, m3.address); //# 01: ok
+  Expect.equals(memory, m3);
+  Expect.equals(memory.address, m3.address);
   testLoadsAndStores(indexOffset, m3);
 }
 
@@ -99,8 +99,8 @@ withMMapedAddress(
   if (result.address == kMapFailed) {
     throw 'Could not mmap @0x${fixedAddress.address.toRadixString(16)}!';
   }
-  Expect.equals(fixedAddress, result); //# 01: ok
-  Expect.equals(fixedAddress.address, result.address); //# 01: ok
+  Expect.equals(fixedAddress, result);
+  Expect.equals(fixedAddress.address, result.address);
   try {
     fun(result);
   } finally {

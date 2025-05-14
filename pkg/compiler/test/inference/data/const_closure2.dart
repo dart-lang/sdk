@@ -2,20 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: method:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
+/*member: method:Union([exact=JSNumNotInt|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
 // Called via [foo] with integer then double.
-method(/*Union([exact=JSNumNotInt], [exact=JSUInt31])*/ a) {
+method(
+  /*Union([exact=JSNumNotInt|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/ a,
+) {
   return a;
 }
 
 const foo = method;
 
-/*member: returnNum:[null|subclass=Object]*/
-returnNum(/*Union([exact=JSNumNotInt], [exact=JSUInt31])*/ x) {
+/*member: returnNum:[null|subclass=Object|powerset=1]*/
+returnNum(
+  /*Union([exact=JSNumNotInt|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/ x,
+) {
   return foo(x);
 }
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   returnNum(10);
   returnNum(10.5);

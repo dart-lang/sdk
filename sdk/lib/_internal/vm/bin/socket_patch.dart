@@ -141,7 +141,7 @@ void _throwOnBadPort(int port) {
   // TODO(40614): Remove once non-nullability is sound.
   ArgumentError.checkNotNull(port, "port");
   if ((port < 0) || (port > 0xFFFF)) {
-    throw new ArgumentError("Invalid port $port");
+    throw ArgumentError("Invalid port $port");
   }
 }
 
@@ -149,7 +149,7 @@ void _throwOnBadTtl(int ttl) {
   // TODO(40614): Remove once non-nullability is sound.
   ArgumentError.checkNotNull(ttl, "ttl");
   if (ttl < 1 || ttl > 255) {
-    throw new ArgumentError('Invalid ttl $ttl');
+    throw ArgumentError('Invalid ttl $ttl');
   }
 }
 
@@ -178,7 +178,7 @@ class _InternetAddress implements InternetAddress {
 
   String get host => _host ?? address;
 
-  Uint8List get rawAddress => new Uint8List.fromList(_in_addr);
+  Uint8List get rawAddress => Uint8List.fromList(_in_addr);
 
   bool get isLoopback {
     switch (type) {
@@ -194,7 +194,7 @@ class _InternetAddress implements InternetAddress {
       case InternetAddressType.unix:
         return false;
     }
-    throw new UnsupportedError("Unexpected address type $type");
+    throw UnsupportedError("Unexpected address type $type");
   }
 
   bool get isLinkLocal {
@@ -210,7 +210,7 @@ class _InternetAddress implements InternetAddress {
       case InternetAddressType.unix:
         return false;
     }
-    throw new UnsupportedError("Unexpected address type $type");
+    throw UnsupportedError("Unexpected address type $type");
   }
 
   bool get isMulticast {
@@ -226,7 +226,7 @@ class _InternetAddress implements InternetAddress {
       case InternetAddressType.unix:
         return false;
     }
-    throw new UnsupportedError("Unexpected address type $type");
+    throw UnsupportedError("Unexpected address type $type");
   }
 
   Future<InternetAddress> reverse() {
@@ -528,10 +528,8 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   static const int normalTokenBatchSize = 8;
   static const int listeningTokenBatchSize = 2;
 
-  static const Duration _retryDuration = const Duration(milliseconds: 250);
-  static const Duration _retryDurationLoopback = const Duration(
-    milliseconds: 25,
-  );
+  static const Duration _retryDuration = Duration(milliseconds: 250);
+  static const Duration _retryDurationLoopback = Duration(milliseconds: 25);
 
   // Socket close state
   bool isClosed = false;
@@ -539,7 +537,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   bool isClosedRead = false;
   bool closedReadEventSent = false;
   bool isClosedWrite = false;
-  Completer closeCompleter = new Completer.sync();
+  Completer closeCompleter = Completer.sync();
 
   // Handlers and receive port for socket events from the event handler.
   void Function()? readEventHandler;
@@ -633,7 +631,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
         throw createError(response, "Failed listing interfaces");
       } else {
         var map = (response as List).skip(1).fold(
-          new Map<String, NetworkInterface>(),
+          Map<String, NetworkInterface>(),
           (map, result) {
             List<Object?> resultList = result as List<Object?>;
             var type = InternetAddressType._from(resultList[0] as int);
@@ -647,7 +645,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
             );
             if (!includeLinkLocal && address.isLinkLocal) return map;
             if (!includeLoopback && address.isLoopback) return map;
-            map.putIfAbsent(name, () => new _NetworkInterface(name, index));
+            map.putIfAbsent(name, () => _NetworkInterface(name, index));
             (map[name] as _NetworkInterface).addresses.add(address);
             return map;
           },
@@ -665,7 +663,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       if (!checkLinkLocalAddress(host)) {
         // The only well defined usage is link-local address. Checks Section 4 of https://tools.ietf.org/html/rfc6874.
         // If it is not a valid link-local address and contains escape character, throw an exception.
-        throw new FormatException(
+        throw FormatException(
           '${host} is not a valid link-local address but contains %. Scope id should be used as part of link-local address.',
           host,
           index,
@@ -811,7 +809,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
         }
         source = sourceAddress;
       } else if (sourceAddress is String) {
-        source = new _InternetAddress.fromString(sourceAddress);
+        source = _InternetAddress.fromString(sourceAddress);
       } else {
         throw ArgumentError.value(
           sourceAddress,
@@ -823,7 +821,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
 
     final stackTrace = StackTrace.current;
 
-    return new Future.value(host).then<ConnectionTask<_NativeSocket>>((host) {
+    return Future.value(host).then<ConnectionTask<_NativeSocket>>((host) {
       if (host is String) {
         // Attempt to interpret the host as a numeric address
         // (e.g. "127.0.0.1"). This will prevent [InternetAddress.lookup] from
@@ -868,7 +866,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     StackTrace callerStackTrace,
   ) {
     // Completer for result.
-    final result = new Completer<_NativeSocket>();
+    final result = Completer<_NativeSocket>();
     // Error, set if an error occurs.
     // Keeps first error if multiple errors occur.
     var error = null;
@@ -1012,7 +1010,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
         return;
       }
       final address = pendingLookedUp.removeFirst();
-      final socket = new _NativeSocket.normal(address);
+      final socket = _NativeSocket.normal(address);
       // Will contain values of various types representing the result
       // of trying to create a connection.
       // A value of `true` means success, everything else means failure.
@@ -1049,7 +1047,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       // succeed or fail later.
       final duration =
           address.isLoopback ? _retryDurationLoopback : _retryDuration;
-      timer = new Timer(duration, connectNext);
+      timer = Timer(duration, connectNext);
       connecting.add(socket);
       // Setup handlers for receiving the first write event which
       // indicate that the socket is fully connected.
@@ -1136,7 +1134,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     );
 
     connectNext();
-    return new ConnectionTask<_NativeSocket>._(result.future, onCancel);
+    return ConnectionTask<_NativeSocket>._(result.future, onCancel);
   }
 
   static Future<_NativeSocket> connect(
@@ -1156,7 +1154,12 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
           onTimeout: () {
             task.cancel();
             throw createError(
-              null,
+              OSError(
+                "Connection timed out",
+                Platform.isWindows
+                    ? 10060 // WSAETIMEDOUT
+                    : 110, // ETIMEDOUT
+              ),
               "Connection timed out, host: ${host}, port: ${port}",
             );
           },
@@ -1191,7 +1194,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     }
     final address = await _resolveHost(host);
 
-    var socket = new _NativeSocket.listen(address);
+    var socket = _NativeSocket.listen(address);
     var result;
     if (address.type == InternetAddressType.unix) {
       var path = address.address;
@@ -1215,7 +1218,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       );
     }
     if (result is OSError) {
-      throw new SocketException(
+      throw SocketException(
         "Failed to create server socket",
         osError: result,
         address: address,
@@ -1239,7 +1242,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
 
     final address = await _resolveHost(host);
 
-    var socket = new _NativeSocket.datagram(address);
+    var socket = _NativeSocket.datagram(address);
     var result = socket.nativeCreateBindDatagram(
       address._in_addr,
       port,
@@ -1248,7 +1251,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       ttl,
     );
     if (result is OSError) {
-      throw new SocketException(
+      throw SocketException(
         "Failed to create datagram socket",
         osError: result,
         address: address,
@@ -1290,8 +1293,8 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   bool get isTcp => (typeFlags & typeTcpSocket) != 0;
   bool get isUdp => (typeFlags & typeUdpSocket) != 0;
 
-  String get _serviceTypePath => throw new UnimplementedError();
-  String get _serviceTypeName => throw new UnimplementedError();
+  String get _serviceTypePath => throw UnimplementedError();
+  String get _serviceTypeName => throw UnimplementedError();
 
   Uint8List? read(int? count) {
     if (count != null && count <= 0) {
@@ -1426,14 +1429,14 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     offset = _fixOffset(offset);
     if (bytes == null) {
       if (offset > buffer.length) {
-        throw new RangeError.value(offset);
+        throw RangeError.value(offset);
       }
       bytes = buffer.length - offset;
     }
-    if (offset < 0) throw new RangeError.value(offset);
-    if (bytes < 0) throw new RangeError.value(bytes);
+    if (offset < 0) throw RangeError.value(offset);
+    if (bytes < 0) throw RangeError.value(bytes);
     if ((offset + bytes) > buffer.length) {
-      throw new RangeError.value(offset + bytes);
+      throw RangeError.value(offset + bytes);
     }
     if (isClosing || isClosed) return 0;
     if (bytes == 0) return 0;
@@ -1521,14 +1524,14 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     int? bytes,
     List<SocketControlMessage> controlMessages,
   ) {
-    if (offset < 0) throw new RangeError.value(offset);
+    if (offset < 0) throw RangeError.value(offset);
     if (bytes != null) {
-      if (bytes < 0) throw new RangeError.value(bytes);
+      if (bytes < 0) throw RangeError.value(bytes);
     } else {
       bytes = buffer.length - offset;
     }
     if ((offset + bytes) > buffer.length) {
-      throw new RangeError.value(offset + bytes);
+      throw RangeError.value(offset + bytes);
     }
     if (isClosing || isClosed) return 0;
     try {
@@ -1572,7 +1575,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     connections--;
     tokens++;
     returnTokens(listeningTokenBatchSize);
-    var socket = new _NativeSocket.normal(address);
+    var socket = _NativeSocket.normal(address);
     if (nativeAccept(socket) != true) return null;
     socket.localPort = localPort;
     return socket;
@@ -1601,7 +1604,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     if (isClosing || isClosed) throw const SocketException.closed();
     var result = nativeGetRemotePeer();
     var addr = result[0] as List<Object?>;
-    var type = new InternetAddressType._from(addr[0] as int);
+    var type = InternetAddressType._from(addr[0] as int);
     if (type == InternetAddressType.unix) {
       return _InternetAddress.fromString(
         addr[1] as String,
@@ -1830,7 +1833,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
           close();
           break;
         default:
-          throw new ArgumentError(direction);
+          throw ArgumentError(direction);
       }
     }
   }
@@ -1870,7 +1873,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   void connectToEventHandler() {
     assert(!isClosed);
     if (eventPort == null) {
-      eventPort = new RawReceivePort(multiplex, 'Socket Event Handler');
+      eventPort = RawReceivePort(multiplex, 'Socket Event Handler');
     }
   }
 
@@ -1983,7 +1986,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
           }
         }
         // No IPv4 address found on the interface.
-        throw new SocketException(
+        throw SocketException(
           "The network interface does not have an address "
           "of the same family as the multicast address",
         );
@@ -2147,14 +2150,14 @@ class _RawServerSocket extends Stream<RawSocket>
     bool shared,
   ) {
     _throwOnBadPort(port);
-    if (backlog < 0) throw new ArgumentError("Invalid backlog $backlog");
+    if (backlog < 0) throw ArgumentError("Invalid backlog $backlog");
     return _NativeSocket.bind(
       address,
       port,
       backlog,
       v6Only,
       shared,
-    ).then((socket) => new _RawServerSocket(socket, v6Only));
+    ).then((socket) => _RawServerSocket(socket, v6Only));
   }
 
   _RawServerSocket(this._socket, this._v6Only);
@@ -2166,11 +2169,11 @@ class _RawServerSocket extends Stream<RawSocket>
     bool? cancelOnError,
   }) {
     if (_controller != null) {
-      throw new StateError("Stream was already listened to");
+      throw StateError("Stream was already listened to");
     }
     var zone = Zone.current;
     final controller =
-        _controller = new StreamController(
+        _controller = StreamController(
           sync: true,
           onListen: _onSubscriptionStateChange,
           onCancel: _onSubscriptionStateChange,
@@ -2250,7 +2253,7 @@ class _RawServerSocket extends Stream<RawSocket>
 class _RawSocket extends Stream<RawSocketEvent>
     implements RawSocket, _RawSocketBase {
   final _NativeSocket _socket;
-  final _controller = new StreamController<RawSocketEvent>(sync: true);
+  final _controller = StreamController<RawSocketEvent>(sync: true);
   bool _readEventsEnabled = true;
   bool _writeEventsEnabled = true;
 
@@ -2340,17 +2343,17 @@ class _RawSocket extends Stream<RawSocketEvent>
   }
 
   factory _RawSocket._writePipe() {
-    var native = new _NativeSocket.pipe();
+    var native = _NativeSocket.pipe();
     native.isClosedRead = true;
     native.closedReadEventSent = true;
-    return new _RawSocket(native);
+    return _RawSocket(native);
   }
 
   factory _RawSocket._readPipe(int? fd) {
-    var native = new _NativeSocket.pipe();
+    var native = _NativeSocket.pipe();
     native.isClosedWrite = true;
     if (fd != null) _getStdioHandle(native, fd);
-    var result = new _RawSocket(native);
+    var result = _RawSocket(native);
     if (fd != null) {
       var socketType = _StdIOUtils._nativeSocketType(result._socket);
       result._isMacOSTerminalInput =
@@ -2510,7 +2513,7 @@ class _ServerSocket extends Stream<Socket> implements ServerSocket {
       backlog,
       v6Only,
       shared,
-    ).then((socket) => new _ServerSocket(socket));
+    ).then((socket) => _ServerSocket(socket));
   }
 
   _ServerSocket(this._socket);
@@ -2522,7 +2525,7 @@ class _ServerSocket extends Stream<Socket> implements ServerSocket {
     bool? cancelOnError,
   }) {
     return _socket
-        .map<Socket>((rawSocket) => new _Socket(rawSocket))
+        .map<Socket>((rawSocket) => _Socket(rawSocket))
         .listen(
           onData,
           onError: onError,
@@ -2559,7 +2562,7 @@ class Socket {
       sourceAddress: sourceAddress,
       sourcePort: sourcePort,
       timeout: timeout,
-    ).then((socket) => new _Socket(socket));
+    ).then((socket) => _Socket(socket));
   }
 
   @patch
@@ -2576,9 +2579,9 @@ class Socket {
       sourcePort: sourcePort,
     ).then((rawTask) {
       Future<Socket> socket = rawTask.socket.then(
-        (rawSocket) => new _Socket(rawSocket),
+        (rawSocket) => _Socket(rawSocket),
       );
-      return new ConnectionTask<Socket>._(socket, rawTask._onCancel);
+      return ConnectionTask<Socket>._(socket, rawTask._onCancel);
     });
   }
 }
@@ -2595,7 +2598,7 @@ class _SocketStreamConsumer implements StreamConsumer<List<int>> {
 
   Future<Socket> addStream(Stream<List<int>> stream) {
     socket._ensureRawSocketSubscription();
-    final completer = streamCompleter = new Completer<Socket>();
+    final completer = streamCompleter = Completer<Socket>();
     if (socket._raw != null) {
       subscription = stream.listen(
         (data) {
@@ -2635,7 +2638,7 @@ class _SocketStreamConsumer implements StreamConsumer<List<int>> {
 
   Future<Socket> close() {
     socket._consumerDone();
-    return new Future.value(socket);
+    return Future.value(socket);
   }
 
   bool get _previousWriteHasCompleted {
@@ -2705,7 +2708,7 @@ class _SocketStreamConsumer implements StreamConsumer<List<int>> {
 class _Socket extends Stream<Uint8List> implements Socket {
   RawSocket? _raw; // Set to null when the raw socket is closed.
   bool _closed = false; // Set to true when the raw socket is closed.
-  final _controller = new StreamController<Uint8List>(sync: true);
+  final _controller = StreamController<Uint8List>(sync: true);
   bool _controllerClosed = false;
   late _SocketStreamConsumer _consumer;
   late IOSink _sink;
@@ -2718,8 +2721,8 @@ class _Socket extends Stream<Uint8List> implements Socket {
       ..onCancel = _onSubscriptionStateChange
       ..onPause = _onPauseStateChange
       ..onResume = _onPauseStateChange;
-    _consumer = new _SocketStreamConsumer(this);
-    _sink = new IOSink(_consumer);
+    _consumer = _SocketStreamConsumer(this);
+    _sink = IOSink(_consumer);
 
     // Disable read events until there is a subscription.
     raw.readEventsEnabled = false;
@@ -2729,11 +2732,11 @@ class _Socket extends Stream<Uint8List> implements Socket {
   }
 
   factory _Socket._writePipe() {
-    return new _Socket(new _RawSocket._writePipe());
+    return _Socket(_RawSocket._writePipe());
   }
 
   factory _Socket._readPipe([int? fd]) {
-    return new _Socket(new _RawSocket._readPipe(fd));
+    return _Socket(_RawSocket._readPipe(fd));
   }
 
   // Note: this code seems a bit suspicious because _raw can be _RawSocket and
@@ -2778,7 +2781,7 @@ class _Socket extends Stream<Uint8List> implements Socket {
   /// Throws an [UnsupportedError] because errors cannot be transmitted over a
   /// [Socket].
   void addError(Object error, [StackTrace? stackTrace]) {
-    throw new UnsupportedError("Cannot send errors on sockets");
+    throw UnsupportedError("Cannot send errors on sockets");
   }
 
   Future addStream(Stream<List<int>> stream) {
@@ -2987,7 +2990,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
 
   _RawDatagramSocket(this._socket) {
     var zone = Zone.current;
-    _controller = new StreamController<RawSocketEvent>(
+    _controller = StreamController<RawSocketEvent>(
       sync: true,
       onListen: _onSubscriptionStateChange,
       onCancel: _onSubscriptionStateChange,
@@ -3155,7 +3158,7 @@ Datagram _makeDatagram(
   int port,
   int type,
 ) {
-  return new Datagram(
+  return Datagram(
     data,
     _InternetAddress(InternetAddressType._from(type), address, null, in_addr),
     port,

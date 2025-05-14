@@ -6,11 +6,11 @@
 // Lookup into a singleton list.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: listIndexSingle:[exact=JSUInt31]*/
+/*member: listIndexSingle:[exact=JSUInt31|powerset=0]*/
 listIndexSingle() {
   var list = [0];
   return list
-  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
+  /*Container([exact=JSExtendableArray|powerset=0], element: [exact=JSUInt31|powerset=0], length: 1, powerset: 0)*/
   [0];
 }
 
@@ -18,11 +18,11 @@ listIndexSingle() {
 // Lookup into a list with multiple elements.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: listIndexMultiple:[exact=JSUInt31]*/
+/*member: listIndexMultiple:[exact=JSUInt31|powerset=0]*/
 listIndexMultiple() {
   var list = [0, 1, 2, 3];
   return list
-  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 4)*/
+  /*Container([exact=JSExtendableArray|powerset=0], element: [exact=JSUInt31|powerset=0], length: 4, powerset: 0)*/
   [2];
 }
 
@@ -30,11 +30,11 @@ listIndexMultiple() {
 // Lookup into a list with an out-of-range index.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: listIndexBad:[exact=JSUInt31]*/
+/*member: listIndexBad:[exact=JSUInt31|powerset=0]*/
 listIndexBad() {
   var list = [0, 1];
   return list
-  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 2)*/
+  /*Container([exact=JSExtendableArray|powerset=0], element: [exact=JSUInt31|powerset=0], length: 2, powerset: 0)*/
   [3];
 }
 
@@ -42,11 +42,11 @@ listIndexBad() {
 // Lookup into a list with mixed element types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: listIndexMixed:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: listIndexMixed:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
 listIndexMixed() {
   var list = [0, ''];
   return list
-  /*Container([exact=JSExtendableArray], element: Union([exact=JSString], [exact=JSUInt31]), length: 2)*/
+  /*Container([exact=JSExtendableArray|powerset=0], element: Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0), length: 2, powerset: 0)*/
   [0];
 }
 
@@ -54,11 +54,11 @@ listIndexMixed() {
 // Lookup into a singleton map.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: mapLookupSingle:[null|exact=JSUInt31]*/
+/*member: mapLookupSingle:[null|exact=JSUInt31|powerset=1]*/
 mapLookupSingle() {
   var map = {0: 1};
   return map
-  /*Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
+  /*Map([exact=JsLinkedHashMap|powerset=0], key: [exact=JSUInt31|powerset=0], value: [null|exact=JSUInt31|powerset=1], powerset: 0)*/
   [0];
 }
 
@@ -66,11 +66,11 @@ mapLookupSingle() {
 // Lookup into a map with multiple entries.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: mapLookupMultiple:[null|exact=JSUInt31]*/
+/*member: mapLookupMultiple:[null|exact=JSUInt31|powerset=1]*/
 mapLookupMultiple() {
   var map = {0: 1, 2: 3, 4: 5};
   return map
-  /*Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
+  /*Map([exact=JsLinkedHashMap|powerset=0], key: [exact=JSUInt31|powerset=0], value: [null|exact=JSUInt31|powerset=1], powerset: 0)*/
   [2];
 }
 
@@ -78,11 +78,11 @@ mapLookupMultiple() {
 // Lookup into a map with a missing key.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: mapLookupMissing:[null|exact=JSUInt31]*/
+/*member: mapLookupMissing:[null|exact=JSUInt31|powerset=1]*/
 mapLookupMissing() {
   var map = {0: 1};
   return map
-  /*Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
+  /*Map([exact=JsLinkedHashMap|powerset=0], key: [exact=JSUInt31|powerset=0], value: [null|exact=JSUInt31|powerset=1], powerset: 0)*/
   [2];
 }
 
@@ -90,11 +90,11 @@ mapLookupMissing() {
 // Lookup into a map with mixed key types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: mapLookupMixedKeys:[null|exact=JSUInt31]*/
+/*member: mapLookupMixedKeys:[null|exact=JSUInt31|powerset=1]*/
 mapLookupMixedKeys() {
   var map = {0: 1, '': 2};
   return map
-  /*Map([exact=JsLinkedHashMap], key: Union([exact=JSString], [exact=JSUInt31]), value: [null|exact=JSUInt31])*/
+  /*Map([exact=JsLinkedHashMap|powerset=0], key: Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0), value: [null|exact=JSUInt31|powerset=1], powerset: 0)*/
   [''];
 }
 
@@ -102,11 +102,11 @@ mapLookupMixedKeys() {
 // Lookup into a map with mixed value types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: mapLookupMixedValues:Union(null, [exact=JSString], [exact=JSUInt31])*/
+/*member: mapLookupMixedValues:Union(null, [exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 1)*/
 mapLookupMixedValues() {
   var map = {0: 1, 2: ''};
   return map
-  /*Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: Union(null, [exact=JSString], [exact=JSUInt31]))*/
+  /*Map([exact=JsLinkedHashMap|powerset=0], key: [exact=JSUInt31|powerset=0], value: Union(null, [exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 1), powerset: 0)*/
   [2];
 }
 
@@ -114,11 +114,11 @@ mapLookupMixedValues() {
 // Lookup into a singleton map with String keys.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: dictionaryLookupSingle:Value([exact=JSString], value: "bar")*/
+/*member: dictionaryLookupSingle:Value([exact=JSString|powerset=0], value: "bar", powerset: 0)*/
 dictionaryLookupSingle() {
   var map = {'foo': 'bar'};
   return map
-  /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: Value([null|exact=JSString], value: "bar"), map: {foo: Value([exact=JSString], value: "bar")})*/
+  /*Dictionary([exact=JsLinkedHashMap|powerset=0], key: Value([exact=JSString|powerset=0], value: "foo", powerset: 0), value: Value([null|exact=JSString|powerset=1], value: "bar", powerset: 1), map: {foo: Value([exact=JSString|powerset=0], value: "bar", powerset: 0)}, powerset: 0)*/
   ['foo'];
 }
 
@@ -126,11 +126,11 @@ dictionaryLookupSingle() {
 // Lookup into a map with String keys.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: dictionaryLookupMultiple:Value([exact=JSString], value: "boz")*/
+/*member: dictionaryLookupMultiple:Value([exact=JSString|powerset=0], value: "boz", powerset: 0)*/
 dictionaryLookupMultiple() {
   var map = {'foo': 'bar', 'baz': 'boz'};
   return map
-  /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSString], map: {foo: Value([exact=JSString], value: "bar"), baz: Value([exact=JSString], value: "boz")})*/
+  /*Dictionary([exact=JsLinkedHashMap|powerset=0], key: [exact=JSString|powerset=0], value: [null|exact=JSString|powerset=1], map: {foo: Value([exact=JSString|powerset=0], value: "bar", powerset: 0), baz: Value([exact=JSString|powerset=0], value: "boz", powerset: 0)}, powerset: 0)*/
   ['baz'];
 }
 
@@ -138,11 +138,11 @@ dictionaryLookupMultiple() {
 // Lookup into a map with String keys with a missing key.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: dictionaryLookupMissing:[null]*/
+/*member: dictionaryLookupMissing:[null|powerset=1]*/
 dictionaryLookupMissing() {
   var map = {'foo': 'bar', 'baz': 'boz'};
   return map
-  /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSString], map: {foo: Value([exact=JSString], value: "bar"), baz: Value([exact=JSString], value: "boz")})*/
+  /*Dictionary([exact=JsLinkedHashMap|powerset=0], key: [exact=JSString|powerset=0], value: [null|exact=JSString|powerset=1], map: {foo: Value([exact=JSString|powerset=0], value: "bar", powerset: 0), baz: Value([exact=JSString|powerset=0], value: "boz", powerset: 0)}, powerset: 0)*/
   ['unknown'];
 }
 
@@ -150,11 +150,11 @@ dictionaryLookupMissing() {
 // Lookup into a string-to-int map.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: intDictionaryLookupSingle:[exact=JSUInt31]*/
+/*member: intDictionaryLookupSingle:[exact=JSUInt31|powerset=0]*/
 intDictionaryLookupSingle() {
   var map = {'foo': 0};
   return map
-  /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: [null|exact=JSUInt31], map: {foo: [exact=JSUInt31]})*/
+  /*Dictionary([exact=JsLinkedHashMap|powerset=0], key: Value([exact=JSString|powerset=0], value: "foo", powerset: 0), value: [null|exact=JSUInt31|powerset=1], map: {foo: [exact=JSUInt31|powerset=0]}, powerset: 0)*/
   ['foo'];
 }
 
@@ -162,32 +162,32 @@ intDictionaryLookupSingle() {
 // Index access on custom class.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class1.:[exact=Class1]*/
+/*member: Class1.:[exact=Class1|powerset=0]*/
 class Class1 {
-  /*member: Class1.[]:[exact=JSUInt31]*/
-  operator [](/*[exact=JSUInt31]*/ index) => index;
+  /*member: Class1.[]:[exact=JSUInt31|powerset=0]*/
+  operator [](/*[exact=JSUInt31|powerset=0]*/ index) => index;
 }
 
-/*member: customIndex:[exact=JSUInt31]*/
-customIndex() => Class1() /*[exact=Class1]*/ [42];
+/*member: customIndex:[exact=JSUInt31|powerset=0]*/
+customIndex() => Class1() /*[exact=Class1|powerset=0]*/ [42];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Index access on custom class through `this`.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class2.:[exact=Class2]*/
+/*member: Class2.:[exact=Class2|powerset=0]*/
 class Class2 {
-  /*member: Class2.[]:[exact=JSUInt31]*/
-  operator [](/*[exact=JSUInt31]*/ index) => index;
+  /*member: Class2.[]:[exact=JSUInt31|powerset=0]*/
+  operator [](/*[exact=JSUInt31|powerset=0]*/ index) => index;
 
-  /*member: Class2.method:[exact=JSUInt31]*/
-  method() => this /*[exact=Class2]*/ [42];
+  /*member: Class2.method:[exact=JSUInt31|powerset=0]*/
+  method() => this /*[exact=Class2|powerset=0]*/ [42];
 }
 
-/*member: customIndexThis:[exact=JSUInt31]*/
-customIndexThis() => Class2(). /*invoke: [exact=Class2]*/ method();
+/*member: customIndexThis:[exact=JSUInt31|powerset=0]*/
+customIndexThis() => Class2(). /*invoke: [exact=Class2|powerset=0]*/ method();
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   listIndexSingle();
   listIndexMultiple();

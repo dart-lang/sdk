@@ -199,27 +199,6 @@ foo() {
     );
   }
 
-  /// Sets up packages for macro support.
-  Future<void> enableMacroSupport() async {
-    // Compute a path to the local package that we can use.
-    final dapIntegrationTestFolder = path.dirname(Platform.script.toFilePath());
-    assert(path.split(dapIntegrationTestFolder).last == 'integration');
-
-    final sdkRoot =
-        path.normalize(path.join(dapIntegrationTestFolder, '../../../../..'));
-    final macrosPath = path.join(sdkRoot, 'pkg', 'macros');
-    await addPackageDependency(testAppDir, 'macros', Uri.file(macrosPath));
-
-    createTestFile(
-      filename: 'analysis_options.yaml',
-      '''
-analyzer:
-  enable-experiment:
-    - macros
-''',
-    );
-  }
-
   void createPubspec(Directory dir, String projectName) {
     final pubspecFile = File(path.join(dir.path, 'pubspec.yaml'));
     pubspecFile

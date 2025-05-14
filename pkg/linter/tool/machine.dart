@@ -24,8 +24,9 @@ import 'util/path_utils.dart';
 /// **Deprecated:** This tool and the resulting generated file in
 /// `tool/machine/rules.json` are deprecated and should not be relied on.
 void main(List<String> args) async {
-  var parser = ArgParser()
-    ..addFlag('write', abbr: 'w', help: 'Write `rules.json` file.');
+  var parser =
+      ArgParser()
+        ..addFlag('write', abbr: 'w', help: 'Write `rules.json` file.');
   var options = parser.parse(args);
 
   var json = await generateRulesJson();
@@ -42,21 +43,25 @@ void main(List<String> args) async {
 Future<String> generateRulesJson() async {
   registerLintRules();
   var fixStatusMap = readFixStatusMap();
-  return await getMachineListing(Registry.ruleRegistry,
-      fixStatusMap: fixStatusMap);
+  return await getMachineListing(
+    Registry.ruleRegistry,
+    fixStatusMap: fixStatusMap,
+  );
 }
 
 Future<String> getMachineListing(
   Iterable<LintRule> ruleRegistry, {
   Map<String, String> fixStatusMap = const {},
 }) async {
-  var rulesToDocument = List<LintRule>.of(ruleRegistry, growable: false)
-      .where((rule) => !rule.state.isInternal)
-      .sortedBy((rule) => rule.name);
+  var rulesToDocument = List<LintRule>.of(
+    ruleRegistry,
+    growable: false,
+  ).where((rule) => !rule.state.isInternal).sortedBy((rule) => rule.name);
 
   var json = JsonEncoder.withIndent('  ').convert([
-    for (var (rule, info)
-        in rulesToDocument.map((rule) => (rule, messagesRuleInfo[rule.name]!)))
+    for (var (rule, info) in rulesToDocument.map(
+      (rule) => (rule, messagesRuleInfo[rule.name]!),
+    ))
       {
         'name': rule.name,
         'description': rule.description,
@@ -68,7 +73,7 @@ Future<String> getMachineListing(
             fixStatusMap[rule.lintCodes.first.uniqueName] ?? 'unregistered',
         'details': info.deprecatedDetails,
         'sinceDartSdk': _versionToString(info.states.first.since),
-      }
+      },
   ]);
   return json;
 }
@@ -85,7 +90,7 @@ Map<String, String> readFixStatusMap() {
     'src',
     'services',
     'correction',
-    'error_fix_status.yaml'
+    'error_fix_status.yaml',
   ]);
   var contents = File(statusFilePath).readAsStringSync();
 

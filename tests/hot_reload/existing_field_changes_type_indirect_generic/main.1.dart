@@ -35,12 +35,14 @@ Future<void> main() async {
 
   // B is no longer a subtype of A.
   Expect.contains(
-      "type 'List<B>' is not a subtype of type 'List<A>'", helper());
+    "type 'List<B>' is not a subtype of type 'List<A>'",
+    helper(),
+  );
   Expect.equals(1, hotReloadGeneration);
 }
+
 /** DIFF **/
 /*
-@@ -10,7 +10,7 @@
  
  class A {}
  
@@ -49,7 +51,7 @@ Future<void> main() async {
  
  class Foo {
    List<A> x;
-@@ -20,8 +20,11 @@
+@@ -20,8 +20,11 @@ class Foo {
  late Foo value;
  
  helper() {

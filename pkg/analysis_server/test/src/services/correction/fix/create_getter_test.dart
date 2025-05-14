@@ -10,228 +10,91 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CreateExtensionGetterTest);
     defineReflectiveTests(CreateGetterTest);
     defineReflectiveTests(CreateGetterMixinTest);
   });
 }
 
 @reflectiveTest
-class CreateExtensionGetterTest extends FixProcessorTest {
-  @override
-  FixKind get kind => DartFixKind.CREATE_EXTENSION_GETTER;
-
-  Future<void> test_contextType() async {
-    await resolveTestCode('''
-void f() {
-  // ignore:unused_local_variable
-  int v = ''.test;
-}
-''');
-    await assertHasFix('''
-void f() {
-  // ignore:unused_local_variable
-  int v = ''.test;
-}
-
-extension on String {
-  int get test => null;
-}
-''');
-  }
-
-  Future<void> test_contextType_no() async {
-    await resolveTestCode('''
-void f() {
-  ''.test;
-}
-''');
-    await assertHasFix('''
-void f() {
-  ''.test;
-}
-
-extension on String {
-  get test => null;
-}
-''');
-    assertLinkedGroup(change.linkedEditGroups[0], ['null']);
-  }
-
-  Future<void> test_existingExtension_contextType() async {
-    await resolveTestCode('''
-void f() {
-  // ignore:unused_local_variable
-  int v = ''.test;
-}
-
-extension on String {}
-''');
-    await assertHasFix('''
-void f() {
-  // ignore:unused_local_variable
-  int v = ''.test;
-}
-
-extension on String {
-  int get test => null;
-}
-''');
-  }
-
-  Future<void> test_existingExtension_generic_matching() async {
-    await resolveTestCode('''
-void f(List<int> a) {
-  a.test;
-}
-
-extension E<T> on Iterable<T> {}
-''');
-    await assertHasFix('''
-void f(List<int> a) {
-  a.test;
-}
-
-extension E<T> on Iterable<T> {
-  get test => null;
-}
-''');
-  }
-
-  Future<void> test_existingExtension_generic_notMatching() async {
-    await resolveTestCode('''
-void f(List<int> a) {
-  a.test;
-}
-
-extension E<K, V> on Map<K, V> {}
-''');
-    await assertHasFix('''
-void f(List<int> a) {
-  a.test;
-}
-
-extension on List<int> {
-  get test => null;
-}
-
-extension E<K, V> on Map<K, V> {}
-''');
-  }
-
-  Future<void> test_existingExtension_hasMethod() async {
-    await resolveTestCode('''
-void f() {
-  ''.test;
-}
-
-extension E on String {
-  // ignore:unused_element
-  void foo() {}
-}
-''');
-    await assertHasFix('''
-void f() {
-  ''.test;
-}
-
-extension E on String {
-  get test => null;
-
-  // ignore:unused_element
-  void foo() {}
-}
-''');
-  }
-
-  Future<void> test_existingExtension_notGeneric_matching() async {
-    await resolveTestCode('''
-void f() {
-  ''.test;
-}
-
-extension on String {}
-''');
-    await assertHasFix('''
-void f() {
-  ''.test;
-}
-
-extension on String {
-  get test => null;
-}
-''');
-  }
-
-  Future<void> test_existingExtension_notGeneric_notMatching() async {
-    await resolveTestCode('''
-void f() {
-  ''.test;
-}
-
-extension on int {}
-''');
-    await assertHasFix('''
-void f() {
-  ''.test;
-}
-
-extension on String {
-  get test => null;
-}
-
-extension on int {}
-''');
-  }
-
-  Future<void> test_parent_nothing() async {
-    await resolveTestCode('''
-void f() {
-  test;
-}
-''');
-    await assertNoFix();
-  }
-
-  Future<void> test_parent_prefixedIdentifier() async {
-    await resolveTestCode('''
-void f(String a) {
-  a.test;
-}
-''');
-    await assertHasFix('''
-void f(String a) {
-  a.test;
-}
-
-extension on String {
-  get test => null;
-}
-''');
-  }
-
-  Future<void> test_targetType_hasTypeArguments() async {
-    await resolveTestCode('''
-void f(List<int> a) {
-  a.test;
-}
-''');
-    await assertHasFix('''
-void f(List<int> a) {
-  a.test;
-}
-
-extension on List<int> {
-  get test => null;
-}
-''');
-  }
-}
-
-@reflectiveTest
 class CreateGetterMixinTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_GETTER;
+
+  Future<void> test_main_part() async {
+    var partPath = join(testPackageLibPath, 'part.dart');
+    newFile(partPath, '''
+part of 'test.dart';
+
+mixin M {
+}
+''');
+    await resolveTestCode('''
+part 'part.dart';
+
+void foo(M a) {
+  int? _ = a.myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part of 'test.dart';
+
+mixin M {
+  int? get myUndefinedGetter => null;
+}
+''', target: partPath);
+  }
+
+  Future<void> test_part_main() async {
+    var mainPath = join(testPackageLibPath, 'main.dart');
+    newFile(mainPath, '''
+part 'test.dart';
+
+mixin M {
+}
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(M a) {
+  int? _ = a.myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part 'test.dart';
+
+mixin M {
+  int? get myUndefinedGetter => null;
+}
+''', target: mainPath);
+  }
+
+  Future<void> test_part_sibling() async {
+    var part1Path = join(testPackageLibPath, 'part1.dart');
+    newFile(part1Path, '''
+part of 'main.dart';
+
+mixin M {
+}
+''');
+    newFile(join(testPackageLibPath, 'main.dart'), '''
+part 'part1.dart';
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(M a) {
+  int? _ = a.myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part of 'main.dart';
+
+mixin M {
+  int? get myUndefinedGetter => null;
+}
+''', target: part1Path);
+  }
 
   Future<void> test_qualified_instance() async {
     await resolveTestCode('''
@@ -406,6 +269,30 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_main_part() async {
+    var partPath = join(testPackageLibPath, 'part.dart');
+    newFile(partPath, '''
+part of 'test.dart';
+
+class A {
+}
+''');
+    await resolveTestCode('''
+part 'part.dart';
+
+void foo(A a) {
+  int? _ = a.myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part of 'test.dart';
+
+class A {
+  int? get myUndefinedGetter => null;
+}
+''', target: partPath);
+  }
+
   Future<void> test_multiLevel() async {
     await resolveTestCode('''
 class A {
@@ -550,6 +437,58 @@ void f(String s) {
   print(v);
 }
 ''');
+  }
+
+  Future<void> test_part_main() async {
+    var mainPath = join(testPackageLibPath, 'main.dart');
+    newFile(mainPath, '''
+part 'test.dart';
+
+class A {
+}
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(A a) {
+  int? _ = a.myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part 'test.dart';
+
+class A {
+  int? get myUndefinedGetter => null;
+}
+''', target: mainPath);
+  }
+
+  Future<void> test_part_sibling() async {
+    var part1Path = join(testPackageLibPath, 'part1.dart');
+    newFile(part1Path, '''
+part of 'main.dart';
+
+class A {
+}
+''');
+    newFile(join(testPackageLibPath, 'main.dart'), '''
+part 'part1.dart';
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(A a) {
+  int? _ = a.myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part of 'main.dart';
+
+class A {
+  int? get myUndefinedGetter => null;
+}
+''', target: part1Path);
   }
 
   Future<void> test_qualified_instance() async {

@@ -41,8 +41,11 @@ class BaseTest {
   late Driver driver;
 
   AnalysisOptions get analysisOptions =>
-      driver.analysisDriver!.getAnalysisOptionsForFile(driver.resourceProvider
-          .getFile(path.normalize(path.absolute(emptyOptionsFile))));
+      driver.analysisDriver!.getAnalysisOptionsForFile(
+        driver.resourceProvider.getFile(
+          path.normalize(path.absolute(emptyOptionsFile)),
+        ),
+      );
 
   /// Normalize text with bullets.
   String bulletToDash(StringSink? item) => '$item'.replaceAll('•', '-');
@@ -71,10 +74,7 @@ class BaseTest {
     driver = Driver();
     var cmd = <String>[];
     if (options != null) {
-      cmd = <String>[
-        '--options',
-        path.join(testDirectory, options),
-      ];
+      cmd = <String>['--options', path.join(testDirectory, options)];
     }
     cmd
       ..addAll(sources.map(_adjustFileSpec))
@@ -138,7 +138,9 @@ class ExitCodesTest extends BaseTest {
     await withTempDirAsync((String tempDirPath) async {
       var dartSdkPath = path.absolute(getSdkPath());
       await recursiveCopy(
-          Directory(path.join(testDirectory, 'data', 'blaze')), tempDirPath);
+        Directory(path.join(testDirectory, 'data', 'blaze')),
+        tempDirPath,
+      );
       var origWorkingDir = Directory.current;
       try {
         Directory.current = path.join(tempDirPath, 'proj');
@@ -187,7 +189,7 @@ class ExitCodesTest extends BaseTest {
   Future<void> test_partFile() async {
     await driveMany([
       path.join(testDirectory, 'data/library_and_parts/lib.dart'),
-      path.join(testDirectory, 'data/library_and_parts/part1.dart')
+      path.join(testDirectory, 'data/library_and_parts/part1.dart'),
     ]);
     expect(exitCode, 0);
   }
@@ -201,7 +203,7 @@ class ExitCodesTest extends BaseTest {
     await driveMany([
       path.join(testDirectory, 'data/library_and_parts/lib.dart'),
       path.join(testDirectory, 'data/library_and_parts/part1.dart'),
-      path.join(testDirectory, 'data/library_and_parts/part2.dart')
+      path.join(testDirectory, 'data/library_and_parts/part2.dart'),
     ]);
     expect(exitCode, 3);
   }
@@ -210,7 +212,7 @@ class ExitCodesTest extends BaseTest {
     var driver = Driver();
     await driver.start([
       path.join(testDirectory, 'data/library_and_parts/part1.dart'),
-      path.join(testDirectory, 'data/library_and_parts/lib.dart')
+      path.join(testDirectory, 'data/library_and_parts/lib.dart'),
     ]);
     expect(exitCode, 0);
   }
@@ -260,18 +262,24 @@ linter:
   }
 
   Future<void> test_pubspec_lintsInOptions_generatedLints() async {
-    await drive('data/linter_project/pubspec.yaml',
-        options: 'data/linter_project/$analysisOptionsYaml');
-    expect(bulletToDash(outSink),
-        contains('lint - Dependencies not sorted alphabetically.'));
+    await drive(
+      'data/linter_project/pubspec.yaml',
+      options: 'data/linter_project/$analysisOptionsYaml',
+    );
+    expect(
+      bulletToDash(outSink),
+      contains('lint - Dependencies not sorted alphabetically.'),
+    );
   }
 
   YamlMap _parseOptions(String src) =>
       AnalysisOptionsProvider().getOptionsFromString(src);
 
   Future<void> _runLinter_noLintsFlag() async {
-    await drive('data/no_lints_project/test_file.dart',
-        options: 'data/no_lints_project/$analysisOptionsYaml');
+    await drive(
+      'data/no_lints_project/test_file.dart',
+      options: 'data/no_lints_project/$analysisOptionsYaml',
+    );
   }
 }
 
@@ -286,9 +294,11 @@ analyzer:
 ''');
       await drive(filePath);
       expect(
-          bulletToDash(outSink),
-          contains(
-              "warning - The option 'string-mode' isn't supported by 'analyzer'"));
+        bulletToDash(outSink),
+        contains(
+          "warning - The option 'string-mode' isn't supported by 'analyzer'",
+        ),
+      );
       expect(exitCode, 0);
     });
   }
@@ -311,9 +321,11 @@ analyzer:
 ''');
       await drive(manifestPath, options: filePath);
       expect(
-          bulletToDash(outSink),
-          contains(
-              "warning - The feature android.software.home_screen isn't supported on Chrome OS"));
+        bulletToDash(outSink),
+        contains(
+          "warning - The feature android.software.home_screen isn't supported on Chrome OS",
+        ),
+      );
       expect(exitCode, 0);
     });
   }
@@ -329,9 +341,11 @@ flutter:
 ''');
       await drive(filePath);
       expect(
-          bulletToDash(outSink),
-          contains(
-              "warning - The value of the 'assets' field is expected to be a list of relative file paths"));
+        bulletToDash(outSink),
+        contains(
+          "warning - The value of the 'assets' field is expected to be a list of relative file paths",
+        ),
+      );
       expect(exitCode, 0);
     });
   }
@@ -361,14 +375,18 @@ class OptionsTest extends BaseTest {
   }
 
   Future<void> test_analysisOptions_excludes() async {
-    await drive('data/exclude_test_project',
-        options: 'data/exclude_test_project/$analysisOptionsYaml');
+    await drive(
+      'data/exclude_test_project',
+      options: 'data/exclude_test_project/$analysisOptionsYaml',
+    );
     _expectUndefinedClassErrorsWithoutExclusions();
   }
 
   Future<void> test_analysisOptions_excludes_inner() async {
-    await drive('data/exclude_portion_of_inner_context/inner',
-        options: 'data/exclude_portion_of_inner_context/$analysisOptionsYaml');
+    await drive(
+      'data/exclude_portion_of_inner_context/inner',
+      options: 'data/exclude_portion_of_inner_context/$analysisOptionsYaml',
+    );
     expect(
       bulletToDash(outSink),
       contains("error - Undefined class 'IncludedUndefinedClassInInner'"),
@@ -377,11 +395,13 @@ class OptionsTest extends BaseTest {
   }
 
   Future<void>
-      test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() async {
+  test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() async {
     // The exclude is relative to the project, not/ the analyzed path, and it
     // has to then understand that.
-    await drive('data/exclude_test_project',
-        options: 'data/exclude_test_project/$analysisOptionsYaml');
+    await drive(
+      'data/exclude_test_project',
+      options: 'data/exclude_test_project/$analysisOptionsYaml',
+    );
     _expectUndefinedClassErrorsWithoutExclusions();
   }
 
@@ -393,9 +413,11 @@ class OptionsTest extends BaseTest {
 
     // Should have the lint in the project with lint rules enabled.
     expect(
-        bulletToDash(outSink),
-        contains(
-            '${path.join('linter_project', 'test_file.dart')}:7:7 - camel_case_types'));
+      bulletToDash(outSink),
+      contains(
+        '${path.join('linter_project', 'test_file.dart')}:7:7 - camel_case_types',
+      ),
+    );
     // Should be just one lint in total.
     expect(outSink.toString(), contains('1 lint found.'));
   }
@@ -427,9 +449,13 @@ class OptionsTest extends BaseTest {
       ],
     );
     expect(
-        processorFor(assignment_of_do_not_store).severity, ErrorSeverity.ERROR);
-    expect(bulletToDash(outSink),
-        contains('error - The body might complete normally'));
+      processorFor(assignment_of_do_not_store).severity,
+      ErrorSeverity.ERROR,
+    );
+    expect(
+      bulletToDash(outSink),
+      contains('error - The body might complete normally'),
+    );
     expect(outSink.toString(), contains('1 error and 1 warning found.'));
   }
 
@@ -455,15 +481,21 @@ class OptionsTest extends BaseTest {
   }
 
   Future<void> _driveBasic() async {
-    await drive('data/options_tests_project/test_file.dart',
-        options: 'data/options_tests_project/$analysisOptionsYaml');
+    await drive(
+      'data/options_tests_project/test_file.dart',
+      options: 'data/options_tests_project/$analysisOptionsYaml',
+    );
   }
 
   void _expectUndefinedClassErrorsWithoutExclusions() {
-    expect(bulletToDash(outSink),
-        contains("error - Undefined class 'IncludedUndefinedClass'"));
-    expect(bulletToDash(outSink),
-        isNot(contains("error - Undefined class 'ExcludedUndefinedClass'")));
+    expect(
+      bulletToDash(outSink),
+      contains("error - Undefined class 'IncludedUndefinedClass'"),
+    );
+    expect(
+      bulletToDash(outSink),
+      isNot(contains("error - Undefined class 'ExcludedUndefinedClass'")),
+    );
     expect(outSink.toString(), contains('1 error found.'));
   }
 }

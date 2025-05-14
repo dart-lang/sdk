@@ -1,0 +1,3 @@
+analyzer:
+  errors:
+    todo: ignore

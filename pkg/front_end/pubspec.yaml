@@ -6,7 +6,12 @@ name: front_end
 publish_to: none
 
 environment:
-  sdk: ^3.3.0-0
+  sdk: ^3.5.0
+
+workspace:
+  - testcases
+
+resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
@@ -14,7 +19,6 @@ dependencies:
   kernel: any
   macros: any
   package_config: any
-  vm: any
   yaml: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
@@ -32,41 +36,6 @@ dev_dependencies:
   test_reflective_loader: any
   test: any
   testing: any
+  vm: any
   vm_service: any
   web_socket_channel: any
-
-dependency_overrides:
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
-  _js_interop_checks:
-    path: ../_js_interop_checks
-  build_integration:
-    path: ../build_integration
-  compiler:
-    path: ../compiler
-  dart2js_info:
-    path: ../dart2js_info
-  dart2wasm:
-    path: ../dart2wasm
-  dev_compiler:
-    path: ../dev_compiler
-  expect:
-    path: ../expect
-  js_ast:
-    path: ../js_ast
-  js_runtime:
-    path: ../js_runtime
-  js_shared:
-    path: ../js_shared
-  kernel:
-    path: ../kernel
-  mmap:
-    path: ../mmap
-  smith:
-    path: ../smith
-  testing:
-    path: ../testing
-  vm:
-    path: ../vm
-  wasm_builder:
-    path: ../wasm_builder

@@ -8,10 +8,7 @@ library enum_index_test;
 
 import 'package:expect/expect.dart';
 
-enum Enum {
-  A,
-  B,
-}
+enum Enum { A, B }
 
 class Class {
   var index;

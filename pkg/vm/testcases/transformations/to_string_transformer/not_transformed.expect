@@ -20,10 +20,10 @@ class Foo extends core::Object implements self::IFoo {
     return "I am a Foo";
 }
 class FooEnum extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::FooEnum> values = #C11;
   enum-element static const field self::FooEnum A = #C4;
   enum-element static const field self::FooEnum B = #C7;
   enum-element static const field self::FooEnum C = #C10;
+  static const field core::List<self::FooEnum> values = #C11;
   const synthetic constructor •(core::int #index, core::String #name) → self::FooEnum
     : super core::_Enum::•(#index, #name)
     ;
@@ -47,16 +47,6 @@ class Base1 extends core::Object {
 }
 abstract class Base2 extends self::Base1 /*isMixinDeclaration*/  {
 }
-abstract class _Base3&Object&Base1 extends core::Object implements self::Base1 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_Base3&Object&Base1
-    : super core::Object::•()
-    ;
-}
-abstract class _Base3&Object&Base1&Base2 extends self::_Base3&Object&Base1 implements self::Base2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_Base3&Object&Base1&Base2
-    : super self::_Base3&Object&Base1::•()
-    ;
-}
 class Base3 extends self::_Base3&Object&Base1&Base2 {
   synthetic constructor •() → self::Base3
     : super self::_Base3&Object&Base1&Base2::•()
@@ -77,6 +67,16 @@ class MyException extends core::Object implements core::Exception {
   @#C1
   method toString() → core::String
     return "A very detailed message";
+}
+abstract class _Base3&Object&Base1 extends core::Object implements self::Base1 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Base3&Object&Base1
+    : super core::Object::•()
+    ;
+}
+abstract class _Base3&Object&Base1&Base2 extends self::_Base3&Object&Base1 implements self::Base2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Base3&Object&Base1&Base2
+    : super self::_Base3&Object&Base1::•()
+    ;
 }
 static const field core::pragma keepToString = #C14;
 static const field core::pragma keepToStringInSubtypes = #C16;

@@ -10,12 +10,6 @@ abstract class Base extends core::Object {
 abstract class MixinA<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
   abstract method method(core::Object t) → self::MixinA::T%;
 }
-abstract class _Class&Base&MixinA extends self::Base implements self::MixinA<dynamic> /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_Class&Base&MixinA
-    : super self::Base::•()
-    ;
-  abstract method method(core::Object t) → dynamic;
-}
 abstract class Class extends self::_Class&Base&MixinA {
   synthetic constructor •() → self::Class
     : super self::_Class&Base&MixinA::•()
@@ -38,6 +32,18 @@ abstract class MapMixin<K extends core::Object? = dynamic, V extends core::Objec
 }
 abstract class UnmodifiableMapMixin<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object implements self::Map<self::UnmodifiableMapMixin::K%, self::UnmodifiableMapMixin::V%> /*isMixinDeclaration*/  {
 }
+class YamlMap extends self::_YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin {
+  synthetic constructor •() → self::YamlMap
+    : super self::_YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin::•()
+    ;
+  operator [](core::Object key) → dynamic {}
+}
+abstract class _Class&Base&MixinA extends self::Base implements self::MixinA<dynamic> /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_Class&Base&MixinA
+    : super self::Base::•()
+    ;
+  abstract method method(core::Object t) → dynamic;
+}
 abstract class _YamlMap&YamlNode&MapMixin extends self::YamlNode implements self::MapMixin<dynamic, dynamic> /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_YamlMap&YamlNode&MapMixin
     : super self::YamlNode::•()
@@ -48,11 +54,5 @@ abstract class _YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin extends self::_Ya
   synthetic constructor •() → self::_YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin
     : super self::_YamlMap&YamlNode&MapMixin::•()
     ;
-}
-class YamlMap extends self::_YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin {
-  synthetic constructor •() → self::YamlMap
-    : super self::_YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin::•()
-    ;
-  operator [](core::Object key) → dynamic {}
 }
 static method main() → dynamic {}

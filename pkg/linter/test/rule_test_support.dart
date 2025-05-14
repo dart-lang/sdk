@@ -51,9 +51,7 @@ String analysisOptionsContent({
   }
 
   buffer.writeln('  optional-checks:');
-  buffer.writeln(
-    '    propagate-linter-exceptions: true',
-  );
+  buffer.writeln('    propagate-linter-exceptions: true');
 
   buffer.writeln('linter:');
   buffer.writeln('  rules:');
@@ -64,9 +62,12 @@ String analysisOptionsContent({
   return buffer.toString();
 }
 
-ExpectedDiagnostic error(ErrorCode code, int offset, int length,
-        {Pattern? messageContains}) =>
-    _ExpectedError(code, offset, length, messageContains: messageContains);
+ExpectedDiagnostic error(
+  ErrorCode code,
+  int offset,
+  int length, {
+  Pattern? messageContains,
+}) => _ExpectedError(code, offset, length, messageContains: messageContains);
 
 // TODO(srawlins): This is duplicate with
 // pkg/analyzer/test/src/dart/resolution/context_collection_resolution.dart.
@@ -109,8 +110,8 @@ class ExpectedDiagnostic {
     this._length, {
     Pattern? messageContains,
     Pattern? correctionContains,
-  })  : _messageContains = messageContains,
-        _correctionContains = correctionContains;
+  }) : _messageContains = messageContains,
+       _correctionContains = correctionContains;
 
   /// Whether the [error] matches this description of what it's expected to be.
   bool matches(AnalysisError error) {
@@ -153,14 +154,14 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
     int length, {
     Pattern? messageContains,
     Pattern? correctionContains,
-  }) =>
-      _ExpectedLint(
-        lintRule,
-        offset,
-        length,
-        messageContains: messageContains,
-        correctionContains: correctionContains,
-      );
+    String? name,
+  }) => _ExpectedLint(
+    name ?? lintRule,
+    offset,
+    length,
+    messageContains: messageContains,
+    correctionContains: correctionContains,
+  );
 }
 
 class PubPackageResolutionTest extends _ContextResolutionTest {
@@ -175,6 +176,8 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   bool get addKernelPackageDep => false;
 
   bool get addMetaPackageDep => false;
+
+  bool get addTestReflectiveLoaderPackageDep => false;
 
   bool get dumpAstOnFailures => true;
 
@@ -204,7 +207,9 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   ///
   /// The order in which the diagnostics were gathered is ignored.
   Future<void> assertDiagnostics(
-      String content, List<ExpectedDiagnostic> expectedDiagnostics) async {
+    String content,
+    List<ExpectedDiagnostic> expectedDiagnostics,
+  ) async {
     addTestFile(content);
     await resolveTestFile();
     await _assertDiagnosticsIn(_errors, expectedDiagnostics);
@@ -216,7 +221,9 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   ///
   /// The order in which the diagnostics were gathered is ignored.
   Future<void> assertDiagnosticsInFile(
-      String path, List<ExpectedDiagnostic> expectedDiagnostics) async {
+    String path,
+    List<ExpectedDiagnostic> expectedDiagnostics,
+  ) async {
     await _resolveFile(path);
     await _assertDiagnosticsIn(_errors, expectedDiagnostics);
   }
@@ -227,8 +234,9 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   /// The unit at each path needs to have already been written to the file
   /// system before calling this method.
   Future<void> assertDiagnosticsInUnits(
-      List<(String path, List<ExpectedDiagnostic> expectedDiagnostics)>
-          unitsAndDiagnostics) async {
+    List<(String path, List<ExpectedDiagnostic> expectedDiagnostics)>
+    unitsAndDiagnostics,
+  ) async {
     for (var (path, expectedDiagnostics) in unitsAndDiagnostics) {
       result = await resolveFile(convertPath(path));
       await _assertDiagnosticsIn(result.errors, expectedDiagnostics);
@@ -252,7 +260,9 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   /// Asserts that [expectedDiagnostics] are reported when resolving [content].
   Future<void> assertPubspecDiagnostics(
-      String content, List<ExpectedDiagnostic> expectedDiagnostics) async {
+    String content,
+    List<ExpectedDiagnostic> expectedDiagnostics,
+  ) async {
     newFile(testPackagePubspecPath, content);
     var errors = await _resolvePubspecFile(content);
     await _assertDiagnosticsIn(errors, expectedDiagnostics);
@@ -266,8 +276,10 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     for (var experiment in experiments) {
       var feature = ExperimentStatus.knownFeatures[experiment];
       if (feature?.isEnabledByDefault ?? false) {
-        fail("The '$experiment' experiment is enabled by default, "
-            'try removing it from `experiments`.');
+        fail(
+          "The '$experiment' experiment is enabled by default, "
+          'try removing it from `experiments`.',
+        );
       }
     }
 
@@ -275,19 +287,12 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       testPackageRootPath,
       analysisOptionsContent(experiments: experiments, rules: _lintRules),
     );
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-    );
+    writeTestPackageConfig(PackageConfigFileBuilder());
     _writeTestPackagePubspecYamlFile(pubspecYamlContent(name: 'test'));
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(
-      path,
-      config.toContent(
-        toUriStr: toUriStr,
-      ),
-    );
+    newFile(path, config.toContent(toUriStr: toUriStr));
   }
 
   void writeTestPackageConfig(PackageConfigFileBuilder config) {
@@ -327,13 +332,23 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       configCopy.add(name: 'meta', rootPath: metaPath);
     }
 
+    if (addTestReflectiveLoaderPackageDep) {
+      var testReflectiveLoaderPath = addTestReflectiveLoader().parent.path;
+      configCopy.add(
+        name: 'test_reflective_loader',
+        rootPath: testReflectiveLoaderPath,
+      );
+    }
+
     var path = '$testPackageRootPath/.dart_tool/package_config.json';
     writePackageConfig(path, configCopy);
   }
 
   /// Asserts that the diagnostics in [errors] match [expectedDiagnostics].
-  Future<void> _assertDiagnosticsIn(List<AnalysisError> errors,
-      List<ExpectedDiagnostic> expectedDiagnostics) async {
+  Future<void> _assertDiagnosticsIn(
+    List<AnalysisError> errors,
+    List<ExpectedDiagnostic> expectedDiagnostics,
+  ) async {
     //
     // Match actual diagnostics to expected diagnostics.
     //
@@ -344,8 +359,9 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       var matchFound = false;
       var expectedIndex = 0;
       while (expectedIndex < unmatchedExpected.length) {
-        if (unmatchedExpected[expectedIndex]
-            .matches(unmatchedActual[actualIndex])) {
+        if (unmatchedExpected[expectedIndex].matches(
+          unmatchedActual[actualIndex],
+        )) {
           matchFound = true;
           unmatchedActual.removeAt(actualIndex);
           unmatchedExpected.removeAt(expectedIndex);
@@ -437,9 +453,11 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
         try {
           var astSink = StringBuffer();
 
-          StringSpelunker(result.unit.toSource(),
-                  sink: astSink, featureSet: result.unit.featureSet)
-              .spelunk();
+          StringSpelunker(
+            result.unit.toSource(),
+            sink: astSink,
+            featureSet: result.unit.featureSet,
+          ).spelunk();
           buffer.write(astSink);
           buffer.writeln();
           // I hereby choose to catch this type.
@@ -456,8 +474,9 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   Future<List<AnalysisError>> _resolvePubspecFile(String content) async {
     var path = convertPath(testPackagePubspecPath);
     var pubspecRules = <LintRule, PubspecVisitor<Object?>>{};
-    for (var rule in Registry.ruleRegistry
-        .where((rule) => _lintRules.contains(rule.name))) {
+    for (var rule in Registry.ruleRegistry.where(
+      (rule) => _lintRules.contains(rule.name),
+    )) {
       var visitor = rule.getPubspecVisitor();
       if (visitor != null) {
         pubspecRules[rule] = visitor;
@@ -466,19 +485,20 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
     if (pubspecRules.isEmpty) {
       throw UnsupportedError(
-          'Resolving pubspec files only supported with rules with '
-          'PubspecVisitors.');
+        'Resolving pubspec files only supported with rules with '
+        'PubspecVisitors.',
+      );
     }
 
     var sourceUri = resourceProvider.pathContext.toUri(path);
-    var pubspecAst = Pubspec.parse(content,
-        sourceUrl: sourceUri, resourceProvider: resourceProvider);
+    var pubspecAst = Pubspec.parse(
+      content,
+      sourceUrl: sourceUri,
+      resourceProvider: resourceProvider,
+    );
     var listener = RecordingErrorListener();
     var file = resourceProvider.getFile(path);
-    var reporter = ErrorReporter(
-      listener,
-      FileSource(file, sourceUri),
-    );
+    var reporter = ErrorReporter(listener, FileSource(file, sourceUri));
     for (var entry in pubspecRules.entries) {
       entry.key.reporter = reporter;
       pubspecAst.accept(entry.value);
@@ -519,9 +539,10 @@ abstract class _ContextResolutionTest
   List<String> get _collectionIncludedPaths;
 
   /// The analysis errors that were computed during analysis.
-  List<AnalysisError> get _errors => result.errors
-      .whereNot((e) => ignoredErrorCodes.any((c) => e.errorCode == c))
-      .toList();
+  List<AnalysisError> get _errors =>
+      result.errors
+          .whereNot((e) => ignoredErrorCodes.any((c) => e.errorCode == c))
+          .toList();
 
   Folder get _sdkRoot => newFolder('/sdk');
 
@@ -556,10 +577,7 @@ abstract class _ContextResolutionTest
       _lintRulesAreRegistered = true;
     }
 
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: _sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: _sdkRoot);
   }
 
   @mustCallSuper
@@ -604,8 +622,12 @@ final class _ExpectedError extends ExpectedDiagnostic {
   final ErrorCode _code;
 
   _ExpectedError(this._code, int offset, int length, {Pattern? messageContains})
-      : super((error) => error.errorCode == _code, offset, length,
-            messageContains: messageContains);
+    : super(
+        (error) => error.errorCode == _code,
+        offset,
+        length,
+        messageContains: messageContains,
+      );
 }
 
 /// A description of an expected lint rule violation.
@@ -618,9 +640,5 @@ final class _ExpectedLint extends ExpectedDiagnostic {
     int length, {
     super.messageContains,
     super.correctionContains,
-  }) : super(
-          (error) => error.errorCode.name == _lintName,
-          offset,
-          length,
-        );
+  }) : super((error) => error.errorCode.name == _lintName, offset, length);
 }

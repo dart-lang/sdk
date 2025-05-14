@@ -31,10 +31,10 @@ class DapHandler {
     final message = parameters['message'].asString;
 
     // TODO(dantup): If/when DAP needs to care about ordering (eg. it handles
-    //  both requests and events), this will need to be changed to have the
-    //  caller provide a "responseWriter" function so the the result can be
-    //  written directly to the stream synchronously, to avoid future events
-    //  being able to be inserted before the response (eg. initializedEvent).
+    // both requests and events), this will need to be changed to have the
+    // caller provide a "responseWriter" function so the result can be written
+    // directly to the stream synchronously, to avoid future events being able
+    // to be inserted before the response (eg. initializedEvent).
     final responseCompleter = Completer<Response>();
     adapter.handleMessage(message, responseCompleter.complete);
     final result = await responseCompleter.future;
@@ -45,7 +45,7 @@ class DapHandler {
     };
   }
 
-  _handleEvent(Event event) {
+  void _handleEvent(Event event) {
     if (event.event == 'initialized') {
       _initializedCompleter.complete();
     }
@@ -70,7 +70,7 @@ class DapHandler {
     // Each DAP request has a `seq` number (essentially a message ID) which
     // should be unique.
     //
-    // We send a few requsets to initialize the adapter, but these are not
+    // We send a few requests to initialize the adapter, but these are not
     // visible to the DDS client so if we start at 1, the IDs will be
     // reused.
     //

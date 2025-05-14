@@ -38,7 +38,6 @@ void main() {
   }
   final executableArgs = <String>[
     snapshotName,
-    '--sound-null-safety',
     '--dart-sdk-summary',
     _resolvePath('ddc_outline.dill'),
   ];

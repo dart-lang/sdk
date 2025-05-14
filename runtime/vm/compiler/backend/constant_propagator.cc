@@ -586,13 +586,12 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
   Definition* unwrapped_right_defn = UnwrapPhi(right_defn);
   if (unwrapped_left_defn == unwrapped_right_defn) {
     // Fold x === x, and x !== x to true/false.
-    if (SetValue(instr, Bool::Get(instr->kind() == Token::kEQ_STRICT))) {
-      if (unwrapped_left_defn != left_defn) {
-        MarkUnwrappedPhi(left_defn);
-      }
-      if (unwrapped_right_defn != right_defn) {
-        MarkUnwrappedPhi(right_defn);
-      }
+    SetValue(instr, Bool::Get(instr->kind() == Token::kEQ_STRICT));
+    if (unwrapped_left_defn != left_defn) {
+      MarkUnwrappedPhi(left_defn);
+    }
+    if (unwrapped_right_defn != right_defn) {
+      MarkUnwrappedPhi(right_defn);
     }
     return;
   }
@@ -711,13 +710,12 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
     Definition* unwrapped_right_defn = UnwrapPhi(right_defn);
     if (unwrapped_left_defn == unwrapped_right_defn) {
       // Fold x === x, and x !== x to true/false.
-      if (SetValue(instr, Bool::Get(instr->kind() == Token::kEQ))) {
-        if (unwrapped_left_defn != left_defn) {
-          MarkUnwrappedPhi(left_defn);
-        }
-        if (unwrapped_right_defn != right_defn) {
-          MarkUnwrappedPhi(right_defn);
-        }
+      SetValue(instr, Bool::Get(instr->kind() == Token::kEQ));
+      if (unwrapped_left_defn != left_defn) {
+        MarkUnwrappedPhi(left_defn);
+      }
+      if (unwrapped_right_defn != right_defn) {
+        MarkUnwrappedPhi(right_defn);
       }
       return;
     }

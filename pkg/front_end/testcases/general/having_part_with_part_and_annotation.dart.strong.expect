@@ -13,6 +13,8 @@ import "dart:core" as core;
 
 @#C1
 part having_part_with_part_and_annotation_lib1.dart;
+@#C2
+part having_part_with_part_and_annotation_lib2.dart;
 static const field core::int Foo = #C1;
 static const field core::int Bar = #C2 /* from org-dartlang-testcase:///having_part_with_part_and_annotation_lib1.dart */;
 static method fromMain() → void {}

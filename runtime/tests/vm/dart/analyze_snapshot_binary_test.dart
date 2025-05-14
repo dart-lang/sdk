@@ -122,15 +122,24 @@ Future<void> testAOT(String dillPath,
         .toSet()
         .containsAll(['snapshot_data', 'objects', 'metadata']));
 
-    final objects = (analyzerJson['objects'] as List).map((o) => o as Map);
+    final objects = (analyzerJson['objects'] as List).map((o) => o as Map).toList();
+    final classes = objects.where((o) => o['type'] == 'Class').toList();
+    final classnames = <int, String>{};
+    final superclass = <int, int>{};
+    final implementedInterfaces = <int, List<int>>{};
+    for (final klass in classes) {
+      final id = klass['id'];
+      superclass[id] = klass['super_class'] as int;
+      classnames[id] = klass['name'];
+      implementedInterfaces[id] = [
+        for (final superTypeId in klass['interfaces'] as List? ?? [])
+          objects[superTypeId]['type_class']!,
+      ];
+    }
 
     // Find MethodChannel class.
-    final objList = objects
-        .where((o) => o['type'] == 'Class' && o['name'] == 'MethodChannel')
-        .toList();
-    Expect.isTrue(
-        objList.length == 1, 'one MethodChannel class must exist in output');
-    final int objId = objList.first['id'];
+    final methodChannelId =
+        classnames.entries.singleWhere((e) => e.value == 'MethodChannel').key;
 
     // Find string instance.
     final stringList = objects
@@ -144,16 +153,28 @@ Future<void> testAOT(String dillPath,
     final instanceList = objects
         .where((o) =>
             o['type'] == 'Instance' &&
-            o['class'] == objId &&
+            o['class'] == methodChannelId &&
             o['references'].contains(stringObjId))
         .toList();
-    Expect.isTrue(instanceList.length == 1, '''one instance of MethodChannel 
+    Expect.isTrue(instanceList.length == 1, '''one instance of MethodChannel
         with reference to "constChannel1" must exist in output''');
+
+    // Test class hierarchy information
+    final myBaseClassId =
+        classnames.entries.singleWhere((e) => e.value == 'MyBase').key;
+    final mySubClassId =
+        classnames.entries.singleWhere((e) => e.value == 'MySub').key;
+    final myInterfaceClassId =
+        classnames.entries.singleWhere((e) => e.value == 'MyInterface').key;
+
+    Expect.equals(myBaseClassId, superclass[mySubClassId]);
+    Expect.equals(myInterfaceClassId, implementedInterfaces[mySubClassId]!.single);
 
     Expect.isTrue(analyzerJson['metadata'].containsKey('analyzer_version'),
         'snapshot analyzer version must be reported');
     Expect.isTrue(analyzerJson['metadata']['analyzer_version'] == 2,
         'invalid snapshot analyzer version');
+
   });
 }
 

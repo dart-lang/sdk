@@ -8,7 +8,7 @@ import 'dart:_foreign_helper';
 /// ignore: IMPORT_INTERNAL_LIBRARY, UNUSED_IMPORT
 import 'dart:_interceptors';
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   jsCallInt();
   jsCallEmpty();
@@ -18,17 +18,17 @@ main() {
   jsStringConcat();
 }
 
-/*member: jsCallEmpty:[null|subclass=Object]*/
+/*member: jsCallEmpty:[null|subclass=Object|powerset=1]*/
 jsCallEmpty() => JS('', '#', 0);
 
-/*member: jsCallInt:[subclass=JSInt]*/
+/*member: jsCallInt:[subclass=JSInt|powerset=0]*/
 jsCallInt() => JS('int', '#', 0);
 
-/*member: jsCallVoid:[null|subclass=Object]*/
+/*member: jsCallVoid:[null|subclass=Object|powerset=1]*/
 jsCallVoid() => JS('void', '#', 0);
 
-/*member: jsCallUnion:Union([exact=JSString], [subclass=JSInt])*/
+/*member: jsCallUnion:Union([exact=JSString|powerset=0], [subclass=JSInt|powerset=0], powerset: 0)*/
 jsCallUnion() => JS('int|String', '#', 0);
 
-/*member: jsStringConcat:[exact=JSString]*/
+/*member: jsStringConcat:[exact=JSString|powerset=0]*/
 jsStringConcat() => JS_STRING_CONCAT('a', 'b');

@@ -108,19 +108,27 @@ main() {
   Expect.throwsTypeError(() => (a as dynamic).test7 = "hi");
 
   a.allTogetherNow<num, double>(2.0, foo: const <num>[3, 4]);
-  Expect.throwsTypeError(() =>
-      (a.allTogetherNow as dynamic)<int, double>(2.0, foo: const <num>[3, 4]));
-  Expect.throwsTypeError(() =>
-      (a.allTogetherNow as dynamic)<int, int>(2.0, foo: const <num>[3, 4]));
-  Expect.throwsTypeError(() => (a.allTogetherNow
-      as dynamic)<double, double>(2.0, foo: const <int>[3, 4]));
+  Expect.throwsTypeError(
+    () =>
+        (a.allTogetherNow as dynamic)<int, double>(2.0, foo: const <num>[3, 4]),
+  );
+  Expect.throwsTypeError(
+    () => (a.allTogetherNow as dynamic)<int, int>(2.0, foo: const <num>[3, 4]),
+  );
+  Expect.throwsTypeError(
+    () => (a.allTogetherNow as dynamic)<double, double>(
+      2.0,
+      foo: const <int>[3, 4],
+    ),
+  );
 
   a.test8();
 
   a.test9<num, double>(4.2, foo: 3);
   Expect.throwsTypeError(() => (a.test9 as dynamic)<int, double>(3, foo: 3));
   Expect.throwsTypeError(
-      () => (a.test9 as dynamic)<double, double>(3, foo: 3.2));
+    () => (a.test9 as dynamic)<double, double>(3, foo: 3.2),
+  );
   // Added to check that uses of positions from the ArgumentsDescriptor in the
   // VM properly offsets named argument positions if there are also type
   // arguments. allTogetherNow doesn't work for this because the runtime type of
@@ -128,5 +136,6 @@ main() {
   // argument without the positional argument failing to match its own type,
   // and positional argument types are usually checked first.
   Expect.throwsTypeError(
-      () => (a.test9 as dynamic)<int, double>(4.2, foo: 3.2));
+    () => (a.test9 as dynamic)<int, double>(4.2, foo: 3.2),
+  );
 }

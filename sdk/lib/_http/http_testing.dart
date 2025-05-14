@@ -37,6 +37,7 @@ part of dart._http;
 typedef TestingClass$_Cookie = _Cookie;
 typedef TestingClass$_HttpHeaders = _HttpHeaders;
 typedef TestingClass$_HttpParser = _HttpParser;
+typedef TestingClass$_HttpRequest = _HttpRequest;
 typedef TestingClass$_SHA1 = _SHA1;
 typedef TestingClass$_WebSocketProtocolTransformer =
     _WebSocketProtocolTransformer;
@@ -50,6 +51,14 @@ extension Testing$HttpDate on HttpDate {
 extension Testing$_HttpHeaders on _HttpHeaders {
   void test$_build(BytesBuilder builder) => this._build(builder);
   List<Cookie> test$_parseCookies() => this._parseCookies();
+}
+
+extension Testing$_HttpRequest on _HttpRequest {
+  _HttpConnection get test$_httpConnection => _httpConnection;
+}
+
+extension Testing$_HttpConnection on _HttpConnection {
+  Socket get test$_socket => _socket;
 }
 
 extension Testing$_WebSocketProtocolTransformer

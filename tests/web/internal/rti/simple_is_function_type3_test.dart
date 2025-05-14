@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--experiment-new-rti
-
 // Test that some closures are 'is Function'.
 
 import "package:expect/expect.dart";

@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -29,7 +27,7 @@ final Matcher throwsEvaluationException =
 
 @reflectiveTest
 class DartObjectImplTest {
-  late final TypeProvider _typeProvider;
+  late final TypeProviderImpl _typeProvider;
   late final TypeSystemImpl _typeSystem;
   FeatureSet _featureSet = FeatureSets.latestWithExperiments;
 
@@ -908,7 +906,7 @@ class DartObjectImplTest {
         [],
       ),
       _listValue(
-        _typeProvider.futureOrElement.instantiate(
+        _typeProvider.futureOrElement2.instantiateImpl(
           typeArguments: [_typeProvider.objectType],
           nullabilitySuffix: NullabilitySuffix.none,
         ),
@@ -961,7 +959,7 @@ class DartObjectImplTest {
       ),
       _mapValue(
         _typeProvider.intType,
-        _typeProvider.futureOrElement.instantiate(
+        _typeProvider.futureOrElement2.instantiateImpl(
           typeArguments: [_typeProvider.objectType],
           nullabilitySuffix: NullabilitySuffix.none,
         ),
@@ -1066,8 +1064,8 @@ class DartObjectImplTest {
   }
 
   void test_identical_Type_functionType() {
-    var toStringType = _typeProvider.intType.methods
-        .firstWhere((e) => e.name == 'toString')
+    var toStringType = _typeProvider.intType.methods2
+        .firstWhere((e) => e.name3 == 'toString')
         .type;
 
     _assertIdentical(
@@ -2402,7 +2400,7 @@ class DartObjectImplTest {
   }
 
   DartObjectImpl _listValue(
-    DartType elementType,
+    TypeImpl elementType,
     List<DartObjectImpl> elements,
   ) {
     return DartObjectImpl(
@@ -2415,10 +2413,9 @@ class DartObjectImplTest {
     );
   }
 
-  DartObjectImpl _mapValue(DartType keyType, DartType valueType,
+  DartObjectImpl _mapValue(TypeImpl keyType, TypeImpl valueType,
       List<DartObjectImpl> keyValuePairs) {
-    Map<DartObjectImpl, DartObjectImpl> map =
-        <DartObjectImpl, DartObjectImpl>{};
+    var map = <DartObjectImpl, DartObjectImpl>{};
     int count = keyValuePairs.length;
     for (int i = 0; i < count;) {
       map[keyValuePairs[i++]] = keyValuePairs[i++];
@@ -2450,7 +2447,7 @@ class DartObjectImplTest {
   }
 
   DartObjectImpl _setValue(
-      ParameterizedType elementType, Set<DartObjectImpl>? elements) {
+      TypeImpl elementType, Set<DartObjectImpl>? elements) {
     return DartObjectImpl(
       _typeSystem,
       _typeProvider.setType(elementType),
@@ -2485,7 +2482,7 @@ class DartObjectImplTest {
     );
   }
 
-  DartObjectImpl _typeValue(DartType value) {
+  DartObjectImpl _typeValue(TypeImpl value) {
     return DartObjectImpl(
       _typeSystem,
       _typeProvider.typeType,

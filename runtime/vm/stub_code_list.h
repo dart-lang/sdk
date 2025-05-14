@@ -32,6 +32,7 @@ namespace dart {
   V(GetCStackPointer)                                                          \
   V(JumpToFrame)                                                               \
   V(RunExceptionHandler)                                                       \
+  V(RunExceptionHandlerUnbox)                                                  \
   V(DeoptForRewind)                                                            \
   V(WriteBarrier)                                                              \
   V(WriteBarrierWrappers)                                                      \
@@ -151,7 +152,6 @@ namespace dart {
   V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)                         \
   V(EnterSafepoint)                                                            \
   V(ExitSafepoint)                                                             \
-  V(ExitSafepointIgnoreUnwindInProgress)                                       \
   V(CallNativeThroughSafepoint)                                                \
   V(FfiCallbackTrampoline)                                                     \
   V(InitStaticField)                                                           \

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of 'types.dart';
+import '../serialize/serialize.dart';
 
 // Representations of all Wasm types.
 
@@ -191,6 +191,9 @@ class RefType extends ValueType {
   const RefType.nofunc({required bool nullable})
       : this._(HeapType.nofunc, nullable);
 
+  /// A (possibly nullable) reference to the `exn` heap type.
+  const RefType.exn({required bool nullable}) : this._(HeapType.exn, nullable);
+
   /// A (possibly nullable) reference to a custom heap type.
   RefType.def(DefType defType, {required bool nullable})
       : this(defType, nullable: nullable);
@@ -277,6 +280,12 @@ abstract class HeapType implements Serializable {
 
   /// The `nofunc` heap type.
   static const nofunc = NoFuncHeapType._();
+
+  /// The `exn` heap type.
+  static const exn = ExnHeapType._();
+
+  /// The `noexn` heap type.
+  static const noexn = NoExnHeapType._();
 
   /// Whether this heap type is nullable by default, i.e. when written with the
   /// -`ref` shorthand. A `null` value here means the heap type has no default
@@ -661,6 +670,60 @@ abstract class DefType extends HeapType {
   void serializeDefinitionInner(Serializer s);
 }
 
+/// The `exn` heap type.
+class ExnHeapType extends HeapType {
+  const ExnHeapType._();
+
+  static const defaultNullability = true;
+
+  @override
+  bool? get nullableByDefault => defaultNullability;
+
+  @override
+  HeapType get topType => HeapType.exn;
+
+  @override
+  HeapType get bottomType => HeapType.noexn;
+
+  @override
+  bool isSubtypeOf(HeapType other) =>
+      other == HeapType.common || other == HeapType.exn;
+
+  @override
+  void serialize(Serializer s) => s.writeByte(0x69); // -0x17
+
+  @override
+  String toString() => "exn";
+}
+
+/// The `noexn` heap type.
+class NoExnHeapType extends HeapType {
+  const NoExnHeapType._();
+
+  static const defaultNullability = true;
+
+  @override
+  bool? get nullableByDefault => defaultNullability;
+
+  @override
+  HeapType get topType => HeapType.exn;
+
+  @override
+  HeapType get bottomType => HeapType.noexn;
+
+  @override
+  bool isSubtypeOf(HeapType other) =>
+      other == HeapType.common ||
+      other == HeapType.exn ||
+      other == HeapType.noexn;
+
+  @override
+  void serialize(Serializer s) => s.writeByte(0x74); // -0x0c
+
+  @override
+  String toString() => "noexn";
+}
+
 /// A custom function type.
 class FunctionType extends DefType {
   final List<ValueType> inputs;
@@ -739,6 +802,7 @@ abstract class DataType extends DefType {
 /// A custom `struct` type.
 class StructType extends DataType {
   final List<FieldType> fields = [];
+  final Map<int, String> fieldNames = {};
 
   StructType(super.name, {Iterable<FieldType>? fields, super.superType}) {
     if (fields != null) this.fields.addAll(fields);

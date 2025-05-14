@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io' show File;
 import 'dart:typed_data';
 
 import 'package:build_integration/file_system/multi_root.dart'
-    show MultiRootFileSystem;
-import 'package:front_end/src/api_prototype/macros.dart' as macros
-    show isMacroLibraryUri;
+    show MultiRootFileSystem, MultiRootFileSystemEntity;
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 import 'package:front_end/src/api_unstable/vm.dart'
@@ -16,17 +15,19 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerResult,
         DiagnosticMessage,
         kernelForProgram,
-        NnbdMode,
         Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart' show writeComponentToText;
+import 'package:kernel/kernel.dart'
+    show writeComponentToBinary, writeComponentToText;
 import 'package:kernel/library_index.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
+import 'package:path/path.dart' as path show setExtension;
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
 import 'package:vm/transformations/mixin_deduplication.dart'
-    as mixin_deduplication show transformComponent;
+    as mixin_deduplication show transformLibraries;
 import 'package:vm/transformations/to_string_transformer.dart'
     as to_string_transformer;
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
@@ -37,10 +38,14 @@ import 'package:wasm_builder/wasm_builder.dart' show Serializer;
 
 import 'compiler_options.dart' as compiler;
 import 'constant_evaluator.dart';
-import 'deferred_loading.dart' as deferred_loading;
+import 'deferred_loading.dart';
+import 'dynamic_module_kernel_metadata.dart';
+import 'dynamic_modules.dart';
 import 'js/runtime_generator.dart' as js;
+import 'modules.dart';
 import 'record_class_generator.dart';
 import 'records.dart';
+import 'serialization.dart';
 import 'target.dart' as wasm show Mode;
 import 'target.dart' hide Mode;
 import 'translator.dart';
@@ -49,9 +54,10 @@ sealed class CompilationResult {}
 
 class CompilationSuccess extends CompilationResult {
   final Map<String, ({Uint8List moduleBytes, String? sourceMap})> wasmModules;
-  final String jsRuntime;
+  final String? jsRuntime;
+  final String supportJs;
 
-  CompilationSuccess(this.wasmModules, this.jsRuntime);
+  CompilationSuccess(this.wasmModules, this.jsRuntime, this.supportJs);
 }
 
 class CompilationError extends CompilationResult {}
@@ -130,13 +136,21 @@ Future<CompilationResult> compileToModule(
     }
     ..explicitExperimentalFlags = options.feExperimentalFlags
     ..verbose = false
-    ..onDiagnostic = diagnosticMessageHandler
-    ..nnbdMode = NnbdMode.Strong;
+    ..onDiagnostic = diagnosticMessageHandler;
   if (options.multiRootScheme != null) {
     compilerOptions.fileSystem = MultiRootFileSystem(
         options.multiRootScheme!,
         options.multiRoots.isEmpty ? [Uri.base] : options.multiRoots,
         StandardFileSystem.instance);
+  }
+
+  Future<Uri?> resolveUri(Uri? uri) async {
+    if (uri == null) return null;
+    var fileSystemEntity = compilerOptions.fileSystem.entityForUri(uri);
+    if (fileSystemEntity is MultiRootFileSystemEntity) {
+      fileSystemEntity = await fileSystemEntity.delegate;
+    }
+    return fileSystemEntity.uri;
   }
 
   if (options.platformPath != null) {
@@ -145,9 +159,22 @@ Future<CompilationResult> compileToModule(
     compilerOptions.compileSdk = true;
   }
 
+  final dynamicMainModuleUri = options.dynamicModuleMainUri;
+
+  final dynamicModuleMainUri = await resolveUri(options.dynamicModuleMainUri);
+  final dynamicInterfaceUri = await resolveUri(options.dynamicInterfaceUri);
+  final isDynamicMainModule =
+      dynamicModuleMainUri != null && dynamicInterfaceUri != null;
+  final isDynamicModule =
+      dynamicModuleMainUri != null && dynamicInterfaceUri == null;
+  if (isDynamicModule) {
+    compilerOptions.additionalDills.add(dynamicModuleMainUri);
+  }
+
   CompilerResult? compilerResult;
   try {
-    compilerResult = await kernelForProgram(options.mainUri, compilerOptions);
+    compilerResult = await kernelForProgram(options.mainUri, compilerOptions,
+        requireMain: !isDynamicModule);
   } catch (e, s) {
     return CFECrashError(e, s);
   }
@@ -156,7 +183,8 @@ Future<CompilationResult> compileToModule(
 
   Component component = compilerResult!.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
-  ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
+  final classHierarchy =
+      ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
   LibraryIndex libraryIndex = LibraryIndex(component, [
     "dart:_boxed_bool",
     "dart:_boxed_double",
@@ -184,42 +212,82 @@ Future<CompilationResult> compileToModule(
         component, options.deleteToStringPackageUri);
   }
 
-  if (options.translatorOptions.enableMultiModuleStressTestMode) {
-    deferred_loading.transformComponentForTestMode(
-        component, classHierarchy, coreTypes, target);
+  ModuleStrategy moduleStrategy;
+  if (options.translatorOptions.enableDeferredLoading) {
+    moduleStrategy =
+        DeferredLoadingModuleStrategy(component, options, target, coreTypes);
+  } else if (options.translatorOptions.enableMultiModuleStressTestMode) {
+    moduleStrategy =
+        StressTestModuleStrategy(component, coreTypes, target, classHierarchy);
+  } else if (isDynamicMainModule) {
+    moduleStrategy = DynamicMainModuleStrategy(
+        component,
+        coreTypes,
+        target,
+        File.fromUri(dynamicInterfaceUri).readAsStringSync(),
+        options.dynamicInterfaceUri!);
+  } else if (isDynamicModule) {
+    moduleStrategy = DynamicModuleStrategy(
+        component, options, target, coreTypes, dynamicModuleMainUri);
+  } else {
+    moduleStrategy = DefaultModuleStrategy(component);
   }
 
+  final librariesToTransform = isDynamicModule
+      ? component.getMainModuleLibraries(coreTypes)
+      : component.libraries;
   ConstantEvaluator constantEvaluator = ConstantEvaluator(
       options, target, component, coreTypes, classHierarchy, libraryIndex);
-  unreachable_code_elimination.transformComponent(target, component,
+  unreachable_code_elimination.transformLibraries(target, librariesToTransform,
       constantEvaluator, options.translatorOptions.enableAsserts);
 
-  js.RuntimeFinalizer jsRuntimeFinalizer =
-      js.createRuntimeFinalizer(component, coreTypes, classHierarchy);
+  js.RuntimeFinalizer? jsRuntimeFinalizer = isDynamicModule
+      ? null
+      : js.createRuntimeFinalizer(component, coreTypes, classHierarchy);
 
-  final Map<RecordShape, Class> recordClasses =
-      generateRecordClasses(component, coreTypes);
+  final Map<RecordShape, Class> recordClasses = generateRecordClasses(
+      component, coreTypes, isDynamicMainModule || isDynamicModule);
   target.recordClasses = recordClasses;
 
   if (options.dumpKernelBeforeTfa != null) {
     writeComponentToText(component, path: options.dumpKernelBeforeTfa!);
   }
 
-  mixin_deduplication.transformComponent(component);
+  mixin_deduplication.transformLibraries(librariesToTransform);
 
-  // Patch `dart:_internal`s `mainTearOff` getter.
-  final internalLib = component.libraries
-      .singleWhere((lib) => lib.importUri.toString() == 'dart:_internal');
-  final mainTearOff = internalLib.procedures
-      .singleWhere((procedure) => procedure.name.text == 'mainTearOff');
-  mainTearOff.isExternal = false;
-  mainTearOff.function.body = ReturnStatement(
-      ConstantExpression(StaticTearOffConstant(component.mainMethod!)));
+  moduleStrategy.prepareComponent();
 
-  // Keep the flags in-sync with
-  // pkg/vm/test/transformations/type_flow/transformer_test.dart
-  globalTypeFlow.transformComponent(target, coreTypes, component,
-      useRapidTypeAnalysis: false);
+  MainModuleMetadata mainModuleMetadata =
+      MainModuleMetadata.empty(options.translatorOptions, options.environment);
+
+  if (isDynamicModule) {
+    final filename = options.dynamicModuleMetadataFile ??
+        Uri.parse(
+            path.setExtension(dynamicMainModuleUri!.toFilePath(), '.dyndata'));
+    final dynamicModuleMetadataBytes =
+        await File.fromUri(filename).readAsBytes();
+    final source = DataDeserializer(dynamicModuleMetadataBytes, component);
+    mainModuleMetadata = MainModuleMetadata.deserialize(source);
+    mainModuleMetadata.verifyDynamicModuleOptions(options);
+    mainModuleMetadata.initializeDynamicModuleKernel(
+        component,
+        coreTypes,
+        // Create a new hierarchy with generated record classes.
+        ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy);
+  } else if (isDynamicMainModule) {
+    MainModuleMetadata.verifyMainModuleOptions(options);
+    writeComponentToBinary(component, dynamicModuleMainUri.path,
+        includeSource: false);
+  }
+
+  if (!isDynamicModule) {
+    _patchMainTearOffs(coreTypes, component);
+
+    // Keep the flags in-sync with
+    // pkg/vm/test/transformations/type_flow/transformer_test.dart
+    globalTypeFlow.transformComponent(target, coreTypes, component,
+        useRapidTypeAnalysis: false);
+  }
 
   if (options.dumpKernelAfterTfa != null) {
     writeComponentToText(component,
@@ -232,27 +300,24 @@ Future<CompilationResult> compileToModule(
     return true;
   }());
 
-  final moduleOutputData = deferred_loading.modulesForComponent(
-      component, options, target, coreTypes);
+  final moduleOutputData = moduleStrategy.buildModuleOutputData();
 
   var translator = Translator(component, coreTypes, libraryIndex, recordClasses,
-      moduleOutputData, options.translatorOptions);
+      moduleOutputData, options.translatorOptions,
+      mainModuleMetadata: mainModuleMetadata,
+      enableDynamicModules: dynamicModuleMainUri != null);
 
   String? depFile = options.depFile;
   if (depFile != null) {
-    writeDepfile(
-        compilerOptions.fileSystem,
-        // TODO(https://dartbug.com/55246): track macro deps when available.
-        component.uriToSource.keys
-            .where((uri) => !macros.isMacroLibraryUri(uri)),
-        options.outputFile,
-        depFile);
+    writeDepfile(compilerOptions.fileSystem, component.uriToSource.keys,
+        options.outputFile, depFile);
   }
 
   final generateSourceMaps = options.translatorOptions.generateSourceMaps;
   final modules = translator.translate(sourceMapUrlGenerator);
   final wasmModules = <String, ({Uint8List moduleBytes, String? sourceMap})>{};
   modules.forEach((moduleOutput, module) {
+    if (moduleOutput.skipEmit) return;
     final serializer = Serializer();
     module.serialize(serializer);
     final wasmModuleSerialized = serializer.data;
@@ -263,10 +328,97 @@ Future<CompilationResult> compileToModule(
         (moduleBytes: wasmModuleSerialized, sourceMap: sourceMap);
   });
 
-  String jsRuntime = jsRuntimeFinalizer.generate(
+  final jsRuntime = jsRuntimeFinalizer?.generate(
       translator.functions.translatedProcedures,
       translator.internalizedStringsForJSRuntime,
+      translator.options.requireJsStringBuiltin,
+      translator.options.enableDeferredLoading ||
+          translator.options.enableMultiModuleStressTestMode ||
+          translator.dynamicModuleSupportEnabled,
       mode);
 
-  return CompilationSuccess(wasmModules, jsRuntime);
+  final supportJs = _generateSupportJs(options.translatorOptions);
+  if (isDynamicMainModule) {
+    final filename = options.dynamicModuleMetadataFile ??
+        Uri.parse(
+            path.setExtension(dynamicMainModuleUri!.toFilePath(), '.dyndata'));
+    final serializer = DataSerializer(translator.component);
+    translator.dynamicModuleInfo!.metadata.serialize(serializer, translator);
+    await File.fromUri(filename).writeAsBytes(serializer.takeBytes());
+  }
+
+  return CompilationSuccess(wasmModules, jsRuntime, supportJs);
+}
+
+// Patches `dart:_internal`s `mainTearOff{0,1,2}` getters.
+void _patchMainTearOffs(CoreTypes coreTypes, Component component) {
+  final mainMethod = component.mainMethod!;
+  final mainMethodType = mainMethod.computeSignatureOrFunctionType();
+  void patchToReturnMainTearOff(Procedure p) {
+    p.function.body =
+        ReturnStatement(ConstantExpression(StaticTearOffConstant(mainMethod)))
+          ..parent = p.function;
+  }
+
+  final typeEnv =
+      TypeEnvironment(coreTypes, ClassHierarchy(component, coreTypes));
+  bool mainHasType(DartType type) => typeEnv.isSubtypeOf(
+      mainMethodType, type, SubtypeCheckMode.withNullabilities);
+
+  final internalLib = coreTypes.index.getLibrary('dart:_internal');
+  (Procedure, DartType) lookupAndInitialize(String name) {
+    final p = internalLib.procedures
+        .singleWhere((procedure) => procedure.name.text == name);
+    p.isExternal = false;
+    p.function.body = ReturnStatement(NullLiteral())..parent = p.function;
+    return (p, p.function.returnType.toNonNull());
+  }
+
+  final (mainTearOff0, mainArg0Type) = lookupAndInitialize('mainTearOffArg0');
+  final (mainTearOff1, mainArg1Type) = lookupAndInitialize('mainTearOffArg1');
+  final (mainTearOff2, mainArg2Type) = lookupAndInitialize('mainTearOffArg2');
+  if (mainHasType(mainArg2Type)) return patchToReturnMainTearOff(mainTearOff2);
+  if (mainHasType(mainArg1Type)) return patchToReturnMainTearOff(mainTearOff1);
+  if (mainHasType(mainArg0Type)) return patchToReturnMainTearOff(mainTearOff0);
+}
+
+String _generateSupportJs(TranslatorOptions options) {
+  // Copied from
+  // https://github.com/GoogleChromeLabs/wasm-feature-detect/blob/main/src/detectors/gc/index.js
+  //
+  // Uses WasmGC types and will only validate correctly if the engine supports
+  // WasmGC:
+  // ```
+  //     (module
+  //       (type $type0 (struct (field $field0 i8)))
+  //     )
+  // ```
+  //
+  // NOTE: Once we support more feature detections we may use
+  // `package:wasm_builder` to create the module instead of having a fixed one
+  // here.
+  const String supportsWasmGC =
+      'WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,5,1,95,1,120,0]))';
+
+  // Imports a `js-string` builtin spec function *with wrong signature*. An engine
+  //
+  //   * *without* knowledge about `js-string` builtin would accept such an import at
+  //     validation time.
+  //
+  //   * *with* knowledge about `js-string` would refuse it as the signature
+  //   used to import the `cast` function is not according to `js-string` spec
+  //
+  //  ```
+  //     (module
+  //     (func $wasm:js-string.cast (;0;) (import "wasm:js-string" "cast"))
+  //     )
+  // ```
+  const String supportsJsStringBuiltins =
+      '!WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,4,1,96,0,0,2,23,1,14,119,97,115,109,58,106,115,45,115,116,114,105,110,103,4,99,97,115,116,0,0]),{"builtins":["js-string"]})';
+
+  final requiredFeatures = [
+    supportsWasmGC,
+    if (options.requireJsStringBuiltin) supportsJsStringBuiltins
+  ];
+  return '(${requiredFeatures.join('&&')})';
 }

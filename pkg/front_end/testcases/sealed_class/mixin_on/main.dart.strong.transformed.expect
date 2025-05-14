@@ -22,12 +22,12 @@ import "org-dartlang-testcase:///main_lib.dart";
 
 abstract class MClass extends mai::SealedClass /*isMixinDeclaration*/  {
 }
+abstract class MClassMultiple extends self::_MClassMultiple&SealedClass&SealedClass2 /*isMixinDeclaration*/  {
+}
 abstract class _MClassMultiple&SealedClass&SealedClass2 extends core::Object implements mai::SealedClass, mai::SealedClass2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_MClassMultiple&SealedClass&SealedClass2
     : super core::Object::•()
     ;
-}
-abstract class MClassMultiple extends self::_MClassMultiple&SealedClass&SealedClass2 /*isMixinDeclaration*/  {
 }
 
 library;

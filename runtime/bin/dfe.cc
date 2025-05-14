@@ -9,7 +9,6 @@
 #include "bin/error_exit.h"
 #include "bin/exe_utils.h"
 #include "bin/file.h"
-#include "bin/lockers.h"
 #include "bin/platform.h"
 #include "bin/snapshot_utils.h"
 #include "bin/utils.h"
@@ -67,9 +66,7 @@ DFE::DFE()
       use_incremental_compiler_(false),
       frontend_filename_(nullptr),
       application_kernel_buffer_(nullptr),
-      application_kernel_buffer_size_(0),
-      kernel_blobs_(&SimpleHashMap::SameStringValue, 4),
-      kernel_blobs_lock_() {}
+      application_kernel_buffer_size_(0) {}
 
 DFE::~DFE() {
   if (frontend_filename_ != nullptr) {
@@ -80,9 +77,6 @@ DFE::~DFE() {
   free(application_kernel_buffer_);
   application_kernel_buffer_ = nullptr;
   application_kernel_buffer_size_ = 0;
-
-  kernel_blobs_.Clear(
-      [](void* value) { delete reinterpret_cast<KernelBlob*>(value); });
 }
 
 void DFE::Init() {
@@ -242,19 +236,14 @@ void DFE::ReadScript(const char* script_uri,
                      const AppSnapshot* app_snapshot,
                      uint8_t** kernel_buffer,
                      intptr_t* kernel_buffer_size,
-                     bool decode_uri,
-                     std::shared_ptr<uint8_t>* kernel_blob_ptr) {
+                     bool decode_uri) const {
   int64_t start = Dart_TimelineGetMicros();
   if (!TryReadKernelFile(script_uri, app_snapshot, kernel_buffer,
-                         kernel_buffer_size, decode_uri, kernel_blob_ptr)) {
+                         kernel_buffer_size, decode_uri)) {
     return;
   }
   if (!Dart_IsKernel(*kernel_buffer, *kernel_buffer_size)) {
-    if (kernel_blob_ptr != nullptr && *kernel_blob_ptr) {
-      *kernel_blob_ptr = nullptr;
-    } else {
-      free(*kernel_buffer);
-    }
+    free(*kernel_buffer);
     *kernel_buffer = nullptr;
     *kernel_buffer_size = -1;
   }
@@ -438,20 +427,10 @@ bool DFE::TryReadKernelFile(const char* script_uri,
                             const AppSnapshot* app_snapshot,
                             uint8_t** kernel_ir,
                             intptr_t* kernel_ir_size,
-                            bool decode_uri,
-                            std::shared_ptr<uint8_t>* kernel_blob_ptr) {
+                            bool decode_uri) const {
   *kernel_ir = nullptr;
   *kernel_ir_size = -1;
 
-  if (decode_uri && kernel_blob_ptr != nullptr) {
-    *kernel_blob_ptr = TryFindKernelBlob(script_uri, kernel_ir_size);
-    if (*kernel_blob_ptr) {
-      *kernel_ir = kernel_blob_ptr->get();
-      ASSERT(DartUtils::SniffForMagicNumber(*kernel_ir, *kernel_ir_size) ==
-             DartUtils::kKernelMagicNumber);
-      return true;
-    }
-  }
   if (app_snapshot == nullptr || app_snapshot->IsKernel() ||
       app_snapshot->IsKernelList()) {
     uint8_t* buffer;
@@ -477,73 +456,6 @@ bool DFE::TryReadKernelFile(const char* script_uri,
     return TryReadSimpleKernelBuffer(buffer, kernel_ir, kernel_ir_size);
   }
   return false;
-}
-
-const char* DFE::RegisterKernelBlob(const uint8_t* kernel_buffer,
-                                    intptr_t kernel_buffer_size) {
-  ASSERT(DartUtils::SniffForMagicNumber(kernel_buffer, kernel_buffer_size) ==
-         DartUtils::kKernelMagicNumber);
-  uint8_t* buffer_copy = reinterpret_cast<uint8_t*>(malloc(kernel_buffer_size));
-  if (buffer_copy == nullptr) {
-    return nullptr;
-  }
-  memmove(buffer_copy, kernel_buffer, kernel_buffer_size);
-
-  MutexLocker ml(&kernel_blobs_lock_);
-  ++kernel_blob_counter_;
-  char* uri =
-      Utils::SCreate("dart-kernel-blob://blob%" Pd, kernel_blob_counter_);
-  KernelBlob* blob = new KernelBlob(uri, buffer_copy, kernel_buffer_size);
-
-  const uint32_t hash = SimpleHashMap::StringHash(uri);
-  SimpleHashMap::Entry* entry =
-      kernel_blobs_.Lookup(uri, hash, /*insert=*/true);
-  ASSERT(entry != nullptr);
-  ASSERT(entry->value == nullptr);
-  entry->value = blob;
-
-  return uri;
-}
-
-std::shared_ptr<uint8_t> DFE::TryFindKernelBlob(const char* uri,
-                                                intptr_t* kernel_length) {
-  *kernel_length = -1;
-
-  MutexLocker ml(&kernel_blobs_lock_);
-  if (kernel_blob_counter_ == 0) {
-    return nullptr;
-  }
-
-  // This const_cast is safe as this 'key' is only used to find entry, not add.
-  void* key = const_cast<char*>(uri);
-  const uint32_t hash = SimpleHashMap::StringHash(uri);
-  SimpleHashMap::Entry* entry =
-      kernel_blobs_.Lookup(key, hash, /*insert=*/false);
-  if (entry == nullptr) {
-    return nullptr;
-  }
-
-  KernelBlob* blob = reinterpret_cast<KernelBlob*>(entry->value);
-  *kernel_length = blob->size();
-  return blob->buffer();
-}
-
-void DFE::UnregisterKernelBlob(const char* uri) {
-  MutexLocker ml(&kernel_blobs_lock_);
-
-  // This const_cast is safe as this 'key' is only used to find entry, not add.
-  void* key = const_cast<char*>(uri);
-  const uint32_t hash = SimpleHashMap::StringHash(uri);
-  SimpleHashMap::Entry* entry =
-      kernel_blobs_.Lookup(key, hash, /*insert=*/false);
-  if (entry == nullptr) {
-    return;
-  }
-
-  KernelBlob* blob = reinterpret_cast<KernelBlob*>(entry->value);
-  entry->value = nullptr;
-  kernel_blobs_.Remove(key, hash);
-  delete blob;
 }
 
 }  // namespace bin

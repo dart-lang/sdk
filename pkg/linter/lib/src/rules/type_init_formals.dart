@@ -12,17 +12,16 @@ const _desc = "Don't type annotate initializing formals.";
 
 class TypeInitFormals extends LintRule {
   TypeInitFormals()
-      : super(
-          name: LintNames.type_init_formals,
-          description: _desc,
-        );
+    : super(name: LintNames.type_init_formals, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.type_init_formals;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFieldFormalParameter(this, visitor);
     registry.addSuperFormalParameter(this, visitor);

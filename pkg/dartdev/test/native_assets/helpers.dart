@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:dartdev/src/sdk.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart';
 import 'package:native_assets_builder/src/utils/run_process.dart'
@@ -184,9 +186,12 @@ Future<void> nativeAssetsTest(
         'dart_app',
         'drop_dylib_link',
         'native_add_duplicate',
+        'native_add_version_skew',
         'native_add',
         'native_dynamic_linking',
+        'system_library',
         'treeshaking_native_libs',
+        'user_defines',
       ],
       Platform.script.resolve(
           '../../../../third_party/pkg/native/pkgs/native_assets_builder/'),
@@ -245,3 +250,7 @@ Future<run_process.RunProcessResult> runDart({
   }
   return result;
 }
+
+final nativeAssetsExperimentAvailableOnCurrentChannel = ExperimentalFeatures
+    .native_assets.channels
+    .contains(Runtime.runtime.channel);

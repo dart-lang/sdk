@@ -456,8 +456,6 @@ class TimelineEvent {
 
   bool HasIsolateId() const;
   bool HasIsolateGroupId() const;
-  std::unique_ptr<const char[]> GetFormattedIsolateId() const;
-  std::unique_ptr<const char[]> GetFormattedIsolateGroupId() const;
 
   // The lowest time value stored in this event.
   int64_t LowTime() const;
@@ -533,7 +531,7 @@ class TimelineEvent {
     }
   }
 
-  bool Within(int64_t time_origin_micros, int64_t time_extent_micros);
+  bool Within(int64_t time_origin_micros, int64_t time_extent_micros) const;
 
   void set_owns_label(bool owns_label) {
     state_ = OwnsLabelBit::update(owns_label, state_);
@@ -846,7 +844,7 @@ class TimelineEventFilter : public ValueObject {
 
   virtual ~TimelineEventFilter();
 
-  virtual bool IncludeEvent(TimelineEvent* event) const {
+  virtual bool IncludeEvent(const TimelineEvent* event) const {
     if (event == nullptr) {
       return false;
     }
@@ -868,7 +866,7 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
                                       int64_t time_origin_micros = -1,
                                       int64_t time_extent_micros = -1);
 
-  bool IncludeEvent(TimelineEvent* event) const final {
+  bool IncludeEvent(const TimelineEvent* event) const final {
     return event->IsValid() && (event->isolate_id() == isolate_id_);
   }
 
@@ -977,14 +975,9 @@ class TimelineEventRecorder : public MallocAllocated {
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
 };
 
-// An abstract recorder that stores events in a buffer of fixed capacity.
-class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
+// An abstract recorder that buffers recorded events.
+class TimelineEventBufferedRecorder : public TimelineEventRecorder {
  public:
-  static constexpr intptr_t kDefaultCapacity = 32 * KB;  // Number of events.
-
-  explicit TimelineEventFixedBufferRecorder(intptr_t capacity);
-  virtual ~TimelineEventFixedBufferRecorder();
-
 #ifndef PRODUCT
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
 #if defined(SUPPORT_PERFETTO)
@@ -992,7 +985,32 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
                              const TimelineEventFilter& filter) final;
 #endif  // defined(SUPPORT_PERFETTO)
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
+
+ private:
+  virtual void ForEachNonEmptyBlock(
+      std::function<void(const TimelineEventBlock&)>&& handle_block) = 0;
+
+  void PrintJSONEvents(const JSONArray& array,
+                       const TimelineEventFilter& filter);
+
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoEvents(JSONBase64String* jsonBase64String,
+                           const TimelineEventFilter& filter);
+#endif  // defined(SUPPORT_PERFETTO)
+
+  void PrintEventsCommon(
+      const TimelineEventFilter& filter,
+      std::function<void(const TimelineEvent&)>&& print_impl);
 #endif  // !defined(PRODUCT)
+};
+
+// An abstract recorder that stores events in a buffer of fixed capacity.
+class TimelineEventFixedBufferRecorder : public TimelineEventBufferedRecorder {
+ public:
+  static constexpr intptr_t kDefaultCapacity = 32 * KB;  // Number of events.
+
+  explicit TimelineEventFixedBufferRecorder(intptr_t capacity);
+  virtual ~TimelineEventFixedBufferRecorder();
 
   intptr_t Size();
 
@@ -1004,15 +1022,6 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   intptr_t FindOldestBlockIndexLocked() const;
   void ClearLocked();
 
-#ifndef PRODUCT
-  void PrintJSONEvents(const JSONArray& array,
-                       const TimelineEventFilter& filter);
-#if defined(SUPPORT_PERFETTO)
-  void PrintPerfettoEvents(JSONBase64String* jsonBase64String,
-                           const TimelineEventFilter& filter);
-#endif  // defined(SUPPORT_PERFETTO)
-#endif  // !defined(PRODUCT)
-
   VirtualMemory* memory_;
   TimelineEventBlock* blocks_;
   intptr_t capacity_;
@@ -1020,10 +1029,9 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   intptr_t block_cursor_;
 
  private:
-#if !defined(PRODUCT)
-  inline void PrintEventsCommon(
-      const TimelineEventFilter& filter,
-      std::function<void(const TimelineEvent&)>&& print_impl);
+#ifndef PRODUCT
+  void ForEachNonEmptyBlock(
+      std::function<void(const TimelineEventBlock&)>&& handle_block) final;
 #endif  // !defined(PRODUCT)
 };
 
@@ -1109,19 +1117,10 @@ class TimelineEventNopRecorder : public TimelineEventCallbackRecorder {
 // A recorder that stores events in chains of blocks of events.
 // NOTE: This recorder will continue to allocate blocks until it exhausts
 // memory.
-class TimelineEventEndlessRecorder : public TimelineEventRecorder {
+class TimelineEventEndlessRecorder : public TimelineEventBufferedRecorder {
  public:
   TimelineEventEndlessRecorder();
   virtual ~TimelineEventEndlessRecorder();
-
-#ifndef PRODUCT
-  void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
-#if defined(SUPPORT_PERFETTO)
-  void PrintPerfettoTimeline(JSONStream* js,
-                             const TimelineEventFilter& filter) final;
-#endif  // defined(SUPPORT_PERFETTO)
-  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
-#endif  // !defined(PRODUCT)
 
   const char* name() const { return ENDLESS_RECORDER_NAME; }
   intptr_t Size() { return block_index_ * sizeof(TimelineEventBlock); }
@@ -1133,24 +1132,14 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   TimelineEventBlock* GetHeadBlockLocked();
   void ClearLocked();
 
-#ifndef PRODUCT
-  void PrintJSONEvents(const JSONArray& array,
-                       const TimelineEventFilter& filter);
-#if defined(SUPPORT_PERFETTO)
-  void PrintPerfettoEvents(JSONBase64String* jsonBase64String,
-                           const TimelineEventFilter& filter);
-#endif  // defined(SUPPORT_PERFETTO)
-#endif  // !defined(PRODUCT)
-
   TimelineEventBlock* head_;
   TimelineEventBlock* tail_;
   intptr_t block_index_;
 
  private:
-#if !defined(PRODUCT)
-  inline void PrintEventsCommon(
-      const TimelineEventFilter& filter,
-      std::function<void(const TimelineEvent&)>&& print_impl);
+#ifndef PRODUCT
+  void ForEachNonEmptyBlock(
+      std::function<void(const TimelineEventBlock&)>&& handle_block) final;
 #endif  // !defined(PRODUCT)
 
   friend class TimelineTestHelper;
@@ -1285,22 +1274,6 @@ class TimelineEventFileRecorder : public TimelineEventFileRecorderBase {
 
   bool first_;
 };
-
-#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
-class TimelineEventPerfettoFileRecorder : public TimelineEventFileRecorderBase {
- public:
-  explicit TimelineEventPerfettoFileRecorder(const char* path);
-  virtual ~TimelineEventPerfettoFileRecorder();
-
-  const char* name() const final { return PERFETTO_FILE_RECORDER_NAME; }
-
- private:
-  void WritePacket(
-      protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet)
-      const;
-  void DrainImpl(const TimelineEvent& event) final;
-};
-#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 class DartTimelineEventHelpers : public AllStatic {
  public:

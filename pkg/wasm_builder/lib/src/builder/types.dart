@@ -75,6 +75,7 @@ class _RecGroupBuilder {
   late final List<List<ir.DefType>> _allRecursiveGroups =
       _createAllRecursiveGroups();
   final List<ir.DefType> _allDefinedTypes = [];
+  final Map<ir.DefType, int> _brandTypeAssignments = {};
 
   _RecGroupBuilder();
 
@@ -121,7 +122,7 @@ class _RecGroupBuilder {
   /// If a rec group is in an equivalence class with multiple groups, it will be
   /// assigned an index encoded as a brand type. The brand types allows the wasm
   /// type system to disambiguate members of otherwise equivalent rec groups.
-  static void _assignBrandTypes(List<List<ir.DefType>> groups) {
+  void _assignBrandTypes(List<List<ir.DefType>> groups) {
     // Collect rec groups joining over:
     // (1) group length
     // (2) length of first struct
@@ -148,7 +149,12 @@ class _RecGroupBuilder {
       // All the groups in `equalGroups` are structurally equivalent.
       // Skip the first group since we can leave one group as-is.
       for (int i = 1; i < equalGroups.length; i++) {
-        equalGroups[i].insert(0, _getBrandType(i - 1));
+        // Key the assignment on the first element in the group. If a user is
+        // trying to use the brand index to restore the group, then all other
+        // elements are implicitly the same.
+        final typeIndex = _brandTypeAssignments[equalGroups[i].first] ??= i - 1;
+        final brandType = _getBrandType(typeIndex);
+        equalGroups[i].insert(0, brandType);
       }
     }
   }
@@ -241,6 +247,12 @@ class TypesBuilder with Builder<ir.Types> {
   TypesBuilder(this._module, {TypesBuilder? parent})
       : _recGroupBuilder = parent?._recGroupBuilder ?? _RecGroupBuilder();
 
+  Map<ir.DefType, int> get brandTypeAssignments =>
+      _recGroupBuilder._brandTypeAssignments;
+
+  void addBrandTypeAssignment(ir.DefType type, int brandIndex) =>
+      _recGroupBuilder._brandTypeAssignments[type] = brandIndex;
+
   /// Add a new function type to the module.
   ///
   /// All function types are canonicalized, such that identical types become
@@ -299,9 +311,22 @@ class TypesBuilder with Builder<ir.Types> {
   ir.Types forceBuild() {
     final usedTypes = _collectUsedTypes();
     final types = _recGroupBuilder.createGroupsForModule(usedTypes);
-    final nameCount =
-        types.fold(0, (p, e) => p + e.whereType<ir.DataType>().length);
-    return ir.Types(types, nameCount);
+
+    int nameCount = 0;
+    int typesWithNamedFieldsCount = 0;
+
+    for (final recursionGroup in types) {
+      for (final defType in recursionGroup) {
+        if (defType is ir.DataType) {
+          nameCount += 1;
+          if (defType is ir.StructType && defType.fieldNames.isNotEmpty) {
+            typesWithNamedFieldsCount += 1;
+          }
+        }
+      }
+    }
+
+    return ir.Types(types, nameCount, typesWithNamedFieldsCount);
   }
 }
 

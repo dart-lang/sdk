@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CastNullableToNonNullableTest);
   });
@@ -34,12 +34,13 @@ void f(dynamic a) {
   }
 
   test_castNullable_toNonNullable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 String? s;
 var a = s as String;
-''', [
-      lint(19, 11),
-    ]);
+''',
+      [lint(19, 11)],
+    );
   }
 
   test_castNullable_toNullable() async {
@@ -54,12 +55,15 @@ void f(A? a) {
   }
 
   test_castNullable_unresolvedType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Undefined? s;
 var a = s! as String;
-''', [
-      // No lint.
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 9),
-    ]);
+''',
+      [
+        // No lint.
+        error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 9),
+      ],
+    );
   }
 }

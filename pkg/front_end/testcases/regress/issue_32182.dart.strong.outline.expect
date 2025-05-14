@@ -12,16 +12,16 @@ abstract class M extends core::Object /*isMixinDeclaration*/  {
   method m() → dynamic
     ;
 }
+class C extends self::_C&A&M {
+  synthetic constructor •() → self::C
+    ;
+}
 abstract class _C&A&M = self::A<self::A<dynamic>> with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_C&A&M
     : super self::A::•()
     ;
   mixin-super-stub method m() → dynamic
     return super.{self::M::m}();
-}
-class C extends self::_C&A&M {
-  synthetic constructor •() → self::C
-    ;
 }
 static method main() → dynamic
   ;

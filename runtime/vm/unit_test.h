@@ -103,7 +103,7 @@
     volatile intptr_t far_branch_level = 0;                                    \
     while (true) {                                                             \
       LongJumpScope jump(thread);                                              \
-      if (setjmp(*jump.Set()) == 0) {                                          \
+      if (DART_SETJMP(*jump.Set()) == 0) {                                     \
         compiler::ObjectPoolBuilder object_pool_builder;                       \
         compiler::Assembler assembler(&object_pool_builder, far_branch_level); \
         AssemblerTest test("" #name, &assembler, thread->zone());              \

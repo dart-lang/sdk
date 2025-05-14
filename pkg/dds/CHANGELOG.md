@@ -1,3 +1,8 @@
+# 5.0.1-wip
+
+- Widen the dependency on `package:shelf_web_socket`.
+- Require Dart SDK v. 3.5.0 or higher.
+
 # 5.0.0
 - [DAP] The debug adapter no longer spawns its own in-process copy of DDS, instead relying on one started by the Dart VM (or `Flutter`). This means the `enableDds` and `enableAuthCodes` arguments to the `DartDebugAdapter` base class have been deprecated and have any effect. Suppressing DDS (or auth codes) should be done in launch configuration (for example using `vmAdditionalArgs` or `toolArgs` depending on the target tool).
 - Updated the `devtools_shared` dependency to version `^11.0.0`.
@@ -7,7 +12,7 @@
   lifetime of instance references returned. This should avoid instances being
   collected while execution is paused, while releasing them once execution
   resumes.
-- Updated `vm_service` constraint to `>=14.0.0 <16.0.0`.
+- Updated `vm_service` constraint to `>=14.3.0 <16.0.0`.
 - [DAP] Updated `dap` constraint to ^1.4.0.
 - [DAP] Set `supportsANSIStyling` to `true` in debug adapter capabilities to indicate that `Output` events might contain ansi color codes.
 - [DAP] Stack traces in more formats will be parsed and have locations attached to `OutputEvents`s.

@@ -9,7 +9,6 @@ import 'package:modular_test/src/create_package_config.dart';
 import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/runner.dart';
-import 'package:modular_test/src/steps/macro_precompile_aot.dart';
 import 'package:modular_test/src/steps/util.dart';
 import 'package:modular_test/src/suite.dart';
 import 'package:path/path.dart' as p;
@@ -27,10 +26,6 @@ const jsId = DataId('js');
 const txtId = DataId('txt');
 
 class SourceToSummaryDillStep implements IOModularStep {
-  bool soundNullSafety;
-
-  SourceToSummaryDillStep({required this.soundNullSafety});
-
   @override
   List<DataId> get resultData => const [dillId];
 
@@ -38,7 +33,7 @@ class SourceToSummaryDillStep implements IOModularStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [dillId, precompiledMacroId];
+  List<DataId> get dependencyDataNeeded => const [dillId];
 
   @override
   List<DataId> get moduleDataNeeded => const [];
@@ -102,7 +97,6 @@ class SourceToSummaryDillStep implements IOModularStep {
       '--multi-root-scheme',
       rootScheme,
       ...extraArgs,
-      if (soundNullSafety) '--sound-null-safety' else '--no-sound-null-safety',
       '--output',
       '${toUri(module, dillId)}',
       if (!module.isSdk) ...[
@@ -113,10 +107,6 @@ class SourceToSummaryDillStep implements IOModularStep {
       ...transitiveDependencies
           .where((m) => !m.isSdk)
           .expand((m) => ['--input-summary', '${toUri(m, dillId)}']),
-      ...transitiveDependencies
-          .where((m) => m.macroConstructors.isNotEmpty)
-          .expand((m) =>
-              ['--precompiled-macro', '${precompiledMacroArg(m, toUri)};']),
       ...sources.expand((String uri) => ['--source', uri]),
       ...flags.expand((String flag) => ['--enable-experiment', flag]),
     ];
@@ -130,16 +120,12 @@ class SourceToSummaryDillStep implements IOModularStep {
   void notifyCached(Module module) {
     if (_options.verbose) print('\ncached step: source-to-dill on $module');
   }
-
-  @override
-  bool shouldExecute(Module module) => true;
 }
 
 class DDCStep implements IOModularStep {
-  bool soundNullSafety;
   bool canaryFeatures;
 
-  DDCStep({required this.soundNullSafety, required this.canaryFeatures});
+  DDCStep({required this.canaryFeatures});
 
   @override
   List<DataId> get resultData => const [jsId];
@@ -148,7 +134,7 @@ class DDCStep implements IOModularStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [dillId, precompiledMacroId];
+  List<DataId> get dependencyDataNeeded => const [dillId];
 
   @override
   List<DataId> get moduleDataNeeded => const [dillId];
@@ -207,16 +193,11 @@ class DDCStep implements IOModularStep {
       rootScheme,
       ...sources,
       ...extraArgs,
-      if (soundNullSafety) '--sound-null-safety' else '--no-sound-null-safety',
       if (canaryFeatures) '--canary',
       for (String flag in flags) '--enable-experiment=$flag',
       ...transitiveDependencies
           .where((m) => !m.isSdk)
           .expand((m) => ['-s', '${toUri(m, dillId)}=${m.name}']),
-      ...transitiveDependencies
-          .where((m) => m.macroConstructors.isNotEmpty)
-          .expand((m) =>
-              ['--precompiled-macro', '${precompiledMacroArg(m, toUri)};']),
       '-o',
       '$output',
     ];
@@ -229,9 +210,6 @@ class DDCStep implements IOModularStep {
   void notifyCached(Module module) {
     if (_options.verbose) print('\ncached step: ddc on $module');
   }
-
-  @override
-  bool shouldExecute(Module module) => true;
 }
 
 class RunD8 implements IOModularStep {
@@ -294,9 +272,6 @@ class RunD8 implements IOModularStep {
   void notifyCached(Module module) {
     if (_options.verbose) print('\ncached step: d8 on $module');
   }
-
-  @override
-  bool shouldExecute(Module module) => true;
 }
 
 String get _d8executable {
@@ -350,12 +325,5 @@ Future<void> resolveScripts(Options options) async {
       'bin',
       Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
     );
-  } else {
-    // This can be removed once we stop supporting ia32 architecture.
-    _dartdevcScript = await resolve('pkg/dev_compiler/bin/dartdevc.dart',
-        'snapshots/dartdevc.dart.snapshot');
-    _kernelWorkerScript = await resolve('utils/bazel/kernel_worker.dart',
-        'snapshots/kernel_worker.dart.snapshot');
-    _dartExecutable = Platform.resolvedExecutable;
   }
 }

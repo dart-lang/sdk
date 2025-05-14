@@ -162,7 +162,6 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// final fixedLengthList = List.empty(growable: false);
   /// fixedLengthList.add(1); // error
   /// ```
-  @Since("2.9")
   external factory List.empty({bool growable = false});
 
   /// Creates a list containing all [elements].

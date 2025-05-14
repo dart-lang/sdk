@@ -9,9 +9,9 @@ class Foo {
   foo(this.x) {}
   //  ^^^^
   // [analyzer] SYNTACTIC_ERROR.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
-  // [cfe] Field formal parameters can only be used in a constructor.
   //  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+  // [cfe] Field formal parameters can only be used in a constructor.
 }
 
 main() {

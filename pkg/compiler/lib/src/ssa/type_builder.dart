@@ -31,8 +31,7 @@ abstract class TypeBuilder {
   AbstractValue? trustTypeMask(DartType type, {bool hasLateSentinel = false}) {
     type = builder.localsHandler.substInContext(type);
     if (_closedWorld.dartTypes.isTopType(type)) return null;
-    bool includeNull =
-        _closedWorld.dartTypes.useLegacySubtyping || type is NullableType;
+    bool includeNull = type is NullableType;
     type = type.withoutNullability;
     if (type is! InterfaceType) return null;
     // The type element is either a class or the void element.
@@ -43,6 +42,12 @@ abstract class TypeBuilder {
             : _abstractValueDomain.createNonNullSubtype(element);
     if (hasLateSentinel) mask = _abstractValueDomain.includeLateSentinel(mask);
     return mask;
+  }
+
+  /// If needed, create a HTypeKnown to 'trust' the type of [original] when the
+  /// language type promotion has refined the type to [type].
+  HInstruction trustPromotedType(HInstruction original, DartType type) {
+    return _trustType(original, type);
   }
 
   /// Create an instruction to simply trust the provided type.
@@ -71,21 +76,6 @@ abstract class TypeBuilder {
       return original;
     }
     return other;
-  }
-
-  /// Produces code that checks the runtime type is actually the type specified
-  /// by attempting a type conversion.
-  HInstruction _checkBoolConversion(HInstruction original) {
-    var checkInstruction = HBoolConversion(
-      original,
-      _abstractValueDomain.boolType,
-    );
-    if (checkInstruction.isRedundant(_closedWorld)) {
-      return original;
-    }
-    DartType boolType = _closedWorld.commonElements.boolType;
-    builder.registry.registerTypeUse(TypeUse.isCheck(boolType));
-    return checkInstruction;
   }
 
   HInstruction trustTypeOfParameter(
@@ -154,24 +144,6 @@ abstract class TypeBuilder {
     DartType type,
   ) {
     HInstruction checkedOrTrusted = _trustType(original, type);
-    if (checkedOrTrusted == original) return original;
-    builder.add(checkedOrTrusted);
-    return checkedOrTrusted;
-  }
-
-  HInstruction potentiallyCheckOrTrustTypeOfCondition(
-    MemberEntity memberContext,
-    HInstruction original,
-  ) {
-    DartType boolType = _closedWorld.commonElements.boolType;
-    HInstruction checkedOrTrusted = original;
-    CheckPolicy conditionCheckPolicy = builder.closedWorld.annotationsData
-        .getConditionCheckPolicy(memberContext);
-    if (conditionCheckPolicy.isTrusted) {
-      checkedOrTrusted = _trustType(original, boolType);
-    } else if (conditionCheckPolicy.isEmitted) {
-      checkedOrTrusted = _checkBoolConversion(original);
-    }
     if (checkedOrTrusted == original) return original;
     builder.add(checkedOrTrusted);
     return checkedOrTrusted;
@@ -385,11 +357,7 @@ abstract class TypeBuilder {
     required bool isTypeError,
     SourceInformation? sourceInformation,
   }) {
-    if (builder.options.experimentNullSafetyChecks) {
-      if (_closedWorld.dartTypes.isStrongTopType(type)) return original;
-    } else {
-      if (_closedWorld.dartTypes.isTopType(type)) return original;
-    }
+    if (_closedWorld.dartTypes.isTopType(type)) return original;
 
     HInstruction reifiedType = analyzeTypeArgument(
       type,
@@ -397,7 +365,7 @@ abstract class TypeBuilder {
       sourceInformation: sourceInformation,
     );
     AbstractValueWithPrecision checkedType = _abstractValueDomain
-        .createFromStaticType(type, nullable: true);
+        .createFromStaticType(type);
     AbstractValue instructionType = _abstractValueDomain.intersection(
       original.instructionType,
       checkedType.abstractValue,

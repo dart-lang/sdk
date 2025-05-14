@@ -22,21 +22,20 @@ sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
 import gn_helpers
 
 SCRIPT_DIR = os.path.dirname(__file__)
-SDK_VERSION = '10.0.22621.0'
+SDK_VERSION = '10.0.26100.0'
 
 
 def _ExtractImportantEnvironment(output_of_set):
   """Extracts environment variables required for the toolchain to run from
   a textual dump output by the cmd.exe 'set' command."""
   envvars_to_save = (
-      'cipd_cache_dir', # needed by vpython
-      'homedrive', # needed by vpython
-      'homepath', # needed by vpython
-      'goma_.*', # TODO(scottmg): This is ugly, but needed for goma.
+      'cipd_cache_dir',  # needed by vpython
+      'homedrive',  # needed by vpython
+      'homepath',  # needed by vpython
       'include',
       'lib',
       'libpath',
-      'luci_context', # needed by vpython
+      'luci_context',  # needed by vpython
       'path',
       'pathext',
       'rbe_cfg', # Dart specific patch: RBE_cfg is needed by reclient.
@@ -44,9 +43,9 @@ def _ExtractImportantEnvironment(output_of_set):
       'systemroot',
       'temp',
       'tmp',
-      'userprofile', # needed by vpython
-      'vpython_virtualenv_root' # needed by vpython
-      )
+      'userprofile',  # needed by vpython
+      'vpython_virtualenv_root'  # needed by vpython
+  )
   env = {}
   # This occasionally happens and leads to misleading SYSTEMROOT error messages
   # if not caught here.
@@ -267,9 +266,6 @@ def main():
   vc_bin_dir = ''
   include = ''
   lib = ''
-
-  # TODO(scottmg|goma): Do we need an equivalent of
-  # ninja_use_custom_environment_files?
 
   def relflag(s):  # Make s relative to builddir when cwd and sdk on same drive.
     try:

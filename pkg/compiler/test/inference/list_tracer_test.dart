@@ -226,12 +226,12 @@ doTest(String allocation, {required bool nullify}) async {
   var compiler = result.compiler!;
   var results = compiler.globalInference.resultsForTesting!;
   var closedWorld = results.closedWorld;
-  var commonMasks = closedWorld.abstractValueDomain;
+  var commonMasks = closedWorld.abstractValueDomain as CommonMasks;
 
-  checkType(String name, type) {
+  checkType(String name, TypeMask type) {
     var element = findMember(closedWorld, name);
     final mask = results.resultOfMember(element).type as ContainerTypeMask;
-    if (nullify) type = type.nullable();
+    if (nullify) type = type.nullable(commonMasks);
     Expect.equals(type, simplify(mask.elementType, commonMasks), name);
   }
 
@@ -253,7 +253,7 @@ doTest(String allocation, {required bool nullify}) async {
   checkType('listSetInNonFinalField', commonMasks.numType);
   checkType(
     'listWithChangedLength',
-    (commonMasks.uint31Type as TypeMask).nullable(),
+    commonMasks.uint31Type.nullable(commonMasks),
   );
 
   checkType('listPassedToClosure', commonMasks.dynamicType);
@@ -269,7 +269,7 @@ doTest(String allocation, {required bool nullify}) async {
   checkType('listStoredInRecordWithoutAccess', commonMasks.uint31Type);
 
   if (!allocation.contains('filled')) {
-    checkType('listUnset', TypeMask.nonNullEmpty());
-    checkType('listOnlySetWithConstraint', TypeMask.nonNullEmpty());
+    checkType('listUnset', TypeMask.nonNullEmpty(commonMasks));
+    checkType('listOnlySetWithConstraint', TypeMask.nonNullEmpty(commonMasks));
   }
 }

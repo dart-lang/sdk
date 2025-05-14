@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 import 'shared/shared.dart' show M;
 
 /// A dynamic module can apply an exposed mixin.
-main() async {
+void main() async {
   final o = (await helper.load('entry1.dart')) as M;
   Expect.equals(3, o.method1());
   Expect.equals('*3 2', o.method2());

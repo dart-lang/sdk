@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidEmptyElseTest);
   });
@@ -18,7 +18,8 @@ class AvoidEmptyElseTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_empty_else;
 
   test_else_emptyStatement_hasElseIf() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   var x = 0;
   var y = 1;
@@ -29,13 +30,14 @@ void f() {
   else ;
     print('');
 }
-''', [
-      lint(105, 1),
-    ]);
+''',
+      [lint(105, 1)],
+    );
   }
 
   test_else_emptyStatement_noElseIf() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   var x = 0;
   var y = 1;
@@ -44,9 +46,9 @@ void f() {
   else ;
     print('');
 }
-''', [
-      lint(72, 1),
-    ]);
+''',
+      [lint(72, 1)],
+    );
   }
 
   test_else_noEmptyStatement_enclosed() async {
@@ -77,7 +79,8 @@ void f() {
   }
 
   test_else_noStatement_notEnclosed() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   var x = 0;
   var y = 1;
@@ -85,10 +88,12 @@ void f() {
     print('');
   else
 }
-''', [
-      // No lint
-      error(ParserErrorCode.EXPECTED_TOKEN, 67, 4),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 72, 1),
-    ]);
+''',
+      [
+        // No lint
+        error(ParserErrorCode.EXPECTED_TOKEN, 67, 4),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 72, 1),
+      ],
+    );
   }
 }

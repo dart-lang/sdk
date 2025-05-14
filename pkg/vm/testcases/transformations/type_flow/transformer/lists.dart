@@ -22,8 +22,11 @@ class A {
   final generateFactory1 = List<int>.generate(2, (i) => i);
   final generateFactory2 = List<int>.generate(2, (i) => i, growable: true);
   final generateFactory3 = List<int>.generate(2, (i) => i, growable: false);
-  final generateFactory4 =
-      List<int>.generate(2, (i) => i, growable: nonConstant());
+  final generateFactory4 = List<int>.generate(
+    2,
+    (i) => i,
+    growable: nonConstant(),
+  );
   final generateFactory5 = List<List<int>>.generate(2, (_) => <int>[]);
   final generateFactory6 = List<int>.generate(2, growable: true, (i) => i);
   final generateFactory7 = List<int>.generate(2, growable: false, (i) => i);

@@ -18,17 +18,16 @@ Set<Element2?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
 
 class UnnecessaryLambdas extends LintRule {
   UnnecessaryLambdas()
-      : super(
-          name: LintNames.unnecessary_lambdas,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_lambdas, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_lambdas;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addFunctionExpression(this, visitor);
   }
@@ -94,9 +93,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   final TypeSystem typeSystem;
 
   _Visitor(this.rule, LinterContext context)
-      : constructorTearOffsEnabled =
-            context.isEnabled(Feature.constructor_tearoffs),
-        typeSystem = context.typeSystem;
+    : constructorTearOffsEnabled = context.isEnabled(
+        Feature.constructor_tearoffs,
+      ),
+      typeSystem = context.typeSystem;
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
@@ -110,7 +110,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (statement is ExpressionStatement &&
           statement.expression is InvocationExpression) {
         _visitInvocationExpression(
-            statement.expression as InvocationExpression, node);
+          statement.expression as InvocationExpression,
+          node,
+        );
       } else if (statement is ReturnStatement &&
           statement.expression is InvocationExpression) {
         var expression = statement.expression;
@@ -135,7 +137,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Checks [expression], the singular child the body of [node], to see whether
   /// [node] unnecessarily wraps [node].
   void _visitInstanceCreation(
-      InstanceCreationExpression expression, FunctionExpression node) {
+    InstanceCreationExpression expression,
+    FunctionExpression node,
+  ) {
     if (expression.isConst || expression.constructorName.type.isDeferred) {
       return;
     }
@@ -170,11 +174,15 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _visitInvocationExpression(
-      InvocationExpression node, FunctionExpression nodeToLint) {
+    InvocationExpression node,
+    FunctionExpression nodeToLint,
+  ) {
     var nodeToLintParams = nodeToLint.parameters?.parameters;
     if (nodeToLintParams == null ||
         !argumentsMatchParameters(
-            node.argumentList.arguments, nodeToLintParams)) {
+          node.argumentList.arguments,
+          nodeToLintParams,
+        )) {
       return;
     }
 
@@ -234,10 +242,10 @@ extension on Expression? {
 extension on Element2? {
   /// Returns whether this is a `final` variable or property and not `late`.
   bool get isFinal => switch (this) {
-        PropertyAccessorElement2(:var isSynthetic, :var variable3?) =>
-          isSynthetic && variable3.isFinal && !variable3.isLate,
-        VariableElement2(:var isLate, :var isFinal) => isFinal && !isLate,
-        // TODO(pq): [element model] this preserves existing v1 semantics but looks fishy
-        _ => true,
-      };
+    PropertyAccessorElement2(:var isSynthetic, :var variable3?) =>
+      isSynthetic && variable3.isFinal && !variable3.isLate,
+    VariableElement2(:var isLate, :var isFinal) => isFinal && !isLate,
+    // TODO(pq): [element model] this preserves existing v1 semantics but looks fishy
+    _ => true,
+  };
 }

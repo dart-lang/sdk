@@ -340,8 +340,19 @@ if (!self.dart_library) {
     }
     self.dart_library.library = library;
 
+    // Local storage may be blocked by a browser policy in which case even
+    // trying to access it will throw.
+    function isLocalStorageAvailable() {
+      try {
+        !!self.localStorage;
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
     // Store executed modules upon reload.
-    if (!!self.addEventListener && !!self.localStorage) {
+    if (!!self.addEventListener && isLocalStorageAvailable()) {
       self.addEventListener('beforeunload', function (event) {
         _nameToApp.forEach(function (_, appName) {
           if (!_executedLibraries.get(appName)) {
@@ -1395,6 +1406,13 @@ if (!self.deferred_loader) {
     savedEntryPointLibraryName = null;
     savedDartSdkRuntimeOptions = null;
 
+    // Whether we've initialized the necessary SDK libraries before any code or
+    // debugging APIs can execute.
+    //
+    // This should be reset whenever we recreate `libraries`, like during a hot
+    // restart.
+    triggeredSDKLibrariesWithSideEffects = false;
+
     createEmptyLibrary() {
       return Object.create(null);
     }
@@ -1422,6 +1440,9 @@ if (!self.deferred_loader) {
      *   `importLibrary` for more details.
      */
     initializeAndLinkLibrary(libraryName, installFn) {
+      if (!this.triggeredSDKLibrariesWithSideEffects) {
+        this.triggerSDKLibrariesWithSideEffects();
+      }
       let currentLibrary = this.libraries[libraryName];
       if (currentLibrary == null) {
         currentLibrary = this.createEmptyLibrary();
@@ -1485,9 +1506,11 @@ if (!self.deferred_loader) {
      * (ex: dart:_interceptors) or observable from a carefully crafted user
      * program (ex: dart:html). In either case, the dependencies on the side
      * effects are not expressed through a Dart import so the libraries need
-     * to be loaded manually before the user program starts running.
+     * to be loaded manually before the user program starts running or before
+     * any debugging API is used.
      */
-    triggerSDKLibrariesSideEffects() {
+    triggerSDKLibrariesWithSideEffects() {
+      this.triggeredSDKLibrariesWithSideEffects = true;
       this.initializeAndLinkLibrary('dart:_runtime');
       this.initializeAndLinkLibrary('dart:_interceptors');
       this.initializeAndLinkLibrary('dart:_native_typed_data');
@@ -1499,13 +1522,13 @@ if (!self.deferred_loader) {
 
     // See docs on `DartDevEmbedder.runMain`.
     runMain(entryPointLibraryName, dartSdkRuntimeOptions) {
-      this.triggerSDKLibrariesSideEffects();
       this.setDartSDKRuntimeOptions(dartSdkRuntimeOptions);
       console.log('Starting application from main method in: ' + entryPointLibraryName + '.');
       let entryPointLibrary = this.initializeAndLinkLibrary(entryPointLibraryName);
       this.savedEntryPointLibraryName = entryPointLibraryName;
       this.savedDartSdkRuntimeOptions = dartSdkRuntimeOptions;
-      entryPointLibrary.main();
+      // TODO(35113): Provide the ability to pass arguments in a type safe way.
+      entryPointLibrary.main([]);
     }
 
     setDartSDKRuntimeOptions(options) {
@@ -1615,7 +1638,7 @@ if (!self.deferred_loader) {
       dart.hotRestart();
       // Clear all libraries.
       this.libraries = Object.create(null);
-      this.triggerSDKLibrariesSideEffects();
+      this.triggeredSDKLibrariesWithSideEffects = false;
       this.setDartSDKRuntimeOptions(this.savedDartSdkRuntimeOptions);
       let entryPointLibrary = this.initializeAndLinkLibrary(this.savedEntryPointLibraryName);
       // TODO(nshahan): Start sharing a single source of truth for the restart
@@ -1624,7 +1647,8 @@ if (!self.deferred_loader) {
       console.log('Hot restarting application from main method in: ' +
         this.savedEntryPointLibraryName + ' (generation: ' +
         this.hotRestartGeneration + ').');
-      entryPointLibrary.main();
+      // TODO(35113): Provide the ability to pass arguments in a type safe way.
+      entryPointLibrary.main([]);
     }
   }
 
@@ -1659,6 +1683,7 @@ if (!self.deferred_loader) {
      * @returns {Array<string>} Array containing the class names in the library.
      */
     getClassesInLibrary(libraryUri) {
+      libraryManager.initializeAndLinkLibrary(libraryUri);
       return dartRuntimeLibrary().getLibraryMetadata(libraryUri, libraryManager.libraries);
     }
 
@@ -1700,6 +1725,7 @@ if (!self.deferred_loader) {
      * above format.
      */
     getClassMetadata(libraryUri, name, objectInstance) {
+      libraryManager.initializeAndLinkLibrary(libraryUri);
       return dartRuntimeLibrary().getClassMetadata(libraryUri, name, objectInstance, libraryManager.libraries);
     }
 
@@ -1926,6 +1952,16 @@ if (!self.deferred_loader) {
      */
     stackTrace(error) {
       return dartRuntimeLibrary().stackTrace(error).toString();
+    }
+
+    /**
+     * Returns the source map path for a given Dart file, if one was registered.
+     *
+     * @param {String} url The path of a Dart file.
+     * @returns {?String} The associated source map location if one exists.
+     */
+    getSourceMap(url) {
+      return dartRuntimeLibrary().getSourceMap(url);
     }
   }
 

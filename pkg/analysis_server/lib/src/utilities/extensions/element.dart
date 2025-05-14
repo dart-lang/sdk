@@ -22,7 +22,7 @@ extension ClassElementExtensions on ClassElement2 {
   bool get isDartCoreSet => name3 == 'Set' && library2.isDartCore;
 }
 
-extension Element2Extension on Element2 {
+extension ElementExtensions on Element2 {
   /// The content of the documentation comment (including delimiters) for this
   /// element.
   ///
@@ -72,7 +72,7 @@ extension Element2Extension on Element2 {
   }
 }
 
-extension FragmentExtension on Fragment {
+extension FragmentExtensions on Fragment {
   /// Return this fragment and all its enclosing fragment.
   Iterable<Fragment> get withAncestors sync* {
     var current = this;
@@ -84,13 +84,6 @@ extension FragmentExtension on Fragment {
       }
       current = enclosing;
     }
-  }
-}
-
-extension LibraryElementExtensions2 on LibraryElement2 {
-  /// Return all extensions exported from this library.
-  Iterable<ExtensionElement2> get exportedExtensions {
-    return exportNamespace.definedNames2.values.whereType();
   }
 }
 

@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -34,31 +32,30 @@ class C<V> extends B<V> {
 }
 ''');
 
-    var C = findElement.unnamedConstructor('C');
+    var C = findElement2.unnamedConstructor('C');
     var C_key = C.superFormalParameter('key');
 
-    var B_key_member = C_key.superConstructorParameter;
+    var B_key_member = C_key.superConstructorParameter2;
     B_key_member as SuperFormalParameterMember;
 
-    var B = findElement.unnamedConstructor('B');
+    var B = findElement2.unnamedConstructor('B');
     var B_key = B.superFormalParameter('key');
-    assertElement2(
+    assertElement(
       B_key_member,
       declaration: B_key,
       substitution: {'U': 'V'},
     );
 
-    var A_key_member = B_key_member.superConstructorParameter;
+    var A_key_member = B_key_member.superConstructorParameter2;
     A_key_member as ParameterMember;
 
-    var A = findElement.unnamedConstructor('A');
+    var A = findElement2.unnamedConstructor('A');
     var A_key = A.parameter('key');
-    assertElement2(
+    assertElement(
       A_key_member,
       declaration: A_key,
       substitution: {
         'T': 'V',
-        'U': 'V',
       },
     );
   }
@@ -79,8 +76,7 @@ class B extends A {
 SuperFormalParameter
   type: NamedType
     name: T
-    element: T@62
-    element2: <not-implemented>
+    element2: T@62
     type: T
   superKeyword: super
   period: .
@@ -97,14 +93,13 @@ SuperFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
       name: b
-      declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a::@parameter::b
+      declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@formalParameter::a::@formalParameter::b
         type: int
     rightParenthesis: )
-  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@formalParameter::a
     type: T Function<T>(int)
 ''');
   }
@@ -122,7 +117,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment>::@function::f::@parameter::a
+  declaredElement: <testLibraryFragment>::@function::f::@formalParameter::a
     type: dynamic
 ''');
   }
@@ -166,7 +161,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@formalParameter::a
     type: int?
 ''');
   }
@@ -211,7 +206,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@formalParameter::a
     type: int
 ''');
   }
@@ -234,7 +229,6 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: <testLibraryFragment>::@class::A::@getter::a
   element: <testLibraryFragment>::@class::A::@getter::a#element
   staticType: int
 ''');
@@ -256,7 +250,6 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
   element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
   staticType: int
 ''');

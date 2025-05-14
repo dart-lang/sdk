@@ -241,7 +241,7 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   final Set<FieldEntity> _fieldSetters = {};
 
   final Set<DartType> _isChecks = {};
-  final Set<TypeVariableType> _namedTypeVariablesNewRti = {};
+  final Set<TypeVariableType> _namedTypeVariables = {};
 
   final Set<RecordType> _instantiatedRecordTypes = {};
 
@@ -563,8 +563,8 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     _isChecks.add(type);
   }
 
-  void registerNamedTypeVariableNewRti(TypeVariableType type) {
-    _namedTypeVariablesNewRti.add(type);
+  void registerNamedTypeVariable(TypeVariableType type) {
+    _namedTypeVariables.add(type);
   }
 
   /// Register the constant [use] with this world builder. Returns `true` if
@@ -1115,7 +1115,7 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
       localFunctions: _localFunctions,
       instantiatedTypes: instantiatedTypes,
       instantiatedRecordTypes: _instantiatedRecordTypes,
-      namedTypeVariablesNewRti: _namedTypeVariablesNewRti,
+      namedTypeVariables: _namedTypeVariables,
     );
     if (retainDataForTesting) {
       _closedWorldCache = closedWorld;

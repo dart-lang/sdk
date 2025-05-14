@@ -23,10 +23,11 @@ const int _mask30 = 0x3fffffff; // Low 30 bits.
 @patch
 class HashMap<K, V> {
   @patch
-  factory HashMap(
-      {bool equals(K key1, K key2)?,
-      int hashCode(K key)?,
-      bool isValidKey(potentialKey)?}) {
+  factory HashMap({
+    bool equals(K key1, K key2)?,
+    int hashCode(K key)?,
+    bool isValidKey(potentialKey)?,
+  }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -405,7 +406,7 @@ base class _CustomHashMap<K, V> extends _HashMap<K, V> {
   final bool Function(Object?) _validKey;
 
   _CustomHashMap(this._equals, this._hashCode, bool validKey(potentialKey)?)
-      : _validKey = (validKey != null) ? validKey : ((v) => v is K);
+    : _validKey = (validKey != null) ? validKey : ((v) => v is K);
 
   V? operator [](Object? key) {
     if (!_validKey(key)) return null;
@@ -503,10 +504,11 @@ class _HashMapKeyIterator<E> implements Iterator<E> {
 @patch
 class LinkedHashMap<K, V> {
   @patch
-  factory LinkedHashMap(
-      {bool equals(K key1, K key2)?,
-      int hashCode(K key)?,
-      bool isValidKey(potentialKey)?}) {
+  factory LinkedHashMap({
+    bool equals(K key1, K key2)?,
+    int hashCode(K key)?,
+    bool isValidKey(potentialKey)?,
+  }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -572,8 +574,10 @@ base class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
   final bool Function(Object?) _validKey;
 
   _LinkedCustomHashMap(
-      this._equals, this._hashCode, bool validKey(potentialKey)?)
-      : _validKey = (validKey != null) ? validKey : ((v) => v is K);
+    this._equals,
+    this._hashCode,
+    bool validKey(potentialKey)?,
+  ) : _validKey = (validKey != null) ? validKey : ((v) => v is K);
 
   V? operator [](Object? key) {
     if (!_validKey(key)) return null;
@@ -615,10 +619,11 @@ base class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
 @patch
 class HashSet<E> {
   @patch
-  factory HashSet(
-      {bool equals(E e1, E e2)?,
-      int hashCode(E e)?,
-      bool isValidKey(potentialKey)?}) {
+  factory HashSet({
+    bool equals(E e1, E e2)?,
+    int hashCode(E e)?,
+    bool isValidKey(potentialKey)?,
+  }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -957,7 +962,7 @@ base class _CustomHashSet<E> extends _HashSet<E> {
   _Hasher<E> _hasher;
   bool Function(Object?) _validKey;
   _CustomHashSet(this._equality, this._hasher, bool validKey(potentialKey)?)
-      : _validKey = (validKey != null) ? validKey : ((x) => x is E);
+    : _validKey = (validKey != null) ? validKey : ((x) => x is E);
 
   Set<E> _newSet() => _CustomHashSet<E>(_equality, _hasher, _validKey);
   Set<R> _newSimilarSet<R>() => _HashSet<R>();
@@ -1030,10 +1035,11 @@ class _HashSetIterator<E> implements Iterator<E> {
 @patch
 class LinkedHashSet<E> {
   @patch
-  factory LinkedHashSet(
-      {bool equals(E e1, E e2)?,
-      int hashCode(E e)?,
-      bool isValidKey(potentialKey)?}) {
+  factory LinkedHashSet({
+    bool equals(E e1, E e2)?,
+    int hashCode(E e)?,
+    bool isValidKey(potentialKey)?,
+  }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -1431,8 +1437,10 @@ base class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
   _Hasher<E> _hasher;
   bool Function(Object?) _validKey;
   _LinkedCustomHashSet(
-      this._equality, this._hasher, bool validKey(potentialKey)?)
-      : _validKey = (validKey != null) ? validKey : ((x) => x is E);
+    this._equality,
+    this._hasher,
+    bool validKey(potentialKey)?,
+  ) : _validKey = (validKey != null) ? validKey : ((x) => x is E);
 
   Set<E> _newSet() => _LinkedCustomHashSet<E>(_equality, _hasher, _validKey);
   Set<R> _newSimilarSet<R>() => _LinkedHashSet<R>();

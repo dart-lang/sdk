@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MatchingSuperParametersTest);
   });
@@ -84,7 +84,8 @@ class C {
   }
 
   test_explicitSuperInvocation_nonMatching() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class D extends C {
   final String w;
 
@@ -101,10 +102,9 @@ class C {
 
   C.named(this.x, this.y);
 }
-''', [
-      lint(60, 7),
-      lint(73, 7),
-    ]);
+''',
+      [lint(60, 7), lint(73, 7)],
+    );
   }
 
   test_implicitSuperInvocation_matchingWithGap() async {
@@ -150,7 +150,8 @@ class C {
   }
 
   test_implicitSuperInvocation_nonMatching() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class D extends C {
   final String w;
 
@@ -167,14 +168,14 @@ class C {
 
   C(this.x, this.y);
 }
-''', [
-      lint(60, 7),
-      lint(73, 7),
-    ]);
+''',
+      [lint(60, 7), lint(73, 7)],
+    );
   }
 
   test_implicitSuperInvocation_nonMatching_omittedOptional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class D extends C {
   final String w;
 
@@ -190,13 +191,14 @@ class C {
 
   C(this.x, [this.y]);
 }
-''', [
-      lint(60, 7),
-    ]);
+''',
+      [lint(60, 7)],
+    );
   }
 
   test_implicitSuperInvocation_nonMatching_tooMany() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class D extends C {
   final String w;
 
@@ -212,13 +214,16 @@ class C {
 
   C(this.x);
 }
-''', [
-      // No lint.
-      error(
+''',
+      [
+        // No lint.
+        error(
           CompileTimeErrorCode
               .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
           79,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }

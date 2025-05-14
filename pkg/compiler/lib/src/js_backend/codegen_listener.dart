@@ -45,7 +45,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   final CodegenWorldBuilder _worldBuilder;
 
   bool _isNoSuchMethodUsed = false;
-  bool _isNewRtiUsed = false;
+  bool _isRtiUsed = false;
 
   CodegenEnqueuerListener(
     this._options,
@@ -149,30 +149,30 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     }
 
     // TODO(fishythefish): Avoid registering unnecessary impacts.
-    if (!_isNewRtiUsed) {
-      WorldImpactBuilderImpl newRtiImpact = WorldImpactBuilderImpl();
-      newRtiImpact.registerStaticUse(
+    if (!_isRtiUsed) {
+      WorldImpactBuilderImpl rtiImpact = WorldImpactBuilderImpl();
+      rtiImpact.registerStaticUse(
         StaticUse.staticInvoke(
           _commonElements.rtiAddRulesMethod,
           CallStructure.twoArgs,
         ),
       );
-      newRtiImpact.registerStaticUse(
+      rtiImpact.registerStaticUse(
         StaticUse.staticInvoke(
           _commonElements.rtiAddErasedTypesMethod,
           CallStructure.twoArgs,
         ),
       );
       if (_options.enableVariance) {
-        newRtiImpact.registerStaticUse(
+        rtiImpact.registerStaticUse(
           StaticUse.staticInvoke(
             _commonElements.rtiAddTypeParameterVariancesMethod,
             CallStructure.twoArgs,
           ),
         );
       }
-      enqueuer.applyImpact(newRtiImpact);
-      _isNewRtiUsed = true;
+      enqueuer.applyImpact(rtiImpact);
+      _isRtiUsed = true;
     }
 
     if (_nativeData.isAllowInteropUsed) {
@@ -257,7 +257,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
       impactBuilder.registerStaticUse(
         StaticUse.staticInvoke(
-          _commonElements.instantiatedGenericFunctionTypeNewRti,
+          _commonElements.instantiatedGenericFunctionType,
           CallStructure.twoArgs,
         ),
       );

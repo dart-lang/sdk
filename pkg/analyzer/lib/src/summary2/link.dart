@@ -2,24 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
+import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
-import 'package:analyzer/src/summary2/macro_application.dart';
-import 'package:analyzer/src/summary2/macro_declarations.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/simply_bounded.dart';
 import 'package:analyzer/src/summary2/super_constructor_resolver.dart';
@@ -28,58 +26,48 @@ import 'package:analyzer/src/summary2/type_alias.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
-import 'package:macros/src/executor/multi_executor.dart' as macro;
 
-Future<LinkResult> link({
+LinkResult link({
   required LinkedElementFactory elementFactory,
   required OperationPerformanceImpl performance,
   required List<LibraryFileKind> inputLibraries,
-  required Map<LibraryFileKind, MacroResultInput> inputMacroResults,
-  macro.MultiMacroExecutor? macroExecutor,
-}) async {
-  var linker = Linker(elementFactory, macroExecutor);
-  await linker.link(
+  required Map<Uri, LibraryManifest> inputLibraryManifests,
+  required String apiSignature,
+}) {
+  var linker = Linker(
+    elementFactory: elementFactory,
+    apiSignature: apiSignature,
+  );
+  linker.link(
     performance: performance,
     inputLibraries: inputLibraries,
-    inputMacroResults: inputMacroResults,
+    inputLibraryManifests: inputLibraryManifests,
   );
-
-  var macroResultsOutput = <MacroResultOutput>[];
-  for (var builder in linker.builders.values) {
-    var result = builder.getCacheableMacroResult();
-    macroResultsOutput.addIfNotNull(result);
-  }
 
   return LinkResult(
     resolutionBytes: linker.resolutionBytes,
-    macroResults: macroResultsOutput,
   );
 }
 
 class Linker {
   final LinkedElementFactory elementFactory;
-  final macro.MultiMacroExecutor? macroExecutor;
-  late final DeclarationBuilder macroDeclarationBuilder;
+  final String apiSignature;
 
   /// Libraries that are being linked.
   final Map<Uri, LibraryBuilder> builders = {};
 
-  final Map<ElementImpl, ast.AstNode> elementNodes = Map.identity();
+  final Map<Object, ast.AstNode> elementNodes = Map.identity();
 
   late InheritanceManager3 inheritance; // TODO(scheglov): cache it
 
+  Map<Uri, LibraryManifest> newLibraryManifests = {};
   late Uint8List resolutionBytes;
 
-  LibraryMacroApplier? _macroApplier;
-
-  Linker(this.elementFactory, this.macroExecutor) {
-    macroDeclarationBuilder = DeclarationBuilder(
-      elementFactory: elementFactory,
-      nodeOfElement: (element) => elementNodes[element],
-    );
-  }
+  Linker({
+    required this.elementFactory,
+    required this.apiSignature,
+  });
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -88,8 +76,6 @@ class Linker {
   DeclaredVariables get declaredVariables {
     return analysisContext.declaredVariables;
   }
-
-  LibraryMacroApplier? get macroApplier => _macroApplier;
 
   Reference get rootReference => elementFactory.rootReference;
 
@@ -100,29 +86,33 @@ class Linker {
 
   /// If the [element] is part of a library being linked, return the node
   /// from which it was created.
-  ast.AstNode? getLinkingNode(Element element) {
+  ast.AstNode? getLinkingNode(ElementImpl element) {
     return elementNodes[element];
   }
 
-  Future<void> link({
+  /// If the [fragment] is part of a library being linked, return the node
+  /// from which it was created.
+  ast.AstNode? getLinkingNode2(Fragment fragment) {
+    return elementNodes[fragment];
+  }
+
+  void link({
     required OperationPerformanceImpl performance,
     required List<LibraryFileKind> inputLibraries,
-    required Map<LibraryFileKind, MacroResultInput> inputMacroResults,
-  }) async {
+    required Map<Uri, LibraryManifest> inputLibraryManifests,
+  }) {
     performance.run('LibraryBuilder.build', (performance) {
       for (var inputLibrary in inputLibraries) {
-        var inputMacroResult = inputMacroResults[inputLibrary];
         LibraryBuilder.build(
           linker: this,
           inputLibrary: inputLibrary,
-          inputMacroResult: inputMacroResult,
           performance: performance,
         );
       }
     });
 
-    await performance.runAsync('buildOutlines', (performance) async {
-      await _buildOutlines(
+    performance.run('buildOutlines', (performance) {
+      _buildOutlines(
         performance: performance,
       );
     });
@@ -190,75 +180,67 @@ class Linker {
       }
     }
 
-    while (true) {
-      var hasChanges = false;
+    // We keep a queue of exports to propagate.
+    // First we loop over every reference that both exports and is exported,
+    // but then we only process the exports that should be propagated.
+    var additionalExportData = <_AdditionalExport>[];
+
+    void addExport(Export export, String name, ExportedReference reference) {
+      if (export.addToExportScope(name, reference)) {
+        // We've added [name] to [export.exporter]s export scope.
+        // We need to propagate that to anyone that exports that library.
+        additionalExportData
+            .add(_AdditionalExport(export.exporter, name, reference));
+      }
+    }
+
+    for (var exported in both) {
+      for (var export in exported.exports) {
+        exported.exportScope.forEach((name, reference) {
+          addExport(export, name, reference);
+        });
+      }
+    }
+
+    while (additionalExportData.isNotEmpty) {
+      var data = additionalExportData.removeLast();
+      for (var export in data.exported.exports) {
+        addExport(export, data.name, data.reference);
+      }
+    }
+
+    assert(() {
       for (var exported in both) {
         for (var export in exported.exports) {
           exported.exportScope.forEach((name, reference) {
             if (export.addToExportScope(name, reference)) {
-              hasChanges = true;
+              throw "Error in export calculation: Assert failed.";
             }
           });
         }
       }
-      if (!hasChanges) break;
-    }
+      return true;
+    }(), true);
 
     for (var library in builders.values) {
       library.storeExportScope();
     }
   }
 
-  Future<LibraryMacroApplier?> _buildMacroApplier() async {
-    var macroExecutor = this.macroExecutor;
-    if (macroExecutor == null) {
-      return null;
-    }
-
-    var macroApplier = LibraryMacroApplier(
-      elementFactory: elementFactory,
-      macroExecutor: macroExecutor,
-      isLibraryBeingLinked: (uri) => builders.containsKey(uri),
-      declarationBuilder: macroDeclarationBuilder,
-      runDeclarationsPhase: _executeMacroDeclarationsPhase,
-    );
-
-    for (var library in builders.values) {
-      if (library.inputMacroPartInclude == null) {
-        await library.fillMacroApplier(macroApplier);
-      }
-    }
-
-    return _macroApplier = macroApplier;
-  }
-
-  Future<void> _buildOutlines({
+  void _buildOutlines({
     required OperationPerformanceImpl performance,
-  }) async {
+  }) {
     _createTypeSystemIfNotLinkingDartCore();
 
-    await performance.runAsync(
-      'computeLibraryScopes',
-      (performance) async {
-        await _computeLibraryScopes(
-          performance: performance,
-        );
-      },
-    );
+    performance.run('computeLibraryScopes', (performance) {
+      _computeLibraryScopes(
+        performance: performance,
+      );
+    });
 
     _createTypeSystem();
     _resolveTypes();
     _setDefaultSupertypes();
-
-    await performance.runAsync(
-      'executeMacroDeclarationsPhase',
-      (performance) async {
-        await _executeMacroDeclarationsPhase(
-          targetElement: null,
-          performance: performance,
-        );
-      },
-    );
 
     _buildClassSyntheticConstructors();
     _buildEnumSyntheticConstructors();
@@ -273,33 +255,9 @@ class Linker {
     _resolveDefaultValues();
     _resolveMetadata();
 
-    // TODO(scheglov): verify if any resolutions should happen after
-    await performance.runAsync(
-      'executeMacroDefinitionsPhase',
-      (performance) async {
-        await _executeMacroDefinitionsPhase(
-          performance: performance,
-        );
-      },
-    );
-
     _collectMixinSuperInvokedNames();
     _buildElementNameUnions();
     _detachNodes();
-
-    await performance.runAsync(
-      'mergeMacroAugmentations',
-      (performance) async {
-        await _mergeMacroAugmentations(
-          performance: performance,
-        );
-      },
-    );
-
-    _disposeMacroApplications();
-    for (var library in builders.values) {
-      library.updateInputMacroAugmentation();
-    }
   }
 
   void _collectMixinSuperInvokedNames() {
@@ -314,33 +272,12 @@ class Linker {
     }
   }
 
-  Future<void> _computeLibraryScopes({
+  void _computeLibraryScopes({
     required OperationPerformanceImpl performance,
-  }) async {
+  }) {
     for (var library in builders.values) {
       library.buildElements();
     }
-
-    await performance.runAsync(
-      'buildMacroApplier',
-      (performance) async {
-        await _buildMacroApplier();
-      },
-    );
-
-    // The macro types phase can resolve exported identifier.
-    _buildExportScopes();
-
-    await performance.runAsync(
-      'executeMacroTypesPhase',
-      (performance) async {
-        for (var library in builders.values) {
-          await library.executeMacroTypesPhase(
-            performance: performance,
-          );
-        }
-      },
-    );
 
     _buildExportScopes();
   }
@@ -366,59 +303,6 @@ class Linker {
   void _detachNodes() {
     for (var builder in builders.values) {
       detachElementsFromNodes(builder.element);
-    }
-  }
-
-  void _disposeMacroApplications() {
-    for (var library in builders.values) {
-      library.disposeMacroApplications();
-    }
-  }
-
-  Future<void> _executeMacroDeclarationsPhase({
-    required ElementImpl? targetElement,
-    required OperationPerformanceImpl performance,
-  }) async {
-    while (true) {
-      var hasProgress = false;
-      for (var library in builders.values) {
-        var stepResult = await library.executeMacroDeclarationsPhase(
-          targetElement: targetElement,
-          performance: performance,
-        );
-        switch (stepResult) {
-          case MacroDeclarationsPhaseStepResult.nothing:
-            break;
-          case MacroDeclarationsPhaseStepResult.otherProgress:
-            hasProgress = true;
-          case MacroDeclarationsPhaseStepResult.topDeclaration:
-            hasProgress = true;
-            _buildExportScopes();
-        }
-      }
-      if (!hasProgress) {
-        break;
-      }
-    }
-  }
-
-  Future<void> _executeMacroDefinitionsPhase({
-    required OperationPerformanceImpl performance,
-  }) async {
-    for (var library in builders.values) {
-      await library.executeMacroDefinitionsPhase(
-        performance: performance,
-      );
-    }
-  }
-
-  Future<void> _mergeMacroAugmentations({
-    required OperationPerformanceImpl performance,
-  }) async {
-    for (var library in builders.values) {
-      await library.mergeMacroAugmentations(
-        performance: performance,
-      );
     }
   }
 
@@ -488,7 +372,12 @@ class Linker {
       bundleWriter.writeLibraryElement(builder.element);
     }
 
-    var writeWriterResult = bundleWriter.finish();
+    var writeWriterResult = performance.run(
+      'bundleWriteFinish',
+      (performance) {
+        return bundleWriter.finish();
+      },
+    );
     resolutionBytes = writeWriterResult.resolutionBytes;
 
     performance.getDataInt('length').add(resolutionBytes.length);
@@ -498,32 +387,15 @@ class Linker {
 class LinkResult {
   final Uint8List resolutionBytes;
 
-  /// The results of applying macros in libraries.
-  final List<MacroResultOutput> macroResults;
-
   LinkResult({
     required this.resolutionBytes,
-    required this.macroResults,
   });
 }
 
-class MacroResultInput {
-  final String code;
+class _AdditionalExport {
+  final LibraryBuilder exported;
+  final String name;
+  final ExportedReference reference;
 
-  MacroResultInput({
-    required this.code,
-  });
-}
-
-/// The results of applying macros in [library].
-class MacroResultOutput {
-  final LibraryFileKind library;
-  final MacroProcessing processing;
-  final String code;
-
-  MacroResultOutput({
-    required this.library,
-    required this.processing,
-    required this.code,
-  });
+  _AdditionalExport(this.exported, this.name, this.reference);
 }

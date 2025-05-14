@@ -52,7 +52,6 @@ bool _canParseArgumentEdit(
     }
     if ((!nullCheck || value != null) &&
         !ArgumentEdit.canParse(value, reporter)) {
-      reporter.reportError('must be of type ArgumentEdit');
       return false;
     }
   } finally {
@@ -102,7 +101,6 @@ bool _canParseElement(
       return false;
     }
     if ((!nullCheck || value != null) && !Element.canParse(value, reporter)) {
-      reporter.reportError('must be of type Element');
       return false;
     }
   } finally {
@@ -128,7 +126,6 @@ bool _canParseErrorCodes(
     }
     if ((!nullCheck || value != null) &&
         !ErrorCodes.canParse(value, reporter)) {
-      reporter.reportError('must be of type ErrorCodes');
       return false;
     }
   } finally {
@@ -154,7 +151,6 @@ bool _canParseFlutterOutline(
     }
     if ((!nullCheck || value != null) &&
         !FlutterOutline.canParse(value, reporter)) {
-      reporter.reportError('must be of type FlutterOutline');
       return false;
     }
   } finally {
@@ -180,7 +176,6 @@ bool _canParseInsertTextFormat(
     }
     if ((!nullCheck || value != null) &&
         !InsertTextFormat.canParse(value, reporter)) {
-      reporter.reportError('must be of type InsertTextFormat');
       return false;
     }
   } finally {
@@ -501,7 +496,6 @@ bool _canParseMethod(
       return false;
     }
     if ((!nullCheck || value != null) && !Method.canParse(value, reporter)) {
-      reporter.reportError('must be of type Method');
       return false;
     }
   } finally {
@@ -526,7 +520,6 @@ bool _canParseOutline(
       return false;
     }
     if ((!nullCheck || value != null) && !Outline.canParse(value, reporter)) {
-      reporter.reportError('must be of type Outline');
       return false;
     }
   } finally {
@@ -551,7 +544,6 @@ bool _canParsePosition(
       return false;
     }
     if ((!nullCheck || value != null) && !Position.canParse(value, reporter)) {
-      reporter.reportError('must be of type Position');
       return false;
     }
   } finally {
@@ -576,7 +568,6 @@ bool _canParseRange(
       return false;
     }
     if ((!nullCheck || value != null) && !Range.canParse(value, reporter)) {
-      reporter.reportError('must be of type Range');
       return false;
     }
   } finally {
@@ -602,7 +593,6 @@ bool _canParseResponseError(
     }
     if ((!nullCheck || value != null) &&
         !ResponseError.canParse(value, reporter)) {
-      reporter.reportError('must be of type ResponseError');
       return false;
     }
   } finally {
@@ -653,7 +643,6 @@ bool _canParseTextDocumentIdentifier(
     }
     if ((!nullCheck || value != null) &&
         !TextDocumentIdentifier.canParse(value, reporter)) {
-      reporter.reportError('must be of type TextDocumentIdentifier');
       return false;
     }
   } finally {
@@ -679,7 +668,6 @@ bool _canParseTypeHierarchyAnchor(
     }
     if ((!nullCheck || value != null) &&
         !TypeHierarchyAnchor.canParse(value, reporter)) {
-      reporter.reportError('must be of type TypeHierarchyAnchor');
       return false;
     }
   } finally {
@@ -1449,26 +1437,38 @@ class EditableArgument implements ToJsonable {
     EditableArgument.fromJson,
   );
 
+  /// The default value for this parameter if no argument is supplied.
+  ///
+  /// Setting the argument to this value does not remove it from the argument
+  /// list.
+  final Object? defaultValue;
+
   /// A string that can be displayed to indicate the value for this argument.
+  ///
   /// This will be populated in cases where the source code is not literally the
   /// same as the value field, for example an expression or named constant.
   final String? displayValue;
 
-  /// Whether an explicit argument exists for this parameter in the code. This
-  /// will be true even if the explicit argument is the same value as the
-  /// parameter default.
+  final String? documentation;
+
+  /// Whether an explicit argument exists for this parameter in the code.
+  ///
+  /// This will be true even if the explicit argument is the same value as the
+  /// parameter default or null.
   final bool hasArgument;
 
-  /// Whether the value is the default for this parameter, either because there
-  /// is no argument or because it is explicitly provided as the same value.
-  final bool isDefault;
+  /// Whether the parameter is deprecated.
+  final bool isDeprecated;
 
-  /// Whether this argument can be add/edited. If not, notEditableReason will
-  /// contain an explanation for why.
+  /// Whether this argument can be add/edited.
+  ///
+  /// If not, notEditableReason will contain an explanation for why.
   final bool isEditable;
 
-  /// Whether this argument can be `null`. It is possible for an argument to be
-  /// required, but still allow an explicit `null`.
+  /// Whether this argument can be `null`.
+  ///
+  /// It is possible for an argument to be required, but still allow an explicit
+  /// `null`.
   final bool isNullable;
 
   /// Whether an argument is required for this parameter.
@@ -1480,23 +1480,33 @@ class EditableArgument implements ToJsonable {
   /// If isEditable is false, contains a human-readable description of why.
   final String? notEditableReason;
 
-  /// The set of values allowed for this argument if it is an enum. Values are
-  /// qualified in the form `EnumName.valueName`.
+  /// The set of values allowed for this argument if it is an enum.
+  ///
+  /// Values are qualified in the form `EnumName.valueName`.
   final List<String>? options;
 
-  /// The kind of parameter. This is not necessarily the Dart type, it is from a
-  /// defined set of values that clients may understand how to edit.
+  /// The kind of parameter.
+  ///
+  /// This is not necessarily the Dart type, it is from a defined set of values
+  /// that clients may understand how to edit.
   final String type;
 
-  /// The current value for this argument. This is only included if an explicit
-  /// value is given in the code and is a valid literal for the kind of
-  /// parameter. For expressions or named constants, this will not be included
-  /// and displayValue can be shown as the current value instead.
+  /// The current value for this argument (provided only if hasArgument=true).
+  ///
+  /// This is only included if an explicit value is given in the code and is a
+  /// valid literal for the kind of parameter. For expressions or named
+  /// constants, this will not be included and displayValue can be shown as the
+  /// current value instead.
+  ///
+  /// A value of `null` when hasArgument=true means the argument has an explicit
+  /// null value and not that defaultValue is being used.
   final Object? value;
   EditableArgument({
+    this.defaultValue,
     this.displayValue,
+    this.documentation,
     required this.hasArgument,
-    required this.isDefault,
+    required this.isDeprecated,
     required this.isEditable,
     required this.isNullable,
     required this.isRequired,
@@ -1508,9 +1518,11 @@ class EditableArgument implements ToJsonable {
   });
   @override
   int get hashCode => Object.hash(
+        defaultValue,
         displayValue,
+        documentation,
         hasArgument,
-        isDefault,
+        isDeprecated,
         isEditable,
         isNullable,
         isRequired,
@@ -1525,9 +1537,11 @@ class EditableArgument implements ToJsonable {
   bool operator ==(Object other) {
     return other is EditableArgument &&
         other.runtimeType == EditableArgument &&
+        defaultValue == other.defaultValue &&
         displayValue == other.displayValue &&
+        documentation == other.documentation &&
         hasArgument == other.hasArgument &&
-        isDefault == other.isDefault &&
+        isDeprecated == other.isDeprecated &&
         isEditable == other.isEditable &&
         isNullable == other.isNullable &&
         isRequired == other.isRequired &&
@@ -1541,11 +1555,17 @@ class EditableArgument implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
+    if (defaultValue != null) {
+      result['defaultValue'] = defaultValue;
+    }
     if (displayValue != null) {
       result['displayValue'] = displayValue;
     }
+    if (documentation != null) {
+      result['documentation'] = documentation;
+    }
     result['hasArgument'] = hasArgument;
-    result['isDefault'] = isDefault;
+    result['isDeprecated'] = isDeprecated;
     result['isEditable'] = isEditable;
     result['isNullable'] = isNullable;
     result['isRequired'] = isRequired;
@@ -1572,11 +1592,15 @@ class EditableArgument implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
+      if (!_canParseString(obj, reporter, 'documentation',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
       if (!_canParseBool(obj, reporter, 'hasArgument',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      if (!_canParseBool(obj, reporter, 'isDefault',
+      if (!_canParseBool(obj, reporter, 'isDeprecated',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -1613,12 +1637,16 @@ class EditableArgument implements ToJsonable {
   }
 
   static EditableArgument fromJson(Map<String, Object?> json) {
+    final defaultValueJson = json['defaultValue'];
+    final defaultValue = defaultValueJson;
     final displayValueJson = json['displayValue'];
     final displayValue = displayValueJson as String?;
+    final documentationJson = json['documentation'];
+    final documentation = documentationJson as String?;
     final hasArgumentJson = json['hasArgument'];
     final hasArgument = hasArgumentJson as bool;
-    final isDefaultJson = json['isDefault'];
-    final isDefault = isDefaultJson as bool;
+    final isDeprecatedJson = json['isDeprecated'];
+    final isDeprecated = isDeprecatedJson as bool;
     final isEditableJson = json['isEditable'];
     final isEditable = isEditableJson as bool;
     final isNullableJson = json['isNullable'];
@@ -1637,9 +1665,11 @@ class EditableArgument implements ToJsonable {
     final valueJson = json['value'];
     final value = valueJson;
     return EditableArgument(
+      defaultValue: defaultValue,
       displayValue: displayValue,
+      documentation: documentation,
       hasArgument: hasArgument,
-      isDefault: isDefault,
+      isDeprecated: isDeprecated,
       isEditable: isEditable,
       isNullable: isNullable,
       isRequired: isRequired,
@@ -1660,15 +1690,26 @@ class EditableArguments implements ToJsonable {
 
   final List<EditableArgument> arguments;
 
-  final TextDocumentIdentifier textDocument;
+  final String? documentation;
 
+  final String? name;
+
+  /// The range of the invocation.
+  final Range range;
+  final TextDocumentIdentifier textDocument;
   EditableArguments({
     required this.arguments,
+    this.documentation,
+    this.name,
+    required this.range,
     required this.textDocument,
   });
   @override
   int get hashCode => Object.hash(
         lspHashCode(arguments),
+        documentation,
+        name,
+        range,
         textDocument,
       );
 
@@ -1677,6 +1718,9 @@ class EditableArguments implements ToJsonable {
     return other is EditableArguments &&
         other.runtimeType == EditableArguments &&
         const DeepCollectionEquality().equals(arguments, other.arguments) &&
+        documentation == other.documentation &&
+        name == other.name &&
+        range == other.range &&
         textDocument == other.textDocument;
   }
 
@@ -1684,6 +1728,13 @@ class EditableArguments implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['arguments'] = arguments.map((item) => item.toJson()).toList();
+    if (documentation != null) {
+      result['documentation'] = documentation;
+    }
+    if (name != null) {
+      result['name'] = name;
+    }
+    result['range'] = range.toJson();
     result['textDocument'] = textDocument.toJson();
     return result;
   }
@@ -1694,6 +1745,18 @@ class EditableArguments implements ToJsonable {
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
       if (!_canParseListEditableArgument(obj, reporter, 'arguments',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'documentation',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'name',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseRange(obj, reporter, 'range',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -1710,11 +1773,20 @@ class EditableArguments implements ToJsonable {
     final arguments = (argumentsJson as List<Object?>)
         .map((item) => EditableArgument.fromJson(item as Map<String, Object?>))
         .toList();
+    final documentationJson = json['documentation'];
+    final documentation = documentationJson as String?;
+    final nameJson = json['name'];
+    final name = nameJson as String?;
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     return EditableArguments(
       arguments: arguments,
+      documentation: documentation,
+      name: name,
+      range: range,
       textDocument: textDocument,
     );
   }

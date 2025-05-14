@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,9 +23,9 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
     // Not contravariant.
     _check(neverNone, 'Never');
 
-    void checkContravariant(DartType type, String expectedStr) {
+    void checkContravariant(TypeImpl type, String expectedStr) {
       _check(
-        functionTypeNone(returnType: intNone, parameters: [
+        functionTypeNone(returnType: intNone, formalParameters: [
           requiredParameter(type: type),
         ]),
         'int Function($expectedStr)',
@@ -56,9 +57,9 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
     _check(futureOrNone(futureOrNone(voidNone)), 'Never');
 
     _check(
-      functionTypeNone(returnType: intNone, parameters: [
+      functionTypeNone(returnType: intNone, formalParameters: [
         requiredParameter(
-          type: functionTypeNone(returnType: intNone, parameters: [
+          type: functionTypeNone(returnType: intNone, formalParameters: [
             requiredParameter(type: objectQuestion),
           ]),
         ),
@@ -85,18 +86,18 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
       typeParameters: [T],
       aliasedType: functionTypeNone(
         returnType: T_none,
-        parameters: [requiredParameter(type: T_none)],
+        formalParameters: [requiredParameter(type: T_none)],
       ),
     );
 
-    var F_dynamic = F.instantiate(
+    var F_dynamic = F.instantiateImpl(
       typeArguments: [dynamicType],
       nullabilitySuffix: NullabilitySuffix.none,
     );
     _check(F_dynamic, 'Never Function(Never)');
   }
 
-  void _check(DartType type, String expectedStr, {String? typeStr}) {
+  void _check(TypeImpl type, String expectedStr, {String? typeStr}) {
     if (typeStr != null) {
       expect(_typeString(type), typeStr);
     }

@@ -9,15 +9,16 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Use a non-nullable type for a final variable initialized '
+const _desc =
+    r'Use a non-nullable type for a final variable initialized '
     'with a non-nullable value.';
 
 class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
   UnnecessaryNullableForFinalVariableDeclarations()
-      : super(
-          name: LintNames.unnecessary_nullable_for_final_variable_declarations,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.unnecessary_nullable_for_final_variable_declarations,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -25,7 +26,9 @@ class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addFieldDeclaration(this, visitor);
     registry.addPatternVariableDeclaration(this, visitor);

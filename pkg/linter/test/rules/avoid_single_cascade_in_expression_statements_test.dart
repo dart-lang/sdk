@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidSingleCascadeInExpressionStatementsTest);
   });
@@ -27,13 +27,14 @@ void f(int p) {
   }
 
   test_singleCascade() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(int p) {
   p..toString();
 }
-''', [
-      lint(18, 13),
-    ]);
+''',
+      [lint(18, 13)],
+    );
   }
 
   test_singleCascade_asArgument() async {

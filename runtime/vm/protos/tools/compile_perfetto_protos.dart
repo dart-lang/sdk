@@ -4,17 +4,22 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:ffi';
+
+final hostArch = switch (Abi.current()) {
+  Abi.linuxArm => 'arm',
+  Abi.macosArm64 || Abi.linuxArm64 => 'arm64',
+  Abi.macosX64 || Abi.linuxX64 => 'x64',
+  _ => throw 'Unsupported platform',
+};
 
 Future<void> compilePerfettoProtos() async {
-  final processResult = await Process.run(
-    './tools/build.py',
-    [
-      '-mdebug',
-      '-ax64',
-      'runtime/vm:perfetto_protos_protozero',
-      'runtime/vm:perfetto_protos_dart'
-    ],
-  );
+  final processResult = await Process.run('./tools/build.py', [
+    '-mdebug',
+    '-a$hostArch',
+    'runtime/vm:perfetto_protos_protozero',
+    'runtime/vm:perfetto_protos_dart',
+  ]);
 
   final int exitCode = processResult.exitCode;
   final String stdout = processResult.stdout.trim();
@@ -39,8 +44,10 @@ const noticesToPrepend = r'''
 // directory.
 ''';
 
-Future<void> copyGeneratedFiles(
-    {required Directory source, required Directory destination}) async {
+Future<void> copyGeneratedFiles({
+  required Directory source,
+  required Directory destination,
+}) async {
   final executable = 'cp';
   final args = ['-R', source.path, destination.path];
   final processResult = await Process.run(executable, args);
@@ -56,8 +63,9 @@ Future<void> copyGeneratedFiles(
     print('${stderr}');
   }
 
-  for (final file
-      in Directory('${destination.path}/protos').listSync(recursive: true)) {
+  for (final file in Directory(
+    '${destination.path}/protos',
+  ).listSync(recursive: true)) {
     if (!(file is File &&
         (file.path.endsWith('.pbzero.h') ||
             file.path.endsWith('.pb.dart') ||
@@ -105,24 +113,18 @@ main(List<String> files) async {
     print('Error: this tool must be run from the root directory of the SDK.');
     return;
   }
-  if (!Platform.isLinux) {
-    // TODO(derekx): The compilation of protoc fails on MacOS due to the error
-    // "'sprintf' is deprecated". When bumping protobuf, check if this problem
-    // has been resolved.
-    print('Error: this tool can only be run on Linux because protoc has '
-        'compatibility issues on other platforms.');
-    return;
-  }
+
+  final outDir = Platform.isMacOS ? 'xcodebuild' : 'out';
+  final buildDir = '$outDir/Debug${hostArch.toUpperCase()}';
 
   await compilePerfettoProtos();
   await copyGeneratedFiles(
     destination: Directory('./runtime/vm'),
-    source: Directory('./out/DebugX64/gen/runtime/vm/protos'),
+    source: Directory('$buildDir/gen/runtime/vm/protos'),
   );
   await copyGeneratedFiles(
     destination: Directory('./pkg/vm_service_protos/lib/src'),
-    source:
-        Directory('./out/DebugX64/gen/pkg/vm_service_protos/lib/src/protos'),
+    source: Directory('$buildDir/gen/pkg/vm_service_protos/lib/src/protos'),
   );
   createFileThatExportsAllGeneratedDartCode();
 }

@@ -4,7 +4,7 @@
 
 import 'package:heap_snapshot/intset.dart';
 
-main() {
+void main() {
   for (int every in [16, 8, 4, 3, 2, 1]) {
     iterationBenchmark(every, 1);
     iterationBenchmark(every, 0.5);

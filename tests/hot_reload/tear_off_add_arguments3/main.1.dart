@@ -19,7 +19,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -5,14 +5,15 @@
  import 'package:expect/expect.dart';
  import 'package:reload_test/reload_test_utils.dart';
  
@@ -33,8 +32,4 @@ Future<void> main() async {
    }
  
    final f = bar();
-   await hotReload();
-   Expect.throws<NoSuchMethodError>(f);
- }
-+
 */

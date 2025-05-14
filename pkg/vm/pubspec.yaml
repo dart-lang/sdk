@@ -4,7 +4,9 @@ description: VM specific Dart code and helper scripts
 publish_to: none
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: ^3.7.0
+
+resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
@@ -15,9 +17,10 @@ dependencies:
   crypto: any
   front_end: any
   kernel: any
-  record_use: any
   package_config: any
+  path: any
   pub_semver: any
+  record_use: any
   yaml: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
@@ -26,6 +29,5 @@ dev_dependencies:
   expect: any
   json_rpc_2: any
   lints: any
-  path: any
   test: any
   web_socket_channel: any

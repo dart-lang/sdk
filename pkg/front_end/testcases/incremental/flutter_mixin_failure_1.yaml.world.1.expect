@@ -31,16 +31,16 @@ library from "org-dartlang-test:///lib.dart" as lib {
       ;
     method hello(covariant-by-declaration lib::BarEntry entry) → void {}
   }
+  class Quux extends lib::_Quux&Qux&MyMixin {
+    synthetic constructor •() → lib::Quux
+      : super lib::_Quux&Qux&MyMixin::•()
+      ;
+  }
   abstract class _Quux&Qux&MyMixin extends lib::Qux implements lib::MyMixin /*isAnonymousMixin,isEliminatedMixin*/  {
     synthetic constructor •() → lib::_Quux&Qux&MyMixin
       : super lib::Qux::•()
       ;
     abstract member-signature method hello(covariant-by-declaration lib::FooEntry entry) → void; -> lib::Baz::hello
-  }
-  class Quux extends lib::_Quux&Qux&MyMixin {
-    synthetic constructor •() → lib::Quux
-      : super lib::_Quux&Qux&MyMixin::•()
-      ;
   }
 }
 library from "org-dartlang-test:///main.dart" as main {

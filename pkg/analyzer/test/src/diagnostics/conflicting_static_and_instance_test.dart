@@ -29,6 +29,7 @@ class C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inClass_instanceMethod_staticMethodInAugmentation() async {
     await assertErrorsInCode(r'''
 class A {
@@ -98,6 +99,7 @@ class C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inClass_staticMethod_instanceMethodInAugmentation() async {
     await assertErrorsInCode(r'''
 class A {
@@ -286,6 +288,7 @@ class B extends Object with A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inMixin_instanceMethod_staticMethodInAugmentation() async {
     await assertErrorsInCode(r'''
 mixin A {
@@ -352,6 +355,7 @@ class B extends Object with A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inMixin_staticMethod_instanceMethodInAugmentation() async {
     await assertErrorsInCode(r'''
 mixin A {

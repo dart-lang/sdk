@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A class that builds a "display string" for [Element]s and [DartType]s.
 class ElementDisplayStringBuilder {
@@ -81,7 +80,7 @@ class ElementDisplayStringBuilder {
     _write(path);
   }
 
-  void writeConstructorElement(ConstructorElement element) {
+  void writeConstructorElement(ConstructorElementMixin element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -102,7 +101,7 @@ class ElementDisplayStringBuilder {
     _write('dynamic');
   }
 
-  void writeEnumElement(EnumElement element) {
+  void writeEnumElement(EnumElementImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -114,7 +113,7 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeExecutableElement(ExecutableElement element, String name) {
+  void writeExecutableElement(ExecutableElementOrMember element, String name) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -141,7 +140,7 @@ class ElementDisplayStringBuilder {
     _writeDirectiveUri(element.uri);
   }
 
-  void writeExtensionElement(ExtensionElement element) {
+  void writeExtensionElement(ExtensionElementImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -174,7 +173,7 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeFormalParameter(ParameterElement element) {
+  void writeFormalParameter(ParameterElementMixin element) {
     if (element.isRequiredPositional) {
       _writeWithoutDelimiters(element, forElement: true);
     } else if (element.isOptionalPositional) {
@@ -188,7 +187,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void writeFunctionType(FunctionType type) {
+  void writeFunctionType(FunctionTypeImpl type) {
     if (_maybeWriteTypeAlias(type)) {
       return;
     }
@@ -197,7 +196,7 @@ class ElementDisplayStringBuilder {
 
     _writeType(type.returnType);
     _write(' Function');
-    _writeTypeParameters(type.typeFormals);
+    _writeTypeParameters2(type.typeParameters);
     _writeFormalParameters(type.parameters, forElement: false);
     _writeNullability(type.nullabilitySuffix);
   }
@@ -219,7 +218,7 @@ class ElementDisplayStringBuilder {
       return;
     }
 
-    _write(type.element.name);
+    _write(type.element3.name3 ?? '<null>');
     _writeTypeArguments(type.typeArguments);
     _writeNullability(type.nullabilitySuffix);
   }
@@ -293,7 +292,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void writeRecordType(RecordType type) {
+  void writeRecordType(RecordTypeImpl type) {
     if (_maybeWriteTypeAlias(type)) {
       return;
     }
@@ -351,13 +350,27 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void writeTypeParameter(TypeParameterElement element) {
-    if (element is TypeParameterElementImpl) {
-      var variance = element.variance;
-      if (!element.isLegacyCovariant && variance != Variance.unrelated) {
-        _write(variance.keyword);
-        _write(' ');
-      }
+  void writeTypeParameter(TypeParameterElementImpl element) {
+    var variance = element.variance;
+    if (!element.isLegacyCovariant && variance != Variance.unrelated) {
+      _write(variance.keyword);
+      _write(' ');
+    }
+
+    _write(element.displayName);
+
+    var bound = element.bound;
+    if (bound != null) {
+      _write(' extends ');
+      _writeType(bound);
+    }
+  }
+
+  void writeTypeParameter2(TypeParameterElementImpl2 element) {
+    var variance = element.variance;
+    if (!element.isLegacyCovariant && variance != Variance.unrelated) {
+      _write(variance.keyword);
+      _write(' ');
     }
 
     _write(element.displayName);
@@ -376,14 +389,14 @@ class ElementDisplayStringBuilder {
       if (hasSuffix) {
         _write('(');
       }
-      _write(type.element.displayName);
+      _write(type.element3.displayName);
       _write(' & ');
       _writeType(promotedBound);
       if (hasSuffix) {
         _write(')');
       }
     } else {
-      _write(type.element.displayName);
+      _write(type.element3.displayName);
     }
     _writeNullability(type.nullabilitySuffix);
   }
@@ -392,13 +405,7 @@ class ElementDisplayStringBuilder {
     _write('_');
   }
 
-  void writeVariableElement(VariableElement element) {
-    switch (element) {
-      case FieldElement(isAugmentation: true):
-      case TopLevelVariableElement(isAugmentation: true):
-        _write('augment ');
-    }
-
+  void writeVariableElement(VariableElementOrMember element) {
     _writeType(element.type);
     _write(' ');
     _write(element.displayName);
@@ -411,7 +418,7 @@ class ElementDisplayStringBuilder {
   bool _maybeWriteTypeAlias(DartType type) {
     if (preferTypeAlias) {
       if (type.alias case var alias?) {
-        _write(alias.element.name);
+        _write(alias.element2.name3 ?? '<null>');
         _writeTypeArguments(alias.typeArguments);
         _writeNullability(type.nullabilitySuffix);
         return true;
@@ -435,7 +442,7 @@ class ElementDisplayStringBuilder {
   }
 
   void _writeFormalParameters(
-    List<ParameterElement> parameters, {
+    List<ParameterElementMixin> parameters, {
     required bool forElement,
     bool allowMultiline = false,
   }) {
@@ -505,8 +512,8 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void _writeType(DartType type) {
-    (type as TypeImpl).appendTo(this);
+  void _writeType(TypeImpl type) {
+    type.appendTo(this);
   }
 
   void _writeTypeArguments(List<DartType> typeArguments) {
@@ -524,14 +531,14 @@ class ElementDisplayStringBuilder {
     _write('>');
   }
 
-  void _writeTypeIfNotObject(String prefix, DartType? type) {
+  void _writeTypeIfNotObject(String prefix, TypeImpl? type) {
     if (type != null && !type.isDartCoreObject) {
       _write(prefix);
       _writeType(type);
     }
   }
 
-  void _writeTypeParameters(List<TypeParameterElement> elements) {
+  void _writeTypeParameters(List<TypeParameterElementImpl> elements) {
     if (elements.isEmpty) return;
 
     _write('<');
@@ -539,12 +546,25 @@ class ElementDisplayStringBuilder {
       if (i != 0) {
         _write(', ');
       }
-      (elements[i] as TypeParameterElementImpl).appendTo(this);
+      elements[i].appendTo(this);
     }
     _write('>');
   }
 
-  void _writeTypes(List<DartType> types) {
+  void _writeTypeParameters2(List<TypeParameterElement2> elements) {
+    if (elements.isEmpty) return;
+
+    _write('<');
+    for (var i = 0; i < elements.length; i++) {
+      if (i != 0) {
+        _write(', ');
+      }
+      (elements[i] as TypeParameterElementImpl2).appendTo(this);
+    }
+    _write('>');
+  }
+
+  void _writeTypes(List<TypeImpl> types) {
     for (var i = 0; i < types.length; i++) {
       if (i != 0) {
         _write(', ');
@@ -553,7 +573,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void _writeTypesIfNotEmpty(String prefix, List<DartType> types) {
+  void _writeTypesIfNotEmpty(String prefix, List<TypeImpl> types) {
     if (types.isNotEmpty) {
       _write(prefix);
       _writeTypes(types);
@@ -561,7 +581,7 @@ class ElementDisplayStringBuilder {
   }
 
   void _writeWithoutDelimiters(
-    ParameterElement element, {
+    ParameterElementMixin element, {
     required bool forElement,
   }) {
     if (element.isRequiredNamed) {
@@ -584,21 +604,21 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  static FunctionType _uniqueTypeParameters(FunctionType type) {
-    if (type.typeFormals.isEmpty) {
+  static FunctionTypeImpl _uniqueTypeParameters(FunctionTypeImpl type) {
+    if (type.typeParameters.isEmpty) {
       return type;
     }
 
-    var referencedTypeParameters = <TypeParameterElement>{};
+    var referencedTypeParameters = <TypeParameterElement2>{};
 
     void collectTypeParameters(DartType? type) {
       if (type is TypeParameterType) {
-        referencedTypeParameters.add(type.element);
+        referencedTypeParameters.add(type.element3);
       } else if (type is FunctionType) {
-        for (var typeParameter in type.typeFormals) {
+        for (var typeParameter in type.typeParameters) {
           collectTypeParameters(typeParameter.bound);
         }
-        for (var parameter in type.parameters) {
+        for (var parameter in type.formalParameters) {
           collectTypeParameters(parameter.type);
         }
         collectTypeParameters(type.returnType);
@@ -610,16 +630,16 @@ class ElementDisplayStringBuilder {
     }
 
     collectTypeParameters(type);
-    referencedTypeParameters.removeAll(type.typeFormals);
+    referencedTypeParameters.removeAll(type.typeParameters);
 
     var namesToAvoid = <String>{};
     for (var typeParameter in referencedTypeParameters) {
       namesToAvoid.add(typeParameter.displayName);
     }
 
-    var newTypeParameters = <TypeParameterElement>[];
-    for (var typeParameter in type.typeFormals) {
-      var name = typeParameter.name;
+    var newTypeParameters = <TypeParameterElementImpl2>[];
+    for (var typeParameter in type.typeParameters) {
+      var name = typeParameter.name3!;
       for (var counter = 0; !namesToAvoid.add(name); counter++) {
         const unicodeSubscriptZero = 0x2080;
         const unicodeZero = 0x30;
@@ -628,22 +648,22 @@ class ElementDisplayStringBuilder {
           return unicodeSubscriptZero + (n - unicodeZero);
         }));
 
-        name = typeParameter.name + subscript;
+        name = typeParameter.name3! + subscript;
       }
 
       var newTypeParameter = TypeParameterElementImpl(name, -1);
       newTypeParameter.name2 = name;
       newTypeParameter.bound = typeParameter.bound;
-      newTypeParameters.add(newTypeParameter);
+      newTypeParameters.add(newTypeParameter.asElement2);
     }
 
-    return replaceTypeParameters(type as FunctionTypeImpl, newTypeParameters);
+    return replaceTypeParameters(type, newTypeParameters);
   }
 }
 
 enum _WriteFormalParameterKind { requiredPositional, optionalPositional, named }
 
-extension on LibraryImportElement {
+extension on LibraryImportElementImpl {
   String get libraryName {
     if (uri case DirectiveUriWithRelativeUriString uri) {
       return uri.relativeUriString;

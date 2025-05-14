@@ -14,7 +14,7 @@ void printToConsole(String line) {
 }
 
 void _unsupportedPrint(String line) {
-  throw new UnsupportedError("'print' is not supported");
+  throw UnsupportedError("'print' is not supported");
 }
 
 // _printClosure can be overwritten by the embedder to supply a different

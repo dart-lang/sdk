@@ -18,18 +18,18 @@ class C extends core::Object {
   method foo(core::num x) → void
     ;
 }
+class D extends self::_D&A&B implements self::C {
+  synthetic constructor •() → self::D
+    ;
+  method foo(covariant-by-declaration core::int x) → void
+    ;
+}
 abstract class _D&A&B = self::A with self::B /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_D&A&B
     : super self::A::•()
     ;
   forwarding-stub method foo(covariant-by-declaration core::num x) → void
     return super.{self::B::foo}(x);
-}
-class D extends self::_D&A&B implements self::C {
-  synthetic constructor •() → self::D
-    ;
-  method foo(covariant-by-declaration core::int x) → void
-    ;
 }
 static method main() → dynamic
   ;

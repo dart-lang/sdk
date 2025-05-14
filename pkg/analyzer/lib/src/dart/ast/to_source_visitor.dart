@@ -208,7 +208,6 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
-    _visitToken(node.macroKeyword, suffix: ' ');
     _visitToken(node.sealedKeyword, suffix: ' ');
     _visitToken(node.baseKeyword, suffix: ' ');
     _visitToken(node.interfaceKeyword, suffix: ' ');
@@ -347,6 +346,20 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write(' while (');
     _visitNode(node.condition);
     sink.write(');');
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    _visitToken(node.period);
+    _visitNode(node.memberName);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    _visitToken(node.period);
+    _visitNode(node.propertyName);
   }
 
   @override

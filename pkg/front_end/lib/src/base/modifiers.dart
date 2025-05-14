@@ -174,14 +174,18 @@ extension type const Modifiers(int _mask) implements Object {
       Token? staticToken,
       Token? varFinalOrConst}) {
     assert(abstractToken == null || abstractToken.type == Keyword.ABSTRACT);
-    assert(augmentToken == null || augmentToken.type == Keyword.AUGMENT);
+    assert(augmentToken == null ||
+        // Coverage-ignore(suite): Not run.
+        augmentToken.type == Keyword.AUGMENT);
     assert(baseToken == null || baseToken.type == Keyword.BASE);
     assert(covariantToken == null || covariantToken.type == Keyword.COVARIANT);
     assert(constToken == null || constToken.type == Keyword.CONST);
     assert(finalToken == null || finalToken.type == Keyword.FINAL);
     assert(interfaceToken == null || interfaceToken.type == Keyword.INTERFACE);
     assert(lateToken == null || lateToken.type == Keyword.LATE);
-    assert(macroToken == null || macroToken.lexeme == 'macro');
+    assert(macroToken == null ||
+        // Coverage-ignore(suite): Not run.
+        macroToken.lexeme == 'macro');
     assert(mixinToken == null || mixinToken.type == Keyword.MIXIN);
     assert(requiredToken == null || requiredToken.type == Keyword.REQUIRED);
     assert(sealedToken == null || sealedToken.type == Keyword.SEALED);
@@ -331,6 +335,7 @@ extension type const Modifiers(int _mask) implements Object {
   /// ```
   static const Modifiers Macro = const Modifiers(_macroMask);
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the set of modifiers contains `macro'.
   bool get isMacro => (_mask & _macroMask) != 0;
 

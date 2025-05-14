@@ -43,7 +43,7 @@ class SimulatorSetjmpBuffer {
   void Longjmp() {
     // "This" is now the last setjmp buffer.
     simulator_->set_last_setjmp_buffer(this);
-    longjmp(buffer_, 1);
+    DART_LONGJMP(buffer_, 1);
   }
 
   explicit SimulatorSetjmpBuffer(Simulator* sim) {
@@ -2109,12 +2109,12 @@ void Simulator::InterpretECALL(Instr instr) {
   memory_.FlushAll();
 
   SimulatorSetjmpBuffer buffer(this);
-  if (!setjmp(buffer.buffer_)) {
+  if (!DART_SETJMP(buffer.buffer_)) {
     uintx_t saved_ra = get_xreg(RA);
     Redirection* redirection = Redirection::FromECallInstruction(pc_);
     uword external = redirection->external_function();
     if (IsTracingExecution()) {
-      THR_Print("Call to host function at 0x%" Pd "\n", external);
+      THR_Print("Call to host function at 0x%" Px "\n", external);
     }
 
     if (redirection->call_kind() == kRuntimeCall) {

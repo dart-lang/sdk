@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferRelativeImportsTest);
   });
@@ -48,12 +48,13 @@ import 'package:internal_package/lib.dart';
     newFile('$testPackageLibPath/lib.dart', r'''
 class C {}
 ''');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// This provides [C].
 import 'package:test/lib.dart';
-''', [
-      lint(30, 23),
-    ]);
+''',
+      [lint(30, 23)],
+    );
   }
 
   test_samePackage_packageSchema_fromOutsideLib() async {
@@ -77,14 +78,15 @@ class C {}
 part 'test.dart';
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 /// This provides [C].
 import 'package:test/lib.dart';
-''', [
-      lint(49, 23),
-    ]);
+''',
+      [lint(49, 23)],
+    );
   }
 
   test_samePackage_relativeUri() async {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -246,7 +245,7 @@ extension<U> on A<U> {
 ''', [
       // An instance field is illegal, but we should not also report an
       // additional error for the type variable.
-      error(ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 63, 1),
+      error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 63, 1),
     ]);
   }
 

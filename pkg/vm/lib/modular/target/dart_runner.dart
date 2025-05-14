@@ -15,30 +15,30 @@ class DartRunnerTarget extends VmTarget {
   // `runtime/vm/object_store.h`.
   @override
   List<String> get extraRequiredLibraries => const <String>[
-        'dart:async',
-        'dart:collection',
-        'dart:concurrent',
-        'dart:convert',
-        'dart:developer',
-        'dart:ffi',
-        'dart:_internal',
-        'dart:isolate',
-        'dart:math',
+    'dart:async',
+    'dart:collection',
+    'dart:concurrent',
+    'dart:convert',
+    'dart:developer',
+    'dart:ffi',
+    'dart:_internal',
+    'dart:isolate',
+    'dart:math',
 
-        // The library dart:mirrors may be ignored by the VM, e.g. when built in
-        // PRODUCT mode.
-        'dart:mirrors',
+    // The library dart:mirrors may be ignored by the VM, e.g. when built in
+    // PRODUCT mode.
+    'dart:mirrors',
 
-        'dart:typed_data',
-        'dart:nativewrappers',
-        'dart:io',
+    'dart:typed_data',
+    'dart:nativewrappers',
+    'dart:io',
 
-        // Required for dart_runner.
-        'dart:fuchsia.builtin',
-        'dart:zircon',
-        'dart:fuchsia',
-        'dart:vmservice_io',
-      ];
+    // Required for dart_runner.
+    'dart:fuchsia.builtin',
+    'dart:zircon',
+    'dart:fuchsia',
+    'dart:vmservice_io',
+  ];
 
   @override
   List<String> get extraRequiredLibrariesPlatform => const <String>[];

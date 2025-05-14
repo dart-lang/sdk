@@ -55,6 +55,9 @@ class RuntimeEntry : public BaseRuntimeEntry {
   bool is_float() const { return is_float_; }
   bool can_lazy_deopt() const { return can_lazy_deopt_; }
   uword GetEntryPoint() const;
+  uword GetEntryPointNoRedirect() const {
+    return reinterpret_cast<uword>(function());
+  }
 
   static uword InterpretCallEntry();
 

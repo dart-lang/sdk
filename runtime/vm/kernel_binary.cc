@@ -154,15 +154,10 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   program->single_program_ = subprogram_count == 1;
 
   // Read backwards at the end.
-  program->library_count_ = reader->ReadFromIndexNoReset(
-      reader->size_, LibraryCountFieldCountFromEnd, 1, 0);
-  intptr_t count_from_first_library_offset =
-      SourceTableFieldCountFromFirstLibraryOffset;
-  program->source_table_offset_ = reader->ReadFromIndexNoReset(
-      reader->size_,
-      LibraryCountFieldCountFromEnd + 1 + program->library_count_ + 1 +
-          count_from_first_library_offset,
-      1, 0);
+  program->library_count_ = reader->ReadSingleFieldFromIndexNoReset(
+      reader->size_, KernelFixedFieldsAfterLibraries);
+  program->source_table_offset_ = reader->ReadSingleFieldFromIndexNoReset(
+      reader->size_, KernelNumberOfFixedFields(program->library_count_));
   program->constant_table_offset_ = reader->ReadUInt32();
   reader->ReadUInt32();  // offset for constant table index.
   program->name_table_offset_ = reader->ReadUInt32();
@@ -174,7 +169,6 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   program->component_index_offset_ = reader->ReadUInt32();
 
   program->main_method_reference_ = NameIndex(reader->ReadUInt32() - 1);
-  reader->ReadUInt32();  // Read and ignore NNBD compilation mode.
 
   return program;
 }

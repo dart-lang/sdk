@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart';
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 
 import '../mini_ast.dart';
+import '../mini_type_constraint_gatherer.dart';
 import '../mini_types.dart';
 
 main() {
@@ -31,7 +30,7 @@ main() {
               Type('void Function()'), Type('void Function()'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .equals(true);
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
 
     group('Matching functions with positional parameters:', () {
@@ -41,7 +40,7 @@ main() {
                 Type('void Function(int, String)'), Type('void Function(T, U)'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+        check(tcg.constraints).unorderedEquals(['T <: int', 'U <: String']);
       });
 
       test('Some optional on LHS', () {
@@ -52,7 +51,7 @@ main() {
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+        check(tcg.constraints).unorderedEquals(['T <: int', 'U <: String']);
       });
     });
 
@@ -63,7 +62,7 @@ main() {
                 Type('int Function(int)'), Type('String Function(int)'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Non-matching due to parameter types', () {
@@ -72,7 +71,7 @@ main() {
                 Type('void Function(int)'), Type('void Function(String)'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Non-matching due to optional parameters on RHS', () {
@@ -81,7 +80,7 @@ main() {
                 Type('void Function()'), Type('void Function([int])'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Non-matching due to more parameters being required on LHS', () {
@@ -90,7 +89,7 @@ main() {
                 Type('void Function(int)'), Type('void Function([int])'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
     });
 
@@ -103,7 +102,7 @@ main() {
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+        check(tcg.constraints).unorderedEquals(['T <: int', 'U <: String']);
       });
 
       test('Some optional on LHS', () {
@@ -114,7 +113,7 @@ main() {
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+        check(tcg.constraints).unorderedEquals(['T <: int', 'U <: String']);
       });
 
       test('Optional named parameter on LHS', () {
@@ -125,7 +124,7 @@ main() {
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).unorderedEquals(['T <: int']);
+        check(tcg.constraints).unorderedEquals(['T <: int']);
       });
 
       test('Extra optional named parameter on LHS', () {
@@ -136,7 +135,7 @@ main() {
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).unorderedEquals(['T <: int']);
+        check(tcg.constraints).unorderedEquals(['T <: int']);
       });
     });
 
@@ -147,7 +146,7 @@ main() {
                 Type('int Function({int x})'), Type('String Function({int x})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Non-matching due to named parameter types', () {
@@ -158,7 +157,7 @@ main() {
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Non-matching due to required named parameter on LHS', () {
@@ -169,7 +168,7 @@ main() {
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Non-matching due to optional named parameter on RHS', () {
@@ -178,7 +177,7 @@ main() {
                 Type('void Function()'), Type('void Function({int x})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Non-matching due to named parameter on RHS, with decoys on LHS',
@@ -190,7 +189,7 @@ main() {
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
     });
 
@@ -202,7 +201,7 @@ main() {
               leftSchema: false,
               astNodeForTesting: Node.placeholder()))
           .equals(true);
-      check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+      check(tcg.constraints).unorderedEquals(['T <: int', 'U <: String']);
     });
 
     group('Non-matching functions with named and positional parameters:', () {
@@ -216,7 +215,7 @@ main() {
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Non-matching due to positional parameter length mismatch', () {
@@ -227,7 +226,7 @@ main() {
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
     });
   });
@@ -239,7 +238,7 @@ main() {
               Type('()'), Type('()'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .equals(true);
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
 
     group('Matching records:', () {
@@ -249,7 +248,7 @@ main() {
                 Type('(int, String)'), Type('(T, U)'),
                 leftSchema: true, astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).unorderedEquals(['int <: T', 'String <: U']);
+        check(tcg.constraints).unorderedEquals(['int <: T', 'String <: U']);
       });
 
       test('With named parameters', () {
@@ -258,7 +257,7 @@ main() {
                 Type('(int, {String foo})'), Type('(T, {U foo})'),
                 leftSchema: true, astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).unorderedEquals(['int <: T', 'String <: U']);
+        check(tcg.constraints).unorderedEquals(['int <: T', 'String <: U']);
       });
     });
 
@@ -269,7 +268,7 @@ main() {
                 Type('(int,)'), Type('(String,)'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Non-matching due to parameter numbers', () {
@@ -278,7 +277,7 @@ main() {
                 Type('()'), Type('(int,)'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Non-matching due to more parameters on LHS', () {
@@ -287,7 +286,7 @@ main() {
                 Type('(int,)'), Type('()'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
     });
 
@@ -298,7 +297,7 @@ main() {
                 Type('({int x, String y})'), Type('({int x, String y})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isTrue();
-        check(tcg._constraints).unorderedEquals([]);
+        check(tcg.constraints).unorderedEquals([]);
       });
 
       test('Type parameters in RHS', () {
@@ -307,7 +306,7 @@ main() {
                 Type('({int x, String y})'), Type('({T x, U y})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isTrue();
-        check(tcg._constraints).unorderedEquals(['int <: T', 'String <: U']);
+        check(tcg.constraints).unorderedEquals(['int <: T', 'String <: U']);
       });
 
       test('Type parameters in LHS', () {
@@ -316,7 +315,7 @@ main() {
                 Type('({T x, U y})'), Type('({int x, String y})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isTrue();
-        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+        check(tcg.constraints).unorderedEquals(['T <: int', 'U <: String']);
       });
     });
 
@@ -327,7 +326,7 @@ main() {
                 Type('({int x, String y})'), Type('({int x, String y})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isTrue();
-        check(tcg._constraints).unorderedEquals([]);
+        check(tcg.constraints).unorderedEquals([]);
       });
 
       test('Type parameters in RHS', () {
@@ -336,7 +335,7 @@ main() {
                 Type('({int x, String y})'), Type('({T x, U y})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isTrue();
-        check(tcg._constraints).unorderedEquals(['int <: T', 'String <: U']);
+        check(tcg.constraints).unorderedEquals(['int <: T', 'String <: U']);
       });
 
       test('Type parameters in LHS', () {
@@ -345,7 +344,7 @@ main() {
                 Type('({T x, U y})'), Type('({int x, String y})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isTrue();
-        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+        check(tcg.constraints).unorderedEquals(['T <: int', 'U <: String']);
       });
     });
 
@@ -358,7 +357,7 @@ main() {
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Non-matching due to named parameter numbers', () {
@@ -367,7 +366,7 @@ main() {
                 Type('({T x, U y, num z})'), Type('({int x, String y})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Non-matching due to named parameter names', () {
@@ -376,7 +375,7 @@ main() {
                 Type('(num, {T x, U y})'), Type('(num, {int x, String x2})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
     });
   });
@@ -389,7 +388,7 @@ main() {
               Type('FutureOr<T>'), Type('FutureOr<int>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).deepEquals(['T <: int']);
+      check(tcg.constraints).deepEquals(['T <: int']);
     });
 
     test('FutureOr does not match FutureOr because arguments fail to match',
@@ -400,7 +399,7 @@ main() {
               Type('FutureOr<int>'), Type('FutureOr<String>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isFalse();
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
 
     test('Future matches FutureOr favoring Future branch', () {
@@ -416,7 +415,7 @@ main() {
               Type('Future<int>'), Type('FutureOr<T>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).deepEquals(['int <: T']);
+      check(tcg.constraints).deepEquals(['int <: T']);
     });
 
     test('Future matches FutureOr preferring to generate constraints', () {
@@ -432,7 +431,7 @@ main() {
               Type('Future<_>'), Type('FutureOr<T>'),
               leftSchema: true, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).deepEquals(['Future<_> <: T']);
+      check(tcg.constraints).deepEquals(['Future<_> <: T']);
     });
 
     test('Type matches FutureOr favoring the Future branch', () {
@@ -448,7 +447,7 @@ main() {
               Type('T'), Type('FutureOr<int>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).deepEquals(['T <: Future<int>']);
+      check(tcg.constraints).deepEquals(['T <: Future<int>']);
     });
 
     test('Testing FutureOr as the lower bound of the constraint', () {
@@ -457,7 +456,7 @@ main() {
               Type('FutureOr<T>'), Type('dynamic'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).deepEquals(['T <: dynamic']);
+      check(tcg.constraints).deepEquals(['T <: dynamic']);
     });
 
     test('FutureOr does not match Future in general', () {
@@ -469,7 +468,7 @@ main() {
               Type('FutureOr<(T,)>'), Type('Future<(int,)>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isFalse();
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
 
     test('Testing nested FutureOr as the lower bound of the constraint', () {
@@ -478,7 +477,7 @@ main() {
               Type('FutureOr<FutureOr<T>>'), Type('FutureOr<dynamic>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).deepEquals(['T <: dynamic', 'T <: dynamic']);
+      check(tcg.constraints).deepEquals(['T <: dynamic', 'T <: dynamic']);
     });
 
     test('Future matches FutureOr with no constraints', () {
@@ -489,7 +488,7 @@ main() {
               Type('Future<int>'), Type('FutureOr<int>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
 
     test('Type matches FutureOr favoring the branch that matches', () {
@@ -501,7 +500,7 @@ main() {
               Type('List<T>'), Type('FutureOr<List<int>>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).deepEquals(['T <: int']);
+      check(tcg.constraints).deepEquals(['T <: int']);
     });
 
     group('Nullable FutureOr on RHS:', () {
@@ -511,7 +510,7 @@ main() {
                 Type('FutureOr<T>'), Type('FutureOr<int>?'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Matches, according to CFE discrepancy', () {
@@ -521,7 +520,7 @@ main() {
                 Type('FutureOr<T>'), Type('FutureOr<int>?'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isTrue();
-        check(tcg._constraints).deepEquals(['T <: int']);
+        check(tcg.constraints).deepEquals(['T <: int']);
       });
     });
 
@@ -532,7 +531,7 @@ main() {
                 Type('FutureOr<T>?'), Type('FutureOr<int>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Matches, according to CFE discrepancy', () {
@@ -542,7 +541,7 @@ main() {
                 Type('FutureOr<T>?'), Type('FutureOr<int>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isTrue();
-        check(tcg._constraints).deepEquals(['T <: int']);
+        check(tcg.constraints).deepEquals(['T <: int']);
       });
     });
   });
@@ -555,7 +554,7 @@ main() {
               Type('T?'), Type('Null'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).deepEquals(['T <: Null']);
+      check(tcg.constraints).deepEquals(['T <: Null']);
     });
 
     test('Nullable does not match Nullable because base types fail to match',
@@ -566,7 +565,7 @@ main() {
               Type('int?'), Type('String?'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isFalse();
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
 
     test('Nullable does not match non-nullable', () {
@@ -576,7 +575,7 @@ main() {
               Type('(int, T)?'), Type('(int, String)'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isFalse();
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
 
     test('Both LHS and RHS nullable, matching', () {
@@ -585,7 +584,7 @@ main() {
               Type('T?'), Type('int?'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).deepEquals(['T <: int']);
+      check(tcg.constraints).deepEquals(['T <: int']);
     });
 
     test('Both LHS and RHS nullable, not matching', () {
@@ -594,7 +593,7 @@ main() {
               Type('(T, int)?'), Type('(int, String)?'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isFalse();
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
   });
 
@@ -612,7 +611,7 @@ main() {
               Type('Null'), Type('T?'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).deepEquals(['Null <: T']);
+      check(tcg.constraints).deepEquals(['Null <: T']);
     });
 
     test('Type matches Nullable favoring the non-Null branch', () {
@@ -628,7 +627,7 @@ main() {
               Type('T'), Type('int?'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).deepEquals(['T <: int']);
+      check(tcg.constraints).deepEquals(['T <: int']);
     });
 
     test('Null matches Nullable with no constraints', () {
@@ -639,7 +638,7 @@ main() {
               Type('Null'), Type('int?'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
 
     test('Dynamic matches Object?', () {
@@ -648,7 +647,7 @@ main() {
               Type('dynamic'), Type('Object?'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
 
     test('void matches Object?', () {
@@ -657,7 +656,7 @@ main() {
               Type('void'), Type('Object?'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
 
     test('LHS not nullable, matches with no constraints', () {
@@ -666,7 +665,7 @@ main() {
               Type('int'), Type('int?'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
   });
 
@@ -678,7 +677,7 @@ main() {
                 Type('Map<T, U>'), Type('Map<int, String>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+        check(tcg.constraints).unorderedEquals(['T <: int', 'U <: String']);
       });
 
       test('Covariant, not matching', () {
@@ -687,7 +686,7 @@ main() {
                 Type('Map<T, int>'), Type('Map<int, String>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .equals(false);
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Contravariant, matching', () {
@@ -698,7 +697,7 @@ main() {
                 Type('Contravariant<T, U>'), Type('Contravariant<int, String>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).unorderedEquals(['int <: T', 'String <: U']);
+        check(tcg.constraints).unorderedEquals(['int <: T', 'String <: U']);
       });
 
       test('Contravariant, not matching', () {
@@ -711,7 +710,7 @@ main() {
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
             .equals(false);
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Invariant, matching', () {
@@ -722,7 +721,7 @@ main() {
                 Type('Invariant<T, U>'), Type('Invariant<int, String>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).unorderedEquals(
+        check(tcg.constraints).unorderedEquals(
             ['T <: int', 'U <: String', 'int <: T', 'String <: U']);
       });
 
@@ -734,7 +733,7 @@ main() {
                 Type('Invariant<T, int>'), Type('Invariant<int, String>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .equals(false);
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Unrelated, matchable', () {
@@ -747,7 +746,7 @@ main() {
                 Type('Unrelated<T, U>'), Type('Unrelated<int, String>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('Unrelated, not matchable', () {
@@ -760,7 +759,7 @@ main() {
                 Type('Unrelated<T, int>'), Type('Unrelated<int, String>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
     });
 
@@ -771,7 +770,7 @@ main() {
                 Type('List<T>'), Type('Iterable<int>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).deepEquals(['T <: int']);
+        check(tcg.constraints).deepEquals(['T <: int']);
       });
 
       test('Change in type args', () {
@@ -780,7 +779,7 @@ main() {
                 Type('MyListOfInt'), Type('List<T>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .equals(true);
-        check(tcg._constraints).deepEquals(['int <: T']);
+        check(tcg.constraints).deepEquals(['int <: T']);
       });
 
       test('LHS nullable', () {
@@ -793,7 +792,7 @@ main() {
                 Type('List<T>?'), Type('Iterable<int>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .equals(false);
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
 
       test('RHS nullable', () {
@@ -806,7 +805,7 @@ main() {
                 Type('List<T>'), Type('Iterable<int>?'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .equals(false);
-        check(tcg._constraints).isEmpty();
+        check(tcg.constraints).isEmpty();
       });
     });
 
@@ -816,7 +815,7 @@ main() {
               Type('void Function()'), Type('int'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isNull();
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
 
     test('Non-interface type on RHS', () {
@@ -825,7 +824,7 @@ main() {
               Type('int'), Type('void Function()'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isNull();
-      check(tcg._constraints).isEmpty();
+      check(tcg.constraints).isEmpty();
     });
   });
 
@@ -839,7 +838,7 @@ main() {
               leftSchema: false,
               astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).unorderedEquals(['String <: T']);
+      check(tcg.constraints).unorderedEquals(['String <: T']);
     });
 
     test('Promoted parameter on LHS', () {
@@ -853,109 +852,7 @@ main() {
               leftSchema: false,
               astNodeForTesting: Node.placeholder()))
           .isTrue();
-      check(tcg._constraints).unorderedEquals(['num <: T']);
+      check(tcg.constraints).unorderedEquals(['num <: T']);
     });
   });
-}
-
-class TypeConstraintGatherer extends TypeConstraintGenerator<Type,
-        NamedFunctionParameter, Var, TypeParameter, Type, String, Node>
-    with
-        TypeConstraintGeneratorMixin<Type, NamedFunctionParameter, Var,
-            TypeParameter, Type, String, Node> {
-  @override
-  final Set<TypeParameter> typeParametersToConstrain = <TypeParameter>{};
-
-  @override
-  final bool enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr;
-
-  @override
-  final MiniAstOperations typeAnalyzerOperations = MiniAstOperations();
-
-  final _constraints = <String>[];
-
-  TypeConstraintGatherer(Set<String> typeVariablesBeingConstrained,
-      {this.enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr = false})
-      : super(inferenceUsingBoundsIsEnabled: false) {
-    for (var typeVariableName in typeVariablesBeingConstrained) {
-      typeParametersToConstrain
-          .add(TypeRegistry.addTypeParameter(typeVariableName));
-    }
-  }
-
-  @override
-  TypeConstraintGeneratorState get currentState =>
-      TypeConstraintGeneratorState(_constraints.length);
-
-  @override
-  List<Type>? getTypeArgumentsAsInstanceOf(Type type, String typeDeclaration) {
-    // We just have a few cases hardcoded here to make the tests work.
-    // TODO(paulberry): if this gets too unwieldy, replace it with a more
-    // general implementation.
-    switch ((type, typeDeclaration)) {
-      case (PrimaryType(name: 'List', :var args), 'Iterable'):
-        // List<T> inherits from Iterable<T>
-        return args;
-      case (PrimaryType(name: 'MyListOfInt'), 'List'):
-        // MyListOfInt inherits from List<int>
-        return [Type('int')];
-      case (PrimaryType(name: 'Future'), 'int'):
-      case (PrimaryType(name: 'int'), 'String'):
-      case (PrimaryType(name: 'List'), 'Future'):
-      case (PrimaryType(name: 'String'), 'int'):
-      case (PrimaryType(name: 'Future'), 'String'):
-        // Unrelated types
-        return null;
-      default:
-        throw UnimplementedError(
-            'getTypeArgumentsAsInstanceOf($type, $typeDeclaration)');
-    }
-  }
-
-  @override
-  void restoreState(TypeConstraintGeneratorState state) {
-    _constraints.length = state.count;
-  }
-
-  @override
-  void addUpperConstraintForParameter(TypeParameter typeParameter, Type upper,
-      {required Node? astNodeForTesting}) {
-    _constraints.add('$typeParameter <: $upper');
-  }
-
-  @override
-  void addLowerConstraintForParameter(TypeParameter typeParameter, Type lower,
-      {required Node? astNodeForTesting}) {
-    _constraints.add('$lower <: $typeParameter');
-  }
-
-  @override
-  void eliminateTypeParametersInGeneratedConstraints(
-      Object eliminator, TypeConstraintGeneratorState eliminationStartState,
-      {required Node? astNodeForTesting}) {
-    // TODO(paulberry): implement eliminateTypeParametersInGeneratedConstraints
-  }
-
-  @override
-  (
-    Type,
-    Type, {
-    List<TypeParameter> typeParametersToEliminate
-  }) instantiateFunctionTypesAndProvideFreshTypeParameters(
-      SharedFunctionTypeStructure<Type, TypeParameter, NamedFunctionParameter>
-          p,
-      SharedFunctionTypeStructure<Type, TypeParameter, NamedFunctionParameter>
-          q,
-      {required bool leftSchema}) {
-    // TODO(paulberry): implement instantiateFunctionTypesAndProvideEliminator
-    throw UnimplementedError();
-  }
-
-  @override
-  Map<TypeParameter,
-          MergedTypeConstraint<Type, TypeParameter, Var, Type, String>>
-      computeConstraints() {
-    // TODO(cstefantsova): implement computeConstraints
-    throw UnimplementedError();
-  }
 }

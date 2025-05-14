@@ -38,12 +38,12 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: Enum
-      element: dart:core::<fragment>::@class::Enum
       element2: dart:core::@class::Enum
       type: Enum
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_in_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -77,7 +77,6 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
 ''');

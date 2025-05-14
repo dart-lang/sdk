@@ -23,20 +23,25 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   Builder? findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter = false}) {
-    if (accessingLibrary.nameOriginBuilder.origin !=
-            libraryBuilder.nameOriginBuilder.origin &&
+    if (accessingLibrary.nameOriginBuilder !=
+            libraryBuilder.nameOriginBuilder &&
         name.startsWith("_")) {
       return null;
     }
-    Builder? declaration = normalizeLookup(
-        getable: nameSpace.lookupLocalMember(name, setter: false),
-        setable: nameSpace.lookupLocalMember(name, setter: true),
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: this.name,
-        isSetter: isSetter,
-        forStaticAccess: true);
+    Builder? getable = nameSpace.lookupLocalMember(name, setter: false);
+    Builder? setable = nameSpace.lookupLocalMember(name, setter: true);
+    Builder? declaration;
+    if (getable != null || setable != null) {
+      declaration = normalizeLookup(
+          getable: getable,
+          setable: setable,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: this.name,
+          isSetter: isSetter,
+          forStaticAccess: true);
+    }
     // TODO(johnniwinther): Handle augmented extensions/extension type
     //  declarations.
     return declaration;
@@ -63,10 +68,7 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   }
 
   void forEach(void f(String name, Builder builder)) {
-    nameSpace
-        .filteredNameIterator(
-            includeDuplicates: false, includeAugmentations: false)
-        .forEach(f);
+    nameSpace.filteredNameIterator(includeDuplicates: false).forEach(f);
   }
 
   @override

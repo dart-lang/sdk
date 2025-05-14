@@ -83,7 +83,6 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: <testLibraryFragment>::@function::f
     element: <testLibrary>::@function::f
     staticType: T Function<T>(T)
   argumentList: ArgumentList
@@ -91,8 +90,8 @@ MethodInvocation
     arguments
       NullLiteral
         literal: null
-        parameter: ParameterMember
-          base: <testLibraryFragment>::@function::f::@parameter::t
+        correspondingParameter: ParameterMember
+          baseElement: <testLibraryFragment>::@function::f::@parameter::t#element
           substitution: {T: Iterable<int>?}
         staticType: Null
     rightParenthesis: )
@@ -454,6 +453,16 @@ void f<T extends num>(T a) {
 var a = <String>[1];
 ''', [
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 1),
+    ]);
+    assertType(findNode.listLiteral('['), 'List<String>');
+  }
+
+  test_noContext_typeArgs_expression_conflict_nullable() async {
+    await assertErrorsInCode('''
+var a = <String>[(null as String?)];
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          17, 17),
     ]);
     assertType(findNode.listLiteral('['), 'List<String>');
   }

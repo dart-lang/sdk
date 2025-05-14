@@ -24,9 +24,9 @@ class B extends A {
 Future<void> main() async {
   Expect.equals('a:b', await B().f());
 }
+
 /** DIFF **/
 /*
-@@ -9,7 +9,7 @@
  // https://github.com/dart-lang/sdk/blob/63622f03eeaf72983b2f4957fa84da8062693f00/runtime/vm/isolate_reload_test.cc#L6114
  
  class A {

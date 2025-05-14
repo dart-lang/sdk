@@ -8,7 +8,7 @@ bool isPrime(var n) {
 
 int nThPrimeNumber(int n) {
   int counter = 0;
-  for (var i = 1;; i++) {
+  for (var i = 1; ; i++) {
     if (isPrime(i)) counter++;
     if (counter == n) {
       return i;

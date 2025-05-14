@@ -56,10 +56,10 @@ const c2 = E.c;
 
 void nonExhaustiveSwitch1(E e) {
   switch (e) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.c'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.c'.
     case E.a:
       print('a');
       break;
@@ -71,10 +71,10 @@ void nonExhaustiveSwitch1(E e) {
 
 void nonExhaustiveSwitch2(E e) {
   switch (e) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.b'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.b'.
     case E.a:
       print('a');
       break;
@@ -86,10 +86,10 @@ void nonExhaustiveSwitch2(E e) {
 
 void nonExhaustiveSwitch3(E e) {
   switch (e) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.a'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.a'.
     case E.b:
       print('b');
       break;
@@ -101,10 +101,10 @@ void nonExhaustiveSwitch3(E e) {
 
 void nonExhaustiveSwitch4(E e) {
   switch (e) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.a'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.a'.
     case E.b:
       print('b');
       break;
@@ -141,10 +141,10 @@ void exhaustiveNullableSwitch(E? e) {
 
 void nonExhaustiveNullableSwitch1(E? e) {
   switch (e) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'E?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'E?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
     case E.a:
       print('a');
       break;
@@ -159,10 +159,10 @@ void nonExhaustiveNullableSwitch1(E? e) {
 
 void nonExhaustiveNullableSwitch2(E? e) {
   switch (e) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'E?' is not exhaustively matched by the switch cases since it doesn't match 'E.b'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'E?' is not exhaustively matched by the switch cases since it doesn't match 'E.b'.
     case E.a:
       print('a');
       break;
@@ -184,8 +184,8 @@ void unreachableCase1(E e) {
       print('b');
       break;
     case E.a: // Unreachable
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('a2');
       break;
     case E.c:
@@ -196,10 +196,10 @@ void unreachableCase1(E e) {
 
 void unreachableCase2(E e) {
   switch (e) /* Non-exhaustive */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.c'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.c'.
     case E.a:
       print('a1');
       break;
@@ -207,8 +207,8 @@ void unreachableCase2(E e) {
       print('b');
       break;
     case E.a: // Unreachable
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('a2');
       break;
   }
@@ -247,8 +247,8 @@ void unreachableCase4(E? e) {
       print('null1');
       break;
     case null: // Unreachable
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('null2');
       break;
   }
@@ -261,8 +261,8 @@ void unreachableCase5(E e) {
       break;
     case E.b:
     case E.a: // Unreachable
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+    // [error column 5, length 4]
+    // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
     case E.c:
       print('c');
       break;
@@ -281,8 +281,8 @@ void unreachableDefault(E e) {
       print('c');
       break;
     default: // Unreachable
-//  ^^^^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
+      // [error column 5, length 7]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
       print('default');
       break;
   }

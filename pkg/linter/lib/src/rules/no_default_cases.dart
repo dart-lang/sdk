@@ -14,18 +14,20 @@ const _desc = r'No default cases.';
 
 class NoDefaultCases extends LintRule {
   NoDefaultCases()
-      : super(
-          name: LintNames.no_default_cases,
-          description: _desc,
-          state: const State.experimental(),
-        );
+    : super(
+        name: LintNames.no_default_cases,
+        description: _desc,
+        state: const State.experimental(),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.no_default_cases;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addSwitchStatement(this, visitor);
   }

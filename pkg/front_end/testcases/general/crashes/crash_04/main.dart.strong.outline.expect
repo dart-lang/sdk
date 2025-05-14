@@ -19,12 +19,12 @@ import "dart:core" as core;
 
 abstract class A<T extends invalid-type> extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class _B&D&A = core::Object with self::A<invalid-type> /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_B&D&A
-    ;
-}
 class B extends self::_B&D&A {
   synthetic constructor •() → self::B
+    ;
+}
+abstract class _B&D&A = core::Object with self::A<invalid-type> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_B&D&A
     ;
 }
 static method main() → dynamic

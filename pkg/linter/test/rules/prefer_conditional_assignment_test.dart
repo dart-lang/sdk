@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferConditionalAssignmentTest);
   });
@@ -18,7 +18,8 @@ class PreferConditionalAssignmentTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_conditional_assignment;
 
   test_field_ifEqNull() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String? x;
 
@@ -28,13 +29,14 @@ class C {
     }
   }
 }
-''', [
-      lint(49, 35),
-    ]);
+''',
+      [lint(49, 35)],
+    );
   }
 
   test_field_ifEqNull_conditionWrappedInParens() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String? x;
   void f(String s) {
@@ -43,13 +45,14 @@ class C {
     }
   }
 }
-''', [
-      lint(48, 37),
-    ]);
+''',
+      [lint(48, 37)],
+    );
   }
 
   test_field_ifEqNull_eachWrappedInParens() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String? x;
   void f(String s) {
@@ -58,13 +61,14 @@ class C {
     }
   }
 }
-''', [
-      lint(48, 39),
-    ]);
+''',
+      [lint(48, 39)],
+    );
   }
 
   test_field_ifEqNull_statementBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String? x;
   String? f(String s) {
@@ -73,9 +77,9 @@ class C {
     return x;
   }
 }
-''', [
-      lint(51, 27),
-    ]);
+''',
+      [lint(51, 27)],
+    );
   }
 
   test_field_ifHasElse() async {
@@ -108,7 +112,8 @@ class C {
   }
 
   test_field_onSameTarget() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String? x;
   void f(C a) {
@@ -117,9 +122,9 @@ class C {
     }
   }
 }
-''', [
-      lint(43, 40),
-    ]);
+''',
+      [lint(43, 40)],
+    );
   }
 
   test_field_unrelatedAssignment() async {

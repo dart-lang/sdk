@@ -191,7 +191,6 @@ class ExpressionCompilerWorker {
       explicitExperimentalFlags: explicitExperimentalFlags,
       sdkRoot: _argToUri(parsedArgs['sdk-root'] as String?),
       trackWidgetCreation: parsedArgs['track-widget-creation'] as bool,
-      soundNullSafety: parsedArgs['sound-null-safety'] as bool,
       moduleFormat: moduleFormat,
       canaryFeatures: parsedArgs['canary'] as bool,
       enableAsserts: parsedArgs['enable-asserts'] as bool,
@@ -218,7 +217,6 @@ class ExpressionCompilerWorker {
     Map<ExperimentalFlag, bool> explicitExperimentalFlags = const {},
     Uri? sdkRoot,
     bool trackWidgetCreation = false,
-    bool soundNullSafety = true,
     ModuleFormat moduleFormat = ModuleFormat.amd,
     bool canaryFeatures = false,
     bool enableAsserts = true,
@@ -234,9 +232,8 @@ class ExpressionCompilerWorker {
       ..sdkSummary = sdkSummary
       ..packagesFileUri = packagesFile
       ..librariesSpecificationUri = librariesSpecificationUri
-      ..target = DevCompilerTarget(TargetFlags(
-          trackWidgetCreation: trackWidgetCreation,
-          soundNullSafety: soundNullSafety))
+      ..target = DevCompilerTarget(
+          TargetFlags(trackWidgetCreation: trackWidgetCreation))
       ..fileSystem = fileSystem
       ..omitPlatform = true
       ..environmentDefines = addGeneratedVariables({
@@ -244,7 +241,6 @@ class ExpressionCompilerWorker {
       }, enableAsserts: enableAsserts)
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)
-      ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
       ..verbose = verbose;
     requestStream ??= stdin
         .transform(utf8.decoder.fuse(json.decoder))
@@ -433,8 +429,7 @@ class ExpressionCompilerWorker {
         libraries: libraries,
         nameRoot: originalComponent.root,
         uriToSource: originalComponent.uriToSource,
-      )..setMainMethodAndMode(
-          originalComponent.mainMethodName, true, originalComponent.mode);
+      )..setMainMethodAndMode(originalComponent.mainMethodName, true);
       _processedOptions.ticker.logMs('Collected libraries for $moduleName');
     }
 
@@ -461,7 +456,7 @@ class ExpressionCompilerWorker {
     if (errors.isNotEmpty) return null;
 
     var coreTypes = incrementalCompilerResult.coreTypes;
-    var hierarchy = incrementalCompilerResult.classHierarchy!;
+    var hierarchy = incrementalCompilerResult.classHierarchy;
 
     var kernel2jsCompiler = ProgramCompiler(
       finalComponent,
@@ -470,7 +465,6 @@ class ExpressionCompilerWorker {
         sourceMap: true,
         summarizeApi: false,
         moduleName: moduleName,
-        soundNullSafety: _compilerOptions.nnbdMode == NnbdMode.Strong,
         canaryFeatures: _canaryFeatures,
         enableAsserts: _enableAsserts,
       ),
@@ -496,8 +490,7 @@ class ExpressionCompilerWorker {
         libraries: librariesToEmit,
         nameRoot: finalComponent.root,
         uriToSource: finalComponent.uriToSource)
-      ..setMainMethodAndMode(
-          originalComponent.mainMethodName, true, originalComponent.mode);
+      ..setMainMethodAndMode(originalComponent.mainMethodName, true);
 
     kernel2jsCompiler.emitModule(componentToEmit);
     _processedOptions.ticker.logMs('Emitted module for expression');

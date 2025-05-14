@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -82,7 +82,7 @@ class ReturnTypeVerifier {
       return;
     }
 
-    void checkElement(ClassElement2 expectedElement, ErrorCode errorCode) {
+    void checkElement(ClassElementImpl2 expectedElement, ErrorCode errorCode) {
       void reportError() {
         enclosingExecutable.hasLegalReturnType = false;
         _errorReporter.atNode(
@@ -214,7 +214,7 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `S` is not `void`,
       // and `S` is not assignable to `T`.
       if (S is! VoidType) {
-        if (T is RecordType &&
+        if (T is RecordTypeImpl &&
             T.positionalFields.length == 1 &&
             S is! RecordType &&
             expression is ParenthesizedExpression) {
@@ -291,8 +291,8 @@ class ReturnTypeVerifier {
     );
   }
 
-  bool _isLegalReturnType(ClassElement2 expectedElement) {
-    DartType returnType = enclosingExecutable.returnType;
+  bool _isLegalReturnType(ClassElementImpl2 expectedElement) {
+    var returnType = enclosingExecutable.returnType;
     //
     // When checking an async/sync*/async* method, we know the exact type
     // that will be returned (e.g. Future, Iterable, or Stream).
@@ -311,7 +311,7 @@ class ReturnTypeVerifier {
     //
     // Similar logic applies for sync* and async*.
     //
-    var lowerBound = expectedElement.instantiate(
+    var lowerBound = expectedElement.instantiateImpl(
       typeArguments: [NeverTypeImpl.instance],
       nullabilitySuffix: NullabilitySuffix.none,
     );

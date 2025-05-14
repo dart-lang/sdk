@@ -5,7 +5,7 @@
 // Test type parameters on @staticInterop factories.
 
 import 'package:js/js.dart';
-import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/expect.dart';
 
 @JS()
 @staticInterop
@@ -33,15 +33,15 @@ extension AnonymousExtension<T, U extends String> on Anonymous<T, U> {
 
 void main() {
   final arr1 = Array(true, '');
-  expect(arr1[0], true);
-  expect(arr1[1], '');
+  Expect.isTrue(arr1[0]);
+  Expect.equals('', arr1[1]);
   final arr2 = Array<bool, String>(false, '');
-  expect(arr2[0], false);
-  expect(arr2[1], '');
+  Expect.isFalse(arr2[0]);
+  Expect.equals('', arr2[1]);
   final anon1 = Anonymous(t: true, u: '');
-  expect(anon1.t, true);
-  expect(anon1.u, '');
+  Expect.isTrue(anon1.t);
+  Expect.equals('', anon1.u);
   final anon2 = Anonymous<bool, String>(t: false, u: '');
-  expect(anon2.t, false);
-  expect(anon2.u, '');
+  Expect.isFalse(anon2.t);
+  Expect.equals('', anon2.u);
 }

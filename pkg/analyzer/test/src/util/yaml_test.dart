@@ -94,6 +94,51 @@ main() {
         expect(merge(1, 'foo'), 'foo');
         expect(merge({'foo': 1}, 'foo'), 'foo');
       });
+
+      test('merged order directly from yaml', () {
+        YamlMap loadYaml(String content) {
+          return loadYamlNode(content) as YamlMap;
+        }
+
+        var aYaml = """foo:
+          a: bar""";
+        var bYaml = """foo:
+          b: baz""";
+
+        var merge1Value = mergeYamlMaps(loadYaml(bYaml), loadYaml(aYaml))
+            .valueAt("foo")
+            .toString();
+        for (int i = 0; i < 100; i++) {
+          var merge2Value = mergeYamlMaps(loadYaml(bYaml), loadYaml(aYaml))
+              .valueAt("foo")
+              .toString();
+          expect(merge2Value, merge1Value);
+        }
+      });
+
+      test('merged w/promotion order directly from yaml', () {
+        YamlMap loadYaml(String content) {
+          return loadYamlNode(content) as YamlMap;
+        }
+
+        var aYaml = """foo:
+          - a
+          - b
+          - c
+          - d""";
+        var bYaml = """foo:
+          b: true""";
+
+        var merge1Value = mergeYamlMaps(loadYaml(bYaml), loadYaml(aYaml))
+            .valueAt("foo")
+            .toString();
+        for (int i = 0; i < 100; i++) {
+          var merge2Value = mergeYamlMaps(loadYaml(bYaml), loadYaml(aYaml))
+              .valueAt("foo")
+              .toString();
+          expect(merge2Value, merge1Value);
+        }
+      });
     });
   });
 }
@@ -102,6 +147,9 @@ final Merger merger = Merger();
 
 Object merge(Object o1, Object o2) =>
     merger.merge(wrap(o1), wrap(o2)).valueOrThrow;
+
+YamlMap mergeYamlMaps(YamlMap defaults, YamlMap overrides) =>
+    Merger().mergeMap(defaults, overrides);
 
 YamlNode wrap(Object? value) {
   if (value is List) {

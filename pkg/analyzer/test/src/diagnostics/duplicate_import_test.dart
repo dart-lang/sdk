@@ -135,7 +135,9 @@ M.A a = M.A();
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
+      error(WarningCode.MULTIPLE_COMBINATORS, 35, 13),
       error(WarningCode.DUPLICATE_IMPORT, 57, 11),
+      error(WarningCode.MULTIPLE_COMBINATORS, 74, 13),
     ]);
   }
 

@@ -237,7 +237,7 @@ class CodeActionHandler
               for (var computer in actionComputers)
                 ...await performance.runAsync(
                   '${computer.name}.getFixActions',
-                  (_) => computer.getFixActions(),
+                  (_) => computer.getFixActions(message.performance),
                 ),
             ]),
 
@@ -247,14 +247,16 @@ class CodeActionHandler
               for (var computer in actionComputers)
                 ...await performance.runAsync(
                   '${computer.name}.getAssistActions',
-                  (_) => computer.getAssistActions(),
+                  (_) => computer.getAssistActions(
+                    performance: message.performance,
+                  ),
                 ),
             ]),
           if (includeRefactors)
             for (var computer in actionComputers)
               ...await performance.runAsync(
                 '${computer.name}.getRefactorActions',
-                (_) => computer.getRefactorActions(),
+                (_) => computer.getRefactorActions(message.performance),
               ),
         ];
 

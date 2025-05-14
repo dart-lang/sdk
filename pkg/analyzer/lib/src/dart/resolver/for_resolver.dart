@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -99,7 +96,7 @@ class ForResolver {
   /// a type for the elements being iterated over.  Inference is based
   /// on the type of the iterator or stream over which the foreach loop
   /// is defined.
-  DartType _computeForEachElementType(Expression iterable, bool isAsync) {
+  TypeImpl _computeForEachElementType(ExpressionImpl iterable, bool isAsync) {
     var iterableType = iterable.staticType;
     if (iterableType == null) {
       return InvalidTypeImpl.instance;
@@ -110,11 +107,11 @@ class ForResolver {
       return DynamicTypeImpl.instance;
     }
 
-    ClassElement iteratedElement = isAsync
-        ? _resolver.typeProvider.streamElement
-        : _resolver.typeProvider.iterableElement;
+    ClassElement2 iteratedElement = isAsync
+        ? _resolver.typeProvider.streamElement2
+        : _resolver.typeProvider.iterableElement2;
 
-    var iteratedType = iterableType.asInstanceOf(iteratedElement);
+    var iteratedType = iterableType.asInstanceOf2(iteratedElement);
     if (iteratedType == null) {
       return InvalidTypeImpl.instance;
     }
@@ -141,7 +138,7 @@ class ForResolver {
       ).checkFinalAlreadyAssigned(identifier, isForEachIdentifier: true);
     }
 
-    DartType? valueType;
+    TypeImpl? valueType;
     if (loopVariable != null) {
       var typeAnnotation = loopVariable.type;
       valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
@@ -151,14 +148,14 @@ class ForResolver {
       if (identifierElement is VariableElement2) {
         valueType = _resolver.localVariableTypeProvider
             .getType(identifier, isRead: false);
-      } else if (identifierElement is SetterElement) {
+      } else if (identifierElement is SetterElement2OrMember) {
         var parameters = identifierElement.formalParameters;
         if (parameters.isNotEmpty) {
           valueType = parameters[0].type;
         }
       }
     }
-    InterfaceType? targetType;
+    InterfaceTypeImpl? targetType;
     if (valueType != null) {
       targetType = isAsync
           ? _resolver.typeProvider.streamType(valueType)
@@ -178,7 +175,7 @@ class ForResolver {
     var elementType = _computeForEachElementType(iterable, isAsync);
     if (loopVariable != null && loopVariable.type == null) {
       var loopVariableElement =
-          loopVariable.declaredElement as LocalVariableElementImpl;
+          loopVariable.declaredFragment?.element as LocalVariableElementImpl2;
       loopVariableElement.type = elementType;
     }
 

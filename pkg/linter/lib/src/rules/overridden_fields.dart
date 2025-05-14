@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -13,17 +14,16 @@ const _desc = r"Don't override fields.";
 
 class OverriddenFields extends LintRule {
   OverriddenFields()
-      : super(
-          name: LintNames.overridden_fields,
-          description: _desc,
-        );
+    : super(name: LintNames.overridden_fields, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.overridden_fields;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context.inheritanceManager);
     registry.addFieldDeclaration(this, visitor);
   }
@@ -44,14 +44,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parent = variable.declaredFragment?.element.enclosingElement2;
       if (parent is InterfaceElement2) {
         var overriddenMember = inheritanceManager.getMember4(
-            parent, Name(parent.library2.uri, variable.name.lexeme),
-            forSuper: true);
-        if (overriddenMember is GetterElement && overriddenMember.isSynthetic) {
+          parent,
+          Name(parent.library2.uri, variable.name.lexeme),
+          forSuper: true,
+        );
+        if (overriddenMember is GetterElement2OrMember &&
+            overriddenMember.isSynthetic) {
           var definingInterface = overriddenMember.enclosingElement2;
-          if (definingInterface != null) {
-            rule.reportLintForToken(variable.name,
-                arguments: [definingInterface.displayName]);
-          }
+          rule.reportLintForToken(
+            variable.name,
+            arguments: [definingInterface.displayName],
+          );
         }
       }
     }

@@ -11,11 +11,7 @@ class Box {
   const Box(this.contents);
 }
 
-enum Enum {
-  RED,
-  GREEN,
-  BLUE,
-}
+enum Enum { RED, GREEN, BLUE }
 
 commonClosure() {}
 

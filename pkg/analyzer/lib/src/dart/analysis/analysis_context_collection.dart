@@ -15,20 +15,16 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
+import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
-import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/util/sdk.dart';
 
 /// An implementation of [AnalysisContextCollection].
 class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
-
-  /// The support for executing macros.
-  late final MacroSupportFactory macroSupportFactory;
 
   /// The shared container into which drivers record files ownership.
   final OwnedFiles ownedFiles = OwnedFiles();
@@ -60,18 +56,29 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     InfoDeclarationStore? infoDeclarationStore,
+    @Deprecated('Use updateAnalysisOptions3 instead')
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required ContextRoot contextRoot,
       required DartSdk sdk,
     })? updateAnalysisOptions2,
-    MacroSupportFactory? macroSupportFactory,
+    void Function({
+      required AnalysisOptionsImpl analysisOptions,
+      required DartSdk sdk,
+    })? updateAnalysisOptions3,
     bool enableLintRuleTiming = false,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
 
     performanceLog ??= PerformanceLog(null);
+
+    if (updateAnalysisOptions2 != null && updateAnalysisOptions3 != null) {
+      throw ArgumentError(
+        'Only one of updateAnalysisOptions2 and updateAnalysisOptions3 may be '
+        'given',
+      );
+    }
 
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
@@ -87,11 +94,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
     _throwIfNotAbsoluteNormalizedPath(sdkPath);
 
-    macroSupportFactory ??= KernelMacroSupportFactory();
-    // TODO(scheglov): https://github.com/dart-lang/linter/issues/3134
-    // ignore: prefer_initializing_formals
-    this.macroSupportFactory = macroSupportFactory;
-
     var contextLocator = ContextLocatorImpl(
       resourceProvider: this.resourceProvider,
     );
@@ -101,13 +103,30 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       optionsFile: optionsFile,
       packagesFile: packagesFile,
     );
+
+    byteStore ??= MemoryByteStore();
+    var linkedBundleProvider = LinkedBundleProvider(
+      byteStore: byteStore,
+    );
+
     var contextBuilder = ContextBuilderImpl(
       resourceProvider: this.resourceProvider,
     );
+    // While users can use the deprecated `updateAnalysisOptions2` and the new
+    // `updateAnalysisOptions3` parameter, prefer `updateAnalysisOptions3`, but
+    // create a new closure with the signature of the old.
+    var updateAnalysisOptions = updateAnalysisOptions3 != null
+        ? ({
+            required AnalysisOptionsImpl analysisOptions,
+            required ContextRoot? contextRoot,
+            required DartSdk sdk,
+          }) =>
+            updateAnalysisOptions3(analysisOptions: analysisOptions, sdk: sdk)
+        : updateAnalysisOptions2;
     for (var root in roots) {
-      var macroSupport = macroSupportFactory.newInstance();
       var context = contextBuilder.createContext(
         byteStore: byteStore,
+        linkedBundleProvider: linkedBundleProvider,
         contextRoot: root,
         definedOptionsFile: optionsFile != null,
         declaredVariables: DeclaredVariables.fromMap(declaredVariables ?? {}),
@@ -119,11 +138,10 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         sdkPath: sdkPath,
         sdkSummaryPath: sdkSummaryPath,
         scheduler: scheduler,
-        updateAnalysisOptions2: updateAnalysisOptions2,
+        updateAnalysisOptions2: updateAnalysisOptions,
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
         infoDeclarationStore: infoDeclarationStore,
-        macroSupport: macroSupport,
         ownedFiles: ownedFiles,
         enableLintRuleTiming: enableLintRuleTiming,
       );
@@ -164,11 +182,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   }) async {
     for (var analysisContext in contexts) {
       await analysisContext.driver.dispose2();
-    }
-    await macroSupportFactory.dispose();
-    // If there are other collections, they will have to start it again.
-    if (!forTesting) {
-      await KernelCompilationService.dispose();
     }
   }
 

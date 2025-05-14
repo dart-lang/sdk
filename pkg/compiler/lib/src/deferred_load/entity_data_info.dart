@@ -237,7 +237,7 @@ class EntityDataInfoBuilder {
         break;
       case TypeUseKind.rtiValue:
       case TypeUseKind.typeArgument:
-      case TypeUseKind.namedTypeVariableNewRti:
+      case TypeUseKind.namedTypeVariable:
       case TypeUseKind.constructorReference:
         failedAt(parent!, "Unexpected type use: $typeUse.");
     }
@@ -389,11 +389,6 @@ class TypeEntityDataVisitor implements DartTypeVisitor<void, Null> {
 
   void visitIterable(Iterable<DartType> types) {
     types.forEach(visit);
-  }
-
-  @override
-  void visitLegacyType(LegacyType type, Null argument) {
-    visit(type.baseType);
   }
 
   @override

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -23,7 +21,7 @@ class DemotionVisitor extends ReplacementVisitor {
     }
 
     return TypeParameterTypeImpl(
-      element: type.element,
+      element3: type.element3,
       nullabilitySuffix: type.nullabilitySuffix,
       alias: type.alias,
     );

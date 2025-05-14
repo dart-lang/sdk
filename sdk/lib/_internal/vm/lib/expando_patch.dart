@@ -16,15 +16,15 @@ void _rehashObjects(List objects) {
 
 @patch
 @pragma("vm:entry-point")
-class Expando<T> {
+class Expando<T extends Object> {
   @patch
   Expando([String? name])
     : name = name,
-      _data = new List<_WeakProperty?>.filled(_minSize, null),
+      _data = List<_WeakProperty?>.filled(_minSize, null),
       _used = 0;
 
   static const _minSize = 8;
-  static final _deletedEntry = new _WeakProperty();
+  static final _deletedEntry = _WeakProperty();
 
   @patch
   T? operator [](Object object) {
@@ -93,7 +93,7 @@ class Expando<T> {
     }
 
     if (_used < _limit) {
-      var ephemeron = new _WeakProperty();
+      var ephemeron = _WeakProperty();
       ephemeron.key = object;
       ephemeron.value = value;
       _data[idx] = ephemeron;
@@ -130,7 +130,7 @@ class Expando<T> {
 
     // Reset the mappings to empty so that we can just add the existing
     // valid entries.
-    _data = new List<_WeakProperty?>.filled(new_size, null);
+    _data = List<_WeakProperty?>.filled(new_size, null);
     _used = 0;
 
     for (var i = 0; i < old_data.length; i++) {

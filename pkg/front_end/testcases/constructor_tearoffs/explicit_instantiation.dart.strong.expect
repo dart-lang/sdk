@@ -34,15 +34,6 @@ abstract class M extends self::C /*isMixinDeclaration*/  {
     core::String f3TypeName = (this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
   }
 }
-abstract class _D&C&M = self::C with self::M /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_D&C&M
-    : super self::C::•()
-    ;
-  mixin-super-stub method minst<T extends core::Object? = dynamic>(self::_D&C&M::minst::T% value) → self::_D&C&M::minst::T%
-    return super.{self::M::minst}<self::_D&C&M::minst::T%>(value);
-  mixin-super-stub method mmethod() → void
-    return super.{self::M::mmethod}();
-}
 class D extends self::_D&C&M {
   synthetic constructor •() → self::D
     : super self::_D&C&M::•()
@@ -51,6 +42,15 @@ class D extends self::_D&C&M {
     (core::int) → core::int f4 = super.{self::C::inst}<core::int>;
     core::String f4TypeName = (super.{self::C::inst}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
   }
+}
+abstract class _D&C&M = self::C with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_D&C&M
+    : super self::C::•()
+    ;
+  mixin-super-stub method minst<T extends core::Object? = dynamic>(self::_D&C&M::minst::T% value) → self::_D&C&M::minst::T%
+    return super.{self::M::minst}<self::_D&C&M::minst::T%>(value);
+  mixin-super-stub method mmethod() → void
+    return super.{self::M::mmethod}();
 }
 extension Ext on self::C {
   static method estat = self::Ext|estat;

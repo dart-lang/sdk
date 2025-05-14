@@ -8,5 +8,11 @@ final class FormatterOptions {
   /// The width configured for where the formatter should wrap code.
   final int? pageWidth;
 
-  FormatterOptions({this.pageWidth});
+  /// How trailing commas in various constructs should affect formatting.
+  final TrailingCommas? trailingCommas;
+
+  FormatterOptions({this.pageWidth, this.trailingCommas});
 }
+
+/// How trailing commas in various constructs should affect formatting.
+enum TrailingCommas { automate, preserve }

@@ -59,7 +59,7 @@ class ClassHierarchyTest extends AbstractTypeSystemTest
 }
 
 mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
-  late ClassElementImpl A;
+  late ClassElementImpl2 A;
 
   void _assertErrors(List<ClassHierarchyError> errors, List<String> expected) {
     expect(
@@ -85,14 +85,14 @@ mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
   }
 
   void _checkA({
-    required List<DartType> typeArguments,
+    required List<TypeImpl> typeArguments,
     required List<String> interfaces,
     List<String> errors = const [],
   }) {
     var specifiedInterfaces = typeArguments
         .map((e) => interfaceTypeNone(A, typeArguments: [e]))
         .toList();
-    var X = class_(name: 'X', interfaces: specifiedInterfaces);
+    var X = class_2(name: 'X', interfaces: specifiedInterfaces);
 
     var classHierarchy = ClassHierarchy();
 
@@ -105,7 +105,7 @@ mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
 
   void _createSharedElements() {
     var T = typeParameter('T');
-    A = class_(name: 'A', typeParameters: [T]);
+    A = class_2(name: 'A', typeParameters: [T]);
   }
 
   String _interfaceString(InterfaceType interface) {

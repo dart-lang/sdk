@@ -150,8 +150,6 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
         registerAstClassEquivalence(utilityFieldType.astClass);
         sb.writeln('''($thisName, $otherName, _) {
     if (identical($thisName, $otherName)) return true;
-    if ($thisName is! ${utilityFieldType.astClass.name}) return false;
-    if ($otherName is! ${utilityFieldType.astClass.name}) return false;
     return ${classCheckName(utilityFieldType.astClass)}(
         visitor,
         $thisName,
@@ -209,8 +207,6 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
         registerAstClassEquivalence(utilityFieldType.astClass);
         sb.writeln('''($thisName, $otherName, _) {
     if (identical($thisName, $otherName)) return true;
-    if ($thisName is! ${utilityFieldType.astClass.name}) return false;
-    if ($otherName is! ${utilityFieldType.astClass.name}) return false;
     return ${classCheckName(utilityFieldType.astClass)}(
         visitor,
         $thisName,
@@ -625,7 +621,7 @@ class $visitorName$visitorTypeParameters
   bool $checkLists<E>(
             List<E>? a,
             List<E>? b,
-            bool Function(E?, E?, String) equivalentValues,
+            bool Function(E, E, String) equivalentValues,
             [String propertyName = '']) {
           if (identical(a, b)) return true;
           if (a == null || b == null) return false;
@@ -651,8 +647,8 @@ class $visitorName$visitorTypeParameters
   bool $checkSets<E>(
             Set<E>? a,
             Set<E>? b,
-            bool Function(E?, E?) matchingValues,
-            bool Function(E?, E?, String) equivalentValues,
+            bool Function(E, E) matchingValues,
+            bool Function(E, E, String) equivalentValues,
             [String propertyName = '']) {
           if (identical(a, b)) return true;
           if (a == null || b == null) return false;
@@ -702,9 +698,9 @@ class $visitorName$visitorTypeParameters
   bool $checkMaps<K, V>(
             Map<K, V>? a,
             Map<K, V>? b,
-            bool Function(K?, K?) matchingKeys,
-            bool Function(K?, K?, String) equivalentKeys,
-            bool Function(V?, V?, String) equivalentValues,
+            bool Function(K, K) matchingKeys,
+            bool Function(K, K, String) equivalentKeys,
+            bool Function(V, V, String) equivalentValues,
             [String propertyName = '']) {
           if (identical(a, b)) return true;
           if (a == null || b == null) return false;
@@ -733,7 +729,7 @@ class $visitorName$visitorTypeParameters
             }
             if (hasFoundKey) {
               bKeys.remove(foundKey);
-              if (!equivalentValues(a[aKey], b[foundKey],
+              if (!equivalentValues(a[aKey]!, b[foundKey]!,
                   '\${propertyName}[\${aKey}]')) {
                 return false;
               }

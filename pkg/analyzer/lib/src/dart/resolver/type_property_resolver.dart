@@ -2,29 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
 class TypePropertyResolver {
   final ResolverVisitor _resolver;
-  final LibraryElement _definingLibrary;
+  final LibraryElementImpl _definingLibrary;
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
   final ExtensionMemberResolver _extensionResolver;
@@ -35,13 +34,13 @@ class TypePropertyResolver {
 
   bool _needsGetterError = false;
   bool _reportedGetterError = false;
-  ExecutableElement? _getterRequested;
-  ExecutableElement? _getterRecovery;
+  ExecutableElement2OrMember? _getterRequested;
+  ExecutableElement2OrMember? _getterRecovery;
 
   bool _needsSetterError = false;
   bool _reportedSetterError = false;
-  ExecutableElement? _setterRequested;
-  ExecutableElement? _setterRecovery;
+  ExecutableElement2OrMember? _setterRequested;
+  ExecutableElement2OrMember? _setterRecovery;
 
   TypePropertyResolver(this._resolver)
       : _definingLibrary = _resolver.definingLibrary,
@@ -63,7 +62,7 @@ class TypePropertyResolver {
   /// The [nameErrorEntity] is used to report an ambiguous extension issue.
   ResolutionResult resolve({
     required ExpressionImpl? receiver,
-    required DartType receiverType,
+    required TypeImpl receiverType,
     required String name,
     required SyntacticEntity propertyErrorEntity,
     required SyntacticEntity nameErrorEntity,
@@ -172,7 +171,7 @@ class TypePropertyResolver {
 
       // Recovery, get some resolution.
       receiverType = _typeSystem.resolveToBound(receiverType);
-      if (receiverType is InterfaceType) {
+      if (receiverType is InterfaceTypeImpl) {
         _lookupInterfaceType(receiverType);
       }
 
@@ -180,21 +179,21 @@ class TypePropertyResolver {
     } else {
       var receiverTypeResolved = _typeSystem.resolveToBound(receiverType);
 
-      if (receiverTypeResolved is InterfaceType) {
+      if (receiverTypeResolved is InterfaceTypeImpl) {
         _lookupInterfaceType(receiverTypeResolved);
         if (_hasGetterOrSetter) {
           return _toResult();
         }
         if (receiverTypeResolved.isDartCoreFunction &&
-            _name == FunctionElement.CALL_METHOD_NAME) {
+            _name == MethodElement2.CALL_METHOD_NAME) {
           _needsGetterError = false;
           _needsSetterError = false;
           return _toResult();
         }
       }
 
-      if (receiverTypeResolved is FunctionType &&
-          _name == FunctionElement.CALL_METHOD_NAME) {
+      if (receiverTypeResolved is FunctionTypeImpl &&
+          _name == MethodElement2.CALL_METHOD_NAME) {
         return ResolutionResult(
           needsGetterError: false,
           needsSetterError: false,
@@ -209,7 +208,7 @@ class TypePropertyResolver {
         return _toResult();
       }
 
-      if (receiverTypeResolved is RecordType) {
+      if (receiverTypeResolved is RecordTypeImpl) {
         var field = receiverTypeResolved.fieldByName(name);
         if (field != null) {
           return ResolutionResult(
@@ -232,37 +231,38 @@ class TypePropertyResolver {
     }
   }
 
-  void _lookupExtension(DartType type) {
+  void _lookupExtension(TypeImpl type) {
     var getterName = Name(_definingLibrary.source.uri, _name);
     var result =
         _extensionResolver.findExtension(type, _nameErrorEntity, getterName);
     _reportedGetterError = result == ExtensionResolutionError.ambiguous;
     _reportedSetterError = result == ExtensionResolutionError.ambiguous;
 
-    if (result.getter != null) {
+    if (result.getter2 != null) {
       _needsGetterError = false;
-      _getterRequested = result.getter;
+      _getterRequested = result.getter2;
     }
 
-    if (result.setter != null) {
+    if (result.setter2 != null) {
       _needsSetterError = false;
-      _setterRequested = result.setter;
+      _setterRequested = result.setter2;
     }
   }
 
   void _lookupInterfaceType(
-    InterfaceType type, {
+    InterfaceTypeImpl type, {
     bool recoverWithStatic = true,
   }) {
     var isSuper = _receiver is SuperExpression;
 
     var getterName = Name(_definingLibrary.source.uri, _name);
-    _getterRequested =
-        _resolver.inheritance.getMember(type, getterName, forSuper: isSuper);
+    _getterRequested = _resolver.inheritance
+        .getMember(type, getterName, forSuper: isSuper)
+        ?.asElement2;
     _needsGetterError = _getterRequested == null;
 
     if (_getterRequested == null && recoverWithStatic) {
-      var classElement = type.element as InterfaceElementImpl;
+      var classElement = type.element3;
       _getterRecovery ??=
           classElement.lookupStaticGetter(_name, _definingLibrary) ??
               classElement.lookupStaticMethod(_name, _definingLibrary);
@@ -270,12 +270,13 @@ class TypePropertyResolver {
     }
 
     var setterName = Name(_definingLibrary.source.uri, '$_name=');
-    _setterRequested =
-        _resolver.inheritance.getMember(type, setterName, forSuper: isSuper);
+    _setterRequested = _resolver.inheritance
+        .getMember(type, setterName, forSuper: isSuper)
+        ?.asElement2;
     _needsSetterError = _setterRequested == null;
 
     if (_setterRequested == null && recoverWithStatic) {
-      var classElement = type.element as InterfaceElementImpl;
+      var classElement = type.element3;
       _setterRecovery ??=
           classElement.lookupStaticSetter(_name, _definingLibrary);
       _needsSetterError = _setterRecovery == null;
@@ -299,13 +300,13 @@ class TypePropertyResolver {
     var setter = _setterRequested ?? _setterRecovery;
 
     return ResolutionResult(
-      getter: getter,
+      getter2: getter,
       // Parser recovery resulting in an empty property name should not be
       // reported as an undefined getter.
       needsGetterError:
           _needsGetterError && _name.isNotEmpty && !_reportedGetterError,
       isGetterInvalid: _needsGetterError || _reportedGetterError,
-      setter: setter,
+      setter2: setter,
       needsSetterError: _needsSetterError && !_reportedSetterError,
     );
   }

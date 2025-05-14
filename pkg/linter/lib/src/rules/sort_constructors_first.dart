@@ -11,17 +11,16 @@ const _desc = r'Sort constructor declarations before other members.';
 
 class SortConstructorsFirst extends LintRule {
   SortConstructorsFirst()
-      : super(
-          name: LintNames.sort_constructors_first,
-          description: _desc,
-        );
+    : super(name: LintNames.sort_constructors_first, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.sort_constructors_first;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);

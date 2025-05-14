@@ -10,7 +10,9 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
+import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
+import 'package:analyzer/utilities/extensions/element.dart';
 
 /// An object used to provide context information for Dart fix contributors.
 ///
@@ -38,6 +40,14 @@ class DartFixContext implements FixContext {
   /// The workspace in which the fix contributor operates.
   final ChangeWorkspace workspace;
 
+  /// Cache of previously computed [getTopLevelDeclarations] responses.
+  ///
+  /// It's been observed that the same request is fired multiple times for at
+  /// least some getFixes requsts. Caching the response can speed up such
+  /// requests.
+  final Map<String, Future<Map<LibraryElement2, Element2>>>
+      _cachedTopLevelDeclarations = {};
+
   @override
   final AnalysisError error;
 
@@ -56,13 +66,16 @@ class DartFixContext implements FixContext {
   ///
   /// For getters and setters the corresponding top-level variable is returned.
   Future<Map<LibraryElement2, Element2>> getTopLevelDeclarations(String name) {
-    return TopLevelDeclarations(unitResult).withName(name);
+    var cachedResult = _cachedTopLevelDeclarations[name];
+    if (cachedResult != null) return cachedResult;
+    var result = TopLevelDeclarations(unitResult).withName(name);
+    _cachedTopLevelDeclarations[name] = result;
+    return result;
   }
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
-  // TODO(srawlins): The documentation above is wrong; `memberName` is unused.
-  Stream<LibraryElement2> librariesWithExtensions(String memberName) async* {
+  Stream<LibraryElement2> librariesWithExtensions(Name memberName) async* {
     var analysisContext = unitResult.session.analysisContext;
     if (analysisContext is! DriverBasedAnalysisContext) {
       return;
@@ -86,7 +99,11 @@ class DartFixContext implements FixContext {
         continue;
       }
 
-      yield elementResult.element2;
+      if (elementResult.element2.exportedExtensions
+          .havingMemberWithBaseName(memberName)
+          .isNotEmpty) {
+        yield elementResult.element2;
+      }
     }
   }
 }

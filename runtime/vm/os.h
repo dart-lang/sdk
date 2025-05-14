@@ -9,7 +9,6 @@
 
 // Forward declarations.
 struct tm;
-
 namespace dart {
 
 // Forward declarations.

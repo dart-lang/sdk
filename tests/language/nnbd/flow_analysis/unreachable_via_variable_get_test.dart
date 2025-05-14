@@ -27,7 +27,11 @@ void explicitNeverType(Never Function() f, Object x, bool b1, bool b2) {
 }
 
 void typeVarExtendsNever<T extends Never>(
-    T Function() f, Object x, bool b1, bool b2) {
+  T Function() f,
+  Object x,
+  bool b1,
+  bool b2,
+) {
   late T y;
   // Loop so that flow analysis no longer can tell that y is definitely
   // unassigned

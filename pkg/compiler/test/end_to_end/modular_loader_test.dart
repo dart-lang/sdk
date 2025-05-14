@@ -48,7 +48,6 @@ main() {
       options: [
         '--input-dill=memory:c.dill',
         '--dill-dependencies=memory:a.dill,memory:b.dill,memory:unused.dill',
-        '--sound-null-safety',
       ],
       memorySourceFiles: {
         'a.dill': aDill,
@@ -116,7 +115,6 @@ Future<Uint8List> compileUnit(
       CompilerOptions()
         ..target = Dart2jsTarget("dart2js", TargetFlags())
         ..fileSystem = TestFileSystem(fs)
-        ..nnbdMode = NnbdMode.Strong
         ..additionalDills = additionalDills
         ..packagesFileUri = toTestUri('.dart_tool/package_config.json')
         ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: true};

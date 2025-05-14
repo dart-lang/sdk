@@ -10,11 +10,10 @@ part of dart.io;
 /// and Unix domain address are supported.
 /// Unix domain sockets are available only on Linux, MacOS and Android.
 final class InternetAddressType {
-  static const InternetAddressType IPv4 = const InternetAddressType._(0);
-  static const InternetAddressType IPv6 = const InternetAddressType._(1);
-  @Since("2.8")
-  static const InternetAddressType unix = const InternetAddressType._(2);
-  static const InternetAddressType any = const InternetAddressType._(-1);
+  static const InternetAddressType IPv4 = InternetAddressType._(0);
+  static const InternetAddressType IPv6 = InternetAddressType._(1);
+  static const InternetAddressType unix = InternetAddressType._(2);
+  static const InternetAddressType any = InternetAddressType._(-1);
 
   final int _value;
 
@@ -24,7 +23,7 @@ final class InternetAddressType {
     if (value == IPv4._value) return IPv4;
     if (value == IPv6._value) return IPv6;
     if (value == unix._value) return unix;
-    throw new ArgumentError("Invalid type: $value");
+    throw ArgumentError("Invalid type: $value");
   }
 
   /// Get the name of the type, e.g. "IPv4" or "IPv6".
@@ -110,10 +109,7 @@ abstract interface class InternetAddress {
   /// path.
   /// If [type] is omitted, [address] must be either a numeric IPv4 or IPv6
   /// address and the type is inferred from the format.
-  external factory InternetAddress(
-    String address, {
-    @Since("2.8") InternetAddressType? type,
-  });
+  external factory InternetAddress(String address, {InternetAddressType? type});
 
   /// Creates a new [InternetAddress] from the provided raw address bytes.
   ///
@@ -129,7 +125,7 @@ abstract interface class InternetAddress {
   /// [InternetAddressType.IPv6] respectively.
   external factory InternetAddress.fromRawAddress(
     Uint8List rawAddress, {
-    @Since("2.8") InternetAddressType? type,
+    InternetAddressType? type,
   });
 
   /// Performs a reverse DNS lookup on this [address]
@@ -366,9 +362,9 @@ abstract interface class ServerSocket implements ServerSocketBase<Socket> {
 /// The [SocketDirection] is used as a parameter to [Socket.close] and
 /// [RawSocket.close] to close a socket in the specified direction(s).
 final class SocketDirection {
-  static const SocketDirection receive = const SocketDirection._(0);
-  static const SocketDirection send = const SocketDirection._(1);
-  static const SocketDirection both = const SocketDirection._(2);
+  static const SocketDirection receive = SocketDirection._(0);
+  static const SocketDirection send = SocketDirection._(1);
+  static const SocketDirection both = SocketDirection._(2);
 
   final _value;
 
@@ -386,12 +382,12 @@ final class SocketOption {
   /// as an individual TCP packet.
   ///
   /// tcpNoDelay is disabled by default.
-  static const SocketOption tcpNoDelay = const SocketOption._(0);
+  static const SocketOption tcpNoDelay = SocketOption._(0);
 
-  static const SocketOption _ipMulticastLoop = const SocketOption._(1);
-  static const SocketOption _ipMulticastHops = const SocketOption._(2);
-  static const SocketOption _ipMulticastIf = const SocketOption._(3);
-  static const SocketOption _ipBroadcast = const SocketOption._(4);
+  static const SocketOption _ipMulticastLoop = SocketOption._(1);
+  static const SocketOption _ipMulticastHops = SocketOption._(2);
+  static const SocketOption _ipMulticastIf = SocketOption._(3);
+  static const SocketOption _ipBroadcast = SocketOption._(4);
 
   final _value;
 
@@ -416,7 +412,6 @@ enum _RawSocketOptions {
 /// It allows for fine grained control of the socket options, and its values
 /// will be passed to the underlying platform's implementation of setsockopt and
 /// getsockopt.
-@Since("2.2")
 final class RawSocketOption {
   /// Creates a [RawSocketOption] for [RawSocket.getRawOption]
   /// and [RawSocket.setRawOption].
@@ -536,16 +531,16 @@ final class RawSocketOption {
 /// ```
 class RawSocketEvent {
   /// An event indicates the socket is ready to be read.
-  static const RawSocketEvent read = const RawSocketEvent._(0);
+  static const RawSocketEvent read = RawSocketEvent._(0);
 
   /// An event indicates the socket is ready to write.
-  static const RawSocketEvent write = const RawSocketEvent._(1);
+  static const RawSocketEvent write = RawSocketEvent._(1);
 
   /// An event indicates the reading from the socket is closed
-  static const RawSocketEvent readClosed = const RawSocketEvent._(2);
+  static const RawSocketEvent readClosed = RawSocketEvent._(2);
 
   /// An event indicates the socket is closed.
-  static const RawSocketEvent closed = const RawSocketEvent._(3);
+  static const RawSocketEvent closed = RawSocketEvent._(3);
 
   final int _value;
 
@@ -704,7 +699,6 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// Unsupported by [RawSecureSocket].
   ///
   /// Unsupported on Android, Fuchsia, Windows.
-  @Since("2.15")
   SocketMessage? readMessage([int? count]);
 
   /// Writes up to [count] bytes of the buffer from [offset] buffer offset to
@@ -749,7 +743,6 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// Unsupported by [RawSecureSocket].
   ///
   /// Unsupported on Android, Fuchsia, Windows.
-  @Since("2.15")
   int sendMessage(
     List<SocketControlMessage> controlMessages,
     List<int> data, [
@@ -820,7 +813,6 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// Returns the [RawSocketOption.value] on success.
   ///
   /// Throws an [OSError] on failure.
-  @Since("2.2")
   Uint8List getRawOption(RawSocketOption option);
 
   /// Customizes the [RawSocket].
@@ -828,7 +820,6 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// See [RawSocketOption] for available options.
   ///
   /// Throws an [OSError] on failure.
-  @Since("2.2")
   void setRawOption(RawSocketOption option);
 }
 
@@ -971,6 +962,14 @@ abstract interface class Socket implements Stream<Uint8List>, IOSink {
   /// Throws an [OSError] on failure and a [SocketException] if the socket has
   /// been destroyed or upgraded to a secure socket.
   void setRawOption(RawSocketOption option);
+
+  /// Unsupported operation on sockets.
+  ///
+  /// This method, which is inherited from [IOSink], is not supported on
+  /// sockets, and **must not** be called.
+  /// Sockets have no way to report errors, so any error passed in to
+  /// a socket using [addError] would be lost.
+  void addError(Object error, [StackTrace? stackTrace]);
 
   /// The port used by this socket.
   ///
@@ -1409,7 +1408,7 @@ class SocketException implements IOException {
       port = null;
 
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write("SocketException");
     if (message.isNotEmpty) {
       sb.write(": $message");

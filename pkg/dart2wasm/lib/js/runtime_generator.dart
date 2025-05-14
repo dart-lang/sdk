@@ -54,8 +54,12 @@ class RuntimeFinalizer {
 
   RuntimeFinalizer(this.allJSMethods);
 
-  String generate(Iterable<Procedure> translatedProcedures,
-      List<String> constantStrings, wasm_target.Mode mode) {
+  String generate(
+      Iterable<Procedure> translatedProcedures,
+      List<String> constantStrings,
+      bool requireJsBuiltin,
+      bool supportsAdditionalModuleLoading,
+      wasm_target.Mode mode) {
     String escape(String s) => json.encode(s);
 
     Set<Procedure> usedProcedures = {};
@@ -87,6 +91,11 @@ class RuntimeFinalizer {
       }
     }
 
+    final builtins = [
+      'builtins: [\'js-string\']',
+      if (requireJsBuiltin) 'importedStringConstants: \'S\'',
+    ];
+
     String internalizedStrings = '';
     if (constantStrings.isNotEmpty) {
       internalizedStrings = '''
@@ -95,13 +104,32 @@ class RuntimeFinalizer {
       ],
 ''';
     }
-    return '''
-$jsRuntimeBlobPart1
-$jsMethods
-$jsRuntimeBlobPart2
-$internalizedStrings
-$jsRuntimeBlobPart3
-''';
+
+    final jsStringBuiltinPolyfillImportVars = {
+      'JS_POLYFILL_IMPORT':
+          requireJsBuiltin ? '' : '"wasm:js-string": jsStringPolyfill,',
+    };
+    final moduleLoadingImportVars = {
+      'MODULE_LOADING_IMPORT': supportsAdditionalModuleLoading
+          ? '"moduleLoadingHelper": moduleLoadingHelper,'
+          : '',
+    };
+
+    final moduleLoadingHelperMethods = supportsAdditionalModuleLoading
+        ? moduleLoadingHelperTemplate.instantiate({
+            ...jsStringBuiltinPolyfillImportVars,
+          })
+        : '';
+
+    return jsRuntimeBlobTemplate.instantiate({
+      ...jsStringBuiltinPolyfillImportVars,
+      ...moduleLoadingImportVars,
+      'BUILTINS_MAP_BODY': builtins.join(', '),
+      'JS_METHODS': jsMethods.toString(),
+      'IMPORTED_JS_STRINGS_IN_MJS': internalizedStrings,
+      'JS_STRING_POLYFILL_METHODS': requireJsBuiltin ? '' : jsPolyFillMethods,
+      'DEFERRED_LIBRARY_HELPER_METHODS': moduleLoadingHelperMethods,
+    });
   }
 }
 

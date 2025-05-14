@@ -10,9 +10,9 @@ class A {
 
 class B extends A {
   foo() {}
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_METHOD_AND_FIELD
-// [cfe] Can't declare a member that conflicts with an inherited one.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_METHOD_AND_FIELD
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 main() {

@@ -9,10 +9,12 @@ void main() {
   print(SomeClass.someStaticMethod(null));
   print(SomeClass.someStaticMethod('s'));
   print(SomeClass.someStaticMethod(true));
-  print(SomeClass.someStaticMethod(const {
-    'a': ['a1', 'a2'],
-    'b': ['b1', 'b2'],
-  }));
+  print(
+    SomeClass.someStaticMethod(const {
+      'a': ['a1', 'a2'],
+      'b': ['b1', 'b2'],
+    }),
+  );
 
   print(SomeClass.someStaticMethod([true, false].first));
 }

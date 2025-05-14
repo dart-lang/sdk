@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseColoredBoxTest);
   });
@@ -45,7 +45,8 @@ Widget f() {
   }
 
   test_colorArgument_andChild() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 
 Widget containerWithColorAndChild() {
@@ -54,9 +55,9 @@ Widget containerWithColorAndChild() {
     child: SizedBox(),
   );
 }
-''', [
-      lint(87, 9),
-    ]);
+''',
+      [lint(87, 9)],
+    );
   }
 
   test_colorArgument_named_moreArguments() async {

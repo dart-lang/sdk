@@ -1,0 +1,39 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::C<self::C::T%>
+    ;
+  static method d<T extends core::Object? = dynamic>() → self::C<dynamic>
+    ;
+}
+class C1 extends core::Object {
+  synthetic constructor •() → self::C1
+    ;
+  @core::override
+  operator ==(core::Object other) → core::bool
+    ;
+}
+class A1 extends core::Object {
+  synthetic constructor •() → self::A1
+    ;
+  operator ==(core::Object other) → core::bool
+    ;
+}
+extension type ET1(self::A1 _) implements self::A1 {
+  abstract extension-type-member representation-field get _() → self::A1;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(self::A1 _) → self::ET1 /* erasure=self::A1 */
+  ;
+static extension-type-member method ET1|constructor#_#new#tearOff(self::A1 _) → self::ET1 /* erasure=self::A1 */
+  return self::ET1|constructor#(_);
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///tearoff.dart:11:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 3, effectively constant: 1

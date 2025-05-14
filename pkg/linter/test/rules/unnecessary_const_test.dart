@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryConstPatternsTest);
     defineReflectiveTests(UnnecessaryConstRecordsTest);
@@ -62,38 +62,42 @@ void f(Object o) {
   }
 
   test_constConstructor() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   const C();
 }
 const c = const C();
-''', [
-      lint(35, 5),
-    ]);
+''',
+      [lint(35, 5)],
+    );
   }
 
   test_listLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 const l = const [];
-''', [
-      lint(10, 5),
-    ]);
+''',
+      [lint(10, 5)],
+    );
   }
 
   test_mapLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 const m = const {1: 1};
-''', [
-      lint(10, 5),
-    ]);
+''',
+      [lint(10, 5)],
+    );
   }
 
   test_setLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 const s = const {1};
-''', [
-      lint(10, 5),
-    ]);
+''',
+      [lint(10, 5)],
+    );
   }
 }
 
@@ -112,36 +116,39 @@ class A {
   }
 
   test_constVariable_constCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 const x = const A();
 class A {
   const A();
 }
-''', [
-      lint(10, 5),
-    ]);
+''',
+      [lint(10, 5)],
+    );
   }
 
   test_constVariable_constCall_newName_noArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 const x = const A.new();
 class A {
   const A();
 }
-''', [
-      lint(10, 5),
-    ]);
+''',
+      [lint(10, 5)],
+    );
   }
 
   test_constVariable_constCall_nonConstArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 const x = const A([]);
 class A {
   const A(Object o);
 }
-''', [
-      lint(10, 5),
-    ]);
+''',
+      [lint(10, 5)],
+    );
   }
 
   test_constVariable_nonConstCall() async {
@@ -273,11 +280,12 @@ class A {
   }
 
   test_recordLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 const r = const (a: 1);
-''', [
-      lint(10, 5),
-    ]);
+''',
+      [lint(10, 5)],
+    );
   }
 
   test_recordLiteral_ok() async {
@@ -287,36 +295,39 @@ const r = (a: 1);
   }
 
   test_variable_constCall_constListArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = const A(const []);
 class A {
   const A(Object o);
 }
-''', [
-      lint(16, 5),
-    ]);
+''',
+      [lint(16, 5)],
+    );
   }
 
   test_variable_constCall_constSetArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = const A(const {});
 class A {
   const A(Object o);
 }
-''', [
-      lint(16, 5),
-    ]);
+''',
+      [lint(16, 5)],
+    );
   }
 
   test_variable_constCall_newName_constArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = const A.new(const []);
 class A {
   const A(Object o);
 }
-''', [
-      lint(20, 5),
-    ]);
+''',
+      [lint(20, 5)],
+    );
   }
 
   test_variable_constCall_nonConstArgument() async {

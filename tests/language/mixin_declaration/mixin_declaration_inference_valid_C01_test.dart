@@ -7,10 +7,10 @@ import "package:expect/expect.dart";
 mixin class I<X> {}
 
 class C0<T> extends I<T> {}
+
 mixin class C1<T> implements I<T> {}
 
-mixin M0<T> on I<T> {
-}
+mixin M0<T> on I<T> {}
 
 mixin M1<T> on I<T> {
   T Function(T) get value => (param) => param;
@@ -21,7 +21,9 @@ mixin M2<T> implements I<T> {}
 mixin M3<T> on I<T> {}
 
 class J<X> {}
+
 class C2 extends C1<int> implements J<double> {}
+
 class C3 extends J<double> {}
 
 mixin M4<S, T> on I<S>, J<T> {

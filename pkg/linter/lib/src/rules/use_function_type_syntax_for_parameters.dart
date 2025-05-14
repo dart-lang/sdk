@@ -11,10 +11,10 @@ const _desc = r'Use generic function type syntax for parameters.';
 
 class UseFunctionTypeSyntaxForParameters extends LintRule {
   UseFunctionTypeSyntaxForParameters()
-      : super(
-          name: LintNames.use_function_type_syntax_for_parameters,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.use_function_type_syntax_for_parameters,
+        description: _desc,
+      );
 
   @override
   bool get canUseParsedResult => true;
@@ -25,7 +25,9 @@ class UseFunctionTypeSyntaxForParameters extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFunctionTypedFormalParameter(this, visitor);
   }

@@ -500,6 +500,8 @@ abstract final class LintNames {
   static const String unnecessary_getters_setters =
       'unnecessary_getters_setters';
 
+  static const String unnecessary_ignore = 'unnecessary_ignore';
+
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
 
   static const String unnecessary_late = 'unnecessary_late';
@@ -582,6 +584,8 @@ abstract final class LintNames {
       'use_late_for_private_fields_and_variables';
 
   static const String use_named_constants = 'use_named_constants';
+
+  static const String use_null_aware_elements = 'use_null_aware_elements';
 
   static const String use_raw_strings = 'use_raw_strings';
 

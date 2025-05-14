@@ -67,21 +67,10 @@ class DictionaryTypeMask extends MapTypeMask {
   }
 
   @override
-  DictionaryTypeMask withSpecialValues({
-    bool? isNullable,
-    bool? hasLateSentinel,
-  }) {
-    isNullable ??= this.isNullable;
-    hasLateSentinel ??= this.hasLateSentinel;
-    if (isNullable == this.isNullable &&
-        hasLateSentinel == this.hasLateSentinel) {
-      return this;
-    }
+  DictionaryTypeMask withPowerset(Bitset powerset, CommonMasks domain) {
+    if (powerset == this.powerset) return this;
     return DictionaryTypeMask(
-      forwardTo.withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      ),
+      forwardTo.withPowerset(powerset, domain),
       allocationNode,
       allocationElement,
       keyType,
@@ -100,10 +89,9 @@ class DictionaryTypeMask extends MapTypeMask {
   @override
   TypeMask? _unionSpecialCases(
     TypeMask other,
-    CommonMasks domain, {
-    required bool isNullable,
-    required bool hasLateSentinel,
-  }) {
+    CommonMasks domain,
+    Bitset powerset,
+  ) {
     if (other is DictionaryTypeMask) {
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       TypeMask newKeyType = keyType.union(other.keyType, domain);
@@ -111,14 +99,14 @@ class DictionaryTypeMask extends MapTypeMask {
       Map<String, TypeMask> mappings = {};
       _typeMap.forEach((k, v) {
         if (!other._typeMap.containsKey(k)) {
-          mappings[k] = v.nullable();
+          mappings[k] = v.nullable(domain);
         }
       });
       other._typeMap.forEach((k, v) {
         if (_typeMap.containsKey(k)) {
           mappings[k] = v.union(_typeMap[k]!, domain);
         } else {
-          mappings[k] = v.nullable();
+          mappings[k] = v.nullable(domain);
         }
       });
       return DictionaryTypeMask(
@@ -155,7 +143,7 @@ class DictionaryTypeMask extends MapTypeMask {
 
   @override
   String toString() {
-    return 'Dictionary($forwardTo, key: $keyType, '
-        'value: $valueType, map: $_typeMap)';
+    return 'Dictionary($forwardTo, key: $keyType, value: $valueType, '
+        'map: $_typeMap, powerset: ${TypeMask.powersetToString(powerset)})';
   }
 }

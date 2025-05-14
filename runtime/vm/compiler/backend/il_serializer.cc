@@ -98,6 +98,31 @@ void AliasIdentity::Write(FlowGraphSerializer* s) const {
 AliasIdentity::AliasIdentity(FlowGraphDeserializer* d)
     : value_(d->Read<intptr_t>()) {}
 
+void ArgumentsDescriptor::Write(FlowGraphSerializer* s) const {
+  if (IsCached()) {
+    // Simple argument descriptors are cached in the VM isolate.
+    // Write them as arguments count and query cache during deserialization.
+    ASSERT(TypeArgsLen() == 0);
+    ASSERT(NamedCount() == 0);
+    ASSERT(Count() == Size());
+    ASSERT(array_.InVMIsolateHeap());
+    s->Write<intptr_t>(Count());
+  } else {
+    ASSERT(array_.IsCanonical());
+    ASSERT(!array_.InVMIsolateHeap());
+    s->Write<intptr_t>(-1);
+    s->Write<const Array&>(array_);
+  }
+}
+
+ArrayPtr ArgumentsDescriptor::Read(FlowGraphDeserializer* d) {
+  const intptr_t num_args = d->Read<intptr_t>();
+  if (num_args < 0) {
+    return d->Read<const Array&>().ptr();
+  }
+  return NewBoxed(0, num_args);
+}
+
 void BlockEntryInstr::WriteTo(FlowGraphSerializer* s) {
   TemplateInstruction::WriteTo(s);
   s->Write<intptr_t>(block_id_);
@@ -850,7 +875,7 @@ void FlowGraphSerializer::WriteTrait<const Function&>::Write(
     case UntaggedFunction::kInvokeFieldDispatcher: {
       s->Write<const Class&>(Class::Handle(zone, x.Owner()));
       s->Write<const String&>(String::Handle(zone, x.name()));
-      s->Write<const Array&>(Array::Handle(zone, x.saved_args_desc()));
+      ArgumentsDescriptor(Array::Handle(zone, x.saved_args_desc())).Write(s);
       return;
     }
     case UntaggedFunction::kDynamicInvocationForwarder: {
@@ -926,7 +951,8 @@ const Function& FlowGraphDeserializer::ReadTrait<const Function&>::Read(
     case UntaggedFunction::kInvokeFieldDispatcher: {
       const Class& owner = d->Read<const Class&>();
       const String& target_name = d->Read<const String&>();
-      const Array& args_desc = d->Read<const Array&>();
+      const Array& args_desc =
+          Array::Handle(zone, ArgumentsDescriptor::Read(d));
       return Function::ZoneHandle(
           zone,
           owner.GetInvocationDispatcher(
@@ -1650,7 +1676,8 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       const auto& icdata = ICData::Cast(x);
       Write<int8_t>(static_cast<int8_t>(icdata.rebind_rule()));
       Write<const Function&>(Function::Handle(Z, icdata.Owner()));
-      Write<const Array&>(Array::Handle(Z, icdata.arguments_descriptor()));
+      ArgumentsDescriptor(Array::Handle(Z, icdata.arguments_descriptor()))
+          .Write(this);
       Write<intptr_t>(icdata.deopt_id());
       Write<intptr_t>(icdata.NumArgsTested());
       if (icdata.rebind_rule() == ICData::kStatic) {
@@ -1940,7 +1967,8 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       const ICData::RebindRule rebind_rule =
           static_cast<ICData::RebindRule>(Read<int8_t>());
       const auto& owner = Read<const Function&>();
-      const auto& arguments_descriptor = Read<const Array&>();
+      const auto& arguments_descriptor =
+          Array::Handle(Z, ArgumentsDescriptor::Read(this));
       const intptr_t deopt_id = Read<intptr_t>();
       const intptr_t num_args_tested = Read<intptr_t>();
 
@@ -2262,14 +2290,17 @@ Range* FlowGraphDeserializer::ReadTrait<Range*>::Read(
 }
 
 void Range::Write(FlowGraphSerializer* s) const {
-  min_.Write(s);
-  max_.Write(s);
+  // Drop symbolic range boundaries - they are not useful
+  // when flow graph is serialized/deserialized.
+  min_.LowerBound().Write(s);
+  max_.UpperBound().Write(s);
 }
 
 Range::Range(FlowGraphDeserializer* d)
     : min_(RangeBoundary(d)), max_(RangeBoundary(d)) {}
 
 void RangeBoundary::Write(FlowGraphSerializer* s) const {
+  ASSERT(!IsSymbol());
   s->Write<int8_t>(kind_);
   s->Write<int64_t>(value_);
   s->Write<int64_t>(offset_);

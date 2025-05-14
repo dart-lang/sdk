@@ -112,7 +112,7 @@ abstract interface class Directory implements FileSystemEntity {
   factory Directory(String path) {
     final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
-      return new _Directory(path);
+      return _Directory(path);
     }
     return overrides.createDirectory(path);
   }
@@ -120,13 +120,13 @@ abstract interface class Directory implements FileSystemEntity {
   @pragma("vm:entry-point")
   factory Directory.fromRawPath(Uint8List path) {
     // TODO(bkonyi): Handle overrides.
-    return new _Directory.fromRawPath(path);
+    return _Directory.fromRawPath(path);
   }
 
   /// Create a [Directory] from a URI.
   ///
   /// If [uri] cannot reference a directory this throws [UnsupportedError].
-  factory Directory.fromUri(Uri uri) => new Directory(uri.toFilePath());
+  factory Directory.fromUri(Uri uri) => Directory(uri.toFilePath());
 
   /// Creates a directory object pointing to the current working
   /// directory.

@@ -89,6 +89,11 @@ class LspNotificationManager extends AbstractNotificationManager {
   }
 
   @override
+  void sendPluginError(String message) {
+    // TODO(srawlins): Implement.
+  }
+
+  @override
   void sendPluginErrorNotification(Notification notification) {
     // TODO(dantup): implement sendPluginErrorNotification
   }

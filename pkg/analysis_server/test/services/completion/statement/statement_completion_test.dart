@@ -75,18 +75,13 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
     bool atEnd = false,
     int delta = 0,
   }) async {
-    testCode = sourceCode.replaceAll('////', '');
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode(sourceCode.replaceAll('////', ''));
     var offset = findOffset(search);
     if (atEnd) {
       delta = search.length;
     }
-    await _prepareCompletionAt(offset + delta, testCode);
-  }
-
-  Future<void> _prepareCompletionAt(int offset, String sourceCode) async {
-    verifyNoTestUnitErrors = false;
-    await resolveTestCode(sourceCode);
-    await _computeCompletion(offset);
+    await _computeCompletion(offset + delta);
   }
 }
 
@@ -604,12 +599,12 @@ class _ForCompletionTest extends StatementCompletionTest {
   Future<void> test_emptyCondition() async {
     await _prepareCompletion('0;', '''
 void f() {
-  for (int i = 0;)      /**/  ////
+  for (int i = 0;)      /* */  ////
 }
 ''', atEnd: true);
     _assertHasChange('Complete for-statement', '''
 void f() {
-  for (int i = 0; ; ) /**/ {
+  for (int i = 0; ; ) /* */ {
     ////
   }
 }
@@ -664,14 +659,14 @@ void f() {
   }
 
   Future<void> test_emptyInitializersEmptyCondition() async {
-    await _prepareCompletion('/**/', '''
+    await _prepareCompletion('/* */', '''
 void f() {
-  for (;/**/)
+  for (;/* */)
 }
 ''', atEnd: true);
     _assertHasChange('Complete for-statement', '''
 void f() {
-  for (; /**/; ) {
+  for (; /* */; ) {
     ////
   }
 }
@@ -694,14 +689,14 @@ void f() {
   }
 
   Future<void> test_emptyUpdaters() async {
-    await _prepareCompletion('/**/', '''
+    await _prepareCompletion('/* */', '''
 void f() {
-  for (int i = 0; i < 10 /**/)
+  for (int i = 0; i < 10 /* */)
 }
 ''', atEnd: true);
     _assertHasChange('Complete for-statement', '''
 void f() {
-  for (int i = 0; i < 10 /**/; ) {
+  for (int i = 0; i < 10 /* */; ) {
     ////
   }
 }
@@ -709,15 +704,15 @@ void f() {
   }
 
   Future<void> test_emptyUpdatersWithBody() async {
-    await _prepareCompletion('/**/', '''
+    await _prepareCompletion('/* */', '''
 void f() {
-  for (int i = 0; i < 10 /**/) {
+  for (int i = 0; i < 10 /* */) {
   }
 }
 ''', atEnd: true);
     _assertHasChange('Complete for-statement', '''
 void f() {
-  for (int i = 0; i < 10 /**/; ) {
+  for (int i = 0; i < 10 /* */; ) {
   }
 }
 ''', (s) => _after(s, '*/; '));
@@ -1056,7 +1051,7 @@ void f() {
 ''', (s) => _afterLast(s, '  '));
   }
 
-  Future<void> test_noCloseParenWithSemicolon() async {
+  Future<void> test_noCloseParenWithSemicolon1() async {
     var before = '''
 void f() {
   var s = 'sample'.substring(3;
@@ -1068,13 +1063,28 @@ void f() {
   ////
 }
 ''';
-    // Check completion both before and after the semicolon.
+    // Check completion both before semicolon.
     await _prepareCompletion('ing(3', before, atEnd: true);
     _assertHasChange(
       'Insert a newline at the end of the current line',
       after,
       (s) => _afterLast(s, '  '),
     );
+  }
+
+  Future<void> test_noCloseParenWithSemicolon2() async {
+    var before = '''
+void f() {
+  var s = 'sample'.substring(3;
+}
+''';
+    var after = '''
+void f() {
+  var s = 'sample'.substring(3);
+  ////
+}
+''';
+    // Check completion after the semicolon.
     await _prepareCompletion('ing(3;', before, atEnd: true);
     _assertHasChange(
       'Insert a newline at the end of the current line',

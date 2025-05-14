@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryPrefixesTest);
   });
@@ -16,18 +16,21 @@ main() {
 @reflectiveTest
 class LibraryPrefixesTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes =>
-      [WarningCode.UNUSED_IMPORT, WarningCode.UNUSED_LOCAL_VARIABLE];
+  List<ErrorCode> get ignoredErrorCodes => [
+    WarningCode.UNUSED_IMPORT,
+    WarningCode.UNUSED_LOCAL_VARIABLE,
+  ];
 
   @override
   String get lintRule => LintNames.library_prefixes;
 
   test_camelCase() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:async' as dartAsync;
-''', [
-      lint(23, 9),
-    ]);
+''',
+      [lint(23, 9)],
+    );
   }
 
   test_leadingDollar() async {
@@ -49,11 +52,12 @@ import 'dart:async' as _i1;
   }
 
   test_numberWithLeadingUnderscore() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:async' as _1;
-''', [
-      lint(23, 2),
-    ]);
+''',
+      [lint(23, 2)],
+    );
   }
 
   test_wildcard() async {
@@ -63,13 +67,14 @@ import 'dart:async' as _;
   }
 
   test_wildcard_preWildCards() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 import 'dart:async' as _;
-''', [
-      lint(67, 1),
-    ]);
+''',
+      [lint(67, 1)],
+    );
   }
 }

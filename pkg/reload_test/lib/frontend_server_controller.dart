@@ -227,7 +227,8 @@ class HotReloadFrontendServerController {
 
   Future<CompilerOutput> sendRecompile(String entrypointPath,
       {List<String> invalidatedFiles = const [],
-      String boundaryKey = fakeBoundaryKey}) async {
+      String boundaryKey = fakeBoundaryKey,
+      required bool recompileRestart}) async {
     // Currently the `FrontendCompiler` used in this test suite clears errors
     // before performing a recompile but not an initial compile. Since we reuse
     // the same instance and issue an initial compile request for each test we
@@ -237,7 +238,8 @@ class HotReloadFrontendServerController {
     totalErrors = 0;
     if (!started) throw Exception('Frontend Server has not been started yet.');
     _state = FrontendServerState.awaitingResult;
-    final command = 'recompile $entrypointPath $boundaryKey\n'
+    final instruction = recompileRestart ? 'recompile-restart' : 'recompile';
+    final command = '$instruction $entrypointPath $boundaryKey\n'
         '${invalidatedFiles.join('\n')}\n$boundaryKey\n';
     if (debug) print('Sending instruction to Frontend Server:\n$command');
     input.add(command.codeUnits);
@@ -247,9 +249,12 @@ class HotReloadFrontendServerController {
 
   Future<void> sendRecompileAndAccept(String entrypointPath,
       {List<String> invalidatedFiles = const [],
-      String boundaryKey = fakeBoundaryKey}) async {
+      String boundaryKey = fakeBoundaryKey,
+      required bool recompileRestart}) async {
     await sendRecompile(entrypointPath,
-        invalidatedFiles: invalidatedFiles, boundaryKey: boundaryKey);
+        invalidatedFiles: invalidatedFiles,
+        boundaryKey: boundaryKey,
+        recompileRestart: recompileRestart);
     sendAccept();
   }
 

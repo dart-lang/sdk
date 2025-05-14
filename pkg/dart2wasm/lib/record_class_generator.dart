@@ -81,9 +81,10 @@ import 'util.dart';
 /// }
 /// ```
 Map<RecordShape, Class> generateRecordClasses(
-    Component component, CoreTypes coreTypes) {
+    Component component, CoreTypes coreTypes, bool isDynamicModuleEnabled) {
   final Map<RecordShape, Class> recordClasses = {};
-  final recordClassGenerator = _RecordClassGenerator(recordClasses, coreTypes);
+  final recordClassGenerator =
+      _RecordClassGenerator(recordClasses, coreTypes, isDynamicModuleEnabled);
   final visitor = _RecordVisitor(recordClassGenerator);
   component.libraries.forEach(visitor.visitLibrary);
   return recordClasses;
@@ -92,6 +93,7 @@ Map<RecordShape, Class> generateRecordClasses(
 class _RecordClassGenerator {
   final CoreTypes coreTypes;
   final Map<RecordShape, Class> classes;
+  final bool isDynamicModuleEnabled;
 
   late final Class typeRuntimetypeTypeClass =
       coreTypes.index.getClass("dart:core", "_Type");
@@ -182,7 +184,16 @@ class _RecordClassGenerator {
 
   Library get library => coreTypes.coreLibrary;
 
-  _RecordClassGenerator(this.classes, this.coreTypes);
+  late final Map<String, Class> _existingCoreClassNames = (() {
+    final map = <String, Class>{};
+    for (final cls in library.classes) {
+      map[cls.name] = cls;
+    }
+    return map;
+  })();
+
+  _RecordClassGenerator(
+      this.classes, this.coreTypes, this.isDynamicModuleEnabled);
 
   void generateClassForRecordType(RecordType recordType) {
     final shape = RecordShape.fromType(recordType);
@@ -197,6 +208,11 @@ class _RecordClassGenerator {
     if (shape.names.isNotEmpty) {
       className = '${className}_${shape.names.join('_')}';
     }
+
+    // If this is a dynamic module the loaded main module may already contain
+    // this class.
+    final existingClass = _existingCoreClassNames[className];
+    if (existingClass != null) return existingClass;
 
     final cls = addWasmEntryPointPragma(
         Class(
@@ -215,9 +231,10 @@ class _RecordClassGenerator {
         coreTypes);
 
     library.addClass(cls);
-    cls.addProcedure(_generateEquals(shape, fields, cls));
+    final getRti = _generateRecordRuntimeType(shape, fields);
+    cls.addProcedure(_generateEquals(shape, fields, cls, getRti));
     cls.addProcedure(_generateCheckRecordType(shape, fields));
-    cls.addProcedure(_generateRecordRuntimeType(shape, fields));
+    cls.addProcedure(getRti);
     cls.addProcedure(_generateMasqueradedRecordRuntimeType(shape, fields));
     return cls;
   }
@@ -372,7 +389,8 @@ class _RecordClassGenerator {
   }
 
   /// Generate `bool operator ==` member.
-  Procedure _generateEquals(RecordShape shape, List<Field> fields, Class cls) {
+  Procedure _generateEquals(
+      RecordShape shape, List<Field> fields, Class cls, Procedure getRti) {
     final equalsFunctionType = FunctionType(
       [nullableObjectType],
       boolType,
@@ -384,12 +402,32 @@ class _RecordClassGenerator {
 
     final List<Statement> statements = [];
 
-    statements.add(IfStatement(
-      Not(IsExpression(
-          VariableGet(parameter), InterfaceType(cls, Nullability.nonNullable))),
-      ReturnStatement(BoolLiteral(false)),
-      null,
-    ));
+    if (isDynamicModuleEnabled) {
+      final checkInstance = coreTypes.index
+          .getProcedure('dart:core', '_RecordType', '_checkInstance');
+      statements.add(IfStatement(
+        Not(InstanceInvocation(
+          InstanceAccessKind.Instance,
+          (InstanceInvocation(InstanceAccessKind.Instance, ThisExpression(),
+              getRti.name, Arguments([]),
+              interfaceTarget: getRti,
+              functionType: getRti.computeSignatureOrFunctionType())),
+          checkInstance.name,
+          Arguments([VariableGet(parameter)]),
+          interfaceTarget: checkInstance,
+          functionType: checkInstance.computeSignatureOrFunctionType(),
+        )),
+        ReturnStatement(BoolLiteral(false)),
+        null,
+      ));
+    } else {
+      statements.add(IfStatement(
+        Not(IsExpression(VariableGet(parameter),
+            InterfaceType(cls, Nullability.nonNullable))),
+        ReturnStatement(BoolLiteral(false)),
+        null,
+      ));
+    }
 
     // Compare fields.
     for (Field field in fields) {

@@ -14,17 +14,16 @@ const _desc = r'Use predefined named constants.';
 
 class UseNamedConstants extends LintRule {
   UseNamedConstants()
-      : super(
-          name: LintNames.use_named_constants,
-          description: _desc,
-        );
+    : super(name: LintNames.use_named_constants, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.use_named_constants;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }
@@ -42,10 +41,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (type is! InterfaceType) return;
       var element = type.element3;
       if (element is ClassElement2) {
-        var nodeField = node
-            .thisOrAncestorOfType<VariableDeclaration>()
-            ?.declaredFragment
-            ?.element;
+        var nodeField =
+            node
+                .thisOrAncestorOfType<VariableDeclaration>()
+                ?.declaredFragment
+                ?.element;
 
         // avoid diagnostic for fields in the same class having the same value
         // class A {
@@ -59,12 +59,15 @@ class _Visitor extends SimpleAstVisitor<void> {
             (node.root as CompilationUnit).declaredFragment?.element.library2;
         if (library == null) return;
         var value = node.computeConstantValue().value;
-        for (var field
-            in element.fields2.where((e) => e.isStatic && e.isConst)) {
+        for (var field in element.fields2.where(
+          (e) => e.isStatic && e.isConst,
+        )) {
           if (field.isAccessibleIn2(library) &&
               field.computeConstantValue() == value) {
-            rule.reportLint(node,
-                arguments: ['${element.name3}.${field.name3}']);
+            rule.reportLint(
+              node,
+              arguments: ['${element.name3}.${field.name3}'],
+            );
             return;
           }
         }

@@ -96,8 +96,8 @@ class PackageConfigFileUriResolver extends ResourceUriResolver {
   }
 }
 
-/// The [UriResolver] that can resolve `package` URIs in
-/// [PackageBuildWorkspace].
+/// The [UriResolver] that can resolve `package` URIs in a
+/// [PackageConfigWorkspace].
 class PackageConfigPackageUriResolver extends UriResolver {
   final PackageConfigWorkspace _workspace;
   final UriResolver _normalUriResolver;

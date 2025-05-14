@@ -11,7 +11,7 @@ abstract class TypeBuilder implements TypeImpl {
   /// Does nothing if the type has been already built.
   ///
   /// Return the built type.
-  DartType build();
+  TypeImpl build();
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

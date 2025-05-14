@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -22,14 +20,14 @@ import 'package:analyzer/src/error/codes.dart';
 class CorrectOverrideHelper {
   final TypeSystemImpl _typeSystem;
 
-  final ExecutableElement _thisMember;
-  FunctionType? _thisTypeForSubtype;
+  final ExecutableElement2OrMember _thisMember;
+  FunctionTypeImpl? _thisTypeForSubtype;
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
   CorrectOverrideHelper({
     required TypeSystemImpl typeSystem,
-    required ExecutableElement thisMember,
+    required ExecutableElement2OrMember thisMember,
   })  : _typeSystem = typeSystem,
         _thisMember = thisMember {
     _computeThisTypeForSubtype();
@@ -37,7 +35,7 @@ class CorrectOverrideHelper {
 
   /// Return `true` if [_thisMember] is a correct override of [superMember].
   bool isCorrectOverrideOf({
-    required ExecutableElement superMember,
+    required ExecutableElement2OrMember superMember,
   }) {
     var superType = superMember.type;
     return _typeSystem.isSubtypeOf(_thisTypeForSubtype!, superType);
@@ -46,7 +44,7 @@ class CorrectOverrideHelper {
   /// If [_thisMember] is not a correct override of [superMember], report the
   /// error.
   void verify({
-    required ExecutableElement superMember,
+    required ExecutableElement2OrMember superMember,
     required ErrorReporter errorReporter,
     required SyntacticEntity errorNode,
     required ErrorCode errorCode,
@@ -54,18 +52,17 @@ class CorrectOverrideHelper {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
     if (!isCorrect) {
       var member = _thisMember;
-      var memberName = member.name;
-      if (member is PropertyAccessorElement && member.isSetter) {
-        memberName = memberName.substring(0, memberName.length - 1);
+      var memberName = member.name3;
+      if (memberName != null) {
+        errorReporter.reportError(_diagnosticFactory.invalidOverride(
+          errorReporter.source,
+          errorCode,
+          errorNode,
+          _thisMember,
+          superMember,
+          memberName,
+        ));
       }
-      errorReporter.reportError(_diagnosticFactory.invalidOverride(
-        errorReporter.source,
-        errorCode,
-        errorNode,
-        _thisMember,
-        superMember,
-        memberName,
-      ));
     }
   }
 
@@ -73,9 +70,9 @@ class CorrectOverrideHelper {
   /// parameters, replace their types with `Object?` or `Object`.
   void _computeThisTypeForSubtype() {
     var type = _thisMember.type;
-    var parameters = type.parameters;
+    var parameters = type.formalParameters;
 
-    List<ParameterElement>? newParameters;
+    List<FormalParameterElementMixin>? newParameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
       if (parameter.isCovariant) {
@@ -87,9 +84,9 @@ class CorrectOverrideHelper {
     }
 
     if (newParameters != null) {
-      _thisTypeForSubtype = FunctionTypeImpl(
-        typeFormals: type.typeFormals,
-        parameters: newParameters,
+      _thisTypeForSubtype = FunctionTypeImpl.v2(
+        typeParameters: type.typeParameters,
+        formalParameters: newParameters,
         returnType: type.returnType,
         nullabilitySuffix: type.nullabilitySuffix,
       );
@@ -103,12 +100,12 @@ class CovariantParametersVerifier {
   final AnalysisSessionImpl _session;
   final TypeSystemImpl _typeSystem;
 
-  final ExecutableElement _thisMember;
+  final ExecutableElement2OrMember _thisMember;
 
   CovariantParametersVerifier({
-    required ExecutableElement thisMember,
-  })  : _session = thisMember.library.session as AnalysisSessionImpl,
-        _typeSystem = thisMember.library.typeSystem as TypeSystemImpl,
+    required ExecutableElement2OrMember thisMember,
+  })  : _session = thisMember.library2.session as AnalysisSessionImpl,
+        _typeSystem = thisMember.library2.typeSystem as TypeSystemImpl,
         _thisMember = thisMember;
 
   void verify({
@@ -132,10 +129,10 @@ class CovariantParametersVerifier {
             errorEntity,
             CompileTimeErrorCode.INVALID_OVERRIDE,
             arguments: [
-              _thisMember.name,
-              _thisMember.enclosingElement3.name!,
+              _thisMember.name3!,
+              _thisMember.enclosingElement2!.name3!,
               _thisMember.type,
-              superMember.enclosingElement3.name!,
+              superMember.enclosingElement2!.name3!,
               superMember.type,
             ],
           );
@@ -146,12 +143,12 @@ class CovariantParametersVerifier {
 
   List<_SuperMember> _superMembers() {
     var classHierarchy = _session.classHierarchy;
-    var classElement = _thisMember.enclosingElement3 as InterfaceElementImpl;
+    var classElement = _thisMember.enclosingElement2 as InterfaceElementImpl2;
     var interfaces = classHierarchy.implementedInterfaces(classElement);
 
     var superMembers = <_SuperMember>[];
     for (var interface in interfaces) {
-      var superMember = _correspondingMember(interface.element, _thisMember);
+      var superMember = _correspondingMember(interface.element3, _thisMember);
       if (superMember != null) {
         superMembers.add(
           _SuperMember(interface, superMember),
@@ -162,18 +159,18 @@ class CovariantParametersVerifier {
     return superMembers;
   }
 
-  Map<ParameterElement, List<_SuperParameter>> _superParameters() {
-    var result = <ParameterElement, List<_SuperParameter>>{};
+  Map<FormalParameterElementMixin, List<_SuperParameter>> _superParameters() {
+    var result = <FormalParameterElementMixin, List<_SuperParameter>>{};
 
     List<_SuperMember>? superMembers;
-    var parameters = _thisMember.parameters;
+    var parameters = _thisMember.formalParameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
       if (parameter.isCovariant) {
         superMembers ??= _superMembers();
         for (var superMember in superMembers) {
           var superParameter = _correspondingParameter(
-            superMember.rawElement.parameters,
+            superMember.rawElement.formalParameters,
             parameter,
             i,
           );
@@ -198,11 +195,11 @@ class CovariantParametersVerifier {
     Substitution result = Substitution.fromInterfaceType(superMember.interface);
 
     // If the executable has type parameters, ensure that super uses the same.
-    var thisTypeParameters = _thisMember.typeParameters;
+    var thisTypeParameters = _thisMember.typeParameters2;
     if (thisTypeParameters.isNotEmpty) {
-      var superTypeParameters = superMember.rawElement.typeParameters;
+      var superTypeParameters = superMember.rawElement.typeParameters2;
       if (thisTypeParameters.length == superTypeParameters.length) {
-        var typeParametersSubstitution = Substitution.fromPairs(
+        var typeParametersSubstitution = Substitution.fromPairs2(
           superTypeParameters,
           thisTypeParameters.map((e) {
             return e.instantiate(
@@ -219,27 +216,27 @@ class CovariantParametersVerifier {
 
   /// Return a member from [classElement] that corresponds to the [proto],
   /// or `null` if no such member exist.
-  static ExecutableElement? _correspondingMember(
-    InterfaceElement classElement,
-    ExecutableElement proto,
+  static ExecutableElement2? _correspondingMember(
+    InterfaceElement2 classElement,
+    ExecutableElement2 proto,
   ) {
-    if (proto is MethodElement) {
-      return classElement.getMethod(proto.displayName);
+    if (proto is MethodElement2) {
+      return classElement.getMethod2(proto.displayName);
     }
-    if (proto is PropertyAccessorElement) {
-      if (proto.isGetter) {
-        return classElement.getGetter(proto.displayName);
+    if (proto is PropertyAccessorElement2) {
+      if (proto is GetterElement) {
+        return classElement.getGetter2(proto.displayName);
       }
-      return classElement.getSetter(proto.displayName);
+      return classElement.getSetter2(proto.displayName);
     }
     return null;
   }
 
   /// Return an element of [parameters] that corresponds for the [proto],
   /// or `null` if no such parameter exist.
-  static ParameterElement? _correspondingParameter(
-    List<ParameterElement> parameters,
-    ParameterElement proto,
+  static FormalParameterElement? _correspondingParameter(
+    List<FormalParameterElement> parameters,
+    FormalParameterElement proto,
     int protoIndex,
   ) {
     if (proto.isPositional) {
@@ -252,7 +249,7 @@ class CovariantParametersVerifier {
     } else {
       assert(proto.isNamed);
       for (var parameter in parameters) {
-        if (parameter.isNamed && parameter.name == proto.name) {
+        if (parameter.isNamed && parameter.name3 == proto.name3) {
           return parameter;
         }
       }
@@ -263,17 +260,17 @@ class CovariantParametersVerifier {
 
 class _SuperMember {
   final InterfaceType interface;
-  final ExecutableElement rawElement;
+  final ExecutableElement2 rawElement;
 
   _SuperMember(this.interface, this.rawElement);
 }
 
 class _SuperParameter {
-  final ParameterElement element;
-  final DartType type;
+  final FormalParameterElement element;
+  final TypeImpl type;
 
   _SuperParameter(this.element, this.type);
 
-  ExecutableElement get member =>
-      element.enclosingElement3 as ExecutableElement;
+  ExecutableElement2 get member =>
+      element.enclosingElement2 as ExecutableElement2;
 }

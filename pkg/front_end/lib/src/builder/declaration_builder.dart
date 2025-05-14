@@ -5,11 +5,7 @@
 part of 'declaration_builders.dart';
 
 abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
-  LookupScope get scope;
-
   DeclarationNameSpace get nameSpace;
-
-  ConstructorScope get constructorScope;
 
   /// Type parameters declared on this declaration.
   ///
@@ -20,9 +16,6 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
 
   @override
   Uri get fileUri;
-
-  @override
-  DeclarationBuilder get origin;
 
   /// Lookup a member accessed statically through this declaration.
   Builder? findStaticBuilder(
@@ -64,22 +57,20 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
   }
 
   @override
-  DeclarationBuilder get origin => this as DeclarationBuilder;
-
-  @override
   MemberBuilder? findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
-    if (accessingLibrary.nameOriginBuilder.origin !=
-            libraryBuilder.nameOriginBuilder.origin &&
+    if (accessingLibrary.nameOriginBuilder !=
+            libraryBuilder.nameOriginBuilder &&
         name.startsWith("_")) {
       return null;
     }
     MemberBuilder? declaration =
-        constructorScope.lookup(name == 'new' ? '' : name, charOffset, uri);
-    if (declaration == null && isAugmenting) {
-      return origin.findConstructorOrFactory(
-          name, charOffset, uri, accessingLibrary);
+        nameSpace.lookupConstructor(name == 'new' ? '' : name);
+    if (declaration != null && declaration.next != null) {
+      return new AmbiguousMemberBuilder(
+          name.isEmpty ? this.name : name, declaration, charOffset, fileUri);
     }
+
     return declaration;
   }
 

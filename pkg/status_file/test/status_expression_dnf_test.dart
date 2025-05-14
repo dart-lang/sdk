@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import "package:status_file/src/expression.dart";
 import 'package:status_file/src/disjunctive.dart';
 
-main() {
+void main() {
   testDnf();
 }
 

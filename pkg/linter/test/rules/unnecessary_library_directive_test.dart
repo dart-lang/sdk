@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryLibraryDirective);
   });
@@ -50,10 +50,11 @@ part 'part.dart';
   }
 
   test_unnecessary() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 library lib;
-''', [
-      lint(0, 12),
-    ]);
+''',
+      [lint(0, 12)],
+    );
   }
 }

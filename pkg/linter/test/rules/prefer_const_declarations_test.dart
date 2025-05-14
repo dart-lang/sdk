@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferConstDeclarationsTest);
   });
@@ -18,25 +18,27 @@ class PreferConstDeclarationsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_const_declarations;
 
   test_constructorTearoff_inference() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final C<int> Function() c = C.new;
 }
 class C<T> {}
-''', [
-      lint(13, 33),
-    ]);
+''',
+      [lint(13, 33)],
+    );
   }
 
   test_constructorTearoff_instantiatedWithType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final c = C<int>.new;
 }
 class C<T> {}
-''', [
-      lint(13, 20),
-    ]);
+''',
+      [lint(13, 20)],
+    );
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/2911')
@@ -50,14 +52,15 @@ class C<T> {}
   }
 
   test_constructorTearoff_uninstantiated() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final x = C.new;
 }
 class C<T> {}
-''', [
-      lint(13, 15),
-    ]);
+''',
+      [lint(13, 15)],
+    );
   }
 
   test_instanceField_final_listLiteral_const() async {
@@ -77,16 +80,17 @@ void f() {
   }
 
   test_localVariable_final_constructorInvocation_const() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final x = const C();
 }
 class C {
   const C();
 }
-''', [
-      lint(13, 19),
-    ]);
+''',
+      [lint(13, 19)],
+    );
   }
 
   test_localVariable_final_constructorInvocation_new() async {
@@ -101,23 +105,25 @@ class C {
   }
 
   test_localVariable_final_doubleLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final x = 1.3;
 }
-''', [
-      lint(13, 13),
-    ]);
+''',
+      [lint(13, 13)],
+    );
   }
 
   test_localVariable_final_intLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final x = 1;
 }
-''', [
-      lint(13, 11),
-    ]);
+''',
+      [lint(13, 11)],
+    );
   }
 
   test_localVariable_final_intLiteral_multiple() async {
@@ -138,23 +144,25 @@ void f() {
   }
 
   test_localVariable_final_listLiteral_const() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final x = const [];
 }
-''', [
-      lint(13, 18),
-    ]);
+''',
+      [lint(13, 18)],
+    );
   }
 
   test_localVariable_final_mapOrSetLiteral_const() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final x = const {};
 }
-''', [
-      lint(13, 18),
-    ]);
+''',
+      [lint(13, 18)],
+    );
   }
 
   test_localVariable_final_methodInvocation() async {
@@ -166,13 +174,14 @@ void f() {
   }
 
   test_localVariable_final_nullLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final x = null;
 }
-''', [
-      lint(13, 14),
-    ]);
+''',
+      [lint(13, 14)],
+    );
   }
 
   test_localVariable_final_prefixedIdentifier() async {
@@ -184,7 +193,8 @@ void f() {
   }
 
   test_localVariable_final_staticProperty_const() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final x = C.p;
 }
@@ -192,19 +202,20 @@ class C {
   const C();
   static const p = const [];
 }
-''', [
-      lint(13, 13),
-    ]);
+''',
+      [lint(13, 13)],
+    );
   }
 
   test_localVariable_final_stringLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final x = '';
 }
-''', [
-      lint(13, 12),
-    ]);
+''',
+      [lint(13, 12)],
+    );
   }
 
   test_localVariable_listLiteral_final_typed() async {
@@ -280,11 +291,12 @@ void f() {
   }
 
   test_recordLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 final tuple = const ("first", 2, true);
-''', [
-      lint(0, 38),
-    ]);
+''',
+      [lint(0, 38)],
+    );
   }
 
   test_staticField_const_listLiteral_const() async {
@@ -296,59 +308,64 @@ class C {
   }
 
   test_staticField_final_listLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static final x = const [];
 }
-''', [
-      lint(19, 18),
-    ]);
+''',
+      [lint(19, 18)],
+    );
   }
 
   test_staticField_final_listLiteral_const() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static final x = const [];
 }
-''', [
-      lint(19, 18),
-    ]);
+''',
+      [lint(19, 18)],
+    );
   }
 
   test_staticField_final_nullLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static final x = null;
 }
-''', [
-      lint(19, 14),
-    ]);
+''',
+      [lint(19, 14)],
+    );
   }
 
   test_staticFunctionTearoff_inference() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final C<int> Function() c = C.m;
 }
 class C<T> {
   static C<X> m<X>() => C<X>();
 }
-''', [
-      lint(13, 31),
-    ]);
+''',
+      [lint(13, 31)],
+    );
   }
 
   test_staticFunctionTearoff_instantiatedWithType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final c = C.m<int>;
 }
 class C<T> {
   static C<X> m<X>() => C<X>();
 }
-''', [
-      lint(13, 18),
-    ]);
+''',
+      [lint(13, 18)],
+    );
   }
 
   test_staticFunctionTearoff_instantiatedWithTypeVariable() async {
@@ -363,16 +380,17 @@ class C<T> {
   }
 
   test_staticFunctionTearoff_uninstantiated() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final x = C.m;
 }
 class C<T> {
   static C<X> m<X>() => C<X>();
 }
-''', [
-      lint(13, 13),
-    ]);
+''',
+      [lint(13, 13)],
+    );
   }
 
   test_test_recordLiteral_nonConst() async {
@@ -388,11 +406,12 @@ const record = (number: 123, name: "Main", type: "Street");
   }
 
   test_topLevelVariable_final_doubleLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 final x = 1.3;
-''', [
-      lint(0, 13),
-    ]);
+''',
+      [lint(0, 13)],
+    );
   }
 
   test_topLevelVariable_final_listLiteral() async {
@@ -402,11 +421,12 @@ final x = [];
   }
 
   test_topLevelVariable_final_listLiteral_const() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 final x = const [];
-''', [
-      lint(0, 18),
-    ]);
+''',
+      [lint(0, 18)],
+    );
   }
 
   test_topLevelVariable_final_mapOrSetLiteral() async {
@@ -416,28 +436,31 @@ final o9 = {};
   }
 
   test_topLevelVariable_final_mapOrSetLiteral_const() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 final x = const {};
-''', [
-      lint(0, 18),
-    ]);
+''',
+      [lint(0, 18)],
+    );
   }
 
   test_topLevelVariable_final_nullLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 final a = null;
-''', [
-      lint(0, 14),
-    ]);
+''',
+      [lint(0, 14)],
+    );
   }
 
   test_topLevelVariable_final_topLevelVariable_const() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 const x = const [];
 final y = x;
-''', [
-      lint(20, 11),
-    ]);
+''',
+      [lint(20, 11)],
+    );
   }
 
   test_topLevelVariable_listLiteral_const() async {

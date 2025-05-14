@@ -291,7 +291,9 @@ class JsBackendStrategy {
     final worldBuilder = CodegenWorldBuilder(
       closedWorld,
       inferredData,
-      _compiler.abstractValueStrategy.createSelectorStrategy(),
+      _compiler.abstractValueStrategy.createSelectorStrategy(
+        closedWorld.abstractValueDomain,
+      ),
       _codegenImpactTransformer.oneShotInterceptorData,
     );
     return CodegenEnqueuer(
@@ -749,9 +751,13 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   @override
-  AbstractValue getInferredTypeOfParameter(Local parameter) {
+  AbstractValue getInferredTypeOfParameter(
+    Local parameter,
+    MemberEntity? member,
+  ) {
     return AbstractValueFactory.inferredTypeForParameter(
       parameter,
+      member,
       _globalInferenceResults,
     );
   }

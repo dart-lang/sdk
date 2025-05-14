@@ -77,7 +77,8 @@ var v2 = const <int> [42];
 const a = null;
 var v = const <int>[a];
 ''', [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          36, 1),
     ]);
   }
 
@@ -85,7 +86,8 @@ var v = const <int>[a];
     await assertErrorsInCode('''
 var v = const <int>[null];
 ''', [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 4),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          20, 4),
     ]);
   }
 

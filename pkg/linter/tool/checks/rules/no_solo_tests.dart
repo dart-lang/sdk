@@ -10,23 +10,24 @@ import 'package:linter/src/analyzer.dart';
 const _desc = r"Don't commit soloed tests.";
 
 class NoSoloTests extends LintRule {
-  static const LintCode code = LintCode('no_solo_tests', _desc,
-      correctionMessage:
-          "Try removing the 'soloTest' annotation or 'solo_' prefix.",
-      hasPublishedDocs: true);
+  static const LintCode code = LintCode(
+    'no_solo_tests',
+    _desc,
+    correctionMessage:
+        "Try removing the 'soloTest' annotation or 'solo_' prefix.",
+    hasPublishedDocs: true,
+  );
 
-  NoSoloTests()
-      : super(
-          name: 'no_solo_tests',
-          description: _desc,
-        );
+  NoSoloTests() : super(name: 'no_solo_tests', description: _desc);
 
   @override
   LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     if (context.definingUnit.unit.inTestDir) {
       var visitor = _Visitor(this);
       registry.addMethodDeclaration(this, visitor);

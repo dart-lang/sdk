@@ -5,10 +5,8 @@
 // A type mismatch in a constant map literal is a compile-time error.
 
 main() {
-  var m = const
-      <String, String>
-    {"a": 0};
-    //    ^
-    // [analyzer] COMPILE_TIME_ERROR.MAP_VALUE_TYPE_NOT_ASSIGNABLE
-    // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
+  var m = const <String, String>{"a": 0};
+  //                                  ^
+  // [analyzer] COMPILE_TIME_ERROR.MAP_VALUE_TYPE_NOT_ASSIGNABLE
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
 }

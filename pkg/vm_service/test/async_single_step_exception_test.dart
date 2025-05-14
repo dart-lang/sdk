@@ -10,7 +10,7 @@ import 'common/test_helper.dart';
 //
 // Update these constants by running:
 //
-// dart pkg/vm_service/test/update_line_numbers.dart <test.dart>
+// dart pkg/vm_service/test/update_line_numbers.dart pkg/vm_service/test/async_single_step_exception_test.dart
 //
 const LINE_A = 26;
 const LINE_B = 27;

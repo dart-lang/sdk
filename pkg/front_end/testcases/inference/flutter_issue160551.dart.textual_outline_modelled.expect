@@ -1,0 +1,11 @@
+abstract class A {
+  A();
+  factory A.redir({double foo}) = B;
+}
+
+class B<T> extends A {
+  B({this.foo = 10});
+  final double foo;
+}
+
+void main() {}

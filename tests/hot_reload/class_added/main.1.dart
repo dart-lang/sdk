@@ -22,9 +22,9 @@ Future<void> main() async {
 
   Expect.equals('hello from A', helper());
 }
+
 /** DIFF **/
 /*
-@@ -9,7 +9,11 @@
  // https://github.com/dart-lang/sdk/blob/f34a2ed99fc1b34cedbd974a5801f8d922121126/runtime/vm/isolate_reload_test.cc#L561
  
  helper() {

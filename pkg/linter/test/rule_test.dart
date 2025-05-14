@@ -32,7 +32,7 @@ void defineRuleUnitTests() {
         'foo_bar',
         '\$foo',
         'foo\$Bar',
-        'foo\$'
+        'foo\$',
       ];
       testEach(good, isValidDartIdentifier, isTrue);
       var bad = ['if', '42', '3', '2f'];

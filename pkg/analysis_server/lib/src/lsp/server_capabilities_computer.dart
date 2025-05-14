@@ -28,6 +28,7 @@ class ClientDynamicRegistrations {
     Method.textDocument_completion,
     Method.textDocument_hover,
     Method.textDocument_inlayHint,
+    Method.textDocument_inlineValue,
     Method.textDocument_signatureHelp,
     Method.textDocument_references,
     Method.textDocument_documentHighlight,
@@ -103,6 +104,9 @@ class ClientDynamicRegistrations {
 
   bool get inlayHints =>
       _capabilities.textDocument?.inlayHint?.dynamicRegistration ?? false;
+
+  bool get inlineValue =>
+      _capabilities.textDocument?.inlineValue?.dynamicRegistration ?? false;
 
   bool get rangeFormatting =>
       _capabilities.textDocument?.rangeFormatting?.dynamicRegistration ?? false;
@@ -190,6 +194,7 @@ class ServerCapabilitiesComputer {
           features.formatOnType.staticRegistration,
       documentRangeFormattingProvider: features.formatRange.staticRegistration,
       inlayHintProvider: features.inlayHint.staticRegistration,
+      inlineValueProvider: features.inlineValue.staticRegistration,
       renameProvider: features.rename.staticRegistration,
       foldingRangeProvider: features.foldingRange.staticRegistration,
       selectionRangeProvider: features.selectionRange.staticRegistration,
@@ -211,15 +216,24 @@ class ServerCapabilitiesComputer {
                 : null,
       ),
       experimental: {
+        // 'experimental' is a field we can put any arbitrary data that is not
+        // part of the spec without fear of clashing with future LSP changes.
+        //
+        // We use this to signal some custom protocol that we support.
+        //
+        // Some of these fields are objects where bools could be sufficient to
+        // allow for future expansion without potentially breaking clients by
+        // changing the data type.
         if (clientCapabilities
             .supportsDartExperimentalTextDocumentContentProvider)
           'dartTextDocumentContentProvider':
               features.dartTextDocumentContentProvider.staticRegistration,
+        // Indicate that we support the 'updateDiagnosticInformation'
+        // custom request.
+        'updateDiagnosticInformation': {},
         'textDocument': {
           // These properties can be used by the client to know that we support
           // custom methods like `dart/textDocument/augmented`.
-          //
-          // These fields are objects to allow for future expansion.
           'super': {},
           'augmented': {},
           'augmentation': {},
@@ -305,7 +319,7 @@ class ServerCapabilitiesComputer {
       // we cannot re-enter this method until we have sent both the unregister
       // and register requests to the client atomically.
       // https://github.com/dart-lang/sdk/issues/47851#issuecomment-988093109
-      unregistrationRequest = _server.sendRequest(
+      unregistrationRequest = _server.sendLspRequest(
         Method.client_unregisterCapability,
         UnregistrationParams(unregisterations: unregistrations),
       );
@@ -316,7 +330,7 @@ class ServerCapabilitiesComputer {
     // otherwise we don't know that the client supports registerCapability).
     if (registrationsToAdd.isNotEmpty) {
       registrationRequest = _server
-          .sendRequest(
+          .sendLspRequest(
             Method.client_registerCapability,
             RegistrationParams(registrations: registrationsToAdd),
           )

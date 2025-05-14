@@ -31,7 +31,12 @@ class OptionsTest {
     await withTempDirAsync((String tempDirPath) async {
       await recursiveCopy(Directory(projDir), tempDirPath);
       var expectedPath = path.join(
-          tempDirPath, 'somepkgs', 'flutter', 'lib', 'analysis_options.yaml');
+        tempDirPath,
+        'somepkgs',
+        'flutter',
+        'lib',
+        'analysis_options.yaml',
+      );
       expect(FileSystemEntity.isFileSync(expectedPath), isTrue);
       await _runner.run2([
         '--packages',
@@ -55,10 +60,10 @@ class _Runner {
   final ExitHandler _savedExitHandler;
 
   _Runner.setUp()
-      : _savedOutSink = outSink,
-        _savedErrorSink = errorSink,
-        _savedExitHandler = exitHandler,
-        _savedExitCode = exitCode {
+    : _savedOutSink = outSink,
+      _savedErrorSink = errorSink,
+      _savedExitHandler = exitHandler,
+      _savedExitCode = exitCode {
     outSink = _stdout;
     errorSink = _stderr;
     exitHandler = (_) {};

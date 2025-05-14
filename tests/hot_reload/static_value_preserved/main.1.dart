@@ -20,9 +20,9 @@ Future<void> main() async {
   Expect.equals('new value', init());
   Expect.equals('old value', value);
 }
+
 /** DIFF **/
 /*
-@@ -8,7 +8,7 @@
  // Adapted from:
  // https://github.com/dart-lang/sdk/blob/36c0788137d55c6c77f4b9a8be12e557bc764b1c/runtime/vm/isolate_reload_test.cc#L395
  

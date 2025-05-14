@@ -9,28 +9,20 @@
 import "package:expect/expect.dart";
 import "../library12.dart" as lib12;
 
-typedef
-    lib12.Library13
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
-// [cfe] Type 'lib12.Library13' not found.
-    myFunc(
-        lib12.Library13
+typedef lib12.Library13 myFunc(lib12.Library13 param);
 //      ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [cfe] Type 'lib12.Library13' not found.
-        param);
-typedef
-    lib12.Library13
-//  ^^^^^^^^^^^^^^^
+//                             ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [cfe] Type 'lib12.Library13' not found.
-    myFunc2(
-        lib12.Library13
+typedef lib12.Library13 myFunc2(lib12.Library13 param, int i);
 //      ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [cfe] Type 'lib12.Library13' not found.
-        param, int i);
+//                              ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+// [cfe] Type 'lib12.Library13' not found.
 
 main() {
   Expect.isTrue(((Object x) => x) is myFunc);
