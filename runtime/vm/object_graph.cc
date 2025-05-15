@@ -32,10 +32,10 @@ static bool IsUserClass(intptr_t cid) {
 // This may be a regulard dart field, a unboxed dart field or
 // a slot of any type in a predefined layout.
 struct ObjectSlot {
-  uint16_t offset;
+  uint32_t offset;
   bool is_compressed_pointer;
   const char* name;
-  ObjectSlot(uint16_t offset, bool is_compressed_pointer, const char* name)
+  ObjectSlot(uint32_t offset, bool is_compressed_pointer, const char* name)
       : offset(offset),
         is_compressed_pointer(is_compressed_pointer),
         name(name) {}
@@ -113,7 +113,9 @@ class ObjectSlots {
 
       // We sort the slots, so we'll visit the slots in memory order.
       slots->Sort([](const ObjectSlot* a, const ObjectSlot* b) {
-        return a->offset - b->offset;
+        if (a->offset < b->offset) return -1;
+        if (a->offset > b->offset) return 1;
+        return 0;
       });
 
       // As optimization as well as to support variable-length data, we remember
