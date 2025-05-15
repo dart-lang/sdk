@@ -17,6 +17,22 @@ function follow_links() {
   echo "$file"
 }
 
+function host_arch() {
+  # Use uname to determine the host architecture.
+  case `uname -m` in
+    x86_64)
+    echo "X64"
+    ;;
+    aarch64 | arm64 | armv8*)
+    echo "ARM64"
+    ;;
+    *)
+    echo "Unknown host architecture" `uname -m` >&2
+    exit 1
+    ;;
+  esac
+}
+
 # Unlike $0, $BASH_SOURCE points to the absolute path of this file.
 PROG_NAME="$(follow_links "$BASH_SOURCE")"
 
@@ -30,7 +46,8 @@ if [[ `uname` == 'Darwin' ]]; then
 else
   OUT_DIR="$SDK_DIR/out"
 fi
-DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
+HOST_ARCH="$(host_arch)"
+DART_CONFIGURATION=${DART_CONFIGURATION:-Release$HOST_ARCH}
 BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
 BINARYEN="$BIN_DIR/wasm-opt"

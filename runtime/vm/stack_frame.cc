@@ -175,9 +175,16 @@ const char* StackFrame::ToCString() const {
   Zone* zone = Thread::Current()->zone();
 #if defined(DART_DYNAMIC_MODULES)
   if (is_interpreted()) {
-    const Bytecode& bytecode = Bytecode::Handle(zone, LookupDartBytecode());
-    const char* name = bytecode.IsNull() ? "Cannot find bytecode object"
-                                         : bytecode.FullyQualifiedName();
+    const char* name;
+    if (IsEntryFrame()) {
+      name = "[Interpreter] Entry frame";
+    } else if (IsExitFrame()) {
+      name = "[Interpreter] Exit frame";
+    } else {
+      const Bytecode& bytecode = Bytecode::Handle(zone, LookupDartBytecode());
+      name = bytecode.IsNull() ? "Cannot find bytecode object"
+                               : bytecode.FullyQualifiedName();
+    }
     return zone->PrintToString("  pc 0x%" Pp " fp 0x%" Pp " sp 0x%" Pp " %s",
                                pc(), fp(), sp(), name);
   }
@@ -433,6 +440,7 @@ BytecodePtr StackFrame::LookupDartBytecode() const {
 
 BytecodePtr StackFrame::GetBytecodeObject() const {
   ASSERT(is_interpreted());
+  ASSERT(!IsEntryFrame() && !IsExitFrame());
   ObjectPtr pc_marker = *(
       reinterpret_cast<ObjectPtr*>(fp() + kKBCPcMarkerSlotFromFp * kWordSize));
   ASSERT((pc_marker == Object::null()) ||

@@ -782,10 +782,26 @@ void generateNoSuchMethodCall(
   translator.functions.recordSelectorUse(noSuchMethodSelector, false);
   final signature = noSuchMethodSelector.signature;
 
+  final targetRanges =
+      noSuchMethodSelector.targets(unchecked: false).targetRanges;
+  final staticDispatchRanges =
+      noSuchMethodSelector.targets(unchecked: false).staticDispatchRanges;
+
+  // NOTE: Keep this in sync with
+  // `code_generator.dart:AstCodeGenerator._virtualCall`.
+  final bool directCall =
+      targetRanges.length == 1 && staticDispatchRanges.length == 1;
+  final callPolymorphicDispatcher =
+      !directCall && staticDispatchRanges.isNotEmpty;
+
   final noSuchMethodParamInfo = noSuchMethodSelector.paramInfo;
   final noSuchMethodWasmFunctionType = signature;
 
   pushReceiver();
+  if (callPolymorphicDispatcher) {
+    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+    pushReceiver();
+  }
   pushInvocationObject();
 
   final invocationFactory = translator.functions
@@ -817,11 +833,19 @@ void generateNoSuchMethodCall(
 
   assert(wasmArgIdx == noSuchMethodWasmFunctionType.inputs.length);
 
-  // Get class id for virtual call
-  pushReceiver();
-  translator.callDispatchTable(b, noSuchMethodSelector,
-      interfaceTarget: translator.objectNoSuchMethod.reference,
-      useUncheckedEntry: false);
+  if (directCall) {
+    translator.callReference(targetRanges[0].target, b);
+  } else if (callPolymorphicDispatcher) {
+    b.invoke(translator
+        .getPolymorphicDispatchersForModule(b.module)
+        .getPolymorphicDispatcher(noSuchMethodSelector,
+            useUncheckedEntry: false));
+  } else {
+    pushReceiver();
+    translator.callDispatchTable(b, noSuchMethodSelector,
+        interfaceTarget: translator.objectNoSuchMethod.reference,
+        useUncheckedEntry: false);
+  }
 }
 
 class ClassIdRange {

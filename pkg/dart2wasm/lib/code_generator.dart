@@ -1953,31 +1953,37 @@ abstract class AstCodeGenerator
     List<({Range range, Reference target})> targetRanges = targets.targetRanges;
     List<({Range range, Reference target})> staticDispatchRanges =
         targets.staticDispatchRanges;
-    if (!selector.isDynamicSubmoduleOverridable) {
-      if (targetRanges.length == 1) {
-        final target = translator.getFunctionEntry(targetRanges[0].target,
-            uncheckedEntry: useUncheckedEntry);
-        final directCallSignature = translator.signatureForDirectCall(target);
-        final paramInfo = translator.paramInfoForDirectCall(target);
-        pushArguments(directCallSignature, paramInfo);
-        return translator.outputOrVoid(call(target));
-      }
-      if (targetRanges.isEmpty) {
-        // Unreachable call
-        b.comment("Virtual call of $name with no targets"
-            " at ${node.location}");
-        pushArguments(signature, selector.paramInfo);
-        for (int i = 0; i < signature.inputs.length; ++i) {
-          b.drop();
-        }
-        b.block(const [], signature.outputs);
-        b.unreachable();
-        b.end();
-        return translator.outputOrVoid(signature.outputs);
-      }
-    }
 
-    final callPolymorphicDispatcher = staticDispatchRanges.isNotEmpty;
+    // NOTE: Keep this in sync with
+    // `dynamic_forwarders.dart:generateNoSuchMethodCall`.
+    final bool noTarget =
+        targetRanges.isEmpty && !selector.isDynamicSubmoduleOverridable;
+    final bool directCall =
+        targetRanges.length == 1 && staticDispatchRanges.length == 1;
+    final callPolymorphicDispatcher =
+        !directCall && staticDispatchRanges.isNotEmpty;
+
+    if (noTarget) {
+      // Unreachable call
+      b.comment("Virtual call of $name with no targets"
+          " at ${node.location}");
+      pushArguments(signature, selector.paramInfo);
+      for (int i = 0; i < signature.inputs.length; ++i) {
+        b.drop();
+      }
+      b.block(const [], signature.outputs);
+      b.unreachable();
+      b.end();
+      return translator.outputOrVoid(signature.outputs);
+    }
+    if (directCall) {
+      final target = translator.getFunctionEntry(targetRanges[0].target,
+          uncheckedEntry: useUncheckedEntry);
+      final directCallSignature = translator.signatureForDirectCall(target);
+      final paramInfo = translator.paramInfoForDirectCall(target);
+      pushArguments(directCallSignature, paramInfo);
+      return translator.outputOrVoid(call(target));
+    }
 
     // Receiver is already on stack.
     w.Local receiverVar = addLocal(signature.inputs.first);

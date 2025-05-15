@@ -193,6 +193,11 @@ void CallSpecializer::SpecializePolymorphicInstanceCall(
 
   ASSERT(targets->HasSingleTarget());
   const Function& target = targets->FirstTarget();
+  if (target.is_declared_in_bytecode()) {
+    // Optimized static calls dispatch via Code object without passing
+    // Function object which is incompatible to the bytecode interpreter.
+    return;
+  }
   StaticCallInstr* specialized =
       StaticCallInstr::FromCall(Z, call, target, targets->AggregateCallCount());
   call->ReplaceWith(specialized, current_iterator());

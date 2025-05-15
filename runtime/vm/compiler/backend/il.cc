@@ -5592,6 +5592,11 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 
   ASSERT(new_target->HasSingleTarget());
   const Function& target = new_target->FirstTarget();
+  if (target.is_declared_in_bytecode()) {
+    // Optimized static calls dispatch via Code object without passing
+    // Function object which is incompatible to the bytecode interpreter.
+    return this;
+  }
   StaticCallInstr* specialized = StaticCallInstr::FromCall(
       flow_graph->zone(), this, target, new_target->AggregateCallCount());
   flow_graph->InsertBefore(this, specialized, env(), FlowGraph::kValue);
