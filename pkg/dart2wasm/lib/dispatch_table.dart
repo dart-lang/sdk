@@ -61,11 +61,6 @@ class SelectorInfo {
   /// The selector's member's name.
   final String name;
 
-  /// Whether the selector is for `Object.noSuchMethod`. We introduce instance
-  /// invocations of `noSuchMethod` in dynamic calls, so we always add
-  /// `noSuchMethod` overrides to the dispatch table.
-  final bool isNoSuchMethod;
-
   SelectorTargets? _checked;
   SelectorTargets? _unchecked;
   SelectorTargets? _normal;
@@ -88,7 +83,6 @@ class SelectorInfo {
     this.callCount,
     this.paramInfo, {
     required this.isSetter,
-    required this.isNoSuchMethod,
   });
 
   void serialize(DataSerializer sink) {
@@ -100,7 +94,6 @@ class SelectorInfo {
       useMultipleEntryPoints,
       isDynamicSubmoduleOverridable,
       isDynamicSubmoduleCallable,
-      isNoSuchMethod
     ]);
     sink.writeNullable(_checked, (targets) => targets.serialize(sink));
     sink.writeNullable(_unchecked, (targets) => targets.serialize(sink));
@@ -118,7 +111,6 @@ class SelectorInfo {
       useMultipleEntryPoints,
       isDynamicSubmoduleOverridable,
       isDynamicSubmoduleCallable,
-      isNoSuchMethod
     ] = source.readBoolList();
     final checked =
         source.readNullable(() => SelectorTargets.deserialize(source));
@@ -132,7 +124,7 @@ class SelectorInfo {
         ParameterInfo.fromMember(references.first),
         (p, e) => p..merge(ParameterInfo.fromMember(e)));
     return SelectorInfo._(dispatchTable, id, name, callCount, paramInfo,
-        isSetter: isSetter, isNoSuchMethod: isNoSuchMethod)
+        isSetter: isSetter)
       ..useMultipleEntryPoints = useMultipleEntryPoints
       ..isDynamicSubmoduleCallable = isDynamicSubmoduleCallable
       ..isDynamicSubmoduleOverridable = isDynamicSubmoduleOverridable
@@ -484,16 +476,16 @@ class DispatchTable {
     final isDynamicSubmoduleOverridable =
         member.isDynamicSubmoduleOverridable(translator.coreTypes);
 
+    // The compiler will generate calls to `noSuchMethod` in the dynamic
+    // invocation forwarders. So we ensure that the call count is positive.
+    final isNoSuchMethod = member == translator.objectNoSuchMethod;
+    final callCount =
+        _selectorMetadata[selectorId].callCount + (isNoSuchMethod ? 1 : 0);
     final selector = _selectorInfo.putIfAbsent(
         selectorId,
-        () => SelectorInfo._(
-            this,
-            selectorId,
-            member.name.text,
-            _selectorMetadata[selectorId].callCount,
+        () => SelectorInfo._(this, selectorId, member.name.text, callCount,
             ParameterInfo.fromMember(target),
-            isSetter: isSetter,
-            isNoSuchMethod: member == translator.objectNoSuchMethod));
+            isSetter: isSetter));
     assert(selector.isSetter == isSetter);
     final useMultipleEntryPoints = !member.isAbstract &&
         !member.isExternal &&
@@ -872,17 +864,8 @@ class DispatchTable {
 }
 
 bool _isUsedViaDispatchTableCall(SelectorInfo selector) {
-  // Special case for `objectNoSuchMethod`: we introduce instance
-  // invocations of `objectNoSuchMethod` in dynamic calls, so keep it alive
-  // even if there was no references to it from the Dart code.
-  if (selector.isNoSuchMethod) {
-    return true;
-  }
   if (selector.isDynamicSubmoduleCallable) return true;
-
-  if (selector.callCount == 0) {
-    return false;
-  }
+  if (selector.callCount == 0) return false;
   if (selector.isDynamicSubmoduleOverridable) return true;
 
   final targets = selector.targets(unchecked: false);
