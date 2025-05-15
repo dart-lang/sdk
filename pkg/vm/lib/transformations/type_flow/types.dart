@@ -890,10 +890,12 @@ class ConeType extends Type {
       if (this == other) {
         return this;
       }
-      if (other.cls.isSubtypeOf(this.cls)) {
+      if (other.hasEmptySpecialization(typeHierarchy) ||
+          other.cls.isSubtypeOf(this.cls)) {
         return this;
       }
-      if (this.cls.isSubtypeOf(other.cls)) {
+      if (this.hasEmptySpecialization(typeHierarchy) ||
+          this.cls.isSubtypeOf(other.cls)) {
         return other;
       }
     } else if (other is ConcreteType) {
@@ -915,6 +917,10 @@ class ConeType extends Type {
     if (other is ConeType) {
       if (this == other) {
         return this;
+      }
+      if (this.hasEmptySpecialization(typeHierarchy) ||
+          other.hasEmptySpecialization(typeHierarchy)) {
+        return emptyType;
       }
       if (other.cls.isSubtypeOf(this.cls)) {
         return other;
@@ -957,6 +963,9 @@ class WideConeType extends ConeType {
       (other is WideConeType) && identical(this.cls, other.cls);
 
   @override
+  String toString() => "_T (${cls})++";
+
+  @override
   int get order => TypeOrder.WideCone.index;
 
   @override
@@ -975,7 +984,8 @@ class WideConeType extends ConeType {
       return other.union(this, typeHierarchy);
     }
     if (other is ConeType) {
-      if (other.cls.isSubtypeOf(this.cls)) {
+      if (other.hasEmptySpecialization(typeHierarchy) ||
+          other.cls.isSubtypeOf(this.cls)) {
         return this;
       }
       if (this.cls.isSubtypeOf(other.cls)) {
@@ -1013,6 +1023,9 @@ class WideConeType extends ConeType {
       return other.intersection(this, typeHierarchy);
     }
     if (other is ConeType) {
+      if (other.hasEmptySpecialization(typeHierarchy)) {
+        return emptyType;
+      }
       if (other.cls.isSubtypeOf(this.cls)) {
         return other;
       }
