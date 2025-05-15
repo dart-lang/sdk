@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -20,7 +21,7 @@ class PreferConstLiteralsToCreateImmutables extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.prefer_const_literals_to_create_immutables;
 
   @override

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -17,7 +18,7 @@ class ConstantIdentifierNames extends LintRule {
     : super(name: LintNames.constant_identifier_names, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.constant_identifier_names;
+  DiagnosticCode get diagnosticCode => LinterLintCode.constant_identifier_names;
 
   @override
   void registerNodeProcessors(

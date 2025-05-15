@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,7 +15,7 @@ class SortConstructorsFirst extends LintRule {
     : super(name: LintNames.sort_constructors_first, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.sort_constructors_first;
+  DiagnosticCode get diagnosticCode => LinterLintCode.sort_constructors_first;
 
   @override
   void registerNodeProcessors(

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -16,7 +17,8 @@ class UseIsEvenRatherThanModulo extends LintRule {
     : super(name: LintNames.use_is_even_rather_than_modulo, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_is_even_rather_than_modulo;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.use_is_even_rather_than_modulo;
 
   @override
   void registerNodeProcessors(

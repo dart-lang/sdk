@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
@@ -15,7 +16,7 @@ class NoLogicInCreateState extends LintRule {
     : super(name: LintNames.no_logic_in_create_state, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.no_logic_in_create_state;
+  DiagnosticCode get diagnosticCode => LinterLintCode.no_logic_in_create_state;
 
   @override
   void registerNodeProcessors(

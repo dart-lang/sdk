@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -16,7 +17,7 @@ class UnnecessaryUnawaited extends LintRule {
     : super(name: LintNames.unnecessary_unawaited, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_unawaited;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_unawaited;
 
   @override
   void registerNodeProcessors(

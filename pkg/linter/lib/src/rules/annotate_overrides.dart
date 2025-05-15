@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -17,7 +18,7 @@ class AnnotateOverrides extends LintRule {
     : super(name: LintNames.annotate_overrides, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.annotate_overrides;
+  DiagnosticCode get diagnosticCode => LinterLintCode.annotate_overrides;
 
   @override
   void registerNodeProcessors(

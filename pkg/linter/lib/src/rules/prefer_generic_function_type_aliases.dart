@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -20,7 +21,8 @@ class PreferGenericFunctionTypeAliases extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_generic_function_type_aliases;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.prefer_generic_function_type_aliases;
 
   @override
   void registerNodeProcessors(

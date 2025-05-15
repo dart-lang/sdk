@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -19,7 +20,8 @@ class UnnecessaryNullInIfNullOperators extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_null_in_if_null_operators;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.unnecessary_null_in_if_null_operators;
 
   @override
   void registerNodeProcessors(

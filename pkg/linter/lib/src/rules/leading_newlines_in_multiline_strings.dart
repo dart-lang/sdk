@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,7 +18,8 @@ class LeadingNewlinesInMultilineStrings extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.leading_newlines_in_multiline_strings;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.leading_newlines_in_multiline_strings;
 
   @override
   void registerNodeProcessors(

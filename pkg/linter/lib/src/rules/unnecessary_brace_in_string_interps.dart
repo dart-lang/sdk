@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -23,7 +24,8 @@ class UnnecessaryBraceInStringInterps extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_brace_in_string_interps;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.unnecessary_brace_in_string_interps;
 
   @override
   void registerNodeProcessors(

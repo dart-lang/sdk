@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,7 +15,7 @@ class CommentReferences extends LintRule {
     : super(name: LintNames.comment_references, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.comment_references;
+  DiagnosticCode get diagnosticCode => LinterLintCode.comment_references;
 
   @override
   void registerNodeProcessors(

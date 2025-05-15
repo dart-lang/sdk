@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -15,7 +16,7 @@ class CombinatorsOrdering extends LintRule {
     : super(name: LintNames.combinators_ordering, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.combinators_ordering;
+  DiagnosticCode get diagnosticCode => LinterLintCode.combinators_ordering;
 
   @override
   void registerNodeProcessors(

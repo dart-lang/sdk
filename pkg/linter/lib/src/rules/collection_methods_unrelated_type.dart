@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -23,7 +24,8 @@ class CollectionMethodsUnrelatedType extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.collection_methods_unrelated_type;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.collection_methods_unrelated_type;
 
   @override
   void registerNodeProcessors(

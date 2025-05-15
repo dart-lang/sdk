@@ -13,7 +13,7 @@ class NoBoolsRule extends AnalysisRule {
   NoBoolsRule() : super(name: 'no_bools', description: 'No bools desc');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(
@@ -30,7 +30,7 @@ class NoDoublesRule extends AnalysisRule {
       : super(name: 'no_doubles', description: 'No doubles message');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
@@ -80,7 +81,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 // ignore: avoid_int
 int a = 0;
 ''',
-      [error(avoidIntRule.lintCode, 21, 3)],
+      [error(avoidIntRule.diagnosticCode, 21, 3)],
     );
   }
 }
@@ -95,7 +96,7 @@ class _AvoidIntRule extends LintRule {
   _AvoidIntRule() : super(name: 'avoid_int', description: '');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(

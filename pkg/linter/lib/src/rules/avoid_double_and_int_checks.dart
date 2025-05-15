@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,8 @@ class AvoidDoubleAndIntChecks extends LintRule {
     : super(name: LintNames.avoid_double_and_int_checks, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_double_and_int_checks;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_double_and_int_checks;
 
   @override
   void registerNodeProcessors(

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -18,7 +19,8 @@ class PreferExpressionFunctionBodies extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_expression_function_bodies;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.prefer_expression_function_bodies;
 
   @override
   void registerNodeProcessors(

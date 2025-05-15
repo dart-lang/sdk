@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -21,7 +22,7 @@ class NoDefaultCases extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.no_default_cases;
+  DiagnosticCode get diagnosticCode => LinterLintCode.no_default_cases;
 
   @override
   void registerNodeProcessors(

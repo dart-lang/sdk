@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -21,7 +22,7 @@ class PublicMemberApiDocs extends LintRule {
     : super(name: LintNames.public_member_api_docs, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.public_member_api_docs;
+  DiagnosticCode get diagnosticCode => LinterLintCode.public_member_api_docs;
 
   @override
   void registerNodeProcessors(

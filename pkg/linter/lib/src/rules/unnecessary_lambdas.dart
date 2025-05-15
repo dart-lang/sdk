@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -21,7 +22,7 @@ class UnnecessaryLambdas extends LintRule {
     : super(name: LintNames.unnecessary_lambdas, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_lambdas;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_lambdas;
 
   @override
   void registerNodeProcessors(

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
@@ -15,7 +16,8 @@ class SortChildPropertiesLast extends LintRule {
     : super(name: LintNames.sort_child_properties_last, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.sort_child_properties_last;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.sort_child_properties_last;
 
   @override
   void registerNodeProcessors(

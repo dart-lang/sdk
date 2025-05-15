@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -16,7 +17,7 @@ class OneMemberAbstracts extends LintRule {
     : super(name: LintNames.one_member_abstracts, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.one_member_abstracts;
+  DiagnosticCode get diagnosticCode => LinterLintCode.one_member_abstracts;
 
   @override
   void registerNodeProcessors(

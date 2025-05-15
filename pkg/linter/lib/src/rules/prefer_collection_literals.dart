@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -18,7 +19,8 @@ class PreferCollectionLiterals extends LintRule {
     : super(name: LintNames.prefer_collection_literals, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_collection_literals;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.prefer_collection_literals;
 
   @override
   void registerNodeProcessors(

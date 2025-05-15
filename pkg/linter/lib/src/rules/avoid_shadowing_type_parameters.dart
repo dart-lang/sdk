@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -19,7 +20,8 @@ class AvoidShadowingTypeParameters extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_shadowing_type_parameters;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_shadowing_type_parameters;
 
   @override
   void registerNodeProcessors(

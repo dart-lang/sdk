@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -17,7 +18,7 @@ class UnnecessaryThis extends LintRule {
     : super(name: LintNames.unnecessary_this, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_this;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_this;
 
   @override
   void registerNodeProcessors(

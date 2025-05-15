@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -15,7 +16,7 @@ class CancelSubscriptions extends LintRule {
     : super(name: LintNames.cancel_subscriptions, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.cancel_subscriptions;
+  DiagnosticCode get diagnosticCode => LinterLintCode.cancel_subscriptions;
 
   @override
   void registerNodeProcessors(

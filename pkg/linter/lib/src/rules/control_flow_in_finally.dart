@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,7 +15,7 @@ class ControlFlowInFinally extends LintRule {
     : super(name: LintNames.control_flow_in_finally, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.control_flow_in_finally;
+  DiagnosticCode get diagnosticCode => LinterLintCode.control_flow_in_finally;
 
   @override
   void registerNodeProcessors(

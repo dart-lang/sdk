@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,10 +15,10 @@ class PreferSingleQuotes extends LintRule {
     : super(name: LintNames.prefer_single_quotes, description: _desc);
 
   @override
-  List<String> get incompatibleRules => const [LintNames.prefer_double_quotes];
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_single_quotes;
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_single_quotes;
+  List<String> get incompatibleRules => const [LintNames.prefer_double_quotes];
 
   @override
   void registerNodeProcessors(

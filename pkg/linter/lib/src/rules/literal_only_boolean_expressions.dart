@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -36,7 +37,8 @@ class LiteralOnlyBooleanExpressions extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.literal_only_boolean_expressions;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.literal_only_boolean_expressions;
 
   @override
   void registerNodeProcessors(

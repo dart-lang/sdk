@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -17,7 +18,7 @@ class UseEnums extends LintRule {
   UseEnums() : super(name: LintNames.use_enums, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_enums;
+  DiagnosticCode get diagnosticCode => LinterLintCode.use_enums;
 
   @override
   void registerNodeProcessors(

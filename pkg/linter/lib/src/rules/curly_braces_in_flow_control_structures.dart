@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -20,7 +21,7 @@ class CurlyBracesInFlowControlStructures extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.curly_braces_in_flow_control_structures;
 
   @override

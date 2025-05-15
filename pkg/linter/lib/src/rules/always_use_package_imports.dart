@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,12 +15,13 @@ class AlwaysUsePackageImports extends LintRule {
     : super(name: LintNames.always_use_package_imports, description: _desc);
 
   @override
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.always_use_package_imports;
+
+  @override
   List<String> get incompatibleRules => const [
     LintNames.prefer_relative_imports,
   ];
-
-  @override
-  LintCode get lintCode => LinterLintCode.always_use_package_imports;
 
   @override
   void registerNodeProcessors(

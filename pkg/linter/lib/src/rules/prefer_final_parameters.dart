@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -16,13 +17,13 @@ class PreferFinalParameters extends LintRule {
     : super(name: LintNames.prefer_final_parameters, description: _desc);
 
   @override
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_final_parameters;
+
+  @override
   List<String> get incompatibleRules => const [
     LintNames.unnecessary_final,
     LintNames.avoid_final_parameters,
   ];
-
-  @override
-  LintCode get lintCode => LinterLintCode.prefer_final_parameters;
 
   @override
   void registerNodeProcessors(

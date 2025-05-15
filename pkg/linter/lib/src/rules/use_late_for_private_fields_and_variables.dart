@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -30,7 +31,7 @@ class UseLateForPrivateFieldsAndVariables extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.use_late_for_private_fields_and_variables;
 
   @override
@@ -71,7 +72,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
             (u) => u.unit.declaredFragment == libraryFragment,
           );
           if (contextUnit == null) continue;
-          contextUnit.errorReporter.atNode(variable, rule.lintCode);
+          contextUnit.errorReporter.atNode(variable, rule.diagnosticCode);
         }
       }
     }

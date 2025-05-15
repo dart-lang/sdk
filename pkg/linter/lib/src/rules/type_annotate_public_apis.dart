@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -17,7 +18,7 @@ class TypeAnnotatePublicApis extends LintRule {
     : super(name: LintNames.type_annotate_public_apis, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.type_annotate_public_apis;
+  DiagnosticCode get diagnosticCode => LinterLintCode.type_annotate_public_apis;
 
   @override
   void registerNodeProcessors(

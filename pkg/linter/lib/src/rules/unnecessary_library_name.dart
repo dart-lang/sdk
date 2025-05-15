@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -16,7 +17,7 @@ class UnnecessaryLibraryName extends LintRule {
     : super(name: LintNames.unnecessary_library_name, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_library_name;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_library_name;
 
   @override
   void registerNodeProcessors(

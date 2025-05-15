@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart';
 
@@ -20,7 +21,7 @@ class UseNullAwareElements extends LintRule {
     : super(name: LintNames.use_null_aware_elements, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_null_aware_elements;
+  DiagnosticCode get diagnosticCode => LinterLintCode.use_null_aware_elements;
 
   @override
   void registerNodeProcessors(

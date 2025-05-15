@@ -265,7 +265,7 @@ class _ThrowsAsyncErrorRule extends AnalysisRule {
       : super(name: 'no_bools', description: 'No bools desc');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(
@@ -312,7 +312,7 @@ class _ThrowsSyncErrorRule extends AnalysisRule {
       : super(name: 'no_bools', description: 'No bools desc');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(

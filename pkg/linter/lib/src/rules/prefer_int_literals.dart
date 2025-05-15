@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,7 @@ class PreferIntLiterals extends LintRule {
     : super(name: LintNames.prefer_int_literals, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_int_literals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_int_literals;
 
   @override
   void registerNodeProcessors(

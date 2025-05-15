@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/ast/ast.dart';
 
@@ -22,7 +23,7 @@ class UnnecessaryAsync extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_async;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_async;
 
   @override
   void registerNodeProcessors(

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -17,7 +18,7 @@ class OverriddenFields extends LintRule {
     : super(name: LintNames.overridden_fields, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.overridden_fields;
+  DiagnosticCode get diagnosticCode => LinterLintCode.overridden_fields;
 
   @override
   void registerNodeProcessors(

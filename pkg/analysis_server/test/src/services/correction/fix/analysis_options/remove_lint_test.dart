@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/lint_codes.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:linter/src/rules.dart';
@@ -31,7 +31,7 @@ class DeprecatedRule extends LintRule {
       );
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 }
 
 class RemovedRule extends LintRule {
@@ -45,7 +45,7 @@ class RemovedRule extends LintRule {
     : super(name: 'removed_rule', description: '', state: State.removed());
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 }
 
 @reflectiveTest

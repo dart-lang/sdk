@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -19,7 +20,7 @@ class AvoidReturningThis extends LintRule {
     : super(name: LintNames.avoid_returning_this, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_returning_this;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_returning_this;
 
   @override
   void registerNodeProcessors(

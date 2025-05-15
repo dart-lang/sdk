@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
+
 import '../analyzer.dart';
 import '../rules/prefer_single_quotes.dart';
 
@@ -13,10 +15,10 @@ class PreferDoubleQuotes extends LintRule {
     : super(name: LintNames.prefer_double_quotes, description: _desc);
 
   @override
-  List<String> get incompatibleRules => const [LintNames.prefer_single_quotes];
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_double_quotes;
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_double_quotes;
+  List<String> get incompatibleRules => const [LintNames.prefer_single_quotes];
 
   @override
   void registerNodeProcessors(

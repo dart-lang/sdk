@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -18,7 +19,8 @@ class AvoidPrivateTypedefFunctions extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_private_typedef_functions;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_private_typedef_functions;
 
   @override
   void registerNodeProcessors(

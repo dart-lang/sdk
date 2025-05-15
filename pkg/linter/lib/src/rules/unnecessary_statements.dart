@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -16,7 +17,7 @@ class UnnecessaryStatements extends LintRule {
     : super(name: LintNames.unnecessary_statements, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_statements;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_statements;
 
   @override
   void registerNodeProcessors(
