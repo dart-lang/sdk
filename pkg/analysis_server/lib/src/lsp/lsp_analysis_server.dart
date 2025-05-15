@@ -47,7 +47,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
-import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
@@ -1100,12 +1099,14 @@ class LspAnalysisServer extends AnalysisServer {
     var packages = <String>{};
     var additionalFiles = <String>[];
     for (var file in openFiles) {
-      var package = roots
-          .where((root) => root.isAnalyzed(file))
-          .map((root) => root.workspace.findPackageFor(file)?.root)
-          .firstWhereOrNull((p) => p != null);
-      if (package != null && !resourceProvider.getFolder(package).isRoot) {
-        packages.add(package);
+      var package =
+          roots
+              .where((root) => root.isAnalyzed(file))
+              .map((root) => root.workspace.findPackageFor(file)?.root)
+              .nonNulls
+              .firstOrNull;
+      if (package != null && !package.isRoot) {
+        packages.add(package.path);
       } else {
         additionalFiles.add(file);
       }

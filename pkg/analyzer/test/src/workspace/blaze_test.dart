@@ -7,6 +7,7 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:async/async.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -593,12 +594,12 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
 @reflectiveTest
 class BlazeWorkspacePackageTest with ResourceProviderMixin {
   late final BlazeWorkspace workspace;
-  BlazeWorkspacePackage? package;
+  late BlazeWorkspacePackage package;
 
   void test_contains_differentPackage_summarySource() {
     _setUpPackage();
     var source = _inSummarySource('package:some.other.code/file.dart');
-    expect(package!.contains(source), isFalse);
+    expect(package.contains(source), isFalse);
   }
 
   void test_contains_differentPackageInWorkspace() {
@@ -607,14 +608,14 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
     // A file that is _not_ in this package is not required to have a BUILD
     // file above it, for simplicity and reduced I/O.
     expect(
-      package!.contains(_testSource('/ws/some/other/code/file.dart')),
+      package.contains(_testSource('/ws/some/other/code/file.dart')),
       isFalse,
     );
   }
 
   void test_contains_differentWorkspace() {
     _setUpPackage();
-    expect(package!.contains(_testSource('/ws2/some/file.dart')), isFalse);
+    expect(package.contains(_testSource('/ws2/some/file.dart')), isFalse);
   }
 
   void test_contains_samePackage() {
@@ -624,10 +625,10 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
     var targetBinFile = newFile('/ws/some/code/bin/code.dart', '');
     var targetTestFile = newFile('/ws/some/code/test/code_test.dart', '');
 
-    expect(package!.contains(_testSource(targetFile.path)), isTrue);
-    expect(package!.contains(_testSource(targetFile2.path)), isTrue);
-    expect(package!.contains(_testSource(targetBinFile.path)), isTrue);
-    expect(package!.contains(_testSource(targetTestFile.path)), isTrue);
+    expect(package.contains(_testSource(targetFile.path)), isTrue);
+    expect(package.contains(_testSource(targetFile2.path)), isTrue);
+    expect(package.contains(_testSource(targetBinFile.path)), isTrue);
+    expect(package.contains(_testSource(targetTestFile.path)), isTrue);
   }
 
   void test_contains_samePackage_summarySource() {
@@ -637,8 +638,8 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
     var file2Source = _inSummarySource('package:some.code/code2.dart');
     var file3Source = _inSummarySource('package:some.code/src/code2.dart');
 
-    expect(package!.contains(file2Source), isTrue);
-    expect(package!.contains(file3Source), isTrue);
+    expect(package.contains(file2Source), isTrue);
+    expect(package.contains(file3Source), isTrue);
   }
 
   void test_contains_subPackage() {
@@ -647,7 +648,7 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
     newFile('/ws/some/code/testing/lib/testing.dart', '');
 
     expect(
-      package!.contains(_testSource('/ws/some/code/testing/lib/testing.dart')),
+      package.contains(_testSource('/ws/some/code/testing/lib/testing.dart')),
       isFalse,
     );
   }
@@ -655,9 +656,8 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
   void test_findPackageFor_buildFileExists() {
     _setUpPackage();
 
-    expect(package, isNotNull);
-    expect(package?.root, convertPath('/ws/some/code'));
-    expect(package?.workspace, equals(workspace));
+    expect(package.root.path, convertPath('/ws/some/code'));
+    expect(package.workspace, equals(workspace));
   }
 
   void test_findPackageFor_generatedFileInBlazeOutAndBin() {
@@ -674,11 +674,10 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
 
     // Make sure that we can find the package of the generated file.
     var file = workspace.findFile(convertPath('/ws/some/code/code.dart'));
-    package = workspace.findPackageFor(file!.path);
+    package = workspace.findPackageFor(file!.path)!;
 
-    expect(package, isNotNull);
-    expect(package?.root, convertPath('/ws/some/code'));
-    expect(package?.workspace, equals(workspace));
+    expect(package.root.path, convertPath('/ws/some/code'));
+    expect(package.workspace, equals(workspace));
   }
 
   void test_findPackageFor_inBlazeOut_notPackage() {
@@ -702,7 +701,7 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
         BlazeWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
     var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
-    package = workspace.findPackageFor(targetFile.path);
+    WorkspacePackage? package = workspace.findPackageFor(targetFile.path);
     expect(package, isNull);
   }
 
@@ -718,7 +717,7 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
           lookForBuildFileSubstitutes: false,
         )!;
 
-    package = workspace.findPackageFor(
+    WorkspacePackage? package = workspace.findPackageFor(
       convertPath('/ws/some/code/lib/code.dart'),
     );
     expect(package, isNull);
@@ -733,12 +732,10 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
     workspace =
         BlazeWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
 
-    package = workspace.findPackageFor(
-      convertPath('/ws/some/code/lib/code.dart'),
-    );
-    expect(package, isNotNull);
-    expect(package?.root, convertPath('/ws/some/code'));
-    expect(package?.workspace, equals(workspace));
+    package =
+        workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'))!;
+    expect(package.root.path, convertPath('/ws/some/code'));
+    expect(package.workspace, equals(workspace));
   }
 
   void test_findPackageFor_packagesFileExistsInOnlyBinPath() {
@@ -749,12 +746,10 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
     workspace =
         BlazeWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
 
-    package = workspace.findPackageFor(
-      convertPath('/ws/some/code/lib/code.dart'),
-    );
-    expect(package, isNotNull);
-    expect(package?.root, convertPath('/ws/some/code'));
-    expect(package?.workspace, equals(workspace));
+    package =
+        workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'))!;
+    expect(package.root.path, convertPath('/ws/some/code'));
+    expect(package.workspace, equals(workspace));
   }
 
   void test_findPackageFor_packagesFileInBinExists_subPackage() {
@@ -770,24 +765,24 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
           convertPath('/ws/some/code/testing'),
         )!;
 
-    package = workspace.findPackageFor(
-      convertPath('/ws/some/code/testing/lib/testing.dart'),
-    );
-    expect(package, isNotNull);
-    expect(package?.root, convertPath('/ws/some/code/testing'));
-    expect(package?.workspace, equals(workspace));
+    package =
+        workspace.findPackageFor(
+          convertPath('/ws/some/code/testing/lib/testing.dart'),
+        )!;
+    expect(package.root.path, convertPath('/ws/some/code/testing'));
+    expect(package.workspace, equals(workspace));
   }
 
   test_isInTestDirectory() {
     _setUpPackage();
 
     expect(
-      package!.isInTestDirectory(getFile('/ws/some/code/lib/a.dart')),
+      package.isInTestDirectory(getFile('/ws/some/code/lib/a.dart')),
       isFalse,
     );
 
     expect(
-      package!.isInTestDirectory(getFile('/ws/some/code/test/a.dart')),
+      package.isInTestDirectory(getFile('/ws/some/code/test/a.dart')),
       isTrue,
     );
   }
@@ -795,8 +790,8 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
   void test_packagesAvailableTo() {
     _setUpPackage();
     var path = convertPath('/ws/some/code/lib/code.dart');
-    var packages = package?.packagesAvailableTo(path);
-    expect(packages?.packages, isEmpty);
+    var packages = package.packagesAvailableTo(path);
+    expect(packages.packages, isEmpty);
   }
 
   /// Create new files and directories from [paths].
@@ -829,9 +824,8 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
 
     workspace =
         BlazeWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
-    package = workspace.findPackageFor(
-      convertPath('/ws/some/code/lib/code.dart'),
-    );
+    package =
+        workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'))!;
   }
 
   Source _testSource(String path) {
@@ -911,7 +905,8 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
           .findPackageFor(
             convertPath('/workspace/blaze-out/host/bin/my/module/lib/foo.dart'),
           )!
-          .root,
+          .root
+          .path,
       convertPath('/workspace/my/module'),
     );
   }

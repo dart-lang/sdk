@@ -1783,10 +1783,10 @@ ${getFolder(outPath).path}
     expect(root.packagesFile, packagesFile);
     var path = convertPath('${package1.path}/lib/a.dart');
     var package = root.workspace.findPackageFor(path);
-    expect(package?.root, package1.path);
+    expect(package?.root.path, package1.path);
     path = convertPath('${package2.path}/lib/a.dart');
     package = root.workspace.findPackageFor(path);
-    expect(package?.root, package2.path);
+    expect(package?.root.path, package2.path);
   }
 
   void _assertAnalyzed(ContextRoot root, List<String> posixPathList) {

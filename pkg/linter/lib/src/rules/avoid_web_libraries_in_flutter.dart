@@ -88,7 +88,7 @@ class AvoidWebLibrariesInFlutter extends LintRule {
 
     var root = context.package?.root;
     if (root != null) {
-      if (hasFlutter(root)) {
+      if (hasFlutter(root.path)) {
         var visitor = _Visitor(this);
         registry.addImportDirective(this, visitor);
       }

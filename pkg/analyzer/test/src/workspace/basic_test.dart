@@ -84,8 +84,7 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
     newFile('/workspace/project/lib/file.dart', '');
 
     var package = findPackage('/workspace/project/lib/file.dart')!;
-    expect(package, isNotNull);
-    expect(package.root, convertPath('/workspace'));
+    expect(package.root.path, convertPath('/workspace'));
     expect(package.workspace, equals(workspace));
   }
 

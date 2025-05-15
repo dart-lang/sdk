@@ -353,7 +353,7 @@ class BlazeWorkspace extends Workspace
       if (packageName == null) {
         return null;
       }
-      var package = BlazeWorkspacePackage(packageName, folder.path, this);
+      var package = BlazeWorkspacePackage(packageName, folder, this);
       _directoryToPackage[directoryPath] = package;
       return package;
     }
@@ -591,7 +591,7 @@ class BlazeWorkspacePackage extends WorkspacePackage {
   final String _uriPrefix;
 
   @override
-  final String root;
+  final Folder root;
 
   @override
   final BlazeWorkspace workspace;
@@ -628,9 +628,7 @@ class BlazeWorkspacePackage extends WorkspacePackage {
 
   @override
   bool isInTestDirectory(File file) {
-    var resourceProvider = workspace.provider;
-    var packageRoot = resourceProvider.getFolder(root);
-    return packageRoot.getChildAssumingFolder('test').contains(file.path);
+    return root.getChildAssumingFolder('test').contains(file.path);
   }
 
   @override
@@ -643,43 +641,38 @@ class BlazeWorkspacePackage extends WorkspacePackage {
     var filePath = filePathFromSource(source);
     if (filePath == null) return false;
 
-    var libFolder = workspace.provider.pathContext.join(root, 'lib');
-    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+    var libFolder = root.getChildAssumingFolder('lib');
+    if (libFolder.contains(filePath)) {
       // A file in "$root/lib" is public iff it is not in "$root/lib/src".
-      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
-      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+      var libSrcFolder = libFolder.getChildAssumingFolder('src');
+      return !libSrcFolder.contains(filePath);
     }
 
     var relativeRoot = workspace.provider.pathContext.relative(
-      root,
+      root.path,
       from: workspace.root,
     );
     for (var binPath in workspace.binPaths) {
-      libFolder = workspace.provider.pathContext.join(
-        binPath,
-        relativeRoot,
-        'lib',
-      );
-      if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      Folder bin = workspace.provider.getFolder(binPath);
+      libFolder = bin
+          .getChildAssumingFolder(relativeRoot)
+          .getChildAssumingFolder('lib');
+      if (libFolder.contains(filePath)) {
         // A file in "$bin/lib" is public iff it is not in "$bin/lib/src".
-        var libSrcFolder = workspace.provider.pathContext.join(
-          libFolder,
-          'src',
-        );
-        return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+        var libSrcFolder = libFolder.getChildAssumingFolder('src');
+        return !libSrcFolder.contains(filePath);
       }
     }
 
-    libFolder = workspace.provider.pathContext.join(
-      workspace.genfiles,
-      relativeRoot,
-      'lib',
-    );
-    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+    libFolder = workspace.provider
+        .getFolder(workspace.genfiles)
+        .getChildAssumingFolder(relativeRoot)
+        .getChildAssumingFolder('lib');
+    if (libFolder.contains(filePath)) {
       // A file in "$genfiles/lib" is public iff it is not in
       // "$genfiles/lib/src".
-      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
-      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+      var libSrcFolder = libFolder.getChildAssumingFolder('src');
+      return !libSrcFolder.contains(filePath);
     }
 
     return false;

@@ -148,11 +148,11 @@ bool isInPublicDir(CompilationUnit node, WorkspacePackage? package) {
   if (package == null) return false;
   var cuPath = node.declaredFragment?.element.firstFragment.source.fullName;
   if (cuPath == null) return false;
-  var libDir = path.join(package.root, 'lib');
-  var binDir = path.join(package.root, 'bin');
+  var libDir = path.join(package.root.path, 'lib');
+  var binDir = path.join(package.root.path, 'bin');
   // Hook directory: https://github.com/dart-lang/sdk/issues/54334,
-  var buildHookFile = path.join(package.root, 'hook', 'build.dart');
-  var linkHookFile = path.join(package.root, 'hook', 'link.dart');
+  var buildHookFile = path.join(package.root.path, 'hook', 'build.dart');
+  var linkHookFile = path.join(package.root.path, 'hook', 'link.dart');
   return path.isWithin(libDir, cuPath) ||
       path.isWithin(binDir, cuPath) ||
       cuPath == buildHookFile ||

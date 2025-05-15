@@ -322,7 +322,6 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     newPubspecYamlFile('/workspace/aaa', '*');
 
     PackageConfigWorkspace workspace = _createWorkspace('/workspace/aaa', []);
-    expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace/aaa'));
   }
 
@@ -357,10 +356,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
   void test_find_hasDartToolNoBuild() {
     // Edge case: an empty .dart_tool directory. Don't assume package:build.
     newFolder('/workspace/.dart_tool');
-    PackageConfigWorkspace workspace = _createWorkspace('/workspace', [
-      'project',
-    ]);
-    expect(workspace, isNotNull);
+    _createWorkspace('/workspace', ['project']);
   }
 
   void test_find_hasDartToolNoPackageConfig() {
@@ -710,7 +706,7 @@ class PubPackageTest extends WorkspacePackageTest {
     newFile('/workspace/project/lib/file.dart', '');
 
     var package = findPackage('/workspace/project/lib/file.dart')!;
-    expect(package.root, convertPath('/workspace'));
+    expect(package.root.path, convertPath('/workspace'));
     expect(package.workspace, equals(workspace));
   }
 
@@ -733,7 +729,7 @@ class PubPackageTest extends WorkspacePackageTest {
         myWorkspace.findPackageFor(
           convertPath('$myPackageGeneratedPath/my/lib/a.dart'),
         )!;
-    expect(package.root, convertPath(myPackageRootPath));
+    expect(package.root.path, convertPath(myPackageRootPath));
     expect(package.workspace, myWorkspace);
   }
 
@@ -742,14 +738,14 @@ class PubPackageTest extends WorkspacePackageTest {
         myWorkspace.findPackageFor(
           convertPath('$myPackageGeneratedPath/my/test/a.dart'),
         )!;
-    expect(package.root, convertPath(myPackageRootPath));
+    expect(package.root.path, convertPath(myPackageRootPath));
     expect(package.workspace, myWorkspace);
   }
 
   test_findPackageFor_my_libFile() {
     var package =
         myWorkspace.findPackageFor(convertPath('$myPackageLibPath/a.dart'))!;
-    expect(package.root, convertPath(myPackageRootPath));
+    expect(package.root.path, convertPath(myPackageRootPath));
     expect(package.workspace, myWorkspace);
   }
 
@@ -758,7 +754,7 @@ class PubPackageTest extends WorkspacePackageTest {
         myWorkspace.findPackageFor(
           convertPath('$myPackageRootPath/test/a.dart'),
         )!;
-    expect(package.root, convertPath(myPackageRootPath));
+    expect(package.root.path, convertPath(myPackageRootPath));
     expect(package.workspace, myWorkspace);
   }
 

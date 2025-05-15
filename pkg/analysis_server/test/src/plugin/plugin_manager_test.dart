@@ -1018,12 +1018,12 @@ class TestServerCommunicationChannel implements ServerCommunicationChannel {
 }
 
 mixin _ContextRoot on ResourceProviderMixin {
-  ContextRootImpl _newContextRoot(String root) {
-    root = convertPath(root);
+  ContextRootImpl _newContextRoot(String rootPath) {
+    rootPath = convertPath(rootPath);
     return ContextRootImpl(
       resourceProvider,
-      resourceProvider.getFolder(root),
-      BasicWorkspace.find(resourceProvider, Packages.empty, root),
+      resourceProvider.getFolder(rootPath),
+      BasicWorkspace.find(resourceProvider, Packages.empty, rootPath),
     );
   }
 }

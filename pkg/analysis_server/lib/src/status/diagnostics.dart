@@ -1096,7 +1096,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     var workspaceFolder = folder.provider.getFolder(workspace!.root);
 
     void writePackage(WorkspacePackage package) {
-      buf.writeln(writeOption('Package root', escape(package.root)));
+      buf.writeln(writeOption('Package root', escape(package.root.path)));
       if (package is PubPackage) {
         buf.writeln(
           writeOption(

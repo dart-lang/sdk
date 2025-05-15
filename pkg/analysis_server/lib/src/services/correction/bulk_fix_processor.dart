@@ -391,7 +391,6 @@ class BulkFixProcessor {
         continue;
       }
       var pathContext = context.contextRoot.resourceProvider.pathContext;
-      var resourceProvider = workspace.provider;
       var packageToDeps = <PubPackage, _PubspecDeps>{};
 
       for (var path in context.contextRoot.analyzedFiles()) {
@@ -404,17 +403,8 @@ class BulkFixProcessor {
           continue;
         }
 
-        var libPath =
-            resourceProvider.getFolder(package.root).getChild('lib').path;
-        var binPath =
-            resourceProvider.getFolder(package.root).getChild('bin').path;
-
-        bool isPublic(String path, PubPackage package) {
-          if (path.startsWith(libPath) || path.startsWith(binPath)) {
-            return true;
-          }
-          return false;
-        }
+        var libPath = package.root.getChildAssumingFolder('lib');
+        var binPath = package.root.getChildAssumingFolder('bin');
 
         var pubspecDeps = packageToDeps.putIfAbsent(
           package,
@@ -434,7 +424,7 @@ class BulkFixProcessor {
                 (directive is ImportDirective) ? directive.uri.stringValue : '';
             if (uri!.startsWith('package:')) {
               var name = Uri.parse(uri).pathSegments.first;
-              if (isPublic(path, package)) {
+              if (libPath.contains(path) || binPath.contains(path)) {
                 pubspecDeps.packages.add(name);
               } else {
                 pubspecDeps.devPackages.add(name);

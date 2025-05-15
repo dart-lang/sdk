@@ -1333,14 +1333,12 @@ class _AnalysisContextCollectionPrinter {
       case BasicWorkspacePackage():
         sink.writelnWithIndent('$id: BasicWorkspacePackage');
         sink.withIndent(() {
-          var root = resourceProvider.getFolder(package.root);
-          sink.writelnWithIndent('root: ${root.posixPath}');
+          sink.writelnWithIndent('root: ${package.root.posixPath}');
         });
       case PubPackage():
         sink.writelnWithIndent('$id: PubPackage');
         sink.withIndent(() {
-          var root = resourceProvider.getFolder(package.root);
-          sink.writelnWithIndent('root: ${root.posixPath}');
+          sink.writelnWithIndent('root: ${package.root.posixPath}');
           var sdkVersionConstraint = package.sdkVersionConstraint;
           if (sdkVersionConstraint != null) {
             sink.writelnWithIndent(

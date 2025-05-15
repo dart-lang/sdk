@@ -87,7 +87,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     var package = workspace.findPackageFor(targetFile.path)!;
-    expect(package.root, convertPath('/ws/some/code'));
+    expect(package.root.path, convertPath('/ws/some/code'));
     expect(package.workspace, equals(workspace));
   }
 
