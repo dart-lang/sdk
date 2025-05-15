@@ -317,6 +317,7 @@ class BytecodeReaderHelper : public ValueObject {
 
   void ReadClosureDeclaration(const Function& function, intptr_t closureIndex);
   FunctionTypePtr ReadFunctionSignature(const FunctionType& signature,
+                                        const Function& closure_function,
                                         bool has_optional_positional_params,
                                         bool has_optional_named_params,
                                         bool has_type_params,

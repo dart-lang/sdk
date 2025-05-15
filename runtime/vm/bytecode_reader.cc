@@ -314,7 +314,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
 
   auto& signature = FunctionType::Handle(Z, closure.signature());
   signature = ReadFunctionSignature(
-      signature, (flags & kHasOptionalPositionalParamsFlag) != 0,
+      signature, closure, (flags & kHasOptionalPositionalParamsFlag) != 0,
       (flags & kHasOptionalNamedParamsFlag) != 0,
       (flags & kHasTypeParamsFlag) != 0,
       /* has_positional_param_names = */ true,
@@ -325,6 +325,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
 
 FunctionTypePtr BytecodeReaderHelper::ReadFunctionSignature(
     const FunctionType& signature,
+    const Function& closure_function,
     bool has_optional_positional_params,
     bool has_optional_named_params,
     bool has_type_params,
@@ -351,6 +352,11 @@ FunctionTypePtr BytecodeReaderHelper::ReadFunctionSignature(
   signature.set_parameter_types(
       Array::Handle(Z, Array::New(num_params, Heap::kOld)));
   signature.CreateNameArrayIncludingFlags(Heap::kOld);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (has_positional_param_names) {
+    closure_function.CreateNameArray();
+  }
+#endif
 
   intptr_t i = 0;
   signature.SetParameterTypeAt(i, AbstractType::dynamic_type());
@@ -364,6 +370,10 @@ FunctionTypePtr BytecodeReaderHelper::ReadFunctionSignature(
       name ^= ReadObject();
       if (has_optional_named_params && (i >= num_required_params)) {
         signature.SetParameterNameAt(i, name);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      } else {
+        closure_function.SetParameterNameAt(i, name);
+#endif
       }
     }
     type ^= ReadObject();
@@ -1354,7 +1364,8 @@ ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
           Z, FunctionType::New(num_parent_type_args, nullability));
       // TODO(alexmarkov): skip type finalization
       return ReadFunctionSignature(
-          signature_type, (flags & kFlagHasOptionalPositionalParams) != 0,
+          signature_type, Function::null_function(),
+          (flags & kFlagHasOptionalPositionalParams) != 0,
           (flags & kFlagHasOptionalNamedParams) != 0,
           (flags & kFlagHasTypeParams) != 0,
           /* has_positional_param_names = */ false,
