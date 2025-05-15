@@ -134,7 +134,7 @@ class ObjectSlots {
       // the visitors will visit them but we won't emit the field description in
       // the heap snapshot).
       if (contains_only_tagged_words && (slots->length() > 0)) {
-        intptr_t expected_offset = (*slots)[0].offset;
+        auto expected_offset = (*slots)[0].offset;
         for (auto& slot : *slots) {
           ASSERT_EQUAL(slot.offset, expected_offset);
           expected_offset += kCompressedWordSize;
