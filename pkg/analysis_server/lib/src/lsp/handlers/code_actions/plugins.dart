@@ -100,7 +100,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
 
     return (
       action: CodeAction.t1(
-        createAssistCodeActionLiteral(
+        createCodeActionLiteral(
           assist.change,
           kind,
           'assist from plugin',
@@ -131,13 +131,13 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
       }
       return (
         action: CodeAction.t1(
-          createFixCodeActionLiteral(
+          createCodeActionLiteral(
             fix.change,
             kind,
             'fix from plugin',
-            diagnostic,
             path,
             lineInfo,
+            diagnostic: diagnostic,
           ),
         ),
         priority: fix.priority,

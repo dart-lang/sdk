@@ -98,13 +98,13 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
             return null;
           }
           var action = CodeAction.t1(
-            createFixCodeActionLiteral(
+            createCodeActionLiteral(
               fix.change,
               kind,
               fix.change.id,
-              diagnostic,
               path,
               lineInfo,
+              diagnostic: diagnostic,
             ),
           );
           return (action: action, priority: fix.kind.priority);

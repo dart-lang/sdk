@@ -15,7 +15,6 @@ import 'package:test/test.dart';
 import '../lsp/code_actions_mixin.dart';
 import '../lsp/request_helpers_mixin.dart';
 import '../lsp/server_abstract.dart';
-import '../utils/lsp_protocol_extensions.dart';
 import '../utils/test_code_extensions.dart';
 import 'shared_test_interface.dart';
 
@@ -90,70 +89,53 @@ Future? f;
     setSnippetTextEditSupport();
     setSupportedCodeActionKinds([CodeActionKind.Refactor]);
 
-    var code = TestCode.parse('''
+    const content = '''
 import 'package:flutter/widgets.dart';
 Widget build() {
   return Te^xt('');
 }
-''');
+''';
 
-    var action = await expectCodeAction(
-      code,
-      kind: CodeActionKind('refactor.flutter.wrap.center'),
-      title: 'Wrap with Center',
-    );
-
-    // Ensure we are a CodeAction literal.
-    expect(action.isCodeActionLiteral, true);
-
-    await verifyCodeActionEdits(action, r'''
+    const expectedContent = r'''
 >>>>>>>>>> lib/test.dart
 import 'package:flutter/widgets.dart';
 Widget build() {
   return Center($0child: Text(''));
 }
-''');
+''';
+
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      title: 'Wrap with Center',
+    );
   }
 
   Future<void> test_codeActionLiterals_unsupported() async {
     setSnippetTextEditSupport();
     setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
 
-    var code = TestCode.parse('''
+    const content = '''
 import 'package:flutter/widgets.dart';
 Widget build() {
   return Te[!!]xt('');
 }
-''');
+''';
 
-    var action = await expectCodeAction(
-      openTargetFile: true, // Open document to verify we get a version back.
-      code,
-      title: 'Wrap with Center',
-      command: Commands.applyCodeAction,
-      commandArgs: [
-        {
-          'textDocument': {'uri': testFileUri.toString(), 'version': 1},
-          'range': code.range.range.toJson(),
-          'kind': 'refactor.flutter.wrap.center',
-          'loggedAction': 'dart.assist.flutter.wrap.center',
-        },
-      ],
-    );
-
-    // We don't support literals, so we expect the raw command instead.
-    expect(action.isCommand, true);
-    var command = action.asCommand;
-
-    // Verify that executing the command produces the correct edits (which will
-    // come back via `workspace/applyEdit`).
-    await verifyCommandEdits(command, r'''
+    const expectedContent = r'''
 >>>>>>>>>> lib/test.dart
 import 'package:flutter/widgets.dart';
 Widget build() {
   return Center($0child: Text(''));
 }
-''');
+''';
+
+    await verifyCommandCodeActionEdits(
+      content,
+      expectedContent,
+      command: Commands.applyCodeAction,
+      title: 'Wrap with Center',
+    );
 
     expectCommandLogged(Commands.applyCodeAction);
     expectCommandLogged('dart.assist.flutter.wrap.center');

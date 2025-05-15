@@ -197,12 +197,6 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   Future<List<CodeActionWithPriority>> getFixActions(
     OperationPerformance? performance,
   ) async {
-    // These fixes are only provided as literal CodeActions.
-    if (!allowCodeActionLiterals) {
-      // TODO(dantup): Support this (via createCodeActionLiteralOrApplyCommand)
-      return [];
-    }
-
     var lineInfo = unitResult.lineInfo;
     var codeActions = <CodeActionWithPriority>[];
 
@@ -264,25 +258,26 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           );
           codeActions.addAll(
             fixes.map((fix) {
-              var kind = toCodeActionKind(
-                fix.change.id,
-                CodeActionKind.QuickFix,
-              );
+              var change = fix.change;
+              var kind = toCodeActionKind(change.id, CodeActionKind.QuickFix);
               // TODO(dantup): Find a way to filter these earlier, so we don't
               //  compute fixes we will filter out.
               if (!shouldIncludeKind(kind)) {
                 return null;
               }
-              var action = CodeAction.t1(
-                createFixCodeActionLiteral(
-                  fix.change,
-                  kind,
-                  fix.change.id,
-                  diagnostic,
-                  path,
-                  lineInfo,
-                ),
+              var action = createCodeActionLiteralOrApplyCommand(
+                unitResult.path,
+                docIdentifier,
+                range,
+                lineInfo,
+                change,
+                kind,
+                change.id,
+                diagnostic: diagnostic,
               );
+              if (action == null) {
+                return null;
+              }
               return (action: action, priority: fix.kind.priority);
             }).nonNulls,
           );

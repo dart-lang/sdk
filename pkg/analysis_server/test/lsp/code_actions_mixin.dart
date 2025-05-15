@@ -90,6 +90,32 @@ mixin CodeActionsTestMixin
     return action.asCodeActionLiteral;
   }
 
+  /// Initializes the server with some basic configuration and expects to find
+  /// a [Command] code action (not a literal, even with a command) with
+  /// [command]/[title].
+  Future<Command> expectCommandCodeAction(
+    String content, {
+    CodeActionKind? kind,
+    String? command,
+    List<Object>? commandArgs,
+    String? title,
+    CodeActionTriggerKind? triggerKind,
+    String? filePath,
+    bool openTargetFile = false,
+  }) async {
+    var action = await expectCodeAction(
+      TestCode.parse(content),
+      kind: kind,
+      command: command,
+      commandArgs: commandArgs,
+      title: title,
+      triggerKind: triggerKind,
+      filePath: filePath,
+      openTargetFile: openTargetFile,
+    );
+    return action.asCommand;
+  }
+
   /// Verifies a command execution was logged to analytics.
   ///
   /// Implementations are provided by the in-process test base classes. This
@@ -318,6 +344,45 @@ $expected''';
 
     return await verifyCodeActionEdits(
       CodeAction.t1(action),
+      expected,
+      workDoneToken: commandWorkDoneToken,
+    );
+  }
+
+  /// Initializes the server with some basic configuration and expects to find
+  /// a [Command] code action (and not a literal, even with a command) with
+  /// [title] that applies edits resulting in [expected].
+  Future<LspChangeVerifier> verifyCommandCodeActionEdits(
+    String content,
+    String expected, {
+    String? filePath,
+    String? command,
+    List<Object>? commandArgs,
+    String? title,
+    ProgressToken? commandWorkDoneToken,
+    bool openTargetFile = false,
+  }) async {
+    filePath ??= testFilePath;
+
+    // For convenience, if a test doesn't provide an full set of edits
+    // we assume only a single edit of the file that was being modified.
+    if (!expected.startsWith(LspChangeVerifier.editMarkerStart)) {
+      expected = '''
+${LspChangeVerifier.editMarkerStart} ${relativePath(filePath)}
+$expected''';
+    }
+
+    var commandAction = await expectCommandCodeAction(
+      filePath: filePath,
+      content,
+      command: command,
+      commandArgs: commandArgs,
+      title: title,
+      openTargetFile: openTargetFile,
+    );
+
+    return await verifyCodeActionEdits(
+      CodeAction.t2(commandAction),
       expected,
       workDoneToken: commandWorkDoneToken,
     );
