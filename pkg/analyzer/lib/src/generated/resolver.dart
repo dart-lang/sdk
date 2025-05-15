@@ -1455,10 +1455,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (node is IndexExpressionImpl) {
       var target = node.target;
       if (target != null) {
-        analyzeExpression(
-          target,
-          SharedTypeSchemaView(UnknownInferredType.instance),
-        );
+        if (isDotShorthand(node)) {
+          // Recovery.
+          // It's a compile-time error to use postfix or prefix operators with
+          // dot shorthands. We provide an unknown type since this shouldn't be
+          // valid code, but we want to prevent any crashes.
+          pushDotShorthandContext(target, operations.unknownType);
+        }
+        analyzeExpression(target, operations.unknownType);
         popRewrite();
       }
 
