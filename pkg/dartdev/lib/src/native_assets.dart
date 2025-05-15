@@ -156,7 +156,8 @@ class DartNativeAssetsBuilder {
       extensions: _extensions,
       linkingEnabled: linkingEnabled,
     );
-    return buildResult;
+    if (buildResult.isFailure) return null;
+    return buildResult.success;
   }
 
   Future<BuildResult?> buildNativeAssetsAOT() {
@@ -174,7 +175,8 @@ class DartNativeAssetsBuilder {
           recordedUsagesPath != null ? Uri.file(recordedUsagesPath) : null,
       buildResult: buildResult,
     );
-    return linkResult;
+    if (linkResult.isFailure) return null;
+    return linkResult.success;
   }
 
   final Target target;
@@ -250,10 +252,12 @@ class DartNativeAssetsBuilder {
   // logic in package:package_config.
   static Future<Uri?> _findPackageConfigUri(Uri uri) async {
     while (true) {
-      final candidate = uri.resolve('.dart_tool/package_config.json');
-      final file = File.fromUri(candidate);
-      if (await file.exists()) {
-        return file.uri;
+      final packageConfig =
+          File.fromUri(uri.resolve('.dart_tool/package_config.json'));
+      final packageGraph =
+          File.fromUri(uri.resolve('.dart_tool/package_graph.json'));
+      if (await packageConfig.exists() && await packageGraph.exists()) {
+        return packageConfig.uri;
       }
       final parent = uri.resolve('..');
       if (parent == uri) {
