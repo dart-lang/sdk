@@ -104,7 +104,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       } else {
         processor.addDeclarationEdit(renameElement);
         if (!newName.startsWith('_')) {
-          var interfaceElement = renameElement.enclosingElement2;
+          var interfaceElement = renameElement.enclosingElement;
           if (interfaceElement is InterfaceElement) {
             for (var constructor in interfaceElement.constructors2) {
               for (var parameter in constructor.formalParameters) {
@@ -258,7 +258,7 @@ class _BaseClassMemberValidator {
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
       var nameElement = getSyntheticAccessorVariable(declaration.element);
-      var nameClass = nameElement.enclosingElement2;
+      var nameClass = nameElement.enclosingElement;
       // the renamed Element shadows a member of a superclass
       if (superClasses.contains(nameClass)) {
         result.addError(
@@ -438,7 +438,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     );
     // check shadowing of class names
     for (var element in elements) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is InterfaceElement &&
           enclosingElement.name3 == name) {
         result.addError(

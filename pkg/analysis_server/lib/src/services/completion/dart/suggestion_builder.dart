@@ -174,7 +174,7 @@ class SuggestionBuilder {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
-    var enclosingClass = constructor.enclosingElement2.firstFragment;
+    var enclosingClass = constructor.enclosingElement.firstFragment;
 
     if (completion == null) {
       var className = enclosingClass.name2;
@@ -1076,9 +1076,9 @@ class SuggestionBuilder {
     int? relevance,
   }) {
     assert(
-      getter.enclosingElement2 is LibraryElement,
+      getter.enclosingElement is LibraryElement,
       'Enclosing element of ${getter.runtimeType} is '
-      '${getter.enclosingElement2.runtimeType}.',
+      '${getter.enclosingElement.runtimeType}.',
     );
     var completion = _getCompletionString(getter);
     if (completion == null) return;
@@ -1128,9 +1128,9 @@ class SuggestionBuilder {
     int? relevance,
   }) {
     assert(
-      setter.enclosingElement2 is LibraryElement,
+      setter.enclosingElement is LibraryElement,
       'Enclosing element of ${setter.runtimeType} is '
-      '${setter.enclosingElement2.runtimeType}.',
+      '${setter.enclosingElement.runtimeType}.',
     );
     var completion = _getCompletionString(setter);
     if (completion == null) return;
@@ -1182,7 +1182,7 @@ class SuggestionBuilder {
     var completion = _getCompletionString(variable);
     if (completion == null) return;
     if (_couldMatch(completion, prefix)) {
-      assert(variable.enclosingElement2 is LibraryElement);
+      assert(variable.enclosingElement is LibraryElement);
       relevance ??= relevanceComputer.computeTopLevelRelevance2(
         variable,
         elementType: variable.type,
@@ -1279,7 +1279,7 @@ class SuggestionBuilder {
           // `InScopeCompletionPass`.
           var suggestedElement = suggestion.orgElement;
           if (suggestedElement is ConstructorElement) {
-            var parentName = suggestedElement.enclosingElement2.displayName;
+            var parentName = suggestedElement.enclosingElement.displayName;
             var existingSuggestion = _suggestionMap[parentName];
             if (existingSuggestion is _CompletionSuggestionBuilderImpl &&
                 existingSuggestion.orgElement is! ClassElement) {
@@ -1402,7 +1402,7 @@ class SuggestionBuilder {
 
     String? declaringType;
     if (element is! FormalParameterElement) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
 
       if (enclosingElement is InterfaceElement) {
         declaringType = enclosingElement.displayName;
@@ -1464,7 +1464,7 @@ class SuggestionBuilder {
   /// The enclosing element must be either a class, or extension; otherwise
   /// we either fail with assertion, or return `null`.
   String? _enclosingClassOrExtensionName(Element element) {
-    var enclosing = element.enclosingElement2;
+    var enclosing = element.enclosingElement;
     if (enclosing is InterfaceElement) {
       return enclosing.displayName;
     } else if (enclosing is ExtensionElement) {

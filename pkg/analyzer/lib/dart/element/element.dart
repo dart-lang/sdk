@@ -383,6 +383,10 @@ abstract class ConstructorElement
   ConstructorElement get baseElement;
 
   @override
+  InterfaceElement get enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
   InterfaceElement get enclosingElement2;
 
   @override
@@ -580,6 +584,13 @@ abstract class Element {
   ///
   /// Returns `null` if this element is a library because libraries are the
   /// top-level elements in the model.
+  Element? get enclosingElement;
+
+  /// The element that either physically or logically encloses this element.
+  ///
+  /// Returns `null` if this element is a library because libraries are the
+  /// top-level elements in the model.
+  @Deprecated('Use enclosingElement instead')
   Element? get enclosingElement2;
 
   /// The first fragment in the chain of fragments that are merged to make this
@@ -1313,6 +1324,10 @@ abstract class FieldElement implements PropertyInducingElement {
   FieldElement get baseElement;
 
   @override
+  InstanceElement get enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
   InstanceElement get enclosingElement2;
 
   @override
@@ -1771,6 +1786,10 @@ abstract class InstanceElement
   InstanceElement get baseElement;
 
   @override
+  LibraryElement get enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
   LibraryElement get enclosingElement2;
 
   /// The fields declared in this element.
@@ -2187,6 +2206,10 @@ abstract class JoinPatternVariableFragment implements PatternVariableFragment {
 abstract class LabelElement implements Element {
   @override
   // TODO(brianwilkerson): We shouldn't be inheriting this member.
+  ExecutableElement? get enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
   ExecutableElement? get enclosingElement2;
 
   @override
@@ -2940,6 +2963,10 @@ abstract class PrefixElement implements Element {
   /// There is no enclosing element for import prefixes, which are elements,
   /// but exist inside a single [LibraryFragment], not an element.
   @override
+  Null get enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
   Null get enclosingElement2;
 
   @override
@@ -3019,6 +3046,10 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   @override
   PropertyAccessorElement get baseElement;
 
+  @override
+  Element get enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
   @override
   Element get enclosingElement2;
 
@@ -3345,6 +3376,10 @@ abstract class TypeAliasElement
   /// a [FunctionType].
   DartType get aliasedType;
 
+  @override
+  LibraryElement get enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
   @override
   LibraryElement get enclosingElement2;
 

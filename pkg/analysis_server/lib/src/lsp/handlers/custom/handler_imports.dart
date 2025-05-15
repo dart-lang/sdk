@@ -82,7 +82,7 @@ class ImportsHandler
         }
       }
 
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is ExtensionElement) {
         element = enclosingElement;
       }

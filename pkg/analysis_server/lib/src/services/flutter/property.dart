@@ -447,7 +447,7 @@ class _EdgeInsetsProperty {
     if (propertyExpression is InstanceCreationExpression) {
       var constructor = propertyExpression.constructorName.element;
       if (constructor != null &&
-          constructor.enclosingElement2 == classEdgeInsets) {
+          constructor.enclosingElement == classEdgeInsets) {
         var arguments = propertyExpression.argumentList;
         var constructorName = constructor.name3;
         if (constructorName == 'all') {

@@ -71,7 +71,7 @@ class DartUnitHoverComputer {
           hover.isDeprecated = a.metadata2.hasDeprecated;
         }
         // not local element
-        if (element.enclosingElement2 is! ExecutableElement) {
+        if (element.enclosingElement is! ExecutableElement) {
           // containing class
           hover.containingClassDescription = _containingClass(element);
           // containing library
@@ -211,7 +211,7 @@ class DartUnitHoverComputer {
       return null;
     }
     var parameter = node.correspondingParameter;
-    return switch (parameter?.enclosingElement2) {
+    return switch (parameter?.enclosingElement) {
       // Expressions passed as arguments to setters and binary expressions
       // will have parameters here but we don't want them to show as such in
       // hovers because information about those functions are already available

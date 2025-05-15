@@ -106,7 +106,7 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    var enumElement = constructorElement.enclosingElement2;
+    var enumElement = constructorElement.enclosingElement;
     var typeParameters = enumElement.typeParameters2;
 
     for (var typeParameter in typeParameters) {

@@ -40,14 +40,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return;
 
     for (var variable in node.fields.variables) {
-      var parent = variable.declaredFragment?.element.enclosingElement2;
+      var parent = variable.declaredFragment?.element.enclosingElement;
       if (parent is InterfaceElement) {
         var overriddenMember = parent.getInheritedConcreteMember(
           Name(parent.library2.uri, variable.name.lexeme),
         );
         if (overriddenMember is GetterElement2OrMember &&
             overriddenMember.isSynthetic) {
-          var definingInterface = overriddenMember.enclosingElement2;
+          var definingInterface = overriddenMember.enclosingElement;
           rule.reportAtToken(
             variable.name,
             arguments: [definingInterface.displayName],

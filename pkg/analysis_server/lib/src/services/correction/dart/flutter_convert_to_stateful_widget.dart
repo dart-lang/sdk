@@ -330,7 +330,7 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
     }
     var element = node.element;
     if (element is ExecutableElement &&
-        element.enclosingElement2 == widgetClassElement &&
+        element.enclosingElement == widgetClassElement &&
         !elementsToMove.contains(element)) {
       var offset = node.offset - linesRange.offset;
       var qualifier =

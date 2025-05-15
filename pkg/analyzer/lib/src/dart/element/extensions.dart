@@ -38,17 +38,17 @@ extension Element2Extension on Element {
       }
     }
 
-    var ancestor = enclosingElement2;
+    var ancestor = enclosingElement;
     if (ancestor is InterfaceElement) {
       if (ancestor.metadata2.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement2;
+      ancestor = ancestor.enclosingElement;
     } else if (ancestor is ExtensionElement) {
       if (ancestor.metadata2.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement2;
+      ancestor = ancestor.enclosingElement;
     }
 
     return ancestor is LibraryElement && ancestor.metadata2.hasDoNotStore;
@@ -69,7 +69,7 @@ extension Element2Extension on Element {
       'Check the GetterElement or SetterElement instead',
     );
     var this_ = this;
-    var enclosing = this_.enclosingElement2;
+    var enclosing = this_.enclosingElement;
     if (enclosing is InterfaceElement) {
       return this_ is MethodElement && !this_.isStatic ||
           this_ is GetterElement && !this_.isStatic ||
@@ -115,7 +115,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
         interfaceElement = type.element3;
       }
     } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement2;
+      interfaceElement = element.enclosingElement;
     }
     if (interfaceElement == null) {
       return const <TargetKind>{};
@@ -150,7 +150,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
 extension ExecutableElement2Extension on ExecutableElement {
   /// Whether the enclosing element is the class `Object`.
   bool get isObjectMember {
-    var enclosing = enclosingElement2;
+    var enclosing = enclosingElement;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
   }
 }

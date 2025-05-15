@@ -835,7 +835,7 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
 
   @override
   String get displayName {
-    var className = enclosingElement2.name3 ?? '<null>';
+    var className = enclosingElement.name3 ?? '<null>';
     var name = name3 ?? '<null>';
     if (name != 'new') {
       return '$className.$name';
@@ -845,8 +845,12 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   }
 
   @override
-  InterfaceElementImpl2 get enclosingElement2 =>
+  InterfaceElementImpl2 get enclosingElement =>
       firstFragment.enclosingElement3.element;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  InterfaceElementImpl2 get enclosingElement2 => enclosingElement;
 
   @override
   List<ConstructorFragmentImpl> get fragments {
@@ -883,7 +887,7 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   @override
   Element get nonSynthetic2 {
     if (isSynthetic) {
-      return enclosingElement2;
+      return enclosingElement;
     } else {
       return this;
     }
@@ -979,7 +983,7 @@ mixin ConstructorElementMixin2
   ConstructorElementImpl2 get baseElement;
 
   @override
-  InterfaceElementImpl2 get enclosingElement2;
+  InterfaceElementImpl2 get enclosingElement;
 
   @override
   InterfaceTypeImpl get returnType;
@@ -1460,7 +1464,11 @@ class DynamicElementImpl2 extends TypeDefiningElementImpl2 {
   Null get documentationComment => null;
 
   @override
-  Element? get enclosingElement2 => null;
+  Element? get enclosingElement => null;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
 
   @override
   DynamicFragmentImpl get firstFragment => DynamicFragmentImpl.instance;
@@ -1762,7 +1770,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isDartInternalSince {
     var element2 = this.element2;
     if (element2 is ConstructorElement) {
-      return element2.enclosingElement2.name3 == 'Since' &&
+      return element2.enclosingElement.name3 == 'Since' &&
           element2.library2.uri.toString() == 'dart:_internal';
     }
     return false;
@@ -1773,7 +1781,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     var element2 = this.element2;
     if (element2 is ConstructorElement) {
       return element2.library2.isDartCore &&
-          element2.enclosingElement2.name3 == _deprecatedClassName;
+          element2.enclosingElement.name3 == _deprecatedClassName;
     } else if (element2 is PropertyAccessorElement) {
       return element2.library2.isDartCore &&
           element2.name3 == _deprecatedVariableName;
@@ -1943,7 +1951,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }) {
     var element2 = this.element2;
     return element2 is ConstructorElement &&
-        element2.enclosingElement2.name3 == className &&
+        element2.enclosingElement.name3 == className &&
         element2.library2.name3 == libraryName;
   }
 
@@ -2060,7 +2068,7 @@ abstract class ElementImpl2 implements Element {
 
   @override
   AnalysisSession? get session {
-    return enclosingElement2?.session;
+    return enclosingElement?.session;
   }
 
   @override
@@ -2114,7 +2122,7 @@ abstract class ElementImpl2 implements Element {
   Element? thisOrAncestorMatching2(bool Function(Element p1) predicate) {
     Element? element = this;
     while (element != null && !predicate(element)) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement;
     }
     return element;
   }
@@ -2123,7 +2131,7 @@ abstract class ElementImpl2 implements Element {
   E? thisOrAncestorOfType2<E extends Element>() {
     Element element = this;
     while (element is! E) {
-      var ancestor = element.enclosingElement2;
+      var ancestor = element.enclosingElement;
       if (ancestor == null) return null;
       element = ancestor;
     }
@@ -2951,8 +2959,12 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   FieldElement get baseElement => this;
 
   @override
-  InstanceElement get enclosingElement2 =>
+  InstanceElement get enclosingElement =>
       (firstFragment.enclosingElement3 as InstanceFragment).element;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  InstanceElement get enclosingElement2 => enclosingElement;
 
   @override
   List<FieldFragmentImpl> get fragments {
@@ -2992,7 +3004,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   bool get isEnumConstant => firstFragment.isEnumConstant;
 
   bool get isEnumValues {
-    return enclosingElement2 is EnumElementImpl2 && name3 == 'values';
+    return enclosingElement is EnumElementImpl2 && name3 == 'values';
   }
 
   @override
@@ -4133,7 +4145,11 @@ class GenericFunctionTypeElementImpl2 extends FunctionTypedElementImpl2
   String? get documentationComment => _wrappedElement.documentationComment;
 
   @override
-  Element? get enclosingElement2 => firstFragment.enclosingFragment?.element;
+  Element? get enclosingElement => firstFragment.enclosingFragment?.element;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
 
   @override
   GenericFunctionTypeFragmentImpl get firstFragment => _wrappedElement;
@@ -4475,7 +4491,11 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   String? get documentationComment => firstFragment.documentationComment;
 
   @override
-  LibraryElement get enclosingElement2 => firstFragment.library;
+  LibraryElement get enclosingElement => firstFragment.library;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  LibraryElement get enclosingElement2 => enclosingElement;
 
   @override
   List<FieldElementImpl2> get fields2 {
@@ -4529,8 +4549,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   String? get name3 => firstFragment.name;
 
   @override
-  Element get nonSynthetic2 =>
-      isSynthetic ? enclosingElement2 : this as Element;
+  Element get nonSynthetic2 => isSynthetic ? enclosingElement : this as Element;
 
   @override
   AnalysisSession? get session => firstFragment.session;
@@ -5091,7 +5110,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
           !getter.isAbstract &&
           !getter.isStatic &&
           getter.isAccessibleIn2(library) &&
-          getter.enclosingElement2 != this,
+          getter.enclosingElement != this,
     );
   }
 
@@ -5104,7 +5123,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
           !method.isAbstract &&
           !method.isStatic &&
           method.isAccessibleIn2(library) &&
-          method.enclosingElement2 != this,
+          method.enclosingElement != this,
     );
   }
 
@@ -5117,7 +5136,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
           !setter.isAbstract &&
           !setter.isStatic &&
           setter.isAccessibleIn2(library) &&
-          setter.enclosingElement2 != this,
+          setter.enclosingElement != this,
     );
   }
 
@@ -5129,7 +5148,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
       (method) =>
           !method.isStatic &&
           method.isAccessibleIn2(library) &&
-          method.enclosingElement2 != this,
+          method.enclosingElement != this,
     );
   }
 
@@ -5501,7 +5520,11 @@ class LabelElementImpl2 extends ElementImpl2
   LabelElement get baseElement => this;
 
   @override
-  ExecutableElement? get enclosingElement2 => null;
+  ExecutableElement? get enclosingElement => null;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  ExecutableElement? get enclosingElement2 => enclosingElement;
 
   @override
   LabelFragmentImpl get firstFragment => _wrappedElement;
@@ -5717,7 +5740,11 @@ class LibraryElementImpl extends FragmentImpl
   }
 
   @override
-  Null get enclosingElement2 => null;
+  Null get enclosingElement => null;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Null get enclosingElement2 => enclosingElement;
 
   @override
   Null get enclosingElement3 => null;
@@ -6692,7 +6719,11 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
 
   @override
   // Local functions belong to Fragments, not Elements.
-  Element? get enclosingElement2 => null;
+  Element? get enclosingElement => null;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
 
   @override
   LocalFunctionFragmentImpl get firstFragment => _wrappedElement;
@@ -7339,8 +7370,12 @@ class MethodElementImpl2 extends ExecutableElementImpl2
   MethodElementImpl2 get baseElement => this;
 
   @override
-  Element? get enclosingElement2 =>
+  Element? get enclosingElement =>
       (firstFragment.enclosingElement3 as InstanceFragment).element;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
 
   @override
   List<MethodFragmentImpl> get fragments {
@@ -7757,7 +7792,11 @@ class MultiplyDefinedElementImpl2 extends ElementImpl2
   String get displayName => name3;
 
   @override
-  Null get enclosingElement2 => null;
+  Null get enclosingElement => null;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Null get enclosingElement2 => enclosingElement;
 
   @override
   List<MultiplyDefinedFragmentImpl> get fragments {
@@ -7898,7 +7937,11 @@ class NeverElementImpl2 extends TypeDefiningElementImpl2 {
   Null get documentationComment => null;
 
   @override
-  Element? get enclosingElement2 => null;
+  Element? get enclosingElement => null;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
 
   @override
   NeverFragmentImpl get firstFragment => NeverFragmentImpl.instance;
@@ -8347,7 +8390,11 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement {
   }
 
   @override
-  Null get enclosingElement2 => null;
+  Null get enclosingElement => null;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Null get enclosingElement2 => enclosingElement;
 
   @override
   List<PrefixFragmentImpl> get fragments {
@@ -8480,7 +8527,11 @@ abstract class PropertyAccessorElementImpl2 extends ExecutableElementImpl2
   PropertyAccessorElementImpl2 get baseElement => this;
 
   @override
-  Element get enclosingElement2 => firstFragment.enclosingFragment.element;
+  Element get enclosingElement => firstFragment.enclosingFragment.element;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element get enclosingElement2 => enclosingElement;
 
   @override
   PropertyAccessorFragmentImpl get firstFragment;
@@ -9011,7 +9062,7 @@ abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
   @override
   Element get nonSynthetic2 {
     if (isSynthetic) {
-      if (enclosingElement2 case EnumElementImpl2 enclosingElement2) {
+      if (enclosingElement case EnumElementImpl2 enclosingElement2) {
         // TODO(scheglov): remove 'index'?
         if (name3 == 'index' || name3 == 'values') {
           return enclosingElement2;
@@ -9080,7 +9131,11 @@ class SetterElementImpl extends PropertyAccessorElementImpl2
       firstFragment.variable2?.getter?.element;
 
   @override
-  Element get enclosingElement2 => firstFragment.enclosingFragment.element;
+  Element get enclosingElement => firstFragment.enclosingFragment.element;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element get enclosingElement2 => enclosingElement;
 
   @override
   List<SetterFragmentImpl> get fragments {
@@ -9345,9 +9400,13 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
   TopLevelFunctionElementImpl get baseElement => this;
 
   @override
-  LibraryElementImpl get enclosingElement2 {
+  LibraryElementImpl get enclosingElement {
     return firstFragment.library;
   }
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  LibraryElementImpl get enclosingElement2 => enclosingElement;
 
   @override
   List<TopLevelFunctionFragmentImpl> get fragments {
@@ -9437,8 +9496,12 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
   TopLevelVariableElement get baseElement => this;
 
   @override
-  LibraryElement get enclosingElement2 =>
+  LibraryElement get enclosingElement =>
       firstFragment.library as LibraryElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  LibraryElement get enclosingElement2 => enclosingElement;
 
   @override
   List<TopLevelVariableFragmentImpl> get fragments {
@@ -9583,8 +9646,12 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   TypeAliasElementImpl2 get baseElement => this;
 
   @override
-  LibraryElement get enclosingElement2 =>
+  LibraryElement get enclosingElement =>
       firstFragment.library as LibraryElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  LibraryElement get enclosingElement2 => enclosingElement;
 
   @override
   List<TypeAliasFragmentImpl> get fragments {
@@ -10497,7 +10564,7 @@ mixin _HasSinceSdkVersionMixin on ElementImpl2, Annotatable
 
 mixin _NonTopLevelVariableOrParameter on Element {
   @override
-  Element? get enclosingElement2 {
+  Element? get enclosingElement {
     // TODO(dantup): Can we simplify this code and inline it into each class?
 
     var enclosingFunction = _enclosingFunction;
@@ -10519,6 +10586,10 @@ mixin _NonTopLevelVariableOrParameter on Element {
       _ => null,
     };
   }
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
 
   FragmentImpl? get _enclosingFunction;
 }

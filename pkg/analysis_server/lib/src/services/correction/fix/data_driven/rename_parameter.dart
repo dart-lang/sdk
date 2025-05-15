@@ -137,7 +137,7 @@ extension on MethodDeclaration {
   ExecutableElement? overriddenElement(InheritanceManager3 inheritanceManager) {
     var element = declaredFragment?.element;
     if (element != null) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is InterfaceElement) {
         var name = Name(enclosingElement.library2.uri, element.name3!);
         return inheritanceManager.getInherited4(enclosingElement, name);

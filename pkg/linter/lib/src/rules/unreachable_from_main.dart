@@ -374,8 +374,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   void _addDeclaration(Element element) {
     // First add the enclosing top-level declaration.
     var enclosingTopLevelElement = element.thisOrAncestorMatching2(
-      (a) =>
-          a.enclosingElement2 == null || a.enclosingElement2 is LibraryElement,
+      (a) => a.enclosingElement == null || a.enclosingElement is LibraryElement,
     );
     var enclosingTopLevelDeclaration = declarationMap[enclosingTopLevelElement];
     if (enclosingTopLevelDeclaration != null) {
@@ -387,7 +386,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     if (element.isPrivate) {
       return;
     }
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement == null || enclosingElement.isPrivate) {
       return;
     }
@@ -600,7 +599,7 @@ extension on ElementAnnotation {
   bool get isWidgetPreview {
     var element2 = this.element2;
     return element2 is ConstructorElement &&
-        element2.enclosingElement2.name3 == 'Preview' &&
+        element2.enclosingElement.name3 == 'Preview' &&
         element2.library2.uri == _flutterWidgetPreviewLibraryUri;
   }
 }

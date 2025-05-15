@@ -261,10 +261,10 @@ bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
   if (expression is SimpleIdentifier) {
     var staticElement = expression.element;
     if (staticElement is GetterElement) {
-      var enclosingElement = getter.declaredFragment?.element.enclosingElement2;
+      var enclosingElement = getter.declaredFragment?.element.enclosingElement;
       // Skipping library level getters, test that the enclosing element is
       // the same
-      if (staticElement.enclosingElement2 == enclosingElement) {
+      if (staticElement.enclosingElement == enclosingElement) {
         var variable = staticElement.variable3;
         if (variable != null) {
           return staticElement.isSynthetic && variable.isPrivate;

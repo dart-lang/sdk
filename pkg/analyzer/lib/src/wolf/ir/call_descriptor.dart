@@ -25,7 +25,7 @@ class ElementCallDescriptor extends CallDescriptor {
   String get name => element.lookupName!;
 
   @override
-  String toString() => switch (element.enclosingElement2) {
+  String toString() => switch (element.enclosingElement) {
     InstanceElement(name3: var typeName) =>
       '${typeName ?? '<unnamed>'}.${element.name3!}',
     _ => element.name3!,

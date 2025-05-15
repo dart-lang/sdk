@@ -104,7 +104,7 @@ class ElementNameUnion {
   }
 
   static bool _isInterestingElement(Element element) {
-    return element.enclosingElement2 is LibraryElement ||
+    return element.enclosingElement is LibraryElement ||
         element is FieldElement ||
         element is MethodElement ||
         element is PropertyAccessorElement;

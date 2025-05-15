@@ -57,7 +57,7 @@ void f(
 
     var node = findNode.singleGenericFunctionType;
     var element = node.declaredFragment!.element;
-    expect(element.enclosingElement2, same(result.libraryElement2));
+    expect(element.enclosingElement, same(result.libraryElement2));
   }
 
   test_metadata_typeParameter() async {

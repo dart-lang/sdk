@@ -210,7 +210,7 @@ enum E2 { three, four }''');
       }
       expect(element.parameters, isNull);
       expect(element.returnType, '_E1');
-      var classElement = engineElement.enclosingElement2;
+      var classElement = engineElement.enclosingElement;
       expect(classElement.metadata2.hasDeprecated, isTrue);
       expect(
         element.flags,

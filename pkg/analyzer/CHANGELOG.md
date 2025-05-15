@@ -18,6 +18,7 @@
   class corresponding to `ElementDirective`.
 * Deprecate `NamedType.name2`, use `name` instead.
 * Deprecate `ClassElement.isXyzIn2`, use `isXyzIn` instead.
+* Deprecate `Element.enclosingElement2`, use `enclosingElement` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

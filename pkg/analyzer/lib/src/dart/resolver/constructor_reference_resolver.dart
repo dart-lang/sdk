@@ -31,7 +31,7 @@ class ConstructorReferenceResolver {
     node.constructorName.accept(_resolver);
     var element = node.constructorName.element;
     if (element != null && !element.isFactory) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElementImpl2 &&
           enclosingElement.isAbstract) {
         _resolver.errorReporter.atNode(

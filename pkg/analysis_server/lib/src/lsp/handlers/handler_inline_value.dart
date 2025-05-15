@@ -307,7 +307,7 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
       // Never produce values for obvious enum getters (this includes `values`).
       var isEnumGetter =
           node.element is analyzer.GetterElement &&
-          node.element?.enclosingElement2 is analyzer.EnumElement;
+          node.element?.enclosingElement is analyzer.EnumElement;
 
       if (!isTarget && !isEnumGetter) {
         collector.recordExpression(node.element, node.offset, node.length);

@@ -175,7 +175,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
       return;
     }
 
-    var targetElement = constructorElement.enclosingElement2;
+    var targetElement = constructorElement.enclosingElement;
     var targetFragment = (targetElement as ClassElement).firstFragment;
 
     var targetElementName = targetElement.name3;

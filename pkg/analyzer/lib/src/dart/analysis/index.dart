@@ -15,7 +15,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:collection/collection.dart';
 
 Element? declaredParameterElement(SimpleIdentifier node, Element? element) {
-  if (element == null || element.enclosingElement2 != null) {
+  if (element == null || element.enclosingElement != null) {
     return element;
   }
 
@@ -58,7 +58,7 @@ Element? declaredParameterElement(SimpleIdentifier node, Element? element) {
 }
 
 Element? declaredParameterElement2(SimpleIdentifier node, Element? element) {
-  if (element == null || element.enclosingElement2 != null) {
+  if (element == null || element.enclosingElement != null) {
     return element;
   }
 
@@ -128,17 +128,17 @@ class ElementNameComponents {
     }
 
     String? classMemberName;
-    if (element.enclosingElement2 is InterfaceElement ||
-        element.enclosingElement2 is ExtensionElement) {
+    if (element.enclosingElement is InterfaceElement ||
+        element.enclosingElement is ExtensionElement) {
       classMemberName = element.lookupName;
-      element = element.enclosingElement2!;
+      element = element.enclosingElement!;
     }
 
     String? unitMemberName;
     if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
       unitMemberName = element.lookupName;
       if (element is ExtensionElement && unitMemberName == null) {
-        var enclosingUnit = element.enclosingElement2;
+        var enclosingUnit = element.enclosingElement;
         var indexOf = enclosingUnit.extensions.indexOf(element);
         unitMemberName = 'extension-$indexOf';
       }
@@ -175,7 +175,7 @@ class IndexElementInfo {
     } else if (element.isSynthetic) {
       if (elementKind == ElementKind.CONSTRUCTOR) {
         kind = IndexSyntheticElementKind.constructor;
-        element = element.enclosingElement2!;
+        element = element.enclosingElement!;
       } else if (element is TopLevelFunctionElement &&
           element.name3 == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
         kind = IndexSyntheticElementKind.loadLibrary;
@@ -187,7 +187,7 @@ class IndexElementInfo {
       } else if (elementKind == ElementKind.GETTER ||
           elementKind == ElementKind.SETTER) {
         var accessor = element as PropertyAccessorElement;
-        var enclosing = element.enclosingElement2;
+        var enclosing = element.enclosingElement;
         bool isEnumGetter = enclosing is EnumElement;
         if (isEnumGetter && accessor.name3 == 'index') {
           kind = IndexSyntheticElementKind.enumIndex;
@@ -205,7 +205,7 @@ class IndexElementInfo {
           }
         }
       } else if (element is MethodElement) {
-        var enclosing = element.enclosingElement2;
+        var enclosing = element.enclosingElement;
         bool isEnumMethod = enclosing is EnumElement;
         if (isEnumMethod && element.name3 == 'toString') {
           kind = IndexSyntheticElementKind.enumToString;
@@ -657,7 +657,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // These functions are not bound to a source, we cannot index them.
     if (elementKind == ElementKind.PARAMETER &&
         element is FormalParameterElement) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement == null || enclosingElement.isSynthetic) {
         return;
       }
@@ -667,7 +667,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // named parameters. Ignore them.
     if (elementKind == ElementKind.PARAMETER &&
         element is FormalParameterElement &&
-        element.enclosingElement2 is GenericFunctionTypeElement) {
+        element.enclosingElement is GenericFunctionTypeElement) {
       return;
     }
     // Add the relation.
@@ -1343,7 +1343,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   ) {
     var seenConstructors = <ConstructorElement?>{};
     while (constructor is ConstructorElementImpl2 && constructor.isSynthetic) {
-      var enclosing = constructor.enclosingElement2;
+      var enclosing = constructor.enclosingElement;
       if (enclosing is ClassElementImpl2 && enclosing.isMixinApplication) {
         var superInvocation =
             constructor.firstFragment.constantInitializers

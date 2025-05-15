@@ -19,7 +19,7 @@ class DartDocumentationComputer {
   }) {
     var element = switch (elementBeingDocumented) {
       FieldFormalParameterElement() => elementBeingDocumented.field2,
-      FormalParameterElement() => elementBeingDocumented.enclosingElement2,
+      FormalParameterElement() => elementBeingDocumented.enclosingElement,
       _ => elementBeingDocumented,
     };
     if (element == null) {
@@ -68,9 +68,9 @@ class DartDocumentationComputer {
       includeSummary: includeSummary,
     );
 
-    var documentedElementClass = documentedElement.enclosingElement2;
+    var documentedElementClass = documentedElement.enclosingElement;
     if (documentedElementClass != null &&
-        documentedElementClass != element.enclosingElement2) {
+        documentedElementClass != element.enclosingElement) {
       var documentedClass = documentedElementClass.displayName;
       result.full = '${result.full}\n\nCopied from `$documentedClass`.';
     }

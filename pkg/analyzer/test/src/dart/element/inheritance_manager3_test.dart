@@ -2924,7 +2924,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
 
   void _assertExecutable(ExecutableElement? element, String? expected) {
     if (expected != null && element != null) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
 
       var type = element.type;
       var typeStr = typeString(type);
@@ -2934,12 +2934,12 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
 
       if (element is GetterElement) {
         var variable = element.variable3!;
-        expect(variable.enclosingElement2, same(enclosingElement));
+        expect(variable.enclosingElement, same(enclosingElement));
         expect(variable.name3, element.displayName);
         expect(variable.type, element.returnType);
       } else if (element is SetterElement) {
         var variable = element.variable3!;
-        expect(variable.enclosingElement2, same(enclosingElement));
+        expect(variable.enclosingElement, same(enclosingElement));
         expect(variable.name3, element.displayName);
         expect(variable.type, element.formalParameters[0].type);
       }
@@ -2957,7 +2957,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
             ? null
             : [
               for (var element in elements)
-                '${element.enclosingElement2?.name3}.${element.lookupName}: '
+                '${element.enclosingElement?.name3}.${element.lookupName}: '
                     '${typeString(element.type)}\n',
             ].sorted().join();
     expect(elementsString, expected);
@@ -3042,7 +3042,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       var element = entry.value;
       var type = element.type;
 
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement?.name3 == 'Object') continue;
 
       var typeStr = type.getDisplayString();

@@ -133,7 +133,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _analyzePossibleConflicts(RefactoringStatus result) {
-    var parentClass = element.enclosingElement2;
+    var parentClass = element.enclosingElement;
     // Check if the "newName" is the name of the enclosing class.
     if (parentClass.name3 == newName) {
       result.addError(
@@ -190,7 +190,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   Future<void> _replaceSynthetic() async {
-    var classElement = element.enclosingElement2;
+    var classElement = element.enclosingElement;
 
     var fragment = classElement.firstFragment;
     var result = await sessionHelper.getFragmentDeclaration(fragment);

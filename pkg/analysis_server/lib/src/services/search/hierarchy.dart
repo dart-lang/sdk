@@ -113,7 +113,7 @@ getHierarchyMembersAndParameters(
   var members = <Element>{};
   var parameters = <FormalParameterElement>{};
   // extension member
-  var enclosingElement = member2.enclosingElement2;
+  var enclosingElement = member2.enclosingElement;
   if (enclosingElement is ExtensionElement) {
     members.add(member2);
     return (members, parameters);
@@ -194,7 +194,7 @@ Future<List<FormalParameterElement>> getHierarchyNamedParameters(
   FormalParameterElement element,
 ) async {
   if (element.isNamed) {
-    var method = element.enclosingElement2;
+    var method = element.enclosingElement;
     if (method is MethodElement) {
       var hierarchyParameters = <FormalParameterElement>[];
       var hierarchyMembers = await getHierarchyMembers(searchEngine, method);
@@ -220,7 +220,7 @@ Future<List<FormalParameterElement>> getHierarchyPositionalParameters(
   FormalParameterElement element,
 ) async {
   if (element.isPositional) {
-    var method = element.enclosingElement2;
+    var method = element.enclosingElement;
     if (method is MethodElement) {
       var index = method.parameterIndex(element);
       // Should not ever happen but this means we can't find the index.

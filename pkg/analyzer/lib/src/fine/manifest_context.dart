@@ -132,7 +132,7 @@ final class ManifestElement {
   /// If [element] matches this description, records the reference and id.
   /// If not, returns `false`, it is a mismatch anyway.
   bool match(MatchContext context, Element element) {
-    var enclosingElement = element.enclosingElement2!;
+    var enclosingElement = element.enclosingElement!;
     Element givenTopLevelElement;
     Element? givenMemberElement;
     if (enclosingElement is LibraryElement) {
@@ -170,12 +170,12 @@ final class ManifestElement {
   static ManifestElement encode(EncodeContext context, Element element) {
     Element topLevelElement;
     Element? memberElement;
-    var enclosingElement = element.enclosingElement2!;
+    var enclosingElement = element.enclosingElement!;
     if (enclosingElement is LibraryElement) {
       topLevelElement = element;
     } else {
       topLevelElement = enclosingElement;
-      assert(topLevelElement.enclosingElement2 is LibraryElement);
+      assert(topLevelElement.enclosingElement is LibraryElement);
       memberElement = element;
     }
 
@@ -273,10 +273,10 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
   ManifestItemId? getElementId(Element element) {
     Element topLevelElement;
     Element? memberElement;
-    if (element.enclosingElement2 is LibraryElement) {
+    if (element.enclosingElement is LibraryElement) {
       topLevelElement = element;
     } else {
-      topLevelElement = element.enclosingElement2!;
+      topLevelElement = element.enclosingElement!;
       memberElement = element;
     }
 

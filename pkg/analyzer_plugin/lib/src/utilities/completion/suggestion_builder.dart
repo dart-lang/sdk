@@ -100,7 +100,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     suggestion.docSummary = getDartDocSummary(doc);
 
     suggestion.element = converter.convertElement(element);
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is ClassElement) {
       suggestion.declaringType = enclosingElement.displayName;
     }

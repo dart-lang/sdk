@@ -231,7 +231,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     var element = node.element2;
     if (element is ConstructorElement && element.isSynthetic) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement;
     }
     var name = node.name;
     if (name is PrefixedIdentifier) {
@@ -546,7 +546,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   ) {
     Element? element = node.element;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement;
     }
     // add region
     computer._addRegionForElement(node.thisKeyword, element);
@@ -599,7 +599,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     Element? element = node.element;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement;
     }
     // add region
     computer._addRegionForElement(node.superKeyword, element);

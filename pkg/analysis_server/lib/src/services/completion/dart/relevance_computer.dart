@@ -426,7 +426,7 @@ class RelevanceComputer {
     NeverType neverType,
     bool isNotImportedLibrary,
   ) {
-    var enclosingClass = element.enclosingElement2;
+    var enclosingClass = element.enclosingElement;
     var returnType = instantiateInstanceElement(enclosingClass, neverType);
     return computeTopLevelRelevance(
       element,

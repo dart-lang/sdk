@@ -237,7 +237,7 @@ class ApiDescription {
 
   /// Appends information to [node] describing [element].
   void _dumpElement(Element element, Node<MemberSortKey> node) {
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is LibraryElement &&
         !element.isInPublicApiOf(_pkgName)) {
       if (!enclosingElement.uri.isIn(_pkgName)) {
@@ -512,7 +512,7 @@ class MemberSortKey implements Comparable<MemberSortKey> {
   };
 
   static bool _computeIsInstanceMember(Element element) =>
-      element.enclosingElement2 is InstanceElement &&
+      element.enclosingElement is InstanceElement &&
       switch (element) {
         ExecutableElement(:var isStatic) => !isStatic,
         dynamic(:var runtimeType) =>

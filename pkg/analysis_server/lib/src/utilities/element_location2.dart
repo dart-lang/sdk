@@ -61,13 +61,13 @@ class ElementLocation {
     if (library == null) return null;
     var libraryUri = library.uri.toString();
 
-    if (element.enclosingElement2 == library) {
+    if (element.enclosingElement == library) {
       var topName = element.lookupName;
 
       return topName != null ? ElementLocation._(libraryUri, topName) : null;
-    } else if (element.enclosingElement2?.enclosingElement2 == library) {
+    } else if (element.enclosingElement?.enclosingElement == library) {
       var memberName = element.lookupName;
-      var topName = element.enclosingElement2?.lookupName;
+      var topName = element.enclosingElement?.lookupName;
 
       return topName != null && memberName != null
           ? _MemberElementLocation._(libraryUri, topName, memberName)
