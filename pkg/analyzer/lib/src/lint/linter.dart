@@ -50,14 +50,18 @@ sealed class AbstractAnalysisRule {
     this.state = const State.stable(),
   });
 
-  /// Indicates whether the lint rule can work with just the parsed information
-  /// or if it requires a resolved unit.
+  /// Indicates whether this analysis rule can work with just the parsed
+  /// information or if it requires a resolved unit.
   bool get canUseParsedResult => false;
+
+  /// The diagnostic codes associated with this analysis rule.
+  List<DiagnosticCode> get diagnosticCodes => lintCodes;
 
   /// A list of incompatible rule ids.
   List<String> get incompatibleRules => const [];
 
-  /// The lint codes associated with this lint rule.
+  /// The lint codes associated with this analysis rule.
+  // TODO(srawlins): Deprecate this in favor of `diagnosticCodes`.
   List<LintCode> get lintCodes;
 
   /// Returns a visitor that visits a [Pubspec] to perform analysis.
@@ -66,7 +70,7 @@ sealed class AbstractAnalysisRule {
   PubspecVisitor? get pubspecVisitor => null;
 
   @protected
-  // Protected so that lint rule visitors do not access this directly.
+  // Protected so that analysis rule visitors do not access this directly.
   // TODO(srawlins): With the new availability of an ErrorReporter on
   // LinterContextUnit, we should probably remove this reporter. But whatever
   // the new API would be is not yet decided. It might also change with the
@@ -123,8 +127,8 @@ sealed class AbstractAnalysisRule {
     List<DiagnosticMessage> contextMessages = const [],
     required DiagnosticCode errorCode,
   }) {
-    // Cache error and location info for creating `AnalysisErrorInfo`s.
-    var error = Diagnostic.tmp(
+    // Cache diagnostic and location info for creating `AnalysisErrorInfo`s.
+    var diagnostic = Diagnostic.tmp(
       source: node.source,
       offset: node.span.start.offset,
       length: node.span.length,
@@ -132,7 +136,7 @@ sealed class AbstractAnalysisRule {
       arguments: arguments,
       contextMessages: contextMessages,
     );
-    reporter.reportError(error);
+    reporter.reportError(diagnostic);
   }
 
   void _reportAtToken(
@@ -157,6 +161,11 @@ sealed class AbstractAnalysisRule {
 abstract class AnalysisRule extends AbstractAnalysisRule {
   AnalysisRule({required super.name, required super.description, super.state});
 
+  /// The code to report for a violation.
+  DiagnosticCode get diagnosticCode => lintCode;
+
+  /// The code to report for a violation.
+  // TODO(srawlins): Deprecate this in favor of `diagnosticCode`.
   LintCode get lintCode;
 
   @override
@@ -170,7 +179,7 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
     List<DiagnosticMessage>? contextMessages,
   }) => _reportAtNode(
     node,
-    diagnosticCode: lintCode,
+    diagnosticCode: diagnosticCode,
     arguments: arguments,
     contextMessages: contextMessages,
   );
@@ -185,7 +194,7 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
   }) => _reportAtOffset(
     offset,
     length,
-    diagnosticCode: lintCode,
+    diagnosticCode: diagnosticCode,
     arguments: arguments,
     contextMessages: contextMessages,
   );
@@ -198,7 +207,7 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
     List<DiagnosticMessage> contextMessages = const [],
   }) => _reportAtPubNode(
     node,
-    errorCode: lintCode,
+    errorCode: diagnosticCode,
     arguments: arguments,
     contextMessages: contextMessages,
   );
@@ -211,7 +220,7 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
     List<DiagnosticMessage>? contextMessages,
   }) => _reportAtToken(
     token,
-    diagnosticCode: lintCode,
+    diagnosticCode: diagnosticCode,
     arguments: arguments,
     contextMessages: contextMessages,
   );

@@ -69,6 +69,7 @@ mixin SharedConvertMethodToGetterRefactorCodeActionsTests
         SharedTestInterface,
         CodeActionsTestMixin,
         LspRequestHelpersMixin,
+        LspReverseRequestHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         ClientCapabilitiesHelperMixin {
@@ -118,6 +119,7 @@ mixin SharedExtractMethodRefactorCodeActionsTests
         SharedTestInterface,
         CodeActionsTestMixin,
         LspRequestHelpersMixin,
+        LspReverseRequestHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         ClientCapabilitiesHelperMixin,

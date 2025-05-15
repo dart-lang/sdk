@@ -74,6 +74,26 @@ mixin LspEditHelpersMixin {
   }
 }
 
+/// Helpers to simplify handling LSP notifications.
+mixin LspNotificationHelpersMixin {
+  /// A stream of [DartTextDocumentContentDidChangeParams] for any
+  /// `dart/textDocumentContentDidChange` notifications.
+  Stream<DartTextDocumentContentDidChangeParams>
+  get dartTextDocumentContentDidChangeNotifications => notificationsFromServer
+      .where(
+        (notification) =>
+            notification.method ==
+            CustomMethods.dartTextDocumentContentDidChange,
+      )
+      .map(
+        (message) => DartTextDocumentContentDidChangeParams.fromJson(
+          message.params as Map<String, Object?>,
+        ),
+      );
+
+  Stream<NotificationMessage> get notificationsFromServer;
+}
+
 mixin LspProgressNotificationsMixin {
   Stream<NotificationMessage> get notificationsFromServer;
 
@@ -142,25 +162,6 @@ mixin LspRequestHelpersMixin {
   /// A progress token used in tests where the client-provides the token, which
   /// should not be validated as being created by the server first.
   final clientProvidedTestWorkDoneToken = ProgressToken.t2('client-test');
-
-  /// A stream of [DartTextDocumentContentDidChangeParams] for any
-  /// `dart/textDocumentContentDidChange` notifications.
-  Stream<DartTextDocumentContentDidChangeParams>
-  get dartTextDocumentContentDidChangeNotifications => notificationsFromServer
-      .where(
-        (notification) =>
-            notification.method ==
-            CustomMethods.dartTextDocumentContentDidChange,
-      )
-      .map(
-        (message) => DartTextDocumentContentDidChangeParams.fromJson(
-          message.params as Map<String, Object?>,
-        ),
-      );
-
-  Stream<NotificationMessage> get notificationsFromServer;
-
-  Stream<RequestMessage> get requestsFromServer;
 
   Future<List<CallHierarchyIncomingCall>?> callHierarchyIncoming(
     CallHierarchyItem item,
@@ -236,29 +237,6 @@ mixin LspRequestHelpersMixin {
 
   void expect(Object? actual, Matcher matcher, {String? reason}) =>
       test.expect(actual, matcher, reason: reason);
-
-  /// Expects a [method] request from the server after executing [f].
-  Future<RequestMessage> expectRequest(
-    Method method,
-    FutureOr<void> Function() f, {
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    var firstRequest = requestsFromServer.firstWhere((n) => n.method == method);
-    await f();
-
-    var requestFromServer = await firstRequest.timeout(
-      timeout,
-      onTimeout:
-          () =>
-              throw TimeoutException(
-                'Did not receive the expected $method request from the server in the timeout period',
-                timeout,
-              ),
-    );
-
-    expect(requestFromServer, isNotNull);
-    return requestFromServer;
-  }
 
   Future<T> expectSuccessfulResponseTo<T, R>(
     RequestMessage request,
@@ -875,71 +853,6 @@ mixin LspRequestHelpersMixin {
     );
   }
 
-  /// Executes [f] then waits for a request of type [method] from the server which
-  /// is passed to [handler] to process, then waits for (and returns) the
-  /// response to the original request.
-  ///
-  /// This is used for testing things like code actions, where the client initiates
-  /// a request but the server does not respond to it until it's sent its own
-  /// request to the client and it received a response.
-  ///
-  ///     Client                                 Server
-  ///     1. |- Req: textDocument/codeAction      ->
-  ///     1. <- Resp: textDocument/codeAction     -|
-  ///
-  ///     2. |- Req: workspace/executeCommand  ->
-  ///           3. <- Req: textDocument/applyEdits  -|
-  ///           3. |- Resp: textDocument/applyEdits ->
-  ///     2. <- Resp: workspace/executeCommand -|
-  ///
-  /// Request 2 from the client is not responded to until the server has its own
-  /// response to the request it sends (3).
-  Future<T> handleExpectedRequest<T, R, RR>(
-    Method method,
-    R Function(Map<String, dynamic>) fromJson,
-    Future<T> Function() f, {
-    required FutureOr<RR> Function(R) handler,
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    late Future<T> outboundRequest;
-    Object? outboundRequestError;
-
-    // Run [f] and wait for the incoming request from the server.
-    var incomingRequest = await expectRequest(method, () {
-      // Don't return/await the response yet, as this may not complete until
-      // after we have handled the request that comes from the server.
-      outboundRequest = f();
-
-      // Because we don't await this future until "later", if it throws the
-      // error is treated as unhandled and will fail the test even if expected.
-      // Instead, capture the error and suppress it. But if we time out (in
-      // which case we will never return outboundRequest), then we'll raise this
-      // error.
-      outboundRequest.then(
-        (_) {},
-        onError: (e) {
-          outboundRequestError = e;
-          return null;
-        },
-      );
-    }, timeout: timeout).catchError((Object timeoutException) {
-      // We timed out waiting for the request from the server. Probably this is
-      // because our outbound request for some reason, so if we have an error
-      // for that, then throw it. Otherwise, propogate the timeout.
-      throw outboundRequestError ?? timeoutException;
-    }, test: (e) => e is TimeoutException);
-
-    // Handle the request from the server and send the response back.
-    var clientsResponse = await handler(
-      fromJson(incomingRequest.params as Map<String, Object?>),
-    );
-    respondTo(incomingRequest, clientsResponse);
-
-    // Return a future that completes when the response to the original request
-    // (from [f]) returns.
-    return outboundRequest;
-  }
-
   RequestMessage makeRequest(Method method, Object? params) {
     var id = Either2<int, String>.t1(_id++);
     return RequestMessage(
@@ -1014,23 +927,7 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(request, CompletionItem.fromJson);
   }
 
-  /// Sends [responseParams] to the server as a successful response to
-  /// a server-initiated [request].
-  void respondTo<T>(RequestMessage request, T responseParams) {
-    sendResponseToServer(
-      ResponseMessage(
-        id: request.id,
-        result: responseParams,
-        jsonrpc: jsonRpcVersion,
-      ),
-    );
-  }
-
   Future<ResponseMessage> sendRequestToServer(RequestMessage request);
-
-  /// Sends a ResponseMessage to the server, completing a reverse
-  /// (server-to-client) request.
-  void sendResponseToServer(ResponseMessage response);
 
   Future<List<TypeHierarchyItem>?> typeHierarchySubtypes(
     TypeHierarchyItem item,
@@ -1261,6 +1158,120 @@ mixin LspRequestHelpersMixin {
       throw '$input was not one of ($T1, $T2)';
     };
   }
+}
+
+/// Helpers to simplify handling LSP reverse-requests.
+///
+/// The sending of responses must be supplied by the implementing class
+/// via [sendResponseToServer].
+mixin LspReverseRequestHelpersMixin {
+  /// A stream of reverse-requests from the server that can be responded to via
+  /// [sendResponseToServer].
+  Stream<RequestMessage> get requestsFromServer;
+
+  /// Expects a [method] request from the server after executing [f].
+  Future<RequestMessage> expectRequest(
+    Method method,
+    FutureOr<void> Function() f, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    var firstRequest = requestsFromServer.firstWhere((n) => n.method == method);
+    await f();
+
+    var requestFromServer = await firstRequest.timeout(
+      timeout,
+      onTimeout:
+          () =>
+              throw TimeoutException(
+                'Did not receive the expected $method request from the server in the timeout period',
+                timeout,
+              ),
+    );
+
+    expect(requestFromServer, isNotNull);
+    return requestFromServer;
+  }
+
+  /// Executes [f] then waits for a request of type [method] from the server which
+  /// is passed to [handler] to process, then waits for (and returns) the
+  /// response to the original request.
+  ///
+  /// This is used for testing things like code actions, where the client initiates
+  /// a request but the server does not respond to it until it's sent its own
+  /// request to the client and it received a response.
+  ///
+  ///     Client                                 Server
+  ///     1. |- Req: textDocument/codeAction      ->
+  ///     1. <- Resp: textDocument/codeAction     -|
+  ///
+  ///     2. |- Req: workspace/executeCommand  ->
+  ///           3. <- Req: textDocument/applyEdits  -|
+  ///           3. |- Resp: textDocument/applyEdits ->
+  ///     2. <- Resp: workspace/executeCommand -|
+  ///
+  /// Request 2 from the client is not responded to until the server has its own
+  /// response to the request it sends (3).
+  Future<T> handleExpectedRequest<T, R, RR>(
+    Method method,
+    R Function(Map<String, dynamic>) fromJson,
+    Future<T> Function() f, {
+    required FutureOr<RR> Function(R) handler,
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    late Future<T> outboundRequest;
+    Object? outboundRequestError;
+
+    // Run [f] and wait for the incoming request from the server.
+    var incomingRequest = await expectRequest(method, () {
+      // Don't return/await the response yet, as this may not complete until
+      // after we have handled the request that comes from the server.
+      outboundRequest = f();
+
+      // Because we don't await this future until "later", if it throws the
+      // error is treated as unhandled and will fail the test even if expected.
+      // Instead, capture the error and suppress it. But if we time out (in
+      // which case we will never return outboundRequest), then we'll raise this
+      // error.
+      outboundRequest.then(
+        (_) {},
+        onError: (e) {
+          outboundRequestError = e;
+          return null;
+        },
+      );
+    }, timeout: timeout).catchError((Object timeoutException) {
+      // We timed out waiting for the request from the server. Probably this is
+      // because our outbound request for some reason, so if we have an error
+      // for that, then throw it. Otherwise, propogate the timeout.
+      throw outboundRequestError ?? timeoutException;
+    }, test: (e) => e is TimeoutException);
+
+    // Handle the request from the server and send the response back.
+    var clientsResponse = await handler(
+      fromJson(incomingRequest.params as Map<String, Object?>),
+    );
+    respondTo(incomingRequest, clientsResponse);
+
+    // Return a future that completes when the response to the original request
+    // (from [f]) returns.
+    return outboundRequest;
+  }
+
+  /// Sends [responseParams] to the server as a successful response to
+  /// a server-initiated [request].
+  void respondTo<T>(RequestMessage request, T responseParams) {
+    sendResponseToServer(
+      ResponseMessage(
+        id: request.id,
+        result: responseParams,
+        jsonrpc: jsonRpcVersion,
+      ),
+    );
+  }
+
+  /// Sends a ResponseMessage to the server, completing a reverse
+  /// (server-to-client) request.
+  void sendResponseToServer(ResponseMessage response);
 }
 
 /// A mixin with helpers for verifying LSP edits in a given project.

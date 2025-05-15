@@ -13,7 +13,11 @@ import '../support/integration_tests.dart';
 
 abstract class AbstractLspOverLegacyTest
     extends AbstractAnalysisServerIntegrationTest
-    with LspRequestHelpersMixin, LspEditHelpersMixin {
+    with
+        LspRequestHelpersMixin,
+        LspReverseRequestHelpersMixin,
+        LspNotificationHelpersMixin,
+        LspEditHelpersMixin {
   late final testFile = sourcePath('lib/test.dart');
 
   /// A stream of LSP [NotificationMessage]s from the server.
