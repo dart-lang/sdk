@@ -62,12 +62,12 @@ class LibraryElementSuggestionBuilder
   void visitClassElement(ClassElement element) {
     AstNode node = request.target.containingNode;
     var libraryElement = request.libraryElement;
-    if (node is ExtendsClause && !element.isExtendableIn2(libraryElement)) {
+    if (node is ExtendsClause && !element.isExtendableIn(libraryElement)) {
       return;
     } else if (node is ImplementsClause &&
-        !element.isImplementableIn2(libraryElement)) {
+        !element.isImplementableIn(libraryElement)) {
       return;
-    } else if (node is WithClause && !element.isMixableIn2(libraryElement)) {
+    } else if (node is WithClause && !element.isMixableIn(libraryElement)) {
       return;
     }
     _visitInterfaceElement(element);

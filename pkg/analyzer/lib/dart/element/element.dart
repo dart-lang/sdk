@@ -309,14 +309,29 @@ abstract class ClassElement implements InterfaceElement {
 
   /// Whether the class, assuming that it is within scope, can be extended by
   /// classes in the given [library].
+  bool isExtendableIn(LibraryElement library);
+
+  /// Whether the class, assuming that it is within scope, can be extended by
+  /// classes in the given [library].
+  @Deprecated('Use isExtendableIn instead')
   bool isExtendableIn2(LibraryElement library);
 
   /// Whether the class, assuming that it is within scope, can be implemented by
   /// classes, mixins, and enums in the given [library].
+  bool isImplementableIn(LibraryElement library);
+
+  /// Whether the class, assuming that it is within scope, can be implemented by
+  /// classes, mixins, and enums in the given [library].
+  @Deprecated('Use isImplementableIn instead')
   bool isImplementableIn2(LibraryElement library);
 
   /// Whether the class, assuming that it is within scope, can be mixed-in by
   /// classes and enums in the given [library].
+  bool isMixableIn(LibraryElement library);
+
+  /// Whether the class, assuming that it is within scope, can be mixed-in by
+  /// classes and enums in the given [library].
+  @Deprecated('Use isMixableIn instead')
   bool isMixableIn2(LibraryElement library);
 }
 

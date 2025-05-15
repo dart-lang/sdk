@@ -360,31 +360,49 @@ class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement {
 
   @override
   @trackedIndirectly
-  bool isExtendableIn2(LibraryElement library) {
+  bool isExtendableIn(LibraryElement library) {
     if (library == library2) {
       return true;
     }
     return !isInterface && !isFinal && !isSealed;
   }
 
+  @Deprecated('Use isExtendableIn instead')
+  @override
+  bool isExtendableIn2(LibraryElement library) {
+    return isExtendableIn(library);
+  }
+
   @override
   @trackedIndirectly
-  bool isImplementableIn2(LibraryElement library) {
+  bool isImplementableIn(LibraryElement library) {
     if (library == library2) {
       return true;
     }
     return !isBase && !isFinal && !isSealed;
   }
 
+  @Deprecated('Use isImplementableIn instead')
+  @override
+  bool isImplementableIn2(LibraryElement library) {
+    return isImplementableIn(library);
+  }
+
   @override
   @trackedIndirectly
-  bool isMixableIn2(LibraryElement library) {
+  bool isMixableIn(LibraryElement library) {
     if (library == library2) {
       return true;
     } else if (library2.featureSet.isEnabled(Feature.class_modifiers)) {
       return isMixinClass && !isInterface && !isFinal && !isSealed;
     }
     return true;
+  }
+
+  @Deprecated('Use isMixableIn instead')
+  @override
+  bool isMixableIn2(LibraryElement library) {
+    return isMixableIn(library);
   }
 }
 

@@ -1672,10 +1672,10 @@ class DeclarationHelper {
   void _suggestClass(ClassElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if ((mustBeExtendable &&
-              !element.isExtendableIn2(request.libraryElement)) ||
+              !element.isExtendableIn(request.libraryElement)) ||
           (mustBeImplementable &&
-              !element.isImplementableIn2(request.libraryElement)) ||
-          (mustBeMixable && !element.isMixableIn2(request.libraryElement))) {
+              !element.isImplementableIn(request.libraryElement)) ||
+          (mustBeMixable && !element.isMixableIn(request.libraryElement))) {
         return;
       }
       if (!(mustBeConstant && !objectPatternAllowed) && !excludeTypeNames) {
