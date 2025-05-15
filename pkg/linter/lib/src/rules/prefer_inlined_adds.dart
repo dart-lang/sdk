@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,7 +15,7 @@ class PreferInlinedAdds extends MultiAnalysisRule {
     : super(name: LintNames.prefer_inlined_adds, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.prefer_inlined_adds_multiple,
     LinterLintCode.prefer_inlined_adds_single,
   ];

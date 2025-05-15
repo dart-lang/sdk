@@ -94,7 +94,7 @@ class [!A^aa!] {}
 ```dart
 class Aaa
 ```
-*package:test/test.dart*
+*package:test/main.dart*
 
 ---
 This is my class.
@@ -116,7 +116,7 @@ class [!A^aa!] {}
 ```dart
 class Aaa
 ```
-*package:test/test.dart*
+*package:test/main.dart*
 
 ---
 This is my class.''';

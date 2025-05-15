@@ -16,7 +16,7 @@ extension CodeActionExtensions on CodeAction {
   Command get asCommand {
     return map(
       (literal) =>
-          throw 'Expected Command, but for CodeAction literal (${literal.title})',
+          throw 'Expected Command, but got CodeAction literal (${literal.title})',
       (command) => command,
     );
   }

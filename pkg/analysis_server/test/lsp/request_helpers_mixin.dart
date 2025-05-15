@@ -1167,6 +1167,9 @@ mixin LspRequestHelpersMixin {
 mixin LspReverseRequestHelpersMixin {
   /// A stream of reverse-requests from the server that can be responded to via
   /// [sendResponseToServer].
+  ///
+  /// Only LSP message requests (`lsp.handle`) from the server are included
+  /// here.
   Stream<RequestMessage> get requestsFromServer;
 
   /// Expects a [method] request from the server after executing [f].
@@ -1280,7 +1283,14 @@ mixin LspReverseRequestHelpersMixin {
 /// information about the project to build paths.
 mixin LspVerifyEditHelpersMixin
     on LspEditHelpersMixin, ClientCapabilitiesHelperMixin {
-  LspClientCapabilities get editorClientCapabilities;
+  LspClientCapabilities get editorClientCapabilities => LspClientCapabilities(
+    ClientCapabilities(
+      workspace: workspaceCapabilities,
+      textDocument: textDocumentCapabilities,
+      window: windowCapabilities,
+      experimental: experimentalCapabilities,
+    ),
+  );
 
   path.Context get pathContext;
 

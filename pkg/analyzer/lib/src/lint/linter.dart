@@ -55,14 +55,14 @@ sealed class AbstractAnalysisRule {
   bool get canUseParsedResult => false;
 
   /// The diagnostic codes associated with this analysis rule.
-  List<DiagnosticCode> get diagnosticCodes => lintCodes;
+  List<DiagnosticCode> get diagnosticCodes;
 
   /// A list of incompatible rule ids.
   List<String> get incompatibleRules => const [];
 
   /// The lint codes associated with this analysis rule.
-  // TODO(srawlins): Deprecate this in favor of `diagnosticCodes`.
-  List<LintCode> get lintCodes;
+  @Deprecated("Use 'diagnosticCodes' instead.")
+  List<DiagnosticCode> get lintCodes => diagnosticCodes;
 
   /// Returns a visitor that visits a [Pubspec] to perform analysis.
   ///
@@ -164,12 +164,12 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
   /// The code to report for a violation.
   DiagnosticCode get diagnosticCode => lintCode;
 
+  @override
+  List<DiagnosticCode> get diagnosticCodes => [lintCode];
+
   /// The code to report for a violation.
   // TODO(srawlins): Deprecate this in favor of `diagnosticCode`.
   LintCode get lintCode;
-
-  @override
-  List<LintCode> get lintCodes => [lintCode];
 
   /// Reports a diagnostic at [node] with message [arguments] and
   /// [contextMessages].

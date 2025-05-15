@@ -509,6 +509,7 @@ class LspAnalysisServer extends AnalysisServer {
               clientCapabilities: editorClientCapabilities,
               timeSinceRequest: message.timeSinceRequest,
               completer: completer,
+              isTrustedCaller: true,
             );
 
             if (message is RequestMessage) {

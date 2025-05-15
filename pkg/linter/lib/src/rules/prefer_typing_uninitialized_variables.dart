@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -18,7 +19,7 @@ class PreferTypingUninitializedVariables extends MultiAnalysisRule {
       );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.prefer_typing_uninitialized_variables_for_field,
     LinterLintCode.prefer_typing_uninitialized_variables_for_local_variable,
   ];

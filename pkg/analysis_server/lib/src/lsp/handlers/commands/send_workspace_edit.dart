@@ -23,6 +23,11 @@ class SendWorkspaceEditCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Send Workspace Edit';
 
   @override
+  // This command is used internally to work around some limitations in LSP
+  // and is not expected to ever be called by a DTD client.
+  bool get requiresTrustedCaller => true;
+
+  @override
   Future<ErrorOr<void>> handle(
     MessageInfo message,
     Map<String, Object?> parameters,

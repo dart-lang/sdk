@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type.dart';
 // ignore: implementation_imports
@@ -212,7 +213,7 @@ class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
       );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.invalid_runtime_check_with_js_interop_types_dart_as_js,
     LinterLintCode.invalid_runtime_check_with_js_interop_types_dart_is_js,
     LinterLintCode.invalid_runtime_check_with_js_interop_types_js_as_dart,

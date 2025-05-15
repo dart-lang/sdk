@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
@@ -216,6 +217,42 @@ Future foo;
       expectedContent,
       kind: CodeActionKind('quickfix.remove.unusedImport'),
       title: 'Remove unused import',
+    );
+  }
+
+  Future<void> test_codeActionLiterals_supported() async {
+    const content = '''
+void f(String a) => [!print(a!)!];
+''';
+
+    const expectedContent = '''
+void f(String a) => print(a);
+''';
+
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('quickfix.remove.nonNullAssertion'),
+      title: "Remove the '!'",
+    );
+  }
+
+  Future<void> test_codeActionLiterals_unsupported() async {
+    setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
+
+    const content = '''
+void f(String a) => [!print(a!)!];
+''';
+
+    const expectedContent = '''
+void f(String a) => print(a);
+''';
+
+    await verifyCommandCodeActionEdits(
+      content,
+      expectedContent,
+      command: Commands.applyCodeAction,
+      title: "Remove the '!'",
     );
   }
 

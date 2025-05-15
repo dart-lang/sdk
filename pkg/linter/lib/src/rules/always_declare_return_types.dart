@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -16,7 +17,7 @@ class AlwaysDeclareReturnTypes extends MultiAnalysisRule {
     : super(name: LintNames.always_declare_return_types, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.always_declare_return_types_of_functions,
     LinterLintCode.always_declare_return_types_of_methods,
   ];

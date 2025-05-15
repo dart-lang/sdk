@@ -33,6 +33,10 @@ class DtdTest
   Future<void> initializeServer() async {
     await standardAnalysisSetup();
     await analysisFinished;
+    await sendServerSetClientCapabilities(
+      [],
+      lspCapabilities: editorClientCapabilities.raw,
+    );
   }
 
   @override

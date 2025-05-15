@@ -94,6 +94,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       write(uri);
       writeln("';");
     }
+    writeln("import 'package:path/path.dart' as path;");
     writeln("import 'package:test/test.dart';");
     writeln();
     writeln("import 'integration_tests.dart';");
@@ -107,7 +108,9 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       writeln(
         '/// The converter used to convert between URI/Paths in server communication.',
       );
-      writeln('ClientUriConverter? uriConverter;');
+      writeln(
+        'final ClientUriConverter uriConverter = ClientUriConverter.noop(path.context);',
+      );
       super.visitApi();
       writeln();
       docComment(

@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
     show BaseDeprecatedMemberUseVerifier;
 import 'package:analyzer/src/workspace/workspace.dart' // ignore: implementation_imports
@@ -28,7 +29,7 @@ class DeprecatedMemberUseFromSamePackage extends MultiAnalysisRule {
       );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.deprecated_member_use_from_same_package_with_message,
     LinterLintCode.deprecated_member_use_from_same_package_without_message,
   ];

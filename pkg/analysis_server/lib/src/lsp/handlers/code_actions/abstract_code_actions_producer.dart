@@ -116,28 +116,25 @@ abstract class AbstractCodeActionsProducer
     );
   }
 
-  /// Creates a CodeAction to apply this assist.
+  /// Creates a CodeAction to apply this change.
   ///
   /// This code will fetch the version of each document being modified so it's
   /// important to call this immediately after computing edits to ensure the
   /// document is not modified before the version number is read.
   @protected
-  CodeActionLiteral createAssistCodeActionLiteral(
+  CodeActionLiteral createCodeActionLiteral(
     protocol.SourceChange change,
     CodeActionKind kind,
-    String? loggedAssistId,
+    String? loggedId,
     String path,
-    LineInfo lineInfo,
-  ) {
-    assert(
-      kind == CodeActionKind.Refactor ||
-          '$kind'.startsWith('${CodeActionKind.Refactor}.'),
-    );
+    LineInfo lineInfo, {
+    Diagnostic? diagnostic,
+  }) {
     return CodeActionLiteral(
       title: change.message,
       kind: kind,
-      diagnostics: const [],
-      command: createLogActionCommand(loggedAssistId),
+      diagnostics: diagnostic != null ? [diagnostic] : const [],
+      command: createLogActionCommand(loggedId),
       edit: createWorkspaceEdit(
         server,
         editorCapabilities,
@@ -161,16 +158,18 @@ abstract class AbstractCodeActionsProducer
     LineInfo lineInfo,
     SourceChange change,
     CodeActionKind kind,
-    String? loggedAssistId,
-  ) {
+    String? loggedId, {
+    Diagnostic? diagnostic,
+  }) {
     if (allowCodeActionLiterals) {
       return CodeAction.t1(
-        createAssistCodeActionLiteral(
+        createCodeActionLiteral(
           change,
           kind,
-          loggedAssistId,
+          loggedId,
           path,
           lineInfo,
+          diagnostic: diagnostic,
         ),
       );
     } else if (allowCommands) {
@@ -178,7 +177,7 @@ abstract class AbstractCodeActionsProducer
         createApplyCodeActionCommand(
           change.message,
           kind,
-          loggedAssistId,
+          loggedId,
           textDocument,
           range,
         ),
@@ -201,40 +200,6 @@ abstract class AbstractCodeActionsProducer
       protocol.newAnalysisError_fromEngine(result, diagnostic),
       supportedTags: callerSupportedDiagnosticTags,
       clientSupportsCodeDescription: callerSupportsCodeDescription,
-    );
-  }
-
-  /// Creates a CodeAction to apply this fix.
-  ///
-  /// This code will fetch the version of each document being modified so it's
-  /// important to call this immediately after computing edits to ensure the
-  /// document is not modified before the version number is read.
-  @protected
-  CodeActionLiteral createFixCodeActionLiteral(
-    protocol.SourceChange change,
-    CodeActionKind kind,
-    String? loggedFixId,
-    Diagnostic diagnostic,
-    String path,
-    LineInfo lineInfo,
-  ) {
-    assert(
-      kind == CodeActionKind.QuickFix ||
-          '$kind'.startsWith('${CodeActionKind.QuickFix}.'),
-    );
-    return CodeActionLiteral(
-      title: change.message,
-      kind: kind,
-      diagnostics: [diagnostic],
-      command: createLogActionCommand(loggedFixId),
-      edit: createWorkspaceEdit(
-        server,
-        editorCapabilities,
-        change,
-        allowSnippets: true,
-        filePath: path,
-        lineInfo: lineInfo,
-      ),
     );
   }
 

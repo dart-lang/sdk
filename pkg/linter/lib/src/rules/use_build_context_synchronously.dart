@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 // ignore: implementation_imports
@@ -927,7 +928,7 @@ class UseBuildContextSynchronously extends MultiAnalysisRule {
       );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.use_build_context_synchronously_async_use,
     LinterLintCode.use_build_context_synchronously_wrong_mounted,
   ];

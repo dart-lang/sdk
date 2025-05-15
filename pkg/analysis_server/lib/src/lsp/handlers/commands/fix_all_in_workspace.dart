@@ -25,6 +25,9 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
   bool get requireConfirmation;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<void>> handle(
     MessageInfo message,
     Map<String, Object?> parameters,

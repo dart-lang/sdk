@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,7 @@ class DeprecatedConsistency extends MultiAnalysisRule {
     : super(name: LintNames.deprecated_consistency, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.deprecated_consistency_constructor,
     LinterLintCode.deprecated_consistency_field,
     LinterLintCode.deprecated_consistency_parameter,

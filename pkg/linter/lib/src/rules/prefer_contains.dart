@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -20,7 +21,7 @@ class PreferContains extends MultiAnalysisRule {
   //  rather than lints because they represent a bug rather than a style
   //  preference.
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.prefer_contains_always_false,
     LinterLintCode.prefer_contains_always_true,
     LinterLintCode.prefer_contains_use_contains,

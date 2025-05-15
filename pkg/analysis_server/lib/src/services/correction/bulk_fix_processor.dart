@@ -334,9 +334,8 @@ class BulkFixProcessor {
   ) => _organizeDirectives(contexts);
 
   Future<void> _applyProducer(CorrectionProducer producer) async {
+    var localBuilder = builder as ChangeBuilderImpl;
     try {
-      var localBuilder = builder.copy() as ChangeBuilderImpl;
-
       // Set a description of the change for this fix for the duration of
       // computer which will be passed down to the individual changes.
       localBuilder.currentChangeDescription = producer.fixKind?.message;
@@ -348,11 +347,11 @@ class BulkFixProcessor {
         'computation. $producer changed from $fixKind to ${producer.fixKind}.',
       );
       localBuilder.currentChangeDescription = null;
-
-      builder = localBuilder;
+      localBuilder.commit();
     } on ConflictingEditException {
-      // If a conflicting edit was added in [compute], then the [localBuilder]
-      // is discarded and we revert to the previous state of the builder.
+      // If a conflicting edit was added in [compute], then the builder is
+      // reverted to its previous state.
+      localBuilder.revert();
     }
   }
 

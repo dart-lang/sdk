@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -68,7 +69,7 @@ class DirectivesOrdering extends MultiAnalysisRule {
     : super(name: LintNames.directives_ordering, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => allCodes;
+  List<DiagnosticCode> get diagnosticCodes => allCodes;
 
   @override
   void registerNodeProcessors(

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -89,7 +90,7 @@ class AnalyzerPublicApi extends MultiAnalysisRule {
     : super(name: ruleName, description: _desc, state: const State.internal());
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     badPartDirective,
     badType,
     exportsNonPublicName,

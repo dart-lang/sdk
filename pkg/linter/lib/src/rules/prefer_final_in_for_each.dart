@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -16,13 +17,13 @@ class PreferFinalInForEach extends MultiAnalysisRule {
     : super(name: LintNames.prefer_final_in_for_each, description: _desc);
 
   @override
-  List<String> get incompatibleRules => const [LintNames.unnecessary_final];
-
-  @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.prefer_final_in_for_each_pattern,
     LinterLintCode.prefer_final_in_for_each_variable,
   ];
+
+  @override
+  List<String> get incompatibleRules => const [LintNames.unnecessary_final];
 
   @override
   void registerNodeProcessors(
