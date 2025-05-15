@@ -171,7 +171,8 @@ function lazyFinal(holder, name, getterName, initializer) {
 // Given a list, marks it as constant.
 //
 // The runtime ensures that const-lists cannot be modified.
-function makeConstList(list) {
+function makeConstList(list, rti) {
+  if (rti != null) #setArrayType(list, rti);
   list.#arrayFlagsProperty = ${ArrayFlags.constant};
   return list;
 }
@@ -690,6 +691,9 @@ class FragmentEmitter {
       'directAccessTestExpression': js.js(_directAccessTestExpression),
       'throwLateFieldADI': _emitter.staticFunctionAccess(
         _closedWorld.commonElements.throwLateFieldADI,
+      ),
+      'setArrayType': _emitter.staticFunctionAccess(
+        _closedWorld.commonElements.setArrayType,
       ),
       'arrayFlagsProperty': js.string(_namer.fixedNames.arrayFlagsPropertyName),
       'operatorIsPrefix': js.string(_namer.fixedNames.operatorIsPrefix),
