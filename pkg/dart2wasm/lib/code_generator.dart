@@ -1754,9 +1754,10 @@ abstract class AstCodeGenerator
     final typeArguments = node.arguments.types;
     final positionalArguments = node.arguments.positional;
     final namedArguments = node.arguments.named;
+    final memberName = node.name.text;
     final forwarder = translator
         .getDynamicForwardersForModule(b.module)
-        .getDynamicInvocationForwarder(node.name.text);
+        .getDynamicInvocationForwarder(memberName);
 
     // Evaluate receiver
     translateExpression(receiver, translator.topInfo.nullableType);
@@ -1816,7 +1817,7 @@ abstract class AstCodeGenerator
     // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
     // have a `Null` class in dart2wasm so we throw directly.
     b.local_get(nullableReceiverLocal);
-    createInvocationObject(translator, b, forwarder.memberName, typeArgsLocal,
+    createInvocationObject(translator, b, memberName, typeArgsLocal,
         positionalArgsLocal, namedArgsLocal);
 
     call(translator.noSuchMethodErrorThrowWithInvocation.reference);
@@ -2173,9 +2174,10 @@ abstract class AstCodeGenerator
   @override
   w.ValueType visitDynamicGet(DynamicGet node, w.ValueType expectedType) {
     final receiver = node.receiver;
+    final memberName = node.name.text;
     final forwarder = translator
         .getDynamicForwardersForModule(b.module)
-        .getDynamicGetForwarder(node.name.text);
+        .getDynamicGetForwarder(memberName);
 
     // Evaluate receiver
     translateExpression(receiver, translator.topInfo.nullableType);
@@ -2189,7 +2191,7 @@ abstract class AstCodeGenerator
     // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
     // have a `Null` class in dart2wasm so we throw directly.
     b.local_get(nullableReceiverLocal);
-    createGetterInvocationObject(translator, b, forwarder.memberName);
+    createGetterInvocationObject(translator, b, memberName);
 
     call(translator.noSuchMethodErrorThrowWithInvocation.reference);
     b.unreachable();
@@ -2205,9 +2207,10 @@ abstract class AstCodeGenerator
   w.ValueType visitDynamicSet(DynamicSet node, w.ValueType expectedType) {
     final receiver = node.receiver;
     final value = node.value;
+    final memberName = node.name.text;
     final forwarder = translator
         .getDynamicForwardersForModule(b.module)
-        .getDynamicSetForwarder(node.name.text);
+        .getDynamicSetForwarder(memberName);
 
     // Evaluate receiver
     translateExpression(receiver, translator.topInfo.nullableType);
@@ -2226,8 +2229,7 @@ abstract class AstCodeGenerator
     // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
     // have a `Null` class in dart2wasm so we throw directly.
     b.local_get(nullableReceiverLocal);
-    createSetterInvocationObject(
-        translator, b, forwarder.memberName, positionalArgLocal);
+    createSetterInvocationObject(translator, b, memberName, positionalArgLocal);
 
     call(translator.noSuchMethodErrorThrowWithInvocation.reference);
     b.unreachable();
