@@ -694,6 +694,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
     AddFieldFormalParameters.new,
   ],
+  CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE: [AddAwait.forIn],
   CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE: [
     ReplaceReturnTypeStream.new,
   ],

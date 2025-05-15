@@ -765,7 +765,7 @@ CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS:
 CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE:
   status: noFix
 CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE:
   status: noFix
 CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND:
