@@ -11,6 +11,7 @@ import '../base/export.dart';
 import '../base/loader.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
+import '../base/scope.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
@@ -125,6 +126,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   bool mayImplementRestrictedTypes = false;
+
+  final List<NamedBuilder> _memberBuilders = [];
 
   DillLibraryBuilder(this.library, this.loader) : super(library.fileUri) {
     _nameSpace = new DillLibraryNameSpace(this);
@@ -266,10 +269,16 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     _addBuilder(extensionTypeDeclaration.name, extensionTypeDeclarationBuilder);
   }
 
+  bool _isPrivateFromOtherLibrary(Member member) {
+    Name name = member.name;
+    return name.isPrivate && name.libraryReference != library.reference;
+  }
+
   void _addMember(Member member) {
     if (member.isExtensionMember || member.isExtensionTypeMember) {
       return null;
     }
+
     String name = member.name.text;
     if (name == unserializableExportName) {
       Field field = member as Field;
@@ -288,6 +297,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       unserializableExports =
           json != null ? new Map<String, String>.from(json) : null;
     } else {
+      if (_isPrivateFromOtherLibrary(member)) return;
       if (member is Field) {
         _addBuilder(name, new DillFieldBuilder(member, this));
       } else if (member is Procedure) {
@@ -318,7 +328,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void _addBuilder(String? name, NamedBuilder declaration) {
-    if (name == null || name.isEmpty) return null;
+    if (name == null || name.isEmpty) return;
 
     bool isSetter = isMappedAsSetter(declaration);
     if (isSetter) {
@@ -330,6 +340,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     if (declaration is ExtensionBuilder) {
       _nameSpace.addExtension(declaration);
     }
+    _memberBuilders.add(declaration);
     if (!name.startsWith("_") && !name.contains('#')) {
       if (isSetter) {
         _exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
@@ -445,8 +456,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         if (isSetter) {
           declaration =
               library.exportNameSpace.lookupLocalMember(name)!.setable!;
-          _exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
-              setter: true);
+          _exportNameSpace.addLocalMember(name, declaration, setter: true);
         } else {
           declaration =
               library.exportNameSpace.lookupLocalMember(name)!.getable!;
@@ -472,9 +482,17 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Iterator<T> fullMemberIterator<T extends NamedBuilder>() {
-    return libraryNameSpace.filteredIterator<T>(includeDuplicates: false);
+  Iterator<NamedBuilder> get unfilteredMembersIterator {
+    ensureLoaded();
+    return _memberBuilders.iterator;
+  }
+
+  @override
+  Iterator<T> filteredMembersIterator<T extends NamedBuilder>(
+      {required bool includeDuplicates}) {
+    ensureLoaded();
+    return new FilteredIterator<T>(_memberBuilders.iterator,
+        includeDuplicates: includeDuplicates);
   }
 
   @override

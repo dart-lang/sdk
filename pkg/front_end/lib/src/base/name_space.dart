@@ -52,7 +52,8 @@ abstract class NameSpace {
 abstract class MutableNameSpace implements NameSpace {
   factory MutableNameSpace() = NameSpaceImpl._;
 
-  void addLocalMember(String name, NamedBuilder member, {required bool setter});
+  void addLocalMember(String name, NamedBuilder member,
+      {required bool setter, bool allowReplace = false});
 
   /// Adds [builder] to the extensions in this name space.
   void addExtension(ExtensionBuilder builder);
@@ -95,10 +96,24 @@ base class NameSpaceImpl implements NameSpace, MutableNameSpace {
 
   @override
   void addLocalMember(String name, NamedBuilder member,
-      {required bool setter}) {
+      {required bool setter, bool allowReplace = false}) {
     if (setter) {
+      assert(
+          _setables == null ||
+              !_setables!.containsKey(name) ||
+              _setables![name] == member ||
+              allowReplace,
+          "Trying to map setable $member to $name "
+          "replacing the existing value ${_setables?[name]}");
       (_setables ??= {})[name] = member;
     } else {
+      assert(
+          _getables == null ||
+              !_getables!.containsKey(name) ||
+              _getables![name] == member ||
+              allowReplace,
+          "Trying to map getable $member to $name "
+          "replacing the existing value ${_getables?[name]}");
       (_getables ??= {})[name] = member;
     }
   }

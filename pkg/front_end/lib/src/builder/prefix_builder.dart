@@ -81,15 +81,15 @@ class PrefixBuilder extends NamedBuilderImpl implements LookupResult {
     LookupResult? existingResult = _prefixNameSpace.lookupLocalMember(name);
     NamedBuilder? existing =
         isSetter ? existingResult?.setable : existingResult?.getable;
-    NamedBuilder result;
     if (existing != null) {
-      result = computeAmbiguousDeclarationForImport(
+      NamedBuilder result = computeAmbiguousDeclarationForImport(
           parent, name, existing, member,
           uriOffset: new UriOffset(fileUri, prefixOffset));
+      _prefixNameSpace.addLocalMember(name, result,
+          setter: isSetter, allowReplace: true);
     } else {
-      result = member;
+      _prefixNameSpace.addLocalMember(name, member, setter: isSetter);
     }
-    _prefixNameSpace.addLocalMember(name, result, setter: isSetter);
     if (member is ExtensionBuilder) {
       _prefixNameSpace.addExtension(member);
     }

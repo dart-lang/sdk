@@ -27,6 +27,12 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
 
   DillExtensionBuilder(this.extension, this.libraryBuilder)
       : _nameSpace = new DillDeclarationNameSpace() {
+    bool isPrivateFromOtherLibrary(Member member) {
+      Name name = member.name;
+      return name.isPrivate &&
+          name.libraryReference != extension.enclosingLibrary.reference;
+    }
+
     for (ExtensionMemberDescriptor descriptor in extension.memberDescriptors) {
       if (descriptor.isInternalImplementation) continue;
 
@@ -35,53 +41,66 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
         case ExtensionMemberKind.Method:
           if (descriptor.isStatic) {
             Procedure procedure = descriptor.memberReference!.asProcedure;
-            _nameSpace.addLocalMember(
-                name.text,
-                new DillExtensionStaticMethodBuilder(
-                    procedure, descriptor, libraryBuilder, this),
-                setter: false);
+            if (!isPrivateFromOtherLibrary(procedure)) {
+              _nameSpace.addLocalMember(
+                  name.text,
+                  new DillExtensionStaticMethodBuilder(
+                      procedure, descriptor, libraryBuilder, this),
+                  setter: false);
+            }
           } else {
             Procedure procedure = descriptor.memberReference!.asProcedure;
-            Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
-            assert(tearOff != null, "No tear found for ${descriptor}");
-            _nameSpace.addLocalMember(
-                name.text,
-                new DillExtensionInstanceMethodBuilder(
-                    procedure, descriptor, libraryBuilder, this, tearOff!),
-                setter: false);
+            if (!isPrivateFromOtherLibrary(procedure)) {
+              Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
+              assert(tearOff != null, "No tear found for ${descriptor}");
+
+              _nameSpace.addLocalMember(
+                  name.text,
+                  new DillExtensionInstanceMethodBuilder(
+                      procedure, descriptor, libraryBuilder, this, tearOff!),
+                  setter: false);
+            }
           }
           break;
         case ExtensionMemberKind.Getter:
           Procedure procedure = descriptor.memberReference!.asProcedure;
-          _nameSpace.addLocalMember(
-              name.text,
-              new DillExtensionGetterBuilder(
-                  procedure, descriptor, libraryBuilder, this),
-              setter: false);
+          if (!isPrivateFromOtherLibrary(procedure)) {
+            _nameSpace.addLocalMember(
+                name.text,
+                new DillExtensionGetterBuilder(
+                    procedure, descriptor, libraryBuilder, this),
+                setter: false);
+          }
           break;
         case ExtensionMemberKind.Field:
           Field field = descriptor.memberReference!.asField;
-          _nameSpace.addLocalMember(
-              name.text,
-              new DillExtensionFieldBuilder(
-                  field, descriptor, libraryBuilder, this),
-              setter: false);
+          if (!isPrivateFromOtherLibrary(field)) {
+            _nameSpace.addLocalMember(
+                name.text,
+                new DillExtensionFieldBuilder(
+                    field, descriptor, libraryBuilder, this),
+                setter: false);
+          }
           break;
         case ExtensionMemberKind.Setter:
           Procedure procedure = descriptor.memberReference!.asProcedure;
-          _nameSpace.addLocalMember(
-              name.text,
-              new DillExtensionSetterBuilder(
-                  procedure, descriptor, libraryBuilder, this),
-              setter: true);
+          if (!isPrivateFromOtherLibrary(procedure)) {
+            _nameSpace.addLocalMember(
+                name.text,
+                new DillExtensionSetterBuilder(
+                    procedure, descriptor, libraryBuilder, this),
+                setter: true);
+          }
           break;
         case ExtensionMemberKind.Operator:
           Procedure procedure = descriptor.memberReference!.asProcedure;
-          _nameSpace.addLocalMember(
-              name.text,
-              new DillExtensionOperatorBuilder(
-                  procedure, descriptor, libraryBuilder, this),
-              setter: false);
+          if (!isPrivateFromOtherLibrary(procedure)) {
+            _nameSpace.addLocalMember(
+                name.text,
+                new DillExtensionOperatorBuilder(
+                    procedure, descriptor, libraryBuilder, this),
+                setter: false);
+          }
           break;
       }
     }

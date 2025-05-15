@@ -609,8 +609,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
             // Clear cached calculations that points (potential) to now replaced
             // things.
-            Iterator<DillClassBuilder> iterator = builder.libraryNameSpace
-                .filteredIterator(includeDuplicates: true);
+            Iterator<DillClassBuilder> iterator =
+                builder.filteredMembersIterator(includeDuplicates: true);
             while (iterator.moveNext()) {
               iterator.current.clearCachedValues();
             }
@@ -777,7 +777,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       replacementMap[entry.key] = childReplacementMap;
       replacementSettersMap[entry.key] = childReplacementSettersMap;
       Iterator<NamedBuilder> iterator =
-          mainCompilationUnit.libraryBuilder.localMembersIterator;
+          mainCompilationUnit.libraryBuilder.unfilteredMembersIterator;
       while (iterator.moveNext()) {
         NamedBuilder childBuilder = iterator.current;
         if (childBuilder is SourceExtensionBuilder &&
@@ -909,8 +909,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (builder.isBuiltAndMarked) {
           // Clear cached calculations in classes which upon calculation can
           // mark things as needed.
-          Iterator<DillClassBuilder> iterator = builder.libraryNameSpace
-              .filteredIterator(includeDuplicates: true);
+          Iterator<DillClassBuilder> iterator =
+              builder.filteredMembersIterator(includeDuplicates: true);
           while (iterator.moveNext()) {
             iterator.current.clearCachedValues();
           }

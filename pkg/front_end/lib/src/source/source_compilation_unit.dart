@@ -986,7 +986,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             computeAmbiguousDeclarationForImport(
                 _problemReporting, name, existing, builder,
                 uriOffset: new UriOffset(fileUri, charOffset)),
-            setter: isSetter);
+            setter: isSetter,
+            allowReplace: true);
       }
     } else {
       _importNameSpace.addLocalMember(name, builder, setter: isSetter);
@@ -1041,9 +1042,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         _problemReporting, libraryFeatures, unboundTypeParameters,
         dynamicType: dynamicType, bottomType: bottomType);
 
-    Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
+    Iterator<NamedBuilder> iterator = libraryBuilder.unfilteredMembersIterator;
     while (iterator.moveNext()) {
-      Builder declaration = iterator.current;
+      NamedBuilder declaration = iterator.current;
       if (declaration is SourceDeclarationBuilder) {
         count += declaration.computeDefaultTypes(context);
       } else if (declaration is SourceTypeAliasBuilder) {
@@ -1072,7 +1073,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   int computeVariances() {
     int count = 0;
 
-    Iterator<NamedBuilder> iterator = libraryBuilder.localMembersIterator;
+    Iterator<NamedBuilder> iterator = libraryBuilder.unfilteredMembersIterator;
     while (iterator.moveNext()) {
       NamedBuilder? declaration = iterator.current;
       while (declaration != null) {
