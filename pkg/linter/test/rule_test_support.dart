@@ -4,6 +4,7 @@
 
 import 'dart:convert' show json;
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -12,7 +13,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/pub.dart';
@@ -526,20 +526,8 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     }
   }
 
-  DriverBasedAnalysisContext _contextFor(String path) {
-    _createAnalysisContexts();
-
-    var convertedPath = convertPath(path);
-    return _analysisContextCollection!.contextFor(convertedPath);
-  }
-
-  /// Creates all analysis contexts in [_collectionIncludedPaths].
-  void _createAnalysisContexts() {
-    if (_analysisContextCollection != null) {
-      return;
-    }
-
-    _analysisContextCollection = AnalysisContextCollectionImpl(
+  AnalysisContext _contextFor(String path) {
+    _analysisContextCollection ??= AnalysisContextCollectionImpl(
       byteStore: _byteStore,
       declaredVariables: {},
       enableIndex: true,
@@ -547,6 +535,8 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
       resourceProvider: resourceProvider,
       sdkPath: _sdkRoot.path,
     );
+
+    return _analysisContextCollection!.contextFor(convertPath(path));
   }
 
   /// Resolves the file with the [path] into [result].
