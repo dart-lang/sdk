@@ -126,10 +126,10 @@ final class FixInFileProcessor {
 
     var producer = generator(context: context);
 
+    var builder = fixState.builder as ChangeBuilderImpl;
     try {
-      var localBuilder = fixState.builder.copy();
       var fixKind = producer.fixKind;
-      await producer.compute(localBuilder);
+      await producer.compute(builder);
       assert(
         !producer.canBeAppliedAcrossSingleFile || producer.fixKind == fixKind,
         'Producers used in bulk fixes must not modify the FixKind during '
@@ -138,19 +138,22 @@ final class FixInFileProcessor {
 
       var multiFixKind = producer.multiFixKind;
       if (multiFixKind == null) {
+        builder.revert();
         return fixState;
       }
 
       // TODO(pq): consider discarding the change if the producer's `fixKind`
       // doesn't match a previously cached one.
+      builder.commit();
       return _NotEmptyFixState(
-        builder: localBuilder,
+        builder: builder,
         fixKind: multiFixKind,
         fixCount: fixState.fixCount + 1,
       );
     } on ConflictingEditException {
-      // If a conflicting edit was added in [compute], then the [localBuilder]
-      // is discarded and we revert to the previous state of the builder.
+      // If a conflicting edit was added in [compute], then the builder is
+      // reverted to its previous state.
+      builder.revert();
       return fixState;
     }
   }

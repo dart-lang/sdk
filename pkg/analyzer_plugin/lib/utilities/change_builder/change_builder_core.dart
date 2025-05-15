@@ -75,6 +75,8 @@ abstract class ChangeBuilder {
 
   /// Return a copy of this change builder that is constructed in such as was
   /// that changes to the copy will not effect this change builder.
+  @Deprecated('Copying change builders is expensive, so it is no longer '
+      'supported. There is no replacement.')
   ChangeBuilder copy();
 
   /// Return `true` if this builder already has edits for the file with the

@@ -1455,6 +1455,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// visible in the generated code.
   final Map<Element, _LibraryImport> _elementLibrariesToImport = {};
 
+  /// The data used to revert any changes made since the last time [commit] was
+  /// called.
+  final _DartFileEditBuilderRevertData _revertData =
+      _DartFileEditBuilderRevertData();
+
   /// Initializes a newly created builder to build a source file edit within the
   /// change being built by the given [changeBuilder].
   ///
@@ -1497,6 +1502,13 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
+  void commit() {
+    super.commit();
+
+    _revertData._addedLibrariesToImport.clear();
+  }
+
+  @override
   void convertFunctionFromSyncToAsync({
     required FunctionBody? body,
     required TypeSystem typeSystem,
@@ -1521,6 +1533,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     );
   }
 
+  @Deprecated('Copying change builders is expensive. Internal users of this '
+      'method now use `commit` and `revert` instead.')
   @override
   DartFileEditBuilderImpl copyWith(ChangeBuilderImpl changeBuilder,
       {Map<DartFileEditBuilderImpl, DartFileEditBuilderImpl> editBuilderMap =
@@ -1888,6 +1902,17 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         builder.write('void');
       }
     });
+  }
+
+  @override
+  void revert() {
+    super.revert();
+
+    for (var uri in _revertData._addedLibrariesToImport) {
+      librariesToImport.remove(uri);
+    }
+
+    _revertData._addedLibrariesToImport.clear();
   }
 
   /// Adds edits ensure that all the [imports] are imported into the library.
@@ -2433,6 +2458,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         import._ensureShown(showName, useShow: useShow);
       }
       (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
+      _revertData._addedLibrariesToImport.add(uri);
     }
     return import;
   }
@@ -2559,6 +2585,10 @@ class ImportLibraryElementResultImpl implements ImportLibraryElementResult {
   final String? prefix;
 
   ImportLibraryElementResultImpl(this.prefix);
+}
+
+class _DartFileEditBuilderRevertData {
+  final List<Uri> _addedLibrariesToImport = [];
 }
 
 class _EnclosingElementFinder {

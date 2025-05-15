@@ -2610,6 +2610,26 @@ import 'z.dart';
     expect(edits, hasLength(1));
     expect(edits[0].replacement, equalsIgnoringWhitespace('Future<String>'));
   }
+
+  Future<void> test_revert_librariesToImport() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '');
+    await resolveFile(path);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('dart:math'));
+    });
+    builder.commit();
+
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('dart:io'));
+    });
+    builder.revert();
+
+    var change = builder.sourceChange;
+    expect(change.edits[0].edits[0].replacement, 'import \'dart:math\';\n');
+  }
 }
 
 @reflectiveTest
