@@ -28,6 +28,9 @@ class RefactorCommandHandler extends SimpleEditCommandHandler<AnalysisServer> {
   RefactorCommandHandler(super.server, this.commandName, this.generator);
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<void>> handle(
     MessageInfo message,
     Map<String, Object?> parameters,

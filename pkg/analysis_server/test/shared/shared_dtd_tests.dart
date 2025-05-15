@@ -10,12 +10,12 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:dtd/dtd.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../integration/support/dart_tooling_daemon.dart';
 import '../integration/support/web_sockets.dart';
 import '../lsp/request_helpers_mixin.dart';
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/lsp_protocol_extensions.dart';
 import '../utils/test_code_extensions.dart';
 
 /// The name of the DTD service that LSP methods are registered against.
@@ -37,7 +37,15 @@ class DtdHelper with LspRequestHelpersMixin {
     T Function(R) fromJson,
   ) async {
     var response = await sendRequestToServer(request);
-    return fromJson(response.result as R);
+    var error = response.error;
+    if (error != null) {
+      throw error;
+    } else {
+      // response.result should only be null when error != null if T allows null.
+      return response.result == null
+          ? null as T
+          : fromJson(response.result as R);
+    }
   }
 
   @override
@@ -59,7 +67,8 @@ class DtdHelper with LspRequestHelpersMixin {
 
 /// Shared DTD tests that are used by both LSP and legacy server integration
 /// tests.
-mixin SharedDtdTests on LspRequestHelpersMixin {
+mixin SharedDtdTests
+    on LspRequestHelpersMixin, LspEditHelpersMixin, LspVerifyEditHelpersMixin {
   /// The name of the DTD service that methods will be registered under.
 
   /// The `dart tooling-daemon` process we've spawned to connect to.
@@ -84,6 +93,9 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
   /// An invalid DTD URI used for testing connection failures.
   final invalidUri = Uri.parse('ws://invalid:345/invalid');
 
+  // TODO(dantup): Support this for LSP-over-Legacy shared tests.
+  set failTestOnErrorDiagnostic(bool value);
+
   /// Overridden by test subclasses to provide the path of a file for testing.
   String get testFile;
 
@@ -92,6 +104,44 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
 
   /// Overridden by test subclasses to create a new file.
   void createFile(String path, String content);
+
+  /// Sets up a file with [code] and expects/returns the [Command] code action
+  /// with [title].
+  Future<Command> expectCommandCodeAction(TestCode code, String title) async {
+    createFile(testFile, code.code);
+    await initializeServer();
+    await sendConnectToDtdRequest();
+
+    // Ensure the codeAction service is available.
+    expectMethod(Method.textDocument_codeAction);
+
+    // Fetch code actions at the marked location.
+    var actions = await dtd.getCodeActions(
+      testFileUri,
+      range: code.range.range,
+    );
+
+    // Ensure all returned actions are Commands (not CodeActionLiterals).
+    var commands = actions.map((action) => action.asCommand).toList();
+
+    // Find the one with the matching title.
+    expect(commands.map((command) => command.title), contains(title));
+    return commands.singleWhere((command) => command.title == title);
+  }
+
+  Future<void> expectedCommandCodeActionEdits(
+    TestCode code,
+    String title,
+    String expected,
+  ) async {
+    var command = await expectCommandCodeAction(code, title);
+
+    // Invoke the command over DTD, expecting edits to be sent back to us
+    // (not over DTD).
+    var verifier = await executeForEdits(() => dtd.executeCommand(command));
+
+    verifier.verifyFiles(expected);
+  }
 
   void expectMethod(Method method, {bool available = true}) {
     if (available) {
@@ -291,7 +341,6 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expectMethod(CustomMethods.experimentalEcho);
   }
 
-  @SkippedTest(reason: 'Not all shared LSP methods are enabled yet')
   Future<void> test_connectToDtd_success_registers_standardLspMethods() async {
     await initializeServer();
     await sendConnectToDtdRequest();
@@ -302,6 +351,84 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expectMethod(Method.textDocument_formatting);
     expectMethod(Method.textDocument_implementation);
     expectMethod(Method.textDocument_documentColor);
+  }
+
+  Future<void> test_service_codeAction_assist() async {
+    setApplyEditSupport();
+
+    var code = TestCode.parse('''
+var a = [!''!];
+''');
+
+    var title = 'Convert to double quoted string';
+    var expected = r'''
+>>>>>>>>>> lib/main.dart
+var a = "";
+''';
+
+    await expectedCommandCodeActionEdits(code, title, expected);
+  }
+
+  Future<void> test_service_codeAction_fix() async {
+    failTestOnErrorDiagnostic = false;
+    setApplyEditSupport();
+
+    var code = TestCode.parse('''
+Future<void> [!f!]() {}
+''');
+
+    var title = "Add 'async' modifier";
+    var expected = r'''
+>>>>>>>>>> lib/main.dart
+Future<void> f() async {}
+''';
+
+    await expectedCommandCodeActionEdits(code, title, expected);
+  }
+
+  Future<void> test_service_codeAction_refactor() async {
+    setApplyEditSupport();
+
+    var code = TestCode.parse('''
+void f() {
+  [!print('');!]
+}
+''');
+
+    var title = 'Extract Method';
+    var expected = r'''
+>>>>>>>>>> lib/main.dart
+void f() {
+  newMethod();
+}
+
+void newMethod() {
+  print('');
+}
+''';
+
+    await expectedCommandCodeActionEdits(code, title, expected);
+  }
+
+  Future<void> test_service_codeAction_source() async {
+    setApplyEditSupport();
+
+    var code = TestCode.parse('''
+[!!]import 'dart:async';
+import 'dart:io';
+
+FutureOr<void>? a;
+''');
+
+    var title = 'Organize Imports';
+    var expected = r'''
+>>>>>>>>>> lib/main.dart
+import 'dart:async';
+
+FutureOr<void>? a;
+''';
+
+    await expectedCommandCodeActionEdits(code, title, expected);
   }
 
   Future<void> test_service_failure_hover() async {

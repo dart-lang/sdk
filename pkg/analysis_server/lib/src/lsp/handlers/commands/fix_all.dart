@@ -23,6 +23,9 @@ class FixAllCommandHandler extends SimpleEditCommandHandler<LspAnalysisServer> {
   String get commandName => 'Fix All';
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<void>> handle(
     MessageInfo message,
     Map<String, Object?> parameters,

@@ -203,10 +203,6 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
 
   Uri get pubspecFileUri => toUri(convertPath(pubspecFilePath));
 
-  /// A stream of [RequestMessage]s from the server.
-  ///
-  /// Only LSP message requests (`lsp.handle`) from the server are included
-  /// here.
   @override
   Stream<RequestMessage> get requestsFromServer => serverChannel
       .serverToClientRequests

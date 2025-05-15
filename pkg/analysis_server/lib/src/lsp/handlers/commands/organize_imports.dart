@@ -17,6 +17,9 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Organize Imports';
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<void>> handle(
     MessageInfo message,
     Map<String, Object?> parameters,

@@ -34,6 +34,9 @@ class ApplyCodeActionCommandHandler
   bool get recordsOwnAnalytics => true;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<void>> handle(
     MessageInfo message,
     Map<String, Object?> parameters,

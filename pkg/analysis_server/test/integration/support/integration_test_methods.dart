@@ -15,6 +15,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'integration_tests.dart';
@@ -25,7 +26,7 @@ abstract class IntegrationTest {
   Server get server;
 
   /// The converter used to convert between URI/Paths in server communication.
-  ClientUriConverter? uriConverter;
+  final ClientUriConverter uriConverter = ClientUriConverter.noop(path.context);
 
   /// Return the version number of the analysis server.
   ///

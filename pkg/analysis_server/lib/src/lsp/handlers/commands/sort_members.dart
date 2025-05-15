@@ -18,6 +18,9 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Sort Members';
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<void>> handle(
     MessageInfo message,
     Map<String, Object?> parameters,
