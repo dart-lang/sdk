@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,7 @@ class AvoidReturningNullForVoid extends MultiAnalysisRule {
     : super(name: LintNames.avoid_returning_null_for_void, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.avoid_returning_null_for_void_from_function,
     LinterLintCode.avoid_returning_null_for_void_from_method,
   ];

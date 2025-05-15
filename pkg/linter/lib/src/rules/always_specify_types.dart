@@ -19,19 +19,19 @@ class AlwaysSpecifyTypes extends MultiAnalysisRule {
     : super(name: LintNames.always_specify_types, description: _desc);
 
   @override
+  List<DiagnosticCode> get diagnosticCodes => [
+    LinterLintCode.always_specify_types_add_type,
+    LinterLintCode.always_specify_types_replace_keyword,
+    LinterLintCode.always_specify_types_specify_type,
+    LinterLintCode.always_specify_types_split_to_types,
+  ];
+
+  @override
   List<String> get incompatibleRules => const [
     LintNames.avoid_types_on_closure_parameters,
     LintNames.omit_local_variable_types,
     LintNames.omit_obvious_local_variable_types,
     LintNames.omit_obvious_property_types,
-  ];
-
-  @override
-  List<LintCode> get lintCodes => [
-    LinterLintCode.always_specify_types_add_type,
-    LinterLintCode.always_specify_types_replace_keyword,
-    LinterLintCode.always_specify_types_specify_type,
-    LinterLintCode.always_specify_types_split_to_types,
   ];
 
   @override

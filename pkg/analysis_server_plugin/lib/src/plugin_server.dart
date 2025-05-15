@@ -364,7 +364,7 @@ class PluginServer {
         // `benchhmark.dart` script does.
         rule.registerNodeProcessors(nodeRegistry, context);
       }
-      for (var code in rules.expand((r) => r.lintCodes)) {
+      for (var code in rules.expand((r) => r.diagnosticCodes)) {
         var existingPlugin = pluginCodeMapping[code.name];
         if (existingPlugin == null) {
           pluginCodeMapping[code.name] = configuration.name;

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -15,7 +16,7 @@ class AvoidCatchingErrors extends MultiAnalysisRule {
     : super(name: LintNames.avoid_catching_errors, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.avoid_catching_errors_class,
     LinterLintCode.avoid_catching_errors_subclass,
   ];

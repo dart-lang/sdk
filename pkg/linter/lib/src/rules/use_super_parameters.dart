@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -32,7 +33,7 @@ class UseSuperParameters extends MultiAnalysisRule {
       );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.use_super_parameters_multiple,
     LinterLintCode.use_super_parameters_single,
   ];

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -16,16 +17,16 @@ class UnnecessaryFinal extends MultiAnalysisRule {
     : super(name: LintNames.unnecessary_final, description: _desc);
 
   @override
+  List<DiagnosticCode> get diagnosticCodes => [
+    LinterLintCode.unnecessary_final_with_type,
+    LinterLintCode.unnecessary_final_without_type,
+  ];
+
+  @override
   List<String> get incompatibleRules => const [
     LintNames.prefer_final_locals,
     LintNames.prefer_final_parameters,
     LintNames.prefer_final_in_for_each,
-  ];
-
-  @override
-  List<LintCode> get lintCodes => [
-    LinterLintCode.unnecessary_final_with_type,
-    LinterLintCode.unnecessary_final_without_type,
   ];
 
   @override

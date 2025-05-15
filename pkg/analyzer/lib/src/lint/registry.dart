@@ -68,32 +68,32 @@ class Registry with IterableMixin<AbstractAnalysisRule> {
   /// Adds the given lint [rule] to this registry.
   void registerLintRule(AbstractAnalysisRule rule) {
     _lintRules[rule.name] = rule;
-    for (var lintCode in rule.lintCodes) {
-      _codeMap[lintCode.uniqueName] = lintCode;
+    for (var code in rule.diagnosticCodes) {
+      _codeMap[code.uniqueName] = code as LintCode;
     }
   }
 
   /// Adds the given warning [rule] to this registry.
   void registerWarningRule(AbstractAnalysisRule rule) {
     _warningRules[rule.name] = rule;
-    for (var lintCode in rule.lintCodes) {
-      _codeMap[lintCode.uniqueName] = lintCode;
+    for (var code in rule.diagnosticCodes) {
+      _codeMap[code.uniqueName] = code as LintCode;
     }
   }
 
   /// Removes the given lint [rule] from this registry.
   void unregisterLintRule(AbstractAnalysisRule rule) {
     _lintRules.remove(rule.name);
-    for (var lintCode in rule.lintCodes) {
-      _codeMap.remove(lintCode.uniqueName);
+    for (var code in rule.diagnosticCodes) {
+      _codeMap.remove(code.uniqueName);
     }
   }
 
   /// Removes the given warning [rule] from this registry.
   void unregisterWarningRule(AbstractAnalysisRule rule) {
     _warningRules.remove(rule.name);
-    for (var lintCode in rule.lintCodes) {
-      _codeMap.remove(lintCode.uniqueName);
+    for (var code in rule.diagnosticCodes) {
+      _codeMap.remove(code.uniqueName);
     }
   }
 }

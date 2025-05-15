@@ -133,7 +133,7 @@ class TestRule extends MultiAnalysisRule {
   TestRule() : super(name: 'test_rule', description: '');
 
   @override
-  List<LintCode> get lintCodes => [code, customCode];
+  List<DiagnosticCode> get diagnosticCodes => [code, customCode];
 }
 
 class _MockSource implements Source {

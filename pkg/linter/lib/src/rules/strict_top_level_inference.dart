@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:collection/collection.dart';
@@ -21,7 +22,7 @@ class StrictTopLevelInference extends MultiAnalysisRule {
     : super(name: LintNames.strict_top_level_inference, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.strict_top_level_inference_add_type,
     LinterLintCode.strict_top_level_inference_replace_keyword,
     LinterLintCode.strict_top_level_inference_split_to_types,

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -18,7 +19,7 @@ class UnrelatedTypeEqualityChecks extends MultiAnalysisRule {
     : super(name: LintNames.unrelated_type_equality_checks, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.unrelated_type_equality_checks_in_expression,
     LinterLintCode.unrelated_type_equality_checks_in_pattern,
   ];

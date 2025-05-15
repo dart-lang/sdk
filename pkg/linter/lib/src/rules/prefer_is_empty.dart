@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -20,7 +21,7 @@ class PreferIsEmpty extends MultiAnalysisRule {
   //  rather than lints because they represent a bug rather than a style
   //  preference.
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.prefer_is_empty_always_false,
     LinterLintCode.prefer_is_empty_always_true,
     LinterLintCode.prefer_is_empty_use_is_empty,
