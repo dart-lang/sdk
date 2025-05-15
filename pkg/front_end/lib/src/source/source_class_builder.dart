@@ -521,19 +521,19 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    nameSpace
+    _nameSpace
         .filteredConstructorIterator(includeDuplicates: false)
         .forEach(build);
-    nameSpace.filteredIterator(includeDuplicates: false).forEach(build);
+    _nameSpace.filteredIterator(includeDuplicates: false).forEach(build);
   }
 
   @override
   Iterator<T> fullMemberIterator<T extends NamedBuilder>() =>
-      nameSpace.filteredIterator<T>(includeDuplicates: false);
+      _nameSpace.filteredIterator<T>(includeDuplicates: false);
 
   @override
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
+      _nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
@@ -1263,8 +1263,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    nameSpace.filteredIterator(includeDuplicates: true).forEach(buildMembers);
-    nameSpace
+    _nameSpace.filteredIterator(includeDuplicates: true).forEach(buildMembers);
+    _nameSpace
         .filteredConstructorIterator(includeDuplicates: true)
         .forEach(buildMembers);
     return count;

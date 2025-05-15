@@ -40,7 +40,7 @@ void main() {}
   for (LibraryBuilder builder in builders) {
     if (builder is! DillLibraryBuilder) continue;
     Iterator<DillTypeAliasBuilder> iterator =
-        builder.libraryNameSpace.filteredIterator(includeDuplicates: false);
+        builder.filteredMembersIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       DillTypeAliasBuilder member = iterator.current;
       try {

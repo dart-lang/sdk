@@ -391,7 +391,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         NamedBuilder result = _computeAmbiguousDeclarationForExport(
             name, existing, member,
             uriOffset: uriOffset);
-        _exportNameSpace.addLocalMember(name, result, setter: isSetter);
+        _exportNameSpace.addLocalMember(name, result,
+            setter: isSetter, allowReplace: true);
         return result != existing;
       } else {
         _exportNameSpace.addLocalMember(name, member, setter: isSetter);
@@ -467,9 +468,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   List<Export> get exporters => compilationUnit.exporters;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Iterator<T> fullMemberIterator<T extends NamedBuilder>() =>
-      libraryNameSpace.filteredIterator<T>(includeDuplicates: false);
+  Iterator<T> filteredMembersIterator<T extends NamedBuilder>(
+          {required bool includeDuplicates}) =>
+      libraryNameSpace.filteredIterator<T>(
+          includeDuplicates: includeDuplicates);
+
+  @override
+  Iterator<NamedBuilder> get unfilteredMembersIterator {
+    return _libraryNameSpace!.unfilteredIterator;
+  }
 
   @override
   bool get isSynthetic => compilationUnit.isSynthetic;
@@ -514,7 +521,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       part.buildOutlineNode(library);
     }
 
-    Iterator<Builder> iterator = localMembersIterator;
+    Iterator<Builder> iterator = unfilteredMembersIterator;
     while (iterator.moveNext()) {
       _buildOutlineNodes(iterator.current, coreLibrary);
     }
@@ -555,7 +562,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(checkState(required: [SourceLibraryBuilderState.scopesBuilt]));
 
     Iterator<NamedBuilder> iterator =
-        libraryNameSpace.filteredIterator(includeDuplicates: false);
+        _libraryNameSpace!.filteredIterator(includeDuplicates: false);
     UriOffset uriOffset = new UriOffset(fileUri, TreeNode.noOffset);
     while (iterator.moveNext()) {
       NamedBuilder builder = iterator.current;
@@ -575,7 +582,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     Iterator<NamedBuilder> iterator =
-        exportNameSpace.filteredIterator(includeDuplicates: false);
+        _exportNameSpace.filteredIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       NamedBuilder builder = iterator.current;
       String name = builder.name;
@@ -662,7 +669,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void buildScopes(LibraryBuilder coreLibrary) {
     assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
 
-    Iterator<Builder> iterator = localMembersIterator;
+    Iterator<Builder> iterator = unfilteredMembersIterator;
     while (iterator.moveNext()) {
       Builder builder = iterator.current;
       if (builder is SourceDeclarationBuilder) {
@@ -690,7 +697,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void installDefaultSupertypes(
       ClassBuilder objectClassBuilder, Class objectClass) {
-    Iterator<SourceClassBuilder> iterator = localMembersIteratorOfType();
+    Iterator<SourceClassBuilder> iterator =
+        filteredMembersIterator(includeDuplicates: true);
     while (iterator.moveNext()) {
       SourceClassBuilder declaration = iterator.current;
       declaration.installDefaultSupertypes(objectClassBuilder, objectClass);
@@ -700,7 +708,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void collectSourceClassesAndExtensionTypes(
       List<SourceClassBuilder> sourceClasses,
       List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes) {
-    Iterator<Builder> iterator = localMembersIterator;
+    Iterator<Builder> iterator = unfilteredMembersIterator;
     while (iterator.moveNext()) {
       Builder member = iterator.current;
       if (member is SourceClassBuilder) {
@@ -715,7 +723,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// return the number of constructors resolved.
   int resolveConstructors() {
     int count = 0;
-    Iterator<ClassDeclarationBuilder> iterator = localMembersIteratorOfType();
+    Iterator<ClassDeclarationBuilder> iterator =
+        filteredMembersIterator(includeDuplicates: true);
     while (iterator.moveNext()) {
       ClassDeclarationBuilder builder = iterator.current;
       count += builder.resolveConstructors(this);
@@ -730,7 +739,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     // Iterate through all the classes, enums, and mixins in the library,
     // recording the non-synthetic instance fields and getters of each.
-    Iterator<SourceClassBuilder> classIterator = localMembersIteratorOfType();
+    Iterator<SourceClassBuilder> classIterator =
+        filteredMembersIterator(includeDuplicates: true);
     while (classIterator.moveNext()) {
       SourceClassBuilder classBuilder = classIterator.current;
       ClassInfo<Class> classInfo = fieldPromotability.addClass(classBuilder.cls,
@@ -765,7 +775,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // And for each getter in an extension or extension type, make a note of why
     // it's not promotable.
     Iterator<SourceExtensionBuilder> extensionIterator =
-        localMembersIteratorOfType();
+        filteredMembersIterator(includeDuplicates: true);
     while (extensionIterator.moveNext()) {
       SourceExtensionBuilder extension_ = extensionIterator.current;
       Iterator<SourcePropertyBuilder> iterator =
@@ -781,7 +791,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     Iterator<SourceExtensionTypeDeclarationBuilder> extensionTypeIterator =
-        localMembersIteratorOfType();
+        filteredMembersIterator(includeDuplicates: true);
     while (extensionTypeIterator.moveNext()) {
       SourceExtensionTypeDeclarationBuilder extensionType =
           extensionTypeIterator.current;
@@ -933,7 +943,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         annotatableFileUri: library.fileUri,
         bodyBuilderContext: createBodyBuilderContext());
 
-    Iterator<Builder> iterator = localMembersIterator;
+    Iterator<Builder> iterator = unfilteredMembersIterator;
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
       if (declaration is SourceClassBuilder) {
@@ -1193,7 +1203,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// This includes augmenting member bodies and adding augmented members.
   int buildBodyNodes() {
     int count = 0;
-    Iterator<Builder> iterator = localMembersIterator;
+    Iterator<Builder> iterator = unfilteredMembersIterator;
     while (iterator.moveNext()) {
       Builder builder = iterator.current;
       if (builder is SourceMemberBuilder) {
@@ -1648,7 +1658,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    Iterator<Builder> iterator = localMembersIterator;
+    Iterator<Builder> iterator = unfilteredMembersIterator;
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
       if (declaration is SourceMemberBuilder) {
@@ -1874,7 +1884,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   List<DelayedDefaultValueCloner>? installTypedefTearOffs() {
     List<DelayedDefaultValueCloner>? delayedDefaultValueCloners;
-    Iterator<SourceTypeAliasBuilder> iterator = localMembersIteratorOfType();
+    Iterator<SourceTypeAliasBuilder> iterator =
+        filteredMembersIterator(includeDuplicates: true);
     while (iterator.moveNext()) {
       SourceTypeAliasBuilder declaration = iterator.current;
       DelayedDefaultValueCloner? delayedDefaultValueCloner =

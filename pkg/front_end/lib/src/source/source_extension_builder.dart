@@ -186,7 +186,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     }
 
     Iterator<SourceMemberBuilder> iterator =
-        nameSpace.filteredIterator(includeDuplicates: false);
+        _nameSpace.filteredIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       iterator.current
           .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);

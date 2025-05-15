@@ -719,14 +719,14 @@ class SourceExtensionTypeDeclarationBuilder
     }
 
     Iterator<SourceMemberBuilder> iterator =
-        nameSpace.filteredIterator(includeDuplicates: false);
+        _nameSpace.filteredIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       iterator.current
           .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
     }
 
     Iterator<SourceMemberBuilder> constructorIterator =
-        nameSpace.filteredConstructorIterator(includeDuplicates: false);
+        _nameSpace.filteredConstructorIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
       constructorIterator.current
           .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);

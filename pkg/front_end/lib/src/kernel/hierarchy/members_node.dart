@@ -611,7 +611,6 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         if (tuple == null) {
           memberMap[name] = new _Tuple.declareMember(classMember);
         } else {
-          // Coverage-ignore-block(suite): Not run.
           tuple.declaredMember = classMember;
         }
         if (name == noSuchMethodName &&
@@ -1265,7 +1264,6 @@ class _Tuple {
 
   ClassMember? get declaredMember => _declaredGetable;
 
-  // Coverage-ignore(suite): Not run.
   void set declaredMember(ClassMember? value) {
     assert(!value!.forSetter);
     assert(

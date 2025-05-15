@@ -358,18 +358,13 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// Returns an iterator of all members (typedefs, classes and members)
   /// declared in this library, including duplicate declarations.
   // TODO(johnniwinther): Should the only exist on [SourceLibraryBuilder]?
-  Iterator<NamedBuilder> get localMembersIterator;
+  Iterator<NamedBuilder> get unfilteredMembersIterator;
 
-  /// Returns an iterator of all members of specified type
-  /// declared in this library, including duplicate declarations.
-  // TODO(johnniwinther): Should the only exist on [SourceLibraryBuilder]?
-  Iterator<T> localMembersIteratorOfType<T extends NamedBuilder>();
-
-  /// [Iterator] for all declarations declared in this library or any of its
-  /// augmentations.
+  /// [Iterator] for all declarations declared in this library of type [T].
   ///
-  /// Duplicates and augmenting members are _not_ included.
-  Iterator<T> fullMemberIterator<T extends NamedBuilder>();
+  /// If [includeDuplicates] is `true`, duplicate declarations are included.
+  Iterator<T> filteredMembersIterator<T extends NamedBuilder>(
+      {required bool includeDuplicates});
 
   /// Looks up [constructorName] in the class named [className].
   ///
@@ -442,16 +437,6 @@ abstract class LibraryBuilderImpl extends BuilderImpl
 
   @override
   Uri get importUri;
-
-  @override
-  Iterator<NamedBuilder> get localMembersIterator {
-    return libraryNameSpace.filteredIterator(includeDuplicates: true);
-  }
-
-  @override
-  Iterator<T> localMembersIteratorOfType<T extends NamedBuilder>() {
-    return libraryNameSpace.filteredIterator<T>(includeDuplicates: true);
-  }
 
   @override
   FormattedMessage? addProblem(

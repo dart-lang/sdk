@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
-import 'code_generator.dart' show MacroAssembler;
+import 'code_generator.dart' show CallTarget, CodeGenerator, MacroAssembler;
 import 'dispatch_table.dart';
 import 'reference_extensions.dart';
 import 'translator.dart';
@@ -18,34 +18,59 @@ class DynamicForwarders {
   final Translator translator;
   final w.ModuleBuilder callingModule;
 
-  final Map<String, Forwarder> _getterForwarderOfName = {};
-  final Map<String, Forwarder> _setterForwarderOfName = {};
-  final Map<String, Forwarder> _methodForwarderOfName = {};
+  final Map<String, CallTarget> _getterForwarderOfName = {};
+  final Map<String, CallTarget> _setterForwarderOfName = {};
+  final Map<String, CallTarget> _methodForwarderOfName = {};
 
   DynamicForwarders(this.translator, this.callingModule);
 
-  Forwarder getDynamicGetForwarder(String memberName) =>
-      _getterForwarderOfName[memberName] ??= Forwarder._(
-          translator, _ForwarderKind.Getter, memberName, callingModule)
-        .._generateCode(translator);
+  CallTarget getDynamicGetForwarder(String memberName) =>
+      _getterForwarderOfName[memberName] ??= _DynamicForwarderCallTarget(
+          translator, _ForwarderKind.Getter, memberName, callingModule);
 
-  Forwarder getDynamicSetForwarder(String memberName) =>
-      _setterForwarderOfName[memberName] ??= Forwarder._(
-          translator, _ForwarderKind.Setter, memberName, callingModule)
-        .._generateCode(translator);
+  CallTarget getDynamicSetForwarder(String memberName) =>
+      _setterForwarderOfName[memberName] ??= _DynamicForwarderCallTarget(
+          translator, _ForwarderKind.Setter, memberName, callingModule);
 
-  Forwarder getDynamicInvocationForwarder(String memberName) {
+  CallTarget getDynamicInvocationForwarder(String memberName) {
     // Add Wasm function to the map before generating the forwarder code, to
     // allow recursive calls in the "call" forwarder.
     var forwarder = _methodForwarderOfName[memberName];
     if (forwarder == null) {
-      forwarder = Forwarder._(
+      forwarder = _DynamicForwarderCallTarget(
           translator, _ForwarderKind.Method, memberName, callingModule);
       _methodForwarderOfName[memberName] = forwarder;
-      forwarder._generateCode(translator);
     }
     return forwarder;
   }
+}
+
+class _DynamicForwarderCallTarget extends CallTarget {
+  final Translator translator;
+  final _ForwarderKind _kind;
+  final String memberName;
+  final w.ModuleBuilder callingModule;
+
+  _DynamicForwarderCallTarget(
+      this.translator, this._kind, this.memberName, this.callingModule)
+      : assert(!translator.isDynamicSubmodule ||
+            (memberName == 'call' && _kind == _ForwarderKind.Getter)),
+        super(_kind.functionType(translator));
+
+  @override
+  String get name => 'Dynamic $_kind forwarder for "$memberName"';
+
+  @override
+  bool get supportsInlining => false;
+
+  @override
+  late final w.BaseFunction function = (() {
+    final function = callingModule.functions.define(signature, name);
+    final forwarder =
+        _DynamicForwarderCodeGenerator(translator, _kind, memberName, function);
+    translator.compilationQueue.add(CompilationTask(function, forwarder));
+    return function;
+  })();
 }
 
 /// A function that "forwards" a dynamic get, set, or invocation to the right
@@ -67,21 +92,19 @@ class DynamicForwarders {
 /// A forwarder calls `noSuchMethod` on the receiver when a matching member is
 /// not found, or the passed arguments do not match the expected parameters of
 /// the member.
-class Forwarder {
+class _DynamicForwarderCodeGenerator extends CodeGenerator {
+  final Translator translator;
   final _ForwarderKind _kind;
-
   final String memberName;
-
   final w.FunctionBuilder function;
 
-  Forwarder._(Translator translator, this._kind, this.memberName,
-      w.ModuleBuilder module)
-      : function = module.functions.define(_kind.functionType(translator),
-            "$_kind forwarder for '$memberName'"),
-        assert(!translator.isDynamicSubmodule ||
-            (memberName == 'call' && _kind == _ForwarderKind.Getter));
+  _DynamicForwarderCodeGenerator(
+      this.translator, this._kind, this.memberName, this.function);
 
-  void _generateCode(Translator translator) {
+  @override
+  void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
+      w.Label? returnLabel) {
+    assert(returnLabel == null); // no inlining support atm.
     switch (_kind) {
       case _ForwarderKind.Getter:
         _generateGetterCode(translator);

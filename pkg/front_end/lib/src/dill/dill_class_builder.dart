@@ -7,6 +7,7 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../base/loader.dart';
 import '../base/name_space.dart';
+import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
@@ -16,20 +17,7 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_member_builder.dart';
 import 'dill_type_parameter_builder.dart';
 
-mixin DillClassMemberAccessMixin implements ClassMemberAccess {
-  DeclarationNameSpace get nameSpace;
-
-  @override
-  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
-
-  @override
-  Iterator<T> fullMemberIterator<T extends NamedBuilder>() =>
-      nameSpace.filteredIterator<T>(includeDuplicates: false);
-}
-
-class DillClassBuilder extends ClassBuilderImpl
-    with DillClassMemberAccessMixin {
+class DillClassBuilder extends ClassBuilderImpl {
   @override
   final DillLibraryBuilder parent;
 
@@ -37,6 +25,9 @@ class DillClassBuilder extends ClassBuilderImpl
   final Class cls;
 
   final MutableDeclarationNameSpace _nameSpace;
+
+  final List<MemberBuilder> _constructorBuilders = [];
+  final List<MemberBuilder> _memberBuilders = [];
 
   List<NominalParameterBuilder>? _typeParameters;
 
@@ -112,24 +103,47 @@ class DillClassBuilder extends ClassBuilderImpl
     return supertype;
   }
 
+  @override
+  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
+      new FilteredIterator<T>(_constructorBuilders.iterator,
+          includeDuplicates: false);
+
+  @override
+  Iterator<T> fullMemberIterator<T extends NamedBuilder>() =>
+      new FilteredIterator<T>(_memberBuilders.iterator,
+          includeDuplicates: false);
+
+  bool _isPrivateFromOtherLibrary(Member member) {
+    Name name = member.name;
+    return name.isPrivate &&
+        name.libraryReference != cls.enclosingLibrary.reference;
+  }
+
   void addField(Field field) {
     DillFieldBuilder builder =
         new DillFieldBuilder(field, libraryBuilder, this);
-    String name = field.name.text;
-    _nameSpace.addLocalMember(name, builder, setter: false);
+    if (!_isPrivateFromOtherLibrary(field)) {
+      _nameSpace.addLocalMember(field.name.text, builder, setter: false);
+    }
+    _memberBuilders.add(builder);
   }
 
   void addConstructor(Constructor constructor, Procedure? constructorTearOff) {
     DillConstructorBuilder builder = new DillConstructorBuilder(
         constructor, constructorTearOff, libraryBuilder, this);
-    String name = constructor.name.text;
-    _nameSpace.addConstructor(name, builder);
+    if (!_isPrivateFromOtherLibrary(constructor)) {
+      _nameSpace.addConstructor(constructor.name.text, builder);
+    }
+    _constructorBuilders.add(builder);
   }
 
   void addFactory(Procedure factory, Procedure? factoryTearOff) {
-    String name = factory.name.text;
-    _nameSpace.addConstructor(name,
-        new DillFactoryBuilder(factory, factoryTearOff, libraryBuilder, this));
+    DillFactoryBuilder builder =
+        new DillFactoryBuilder(factory, factoryTearOff, libraryBuilder, this);
+    if (!_isPrivateFromOtherLibrary(factory)) {
+      _nameSpace.addConstructor(factory.name.text, builder);
+    }
+    _constructorBuilders.add(builder);
   }
 
   void addProcedure(Procedure procedure) {
@@ -139,24 +153,36 @@ class DillClassBuilder extends ClassBuilderImpl
         // Coverage-ignore(suite): Not run.
         throw new UnsupportedError("Use addFactory for adding factories");
       case ProcedureKind.Setter:
-        _nameSpace.addLocalMember(
-            name, new DillSetterBuilder(procedure, libraryBuilder, this),
-            setter: true);
+        DillSetterBuilder builder =
+            new DillSetterBuilder(procedure, libraryBuilder, this);
+        if (!_isPrivateFromOtherLibrary(procedure)) {
+          _nameSpace.addLocalMember(name, builder, setter: true);
+        }
+        _memberBuilders.add(builder);
         break;
       case ProcedureKind.Getter:
-        _nameSpace.addLocalMember(
-            name, new DillGetterBuilder(procedure, libraryBuilder, this),
-            setter: false);
+        DillGetterBuilder builder =
+            new DillGetterBuilder(procedure, libraryBuilder, this);
+        if (!_isPrivateFromOtherLibrary(procedure)) {
+          _nameSpace.addLocalMember(name, builder, setter: false);
+        }
+        _memberBuilders.add(builder);
         break;
       case ProcedureKind.Operator:
-        _nameSpace.addLocalMember(
-            name, new DillOperatorBuilder(procedure, libraryBuilder, this),
-            setter: false);
+        DillOperatorBuilder builder =
+            new DillOperatorBuilder(procedure, libraryBuilder, this);
+        if (!_isPrivateFromOtherLibrary(procedure)) {
+          _nameSpace.addLocalMember(name, builder, setter: false);
+        }
+        _memberBuilders.add(builder);
         break;
       case ProcedureKind.Method:
-        _nameSpace.addLocalMember(
-            name, new DillMethodBuilder(procedure, libraryBuilder, this),
-            setter: false);
+        DillMethodBuilder builder =
+            new DillMethodBuilder(procedure, libraryBuilder, this);
+        if (!_isPrivateFromOtherLibrary(procedure)) {
+          _nameSpace.addLocalMember(name, builder, setter: false);
+        }
+        _memberBuilders.add(builder);
         break;
     }
   }
