@@ -945,7 +945,7 @@ class _Element2Writer extends _AbstractElementWriter {
         // TODO(augmentations): Remove the invocations of `field.baseElement`.
         //  There shouldn't be any members in the list of fields.
         expect(
-          variableEnclosing.fields2.map((field) => field.baseElement),
+          variableEnclosing.fields.map((field) => field.baseElement),
           contains(variable.baseElement),
         );
       }
@@ -1176,7 +1176,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _elementPrinter.writeTypeList('allSupertypes', sorted);
       }
 
-      _writeElementList('fields', e, e.fields2, _writeFieldElement);
+      _writeElementList('fields', e, e.fields, _writeFieldElement);
       if (e is InterfaceElementImpl2) {
         var constructors = e.constructors2;
         if (e is MixinElementImpl2) {
@@ -1190,9 +1190,9 @@ class _Element2Writer extends _AbstractElementWriter {
           );
         }
       }
-      _writeElementList('getters', e, e.getters2, _writeGetterElement);
-      _writeElementList('setters', e, e.setters2, _writeSetterElement);
-      _writeElementList('methods', e, e.methods2, _writeMethodElement);
+      _writeElementList('getters', e, e.getters, _writeGetterElement);
+      _writeElementList('setters', e, e.setters, _writeSetterElement);
+      _writeElementList('methods', e, e.methods, _writeMethodElement);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -1550,7 +1550,7 @@ class _Element2Writer extends _AbstractElementWriter {
         // TODO(augmentations): Remove the invocations of `field.baseElement`.
         //  There shouldn't be any members in the list of fields.
         expect(
-          variableEnclosing.fields2.map((field) => field.baseElement),
+          variableEnclosing.fields.map((field) => field.baseElement),
           contains(variable.baseElement),
         );
       }

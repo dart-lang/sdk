@@ -72,7 +72,7 @@ class ConstructorFieldsVerifier {
 
     var fieldMap = <FieldElement, _InitState>{};
 
-    for (var field in element.fields2) {
+    for (var field in element.fields) {
       if (field.isSynthetic) {
         continue;
       }

@@ -62,10 +62,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var methods = declaredElement.methods2;
+    var methods = declaredElement.methods;
     if (methods.isNotEmpty && !methods.every((m) => m.isStatic)) return;
 
-    if (methods.isNotEmpty || declaredElement.fields2.any((f) => !f.isConst)) {
+    if (methods.isNotEmpty || declaredElement.fields.any((f) => !f.isConst)) {
       rule.reportAtNode(node);
     }
   }

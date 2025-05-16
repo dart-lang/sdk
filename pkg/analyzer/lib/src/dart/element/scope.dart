@@ -93,9 +93,9 @@ class EnclosedScope with _GettersAndSetters implements Scope {
 /// The scope defined by an extension.
 class ExtensionScope extends EnclosedScope {
   ExtensionScope(super.parent, ExtensionElement element) {
-    element.getters2.forEach(_addGetter);
-    element.setters2.forEach(_addSetter);
-    element.methods2.forEach(_addGetter);
+    element.getters.forEach(_addGetter);
+    element.setters.forEach(_addSetter);
+    element.methods.forEach(_addGetter);
   }
 }
 
@@ -150,8 +150,7 @@ class ImportsTrackingOfPrefix {
   /// Key: an import.
   /// Value: used elements imported from the import.
   /// Excludes elements from deprecated exports.
-  final Map<LibraryImportImpl, Set<Element>> importToAccessedElements2 =
-      {};
+  final Map<LibraryImportImpl, Set<Element>> importToAccessedElements2 = {};
 
   /// Usually it is an error to use an import prefix without `.identifier`
   /// after it, but we allow this in comment references. This makes the
@@ -265,9 +264,9 @@ class ImportsTrackingOfPrefix {
 /// The scope defined by an instance element.
 class InstanceScope extends EnclosedScope {
   InstanceScope(super.parent, InstanceElement element) {
-    element.getters2.forEach(_addGetter);
-    element.setters2.forEach(_addSetter);
-    element.methods2.forEach(_addGetter);
+    element.getters.forEach(_addGetter);
+    element.setters.forEach(_addSetter);
+    element.methods.forEach(_addGetter);
   }
 }
 

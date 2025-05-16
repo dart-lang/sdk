@@ -736,7 +736,7 @@ class _ClassVerifier {
       return false;
     }
 
-    if (interfaceElement.fields2.every((e) => e.isStatic || e.isSynthetic)) {
+    if (interfaceElement.fields.every((e) => e.isStatic || e.isSynthetic)) {
       return false;
     }
 
@@ -962,7 +962,7 @@ class _ClassVerifier {
       return;
     }
 
-    var noSuchMethodDeclaration = classElement.getMethod2(
+    var noSuchMethodDeclaration = classElement.getMethod(
       MethodElement.NO_SUCH_METHOD_METHOD_NAME,
     );
     if (noSuchMethodDeclaration != null &&
@@ -984,7 +984,7 @@ class _ClassVerifier {
           continue;
         }
         if (method.metadata2.hasMustBeOverridden) {
-          var methodDeclaration = classElement.getMethod2(method.name3!);
+          var methodDeclaration = classElement.getMethod(method.name3!);
           if (methodDeclaration == null || methodDeclaration.isAbstract) {
             notOverridden.add(method.baseElement);
           }
@@ -999,7 +999,7 @@ class _ClassVerifier {
         }
         if (getter.metadata2.hasMustBeOverridden ||
             (getter.variable3?.metadata2.hasMustBeOverridden ?? false)) {
-          var declaration = classElement.getGetter2(getter.name3!);
+          var declaration = classElement.getGetter(getter.name3!);
           if (declaration == null || declaration.isAbstract) {
             notOverridden.add(getter);
           }
@@ -1014,7 +1014,7 @@ class _ClassVerifier {
         }
         if (setter.metadata2.hasMustBeOverridden ||
             (setter.variable3?.metadata2.hasMustBeOverridden ?? false)) {
-          var declaration = classElement.getSetter2(setter.name3!);
+          var declaration = classElement.getSetter(setter.name3!);
           if (declaration == null || declaration.isAbstract) {
             notOverridden.add(setter);
           }

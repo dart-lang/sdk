@@ -861,10 +861,10 @@ class FunctionReferenceResolver {
     String name = propertyName.name;
     ExecutableElement? element;
     if (propertyName.inSetterContext()) {
-      element = classElement.getSetter2(name);
+      element = classElement.getSetter(name);
     }
-    element ??= classElement.getGetter2(name);
-    element ??= classElement.getMethod2(name);
+    element ??= classElement.getGetter(name);
+    element ??= classElement.getMethod(name);
     if (element != null && element.isAccessibleIn2(_resolver.definingLibrary)) {
       return element;
     }

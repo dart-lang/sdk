@@ -403,7 +403,7 @@ class _WidgetDescriptionComputer {
   List<protocol.FlutterWidgetPropertyValueEnumItem> _enumItemsForEnum(
     EnumElement element,
   ) {
-    return element.fields2
+    return element.fields
         .where((field) => field.isStatic && field.isEnumConstant)
         .map(_toEnumItem)
         .toList();
@@ -412,7 +412,7 @@ class _WidgetDescriptionComputer {
   List<protocol.FlutterWidgetPropertyValueEnumItem> _enumItemsForStaticFields(
     ClassElement classElement,
   ) {
-    return classElement.fields2
+    return classElement.fields
         .where((f) => f.isStatic)
         .map(_toEnumItem)
         .toList();

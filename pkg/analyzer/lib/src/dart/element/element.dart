@@ -238,7 +238,7 @@ class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement {
       var currentElement = classesToVisit.removeAt(0);
       if (visitedClasses.add(currentElement)) {
         // check fields
-        for (var field in currentElement.fields2) {
+        for (var field in currentElement.fields) {
           if (!field.isFinal &&
               !field.isConst &&
               !field.isStatic &&
@@ -304,7 +304,7 @@ class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement {
 
     // With 2+ static const fields with the type of this class.
     var numberOfElements = 0;
-    for (var field in fields2) {
+    for (var field in fields) {
       if (field.isStatic && field.isConst && field.type == thisType) {
         numberOfElements++;
       }
@@ -606,7 +606,7 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
     );
 
     bool typeHasInstanceVariables(InterfaceTypeImpl type) =>
-        type.element3.fields2.any((e) => !e.isSynthetic);
+        type.element3.fields.any((e) => !e.isSynthetic);
 
     // Now create an implicit constructor for every constructor found above,
     // substituting type parameters as appropriate.
@@ -2288,7 +2288,7 @@ class EnumElementImpl2 extends InterfaceElementImpl2 implements EnumElement {
 
   @override
   List<FieldElementImpl2> get constants2 {
-    return fields2.where((field) => field.isEnumConstant).toList();
+    return fields.where((field) => field.isEnumConstant).toList();
   }
 
   @override
@@ -4481,7 +4481,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   List<Element> get children2 {
-    return [...fields2, ...getters2, ...setters2, ...methods2];
+    return [...fields, ...getters, ...setters, ...methods];
   }
 
   @override
@@ -4498,16 +4498,20 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   LibraryElement get enclosingElement2 => enclosingElement;
 
   @override
-  List<FieldElementImpl2> get fields2 {
+  List<FieldElementImpl2> get fields {
     _readMembers();
     return firstFragment.fields.map((e) => e.asElement2).toList();
   }
+
+  @Deprecated('Use fields instead')
+  @override
+  List<FieldElementImpl2> get fields2 => fields;
 
   @override
   InstanceFragmentImpl get firstFragment;
 
   @override
-  List<GetterElementImpl> get getters2 {
+  List<GetterElementImpl> get getters {
     _readMembers();
     return firstFragment.accessors
         .where((e) => e.isGetter)
@@ -4515,6 +4519,10 @@ abstract class InstanceElementImpl2 extends ElementImpl2
         .nonNulls
         .toList();
   }
+
+  @Deprecated('Use getters instead')
+  @override
+  List<GetterElementImpl> get getters2 => getters;
 
   @override
   String get identifier => name3 ?? firstFragment.identifier;
@@ -4541,9 +4549,13 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   MetadataImpl get metadata2 => firstFragment.metadata2;
 
   @override
-  List<MethodElementImpl2> get methods2 {
+  List<MethodElementImpl2> get methods {
     return firstFragment.methods.map((e) => e.asElement2).toList();
   }
+
+  @Deprecated('Use methods instead')
+  @override
+  List<MethodElementImpl2> get methods2 => methods;
 
   @override
   String? get name3 => firstFragment.name;
@@ -4555,7 +4567,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   AnalysisSession? get session => firstFragment.session;
 
   @override
-  List<SetterElementImpl> get setters2 {
+  List<SetterElementImpl> get setters {
     _readMembers();
     return firstFragment.accessors
         .where((e) => e.isSetter)
@@ -4563,6 +4575,10 @@ abstract class InstanceElementImpl2 extends ElementImpl2
         .nonNulls
         .toList();
   }
+
+  @Deprecated('Use setters instead')
+  @override
+  List<SetterElementImpl> get setters2 => setters;
 
   @override
   List<TypeParameterElementImpl2> get typeParameters2 =>
@@ -4579,47 +4595,63 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   @trackedDirectly
-  FieldElementImpl2? getField2(String name) {
+  FieldElementImpl2? getField(String name) {
     globalResultRequirements?.record_instanceElement_getField(
       element: this,
       name: name,
     );
 
-    return fields2.firstWhereOrNull((e) => e.name3 == name);
+    return fields.firstWhereOrNull((e) => e.name3 == name);
   }
+
+  @Deprecated('Use getField instead')
+  @override
+  FieldElementImpl2? getField2(String name) => getField(name);
 
   @override
   @trackedDirectly
-  GetterElementImpl? getGetter2(String name) {
+  GetterElementImpl? getGetter(String name) {
     globalResultRequirements?.record_instanceElement_getGetter(
       element: this,
       name: name,
     );
 
-    return getters2.firstWhereOrNull((e) => e.name3 == name);
+    return getters.firstWhereOrNull((e) => e.name3 == name);
   }
+
+  @Deprecated('Use getGetter instead')
+  @override
+  GetterElementImpl? getGetter2(String name) => getGetter(name);
 
   @override
   @trackedDirectly
-  MethodElementImpl2? getMethod2(String name) {
+  MethodElementImpl2? getMethod(String name) {
     globalResultRequirements?.record_instanceElement_getMethod(
       element: this,
       name: name,
     );
 
-    return methods2.firstWhereOrNull((e) => e.lookupName == name);
+    return methods.firstWhereOrNull((e) => e.lookupName == name);
   }
+
+  @Deprecated('Use getMethod instead')
+  @override
+  MethodElementImpl2? getMethod2(String name) => getMethod(name);
 
   @override
   @trackedDirectly
-  SetterElementImpl? getSetter2(String name) {
+  SetterElementImpl? getSetter(String name) {
     globalResultRequirements?.record_instanceElement_getSetter(
       element: this,
       name: name,
     );
 
-    return setters2.firstWhereOrNull((e) => e.name3 == name);
+    return setters.firstWhereOrNull((e) => e.name3 == name);
   }
+
+  @Deprecated('Use getSetter instead')
+  @override
+  SetterElementImpl? getSetter2(String name) => getSetter(name);
 
   @override
   bool isAccessibleIn2(LibraryElement library) {
@@ -4631,7 +4663,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   }
 
   @override
-  GetterElement? lookUpGetter2({
+  GetterElement? lookUpGetter({
     required String name,
     required LibraryElement library,
   }) {
@@ -4641,8 +4673,17 @@ abstract class InstanceElementImpl2 extends ElementImpl2
         as GetterElement?;
   }
 
+  @Deprecated('Use lookUpGetter instead')
   @override
-  MethodElement? lookUpMethod2({
+  GetterElement? lookUpGetter2({
+    required String name,
+    required LibraryElement library,
+  }) {
+    return lookUpGetter(name: name, library: library);
+  }
+
+  @override
+  MethodElement? lookUpMethod({
     required String name,
     required LibraryElement library,
   }) {
@@ -4651,8 +4692,17 @@ abstract class InstanceElementImpl2 extends ElementImpl2
     ).firstWhereOrNull((method) => method.isAccessibleIn2(library));
   }
 
+  @Deprecated('Use lookUpMethod instead')
   @override
-  SetterElement? lookUpSetter2({
+  MethodElement? lookUpMethod2({
+    required String name,
+    required LibraryElement library,
+  }) {
+    return lookUpMethod(name: name, library: library);
+  }
+
+  @override
+  SetterElement? lookUpSetter({
     required String name,
     required LibraryElement library,
   }) {
@@ -4660,6 +4710,15 @@ abstract class InstanceElementImpl2 extends ElementImpl2
           name,
         ).firstWhereOrNull((setter) => setter.isAccessibleIn2(library))
         as SetterElement?;
+  }
+
+  @Deprecated('Use lookUpSetter instead')
+  @override
+  SetterElement? lookUpSetter2({
+    required String name,
+    required LibraryElement library,
+  }) {
+    return lookUpSetter(name: name, library: library);
   }
 
   @override
@@ -4691,7 +4750,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
     var visitedElements = <InstanceElement>{};
     InstanceElement? element = this;
     while (element != null && visitedElements.add(element)) {
-      var getter = element.getGetter2(name);
+      var getter = element.getGetter(name);
       if (getter != null) {
         yield getter as PropertyAccessorElement2OrMember;
       }
@@ -4700,7 +4759,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       }
       for (var mixin in element.mixins.reversed) {
         mixin as InterfaceTypeImpl;
-        getter = mixin.element3.getGetter2(name);
+        getter = mixin.element3.getGetter(name);
         if (getter != null) {
           yield getter as PropertyAccessorElement2OrMember;
         }
@@ -4717,7 +4776,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
     var visitedElements = <InstanceElement>{};
     InstanceElement? element = this;
     while (element != null && visitedElements.add(element)) {
-      var method = element.getMethod2(name);
+      var method = element.getMethod(name);
       if (method != null) {
         yield method as MethodElement2OrMember;
       }
@@ -4726,7 +4785,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       }
       for (var mixin in element.mixins.reversed) {
         mixin as InterfaceTypeImpl;
-        method = mixin.element3.getMethod2(name);
+        method = mixin.element3.getMethod(name);
         if (method != null) {
           yield method as MethodElement2OrMember;
         }
@@ -4743,7 +4802,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
     var visitedElements = <InstanceElement>{};
     InstanceElement? element = this;
     while (element != null && visitedElements.add(element)) {
-      var setter = element.getSetter2(name);
+      var setter = element.getSetter(name);
       if (setter != null) {
         yield setter as PropertyAccessorElement2OrMember;
       }
@@ -4752,7 +4811,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       }
       for (var mixin in element.mixins.reversed) {
         mixin as InterfaceTypeImpl;
-        setter = mixin.element3.getSetter2(name);
+        setter = mixin.element3.getSetter(name);
         if (setter != null) {
           yield setter as PropertyAccessorElement2OrMember;
         }

@@ -134,7 +134,7 @@ extension on DartType {
     switch (element3) {
       case InterfaceElement element:
         return {
-          for (var method in element.methods2)
+          for (var method in element.methods)
             // No need to test for eq operators, as they are not explicitly defined.
             if (method.name3 == TokenType.SLASH.lexeme)
               _DivisionOperator.division

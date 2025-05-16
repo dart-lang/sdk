@@ -227,21 +227,21 @@ class _OverriddenElementsFinder {
 
     // method
     if (_kinds.contains(ElementKind.METHOD)) {
-      var member = findMatchingElement(classElement.methods2);
+      var member = findMatchingElement(classElement.methods);
       if (member != null) {
         return member;
       }
     }
     // getter
     if (_kinds.contains(ElementKind.GETTER)) {
-      var member = findMatchingElement(classElement.getters2);
+      var member = findMatchingElement(classElement.getters);
       if (member != null) {
         return member;
       }
     }
     // setter
     if (_kinds.contains(ElementKind.SETTER)) {
-      var member = findMatchingElement(classElement.setters2);
+      var member = findMatchingElement(classElement.setters);
       if (member != null) {
         return member;
       }

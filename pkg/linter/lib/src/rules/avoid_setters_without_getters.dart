@@ -72,7 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       var getter =
           // Check for a declared (static) getter.
-          interface.getGetter2(getterName) ??
+          interface.getGetter(getterName) ??
           // Then look for an inherited one.
           interface.getInheritedConcreteMember(name.forGetter);
 

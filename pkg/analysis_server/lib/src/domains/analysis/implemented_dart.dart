@@ -65,10 +65,10 @@ class ImplementedComputer {
     // Always include Object and its members.
     if (element is ClassElement && element.isDartCoreObject) {
       _addImplementedClass(element);
-      element.getters2.forEach(_addImplementedMember);
-      element.setters2.forEach(_addImplementedMember);
-      element.fields2.forEach(_addImplementedMember);
-      element.methods2.forEach(_addImplementedMember);
+      element.getters.forEach(_addImplementedMember);
+      element.setters.forEach(_addImplementedMember);
+      element.fields.forEach(_addImplementedMember);
+      element.methods.forEach(_addImplementedMember);
       return;
     }
 
@@ -76,10 +76,10 @@ class ImplementedComputer {
     subtypeMembers = await searchEngine.membersOfSubtypes(element);
     if (subtypeMembers != null) {
       _addImplementedClass(element);
-      element.getters2.forEach(_addMemberIfImplemented);
-      element.setters2.forEach(_addMemberIfImplemented);
-      element.fields2.forEach(_addMemberIfImplemented);
-      element.methods2.forEach(_addMemberIfImplemented);
+      element.getters.forEach(_addMemberIfImplemented);
+      element.setters.forEach(_addMemberIfImplemented);
+      element.fields.forEach(_addMemberIfImplemented);
+      element.methods.forEach(_addMemberIfImplemented);
     }
   }
 

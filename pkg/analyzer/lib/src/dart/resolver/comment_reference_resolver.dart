@@ -80,15 +80,15 @@ class CommentReferenceResolver {
               prefixElement,
               Name(prefixElement.library2.uri, name.name),
             ) ??
-            prefixElement.getMethod2(name.name) ??
-            prefixElement.getGetter2(name.name) ??
-            prefixElement.getSetter2(name.name) ??
+            prefixElement.getMethod(name.name) ??
+            prefixElement.getGetter(name.name) ??
+            prefixElement.getSetter(name.name) ??
             prefixElement.getNamedConstructor2(name.name);
       } else if (prefixElement is ExtensionElement) {
         name.element =
-            prefixElement.getMethod2(name.name) ??
-            prefixElement.getGetter2(name.name) ??
-            prefixElement.getSetter2(name.name);
+            prefixElement.getMethod(name.name) ??
+            prefixElement.getGetter(name.name) ??
+            prefixElement.getSetter(name.name);
       } else {
         // TODO(brianwilkerson): Report this error.
       }
@@ -134,15 +134,15 @@ class CommentReferenceResolver {
     var propertyName = expression.propertyName;
     if (element is InterfaceElement) {
       propertyName.element =
-          element.getMethod2(propertyName.name) ??
-          element.getGetter2(propertyName.name) ??
-          element.getSetter2(propertyName.name) ??
+          element.getMethod(propertyName.name) ??
+          element.getGetter(propertyName.name) ??
+          element.getSetter(propertyName.name) ??
           element.getNamedConstructor2(propertyName.name);
     } else if (element is ExtensionElement) {
       propertyName.element =
-          element.getMethod2(propertyName.name) ??
-          element.getGetter2(propertyName.name) ??
-          element.getSetter2(propertyName.name);
+          element.getMethod(propertyName.name) ??
+          element.getGetter(propertyName.name) ??
+          element.getSetter(propertyName.name);
     }
   }
 

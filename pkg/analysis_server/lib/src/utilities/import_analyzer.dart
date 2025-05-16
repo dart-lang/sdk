@@ -224,22 +224,22 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
     var extensionElement = node.declaredFragment?.element;
     if (extensionElement != null) {
       recorder.recordDeclaration(node.offset, extensionElement);
-      for (var getter in extensionElement.getters2) {
+      for (var getter in extensionElement.getters) {
         if (!getter.isStatic && !getter.isSynthetic) {
           recorder.recordDeclaration(node.offset, getter);
         }
       }
-      for (var setter in extensionElement.setters2) {
+      for (var setter in extensionElement.setters) {
         if (!setter.isStatic && !setter.isSynthetic) {
           recorder.recordDeclaration(node.offset, setter);
         }
       }
-      for (var field in extensionElement.fields2) {
+      for (var field in extensionElement.fields) {
         if (!field.isStatic && !field.isSynthetic) {
           recorder.recordDeclaration(node.offset, field);
         }
       }
-      for (var method in extensionElement.methods2) {
+      for (var method in extensionElement.methods) {
         if (!method.isStatic) {
           recorder.recordDeclaration(node.offset, method);
         }

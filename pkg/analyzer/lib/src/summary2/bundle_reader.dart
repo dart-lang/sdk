@@ -266,7 +266,7 @@ abstract class ElementLinkedData<E> {
   }
 
   /// Ensure that all members of the [element] are available. This includes
-  /// being able to ask them for example using [ClassElement.methods2], and
+  /// being able to ask them for example using [ClassElement.methods], and
   /// as well access them through their [Reference]s. For a class declaration
   /// this means reading them, for a named mixin application this means
   /// computing constructors.

@@ -11843,7 +11843,7 @@ class A {
 }
 ''');
 
-    var fields = library.getClass2('A')!.fields2;
+    var fields = library.getClass2('A')!.fields;
     expect(fields, hasLength(1));
   }
 
@@ -11854,7 +11854,7 @@ class A {
 }
 ''');
 
-    var getters = library.getClass2('A')!.getters2;
+    var getters = library.getClass2('A')!.getters;
     expect(getters, hasLength(1));
   }
 
@@ -11865,7 +11865,7 @@ class A {
 }
 ''');
 
-    var methods = library.getClass2('A')!.methods2;
+    var methods = library.getClass2('A')!.methods;
     expect(methods, hasLength(1));
   }
 
@@ -11876,7 +11876,7 @@ class A {
 }
 ''');
 
-    var setters = library.getClass2('A')!.setters2;
+    var setters = library.getClass2('A')!.setters;
     expect(setters, hasLength(1));
   }
 

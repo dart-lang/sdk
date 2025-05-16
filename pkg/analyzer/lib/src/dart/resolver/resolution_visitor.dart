@@ -310,9 +310,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           clause: node.implementsClause,
         );
 
-        _defineElements(element.getters2);
-        _defineElements(element.setters2);
-        _defineElements(element.methods2);
+        _defineElements(element.getters);
+        _defineElements(element.setters);
+        _defineElements(element.methods);
         node.members.accept(this);
       });
     });
@@ -536,9 +536,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           clause: node.implementsClause,
         );
 
-        _defineElements(element.getters2);
-        _defineElements(element.setters2);
-        _defineElements(element.methods2);
+        _defineElements(element.getters);
+        _defineElements(element.setters);
+        _defineElements(element.methods);
         node.constants.accept(this);
         node.members.accept(this);
       });
@@ -573,9 +573,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         node.typeParameters?.accept(this);
         node.onClause?.accept(this);
 
-        _defineElements(element.getters2);
-        _defineElements(element.setters2);
-        _defineElements(element.methods2);
+        _defineElements(element.getters);
+        _defineElements(element.setters);
+        _defineElements(element.methods);
         node.members.accept(this);
       });
     });
@@ -608,9 +608,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           clause: node.implementsClause,
         );
 
-        _defineElements(element.getters2);
-        _defineElements(element.setters2);
-        _defineElements(element.methods2);
+        _defineElements(element.getters);
+        _defineElements(element.setters);
+        _defineElements(element.methods);
         node.members.accept(this);
       });
     });
@@ -1100,9 +1100,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           clause: node.implementsClause,
         );
 
-        _defineElements(element.getters2);
-        _defineElements(element.setters2);
-        _defineElements(element.methods2);
+        _defineElements(element.getters);
+        _defineElements(element.setters);
+        _defineElements(element.methods);
         node.members.accept(this);
       });
     });

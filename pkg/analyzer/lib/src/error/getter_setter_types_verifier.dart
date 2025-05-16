@@ -34,7 +34,7 @@ class GetterSetterTypesVerifier {
       return;
     }
 
-    for (var getter in element.getters2) {
+    for (var getter in element.getters) {
       _checkLocalGetter(getter);
     }
   }
@@ -48,7 +48,7 @@ class GetterSetterTypesVerifier {
     }
 
     checkInterface(element, interface);
-    checkStaticGetters(element.getters2);
+    checkStaticGetters(element.getters);
   }
 
   void checkInterface(InterfaceElementImpl2 element, Interface interface) {

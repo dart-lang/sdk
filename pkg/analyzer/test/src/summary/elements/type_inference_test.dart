@@ -2920,7 +2920,7 @@ library
           returnType: dynamic
 ''');
     var b = library.classes[0];
-    var p = b.methods2[0].formalParameters[0];
+    var p = b.methods[0].formalParameters[0];
     // This test should verify that we correctly record inferred types,
     // when the type is defined in a part of an SDK library. So, test that
     // the type is actually in a part.

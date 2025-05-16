@@ -120,11 +120,11 @@ class MustCallSuperVerifier {
       ExecutableElement? member;
       switch (element) {
         case MethodElement():
-          member = ancestor.getMethod2(name);
+          member = ancestor.getMethod(name);
         case GetterElement():
-          member = ancestor.getMethod2(name) ?? ancestor.getGetter2(name);
+          member = ancestor.getMethod(name) ?? ancestor.getGetter(name);
         case SetterElement():
-          member = ancestor.getSetter2(name);
+          member = ancestor.getSetter(name);
       }
 
       if (member is MethodElement && member.metadata2.hasMustCallSuper) {

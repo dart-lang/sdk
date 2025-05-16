@@ -1297,7 +1297,7 @@ import 'a.dart';
     addSource(path, content);
 
     var aElement = await _getClassElement(aPath, 'A');
-    var fooElement = aElement.methods2[0];
+    var fooElement = aElement.methods[0];
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {

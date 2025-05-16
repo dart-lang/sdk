@@ -255,7 +255,7 @@ class LibraryManifestBuilder {
     required InstanceElementImpl2 instanceElement,
     required InstanceItem instanceItem,
   }) {
-    for (var field in instanceElement.fields2) {
+    for (var field in instanceElement.fields) {
       _addInstanceElementField(
         encodingContext: encodingContext,
         instanceItem: instanceItem,
@@ -263,7 +263,7 @@ class LibraryManifestBuilder {
       );
     }
 
-    for (var method in instanceElement.methods2) {
+    for (var method in instanceElement.methods) {
       _addInstanceElementMethod(
         encodingContext: encodingContext,
         instanceItem: instanceItem,
@@ -271,7 +271,7 @@ class LibraryManifestBuilder {
       );
     }
 
-    for (var getter in instanceElement.getters2) {
+    for (var getter in instanceElement.getters) {
       _addInstanceElementGetter(
         encodingContext: encodingContext,
         instanceItem: instanceItem,
@@ -279,7 +279,7 @@ class LibraryManifestBuilder {
       );
     }
 
-    for (var setter in instanceElement.setters2) {
+    for (var setter in instanceElement.setters) {
       _addInstanceElementSetter(
         encodingContext: encodingContext,
         instanceItem: instanceItem,
@@ -905,7 +905,7 @@ class _LibraryMatch {
     required InstanceItem item,
     required MatchContext matchContext,
   }) {
-    for (var field in element.fields2) {
+    for (var field in element.fields) {
       if (!_matchInstanceElementField(
         instanceItem: item,
         instanceMatchContext: matchContext,
@@ -915,7 +915,7 @@ class _LibraryMatch {
       }
     }
 
-    for (var method in element.methods2) {
+    for (var method in element.methods) {
       if (!_matchInstanceElementMethod(
         instanceItem: item,
         instanceMatchContext: matchContext,
@@ -925,7 +925,7 @@ class _LibraryMatch {
       }
     }
 
-    for (var getter in element.getters2) {
+    for (var getter in element.getters) {
       if (!_matchInstanceElementGetter(
         instanceItem: item,
         instanceMatchContext: matchContext,
@@ -935,7 +935,7 @@ class _LibraryMatch {
       }
     }
 
-    for (var setter in element.setters2) {
+    for (var setter in element.setters) {
       if (!_matchInstanceElementSetter(
         instanceItem: item,
         instanceMatchContext: matchContext,

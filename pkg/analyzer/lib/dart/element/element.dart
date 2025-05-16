@@ -1793,6 +1793,10 @@ abstract class InstanceElement
   LibraryElement get enclosingElement2;
 
   /// The fields declared in this element.
+  List<FieldElement> get fields;
+
+  /// The fields declared in this element.
+  @Deprecated('Use fields instead')
   List<FieldElement> get fields2;
 
   @override
@@ -1802,27 +1806,55 @@ abstract class InstanceElement
   List<InstanceFragment> get fragments;
 
   /// The getters declared in this element.
+  List<GetterElement> get getters;
+
+  /// The getters declared in this element.
+  @Deprecated('Use getters instead')
   List<GetterElement> get getters2;
 
   /// The methods declared in this element.
+  List<MethodElement> get methods;
+
+  /// The methods declared in this element.
+  @Deprecated('Use methods instead')
   List<MethodElement> get methods2;
 
   /// The setters declared in this element.
+  List<SetterElement> get setters;
+
+  /// The setters declared in this element.
+  @Deprecated('Use setters instead')
   List<SetterElement> get setters2;
 
   /// The type of a `this` expression.
   DartType get thisType;
 
-  /// Returns the field from [fields2] that has the given [name].
+  /// Returns the field from [fields] that has the given [name].
+  FieldElement? getField(String name);
+
+  /// Returns the field from [fields] that has the given [name].
+  @Deprecated('Use getField instead')
   FieldElement? getField2(String name);
 
-  /// Returns the getter from [getters2] that has the given [name].
+  /// Returns the getter from [getters] that has the given [name].
+  GetterElement? getGetter(String name);
+
+  /// Returns the getter from [getters] that has the given [name].
+  @Deprecated('Use getGetter instead')
   GetterElement? getGetter2(String name);
 
-  /// Returns the method from [methods2] that has the given [name].
+  /// Returns the method from [methods] that has the given [name].
+  MethodElement? getMethod(String name);
+
+  /// Returns the method from [methods] that has the given [name].
+  @Deprecated('Use getMethod instead')
   MethodElement? getMethod2(String name);
 
-  /// Returns the setter from [setters2] that has the given [name].
+  /// Returns the setter from [setters] that has the given [name].
+  SetterElement? getSetter(String name);
+
+  /// Returns the setter from [setters] that has the given [name].
+  @Deprecated('Use getSetter instead')
   SetterElement? getSetter2(String name);
 
   /// Returns the element representing the getter that results from looking up
@@ -1831,6 +1863,18 @@ abstract class InstanceElement
   ///
   /// The behavior of this method is defined by the Dart Language Specification
   /// in section 17.18 Lookup.
+  GetterElement? lookUpGetter({
+    required String name,
+    required LibraryElement library,
+  });
+
+  /// Returns the element representing the getter that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  @Deprecated('Use lookUpGetter instead')
   GetterElement? lookUpGetter2({
     required String name,
     required LibraryElement library,
@@ -1842,6 +1886,18 @@ abstract class InstanceElement
   ///
   /// The behavior of this method is defined by the Dart Language Specification
   /// in section 17.18 Lookup.
+  MethodElement? lookUpMethod({
+    required String name,
+    required LibraryElement library,
+  });
+
+  /// Returns the element representing the method that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  @Deprecated('Use lookUpMethod instead')
   MethodElement? lookUpMethod2({
     required String name,
     required LibraryElement library,
@@ -1853,6 +1909,18 @@ abstract class InstanceElement
   ///
   /// The behavior of this method is defined by the Dart Language Specification
   /// in section 17.18 Lookup.
+  SetterElement? lookUpSetter({
+    required String name,
+    required LibraryElement library,
+  });
+
+  /// Returns the element representing the setter that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  @Deprecated('Use lookUpSetter instead')
   SetterElement? lookUpSetter2({
     required String name,
     required LibraryElement library,

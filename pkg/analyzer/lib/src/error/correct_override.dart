@@ -213,13 +213,13 @@ class CovariantParametersVerifier {
     ExecutableElement proto,
   ) {
     if (proto is MethodElement) {
-      return classElement.getMethod2(proto.displayName);
+      return classElement.getMethod(proto.displayName);
     }
     if (proto is PropertyAccessorElement) {
       if (proto is GetterElement) {
-        return classElement.getGetter2(proto.displayName);
+        return classElement.getGetter(proto.displayName);
       }
-      return classElement.getSetter2(proto.displayName);
+      return classElement.getSetter(proto.displayName);
     }
     return null;
   }

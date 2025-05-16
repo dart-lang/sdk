@@ -921,7 +921,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     Iterable<String> nonFinalInstanceFields(InterfaceElement element) {
-      return element.fields2
+      return element.fields
           .where(
             (FieldElement field) =>
                 !field.isSynthetic && !field.isFinal && !field.isStatic,

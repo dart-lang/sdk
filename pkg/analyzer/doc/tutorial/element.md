@@ -78,22 +78,22 @@ void printMembers(LibraryElement libraryElement) {
         print('  ${constructorElement.displayName}');
       }
     }
-    for (FieldElement fieldElement in classElement.fields2) {
+    for (FieldElement fieldElement in classElement.fields) {
       if (!fieldElement.isSynthetic) {
         print('  ${fieldElement.name3}');
       }
     }
-    for (GetterElement getterElement in classElement.getters2) {
+    for (GetterElement getterElement in classElement.getters) {
       if (!getterElement.isSynthetic) {
         print('  ${getterElement.name3}');
       }
     }
-    for (SetterElement setterElement in classElement.setters2) {
+    for (SetterElement setterElement in classElement.setters) {
       if (!setterElement.isSynthetic) {
         print('  ${setterElement.name3}');
       }
     }
-    for (MethodElement methodElement in classElement.methods2) {
+    for (MethodElement methodElement in classElement.methods) {
       if (!methodElement.isSynthetic) {
         print('  ${methodElement.name3}');
       }

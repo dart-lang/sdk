@@ -667,7 +667,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<GetterElement2OrMember> get getters {
     return _getters ??=
-        element3.getters2.map((e) {
+        element3.getters.map((e) {
           return GetterMember.from(e, this);
         }).toFixedList();
   }
@@ -771,7 +771,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<MethodElement2OrMember> get methods2 {
     return _methods ??=
-        element3.methods2.map((e) {
+        element3.methods.map((e) {
           return MethodMember.from2(e, this);
         }).toFixedList();
   }
@@ -798,7 +798,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<SetterElement2OrMember> get setters {
     return _setters ??=
-        element3.setters2.map((e) {
+        element3.setters.map((e) {
           return SetterMember.from(e, this);
         }).toFixedList();
   }
@@ -882,19 +882,19 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   GetterElement2OrMember? getGetter2(String getterName) {
-    var element = element3.getGetter2(getterName);
+    var element = element3.getGetter(getterName);
     return element != null ? GetterMember.from(element, this) : null;
   }
 
   @override
   MethodElement2OrMember? getMethod2(String methodName) {
-    var element = element3.getMethod2(methodName);
+    var element = element3.getMethod(methodName);
     return element != null ? MethodMember.from2(element, this) : null;
   }
 
   @override
   SetterElement2OrMember? getSetter2(String setterName) {
-    var element = element3.getSetter2(setterName);
+    var element = element3.getSetter(setterName);
     return element != null ? SetterMember.from(element, this) : null;
   }
 

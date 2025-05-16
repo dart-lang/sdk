@@ -6856,7 +6856,7 @@ class A {
   test_dependency_class_declared_field() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getField2('foo');
+      A.getField('foo');
     });
 
     await _runChangeScenarioTA(
@@ -6991,7 +6991,7 @@ class A {
   test_dependency_class_declared_field_notUsed() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getField2('foo');
+      A.getField('foo');
     });
 
     await _runChangeScenarioTA(
@@ -7108,7 +7108,7 @@ class A {
   test_dependency_class_declared_getter() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getGetter2('foo');
+      A.getGetter('foo');
     });
 
     await _runChangeScenarioTA(
@@ -7243,7 +7243,7 @@ class A {
   test_dependency_class_declared_getter_notUsed() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getGetter2('foo');
+      A.getGetter('foo');
     });
 
     await _runChangeScenarioTA(
@@ -7360,7 +7360,7 @@ class A {
   test_dependency_class_declared_setter() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getSetter2('foo');
+      A.getSetter('foo');
     });
 
     await _runChangeScenarioTA(
@@ -7495,7 +7495,7 @@ class A {
   test_dependency_class_declared_setter_notUsed() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getSetter2('foo');
+      A.getSetter('foo');
     });
 
     await _runChangeScenarioTA(
@@ -39485,7 +39485,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getField2('foo');
+      A.getField('foo');
     });
 
     await _runManualRequirementsRecording(
@@ -39541,7 +39541,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getGetter2('foo');
+      A.getGetter('foo');
     });
 
     await _runManualRequirementsRecording(
@@ -39594,7 +39594,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getMethod2('foo');
+      A.getMethod('foo');
     });
 
     await _runManualRequirementsRecording(
@@ -39643,7 +39643,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getMethod2('foo');
+      A.getMethod('foo');
     });
 
     await _runManualRequirementsRecording(
@@ -39689,7 +39689,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getSetter2('foo');
+      A.getSetter('foo');
     });
 
     await _runManualRequirementsRecording(
@@ -39742,7 +39742,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getGetter2('foo')!.variable3;
+      A.getGetter('foo')!.variable3;
     });
 
     await _runManualRequirementsRecording(
@@ -39803,7 +39803,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getGetter2('foo')!.variable3;
+      A.getGetter('foo')!.variable3;
     });
 
     await _runManualRequirementsRecording(
@@ -39861,7 +39861,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getSetter2('foo')!.variable3;
+      A.getSetter('foo')!.variable3;
     });
 
     await _runManualRequirementsRecording(
@@ -39922,7 +39922,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getSetter2('foo')!.variable3;
+      A.getSetter('foo')!.variable3;
     });
 
     await _runManualRequirementsRecording(

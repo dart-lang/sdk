@@ -265,7 +265,7 @@ class DeclarationHelper {
     }
     fieldsToSkip.remove(fieldToInclude);
 
-    for (var field in containingElement.fields2) {
+    for (var field in containingElement.fields) {
       // Skip fields that are already initialized at their declaration.
       if (!field.isStatic &&
           !field.isSynthetic &&
@@ -441,7 +441,7 @@ class DeclarationHelper {
     var referencingInterface =
         (extendedType is InterfaceType) ? extendedType.element3 : null;
     if (includeMethods) {
-      for (var method in extension.methods2) {
+      for (var method in extension.methods) {
         if (!method.isStatic) {
           if (method.isOperator) {
             continue;
@@ -454,7 +454,7 @@ class DeclarationHelper {
         }
       }
     }
-    for (var accessor in extension.getters2) {
+    for (var accessor in extension.getters) {
       if (excludedGetters.contains(accessor.name3)) {
         continue;
       }
@@ -467,7 +467,7 @@ class DeclarationHelper {
       }
     }
     if (includeSetters) {
-      for (var accessor in extension.setters2) {
+      for (var accessor in extension.setters) {
         if (!accessor.isStatic) {
           _suggestProperty(
             accessor: accessor,
@@ -636,30 +636,30 @@ class DeclarationHelper {
     switch (element) {
       case EnumElement():
         _addStaticMembers(
-          getters: element.getters2,
-          setters: element.setters2,
+          getters: element.getters,
+          setters: element.setters,
           constructors: element.constructors2,
           containingElement: element,
-          fields: element.fields2,
-          methods: element.methods2,
+          fields: element.fields,
+          methods: element.methods,
         );
       case ExtensionElement():
         _addStaticMembers(
-          getters: element.getters2,
-          setters: element.setters2,
+          getters: element.getters,
+          setters: element.setters,
           constructors: const [],
           containingElement: element,
-          fields: element.fields2,
-          methods: element.methods2,
+          fields: element.fields,
+          methods: element.methods,
         );
       case InterfaceElement():
         _addStaticMembers(
-          getters: element.getters2,
-          setters: element.setters2,
+          getters: element.getters,
+          setters: element.setters,
           constructors: element.constructors2,
           containingElement: element,
-          fields: element.fields2,
-          methods: element.methods2,
+          fields: element.fields,
+          methods: element.methods,
         );
     }
   }
@@ -780,7 +780,7 @@ class DeclarationHelper {
     for (var instantiatedExtension in applicableExtensions) {
       var extension = instantiatedExtension.extension;
       if (includeMethods) {
-        for (var method in extension.methods2) {
+        for (var method in extension.methods) {
           if (!method.isStatic) {
             if (method.isOperator) {
               continue;
@@ -789,7 +789,7 @@ class DeclarationHelper {
           }
         }
       }
-      for (var getter in extension.getters2) {
+      for (var getter in extension.getters) {
         if (excludedGetters.contains(getter.name3)) {
           continue;
         }
@@ -803,7 +803,7 @@ class DeclarationHelper {
           }
         }
       }
-      for (var setter in extension.setters2) {
+      for (var setter in extension.setters) {
         if (!setter.isSynthetic) {
           if (includeSetters) {
             _suggestProperty(accessor: setter);
@@ -1271,7 +1271,7 @@ class DeclarationHelper {
   void _addMembersOfEnclosingInstance(InstanceElement element) {
     var referencingInterface = _referencingInterfaceFor(element);
 
-    for (var accessor in element.getters2) {
+    for (var accessor in element.getters) {
       if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
         _suggestProperty(
           accessor: accessor,
@@ -1281,7 +1281,7 @@ class DeclarationHelper {
       }
     }
 
-    for (var accessor in element.setters2) {
+    for (var accessor in element.setters) {
       if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
         _suggestProperty(
           accessor: accessor,
@@ -1291,7 +1291,7 @@ class DeclarationHelper {
       }
     }
 
-    for (var field in element.fields2) {
+    for (var field in element.fields) {
       if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
         _suggestField(
           field: field,
@@ -1301,7 +1301,7 @@ class DeclarationHelper {
       }
     }
 
-    for (var method in element.methods2) {
+    for (var method in element.methods) {
       if (!mustBeStatic || method.isStatic) {
         _suggestMethod(
           method: method,
@@ -1690,7 +1690,7 @@ class DeclarationHelper {
         }
       }
       if (!mustBeType) {
-        _suggestStaticFields(element.fields2, importData);
+        _suggestStaticFields(element.fields, importData);
         _suggestConstructors(
           element.constructors2,
           importData,
@@ -1795,7 +1795,7 @@ class DeclarationHelper {
       }
 
       if (!mustBeType) {
-        _suggestStaticFields(element.fields2, importData);
+        _suggestStaticFields(element.fields, importData);
         _suggestConstructors(
           element.constructors2,
           importData,
@@ -1825,7 +1825,7 @@ class DeclarationHelper {
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
-        _suggestStaticFields(element.fields2, importData);
+        _suggestStaticFields(element.fields, importData);
       }
     }
   }
@@ -1849,7 +1849,7 @@ class DeclarationHelper {
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
-        _suggestStaticFields(element.fields2, importData);
+        _suggestStaticFields(element.fields, importData);
         _suggestConstructors(element.constructors2, importData);
       }
     }
@@ -1984,7 +1984,7 @@ class DeclarationHelper {
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
-        _suggestStaticFields(element.fields2, importData);
+        _suggestStaticFields(element.fields, importData);
       }
     }
   }

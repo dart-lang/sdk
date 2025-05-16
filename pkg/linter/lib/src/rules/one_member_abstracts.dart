@@ -46,9 +46,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (element.interfaces.isNotEmpty) return;
     if (element.mixins.isNotEmpty) return;
-    if (element.fields2.isNotEmpty) return;
+    if (element.fields.isNotEmpty) return;
 
-    var methods = element.methods2;
+    var methods = element.methods;
     if (methods.length != 1) return;
 
     var method = methods.first;

@@ -1533,7 +1533,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         var fieldElement =
             node.fields.variables.first.declaredFragment?.element;
         var lastElement =
-            (fieldElement?.enclosingElement as ClassElement?)?.fields2.reversed
+            (fieldElement?.enclosingElement as ClassElement?)?.fields.reversed
                 .where((field) {
                   if (field.isStatic) return false;
                   if (!field.isExternal) {
@@ -2487,7 +2487,7 @@ extension on Element? {
 
 extension on InterfaceElement {
   bool get isEmptyStruct {
-    for (var field in fields2) {
+    for (var field in fields) {
       var declaredType = field.type;
       if (declaredType.isDartCoreInt) {
         return false;

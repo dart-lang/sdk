@@ -18,7 +18,7 @@ class EnclosingTypeParameterReferenceFlag {
       for (var topElement in library.children2) {
         switch (topElement) {
           case InstanceElementImpl2():
-            for (var field in topElement.fields2) {
+            for (var field in topElement.fields) {
               if (!field.isSynthetic || field.isEnumValues) {
                 var result = _hasTypeParameterReference(topElement, field.type);
                 field.firstFragment.hasEnclosingTypeParameterReference = result;
@@ -33,7 +33,7 @@ class EnclosingTypeParameterReferenceFlag {
               }
             }
 
-            var accessors = [...topElement.getters2, ...topElement.setters2];
+            var accessors = [...topElement.getters, ...topElement.setters];
             for (var propertyAccessor in accessors) {
               if (!propertyAccessor.isSynthetic) {
                 var result = _hasTypeParameterReference(
@@ -50,7 +50,7 @@ class EnclosingTypeParameterReferenceFlag {
               }
             }
 
-            for (var method in topElement.methods2) {
+            for (var method in topElement.methods) {
               method.firstFragment.hasEnclosingTypeParameterReference =
                   _hasTypeParameterReference(topElement, method.type);
             }
