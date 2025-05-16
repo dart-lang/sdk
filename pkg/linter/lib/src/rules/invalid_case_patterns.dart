@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/token.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../extensions.dart';

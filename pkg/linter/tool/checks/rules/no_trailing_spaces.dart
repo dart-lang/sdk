@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r"Don't create string literals with trailing spaces in tests.";
