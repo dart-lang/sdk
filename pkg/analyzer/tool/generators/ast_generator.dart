@@ -127,7 +127,7 @@ class _Generator {
 
     return _ImplClass(
       node: nodeImpl,
-      interfaceName: interfaceElement.name3!,
+      interfaceElement: interfaceElement,
       properties: properties,
       leftBracketOffset: nodeImpl.leftBracket.offset,
     );
@@ -561,17 +561,29 @@ set $propertyName(${property.typeCode} $propertyName) {
     }
   }
 
+  void _generateResolveExpression(_ImplClass implClass, StringBuffer buffer) {
+    if (implClass.interfaceElement.isExpressionOrSubtype) {
+      buffer.write('''
+\n@generated
+@override
+void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+  resolver.visit${implClass.interfaceName}(this, contextType: contextType);
+}''');
+    }
+  }
+
   String _generateSingleClassMembers(_ImplClass implClass) {
     var buffer = StringBuffer();
     _generateFields(implClass, buffer);
     _generateConstructor(implClass, buffer);
-    _generateNodeGettersSetters(buffer, implClass);
-    _generateChildEntities(implClass, buffer);
-    _generateVisitChildren(implClass, buffer);
-    _generateChildContainingRange(implClass, buffer);
-    _generateAccept(implClass, buffer);
     _generateBeginToken(implClass, buffer);
     _generateEndToken(implClass, buffer);
+    _generateNodeGettersSetters(buffer, implClass);
+    _generateAccept(implClass, buffer);
+    _generateChildContainingRange(implClass, buffer);
+    _generateChildEntities(implClass, buffer);
+    _generateResolveExpression(implClass, buffer);
+    _generateVisitChildren(implClass, buffer);
     return buffer.toString();
   }
 
@@ -707,20 +719,21 @@ void visitChildren(AstVisitor visitor) {''');
 
 class _ImplClass {
   final ClassDeclarationImpl node;
-  final String interfaceName;
+  final InterfaceElement interfaceElement;
   final List<_Property> properties;
   int leftBracketOffset;
 
   late final Set<String> generatedLookupNames = () {
     var generatedLookupNames = {
-      'new',
-      'beginToken',
-      'firstTokenAfterCommentAndMetadata',
-      'endToken',
+      '_childContainingRange',
       '_childEntities',
       'accept',
+      'beginToken',
+      'endToken',
+      'firstTokenAfterCommentAndMetadata',
+      'new',
+      'resolveExpression',
       'visitChildren',
-      '_childContainingRange',
     };
     for (var property in properties) {
       var propertyName = property.name;
@@ -737,7 +750,7 @@ class _ImplClass {
 
   _ImplClass({
     required this.node,
-    required this.interfaceName,
+    required this.interfaceElement,
     required this.properties,
     required this.leftBracketOffset,
   });
@@ -752,6 +765,8 @@ class _ImplClass {
         ) !=
         null;
   }
+
+  String get interfaceName => interfaceElement.name3!;
 
   bool get isAnnotatedNodeSubclass {
     var element = node.declaredFragment!.element;
@@ -916,28 +931,55 @@ extension _DartTypeExtension on DartType {
 
 extension _InterfaceElementExtension on InterfaceElement {
   static final uriAst = Uri.parse('package:analyzer/src/dart/ast/ast.dart');
+  static final uriToken = Uri.parse(
+    'package:_fe_analyzer_shared/src/scanner/token.dart',
+  );
 
   bool get isAnnotatedNodeExactly {
     return library2.uri == uriAst && name3 == 'AnnotatedNode';
   }
 
+  bool get isExpressionExactly {
+    return library2.uri == uriAst && name3 == 'Expression';
+  }
+
+  bool get isExpressionOrSubtype {
+    return isExpressionExactly ||
+        allSupertypes.any((t) => t.isExpressionExactly);
+  }
+
+  bool get isListExactly {
+    return library2.uri == Uri.parse('dart:core') && name3 == 'List';
+  }
+
   bool get isNamedCompilationUnitMemberNodeExactly {
     return library2.uri == uriAst && name3 == 'NamedCompilationUnitMember';
+  }
+
+  bool get isNodeExactly {
+    return library2.uri == uriAst && name3 == 'AstNode';
+  }
+
+  bool get isNodeListExactly {
+    return library2.uri == uriAst && name3 == 'NodeList';
+  }
+
+  bool get isTokenExactly {
+    return library2.uri == uriToken && name3 == 'Token';
   }
 }
 
 extension _InterfaceTypeExtension on InterfaceType {
-  static final uriAst = Uri.parse('package:analyzer/src/dart/ast/ast.dart');
-  static final uriToken = Uri.parse(
-    'package:_fe_analyzer_shared/src/scanner/token.dart',
-  );
+  bool get isExpressionExactly {
+    return element3.isExpressionExactly;
+  }
 
   bool get isNodeExactly {
-    return element3.library2.uri == uriAst && element3.name3 == 'AstNode';
+    return element3.isNodeExactly;
   }
 
   bool get isNodeListExactly {
-    return element3.library2.uri == uriAst && element3.name3 == 'NodeList';
+    return element3.isNodeListExactly;
   }
 
   bool get isNodeOrSubtype {
@@ -945,12 +987,11 @@ extension _InterfaceTypeExtension on InterfaceType {
   }
 
   bool get isToken {
-    return element3.library2.uri == uriToken && element3.name3 == 'Token';
+    return element3.isTokenExactly;
   }
 
   bool get isTokenListExactly {
-    return element3.library2.uri == Uri.parse('dart:core') &&
-        element3.name3 == 'List' &&
+    return element3.isListExactly &&
         typeArguments.length == 1 &&
         typeArguments.single.isToken;
   }

@@ -98,6 +98,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAdjacentStrings(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAdjacentStrings(this, contextType: contextType);
@@ -683,6 +684,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAsExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAsExpression(this, contextType: contextType);
@@ -1201,6 +1203,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitAssignmentExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAssignmentExpression(this, contextType: contextType);
@@ -1926,6 +1929,7 @@ final class AugmentedExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAugmentedExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAugmentedExpression(this, contextType: contextType);
@@ -2045,6 +2049,7 @@ final class AugmentedInvocationImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAugmentedInvocation(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAugmentedInvocation(this, contextType: contextType);
@@ -2143,6 +2148,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAwaitExpression(this, contextType: contextType);
@@ -2266,6 +2272,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitBinaryExpression(this, contextType: contextType);
@@ -2541,6 +2548,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBooleanLiteral(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitBooleanLiteral(this, contextType: contextType);
@@ -2768,6 +2776,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCascadeExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitCascadeExpression(this, contextType: contextType);
@@ -4785,6 +4794,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitConditionalExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitConditionalExpression(this, contextType: contextType);
@@ -5761,6 +5771,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitConstructorReference(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitConstructorReference(this, contextType: contextType);
@@ -6850,6 +6861,7 @@ final class DotShorthandConstructorInvocationImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDotShorthandConstructorInvocation(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitDotShorthandConstructorInvocation(
@@ -6970,6 +6982,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDotShorthandInvocation(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitDotShorthandInvocation(this, contextType: contextType);
@@ -7084,6 +7097,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDotShorthandPropertyAccess(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitDotShorthandPropertyAccess(this, contextType: contextType);
@@ -7226,6 +7240,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDoubleLiteral(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitDoubleLiteral(this, contextType: contextType);
@@ -8945,6 +8960,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtensionOverride(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitExtensionOverride(this, contextType: contextType);
@@ -11407,6 +11423,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitFunctionExpression(this, contextType: contextType);
@@ -11529,6 +11546,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFunctionExpressionInvocation(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitFunctionExpressionInvocation(this, contextType: contextType);
@@ -11671,6 +11689,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionReference(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitFunctionReference(this, contextType: contextType);
@@ -13254,9 +13273,10 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitImplicitCallReference(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitImplicitCallReference(this);
+    resolver.visitImplicitCallReference(this, contextType: contextType);
   }
 
   @generated
@@ -13834,6 +13854,7 @@ final class IndexExpressionImpl extends ExpressionImpl
     return false;
   }
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitIndexExpression(this, contextType: contextType);
@@ -14002,6 +14023,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitInstanceCreationExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitInstanceCreationExpression(this, contextType: contextType);
@@ -14105,6 +14127,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIntegerLiteral(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitIntegerLiteral(this, contextType: contextType);
@@ -14560,6 +14583,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIsExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitIsExpression(this, contextType: contextType);
@@ -14955,9 +14979,10 @@ final class LibraryIdentifierImpl extends IdentifierImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLibraryIdentifier(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitLibraryIdentifier(this);
+    resolver.visitLibraryIdentifier(this, contextType: contextType);
   }
 
   @generated
@@ -15061,6 +15086,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitListLiteral(this, contextType: contextType);
@@ -16442,6 +16468,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodInvocation(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitMethodInvocation(this, contextType: contextType);
@@ -16916,6 +16943,7 @@ final class NamedExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitNamedExpression(this, contextType: contextType);
@@ -17974,6 +18002,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullLiteral(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitNullLiteral(this, contextType: contextType);
@@ -18276,6 +18305,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitParenthesizedExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitParenthesizedExpression(this, contextType: contextType);
@@ -18772,6 +18802,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternAssignment(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitPatternAssignment(this, contextType: contextType);
@@ -19330,6 +19361,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitPostfixExpression(this, contextType: contextType);
@@ -19472,6 +19504,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixedIdentifier(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitPrefixedIdentifier(this, contextType: contextType);
@@ -19602,6 +19635,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitPrefixExpression(this, contextType: contextType);
@@ -19787,6 +19821,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitPropertyAccess(this, contextType: contextType);
@@ -19912,6 +19947,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordLiteral(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitRecordLiteral(this, contextType: contextType);
@@ -21121,6 +21157,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRethrowExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitRethrowExpression(this, contextType: contextType);
@@ -21452,6 +21489,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
     _resolvedKind = _SetOrMapKind.unresolved;
   }
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSetOrMapLiteral(this, contextType: contextType);
@@ -21917,6 +21955,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     return false;
   }
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSimpleIdentifier(this, contextType: contextType);
@@ -22024,6 +22063,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleStringLiteral(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSimpleStringLiteral(this, contextType: contextType);
@@ -22621,6 +22661,7 @@ final class SuperExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSuperExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSuperExpression(this, contextType: contextType);
@@ -23288,6 +23329,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSwitchExpression(this, contextType: contextType);
@@ -23725,6 +23767,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSymbolLiteral(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSymbolLiteral(this, contextType: contextType);
@@ -23801,6 +23844,7 @@ final class ThisExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThisExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitThisExpression(this, contextType: contextType);
@@ -23888,6 +23932,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThrowExpression(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitThrowExpression(this, contextType: contextType);
@@ -24489,6 +24534,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeLiteral(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitTypeLiteral(this, contextType: contextType);

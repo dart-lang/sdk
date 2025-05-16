@@ -3105,7 +3105,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitImplicitCallReference(covariant ImplicitCallReferenceImpl node) {
+  void visitImplicitCallReference(
+    covariant ImplicitCallReferenceImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
     checkUnreachableNode(node);
     analyzeExpression(
       node.expression,
@@ -3285,7 +3288,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {}
+  void visitLibraryIdentifier(
+    LibraryIdentifier node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {}
 
   @override
   void visitListLiteral(
