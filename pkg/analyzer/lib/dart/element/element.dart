@@ -1939,6 +1939,10 @@ abstract class InstanceFragment
   LibraryFragment? get enclosingFragment;
 
   /// The fields declared in this fragment.
+  List<FieldFragment> get fields;
+
+  /// The fields declared in this fragment.
+  @Deprecated('Use fields instead')
   List<FieldFragment> get fields2;
 
   /// The getters declared in this fragment.
@@ -1953,6 +1957,10 @@ abstract class InstanceFragment
   LibraryFragment get libraryFragment;
 
   /// The methods declared in this fragment.
+  List<MethodFragment> get methods;
+
+  /// The methods declared in this fragment.
+  @Deprecated('Use methods instead')
   List<MethodFragment> get methods2;
 
   @override

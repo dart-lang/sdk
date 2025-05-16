@@ -1011,7 +1011,7 @@ class _Element2Writer extends _AbstractElementWriter {
         case LibraryFragment():
           expect(enclosing.topLevelVariables2, contains(variable));
         case InterfaceFragment():
-          expect(enclosing.fields2, contains(variable));
+          expect(enclosing.fields, contains(variable));
       }
     }
 
@@ -1248,7 +1248,7 @@ class _Element2Writer extends _AbstractElementWriter {
         f.typeParameters2,
         _writeTypeParameterFragment,
       );
-      _writeFragmentList('fields', f, f.fields2, _writeFieldFragment);
+      _writeFragmentList('fields', f, f.fields, _writeFieldFragment);
       if (f is InterfaceFragment) {
         var constructors = f.constructors2;
         if (f is MixinElement) {
@@ -1264,7 +1264,7 @@ class _Element2Writer extends _AbstractElementWriter {
       }
       _writeFragmentList('getters', f, f.getters, _writeGetterFragment);
       _writeFragmentList('setters', f, f.setters, _writeSetterFragment);
-      _writeFragmentList('methods', f, f.methods2, _writeMethodFragment);
+      _writeFragmentList('methods', f, f.methods, _writeMethodFragment);
     });
   }
 
@@ -1616,7 +1616,7 @@ class _Element2Writer extends _AbstractElementWriter {
         case LibraryFragment():
           expect(enclosing.topLevelVariables2, contains(variable));
         case InterfaceFragment():
-          expect(enclosing.fields2, contains(variable));
+          expect(enclosing.fields, contains(variable));
       }
     }
 

@@ -4883,7 +4883,7 @@ abstract class InstanceFragmentImpl extends _ExistingElementImpl
   @override
   LibraryFragment? get enclosingFragment => enclosingElement3;
 
-  /// The declared fields.
+  @override
   List<FieldFragmentImpl> get fields {
     if (!identical(_fields, _Sentinel.fieldElement)) {
       return _fields;
@@ -4900,12 +4900,13 @@ abstract class InstanceFragmentImpl extends _ExistingElementImpl
     _fields = fields;
   }
 
+  @Deprecated('Use fields instead')
   @override
   List<FieldFragment> get fields2 => fields.cast<FieldFragment>();
 
   @override
-  List<GetterFragment> get getters =>
-      accessors.where((e) => e.isGetter).cast<GetterFragment>().toList();
+  List<GetterFragmentImpl> get getters =>
+      accessors.whereType<GetterFragmentImpl>().toList();
 
   @override
   List<ElementAnnotationImpl> get metadata {
@@ -4913,7 +4914,7 @@ abstract class InstanceFragmentImpl extends _ExistingElementImpl
     return super.metadata;
   }
 
-  /// The declared methods.
+  @override
   List<MethodFragmentImpl> get methods {
     if (!identical(_methods, _Sentinel.methodElement)) {
       return _methods;
@@ -4930,6 +4931,7 @@ abstract class InstanceFragmentImpl extends _ExistingElementImpl
     _methods = methods;
   }
 
+  @Deprecated('Use methods instead')
   @override
   List<MethodFragment> get methods2 => methods.cast<MethodFragment>();
 
@@ -4937,8 +4939,8 @@ abstract class InstanceFragmentImpl extends _ExistingElementImpl
   int get offset => _nameOffset;
 
   @override
-  List<SetterFragment> get setters =>
-      accessors.where((e) => e.isSetter).cast<SetterFragment>().toList();
+  List<SetterFragmentImpl> get setters =>
+      accessors.whereType<SetterFragmentImpl>().toList();
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
     this.reference = reference;
