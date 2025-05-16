@@ -96,9 +96,28 @@ class ApiSignature {
 
   /// Collect a string.
   void addString(String s) {
-    var bytes = const Utf8Encoder().convert(s);
-    addInt(bytes.length);
-    addBytes(bytes);
+    bool isAscii = true;
+    for (int i = 0; i < s.length; i++) {
+      if (s.codeUnitAt(i) >= 128) {
+        isAscii = false;
+        break;
+      }
+    }
+    if (isAscii) {
+      int length = s.length;
+      _makeRoom(length + 4);
+      _data.setUint32(_offset, length, Endian.little);
+      _offset += 4;
+      // Calling addBytes is slow because addBytes will have to be more general.
+      for (int i = 0; i < length; i++) {
+        _data.setUint8(_offset + i, s.codeUnitAt(i));
+      }
+      _offset += length;
+    } else {
+      var bytes = const Utf8Encoder().convert(s);
+      addInt(bytes.length);
+      addBytes(bytes);
+    }
   }
 
   /// Collect a string list, with the length.
