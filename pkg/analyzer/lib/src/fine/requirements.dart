@@ -191,28 +191,39 @@ final class ExportRequirementShowCombinator
 /// of [InterfaceItemRequirements].
 class InstanceItemRequirements {
   final Map<LookupName, ManifestItemId?> requestedFields;
-
-  /// These are "methods" in wide meaning: methods, getters, setters.
+  final Map<LookupName, ManifestItemId?> requestedGetters;
+  final Map<LookupName, ManifestItemId?> requestedSetters;
   final Map<LookupName, ManifestItemId?> requestedMethods;
 
   InstanceItemRequirements({
     required this.requestedFields,
+    required this.requestedGetters,
+    required this.requestedSetters,
     required this.requestedMethods,
   });
 
   factory InstanceItemRequirements.empty() {
-    return InstanceItemRequirements(requestedFields: {}, requestedMethods: {});
+    return InstanceItemRequirements(
+      requestedFields: {},
+      requestedGetters: {},
+      requestedSetters: {},
+      requestedMethods: {},
+    );
   }
 
   factory InstanceItemRequirements.read(SummaryDataReader reader) {
     return InstanceItemRequirements(
       requestedFields: reader.readNameToIdMap(),
+      requestedGetters: reader.readNameToIdMap(),
+      requestedSetters: reader.readNameToIdMap(),
       requestedMethods: reader.readNameToIdMap(),
     );
   }
 
   void write(BufferedSink sink) {
     sink.writeNameToIdMap(requestedFields);
+    sink.writeNameToIdMap(requestedGetters);
+    sink.writeNameToIdMap(requestedSetters);
     sink.writeNameToIdMap(requestedMethods);
   }
 }
@@ -383,10 +394,40 @@ class RequirementsManifest {
           }
         }
 
+        for (var getterEntry in requirements.requestedGetters.entries) {
+          var name = getterEntry.key;
+          var expectedId = getterEntry.value;
+          var currentId = instanceItem.getDeclaredGetterId(name);
+          if (expectedId != currentId) {
+            return InstanceMethodIdMismatch(
+              libraryUri: libraryUri,
+              interfaceName: instanceName,
+              methodName: name,
+              expectedId: expectedId,
+              actualId: currentId,
+            );
+          }
+        }
+
+        for (var setterEntry in requirements.requestedSetters.entries) {
+          var name = setterEntry.key;
+          var expectedId = setterEntry.value;
+          var currentId = instanceItem.getDeclaredSetterId(name);
+          if (expectedId != currentId) {
+            return InstanceMethodIdMismatch(
+              libraryUri: libraryUri,
+              interfaceName: instanceName,
+              methodName: name,
+              expectedId: expectedId,
+              actualId: currentId,
+            );
+          }
+        }
+
         for (var methodEntry in requirements.requestedMethods.entries) {
           var name = methodEntry.key;
           var expectedId = methodEntry.value;
-          var currentId = instanceItem.getDeclaredMemberId(name);
+          var currentId = instanceItem.getDeclaredMethodId(name);
           if (expectedId != currentId) {
             return InstanceMethodIdMismatch(
               libraryUri: libraryUri,
@@ -575,7 +616,17 @@ class RequirementsManifest {
     required InstanceElementImpl2 element,
     required String name,
   }) {
-    record_instanceElement_getMethod(element: element, name: name);
+    var itemRequirements = _getInstanceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    var methodName = name.asLookupName;
+    var methodId = item.getDeclaredGetterId(methodName);
+    requirements.requestedGetters[methodName] = methodId;
   }
 
   void record_instanceElement_getMethod({
@@ -591,7 +642,7 @@ class RequirementsManifest {
     var requirements = itemRequirements.requirements;
 
     var methodName = name.asLookupName;
-    var methodId = item.getDeclaredMemberId(methodName);
+    var methodId = item.getDeclaredMethodId(methodName);
     requirements.requestedMethods[methodName] = methodId;
   }
 
@@ -599,7 +650,18 @@ class RequirementsManifest {
     required InstanceElementImpl2 element,
     required String name,
   }) {
-    record_instanceElement_getMethod(element: element, name: '$name=');
+    assert(!name.endsWith('='));
+    var itemRequirements = _getInstanceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    var methodName = '$name='.asLookupName;
+    var methodId = item.getDeclaredSetterId(methodName);
+    requirements.requestedSetters[methodName] = methodId;
   }
 
   void record_propertyAccessorElement_variable({

@@ -7,7 +7,6 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/fine/base_name_members.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
@@ -136,7 +135,13 @@ class LibraryManifestBuilder {
     encodingContext.withTypeParameters(element.typeParameters2, (
       typeParameters,
     ) {
-      classItem.declaredMembers.clear();
+      classItem.declaredConflicts.clear();
+      // classItem.declaredFields.clear(); // TODO(scheglov): restore
+      classItem.declaredGetters.clear();
+      classItem.declaredSetters.clear();
+      classItem.declaredMethods.clear();
+      classItem.declaredConstructors.clear();
+      classItem.inheritedConstructors.clear();
       _addInterfaceElementMembers(
         encodingContext: encodingContext,
         instanceElement: element,
@@ -190,9 +195,7 @@ class LibraryManifestBuilder {
         id ??= _getInterfaceElementMemberId(superConstructor);
 
         inheritedMap[constructor] = id;
-
-        var baseName = lookupName.asBaseName;
-        item.declaredMembers.addInheritedConstructor(baseName, id);
+        item.addInheritedConstructor(lookupName, id);
       }
     }
 
@@ -244,8 +247,7 @@ class LibraryManifestBuilder {
       );
     });
 
-    var baseName = lookupName.asBaseName;
-    instanceItem.declaredMembers.addDeclaredGetter(baseName, item);
+    instanceItem.addDeclaredGetter(lookupName, item);
   }
 
   void _addInstanceElementMembers({
@@ -304,12 +306,7 @@ class LibraryManifestBuilder {
       );
     });
 
-    var baseName = lookupName.asBaseName;
-    if (lookupName.isIndexEq) {
-      instanceItem.declaredMembers.addDeclaredIndexEq(baseName, item);
-    } else {
-      instanceItem.declaredMembers.addDeclaredMethod(baseName, item);
-    }
+    instanceItem.addDeclaredMethod(lookupName, item);
   }
 
   void _addInstanceElementSetter({
@@ -330,8 +327,7 @@ class LibraryManifestBuilder {
       );
     });
 
-    var baseName = lookupName.asBaseName;
-    instanceItem.declaredMembers.addDeclaredSetter(baseName, item);
+    instanceItem.addDeclaredSetter(lookupName, item);
   }
 
   void _addInterfaceElementConstructor({
@@ -352,8 +348,7 @@ class LibraryManifestBuilder {
       );
     });
 
-    var baseName = lookupName.asBaseName;
-    interfaceItem.declaredMembers.addDeclaredConstructor(baseName, item);
+    interfaceItem.addDeclaredConstructor(lookupName, item);
   }
 
   void _addInterfaceElementMembers({
@@ -401,7 +396,13 @@ class LibraryManifestBuilder {
     encodingContext.withTypeParameters(element.typeParameters2, (
       typeParameters,
     ) {
-      mixinItem.declaredMembers.clear();
+      mixinItem.declaredConflicts.clear();
+      // mixinItem.declaredFields.clear(); // TODO(scheglov): restore
+      mixinItem.declaredGetters.clear();
+      mixinItem.declaredSetters.clear();
+      mixinItem.declaredMethods.clear();
+      mixinItem.declaredConstructors.clear();
+      mixinItem.inheritedConstructors.clear();
       _addInterfaceElementMembers(
         encodingContext: encodingContext,
         instanceElement: element,
@@ -729,9 +730,38 @@ class LibraryManifestBuilder {
   }
 
   ManifestItemId _getInterfaceElementMemberId(ExecutableElementImpl2 element) {
-    if (declaredItems[element] case var declaredItem?) {
-      return declaredItem.id;
+    var enclosingElement = element.enclosingElement;
+    enclosingElement as InterfaceElementImpl2;
+
+    var enclosingItem = declaredItems[enclosingElement];
+    if (enclosingItem != null) {
+      // SAFETY: if item is in this library, it is for interface.
+      enclosingItem as InterfaceItem;
+
+      // SAFETY: any element in interface has a name.
+      var lookupName = element.lookupName!.asLookupName;
+
+      // Check for a conflict.
+      if (enclosingItem.declaredConflicts[lookupName] case var id?) {
+        return id;
+      }
+
+      // SAFETY: null asserts are safe, because element is in this library.
+      switch (element) {
+        case GetterElementImpl():
+          return enclosingItem.declaredGetters[lookupName]!.id;
+        case SetterElementImpl():
+          return enclosingItem.declaredSetters[lookupName]!.id;
+        case MethodElementImpl2():
+          return enclosingItem.declaredMethods[lookupName]!.id;
+        case ConstructorElementImpl2():
+          if (enclosingItem.declaredConstructors[lookupName] case var item?) {
+            return item.id;
+          }
+          return enclosingItem.inheritedConstructors[lookupName]!;
+      }
     }
+
     return elementFactory.getElementId(element)!;
   }
 
@@ -950,8 +980,7 @@ class _LibraryMatch {
       return false;
     }
 
-    var baseName = lookupName.asBaseName;
-    var item = instanceItem.declaredMembers[baseName]?.declaredGetter;
+    var item = instanceItem.declaredGetters[lookupName];
     if (item is! InstanceItemGetterItem) {
       return false;
     }
@@ -975,11 +1004,7 @@ class _LibraryMatch {
       return false;
     }
 
-    var baseName = lookupName.asBaseName;
-    var item =
-        lookupName.isIndexEq
-            ? instanceItem.declaredMembers[baseName]?.declaredIndexEq
-            : instanceItem.declaredMembers[baseName]?.declaredMethod;
+    var item = instanceItem.declaredMethods[lookupName];
     if (item is! InstanceItemMethodItem) {
       return false;
     }
@@ -1003,8 +1028,7 @@ class _LibraryMatch {
       return true;
     }
 
-    var baseName = lookupName.asBaseName;
-    var item = instanceItem.declaredMembers[baseName]?.declaredSetter;
+    var item = instanceItem.declaredSetters[lookupName];
     if (item is! InstanceItemSetterItem) {
       return false;
     }
@@ -1028,8 +1052,7 @@ class _LibraryMatch {
       return false;
     }
 
-    var baseName = lookupName.asBaseName;
-    var item = interfaceItem.declaredMembers[baseName]?.declaredConstructor;
+    var item = interfaceItem.declaredConstructors[lookupName];
     if (item is! InterfaceItemConstructorItem) {
       return false;
     }

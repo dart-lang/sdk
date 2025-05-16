@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/analysis/driver_event.dart' as events;
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
-import 'package:analyzer/src/fine/base_name_members.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_ast.dart';
@@ -103,10 +102,38 @@ class BundleRequirementsPrinter {
             _writeNamedId,
           );
         });
+        // sink.withIndent(() {
+        //   sink.writeElements(
+        //     'requestedGetters',
+        //     instanceEntry.value.requestedGetters.sorted,
+        //     _writeNamedId,
+        //   );
+        // });
+        // sink.withIndent(() {
+        //   sink.writeElements(
+        //     'requestedSetters',
+        //     instanceEntry.value.requestedSetters.sorted,
+        //     _writeNamedId,
+        //   );
+        // });
+        // sink.withIndent(() {
+        //   sink.writeElements(
+        //     'requestedMethods',
+        //     instanceEntry.value.requestedMethods.sorted,
+        //     _writeNamedId,
+        //   );
+        // });
+
+        // TODO(scheglov): separate requestedXyz.
+        var requestedMethods = {
+          ...instanceEntry.value.requestedGetters,
+          ...instanceEntry.value.requestedSetters,
+          ...instanceEntry.value.requestedMethods,
+        };
         sink.withIndent(() {
           sink.writeElements(
             'requestedMethods',
-            instanceEntry.value.requestedMethods.sorted,
+            requestedMethods.sorted,
             _writeNamedId,
           );
         });
@@ -833,30 +860,16 @@ class LibraryManifestPrinter {
 
   void _writeInstanceItemMembers(InstanceItem item) {
     var ignored = configuration.ignoredManifestInstanceMemberNames;
-    var declaredMembers =
-        item.declaredMembers.sorted.whereNot((entry) {
-          return ignored.contains(entry.key.asString);
-        }).toList();
 
-    var conflicts =
-        declaredMembers
-            .map((e) => (e.key, e.value))
-            .where((e) => e.$2 is BaseNameConflict)
-            .toList();
-    var conflictNames = conflicts.map((e) => e.$1).toSet();
-
-    void writeDeclaredConflicts() {
+    void writeDeclaredDuplicateNames() {
+      var conflicts = item.declaredConflicts.sorted;
       if (conflicts.isNotEmpty) {
         sink.writelnWithIndent('declaredConflicts');
         sink.withIndent(() {
           for (var entry in conflicts) {
-            var baseName = entry.$1;
-            var value = entry.$2;
-            if (value is BaseNameConflict) {
-              var idStr = idProvider.manifestId(value.id);
-              sink.writelnWithIndent('$baseName: $idStr');
-              sink.writelnWithIndent('$baseName=: $idStr');
-            }
+            var name = entry.key.asString;
+            var idStr = idProvider.manifestId(entry.value);
+            sink.writelnWithIndent('$name: $idStr');
           }
         });
       }
@@ -865,8 +878,7 @@ class LibraryManifestPrinter {
     void writeDeclaredFields() {
       var declaredFields =
           item.declaredFields.sorted.whereNot((entry) {
-            return ignored.contains(entry.key.asString) ||
-                conflictNames.contains(entry.key);
+            return ignored.contains(entry.key.asString);
           }).toList();
 
       if (declaredFields.isNotEmpty) {
@@ -890,34 +902,24 @@ class LibraryManifestPrinter {
     }
 
     void writeDeclaredGetters() {
-      var declaredMembers =
-          item.declaredMembers.sorted.whereNot((entry) {
-            return ignored.contains(entry.key.asString) ||
-                conflictNames.contains(entry.key);
+      var declaredGetters =
+          item.declaredGetters.sorted.whereNot((entry) {
+            return ignored.contains(entry.key.asString);
           }).toList();
 
-      var getters =
-          declaredMembers
-              .map((e) => (e.key, e.value.declaredGetter))
-              .where((e) => e.$2 != null)
-              .toList();
-      if (getters.isNotEmpty) {
+      if (declaredGetters.isNotEmpty) {
         sink.writelnWithIndent('declaredGetters');
         sink.withIndent(() {
-          for (var entry in getters) {
-            var baseName = entry.$1;
-            var item = entry.$2;
-            if (item is! BaseNameConflict) {
-              if (item != null) {
-                var idStr = idProvider.manifestId(item.id);
-                sink.writelnWithIndent('$baseName: $idStr');
-                if (configuration.withElementManifests) {
-                  sink.withIndent(() {
-                    _writeMetadata(item);
-                    _writeNamedType('returnType', item.returnType);
-                  });
-                }
-              }
+          for (var entry in declaredGetters) {
+            var name = entry.key.asString;
+            var item = entry.value;
+            var idStr = idProvider.manifestId(item.id);
+            sink.writelnWithIndent('$name: $idStr');
+            if (configuration.withElementManifests) {
+              sink.withIndent(() {
+                _writeMetadata(item);
+                _writeNamedType('returnType', item.returnType);
+              });
             }
           }
         });
@@ -925,32 +927,24 @@ class LibraryManifestPrinter {
     }
 
     void writeDeclaredSetters() {
-      var declaredMembers =
-          item.declaredMembers.sorted.whereNot((entry) {
-            return ignored.contains(entry.key.asString) ||
-                conflictNames.contains(entry.key);
+      var declaredSetters =
+          item.declaredSetters.sorted.whereNot((entry) {
+            return ignored.contains(entry.key.asString);
           }).toList();
 
-      var setters =
-          declaredMembers
-              .map((e) => (e.key, e.value.declaredSetter))
-              .where((e) => e.$2 != null)
-              .toList();
-      if (setters.isNotEmpty) {
+      if (declaredSetters.isNotEmpty) {
         sink.writelnWithIndent('declaredSetters');
         sink.withIndent(() {
-          for (var entry in setters) {
-            var baseName = entry.$1;
-            var item = entry.$2;
-            if (item != null) {
-              var idStr = idProvider.manifestId(item.id);
-              sink.writelnWithIndent('$baseName=: $idStr');
-              if (configuration.withElementManifests) {
-                sink.withIndent(() {
-                  _writeMetadata(item);
-                  _writeNamedType('valueType', item.valueType);
-                });
-              }
+          for (var entry in declaredSetters) {
+            var name = entry.key.asString;
+            var item = entry.value;
+            var idStr = idProvider.manifestId(item.id);
+            sink.writelnWithIndent('$name: $idStr');
+            if (configuration.withElementManifests) {
+              sink.withIndent(() {
+                _writeMetadata(item);
+                _writeNamedType('valueType', item.valueType);
+              });
             }
           }
         });
@@ -958,39 +952,24 @@ class LibraryManifestPrinter {
     }
 
     void writeDeclaredMethods() {
-      var declaredMembers =
-          item.declaredMembers.sorted.whereNot((entry) {
-            return ignored.contains(entry.key.asString) ||
-                conflictNames.contains(entry.key);
+      var declaredMethods =
+          item.declaredMethods.sorted.whereNot((entry) {
+            return ignored.contains(entry.key.asString);
           }).toList();
 
-      var methods =
-          declaredMembers
-              .map((e) => (e.key.asString, e.value.declaredMethod))
-              .where((e) => e.$2 != null)
-              .toList();
-      methods.addAll(
-        declaredMembers
-            .map((e) => ('${e.key}=', e.value.declaredIndexEq))
-            .where((e) => e.$2 != null)
-            .toList(),
-      );
-      methods.sortBy((e) => e.$1);
-      if (methods.isNotEmpty) {
+      if (declaredMethods.isNotEmpty) {
         sink.writelnWithIndent('declaredMethods');
         sink.withIndent(() {
-          for (var entry in methods) {
-            var lookupNameStr = entry.$1;
-            var item = entry.$2;
-            if (item != null) {
-              var idStr = idProvider.manifestId(item.id);
-              sink.writelnWithIndent('$lookupNameStr: $idStr');
-              if (configuration.withElementManifests) {
-                sink.withIndent(() {
-                  _writeMetadata(item);
-                  _writeNamedType('functionType', item.functionType);
-                });
-              }
+          for (var entry in declaredMethods) {
+            var name = entry.key.asString;
+            var item = entry.value;
+            var idStr = idProvider.manifestId(item.id);
+            sink.writelnWithIndent('$name: $idStr');
+            if (configuration.withElementManifests) {
+              sink.withIndent(() {
+                _writeMetadata(item);
+                _writeNamedType('functionType', item.functionType);
+              });
             }
           }
         });
@@ -998,32 +977,26 @@ class LibraryManifestPrinter {
     }
 
     void writeDeclaredConstructors() {
-      var declaredMembers =
-          item.declaredMembers.sorted.whereNot((entry) {
-            return ignored.contains(entry.key.asString) ||
-                conflictNames.contains(entry.key);
+      var declaredConstructors =
+          item.declaredConstructors.sorted.whereNot((entry) {
+            return ignored.contains(entry.key.asString);
           }).toList();
 
-      var constructors =
-          declaredMembers
-              .map((e) => (e.key, e.value.declaredConstructor))
-              .where((e) => e.$2 != null)
-              .toList();
-      if (constructors.isNotEmpty) {
+      if (declaredConstructors.isNotEmpty) {
         sink.writelnWithIndent('declaredConstructors');
         sink.withIndent(() {
-          for (var entry in constructors) {
-            var baseName = entry.$1;
-            var item = entry.$2;
-            if (item != null) {
-              var idStr = idProvider.manifestId(item.id);
-              sink.writelnWithIndent('$baseName: $idStr');
-              if (configuration.withElementManifests) {
+          for (var entry in declaredConstructors) {
+            var name = entry.key.asString;
+            var item = entry.value;
+            var idStr = idProvider.manifestId(item.id);
+            sink.writelnWithIndent('$name: $idStr');
+            if (configuration.withElementManifests) {
+              sink.withIndent(() {
                 sink.withIndent(() {
                   _writeMetadata(item);
                   _writeNamedType('functionType', item.functionType);
                 });
-              }
+              });
             }
           }
         });
@@ -1031,34 +1004,24 @@ class LibraryManifestPrinter {
     }
 
     void writeInheritedConstructors() {
-      var declaredMembers =
-          item.declaredMembers.sorted.whereNot((entry) {
-            return ignored.contains(entry.key.asString) ||
-                conflictNames.contains(entry.key);
+      var inheritedConstructors =
+          item.inheritedConstructors.sorted.whereNot((entry) {
+            return ignored.contains(entry.key.asString);
           }).toList();
 
-      var constructors =
-          declaredMembers
-              .where((e) => e.value.declaredConstructor == null)
-              .map((e) => (e.key, e.value.constructorId))
-              .where((e) => e.$2 != null)
-              .toList();
-      if (constructors.isNotEmpty) {
+      if (inheritedConstructors.isNotEmpty) {
         sink.writelnWithIndent('inheritedConstructors');
         sink.withIndent(() {
-          for (var entry in constructors) {
-            var baseName = entry.$1;
-            var id = entry.$2;
-            if (id != null) {
-              var idStr = idProvider.manifestId(id);
-              sink.writelnWithIndent('$baseName: $idStr');
-            }
+          for (var entry in inheritedConstructors) {
+            var name = entry.key.asString;
+            var idStr = idProvider.manifestId(entry.value);
+            sink.writelnWithIndent('$name: $idStr');
           }
         });
       }
     }
 
-    writeDeclaredConflicts();
+    writeDeclaredDuplicateNames();
     writeDeclaredFields();
     writeDeclaredGetters();
     writeDeclaredSetters();
@@ -1508,12 +1471,6 @@ extension on LibraryCycle {
 extension<V> on Map<LookupName, V> {
   List<MapEntry<LookupName, V>> get sorted {
     return entries.sortedByCompare((entry) => entry.key, LookupName.compare);
-  }
-}
-
-extension<V> on Map<BaseName, V> {
-  List<MapEntry<BaseName, V>> get sorted {
-    return entries.sortedByCompare((entry) => entry.key, BaseName.compare);
   }
 }
 

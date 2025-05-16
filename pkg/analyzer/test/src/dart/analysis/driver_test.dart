@@ -16556,7 +16556,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -16572,14 +16572,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo: #M5
-            zzz: #M4
+            foo: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -16665,8 +16665,8 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
-            foo=: #M3
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -16683,15 +16683,15 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M5
+          zzz: #M3
         interface
           map
-            foo: #M6
-            foo=: #M7
-            zzz: #M5
+            foo: #M2
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -17056,7 +17056,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17072,14 +17072,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo: #M5
-            zzz: #M4
+            foo: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -17116,7 +17116,7 @@ class B extends A {
           foo=: #M4
         interface
           map
-            foo: #M5
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -17144,14 +17144,14 @@ class B extends A {
             foo: #M2
       B: #M3
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M5
+          foo=: #M5
         declaredMethods
-          zzz: #M7
+          zzz: #M6
         interface
           map
-            foo: #M8
-            zzz: #M7
+            foo: #M5
+            zzz: #M6
 ''',
     );
   }
@@ -17192,7 +17192,7 @@ class B extends A {
           foo=: #M5
         interface
           map
-            foo: #M6
+            foo: #M5
             foo=: #M3
 ''',
       updatedCode: r'''
@@ -17225,15 +17225,15 @@ class B extends A {
             foo=: #M3
       B: #M4
         declaredConflicts
-          foo: #M7
-          foo=: #M7
+          foo: #M6
+          foo=: #M6
         declaredMethods
-          zzz: #M8
+          zzz: #M7
         interface
           map
-            foo: #M9
+            foo: #M6
             foo=: #M3
-            zzz: #M8
+            zzz: #M7
 ''',
     );
   }
@@ -17268,7 +17268,7 @@ class B extends A {
           foo=: #M3
         interface
           map
-            foo: #M4
+            foo: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -17294,14 +17294,14 @@ class B extends A {
             foo: #M1
       B: #M2
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M4
+          foo=: #M4
         declaredMethods
-          zzz: #M6
+          zzz: #M5
         interface
           map
-            foo: #M7
-            zzz: #M6
+            foo: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -17338,7 +17338,7 @@ class B extends A {
           foo=: #M4
         interface
           map
-            foo: #M5
+            foo: #M4
             foo=: #M2
 ''',
       updatedCode: r'''
@@ -17367,15 +17367,15 @@ class B extends A {
             foo=: #M2
       B: #M3
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M5
+          foo=: #M5
         declaredMethods
-          zzz: #M7
+          zzz: #M6
         interface
           map
-            foo: #M8
+            foo: #M5
             foo=: #M2
-            zzz: #M7
+            zzz: #M6
 ''',
     );
   }
@@ -17759,7 +17759,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17775,14 +17775,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo: #M5
-            zzz: #M4
+            foo: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -17808,7 +17808,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17825,14 +17825,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo: #M5
-            zzz: #M4
+            foo: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -17858,8 +17858,8 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
-            foo=: #M3
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17876,15 +17876,15 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M5
+          zzz: #M3
         interface
           map
-            foo: #M6
-            foo=: #M7
-            zzz: #M5
+            foo: #M2
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -17909,7 +17909,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17925,14 +17925,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo: #M5
-            zzz: #M4
+            foo: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -17957,8 +17957,8 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
-            foo=: #M3
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17974,15 +17974,15 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M5
+          zzz: #M3
         interface
           map
-            foo: #M6
-            foo=: #M7
-            zzz: #M5
+            foo: #M2
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -18008,8 +18008,8 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
-            foo=: #M3
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -18026,15 +18026,15 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M5
+          zzz: #M3
         interface
           map
-            foo: #M6
-            foo=: #M7
-            zzz: #M5
+            foo: #M2
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -18403,7 +18403,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo=: #M2
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -18419,14 +18419,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo=: #M5
-            zzz: #M4
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -18807,7 +18807,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo=: #M2
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -18823,14 +18823,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo=: #M5
-            zzz: #M4
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -18868,7 +18868,7 @@ class B extends A {
         interface
           map
             foo: #M2
-            foo=: #M5
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -18896,15 +18896,15 @@ class B extends A {
             foo: #M2
       B: #M3
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M5
+          foo=: #M5
         declaredMethods
-          zzz: #M7
+          zzz: #M6
         interface
           map
             foo: #M2
-            foo=: #M8
-            zzz: #M7
+            foo=: #M5
+            zzz: #M6
 ''',
     );
   }
@@ -18946,7 +18946,7 @@ class B extends A {
         interface
           map
             foo: #M2
-            foo=: #M6
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -18978,15 +18978,15 @@ class B extends A {
             foo=: #M3
       B: #M4
         declaredConflicts
-          foo: #M7
-          foo=: #M7
+          foo: #M6
+          foo=: #M6
         declaredMethods
-          zzz: #M8
+          zzz: #M7
         interface
           map
             foo: #M2
-            foo=: #M9
-            zzz: #M8
+            foo=: #M6
+            zzz: #M7
 ''',
     );
   }
@@ -19022,7 +19022,7 @@ class B extends A {
         interface
           map
             foo: #M1
-            foo=: #M4
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -19048,15 +19048,15 @@ class B extends A {
             foo: #M1
       B: #M2
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M4
+          foo=: #M4
         declaredMethods
-          zzz: #M6
+          zzz: #M5
         interface
           map
             foo: #M1
-            foo=: #M7
-            zzz: #M6
+            foo=: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -19093,7 +19093,7 @@ class B extends A {
           foo=: #M4
         interface
           map
-            foo=: #M5
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -19121,14 +19121,14 @@ class B extends A {
             foo=: #M2
       B: #M3
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M5
+          foo=: #M5
         declaredMethods
-          zzz: #M7
+          zzz: #M6
         interface
           map
-            foo=: #M8
-            zzz: #M7
+            foo=: #M5
+            zzz: #M6
 ''',
     );
   }
@@ -20743,7 +20743,7 @@ class A {
           []=: #M1
         interface
           map
-            []: #M2
+            []: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20758,14 +20758,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          []: #M3
-          []=: #M3
+          []: #M2
+          []=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            []: #M5
-            zzz: #M4
+            []: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -20837,8 +20837,8 @@ class A {
           []=: #M1
         interface
           map
-            []: #M2
-            []=: #M3
+            []: #M1
+            []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20854,15 +20854,15 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          []: #M4
-          []=: #M4
+          []: #M2
+          []=: #M2
         declaredMethods
-          zzz: #M5
+          zzz: #M3
         interface
           map
-            []: #M6
-            []=: #M7
-            zzz: #M5
+            []: #M2
+            []=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -21240,7 +21240,7 @@ class A {
           []=: #M1
         interface
           map
-            []=: #M2
+            []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21255,14 +21255,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          []: #M3
-          []=: #M3
+          []: #M2
+          []=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            []=: #M5
-            zzz: #M4
+            []=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -21456,7 +21456,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21471,14 +21471,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo: #M5
-            zzz: #M4
+            foo: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -21557,8 +21557,8 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
-            foo=: #M3
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21574,15 +21574,15 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M5
+          zzz: #M3
         interface
           map
-            foo: #M6
-            foo=: #M7
-            zzz: #M5
+            foo: #M2
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -21922,7 +21922,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21937,14 +21937,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo: #M5
-            zzz: #M4
+            foo: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -21980,7 +21980,7 @@ class B extends A {
           foo=: #M4
         interface
           map
-            foo: #M5
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -22007,14 +22007,14 @@ class B extends A {
             foo: #M2
       B: #M3
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M5
+          foo=: #M5
         declaredMethods
-          zzz: #M7
+          zzz: #M6
         interface
           map
-            foo: #M8
-            zzz: #M7
+            foo: #M5
+            zzz: #M6
 ''',
     );
   }
@@ -22054,7 +22054,7 @@ class B extends A {
           foo=: #M5
         interface
           map
-            foo: #M6
+            foo: #M5
             foo=: #M3
 ''',
       updatedCode: r'''
@@ -22086,15 +22086,15 @@ class B extends A {
             foo=: #M3
       B: #M4
         declaredConflicts
-          foo: #M7
-          foo=: #M7
+          foo: #M6
+          foo=: #M6
         declaredMethods
-          zzz: #M8
+          zzz: #M7
         interface
           map
-            foo: #M9
+            foo: #M6
             foo=: #M3
-            zzz: #M8
+            zzz: #M7
 ''',
     );
   }
@@ -22128,7 +22128,7 @@ class B extends A {
           foo=: #M3
         interface
           map
-            foo: #M4
+            foo: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -22153,14 +22153,14 @@ class B extends A {
             foo: #M1
       B: #M2
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M4
+          foo=: #M4
         declaredMethods
-          zzz: #M6
+          zzz: #M5
         interface
           map
-            foo: #M7
-            zzz: #M6
+            foo: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -22196,7 +22196,7 @@ class B extends A {
           foo=: #M4
         interface
           map
-            foo: #M5
+            foo: #M4
             foo=: #M2
 ''',
       updatedCode: r'''
@@ -22224,15 +22224,15 @@ class B extends A {
             foo=: #M2
       B: #M3
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M5
+          foo=: #M5
         declaredMethods
-          zzz: #M7
+          zzz: #M6
         interface
           map
-            foo: #M8
+            foo: #M5
             foo=: #M2
-            zzz: #M7
+            zzz: #M6
 ''',
     );
   }
@@ -22585,7 +22585,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22600,14 +22600,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo: #M5
-            zzz: #M4
+            foo: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -22632,7 +22632,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22648,14 +22648,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo: #M5
-            zzz: #M4
+            foo: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -22680,8 +22680,8 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
-            foo=: #M3
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22697,15 +22697,15 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M5
+          zzz: #M3
         interface
           map
-            foo: #M6
-            foo=: #M7
-            zzz: #M5
+            foo: #M2
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -22731,8 +22731,8 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
-            foo=: #M3
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22749,15 +22749,15 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M5
+          zzz: #M3
         interface
           map
-            foo: #M6
-            foo=: #M7
-            zzz: #M5
+            foo: #M2
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -22781,7 +22781,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22796,14 +22796,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo: #M5
-            zzz: #M4
+            foo: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -22827,8 +22827,8 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
-            foo=: #M3
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22843,15 +22843,15 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M5
+          zzz: #M3
         interface
           map
-            foo: #M6
-            foo=: #M7
-            zzz: #M5
+            foo: #M2
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -22876,8 +22876,8 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
-            foo=: #M3
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22893,15 +22893,15 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M5
+          zzz: #M3
         interface
           map
-            foo: #M6
-            foo=: #M7
-            zzz: #M5
+            foo: #M2
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -23239,7 +23239,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo=: #M2
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23254,14 +23254,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo=: #M5
-            zzz: #M4
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -23617,7 +23617,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo=: #M2
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23632,14 +23632,14 @@ class A {
     manifest
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M2
+          foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M3
         interface
           map
-            foo=: #M5
-            zzz: #M4
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -23676,7 +23676,7 @@ class B extends A {
         interface
           map
             foo: #M2
-            foo=: #M5
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -23703,15 +23703,15 @@ class B extends A {
             foo: #M2
       B: #M3
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M5
+          foo=: #M5
         declaredMethods
-          zzz: #M7
+          zzz: #M6
         interface
           map
             foo: #M2
-            foo=: #M8
-            zzz: #M7
+            foo=: #M5
+            zzz: #M6
 ''',
     );
   }
@@ -23752,7 +23752,7 @@ class B extends A {
         interface
           map
             foo: #M2
-            foo=: #M6
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -23783,15 +23783,15 @@ class B extends A {
             foo=: #M3
       B: #M4
         declaredConflicts
-          foo: #M7
-          foo=: #M7
+          foo: #M6
+          foo=: #M6
         declaredMethods
-          zzz: #M8
+          zzz: #M7
         interface
           map
             foo: #M2
-            foo=: #M9
-            zzz: #M8
+            foo=: #M6
+            zzz: #M7
 ''',
     );
   }
@@ -23826,7 +23826,7 @@ class B extends A {
         interface
           map
             foo: #M1
-            foo=: #M4
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -23851,15 +23851,15 @@ class B extends A {
             foo: #M1
       B: #M2
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M4
+          foo=: #M4
         declaredMethods
-          zzz: #M6
+          zzz: #M5
         interface
           map
             foo: #M1
-            foo=: #M7
-            zzz: #M6
+            foo=: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -23895,7 +23895,7 @@ class B extends A {
           foo=: #M4
         interface
           map
-            foo=: #M5
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -23922,14 +23922,14 @@ class B extends A {
             foo=: #M2
       B: #M3
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M5
+          foo=: #M5
         declaredMethods
-          zzz: #M7
+          zzz: #M6
         interface
           map
-            foo=: #M8
-            zzz: #M7
+            foo=: #M5
+            zzz: #M6
 ''',
     );
   }
@@ -25281,10 +25281,9 @@ class B = A with M;
           foo: #M1
           foo=: #M1
       B: #M2
-        declaredConflicts
-          foo: #M3
-          foo=: #M3
-      M: #M4
+        inheritedConstructors
+          foo: #M1
+      M: #M3
 ''',
       updatedCode: r'''
 mixin M {}
@@ -25303,14 +25302,13 @@ class Z {}
     manifest
       A: #M0
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M4
+          foo=: #M4
       B: #M2
-        declaredConflicts
-          foo: #M6
-          foo=: #M6
-      M: #M4
-      Z: #M7
+        inheritedConstructors
+          foo: #M4
+      M: #M3
+      Z: #M5
 ''',
     );
   }
@@ -28642,7 +28640,7 @@ class A {
           foo=: #M3
         interface
           map
-            foo: #M4
+            foo: #M3
 ''',
     );
   }
@@ -28684,7 +28682,7 @@ class A {
           foo=: #M3
         interface
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -28726,7 +28724,7 @@ class A {
           foo=: #M3
         interface
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -28768,7 +28766,7 @@ class A {
           foo=: #M3
         interface
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -30099,7 +30097,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30112,10 +30110,10 @@ class A {
     manifest
       A: #M0
         declaredMethods
-          foo: #M3
+          foo: #M2
         interface
           map
-            foo: #M3
+            foo: #M2
 ''',
     );
   }
@@ -30139,7 +30137,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30152,10 +30150,10 @@ class A {
     manifest
       A: #M0
         declaredMethods
-          foo: #M3
+          foo: #M2
         interface
           map
-            foo: #M3
+            foo: #M2
 ''',
     );
   }
@@ -30179,7 +30177,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30192,7 +30190,7 @@ class A {
     manifest
       A: #M0
         declaredMethods
-          foo: #M3
+          foo: #M2
 ''',
     );
   }
@@ -30216,7 +30214,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30229,10 +30227,10 @@ class A {
     manifest
       A: #M0
         declaredMethods
-          foo: #M3
+          foo: #M2
         interface
           map
-            foo: #M3
+            foo: #M2
 ''',
     );
   }
@@ -30256,7 +30254,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30269,10 +30267,10 @@ class A {
     manifest
       A: #M0
         declaredMethods
-          foo: #M3
+          foo: #M2
         interface
           map
-            foo: #M3
+            foo: #M2
 ''',
     );
   }
@@ -30296,7 +30294,7 @@ class A {
           foo=: #M1
         interface
           map
-            foo: #M2
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30309,7 +30307,7 @@ class A {
     manifest
       A: #M0
         declaredMethods
-          foo: #M3
+          foo: #M2
 ''',
     );
   }
@@ -30727,7 +30725,7 @@ class A {
           foo=: #M2
         interface
           map
-            foo: #M3
+            foo: #M2
 ''',
     );
   }
@@ -30767,7 +30765,7 @@ class A {
           foo=: #M2
         interface
           map
-            foo: #M1
+            foo: #M2
 ''',
     );
   }
@@ -30807,7 +30805,7 @@ class A {
           foo=: #M2
         interface
           map
-            foo: #M1
+            foo: #M2
 ''',
     );
   }
@@ -30847,7 +30845,7 @@ class A {
           foo=: #M2
         interface
           map
-            foo: #M1
+            foo: #M2
 ''',
     );
   }
@@ -30884,7 +30882,7 @@ class A {
           foo=: #M2
         interface
           map
-            foo: #M3
+            foo: #M2
 ''',
     );
   }
@@ -30921,7 +30919,7 @@ class A {
           foo=: #M2
         interface
           map
-            foo: #M3
+            foo: #M2
 ''',
     );
   }
@@ -31947,7 +31945,7 @@ class A {
           foo=: #M3
         interface
           map
-            foo=: #M4
+            foo=: #M3
 ''',
     );
   }
@@ -31989,7 +31987,7 @@ class A {
           foo=: #M3
         interface
           map
-            foo=: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -32031,7 +32029,7 @@ class A {
           foo=: #M3
         interface
           map
-            foo=: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -32073,7 +32071,7 @@ class A {
           foo=: #M3
         interface
           map
-            foo=: #M2
+            foo=: #M3
 ''',
     );
   }
