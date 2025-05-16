@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,7 +18,8 @@ class AvoidMultipleDeclarationsPerLine extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_multiple_declarations_per_line;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_multiple_declarations_per_line;
 
   @override
   void registerNodeProcessors(

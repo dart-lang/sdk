@@ -8,7 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/src/dart/error/lint_codes.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
@@ -817,5 +817,5 @@ class _DeprecatedCamelCaseTypes extends LintRule {
       );
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 }

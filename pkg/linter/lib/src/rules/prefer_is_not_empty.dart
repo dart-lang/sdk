@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart'
     show PrefixExpression, PrefixedIdentifier, PropertyAccess, SimpleIdentifier;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -17,7 +18,7 @@ class PreferIsNotEmpty extends LintRule {
     : super(name: LintNames.prefer_is_not_empty, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_is_not_empty;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_is_not_empty;
 
   @override
   void registerNodeProcessors(

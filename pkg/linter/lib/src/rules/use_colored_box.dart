@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
@@ -15,7 +16,7 @@ class UseColoredBox extends LintRule {
   UseColoredBox() : super(name: LintNames.use_colored_box, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_colored_box;
+  DiagnosticCode get diagnosticCode => LinterLintCode.use_colored_box;
 
   @override
   void registerNodeProcessors(

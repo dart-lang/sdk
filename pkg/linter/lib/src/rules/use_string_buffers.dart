@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -26,7 +27,7 @@ class UseStringBuffers extends LintRule {
     : super(name: LintNames.use_string_buffers, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_string_buffers;
+  DiagnosticCode get diagnosticCode => LinterLintCode.use_string_buffers;
 
   @override
   void registerNodeProcessors(

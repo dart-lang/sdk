@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart'
     show TypeParameterElementImpl2;
@@ -24,7 +25,7 @@ class UnsafeVariance extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.unsafe_variance;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unsafe_variance;
 
   @override
   void registerNodeProcessors(

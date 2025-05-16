@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r"Declare 'visit' methods for all registered node types.";
@@ -23,7 +24,7 @@ class VisitRegisteredNodes extends LintRule {
     : super(name: 'visit_registered_nodes', description: _desc);
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(

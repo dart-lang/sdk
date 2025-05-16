@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,8 @@ class PreferNullAwareMethodCalls extends LintRule {
     : super(name: LintNames.prefer_null_aware_method_calls, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_null_aware_method_calls;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.prefer_null_aware_method_calls;
 
   @override
   void registerNodeProcessors(

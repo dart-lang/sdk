@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -13,7 +14,7 @@ class UseRawStrings extends LintRule {
   UseRawStrings() : super(name: LintNames.use_raw_strings, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_raw_strings;
+  DiagnosticCode get diagnosticCode => LinterLintCode.use_raw_strings;
 
   @override
   void registerNodeProcessors(

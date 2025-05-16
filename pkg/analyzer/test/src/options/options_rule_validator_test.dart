@@ -345,5 +345,5 @@ abstract class TestLintRule extends LintRule {
   TestLintRule({required super.name, super.state}) : super(description: '');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 }

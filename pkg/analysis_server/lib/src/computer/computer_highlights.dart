@@ -912,7 +912,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorSelector(ConstructorSelector node) {
     computer._addRegion_node(node.name, HighlightRegionType.CONSTRUCTOR);
-    node.visitChildren(this);
   }
 
   @override

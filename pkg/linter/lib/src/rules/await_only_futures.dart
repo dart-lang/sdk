@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -16,7 +17,7 @@ class AwaitOnlyFutures extends LintRule {
     : super(name: LintNames.await_only_futures, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.await_only_futures;
+  DiagnosticCode get diagnosticCode => LinterLintCode.await_only_futures;
 
   @override
   void registerNodeProcessors(

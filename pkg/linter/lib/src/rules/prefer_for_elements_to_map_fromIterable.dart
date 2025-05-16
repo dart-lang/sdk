@@ -5,6 +5,7 @@
 // ignore_for_file: file_names
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -18,7 +19,7 @@ class PreferForElementsToMapFromIterable extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.prefer_for_elements_to_map_fromIterable;
 
   @override

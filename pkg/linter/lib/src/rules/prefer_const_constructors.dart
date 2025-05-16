@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -18,7 +19,7 @@ class PreferConstConstructors extends LintRule {
     : super(name: LintNames.prefer_const_constructors, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_const_constructors;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_const_constructors;
 
   @override
   void registerNodeProcessors(

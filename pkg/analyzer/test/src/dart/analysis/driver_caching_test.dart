@@ -11,7 +11,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
-import 'package:analyzer_utilities/testing/test_support.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

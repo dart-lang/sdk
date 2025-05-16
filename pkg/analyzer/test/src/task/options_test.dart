@@ -827,5 +827,5 @@ class TestRule extends LintRule {
   TestRule.withName(String name) : super(name: name, description: '');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 }

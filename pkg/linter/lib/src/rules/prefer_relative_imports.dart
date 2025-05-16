@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/utilities/extensions/uri.dart';
 import 'package:path/path.dart' as path;
 
@@ -17,12 +18,12 @@ class PreferRelativeImports extends LintRule {
     : super(name: LintNames.prefer_relative_imports, description: _desc);
 
   @override
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_relative_imports;
+
+  @override
   List<String> get incompatibleRules => const [
     LintNames.always_use_package_imports,
   ];
-
-  @override
-  LintCode get lintCode => LinterLintCode.prefer_relative_imports;
 
   @override
   void registerNodeProcessors(

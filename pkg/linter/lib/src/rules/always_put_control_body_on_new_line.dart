@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,7 +18,8 @@ class AlwaysPutControlBodyOnNewLine extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.always_put_control_body_on_new_line;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.always_put_control_body_on_new_line;
 
   @override
   void registerNodeProcessors(

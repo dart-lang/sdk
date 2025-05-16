@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -15,7 +16,8 @@ class UnnecessaryToListInSpreads extends LintRule {
     : super(name: LintNames.unnecessary_to_list_in_spreads, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_to_list_in_spreads;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.unnecessary_to_list_in_spreads;
 
   @override
   void registerNodeProcessors(

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -20,7 +21,8 @@ class EraseDartTypeExtensionTypes extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.erase_dart_type_extension_types;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.erase_dart_type_extension_types;
 
   @override
   void registerNodeProcessors(

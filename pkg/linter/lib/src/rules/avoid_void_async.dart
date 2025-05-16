@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,7 +18,7 @@ class AvoidVoidAsync extends LintRule {
     : super(name: LintNames.avoid_void_async, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_void_async;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_void_async;
 
   @override
   void registerNodeProcessors(

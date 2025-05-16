@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/ascii_utils.dart';
@@ -14,7 +15,7 @@ class EmptyCatches extends LintRule {
   EmptyCatches() : super(name: LintNames.empty_catches, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.empty_catches;
+  DiagnosticCode get diagnosticCode => LinterLintCode.empty_catches;
 
   @override
   void registerNodeProcessors(

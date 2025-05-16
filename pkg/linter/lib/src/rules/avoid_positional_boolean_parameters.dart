@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -21,7 +22,8 @@ class AvoidPositionalBooleanParameters extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_positional_boolean_parameters;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_positional_boolean_parameters;
 
   @override
   void registerNodeProcessors(

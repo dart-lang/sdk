@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,7 +15,7 @@ class DoNotUseEnvironment extends LintRule {
     : super(name: LintNames.do_not_use_environment, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.do_not_use_environment;
+  DiagnosticCode get diagnosticCode => LinterLintCode.do_not_use_environment;
 
   @override
   void registerNodeProcessors(

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -18,7 +19,7 @@ class UnnecessaryParenthesis extends LintRule {
     : super(name: LintNames.unnecessary_parenthesis, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_parenthesis;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_parenthesis;
 
   @override
   void registerNodeProcessors(

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,7 +15,7 @@ class AvoidJsRoundedInts extends LintRule {
     : super(name: LintNames.avoid_js_rounded_ints, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_js_rounded_ints;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_js_rounded_ints;
 
   @override
   void registerNodeProcessors(

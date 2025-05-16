@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,7 +15,7 @@ class TestTypesInEquals extends LintRule {
     : super(name: LintNames.test_types_in_equals, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.test_types_in_equals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.test_types_in_equals;
 
   @override
   void registerNodeProcessors(

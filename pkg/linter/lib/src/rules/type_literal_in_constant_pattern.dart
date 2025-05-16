@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,7 +18,8 @@ class TypeLiteralInConstantPattern extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.type_literal_in_constant_pattern;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.type_literal_in_constant_pattern;
 
   @override
   void registerNodeProcessors(

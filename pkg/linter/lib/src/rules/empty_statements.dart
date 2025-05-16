@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,7 +15,7 @@ class EmptyStatements extends LintRule {
     : super(name: LintNames.empty_statements, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.empty_statements;
+  DiagnosticCode get diagnosticCode => LinterLintCode.empty_statements;
 
   @override
   void registerNodeProcessors(

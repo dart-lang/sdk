@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -20,7 +21,8 @@ class AvoidUnusedConstructorParameters extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_unused_constructor_parameters;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_unused_constructor_parameters;
 
   @override
   void registerNodeProcessors(

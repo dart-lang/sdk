@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../utils.dart';
@@ -14,7 +15,7 @@ class LibraryNames extends LintRule {
   LibraryNames() : super(name: LintNames.library_names, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.library_names;
+  DiagnosticCode get diagnosticCode => LinterLintCode.library_names;
 
   @override
   void registerNodeProcessors(

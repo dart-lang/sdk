@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:collection/collection.dart';
@@ -26,7 +27,7 @@ class UnreachableFromMain extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.unreachable_from_main;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unreachable_from_main;
 
   @override
   void registerNodeProcessors(

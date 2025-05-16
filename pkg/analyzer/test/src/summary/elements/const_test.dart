@@ -618,7 +618,7 @@ library
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             DotShorthandConstructorInvocation
-              const: const @38
+              constKeyword: const @38
               period: . @44
               constructorName: SimpleIdentifier
                 token: new @45

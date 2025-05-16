@@ -25,7 +25,7 @@ class RemovedLint extends LintRule {
       );
 
   @override
-  LintCode get lintCode => throw UnimplementedError();
+  DiagnosticCode get diagnosticCode => throw UnimplementedError();
 }
 
 @reflectiveTest
@@ -83,5 +83,5 @@ class ReplacingLint extends LintRule {
       );
 
   @override
-  LintCode get lintCode => throw UnimplementedError();
+  DiagnosticCode get diagnosticCode => throw UnimplementedError();
 }

@@ -21,7 +21,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
-import 'package:analyzer_utilities/testing/test_support.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

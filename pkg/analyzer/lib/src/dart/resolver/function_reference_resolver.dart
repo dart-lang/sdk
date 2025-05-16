@@ -904,7 +904,7 @@ class FunctionReferenceResolver {
       question: null,
     );
     typeName.type = instantiatedType;
-    var typeLiteral = TypeLiteralImpl(typeName: typeName);
+    var typeLiteral = TypeLiteralImpl(type: typeName);
     _resolver.replaceExpression(node, typeLiteral);
     typeLiteral.recordStaticType(_typeType, resolver: _resolver);
   }

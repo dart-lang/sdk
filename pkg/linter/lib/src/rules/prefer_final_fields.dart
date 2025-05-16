@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -17,7 +18,7 @@ class PreferFinalFields extends LintRule {
     : super(name: LintNames.prefer_final_fields, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_final_fields;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_final_fields;
 
   @override
   void registerNodeProcessors(

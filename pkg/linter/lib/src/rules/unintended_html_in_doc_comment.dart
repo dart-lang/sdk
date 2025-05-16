@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -122,7 +123,8 @@ class UnintendedHtmlInDocComment extends LintRule {
     : super(name: LintNames.unintended_html_in_doc_comment, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unintended_html_in_doc_comment;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.unintended_html_in_doc_comment;
 
   @override
   void registerNodeProcessors(

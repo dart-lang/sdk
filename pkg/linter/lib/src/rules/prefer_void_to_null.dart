@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -17,7 +18,7 @@ class PreferVoidToNull extends LintRule {
     : super(name: LintNames.prefer_void_to_null, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_void_to_null;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_void_to_null;
 
   @override
   void registerNodeProcessors(

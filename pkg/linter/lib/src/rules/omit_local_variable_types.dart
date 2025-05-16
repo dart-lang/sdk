@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,13 +18,13 @@ class OmitLocalVariableTypes extends LintRule {
     : super(name: LintNames.omit_local_variable_types, description: _desc);
 
   @override
+  DiagnosticCode get diagnosticCode => LinterLintCode.omit_local_variable_types;
+
+  @override
   List<String> get incompatibleRules => const [
     LintNames.always_specify_types,
     LintNames.specify_nonobvious_local_variable_types,
   ];
-
-  @override
-  LintCode get lintCode => LinterLintCode.omit_local_variable_types;
 
   @override
   void registerNodeProcessors(

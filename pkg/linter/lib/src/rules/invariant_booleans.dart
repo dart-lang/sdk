@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
+
 import '../analyzer.dart';
 
 const _desc =
@@ -16,5 +18,5 @@ class InvariantBooleans extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.removed_lint;
+  DiagnosticCode get diagnosticCode => LinterLintCode.removed_lint;
 }

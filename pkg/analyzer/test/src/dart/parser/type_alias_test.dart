@@ -51,6 +51,7 @@ GenericTypeAlias
   equals: =
   type: NamedType
     name: int
+  semicolon: ;
 ''');
   }
 
@@ -72,6 +73,7 @@ CompilationUnit
       equals: =
       type: NamedType
         name: int
+      semicolon: ;
 ''');
   }
 }

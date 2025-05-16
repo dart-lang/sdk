@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -16,7 +17,7 @@ class HashAndEquals extends LintRule {
   HashAndEquals() : super(name: LintNames.hash_and_equals, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.hash_and_equals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.hash_and_equals;
 
   @override
   void registerNodeProcessors(

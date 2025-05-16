@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -19,7 +20,7 @@ class AnnotateRedeclares extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.annotate_redeclares;
+  DiagnosticCode get diagnosticCode => LinterLintCode.annotate_redeclares;
 
   @override
   void registerNodeProcessors(

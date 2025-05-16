@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -16,7 +17,7 @@ class NoDuplicateCaseValues extends LintRule {
     : super(name: LintNames.no_duplicate_case_values, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.no_duplicate_case_values;
+  DiagnosticCode get diagnosticCode => LinterLintCode.no_duplicate_case_values;
 
   @override
   void registerNodeProcessors(

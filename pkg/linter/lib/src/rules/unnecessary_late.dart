@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,7 +15,7 @@ class UnnecessaryLate extends LintRule {
     : super(name: LintNames.unnecessary_late, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_late;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_late;
 
   @override
   void registerNodeProcessors(

@@ -161,14 +161,14 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
   AnalysisRule({required super.name, required super.description, super.state});
 
   /// The code to report for a violation.
-  DiagnosticCode get diagnosticCode => lintCode;
+  DiagnosticCode get diagnosticCode;
 
   @override
-  List<DiagnosticCode> get diagnosticCodes => [lintCode];
+  List<DiagnosticCode> get diagnosticCodes => [diagnosticCode];
 
   /// The code to report for a violation.
-  // TODO(srawlins): Deprecate this in favor of `diagnosticCode`.
-  LintCode get lintCode;
+  @Deprecated("Use 'diagnosticCode' instead.")
+  DiagnosticCode get lintCode => diagnosticCode;
 
   /// Reports a diagnostic at [node] with message [arguments] and
   /// [contextMessages].

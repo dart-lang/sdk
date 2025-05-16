@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -23,7 +24,7 @@ class FlutterStyleTodos extends LintRule {
     : super(name: LintNames.flutter_style_todos, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.flutter_style_todos;
+  DiagnosticCode get diagnosticCode => LinterLintCode.flutter_style_todos;
 
   @override
   void registerNodeProcessors(

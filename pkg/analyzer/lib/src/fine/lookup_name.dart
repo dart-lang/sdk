@@ -56,10 +56,56 @@ extension type LookupName(String _it) {
     return _it == '[]=';
   }
 
+  bool get isIndexOrIndexEq {
+    return const {'[]', '[]='}.contains(_it);
+  }
+
+  bool get isOperator {
+    return const {
+      ...{'+', '-', '*', '/', '~/', '%'},
+      ...{'<<', '>>', '>>>', '&', '^', '|', '~'},
+      ...{'<', '<=', '>', '>=', '=='},
+      'unary-',
+    }.contains(_it);
+  }
+
   bool get isPrivate => _it.startsWith('_');
 
   bool get isSetter {
     return _it.endsWith('=') && !const {'==', '<=', '>=', '[]='}.contains(_it);
+  }
+
+  /// This name must be a name of a method.
+  LookupName get methodToSetter {
+    assert(!isSetter);
+    if (isOperator || isIndexOrIndexEq) {
+      return this;
+    }
+    return LookupName('$_it=');
+  }
+
+  List<LookupName> get relatedNames {
+    if (isOperator) {
+      return [this];
+    }
+
+    if (isIndexOrIndexEq) {
+      return ['[]'.asLookupName, '[]='.asLookupName];
+    }
+
+    if (isSetter) {
+      return [this, setterToGetter];
+    }
+
+    var setterName = '$_it=';
+    return [this, setterName.asLookupName];
+  }
+
+  /// This name must be a name of a setter.
+  LookupName get setterToGetter {
+    assert(isSetter);
+    assert(_it.endsWith('='));
+    return _it.substring(0, _it.length - 1).asLookupName;
   }
 
   void write(BufferedSink sink) {

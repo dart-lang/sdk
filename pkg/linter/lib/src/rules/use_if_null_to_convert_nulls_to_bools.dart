@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -19,7 +20,8 @@ class UseIfNullToConvertNullsToBools extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.use_if_null_to_convert_nulls_to_bools;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.use_if_null_to_convert_nulls_to_bools;
 
   @override
   void registerNodeProcessors(

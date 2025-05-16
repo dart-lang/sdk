@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,7 @@ class TypeInitFormals extends LintRule {
     : super(name: LintNames.type_init_formals, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.type_init_formals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.type_init_formals;
 
   @override
   void registerNodeProcessors(

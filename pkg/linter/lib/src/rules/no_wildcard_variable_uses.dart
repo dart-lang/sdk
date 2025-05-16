@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -17,7 +18,7 @@ class NoWildcardVariableUses extends LintRule {
     : super(name: LintNames.no_wildcard_variable_uses, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.no_wildcard_variable_uses;
+  DiagnosticCode get diagnosticCode => LinterLintCode.no_wildcard_variable_uses;
 
   @override
   void registerNodeProcessors(

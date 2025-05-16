@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/obvious_types.dart';
@@ -20,10 +21,11 @@ class OmitObviousPropertyTypes extends LintRule {
       );
 
   @override
-  List<String> get incompatibleRules => const ['always_specify_types'];
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.omit_obvious_property_types;
 
   @override
-  LintCode get lintCode => LinterLintCode.omit_obvious_property_types;
+  List<String> get incompatibleRules => const ['always_specify_types'];
 
   @override
   void registerNodeProcessors(

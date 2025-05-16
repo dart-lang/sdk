@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,7 +18,7 @@ class NoRuntimeTypeToString extends LintRule {
     : super(name: LintNames.no_runtimeType_toString, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.no_runtimeType_toString;
+  DiagnosticCode get diagnosticCode => LinterLintCode.no_runtimeType_toString;
 
   @override
   void registerNodeProcessors(

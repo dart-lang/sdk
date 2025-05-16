@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -19,7 +20,8 @@ class TightenTypeOfInitializingFormals extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.tighten_type_of_initializing_formals;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.tighten_type_of_initializing_formals;
 
   @override
   void registerNodeProcessors(

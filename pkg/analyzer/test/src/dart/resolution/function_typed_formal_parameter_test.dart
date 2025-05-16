@@ -28,6 +28,16 @@ FunctionTypedFormalParameter
     element2: T@14
     type: T
   name: p
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredElement: T@14
+      TypeParameter
+        name: U
+        declaredElement: U@17
+    rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter

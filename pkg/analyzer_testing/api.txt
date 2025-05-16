@@ -54,11 +54,15 @@ package:analyzer_testing/resource_provider_mixin.dart:
 package:analyzer_testing/utilities/extensions/resource_provider.dart:
   ResourceProviderExtension (extension on ResourceProvider):
     convertPath (method: String Function(String))
+package:analyzer_testing/utilities/utilities.dart:
+  analysisOptionsContent (function: String Function({List<String> experiments, List<String> includes, List<String> legacyPlugins, List<String> rules, bool strictCasts, bool strictInference, bool strictRawTypes, List<String> unignorableNames}))
+  pubspecYamlContent (function: String Function({List<String> dependencies, String? name, String? sdkVersion}))
 dart:core:
   List (referenced)
   Object (referenced)
   String (referenced)
   Uri (referenced)
+  bool (referenced)
 package:analyzer/file_system/file_system.dart:
   File (referenced)
   Folder (referenced)

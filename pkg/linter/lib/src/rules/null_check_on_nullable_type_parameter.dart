@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import 'unnecessary_null_checks.dart';
@@ -21,7 +22,8 @@ class NullCheckOnNullableTypeParameter extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.null_check_on_nullable_type_parameter;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.null_check_on_nullable_type_parameter;
 
   @override
   void registerNodeProcessors(

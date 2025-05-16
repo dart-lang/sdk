@@ -395,6 +395,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
 
       var variableDeclaration = VariableDeclarationImpl(
+        comment: null,
+        metadata: [],
         name: StringToken(TokenType.STRING, name, -1),
         equals: Tokens.eq(),
         initializer: initializer,
@@ -440,6 +442,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     valuesField.constantInitializer = initializer;
 
     var variableDeclaration = VariableDeclarationImpl(
+      comment: null,
+      metadata: [],
       name: StringToken(TokenType.STRING, 'values', -1),
       equals: Tokens.eq(),
       initializer: initializer,

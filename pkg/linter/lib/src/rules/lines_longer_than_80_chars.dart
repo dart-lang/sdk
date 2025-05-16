@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -23,7 +24,8 @@ class LinesLongerThan80Chars extends LintRule {
     : super(name: LintNames.lines_longer_than_80_chars, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.lines_longer_than_80_chars;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.lines_longer_than_80_chars;
 
   @override
   void registerNodeProcessors(

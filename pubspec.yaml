@@ -87,8 +87,7 @@ workspace:
   - tools/verify_docs
   - tools
 
-# All third_party packages here are retrieved via the DEPS-file and overridden
-# here.
+# All third_party packages are retrieved via the DEPS-file and overridden here.
 dependency_overrides:
   _experiment_sound:
     path: third_party/pkg/webdev/fixtures/_experimentSound
@@ -108,8 +107,6 @@ dependency_overrides:
     path: third_party/pkg/webdev/fixtures/_webdevSoundSmoke
   analysis_config:
     path: third_party/pkg/webdev/_analysis_config
-  api_benchmark:
-    path: third_party/pkg/protobuf/api_benchmark
   args:
     path: third_party/pkg/core/pkgs/args
   async:

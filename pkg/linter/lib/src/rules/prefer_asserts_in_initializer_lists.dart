@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -19,7 +20,8 @@ class PreferAssertsInInitializerLists extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_asserts_in_initializer_lists;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.prefer_asserts_in_initializer_lists;
 
   @override
   void registerNodeProcessors(

@@ -640,7 +640,7 @@ class AstRewriter {
       question: null,
     );
     typeName.type = element.aliasedType;
-    var typeLiteral = TypeLiteralImpl(typeName: typeName);
+    var typeLiteral = TypeLiteralImpl(type: typeName);
     var methodInvocation = MethodInvocationImpl(
       target: typeLiteral,
       operator: node.constructorName.period,
@@ -682,7 +682,7 @@ class AstRewriter {
     IdentifierImpl node,
   ) {
     var result = TypeLiteralImpl(
-      typeName: node.toNamedType(typeArguments: null, question: null),
+      type: node.toNamedType(typeArguments: null, question: null),
     );
     NodeReplacer.replace(node, result, parent: parent);
     return result;

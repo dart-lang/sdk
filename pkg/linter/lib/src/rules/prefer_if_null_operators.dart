@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,7 @@ class PreferIfNullOperators extends LintRule {
     : super(name: LintNames.prefer_if_null_operators, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_if_null_operators;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_if_null_operators;
 
   @override
   void registerNodeProcessors(

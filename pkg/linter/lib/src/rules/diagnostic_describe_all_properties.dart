@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -22,7 +23,8 @@ class DiagnosticDescribeAllProperties extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.diagnostic_describe_all_properties;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.diagnostic_describe_all_properties;
 
   @override
   void registerNodeProcessors(
