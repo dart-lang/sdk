@@ -255,12 +255,16 @@ class LinkedElementFactory {
     // If we discard `dart:core` and `dart:async`, we should also discard
     // the type provider.
     if (uriSet.contains(_dartCoreUri)) {
-      if (!uriSet.contains(_dartAsyncUri)) {
-        throw StateError(
-          'Expected to link dart:core and dart:async together: '
-          '${uriSet.toList()}',
-        );
-      }
+      // Most of the time, if the `uriSet` contains `dart:core`, then it will
+      // also contain `dart:async`, since `dart:core` and `dart:async` are part
+      // of the same library cycle. However, if an event triggers `dart:core` to
+      // be discarded at a time when no library cycle information has been built
+      // yet, then just `dart:core` will be in `uriSet`. This can happen, for
+      // example, if two events trigger invalidation of `dart:core` in rapid
+      // succession. Fortunately, if this happens, it is benign; since no
+      // library cycle information has been built yet, there is nothing that
+      // that needs to be discarded.
+
       if (_libraryReaders.isNotEmpty) {
         throw StateError(
           'Expected to link dart:core and dart:async first: '
