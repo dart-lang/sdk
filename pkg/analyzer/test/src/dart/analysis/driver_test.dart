@@ -6320,6 +6320,8 @@ void f() {
     instances
       package:test/a.dart
         A
+          requestedGetters
+            c2: <null>
           requestedMethods
             c2: <null>
     interfaces
@@ -6571,6 +6573,8 @@ class A {
     instances
       package:test/a.dart
         A
+          requestedGetters
+            c2: <null>
           requestedMethods
             c2: <null>
     interfaces
@@ -6848,6 +6852,234 @@ class A {
         A
           constructors
             new: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_declared_constructor() async {
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.getNamedConstructor2('foo');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.foo(int _);
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredConstructors
+          foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.foo(double _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredConstructors
+          foo: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceConstructorIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    constructorName: foo
+    expectedId: #M1
+    actualId: #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_declared_constructor_notUsed() async {
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.getNamedConstructor2('foo');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.foo(int _);
+  A.bar(int _);
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredConstructors
+          bar: #M1
+          foo: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: #M2
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.foo(int _);
+  A.bar(double _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredConstructors
+          bar: #M4
+          foo: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
 [status] idle
 ''',
     );
@@ -7170,7 +7402,7 @@ import 'a.dart';
     instances
       package:test/a.dart
         A
-          requestedMethods
+          requestedGetters
             foo: #M2
 [status] idle
 ''',
@@ -7233,7 +7465,7 @@ class A {
     instances
       package:test/a.dart
         A
-          requestedMethods
+          requestedGetters
             foo: #M5
 [status] idle
 ''',
@@ -7309,7 +7541,7 @@ import 'a.dart';
     instances
       package:test/a.dart
         A
-          requestedMethods
+          requestedGetters
             foo: #M4
 [status] idle
 ''',
@@ -7340,6 +7572,248 @@ class A {
       dart:core
         double: #M8
         int: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_declared_method() async {
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getMethod('foo');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMethods
+          foo: #M3
+        interface
+          map
+            foo: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_declared_method_notUsed() async {
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getMethod('foo');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  int foo() {}
+  int bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMethods
+          bar: #M1
+          foo: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M2
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  int foo() {}
+  double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMethods
+          bar: #M4
+          foo: #M2
+        interface
+          map
+            bar: #M4
+            foo: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+        int: #M3
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -7422,7 +7896,7 @@ import 'a.dart';
     instances
       package:test/a.dart
         A
-          requestedMethods
+          requestedSetters
             foo=: #M2
 [status] idle
 ''',
@@ -7485,7 +7959,7 @@ class A {
     instances
       package:test/a.dart
         A
-          requestedMethods
+          requestedSetters
             foo=: #M5
 [status] idle
 ''',
@@ -7561,7 +8035,7 @@ import 'a.dart';
     instances
       package:test/a.dart
         A
-          requestedMethods
+          requestedSetters
             foo=: #M4
 [status] idle
 ''',
@@ -8441,7 +8915,6 @@ class A {
     manifest
       A: #M0
         declaredFields
-          bar: #M1
           foo: #M2
         declaredGetters
           foo: #M4
@@ -9114,6 +9587,8 @@ void f(A a) {
     instances
       package:test/a.dart
         A
+          requestedGetters
+            foo: <null>
           requestedMethods
             foo: <null>
     interfaces
@@ -10124,10 +10599,14 @@ void f(B b) {
     instances
       package:test/a.dart
         B
+          requestedGetters
+            _foo: <null>
           requestedMethods
             _foo: <null>
       package:test/test.dart
         A
+          requestedGetters
+            _foo: <null>
           requestedMethods
             _foo: <null>
             noSuchMethod: <null>
@@ -10237,6 +10716,8 @@ class A {}
     instances
       package:test/a.dart
         A
+          requestedGetters
+            foo: <null>
           requestedMethods
             foo: <null>
     interfaces
@@ -10546,9 +11027,12 @@ void f(A a) {
     instances
       package:test/a.dart
         A
+          requestedGetters
+            foo: <null>
+          requestedSetters
+            foo=: <null>
           requestedMethods
             foo: <null>
-            foo=: <null>
     interfaces
       package:test/a.dart
         A
@@ -11307,8 +11791,6 @@ class A {}
   package:test/a.dart
     manifest
       A: #M0
-        declaredFields
-          foo: #M1
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -11320,11 +11802,11 @@ class A {}
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMethodIdMismatch
+  instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    methodName: foo=
-    expectedId: #M2
+    fieldName: foo
+    expectedId: #M1
     actualId: <null>
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -11347,9 +11829,12 @@ class A {}
     instances
       package:test/a.dart
         A
+          requestedGetters
+            foo: <null>
+          requestedSetters
+            foo=: <null>
           requestedMethods
             foo: <null>
-            foo=: <null>
     interfaces
       package:test/a.dart
         A
@@ -11563,7 +12048,7 @@ void f() {
         A
           requestedFields
             foo: #M1
-          requestedMethods
+          requestedGetters
             foo: #M2
     interfaces
       package:test/a.dart
@@ -11626,7 +12111,7 @@ class A {
         A
           requestedFields
             foo: #M5
-          requestedMethods
+          requestedGetters
             foo: #M6
     interfaces
       package:test/a.dart
@@ -11701,7 +12186,7 @@ void f() {
         A
           requestedFields
             foo: #M2
-          requestedMethods
+          requestedGetters
             foo: #M4
     interfaces
       package:test/a.dart
@@ -11804,6 +12289,8 @@ void f() {
     instances
       package:test/a.dart
         A
+          requestedGetters
+            foo: <null>
           requestedMethods
             foo: #M1
     interfaces
@@ -11863,6 +12350,8 @@ class A {
     instances
       package:test/a.dart
         A
+          requestedGetters
+            foo: <null>
           requestedMethods
             foo: #M4
     interfaces
@@ -11933,6 +12422,8 @@ void f() {
     instances
       package:test/a.dart
         A
+          requestedGetters
+            foo: <null>
           requestedMethods
             foo: #M2
     interfaces
@@ -12037,7 +12528,7 @@ void f() {
         A
           requestedFields
             foo: #M1
-          requestedMethods
+          requestedSetters
             foo=: #M2
 [status] idle
 ''',
@@ -12095,7 +12586,7 @@ class A {
         A
           requestedFields
             foo: #M5
-          requestedMethods
+          requestedSetters
             foo=: #M6
 [status] idle
 ''',
@@ -12165,7 +12656,7 @@ void f() {
         A
           requestedFields
             foo: #M2
-          requestedMethods
+          requestedSetters
             foo=: #M4
 [status] idle
 ''',
@@ -13663,7 +14154,6 @@ mixin A {
     manifest
       A: #M0
         declaredFields
-          bar: #M1
           foo: #M2
         declaredGetters
           foo: #M4
@@ -14336,6 +14826,8 @@ void f(A a) {
     instances
       package:test/a.dart
         A
+          requestedGetters
+            foo: <null>
           requestedMethods
             foo: <null>
     interfaces
@@ -14790,6 +15282,8 @@ mixin A {}
     instances
       package:test/a.dart
         A
+          requestedGetters
+            foo: <null>
           requestedMethods
             foo: <null>
     interfaces
@@ -15099,9 +15593,12 @@ void f(A a) {
     instances
       package:test/a.dart
         A
+          requestedGetters
+            foo: <null>
+          requestedSetters
+            foo=: <null>
           requestedMethods
             foo: <null>
-            foo=: <null>
     interfaces
       package:test/a.dart
         A
@@ -15419,8 +15916,6 @@ mixin A {}
   package:test/a.dart
     manifest
       A: #M0
-        declaredFields
-          foo: #M1
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -15432,11 +15927,11 @@ mixin A {}
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMethodIdMismatch
+  instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    methodName: foo=
-    expectedId: #M2
+    fieldName: foo
+    expectedId: #M1
     actualId: <null>
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -15459,9 +15954,12 @@ mixin A {}
     instances
       package:test/a.dart
         A
+          requestedGetters
+            foo: <null>
+          requestedSetters
+            foo=: <null>
           requestedMethods
             foo: <null>
-            foo=: <null>
     interfaces
       package:test/a.dart
         A
@@ -39574,7 +40072,7 @@ import 'a.dart';
     instances
       package:test/a.dart
         A
-          requestedMethods
+          requestedGetters
             foo: #M2
 [status] idle
 ''',
@@ -39722,7 +40220,7 @@ import 'a.dart';
     instances
       package:test/a.dart
         A
-          requestedMethods
+          requestedSetters
             foo=: #M2
 [status] idle
 ''',
@@ -39783,7 +40281,7 @@ import 'a.dart';
         A
           requestedFields
             foo: #M1
-          requestedMethods
+          requestedGetters
             foo: #M2
 [status] idle
 ''',
@@ -39841,7 +40339,7 @@ import 'a.dart';
         A
           requestedFields
             foo: #M1
-          requestedMethods
+          requestedGetters
             foo: #M2
 [status] idle
 ''',
@@ -39902,7 +40400,7 @@ import 'a.dart';
         A
           requestedFields
             foo: #M1
-          requestedMethods
+          requestedSetters
             foo=: #M3
 [status] idle
 ''',
@@ -39960,7 +40458,7 @@ import 'a.dart';
         A
           requestedFields
             foo: #M1
-          requestedMethods
+          requestedSetters
             foo=: #M2
 [status] idle
 ''',

@@ -102,38 +102,24 @@ class BundleRequirementsPrinter {
             _writeNamedId,
           );
         });
-        // sink.withIndent(() {
-        //   sink.writeElements(
-        //     'requestedGetters',
-        //     instanceEntry.value.requestedGetters.sorted,
-        //     _writeNamedId,
-        //   );
-        // });
-        // sink.withIndent(() {
-        //   sink.writeElements(
-        //     'requestedSetters',
-        //     instanceEntry.value.requestedSetters.sorted,
-        //     _writeNamedId,
-        //   );
-        // });
-        // sink.withIndent(() {
-        //   sink.writeElements(
-        //     'requestedMethods',
-        //     instanceEntry.value.requestedMethods.sorted,
-        //     _writeNamedId,
-        //   );
-        // });
-
-        // TODO(scheglov): separate requestedXyz.
-        var requestedMethods = {
-          ...instanceEntry.value.requestedGetters,
-          ...instanceEntry.value.requestedSetters,
-          ...instanceEntry.value.requestedMethods,
-        };
+        sink.withIndent(() {
+          sink.writeElements(
+            'requestedGetters',
+            instanceEntry.value.requestedGetters.sorted,
+            _writeNamedId,
+          );
+        });
+        sink.withIndent(() {
+          sink.writeElements(
+            'requestedSetters',
+            instanceEntry.value.requestedSetters.sorted,
+            _writeNamedId,
+          );
+        });
         sink.withIndent(() {
           sink.writeElements(
             'requestedMethods',
-            requestedMethods.sorted,
+            instanceEntry.value.requestedMethods.sorted,
             _writeNamedId,
           );
         });
