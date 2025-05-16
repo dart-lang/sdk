@@ -48,7 +48,7 @@ int Function(int a)? y;
 ''');
   }
 
-  test_element_enclosingElement2() async {
+  test_element_enclosingElement() async {
     await assertNoErrorsInCode('''
 void f(
   void Function() a,

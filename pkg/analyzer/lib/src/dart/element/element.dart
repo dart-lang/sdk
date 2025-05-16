@@ -9129,10 +9129,10 @@ abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
   @override
   Element get nonSynthetic2 {
     if (isSynthetic) {
-      if (enclosingElement case EnumElementImpl2 enclosingElement2) {
+      if (enclosingElement case EnumElementImpl2 enclosingElement) {
         // TODO(scheglov): remove 'index'?
         if (name3 == 'index' || name3 == 'values') {
-          return enclosingElement2;
+          return enclosingElement;
         }
       }
       return (getter2 ?? setter2)!;
