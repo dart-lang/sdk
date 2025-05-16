@@ -1551,12 +1551,12 @@ mixin LspAnalysisServerTestMixin
     return outlineParams.outline;
   }
 
-  void _handleAnalysisBegin() async {
+  void _handleAnalysisBegin() {
     assert(_currentAnalysisCompleter.isCompleted);
     _currentAnalysisCompleter = Completer<void>();
   }
 
-  void _handleAnalysisEnd() async {
+  void _handleAnalysisEnd() {
     if (!_initialAnalysisCompleter.isCompleted) {
       _initialAnalysisCompleter.complete();
     }

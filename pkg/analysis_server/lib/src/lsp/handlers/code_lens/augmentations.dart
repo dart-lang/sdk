@@ -35,7 +35,7 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
     var path = pathOfDoc(params.textDocument);
     var unit = await performance.runAsync(
       'requireResolvedUnit',
-      (_) async => path.mapResult(requireResolvedUnit),
+      (_) => path.mapResult(requireResolvedUnit),
     );
     return await unit.mapResult((result) {
       return performance.runAsync(

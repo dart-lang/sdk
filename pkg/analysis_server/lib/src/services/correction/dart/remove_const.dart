@@ -180,7 +180,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
                     .argumentList
                     .arguments
                     .withErrorCodeIn(validDiagnostics);
-                await builder.addDartFileEdit(file, (builder) async {
+                await builder.addDartFileEdit(file, (builder) {
                   _deleteToken(builder, constKeyword);
                   contextNode.accept(
                     _PushConstVisitor(builder, nodesWithDiagnostic),
@@ -191,7 +191,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
                   ListLiteral list => list.elements,
                   SetOrMapLiteral set => set.elements,
                 }.withErrorCodeIn(validDiagnostics);
-                await builder.addDartFileEdit(file, (builder) async {
+                await builder.addDartFileEdit(file, (builder) {
                   _deleteToken(builder, constKeyword);
                   contextNode.accept(
                     _PushConstVisitor(builder, nodesWithDiagnostic),

@@ -300,7 +300,7 @@ class _ThrowsSyncErrorFix extends ResolvedCorrectionProducer {
   FixKind get fixKind => FixKind('unused', 50, 'Unused');
 
   @override
-  Future<void> compute(ChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) {
     throw StateError('A message.');
   }
 }
