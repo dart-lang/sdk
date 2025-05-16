@@ -1020,7 +1020,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     ++_libraryDirectiveIndex;
     var element = node.element2;
     if (element is LibraryElementImpl && _libraryDirectiveIndex == 1) {
-      _setOrCreateMetadataElements(element, node.metadata);
+      _setElementAnnotations(node.metadata, element.metadata2.annotations);
     }
 
     _withElementWalker(null, () {

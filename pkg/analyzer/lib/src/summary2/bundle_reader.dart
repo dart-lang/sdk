@@ -229,7 +229,7 @@ class ConstructorElementLinkedData
 }
 
 /// Lazy reader of resolution information.
-abstract class ElementLinkedData<E extends FragmentImpl> {
+abstract class ElementLinkedData<E> {
   final Reference reference;
   final LibraryReader _libraryReader;
   final LibraryFragmentImpl unitElement;
@@ -247,8 +247,8 @@ abstract class ElementLinkedData<E extends FragmentImpl> {
   ) : _libraryReader = libraryReader,
       _offset = offset;
 
-  void read(FragmentImpl element) {
-    _clearLinkedDataOnRead(element as E);
+  void read(E element) {
+    _clearLinkedDataOnRead(element);
     if (_offset == -1) {
       return;
     }
@@ -508,7 +508,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
   }
 
   @override
-  void read(FragmentImpl element) {
+  void read(LibraryElementImpl element) {
     if (!_isLocked) {
       super.read(element);
     }
@@ -526,7 +526,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(unitElement: unitElement);
+    element.annotations = reader._readAnnotationList(unitElement: unitElement);
 
     element.entryPoint2 = reader.readElement2() as TopLevelFunctionElementImpl?;
 
@@ -622,7 +622,6 @@ class LibraryReader {
       0,
       featureSet,
     );
-    _reference.element = _libraryElement;
     _reference.element2 = _libraryElement;
     _libraryElement.reference = _reference;
 

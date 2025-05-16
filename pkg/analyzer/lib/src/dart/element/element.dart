@@ -5619,12 +5619,14 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
 }
 
 /// A concrete implementation of [LibraryElement].
-class LibraryElementImpl extends FragmentImpl
-    with _HasLibraryMixin
-    implements LibraryElement {
-  /// The analysis context in which this library is defined.
-  @override
+class LibraryElementImpl extends ElementImpl2 implements LibraryElement {
   final AnalysisContext context;
+
+  @override
+  Reference? reference;
+
+  @override
+  String? documentationComment;
 
   @override
   AnalysisSessionImpl session;
@@ -5636,6 +5638,8 @@ class LibraryElementImpl extends FragmentImpl
   LibraryLanguageVersion? _languageVersion;
 
   bool hasTypeProviderSystemSet = false;
+
+  List<ElementAnnotationImpl> _annotations = [];
 
   @override
   late TypeProviderImpl typeProvider;
@@ -5661,8 +5665,17 @@ class LibraryElementImpl extends FragmentImpl
   /// for this library.
   late final LoadLibraryFunctionProvider loadLibraryProvider;
 
-  @override
+  // TODO(scheglov): replace with `LibraryName` or something.
+  String name;
+
+  // TODO(scheglov): replace with `LibraryName` or something.
+  int nameOffset;
+
+  // TODO(scheglov): replace with `LibraryName` or something.
   int nameLength;
+
+  @override
+  bool isSynthetic = false;
 
   @override
   List<ClassElementImpl2> classes = [];
@@ -5713,12 +5726,20 @@ class LibraryElementImpl extends FragmentImpl
   LibraryElementImpl(
     this.context,
     this.session,
-    String name,
-    int offset,
+    this.name,
+    this.nameOffset,
     this.nameLength,
     this.featureSet,
-  ) : linkedData = null,
-      super(name, offset);
+  );
+
+  List<ElementAnnotationImpl> get annotations {
+    linkedData?.read(this);
+    return _annotations;
+  }
+
+  set annotations(List<ElementAnnotationImpl> value) {
+    _annotations = value;
+  }
 
   @override
   LibraryElementImpl get baseElement => this;
@@ -5745,14 +5766,6 @@ class LibraryElementImpl extends FragmentImpl
   @Deprecated('Use enclosingElement instead')
   @override
   Null get enclosingElement2 => enclosingElement;
-
-  @override
-  Null get enclosingElement3 => null;
-
-  @override
-  LibraryFragmentImpl get enclosingUnit {
-    return definingCompilationUnit;
-  }
 
   @override
   TopLevelFunctionElementImpl? get entryPoint2 {
@@ -5877,9 +5890,6 @@ class LibraryElementImpl extends FragmentImpl
   }
 
   @override
-  LibraryElementImpl get library => this;
-
-  @override
   LibraryElementImpl get library2 => this;
 
   LibraryDeclarations get libraryDeclarations {
@@ -5895,13 +5905,9 @@ class LibraryElementImpl extends FragmentImpl
   String? get lookupName => null;
 
   @override
-  List<ElementAnnotationImpl> get metadata {
-    linkedData?.read(this);
-    return super.metadata;
+  MetadataImpl get metadata2 {
+    return MetadataImpl(annotations);
   }
-
-  @override
-  String get name => super.name!;
 
   @override
   String? get name3 => name;
@@ -5937,7 +5943,7 @@ class LibraryElementImpl extends FragmentImpl
     return SinceSdkVersionComputer().compute(this);
   }
 
-  @override
+  // TODO(scheglov): replace with `firstFragment.source`
   Source get source {
     return definingCompilationUnit.source;
   }

@@ -213,20 +213,7 @@ abstract class _AbstractElementWriter {
     node.accept(_createAstPrinter());
   }
 
-  void _writeReference(FragmentImpl e) {
-    if (!configuration.withReferences) {
-      return;
-    }
-
-    if (e.reference case var reference?) {
-      _sink.writeIndentedLine(() {
-        _sink.write('reference: ');
-        _elementPrinter.writeReference(reference);
-      });
-    }
-  }
-
-  void _writeReference2(ElementImpl2 e) {
+  void _writeReference(ElementImpl2 e) {
     if (!configuration.withReferences) {
       return;
     }
@@ -254,7 +241,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.writelnWithIndent('library');
     _sink.withIndent(() {
-      _writeReference(e as FragmentImpl);
+      _writeReference(e);
 
       var name = e.name;
       if (name.isNotEmpty) {
@@ -1129,7 +1116,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeReference2(e);
+      _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
@@ -1412,7 +1399,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeReference2(e);
+      _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       // _writeElementReference(e.enclosingElement2, label: 'enclosingElement2');
       if (e.hasEnclosingTypeParameterReference) {
@@ -1702,7 +1689,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeReference2(e);
+      _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
@@ -1800,7 +1787,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeReference2(e);
+      _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);

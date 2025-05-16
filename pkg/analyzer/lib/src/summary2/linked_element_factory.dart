@@ -63,9 +63,9 @@ class LinkedElementFactory {
   @visibleForTesting
   List<Uri> get uriListWithLibraryElements {
     return rootReference.children
-        .map((reference) => reference.element)
+        .map((reference) => reference.element2)
         .whereType<LibraryElementImpl>()
-        .map((e) => e.source.uri)
+        .map((e) => e.uri)
         .toList();
   }
 
@@ -158,7 +158,7 @@ class LinkedElementFactory {
     // During linking we create libraries when typeProvider is not ready.
     // Update these libraries now, when typeProvider is ready.
     for (var reference in rootReference.children) {
-      var libraryElement = reference.element as LibraryElementImpl?;
+      var libraryElement = reference.element2 as LibraryElementImpl?;
       if (libraryElement != null && !libraryElement.hasTypeProviderSystemSet) {
         setLibraryTypeSystem(libraryElement);
       }
@@ -182,7 +182,8 @@ class LinkedElementFactory {
 
     if (reference.isLibrary) {
       var uri = uriCache.parse(reference.name);
-      return createLibraryElementForReading(uri);
+      createLibraryElementForReading(uri);
+      return null;
     }
 
     var parentRef = reference.parentNotContainer;
@@ -216,7 +217,10 @@ class LinkedElementFactory {
 
   LibraryElementImpl? libraryOfUri(Uri uri) {
     var reference = rootReference.getChild('$uri');
-    return elementOfReference(reference) as LibraryElementImpl?;
+    if (reference.element2 case LibraryElementImpl element) {
+      return element;
+    }
+    return createLibraryElementForReading(uri);
   }
 
   LibraryElementImpl libraryOfUri2(Uri uri) {
@@ -270,7 +274,7 @@ class LinkedElementFactory {
   void replaceAnalysisSession(AnalysisSessionImpl newSession) {
     analysisSession = newSession;
     for (var libraryReference in rootReference.children) {
-      var libraryElement = libraryReference.element;
+      var libraryElement = libraryReference.element2;
       if (libraryElement is LibraryElementImpl) {
         libraryElement.session = newSession;
       }
