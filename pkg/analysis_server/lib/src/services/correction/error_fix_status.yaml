@@ -2394,6 +2394,8 @@ LintCode.strict_top_level_inference_split_to_types:
     Conceivably for variable declarations we can search some space (like the
     library or the compilation unit) for what values are assigned, and suggest
     the LUB of those value(s)' type(s).
+LintCode.switch_on_type:
+  status: noFix
 LintCode.test_types_in_equals:
   status: noFix
 LintCode.throw_in_finally:

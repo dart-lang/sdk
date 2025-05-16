@@ -242,6 +242,7 @@ import 'specify_nonobvious_local_variable_types_test.dart'
 import 'specify_nonobvious_property_types_test.dart'
     as specify_nonobvious_property_types;
 import 'strict_top_level_inference_test.dart' as strict_top_level_inference;
+import 'switch_on_type_test.dart' as switch_on_type;
 import 'test_types_in_equals_test.dart' as test_types_in_equals;
 import 'throw_in_finally_test.dart' as throw_in_finally;
 import 'tighten_type_of_initializing_formals_test.dart'
@@ -502,6 +503,7 @@ void main() {
   specify_nonobvious_local_variable_types.main();
   specify_nonobvious_property_types.main();
   strict_top_level_inference.main();
+  switch_on_type.main();
   test_types_in_equals.main();
   throw_in_finally.main();
   tighten_type_of_initializing_formals.main();
