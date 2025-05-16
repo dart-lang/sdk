@@ -502,7 +502,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         library: _currentLibrary,
         errorReporter: errorReporter,
-      ).checkStaticGetters(augmented.getters2);
+      ).checkStaticGetters(augmented.getters);
 
       super.visitClassDeclaration(node);
     } finally {
@@ -727,7 +727,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         library: _currentLibrary,
         errorReporter: errorReporter,
-      ).checkStaticGetters(declaredElement.getters2);
+      ).checkStaticGetters(declaredElement.getters);
 
       super.visitEnumDeclaration(node);
     } finally {
@@ -2363,9 +2363,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       // check members
       if (enclosingClass.getNamedConstructor2(name) != null ||
-          enclosingClass.getMethod2(name) != null ||
-          enclosingClass.getGetter2(name) != null ||
-          enclosingClass.getSetter2(name) != null) {
+          enclosingClass.getMethod(name) != null ||
+          enclosingClass.getGetter(name) != null ||
+          enclosingClass.getSetter(name) != null) {
         var code =
             enclosingClass is MixinElement
                 ? CompileTimeErrorCode
@@ -2392,9 +2392,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       // check members
       var element = fragment.element;
-      if (element.getMethod2(name) != null ||
-          element.getGetter2(name) != null ||
-          element.getSetter2(name) != null) {
+      if (element.getMethod(name) != null ||
+          element.getGetter(name) != null ||
+          element.getSetter(name) != null) {
         errorReporter.atElement2(
           typeParameter.asElement2,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM,
@@ -2422,9 +2422,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // check members
       var element = fragment.element;
       if (element.getNamedConstructor2(name) != null ||
-          element.getMethod2(name) != null ||
-          element.getGetter2(name) != null ||
-          element.getSetter2(name) != null) {
+          element.getMethod(name) != null ||
+          element.getGetter(name) != null ||
+          element.getSetter(name) != null) {
         errorReporter.atElement2(
           typeParameter.asElement2,
           CompileTimeErrorCode
@@ -2454,9 +2454,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
       // check members
-      if (_enclosingExtension!.getMethod2(name) != null ||
-          _enclosingExtension!.getGetter2(name) != null ||
-          _enclosingExtension!.getSetter2(name) != null) {
+      if (_enclosingExtension!.getMethod(name) != null ||
+          _enclosingExtension!.getGetter(name) != null ||
+          _enclosingExtension!.getSetter(name) != null) {
         errorReporter.atElement2(
           typeParameter,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
@@ -2639,7 +2639,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var instanceFields = <FieldElement>[];
     for (var mixin in enclosingClass.mixins) {
       instanceFields.addAll(
-        mixin.element3.fields2.where((field) {
+        mixin.element3.fields.where((field) {
           if (field.isStatic) {
             return false;
           }
@@ -4106,7 +4106,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var enumElement = expressionType.element3;
       if (enumElement is EnumElement) {
         var constantNames =
-            enumElement.fields2
+            enumElement.fields
                 .where((field) => field.isEnumConstant)
                 .map((field) => field.name3)
                 .toSet();

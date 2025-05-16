@@ -201,8 +201,6 @@ extension ElementOrNullExtension on FragmentImpl? {
       return self.element;
     } else if (self is LabelFragmentImpl) {
       return self.element2;
-    } else if (self is LibraryElementImpl) {
-      return self;
     } else if (self is LocalVariableFragmentImpl) {
       return self.element;
     } else if (self is NeverFragmentImpl) {

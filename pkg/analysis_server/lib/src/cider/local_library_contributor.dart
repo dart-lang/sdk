@@ -223,7 +223,7 @@ class LibraryElementSuggestionBuilder
       var contextType = request.contextType;
       if (contextType is InterfaceType) {
         // TODO(scheglov): This looks not ideal - we should suggest getters.
-        for (var field in element.fields2) {
+        for (var field in element.fields) {
           if (field.isStatic &&
               field.isAccessibleIn2(request.libraryElement) &&
               typeSystem.isSubtypeOf(field.type, contextType)) {

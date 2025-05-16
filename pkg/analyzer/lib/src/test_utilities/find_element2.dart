@@ -50,10 +50,7 @@ class FindElement2 extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  LibraryImportImpl import(
-    String targetUri, {
-    bool mustBeUnique = true,
-  }) {
+  LibraryImportImpl import(String targetUri, {bool mustBeUnique = true}) {
     LibraryImport? importElement;
 
     for (var libraryFragment in libraryFragment.withEnclosing2) {
@@ -187,10 +184,10 @@ class FindElement2 extends _FindElementBase {
 
     void findInClasses(List<InterfaceElement> classes) {
       for (var class_ in classes) {
-        findInExecutables(class_.getters2);
-        findInExecutables(class_.setters2);
+        findInExecutables(class_.getters);
+        findInExecutables(class_.setters);
         findInExecutables(class_.constructors2);
-        findInExecutables(class_.methods2);
+        findInExecutables(class_.methods);
       }
     }
 
@@ -204,9 +201,9 @@ class FindElement2 extends _FindElementBase {
     findInClasses(libraryElement.mixins);
 
     for (var extension_ in libraryElement.extensions) {
-      findInExecutables(extension_.getters2);
-      findInExecutables(extension_.setters2);
-      findInExecutables(extension_.methods2);
+      findInExecutables(extension_.getters);
+      findInExecutables(extension_.setters);
+      findInExecutables(extension_.methods);
     }
 
     for (var alias in libraryElement.typeAliases) {
@@ -416,24 +413,24 @@ abstract class _FindElementBase {
   FieldElement field(String name, {String? of}) {
     return _findInClassesLike(
       className: of,
-      fromClass: (element) => element.fields2.named(name),
-      fromExtension: (element) => element.fields2.named(name),
+      fromClass: (element) => element.fields.named(name),
+      fromExtension: (element) => element.fields.named(name),
     );
   }
 
   GetterElement getter(String name, {String? of}) {
     return _findInClassesLike(
       className: of,
-      fromClass: (element) => element.getters2.named(name),
-      fromExtension: (element) => element.getters2.named(name),
+      fromClass: (element) => element.getters.named(name),
+      fromExtension: (element) => element.getters.named(name),
     );
   }
 
   MethodElement method(String name, {String? of}) {
     return _findInClassesLike(
       className: of,
-      fromClass: (element) => element.methods2.named(name),
-      fromExtension: (element) => element.methods2.named(name),
+      fromClass: (element) => element.methods.named(name),
+      fromExtension: (element) => element.methods.named(name),
     );
   }
 
@@ -471,8 +468,8 @@ abstract class _FindElementBase {
   SetterElement setter(String name, {String? of}) {
     return _findInClassesLike(
       className: of,
-      fromClass: (element) => element.setters2.named(name),
-      fromExtension: (element) => element.setters2.named(name),
+      fromClass: (element) => element.setters.named(name),
+      fromExtension: (element) => element.setters.named(name),
     );
   }
 

@@ -316,7 +316,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       } else if (enclosingElement is EnumElement && element.name3 == 'values') {
         // If the 'values' static accessor of the enum is accessed, then all of
         // the enum values have been read.
-        for (var field in enclosingElement.fields2) {
+        for (var field in enclosingElement.fields) {
           if (field.isEnumConstant) {
             usedElements.readMembers.add(field.getter2!);
           }

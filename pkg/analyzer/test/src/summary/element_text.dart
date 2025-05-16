@@ -213,20 +213,7 @@ abstract class _AbstractElementWriter {
     node.accept(_createAstPrinter());
   }
 
-  void _writeReference(FragmentImpl e) {
-    if (!configuration.withReferences) {
-      return;
-    }
-
-    if (e.reference case var reference?) {
-      _sink.writeIndentedLine(() {
-        _sink.write('reference: ');
-        _elementPrinter.writeReference(reference);
-      });
-    }
-  }
-
-  void _writeReference2(ElementImpl2 e) {
+  void _writeReference(ElementImpl2 e) {
     if (!configuration.withReferences) {
       return;
     }
@@ -254,7 +241,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.writelnWithIndent('library');
     _sink.withIndent(() {
-      _writeReference(e as FragmentImpl);
+      _writeReference(e);
 
       var name = e.name;
       if (name.isNotEmpty) {
@@ -958,7 +945,7 @@ class _Element2Writer extends _AbstractElementWriter {
         // TODO(augmentations): Remove the invocations of `field.baseElement`.
         //  There shouldn't be any members in the list of fields.
         expect(
-          variableEnclosing.fields2.map((field) => field.baseElement),
+          variableEnclosing.fields.map((field) => field.baseElement),
           contains(variable.baseElement),
         );
       }
@@ -1024,7 +1011,7 @@ class _Element2Writer extends _AbstractElementWriter {
         case LibraryFragment():
           expect(enclosing.topLevelVariables2, contains(variable));
         case InterfaceFragment():
-          expect(enclosing.fields2, contains(variable));
+          expect(enclosing.fields, contains(variable));
       }
     }
 
@@ -1129,7 +1116,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeReference2(e);
+      _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
@@ -1189,7 +1176,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _elementPrinter.writeTypeList('allSupertypes', sorted);
       }
 
-      _writeElementList('fields', e, e.fields2, _writeFieldElement);
+      _writeElementList('fields', e, e.fields, _writeFieldElement);
       if (e is InterfaceElementImpl2) {
         var constructors = e.constructors2;
         if (e is MixinElementImpl2) {
@@ -1203,9 +1190,9 @@ class _Element2Writer extends _AbstractElementWriter {
           );
         }
       }
-      _writeElementList('getters', e, e.getters2, _writeGetterElement);
-      _writeElementList('setters', e, e.setters2, _writeSetterElement);
-      _writeElementList('methods', e, e.methods2, _writeMethodElement);
+      _writeElementList('getters', e, e.getters, _writeGetterElement);
+      _writeElementList('setters', e, e.setters, _writeSetterElement);
+      _writeElementList('methods', e, e.methods, _writeMethodElement);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -1261,7 +1248,7 @@ class _Element2Writer extends _AbstractElementWriter {
         f.typeParameters2,
         _writeTypeParameterFragment,
       );
-      _writeFragmentList('fields', f, f.fields2, _writeFieldFragment);
+      _writeFragmentList('fields', f, f.fields, _writeFieldFragment);
       if (f is InterfaceFragment) {
         var constructors = f.constructors2;
         if (f is MixinElement) {
@@ -1277,7 +1264,7 @@ class _Element2Writer extends _AbstractElementWriter {
       }
       _writeFragmentList('getters', f, f.getters, _writeGetterFragment);
       _writeFragmentList('setters', f, f.setters, _writeSetterFragment);
-      _writeFragmentList('methods', f, f.methods2, _writeMethodFragment);
+      _writeFragmentList('methods', f, f.methods, _writeMethodFragment);
     });
   }
 
@@ -1412,7 +1399,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeReference2(e);
+      _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       // _writeElementReference(e.enclosingElement2, label: 'enclosingElement2');
       if (e.hasEnclosingTypeParameterReference) {
@@ -1563,7 +1550,7 @@ class _Element2Writer extends _AbstractElementWriter {
         // TODO(augmentations): Remove the invocations of `field.baseElement`.
         //  There shouldn't be any members in the list of fields.
         expect(
-          variableEnclosing.fields2.map((field) => field.baseElement),
+          variableEnclosing.fields.map((field) => field.baseElement),
           contains(variable.baseElement),
         );
       }
@@ -1629,7 +1616,7 @@ class _Element2Writer extends _AbstractElementWriter {
         case LibraryFragment():
           expect(enclosing.topLevelVariables2, contains(variable));
         case InterfaceFragment():
-          expect(enclosing.fields2, contains(variable));
+          expect(enclosing.fields, contains(variable));
       }
     }
 
@@ -1702,7 +1689,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeReference2(e);
+      _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
@@ -1800,7 +1787,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeReference2(e);
+      _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);

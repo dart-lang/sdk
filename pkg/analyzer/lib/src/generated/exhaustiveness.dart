@@ -93,7 +93,7 @@ class AnalyzerEnumOperations
 
   @override
   Iterable<FieldElement> getEnumElements(EnumElement enumClass) sync* {
-    for (var field in enumClass.fields2) {
+    for (var field in enumClass.fields) {
       if (field.isEnumConstant) {
         yield field;
       }

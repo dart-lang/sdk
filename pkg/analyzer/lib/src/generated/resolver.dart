@@ -2327,7 +2327,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // to be visited in the context of the constructor field initializer node.
     //
     var fieldName = node.fieldName;
-    var fieldElement = enclosingClass!.getField2(fieldName.name);
+    var fieldElement = enclosingClass!.getField(fieldName.name);
     fieldName.element = fieldElement;
     var fieldType = fieldElement?.type ?? UnknownInferredType.instance;
     var expression = node.expression;
@@ -3105,7 +3105,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitImplicitCallReference(covariant ImplicitCallReferenceImpl node) {
+  void visitImplicitCallReference(
+    covariant ImplicitCallReferenceImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
     checkUnreachableNode(node);
     analyzeExpression(
       node.expression,
@@ -3285,7 +3288,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {}
+  void visitLibraryIdentifier(
+    LibraryIdentifier node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {}
 
   @override
   void visitListLiteral(

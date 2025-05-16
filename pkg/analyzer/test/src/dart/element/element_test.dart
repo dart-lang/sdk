@@ -58,10 +58,10 @@ enum B {B1, B2, B3}
 ''');
     var B = findElement2.enum_('B');
 
-    var b2Element = B.getField2('B2')!;
+    var b2Element = B.getField('B2')!;
     expect(b2Element.isEnumConstant, isTrue);
 
-    var valuesElement = B.getField2('values')!;
+    var valuesElement = B.getField('values')!;
     expect(valuesElement.isEnumConstant, isFalse);
   }
 }
@@ -204,8 +204,8 @@ class A {
 }
 ''');
     var elementA = library.getClass2('A')!;
-    var getter = elementA.getGetter2('g');
-    expect(elementA.lookUpGetter2(name: 'g', library: library), same(getter));
+    var getter = elementA.getGetter('g');
+    expect(elementA.lookUpGetter(name: 'g', library: library), same(getter));
   }
 
   @FailingTest() // TODO(scheglov): implement augmentation
@@ -223,8 +223,8 @@ part 'a.dart';
 class A {}
 ''');
     var elementA = library.getClass2('A')!;
-    var getter = elementA.getGetter2('g')!;
-    expect(elementA.lookUpGetter2(name: 'g', library: library), same(getter));
+    var getter = elementA.getGetter('g')!;
+    expect(elementA.lookUpGetter(name: 'g', library: library), same(getter));
   }
 
   test_lookUpGetter_inherited() async {
@@ -235,9 +235,9 @@ class A {
 class B extends A {}
 ''');
     var classA = library.getClass2('A')!;
-    var getter = classA.getGetter2('g');
+    var getter = classA.getGetter('g');
     var classB = library.getClass2('B')!;
-    expect(classB.lookUpGetter2(name: 'g', library: library), same(getter));
+    expect(classB.lookUpGetter(name: 'g', library: library), same(getter));
   }
 
   test_lookUpGetter_inherited_fromAugmentation() async {
@@ -255,9 +255,9 @@ class A {}
 class B extends A {}
 ''');
     var classA = library.getClass2('A')!;
-    var getter = classA.getGetter2('g');
+    var getter = classA.getGetter('g');
     var classB = library.getClass2('B')!;
-    expect(classB.lookUpGetter2(name: 'g', library: library), same(getter));
+    expect(classB.lookUpGetter(name: 'g', library: library), same(getter));
   }
 
   test_lookUpGetter_inherited_fromMixin() async {
@@ -268,9 +268,9 @@ mixin A {
 class B with A {}
 ''');
     var mixinA = library.getMixin2('A')!;
-    var getter = mixinA.getGetter2('g');
+    var getter = mixinA.getGetter('g');
     var classB = library.getClass2('B')!;
-    expect(classB.lookUpGetter2(name: 'g', library: library), same(getter));
+    expect(classB.lookUpGetter(name: 'g', library: library), same(getter));
   }
 
   test_lookUpGetter_undeclared() async {
@@ -278,7 +278,7 @@ class B with A {}
 class A {}
 ''');
     var classA = library.getClass2('A')!;
-    expect(classA.lookUpGetter2(name: 'g', library: library), isNull);
+    expect(classA.lookUpGetter(name: 'g', library: library), isNull);
   }
 
   test_lookUpGetter_undeclared_recursive() async {
@@ -287,7 +287,7 @@ class A extends B {}
 class B extends A {}
 ''');
     var classA = library.getClass2('A')!;
-    expect(classA.lookUpGetter2(name: 'g', library: library), isNull);
+    expect(classA.lookUpGetter(name: 'g', library: library), isNull);
   }
 
   test_lookUpMethod_declared() async {
@@ -297,8 +297,8 @@ class A {
 }
 ''');
     var classA = library.getClass2('A')!;
-    var method = classA.getMethod2('m')!;
-    expect(classA.lookUpMethod2(name: 'm', library: library), same(method));
+    var method = classA.getMethod('m')!;
+    expect(classA.lookUpMethod(name: 'm', library: library), same(method));
   }
 
   @FailingTest() // TODO(scheglov): implement augmentation
@@ -316,8 +316,8 @@ part 'a.dart';
 class A {}
 ''');
     var classA = library.getClass2('A')!;
-    var method = classA.getMethod2('m')!;
-    expect(classA.lookUpMethod2(name: 'm', library: library), same(method));
+    var method = classA.getMethod('m')!;
+    expect(classA.lookUpMethod(name: 'm', library: library), same(method));
   }
 
   test_lookUpMethod_inherited() async {
@@ -328,9 +328,9 @@ class A {
 class B extends A {}
 ''');
     var classA = library.getClass2('A')!;
-    var method = classA.getMethod2('m');
+    var method = classA.getMethod('m');
     var classB = library.getClass2('B')!;
-    expect(classB.lookUpMethod2(name: 'm', library: library), same(method));
+    expect(classB.lookUpMethod(name: 'm', library: library), same(method));
   }
 
   test_lookUpMethod_inherited_fromAugmentation() async {
@@ -348,9 +348,9 @@ class A {}
 class B extends A {}
 ''');
     var classA = library.getClass2('A')!;
-    var method = classA.getMethod2('m');
+    var method = classA.getMethod('m');
     var classB = library.getClass2('B')!;
-    expect(classB.lookUpMethod2(name: 'm', library: library), same(method));
+    expect(classB.lookUpMethod(name: 'm', library: library), same(method));
   }
 
   test_lookUpMethod_inherited_fromMixin() async {
@@ -361,9 +361,9 @@ mixin A {
 class B with A {}
 ''');
     var mixinA = library.getMixin2('A')!;
-    var method = mixinA.getMethod2('m');
+    var method = mixinA.getMethod('m');
     var classB = library.getClass2('B')!;
-    expect(classB.lookUpMethod2(name: 'm', library: library), same(method));
+    expect(classB.lookUpMethod(name: 'm', library: library), same(method));
   }
 
   test_lookUpMethod_undeclared() async {
@@ -371,7 +371,7 @@ class B with A {}
 class A {}
 ''');
     var classA = library.getClass2('A')!;
-    expect(classA.lookUpMethod2(name: 'm', library: library), isNull);
+    expect(classA.lookUpMethod(name: 'm', library: library), isNull);
   }
 
   test_lookUpMethod_undeclared_recursive() async {
@@ -380,7 +380,7 @@ class A extends B {}
 class B extends A {}
 ''');
     var classA = library.getClass2('A')!;
-    expect(classA.lookUpMethod2(name: 'm', library: library), isNull);
+    expect(classA.lookUpMethod(name: 'm', library: library), isNull);
   }
 
   test_lookUpSetter_declared() async {
@@ -390,8 +390,8 @@ class A {
 }
 ''');
     var classA = library.getClass2('A')!;
-    var setter = classA.getSetter2('s')!;
-    expect(classA.lookUpSetter2(name: 's', library: library), same(setter));
+    var setter = classA.getSetter('s')!;
+    expect(classA.lookUpSetter(name: 's', library: library), same(setter));
   }
 
   @FailingTest() // TODO(scheglov): implement augmentation
@@ -409,8 +409,8 @@ part 'a.dart';
 class A {}
 ''');
     var classA = library.getClass2('A')!;
-    var setter = classA.getSetter2('s')!;
-    expect(classA.lookUpSetter2(name: 's', library: library), same(setter));
+    var setter = classA.getSetter('s')!;
+    expect(classA.lookUpSetter(name: 's', library: library), same(setter));
   }
 
   test_lookUpSetter_inherited() async {
@@ -421,9 +421,9 @@ class A {
 class B extends A {}
 ''');
     var classA = library.getClass2('A')!;
-    var setter = classA.getSetter2('s')!;
+    var setter = classA.getSetter('s')!;
     var classB = library.getClass2('B')!;
-    expect(classB.lookUpSetter2(name: 's', library: library), same(setter));
+    expect(classB.lookUpSetter(name: 's', library: library), same(setter));
   }
 
   @FailingTest() // TODO(scheglov): implement augmentation
@@ -442,9 +442,9 @@ class A {}
 class B extends A {}
 ''');
     var classA = library.getClass2('A')!;
-    var setter = classA.getSetter2('s')!;
+    var setter = classA.getSetter('s')!;
     var classB = library.getClass2('B')!;
-    expect(classB.lookUpSetter2(name: 's', library: library), same(setter));
+    expect(classB.lookUpSetter(name: 's', library: library), same(setter));
   }
 
   test_lookUpSetter_inherited_fromMixin() async {
@@ -455,9 +455,9 @@ mixin A {
 class B with A {}
 ''');
     var mixinA = library.getMixin2('A')!;
-    var setter = mixinA.getSetter2('s')!;
+    var setter = mixinA.getSetter('s')!;
     var classB = library.getClass2('B')!;
-    expect(classB.lookUpSetter2(name: 's', library: library), same(setter));
+    expect(classB.lookUpSetter(name: 's', library: library), same(setter));
   }
 
   test_lookUpSetter_undeclared() async {
@@ -465,7 +465,7 @@ class B with A {}
 class A {}
 ''');
     var classA = library.getClass2('A')!;
-    expect(classA.lookUpSetter2(name: 's', library: library), isNull);
+    expect(classA.lookUpSetter(name: 's', library: library), isNull);
   }
 
   test_lookUpSetter_undeclared_recursive() async {
@@ -474,7 +474,7 @@ class A extends B {}
 class B extends A {}
 ''');
     var classA = library.getClass2('A')!;
-    expect(classA.lookUpSetter2(name: 's', library: library), isNull);
+    expect(classA.lookUpSetter(name: 's', library: library), isNull);
   }
 }
 

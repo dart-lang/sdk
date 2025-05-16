@@ -160,11 +160,11 @@ class ExtensionMemberResolver {
     ExecutableElementImpl2? getter;
     ExecutableElementImpl2? setter;
     if (name == '[]') {
-      getter = element.getMethod2('[]');
-      setter = element.getMethod2('[]=');
+      getter = element.getMethod('[]');
+      setter = element.getMethod('[]=');
     } else {
-      getter = element.getGetter2(name) ?? element.getMethod2(name);
-      setter = element.getSetter2(name);
+      getter = element.getGetter(name) ?? element.getMethod(name);
+      setter = element.getSetter(name);
     }
 
     if (getter == null && setter == null) {

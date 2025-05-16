@@ -597,7 +597,7 @@ class InformativeDataApplier {
     var applyOffsets = ApplyConstantOffsets(info.libraryConstantOffsets, (
       applier,
     ) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadataList(element.annotations);
     });
 
     var linkedData = element.linkedData;

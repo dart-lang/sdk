@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             (node.root as CompilationUnit).declaredFragment?.element.library2;
         if (library == null) return;
         var value = node.computeConstantValue().value;
-        for (var field in element.fields2.where(
+        for (var field in element.fields.where(
           (e) => e.isStatic && e.isConst,
         )) {
           if (field.isAccessibleIn2(library) &&

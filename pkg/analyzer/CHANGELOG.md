@@ -19,6 +19,16 @@
 * Deprecate `NamedType.name2`, use `name` instead.
 * Deprecate `ClassElement.isXyzIn2`, use `isXyzIn` instead.
 * Deprecate `Element.enclosingElement2`, use `enclosingElement` instead.
+* Deprecate `InstanceElement.fields2`, use `fields` instead.
+* Deprecate `InstanceElement.getters2`, use `getters` instead.
+* Deprecate `InstanceElement.setters2`, use `setters` instead.
+* Deprecate `InstanceElement.methods2`, use `methods` instead.
+* Deprecate `InstanceElement.getField2`, use `getField` instead.
+* Deprecate `InstanceElement.getGetter2`, use `getGetter` instead.
+* Deprecate `InstanceElement.getSetter2`, use `getSetter` instead.
+* Deprecate `InstanceElement.getMethod2`, use `getMethod` instead.
+* Deprecate `InstanceFragment.fields2`, use `fields` instead.
+* Deprecate `InstanceFragment.methods2`, use `methods` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

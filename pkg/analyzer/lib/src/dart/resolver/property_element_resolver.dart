@@ -629,8 +629,8 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? readElementRecovery;
     DartType? getType;
     if (hasRead) {
-      readElement ??= extension.getGetter2(memberName);
-      readElement ??= extension.getMethod2(memberName);
+      readElement ??= extension.getGetter(memberName);
+      readElement ??= extension.getMethod(memberName);
 
       if (readElement == null) {
         // This method is only called for extension overrides, and extension
@@ -653,7 +653,7 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? writeElement;
     ExecutableElement? writeElementRecovery;
     if (hasWrite) {
-      writeElement = extension.getSetter2(memberName);
+      writeElement = extension.getSetter(memberName);
 
       if (writeElement == null) {
         errorReporter.atNode(
@@ -755,13 +755,13 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? readElementRecovery;
     DartType? getType;
     if (hasRead) {
-      readElement = typeReference.getGetter2(propertyName.name);
+      readElement = typeReference.getGetter(propertyName.name);
       if (readElement != null && !_isAccessible(readElement)) {
         readElement = null;
       }
 
       if (readElement == null) {
-        readElement = typeReference.getMethod2(propertyName.name);
+        readElement = typeReference.getMethod(propertyName.name);
         if (readElement != null && !_isAccessible(readElement)) {
           readElement = null;
         }
@@ -799,7 +799,7 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? writeElement;
     ExecutableElement? writeElementRecovery;
     if (hasWrite) {
-      writeElement = typeReference.getSetter2(propertyName.name);
+      writeElement = typeReference.getSetter(propertyName.name);
       if (writeElement != null) {
         if (!_isAccessible(writeElement)) {
           errorReporter.atNode(
@@ -814,7 +814,7 @@ class PropertyElementResolver with ScopeHelpers {
         }
       } else {
         // Recovery, try to use getter.
-        writeElementRecovery = typeReference.getGetter2(propertyName.name);
+        writeElementRecovery = typeReference.getGetter(propertyName.name);
         AssignmentVerifier(errorReporter).verify(
           node: propertyName,
           requested: null,

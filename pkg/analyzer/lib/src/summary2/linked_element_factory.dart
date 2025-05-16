@@ -63,9 +63,9 @@ class LinkedElementFactory {
   @visibleForTesting
   List<Uri> get uriListWithLibraryElements {
     return rootReference.children
-        .map((reference) => reference.element)
+        .map((reference) => reference.element2)
         .whereType<LibraryElementImpl>()
-        .map((e) => e.source.uri)
+        .map((e) => e.uri)
         .toList();
   }
 
@@ -158,7 +158,7 @@ class LinkedElementFactory {
     // During linking we create libraries when typeProvider is not ready.
     // Update these libraries now, when typeProvider is ready.
     for (var reference in rootReference.children) {
-      var libraryElement = reference.element as LibraryElementImpl?;
+      var libraryElement = reference.element2 as LibraryElementImpl?;
       if (libraryElement != null && !libraryElement.hasTypeProviderSystemSet) {
         setLibraryTypeSystem(libraryElement);
       }
@@ -182,7 +182,8 @@ class LinkedElementFactory {
 
     if (reference.isLibrary) {
       var uri = uriCache.parse(reference.name);
-      return createLibraryElementForReading(uri);
+      createLibraryElementForReading(uri);
+      return null;
     }
 
     var parentRef = reference.parentNotContainer;
@@ -216,7 +217,10 @@ class LinkedElementFactory {
 
   LibraryElementImpl? libraryOfUri(Uri uri) {
     var reference = rootReference.getChild('$uri');
-    return elementOfReference(reference) as LibraryElementImpl?;
+    if (reference.element2 case LibraryElementImpl element) {
+      return element;
+    }
+    return createLibraryElementForReading(uri);
   }
 
   LibraryElementImpl libraryOfUri2(Uri uri) {
@@ -251,12 +255,16 @@ class LinkedElementFactory {
     // If we discard `dart:core` and `dart:async`, we should also discard
     // the type provider.
     if (uriSet.contains(_dartCoreUri)) {
-      if (!uriSet.contains(_dartAsyncUri)) {
-        throw StateError(
-          'Expected to link dart:core and dart:async together: '
-          '${uriSet.toList()}',
-        );
-      }
+      // Most of the time, if the `uriSet` contains `dart:core`, then it will
+      // also contain `dart:async`, since `dart:core` and `dart:async` are part
+      // of the same library cycle. However, if an event triggers `dart:core` to
+      // be discarded at a time when no library cycle information has been built
+      // yet, then just `dart:core` will be in `uriSet`. This can happen, for
+      // example, if two events trigger invalidation of `dart:core` in rapid
+      // succession. Fortunately, if this happens, it is benign; since no
+      // library cycle information has been built yet, there is nothing that
+      // that needs to be discarded.
+
       if (_libraryReaders.isNotEmpty) {
         throw StateError(
           'Expected to link dart:core and dart:async first: '
@@ -270,7 +278,7 @@ class LinkedElementFactory {
   void replaceAnalysisSession(AnalysisSessionImpl newSession) {
     analysisSession = newSession;
     for (var libraryReference in rootReference.children) {
-      var libraryElement = libraryReference.element;
+      var libraryElement = libraryReference.element2;
       if (libraryElement is LibraryElementImpl) {
         libraryElement.session = newSession;
       }

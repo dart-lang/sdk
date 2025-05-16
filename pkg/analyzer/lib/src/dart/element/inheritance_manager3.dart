@@ -489,9 +489,9 @@ class InheritanceManager3 {
       }
     }
 
-    element.methods2.map((e) => e.asElement).forEach(addMember);
-    element.getters2.map((e) => e.asElement).forEach(addMember);
-    element.setters2.map((e) => e.asElement).forEach(addMember);
+    element.methods.map((e) => e.asElement).forEach(addMember);
+    element.getters.map((e) => e.asElement).forEach(addMember);
+    element.setters.map((e) => e.asElement).forEach(addMember);
   }
 
   void _addMixinMembers({
@@ -1251,9 +1251,9 @@ class InheritanceManager3 {
       }
     }
 
-    element.methods2.map((e) => e.asElement).forEach(addMember);
-    element.getters2.map((e) => e.asElement).forEach(addMember);
-    element.setters2.map((e) => e.asElement).forEach(addMember);
+    element.methods.map((e) => e.asElement).forEach(addMember);
+    element.getters.map((e) => e.asElement).forEach(addMember);
+    element.setters.map((e) => e.asElement).forEach(addMember);
 
     return declared;
   }

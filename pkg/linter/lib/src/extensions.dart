@@ -215,7 +215,7 @@ extension ClassElementExtension on ClassElement {
     // And 2 or more static const fields whose type is the enclosing class.
     var enumConstantCount = 0;
     var enumConstants = <DartObject, Set<FieldElement>>{};
-    for (var field in fields2) {
+    for (var field in fields) {
       // Ensure static const.
       if (field.isSynthetic || !field.isConst || !field.isStatic) {
         continue;

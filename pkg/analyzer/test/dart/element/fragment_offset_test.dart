@@ -374,7 +374,7 @@ enum E { e1 }
     checkOffset<FieldFragment>(
       enumDeclaration,
       enumDeclaration.declaredFragment!.element
-          .getField2('values')!
+          .getField('values')!
           .firstFragment,
       enumDeclaration.name.offset,
     );

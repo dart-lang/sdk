@@ -486,10 +486,10 @@ class MethodInvocationResolver with ScopeHelpers {
     String name = propertyName.name;
     Element? element;
     if (propertyName.inSetterContext()) {
-      element = classElement.getSetter2(name);
+      element = classElement.getSetter(name);
     }
-    element ??= classElement.getGetter2(name);
-    element ??= classElement.getMethod2(name);
+    element ??= classElement.getGetter(name);
+    element ??= classElement.getMethod(name);
     if (element != null && element.isAccessibleIn2(_definingLibrary)) {
       return element;
     }
@@ -509,7 +509,7 @@ class MethodInvocationResolver with ScopeHelpers {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var getter = extension.getGetter2(name);
+    var getter = extension.getGetter(name);
     if (getter != null) {
       nameNode.element = getter;
       _reportStaticAccessToInstanceMember(getter, nameNode);
@@ -525,7 +525,7 @@ class MethodInvocationResolver with ScopeHelpers {
       );
     }
 
-    var method = extension.getMethod2(name);
+    var method = extension.getMethod(name);
     if (method != null) {
       nameNode.element = method;
       _reportStaticAccessToInstanceMember(method, nameNode);
@@ -633,7 +633,7 @@ class MethodInvocationResolver with ScopeHelpers {
     var nameNode = node.methodName;
 
     var objectElement = _typeSystem.typeProvider.objectElement2;
-    var target = objectElement.getMethod2(nameNode.name);
+    var target = objectElement.getMethod(nameNode.name);
 
     FunctionType? rawType;
     if (receiverType is InvalidType) {
@@ -689,7 +689,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (receiverType == NeverTypeImpl.instanceNullable) {
       var methodName = node.methodName;
       var objectElement = _resolver.typeProvider.objectElement2;
-      var objectMember = objectElement.getMethod2(methodName.name);
+      var objectMember = objectElement.getMethod(methodName.name);
       if (objectMember != null) {
         methodName.element = objectMember;
         _setResolution(

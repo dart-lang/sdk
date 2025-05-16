@@ -1463,7 +1463,7 @@ extension ElementExtension on Element {
         // The BuildContext object is the field on Flutter's State class.
         // This object can only be guarded by async gaps with a mounted
         // check on the State.
-        return enclosingElement.lookUpGetter2(
+        return enclosingElement.lookUpGetter(
           name: 'mounted',
           library: enclosingElement.library2,
         );
@@ -1477,7 +1477,7 @@ extension ElementExtension on Element {
           _ => null,
         }?.element3;
     if (buildContextElement is InterfaceElement) {
-      return buildContextElement.lookUpGetter2(
+      return buildContextElement.lookUpGetter(
         name: 'mounted',
         library: buildContextElement.library2,
       );

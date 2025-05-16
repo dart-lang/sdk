@@ -69,9 +69,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on ClassDeclaration {
   bool hasField(String name) =>
-      declaredFragment?.element.fields2.namedOrNull(name) != null;
+      declaredFragment?.element.fields.namedOrNull(name) != null;
   bool hasMethod(String name) =>
-      declaredFragment?.element.methods2.namedOrNull(name) != null;
+      declaredFragment?.element.methods.namedOrNull(name) != null;
 }
 
 extension<E extends Element> on List<E> {

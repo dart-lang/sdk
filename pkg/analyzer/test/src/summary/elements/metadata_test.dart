@@ -213,7 +213,7 @@ class C {
 }
 ''');
     // Check metadata without asking any other properties.
-    var x = library.getClass2('C')!.getField2('x')!;
+    var x = library.getClass2('C')!.getField('x')!;
     expect(x.metadata2.annotations, hasLength(1));
     // Check details.
     checkElementText(library, r'''

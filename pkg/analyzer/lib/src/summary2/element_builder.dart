@@ -75,7 +75,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       libraryElement.documentationComment = getCommentNodeRawText(
         libraryDirective.documentationComment,
       );
-      libraryElement.metadata = _buildAnnotations(libraryDirective.metadata);
+      libraryElement.annotations = _buildAnnotations(libraryDirective.metadata);
       return;
     }
 
@@ -105,7 +105,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           break;
       }
       if (firstDirectiveMetadata != null) {
-        libraryElement.metadata = firstDirectiveMetadata;
+        libraryElement.annotations = firstDirectiveMetadata;
       }
     }
   }

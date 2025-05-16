@@ -216,15 +216,15 @@ class TypeHierarchyComputerHelper {
     ExecutableElement? result;
     // try to find in the class itself
     if (pivotKind == ElementKind.METHOD) {
-      result = clazz.getMethod2(pivotName);
+      result = clazz.getMethod(pivotName);
     } else if (pivotKind == ElementKind.GETTER) {
-      result = clazz.getGetter2(pivotName);
+      result = clazz.getGetter(pivotName);
     } else if (pivotKind == ElementKind.SETTER) {
-      result = clazz.getSetter2(pivotName);
+      result = clazz.getSetter(pivotName);
     } else if (pivotKind == ElementKind.FIELD) {
-      result = clazz.getGetter2(pivotName);
+      result = clazz.getGetter(pivotName);
       if (result == null && !pivotFieldFinal) {
-        result = clazz.getSetter2(pivotName);
+        result = clazz.getSetter(pivotName);
       }
     }
     if (result != null && result.isAccessibleIn2(pivotLibrary)) {
@@ -234,27 +234,27 @@ class TypeHierarchyComputerHelper {
     for (var mixin in clazz.mixins.reversed) {
       var mixinElement = mixin.element3;
       if (pivotKind == ElementKind.METHOD) {
-        result = mixinElement.lookUpMethod2(
+        result = mixinElement.lookUpMethod(
           name: pivotName,
           library: pivotLibrary,
         );
       } else if (pivotKind == ElementKind.GETTER) {
-        result = mixinElement.lookUpGetter2(
+        result = mixinElement.lookUpGetter(
           name: pivotName,
           library: pivotLibrary,
         );
       } else if (pivotKind == ElementKind.SETTER) {
-        result = mixinElement.lookUpSetter2(
+        result = mixinElement.lookUpSetter(
           name: pivotName,
           library: pivotLibrary,
         );
       } else if (pivotKind == ElementKind.FIELD) {
-        result = mixinElement.lookUpGetter2(
+        result = mixinElement.lookUpGetter(
           name: pivotName,
           library: pivotLibrary,
         );
         if (result == null && !pivotFieldFinal) {
-          result = mixinElement.lookUpSetter2(
+          result = mixinElement.lookUpSetter(
             name: pivotName,
             library: pivotLibrary,
           );

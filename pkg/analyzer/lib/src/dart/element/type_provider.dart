@@ -78,7 +78,7 @@ const Set<String> _nonSubtypableDartTypedDataClassNames = {
 abstract class TypeProviderBase implements TypeProvider {
   @override
   bool isObjectGetter(String id) {
-    var element = objectType.element3.getGetter2(id);
+    var element = objectType.element3.getGetter(id);
     return element != null && !element.isStatic;
   }
 
@@ -89,7 +89,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   bool isObjectMethod(String id) {
-    var element = objectType.element3.getMethod2(id);
+    var element = objectType.element3.getMethod(id);
     return element != null && !element.isStatic;
   }
 }

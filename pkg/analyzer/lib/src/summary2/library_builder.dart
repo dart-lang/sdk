@@ -300,7 +300,7 @@ class LibraryBuilder {
       for (var constructor in interfaceFragment.constructors) {
         for (var parameter in constructor.parameters) {
           if (parameter is FieldFormalParameterFragmentImpl) {
-            parameter.field = element.getField2(parameter.name)?.asElement;
+            parameter.field = element.getField(parameter.name)?.asElement;
           }
         }
       }
@@ -757,7 +757,7 @@ class LibraryBuilder {
     );
     libraryElement.isSynthetic = !libraryFile.exists;
     libraryElement.languageVersion = libraryUnitNode.languageVersion;
-    _bindReference(libraryReference, libraryElement);
+    libraryElement.reference = libraryReference;
     libraryReference.element2 = libraryElement;
 
     var unitContainerRef = libraryReference.getChild('@fragment');
@@ -923,7 +923,7 @@ class _FieldPromotability
     ClassInfo<InterfaceElementImpl2> classInfo,
     InterfaceElementImpl2 class_,
   ) {
-    for (var field in class_.fields2) {
+    for (var field in class_.fields) {
       if (field.isStatic || field.isSynthetic) {
         continue;
       }
@@ -944,7 +944,7 @@ class _FieldPromotability
       }
     }
 
-    for (var getter in class_.getters2) {
+    for (var getter in class_.getters) {
       if (getter.isStatic || getter.isSynthetic) {
         continue;
       }

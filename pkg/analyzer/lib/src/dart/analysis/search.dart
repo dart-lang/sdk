@@ -348,10 +348,10 @@ class Search {
     }
 
     void addElements(InterfaceElement element) {
-      element.getters2.forEach(addElement);
-      element.setters2.forEach(addElement);
-      element.fields2.forEach(addElement);
-      element.methods2.forEach(addElement);
+      element.getters.forEach(addElement);
+      element.setters.forEach(addElement);
+      element.fields.forEach(addElement);
+      element.methods.forEach(addElement);
     }
 
     var files = await _driver.getFilesDefiningClassMemberName(name);
@@ -1289,11 +1289,11 @@ class _FindLibraryDeclarations {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       _addDeclaration(element, element.name3!);
-      _addGetters(element.getters2);
+      _addGetters(element.getters);
       _addConstructors(element.constructors2);
-      _addFields(element.fields2);
-      _addMethods(element.methods2);
-      _addSetters(element.setters2);
+      _addFields(element.fields);
+      _addMethods(element.methods);
+      _addSetters(element.setters);
     }
   }
 
@@ -1390,10 +1390,10 @@ class _FindLibraryDeclarations {
       if (name != null) {
         _addDeclaration(element, name);
       }
-      _addFields(element.fields2);
-      _addGetters(element.getters2);
-      _addMethods(element.methods2);
-      _addSetters(element.setters2);
+      _addFields(element.fields);
+      _addGetters(element.getters);
+      _addMethods(element.methods);
+      _addSetters(element.setters);
     }
   }
 
