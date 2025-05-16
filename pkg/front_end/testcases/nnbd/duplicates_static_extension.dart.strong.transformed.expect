@@ -166,22 +166,22 @@ import "dart:core" as core;
 extension Extension on core::int {
   static method staticMethod = self::Extension|staticMethod;
   static get staticGetter = get self::Extension|staticGetter;
+  static set staticSetter = set self::Extension|staticSetter;
   static field staticField = self::Extension|staticField;
   static field staticFieldAndSetter1 = self::Extension|staticFieldAndSetter1;
   static field staticFieldAndSetter2 = self::Extension|staticFieldAndSetter2;
   static field staticLateFinalFieldAndSetter1 = self::Extension|staticLateFinalFieldAndSetter1;
   static field staticLateFinalFieldAndSetter2 = self::Extension|staticLateFinalFieldAndSetter2;
   static field staticDuplicateFieldAndSetter = self::Extension|staticDuplicateFieldAndSetter;
-  static field staticFieldAndDuplicateSetter = self::Extension|staticFieldAndDuplicateSetter;
-  static field staticDuplicateFieldAndDuplicateSetter = self::Extension|staticDuplicateFieldAndDuplicateSetter;
-  static method staticMethodAndSetter1 = self::Extension|staticMethodAndSetter1;
-  static method staticMethodAndSetter2 = self::Extension|staticMethodAndSetter2;
-  static set staticSetter = set self::Extension|staticSetter;
   static set staticDuplicateFieldAndSetter = set self::Extension|staticDuplicateFieldAndSetter;
+  static field staticFieldAndDuplicateSetter = self::Extension|staticFieldAndDuplicateSetter;
   static set staticFieldAndDuplicateSetter = set self::Extension|staticFieldAndDuplicateSetter;
+  static field staticDuplicateFieldAndDuplicateSetter = self::Extension|staticDuplicateFieldAndDuplicateSetter;
   static set staticDuplicateFieldAndDuplicateSetter = set self::Extension|staticDuplicateFieldAndDuplicateSetter;
+  static method staticMethodAndSetter1 = self::Extension|staticMethodAndSetter1;
   static set staticMethodAndSetter1 = set self::Extension|staticMethodAndSetter1;
   static set staticMethodAndSetter2 = set self::Extension|staticMethodAndSetter2;
+  static method staticMethodAndSetter2 = self::Extension|staticMethodAndSetter2;
 }
 static field dynamic result;
 static field core::int Extension|staticField = 1;

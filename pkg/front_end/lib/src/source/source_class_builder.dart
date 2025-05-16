@@ -114,6 +114,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   final DeclarationNameSpaceBuilder nameSpaceBuilder;
 
   late final MutableDeclarationNameSpace _nameSpace;
+  late final List<SourceMemberBuilder> _constructorBuilders;
+  late final List<SourceMemberBuilder> _memberBuilders;
 
   @override
   List<SourceNominalParameterBuilder>? typeParameters;
@@ -161,7 +163,42 @@ class SourceClassBuilder extends ClassBuilderImpl
     cls.hasConstConstructor = declaresConstConstructor;
   }
 
-  MutableDeclarationNameSpace get nameSpaceInternal => _nameSpace;
+  @override
+  Iterator<SourceMemberBuilder> get unfilteredMembersIterator =>
+      _memberBuilders.iterator;
+
+  @override
+  Iterator<T> filteredMembersIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_memberBuilders.iterator,
+          includeDuplicates: includeDuplicates);
+
+  @override
+  Iterator<SourceMemberBuilder> get unfilteredConstructorsIterator =>
+      _constructorBuilders.iterator;
+
+  @override
+  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_constructorBuilders.iterator,
+          includeDuplicates: includeDuplicates);
+
+  void addMemberInternal(SourceMemberBuilder memberBuilder,
+      {required bool addToNameSpace}) {
+    if (addToNameSpace) {
+      _nameSpace.addLocalMember(memberBuilder.name, memberBuilder,
+          setter: false);
+    }
+    _memberBuilders.add(memberBuilder);
+  }
+
+  void addConstructorInternal(SourceMemberBuilder constructorBuilder,
+      {required bool addToNameSpace}) {
+    if (addToNameSpace) {
+      _nameSpace.addConstructor(constructorBuilder.name, constructorBuilder);
+    }
+    _constructorBuilders.add(constructorBuilder);
+  }
 
   @override
   int resolveConstructors(SourceLibraryBuilder libraryBuilder) {
@@ -170,17 +207,13 @@ class SourceClassBuilder extends ClassBuilderImpl
       count += augmentation.resolveConstructorReferences(libraryBuilder);
     }
     if (count > 0) {
-      Iterator<MemberBuilder> iterator =
-          nameSpace.filteredConstructorIterator(includeDuplicates: true);
+      Iterator<SourceFactoryBuilder> iterator =
+          filteredConstructorsIterator(includeDuplicates: true);
       while (iterator.moveNext()) {
-        MemberBuilder declaration = iterator.current;
-        if (declaration.declarationBuilder != this) {
-          unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
-              fileOffset, fileUri);
-        }
-        if (declaration is SourceFactoryBuilder) {
-          declaration.resolveRedirectingFactory();
-        }
+        SourceFactoryBuilder factoryBuilder = iterator.current;
+        assert(factoryBuilder.declarationBuilder == this,
+            "Unexpected builder $factoryBuilder in $this.");
+        factoryBuilder.resolveRedirectingFactory();
       }
     }
     return count;
@@ -230,6 +263,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
+    _constructorBuilders = [];
+    _memberBuilders = [];
     _nameSpace = nameSpaceBuilder.buildNameSpace(
         loader: libraryBuilder.loader,
         problemReporting: libraryBuilder,
@@ -238,7 +273,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         indexedLibrary: libraryBuilder.indexedLibrary,
         indexedContainer: indexedClass,
         containerType: ContainerType.Class,
-        containerName: new ClassName(name));
+        containerName: new ClassName(name),
+        constructorBuilders: _constructorBuilders,
+        memberBuilders: _memberBuilders);
   }
 
   bool _hasComputedSupertypes = false;
@@ -348,40 +385,23 @@ class SourceClassBuilder extends ClassBuilderImpl
   SourceLibraryBuilder get parent => libraryBuilder;
 
   Class build(LibraryBuilder coreLibrary) {
-    void buildBuilders(Builder declaration) {
-      if (declaration.parent != this) {
-        // Coverage-ignore-block(suite): Not run.
-        if (declaration.parent != this) {
-          if (fileUri != declaration.parent?.fileUri) {
-            unexpected("$fileUri", "${declaration.parent?.fileUri}", fileOffset,
-                fileUri);
-          } else {
-            unexpected(
-                fullNameForErrors,
-                declaration.parent?.fullNameForErrors ?? '',
-                fileOffset,
-                fileUri);
-          }
+    void buildBuilders(SourceMemberBuilder memberBuilder) {
+      assert(memberBuilder.parent == this,
+          "Unexpected member $memberBuilder from outside $this.");
+      memberBuilder.buildOutlineNodes((
+          {required Member member,
+          Member? tearOff,
+          required BuiltMemberKind kind}) {
+        _addMemberToClass(memberBuilder, member);
+        if (tearOff != null) {
+          _addMemberToClass(memberBuilder, tearOff);
         }
-      } else if (declaration is SourceMemberBuilder) {
-        SourceMemberBuilder memberBuilder = declaration;
-        memberBuilder.buildOutlineNodes((
-            {required Member member,
-            Member? tearOff,
-            required BuiltMemberKind kind}) {
-          _addMemberToClass(declaration, member);
-          if (tearOff != null) {
-            _addMemberToClass(declaration, tearOff);
-          }
-        });
-      } else {
-        unhandled("${declaration.runtimeType}", "buildBuilders",
-            declaration.fileOffset, declaration.fileUri);
-      }
+      });
     }
 
-    nameSpace.unfilteredIterator.forEach(buildBuilders);
-    nameSpace.unfilteredConstructorIterator.forEach(buildBuilders);
+    _memberBuilders.forEach(buildBuilders);
+    _constructorBuilders.forEach(buildBuilders);
+
     if (_supertypeBuilder != null) {
       _supertypeBuilder = _checkSupertype(_supertypeBuilder!);
     }
@@ -521,19 +541,9 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    _nameSpace
-        .filteredConstructorIterator(includeDuplicates: false)
-        .forEach(build);
-    _nameSpace.filteredIterator(includeDuplicates: false).forEach(build);
+    filteredConstructorsIterator(includeDuplicates: false).forEach(build);
+    filteredMembersIterator(includeDuplicates: false).forEach(build);
   }
-
-  @override
-  Iterator<T> fullMemberIterator<T extends NamedBuilder>() =>
-      _nameSpace.filteredIterator<T>(includeDuplicates: false);
-
-  @override
-  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      _nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
@@ -855,7 +865,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (cls.isMixinClass) {
       // Check that the class does not have a constructor.
       Iterator<SourceMemberBuilder> constructorIterator =
-          fullConstructorIterator<SourceMemberBuilder>();
+          filteredConstructorsIterator(includeDuplicates: false);
       while (constructorIterator.moveNext()) {
         SourceMemberBuilder constructor = constructorIterator.current;
         // Assumes the constructor isn't synthetic since
@@ -977,7 +987,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
     Iterator<SourceFactoryBuilder> iterator =
-        nameSpace.filteredConstructorIterator(includeDuplicates: true);
+        filteredConstructorsIterator(includeDuplicates: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
     }
@@ -1190,15 +1200,14 @@ class SourceClassBuilder extends ClassBuilderImpl
         inErrorRecovery: hasErrors);
 
     Iterator<SourceMemberBuilder> iterator =
-        nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
-            includeDuplicates: false);
+        filteredConstructorsIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       count += iterator.current
           .computeDefaultTypes(context, inErrorRecovery: hasErrors);
     }
 
     Iterator<SourceMemberBuilder> memberIterator =
-        fullMemberIterator<SourceMemberBuilder>();
+        filteredMembersIterator(includeDuplicates: false);
     while (memberIterator.moveNext()) {
       count += memberIterator.current
           .computeDefaultTypes(context, inErrorRecovery: hasErrors);
@@ -1208,7 +1217,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
     Iterator<SourceMemberBuilder> memberIterator =
-        fullMemberIterator<SourceMemberBuilder>();
+        filteredMembersIterator(includeDuplicates: false);
     while (memberIterator.moveNext()) {
       SourceMemberBuilder builder = memberIterator.current;
       builder.checkVariance(this, typeEnvironment);
@@ -1216,7 +1225,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     Iterator<SourceMemberBuilder> constructorIterator =
-        fullConstructorIterator<SourceMemberBuilder>();
+        filteredConstructorsIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
       SourceMemberBuilder builder = constructorIterator.current;
       builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
@@ -1226,8 +1235,11 @@ class SourceClassBuilder extends ClassBuilderImpl
   void addSyntheticConstructor(
       SyntheticSourceConstructorBuilder constructorBuilder) {
     String name = constructorBuilder.name;
-    constructorBuilder.next = nameSpace.lookupConstructor(name);
-    _nameSpace.addConstructor(name, constructorBuilder);
+    assert(
+        nameSpace.lookupConstructor(name) == null,
+        "Unexpected existing constructor when adding synthetic constructor "
+        "$constructorBuilder to $this.");
+    addConstructorInternal(constructorBuilder, addToNameSpace: true);
     // Synthetic constructors are created after the component has been built
     // so we need to add the constructor to the class.
     cls.addConstructor(constructorBuilder.invokeTarget);
@@ -1244,29 +1256,23 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     int count = 0;
 
-    void buildMembers(Builder builder) {
-      if (builder.parent != this) {
-        return;
-      }
-      if (builder is SourceMemberBuilder) {
-        count += builder.buildBodyNodes(
-            // Coverage-ignore(suite): Not run.
-            (
-                {required Member member,
-                Member? tearOff,
-                required BuiltMemberKind kind}) {
-          _addMemberToClass(builder, member);
-          if (tearOff != null) {
-            _addMemberToClass(builder, tearOff);
-          }
-        });
-      }
+    void buildMembers(SourceMemberBuilder builder) {
+      assert(builder.parent == this, "Unexpected member $builder in this.");
+      count += builder.buildBodyNodes(
+          // Coverage-ignore(suite): Not run.
+          (
+              {required Member member,
+              Member? tearOff,
+              required BuiltMemberKind kind}) {
+        _addMemberToClass(builder, member);
+        if (tearOff != null) {
+          _addMemberToClass(builder, tearOff);
+        }
+      });
     }
 
-    _nameSpace.filteredIterator(includeDuplicates: true).forEach(buildMembers);
-    _nameSpace
-        .filteredConstructorIterator(includeDuplicates: true)
-        .forEach(buildMembers);
+    unfilteredMembersIterator.forEach(buildMembers);
+    unfilteredConstructorsIterator.forEach(buildMembers);
     return count;
   }
 

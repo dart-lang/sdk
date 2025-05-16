@@ -40,16 +40,16 @@ class Baz extends core::Object {
 }
 extension Foo on core::int {
   get foo = self::Foo|get#foo;
+  set foo = self::Foo|set#foo;
   method bar = self::Foo|bar;
   method tearoff bar = self::Foo|get#bar;
-  set foo = self::Foo|set#foo;
 }
 extension type Bar(core::int i) {
   abstract extension-type-member representation-field get i() → core::int;
   get foo = self::Bar|get#foo;
+  set foo = self::Bar|set#foo;
   method bar = self::Bar|bar;
   method tearoff bar = self::Bar|get#bar;
-  set foo = self::Bar|set#foo;
   constructor • = self::Bar|constructor#;
   constructor tearoff • = self::Bar|constructor#_#new#tearOff;
 }

@@ -1434,7 +1434,7 @@ severity: $severity
       }
       for (Export export in exported.exporters) {
         Iterator<NamedBuilder> iterator =
-            exported.exportNameSpace.filteredIterator(includeDuplicates: false);
+            exported.exportNameSpace.filteredIterator();
         while (iterator.moveNext()) {
           NamedBuilder builder = iterator.current;
           export.addToExportScope(builder.name, builder);
@@ -1446,8 +1446,8 @@ severity: $severity
       wasChanged = false;
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
-          Iterator<NamedBuilder> iterator = exported.exportNameSpace
-              .filteredIterator(includeDuplicates: false);
+          Iterator<NamedBuilder> iterator =
+              exported.exportNameSpace.filteredIterator();
           while (iterator.moveNext()) {
             NamedBuilder builder = iterator.current;
             if (export.addToExportScope(builder.name, builder)) {
@@ -1717,11 +1717,11 @@ severity: $severity
 
   void _checkConstructorsForMixin(
       SourceClassBuilder cls, ClassBuilder builder) {
-    Iterator<MemberBuilder> iterator =
-        builder.nameSpace.filteredConstructorIterator(includeDuplicates: false);
+    Iterator<ConstructorBuilder> iterator =
+        builder.filteredConstructorsIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
-      MemberBuilder constructor = iterator.current;
-      if (constructor is ConstructorBuilder && !constructor.isSynthetic) {
+      ConstructorBuilder constructorBuilder = iterator.current;
+      if (!constructorBuilder.isSynthetic) {
         cls.addProblem(
             templateIllegalMixinDueToConstructors
                 .withArguments(builder.fullNameForErrors),
@@ -1730,8 +1730,8 @@ severity: $severity
             context: [
               templateIllegalMixinDueToConstructorsCause
                   .withArguments(builder.fullNameForErrors)
-                  .withLocation(
-                      constructor.fileUri!, constructor.fileOffset, noLength)
+                  .withLocation(constructorBuilder.fileUri!,
+                      constructorBuilder.fileOffset, noLength)
             ]);
       }
     }

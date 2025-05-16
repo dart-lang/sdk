@@ -599,7 +599,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     Map<Name, _Tuple> memberMap = {};
 
     Iterator<MemberBuilder> iterator =
-        classBuilder.fullMemberIterator<MemberBuilder>();
+        classBuilder.filteredMembersIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       MemberBuilder memberBuilder = iterator.current;
       for (ClassMember classMember in memberBuilder.localMembers) {
@@ -644,7 +644,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true);
       if (mixin is ClassBuilder) {
         Iterator<MemberBuilder> iterator =
-            mixin.fullMemberIterator<MemberBuilder>();
+            mixin.filteredMembersIterator(includeDuplicates: false);
         while (iterator.moveNext()) {
           MemberBuilder memberBuilder = iterator.current;
           if (memberBuilder.isStatic) {

@@ -7,8 +7,8 @@ extension type A<T extends core::Object? = dynamic>(core::Object it) {
   method method = self::A|method;
   method tearoff method = self::A|get#method;
   get getter = self::A|get#getter;
-  operator [] = self::A|[];
   set setter = self::A|set#setter;
+  operator [] = self::A|[];
   constructor • = self::A|constructor#;
   constructor tearoff • = self::A|constructor#_#new#tearOff;
 }
@@ -17,8 +17,8 @@ extension type B<S extends core::Object? = dynamic>(core::Object it) implements 
   method method2 = self::B|method2;
   method tearoff method2 = self::B|get#method2;
   get getter2 = self::B|get#getter2;
-  operator []= = self::B|[]=;
   set setter2 = self::B|set#setter2;
+  operator []= = self::B|[]=;
   constructor • = self::B|constructor#;
   constructor tearoff • = self::B|constructor#_#new#tearOff;
 }
@@ -27,8 +27,8 @@ extension type C(core::Object i) implements self::A<core::int>% /* erasure=core:
   method method3 = self::C|method3;
   method tearoff method3 = self::C|get#method3;
   get getter3 = self::C|get#getter3;
-  operator []= = self::C|[]=;
   set setter3 = self::C|set#setter3;
+  operator []= = self::C|[]=;
   constructor • = self::C|constructor#;
   constructor tearoff • = self::C|constructor#_#new#tearOff;
 }

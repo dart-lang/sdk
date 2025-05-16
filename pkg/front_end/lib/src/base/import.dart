@@ -90,8 +90,8 @@ class Import {
             importOffset: importOffset, prefixOffset: prefixOffset);
       };
     }
-    Iterator<NamedBuilder> iterator = importedLibraryBuilder!.exportNameSpace
-        .filteredIterator(includeDuplicates: false);
+    Iterator<NamedBuilder> iterator =
+        importedLibraryBuilder!.exportNameSpace.filteredIterator();
     while (iterator.moveNext()) {
       NamedBuilder member = iterator.current;
       String name = member.name;

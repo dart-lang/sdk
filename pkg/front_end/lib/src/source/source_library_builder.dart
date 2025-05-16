@@ -134,8 +134,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
   MutableNameSpace? _libraryNameSpace;
+  late final List<NamedBuilder> _memberBuilders;
 
-  final MutableNameSpace _exportNameSpace;
+  final ComputedMutableNameSpace _exportNameSpace;
 
   final LookupScope? _parentScope;
 
@@ -236,7 +237,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 : indexedLibrary?.library.reference)
       ..setLanguageVersion(packageLanguageVersion.version);
     LibraryName libraryName = new LibraryName(library.reference);
-    MutableNameSpace exportNameSpace = new MutableNameSpace();
+    ComputedMutableNameSpace exportNameSpace = new ComputedMutableNameSpace();
     return new SourceLibraryBuilder._(
         compilationUnit: compilationUnit,
         loader: loader,
@@ -266,7 +267,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required Uri originImportUri,
       required LanguageVersion packageLanguageVersion,
       required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
-      required MutableNameSpace exportNameSpace,
+      required ComputedMutableNameSpace exportNameSpace,
       required LookupScope? parentScope,
       required this.library,
       required this.libraryName,
@@ -369,7 +370,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  NameSpace get exportNameSpace => _exportNameSpace;
+  ComputedNameSpace get exportNameSpace => _exportNameSpace;
 
   /// Returns true if the export scope was modified.
   bool addToExportScope(String name, NamedBuilder member,
@@ -391,8 +392,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         NamedBuilder result = _computeAmbiguousDeclarationForExport(
             name, existing, member,
             uriOffset: uriOffset);
-        _exportNameSpace.addLocalMember(name, result,
-            setter: isSetter, allowReplace: true);
+        _exportNameSpace.replaceLocalMember(name, result, setter: isSetter);
         return result != existing;
       } else {
         _exportNameSpace.addLocalMember(name, member, setter: isSetter);
@@ -470,12 +470,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   Iterator<T> filteredMembersIterator<T extends NamedBuilder>(
           {required bool includeDuplicates}) =>
-      libraryNameSpace.filteredIterator<T>(
+      new FilteredIterator<T>(_memberBuilders.iterator,
           includeDuplicates: includeDuplicates);
 
   @override
   Iterator<NamedBuilder> get unfilteredMembersIterator {
-    return _libraryNameSpace!.unfilteredIterator;
+    return _memberBuilders.iterator;
   }
 
   @override
@@ -503,9 +503,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void computeSupertypes() {
     assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
-    List<SourceClassBuilder> sourceClasses = _libraryNameSpace!
-        .filteredIterator<SourceClassBuilder>(includeDuplicates: true)
-        .toList();
+    List<SourceClassBuilder> sourceClasses =
+        filteredMembersIterator<SourceClassBuilder>(includeDuplicates: true)
+            .toList();
     for (SourceClassBuilder sourceClassBuilder in sourceClasses) {
       _computeSupertypeBuilderForClass(sourceClassBuilder);
     }
@@ -562,7 +562,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(checkState(required: [SourceLibraryBuilderState.scopesBuilt]));
 
     Iterator<NamedBuilder> iterator =
-        _libraryNameSpace!.filteredIterator(includeDuplicates: false);
+        filteredMembersIterator(includeDuplicates: false);
     UriOffset uriOffset = new UriOffset(fileUri, TreeNode.noOffset);
     while (iterator.moveNext()) {
       NamedBuilder builder = iterator.current;
@@ -581,8 +581,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       part.addImportsToScope();
     }
 
-    Iterator<NamedBuilder> iterator =
-        _exportNameSpace.filteredIterator(includeDuplicates: false);
+    Iterator<NamedBuilder> iterator = _exportNameSpace.filteredIterator();
     while (iterator.moveNext()) {
       NamedBuilder builder = iterator.current;
       String name = builder.name;
@@ -639,12 +638,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(
         _mixinApplications != null, "Late registration of mixin application.");
 
+    _memberBuilders = [];
     _libraryNameSpace = _libraryNameSpaceBuilder.toNameSpace(
         problemReporting: this,
         enclosingLibraryBuilder: this,
         mixinApplications: _mixinApplications!,
         unboundNominalParameters: _unboundNominalParameters,
-        indexedLibrary: indexedLibrary);
+        indexedLibrary: indexedLibrary,
+        memberBuilders: _memberBuilders);
 
     state = SourceLibraryBuilderState.nameSpaceBuilt;
   }
@@ -660,8 +661,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         indexedLibrary: indexedLibrary,
         mixinApplications: _mixinApplications!,
         addAnonymousMixinClassBuilder: (SourceClassBuilder classBuilder) {
-          _libraryNameSpace!
-              .addLocalMember(classBuilder.name, classBuilder, setter: false);
+          _memberBuilders.add(classBuilder);
           _computeSupertypeBuilderForClass(classBuilder);
         });
   }
@@ -746,7 +746,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       ClassInfo<Class> classInfo = fieldPromotability.addClass(classBuilder.cls,
           isAbstract: classBuilder.isAbstract);
       Iterator<SourcePropertyBuilder> memberIterator =
-          classBuilder.fullMemberIterator<SourcePropertyBuilder>();
+          classBuilder.filteredMembersIterator(includeDuplicates: false);
       while (memberIterator.moveNext()) {
         SourcePropertyBuilder member = memberIterator.current;
         if (member.isStatic) continue;
@@ -779,7 +779,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (extensionIterator.moveNext()) {
       SourceExtensionBuilder extension_ = extensionIterator.current;
       Iterator<SourcePropertyBuilder> iterator =
-          extension_.nameSpace.filteredIterator(includeDuplicates: false);
+          extension_.filteredMembersIterator(includeDuplicates: false);
       while (iterator.moveNext()) {
         SourcePropertyBuilder member = iterator.current;
         if (!member.isStatic && member.hasExplicitGetter) {
@@ -803,7 +803,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             PropertyNonPromotabilityReason.isNotPrivate;
       }
       Iterator<SourcePropertyBuilder> iterator =
-          extensionType.nameSpace.filteredIterator(includeDuplicates: false);
+          extensionType.filteredMembersIterator(includeDuplicates: false);
       while (iterator.moveNext()) {
         SourcePropertyBuilder member = iterator.current;
         if (!member.isStatic && member.hasExplicitGetter) {
@@ -841,16 +841,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
 
     if (libraryNameSpace.lookupLocalMember("dynamic")?.getable == null) {
-      _libraryNameSpace!.addLocalMember("dynamic",
-          new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1),
-          setter: false);
+      NamedBuilder builder =
+          new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1);
+      _libraryNameSpace!.addLocalMember("dynamic", builder, setter: false);
+      _memberBuilders.add(builder);
     }
     if (libraryNameSpace.lookupLocalMember("Never")?.getable == null) {
-      _libraryNameSpace!.addLocalMember(
-          "Never",
-          new NeverTypeDeclarationBuilder(
-              const NeverType.nonNullable(), this, -1),
-          setter: false);
+      NamedBuilder builder = new NeverTypeDeclarationBuilder(
+          const NeverType.nonNullable(), this, -1);
+      _libraryNameSpace!.addLocalMember("Never", builder, setter: false);
+      _memberBuilders.add(builder);
     }
     assert(libraryNameSpace.lookupLocalMember("Null")?.getable != null,
         "No class 'Null' found in dart:core.");

@@ -42,6 +42,7 @@ import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
+import 'source_member_builder.dart';
 import 'source_method_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_alias_builder.dart';
@@ -1591,6 +1592,7 @@ class LibraryNameSpaceBuilder {
     required ProblemReporting problemReporting,
     required List<NominalParameterBuilder> unboundNominalParameters,
     required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
+    required List<NamedBuilder> memberBuilders,
   }) {
     Map<String, NamedBuilder> getables = {};
 
@@ -1606,6 +1608,9 @@ class LibraryNameSpaceBuilder {
       NamedBuilder declaration = addBuilder.declaration;
       Uri fileUri = addBuilder.fileUri;
       int charOffset = addBuilder.charOffset;
+
+      memberBuilders.add(declaration);
+
       if (declaration is SourceExtensionBuilder &&
           declaration.isUnnamedExtension) {
         extensions.add(declaration);
@@ -1885,7 +1890,9 @@ class DeclarationNameSpaceBuilder {
       required IndexedContainer? indexedContainer,
       required ContainerType containerType,
       required ContainerName containerName,
-      bool includeConstructors = true}) {
+      bool includeConstructors = true,
+      required List<SourceMemberBuilder> constructorBuilders,
+      required List<SourceMemberBuilder> memberBuilders}) {
     List<NominalParameterBuilder> unboundNominalParameters = [];
     Map<String, NamedBuilder> getables = {};
     Map<String, NamedBuilder> setables = {};
@@ -1907,6 +1914,13 @@ class DeclarationNameSpaceBuilder {
       if (!isConstructor && name == _name) {
         problemReporting.addProblem(
             messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);
+      }
+      if (isConstructor) {
+        if (includeConstructors) {
+          constructorBuilders.add(declaration as SourceMemberBuilder);
+        }
+      } else {
+        memberBuilders.add(declaration as SourceMemberBuilder);
       }
 
       bool isSetter = isMappedAsSetter(declaration);

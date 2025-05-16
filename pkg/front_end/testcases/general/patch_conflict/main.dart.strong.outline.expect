@@ -125,12 +125,12 @@ class existingOriginDeclaration#1 extends core::Object { // from org-dartlang-te
   synthetic constructor •() → self2::existingOriginDeclaration#1
     ;
 }
-class ExistingOriginClass#1 extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
-  synthetic constructor •() → self2::ExistingOriginClass#1
-    ;
-}
 class ExistingOriginClass extends core::Object {
   synthetic constructor •() → self2::ExistingOriginClass
+    ;
+}
+class ExistingOriginClass#1 extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
+  synthetic constructor •() → self2::ExistingOriginClass#1
     ;
 }
 @_in::patch

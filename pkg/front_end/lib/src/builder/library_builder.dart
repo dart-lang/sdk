@@ -319,7 +319,7 @@ abstract class SourceCompilationUnit
 abstract class LibraryBuilder implements Builder, ProblemReporting {
   NameSpace get libraryNameSpace;
 
-  NameSpace get exportNameSpace;
+  ComputedNameSpace get exportNameSpace;
 
   List<Export> get exporters;
 

@@ -11,7 +11,9 @@ import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/builder_mixins.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/factory_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/type_algorithms.dart';
@@ -52,19 +54,23 @@ mixin SourceDeclarationBuilderMixin
 
     void buildBuilders(NamedBuilder declaration) {
       String name = declaration.name;
-      Builder? objectGetter = objectClassBuilder.lookupLocalMember(name);
-      Builder? objectSetter =
-          objectClassBuilder.lookupLocalMember(name, setter: true);
-      if (objectGetter != null && !objectGetter.isStatic ||
-          // Coverage-ignore(suite): Not run.
-          objectSetter != null && !objectSetter.isStatic) {
-        addProblem(
-            // TODO(johnniwinther): Use a different error message for extension
-            //  type declarations.
-            templateExtensionMemberConflictsWithObjectMember
-                .withArguments(name),
-            declaration.fileOffset,
-            name.length);
+      if (!name.startsWith('_') &&
+          !(declaration is ConstructorBuilder ||
+              declaration is FactoryBuilder)) {
+        Builder? objectGetter = objectClassBuilder.lookupLocalMember(name);
+        Builder? objectSetter =
+            objectClassBuilder.lookupLocalMember(name, setter: true);
+        if (objectGetter != null && !objectGetter.isStatic ||
+            // Coverage-ignore(suite): Not run.
+            objectSetter != null && !objectSetter.isStatic) {
+          addProblem(
+              // TODO(johnniwinther): Use a different error message for
+              //  extension type declarations.
+              templateExtensionMemberConflictsWithObjectMember
+                  .withArguments(name),
+              declaration.fileOffset,
+              name.length);
+        }
       }
       if (declaration.parent != this) {
         // Coverage-ignore-block(suite): Not run.
@@ -90,16 +96,16 @@ mixin SourceDeclarationBuilderMixin
       }
     }
 
-    nameSpace.unfilteredIterator.forEach(buildBuilders);
-    nameSpace.unfilteredConstructorIterator.forEach(buildBuilders);
+    unfilteredMembersIterator.forEach(buildBuilders);
+    unfilteredConstructorsIterator.forEach(buildBuilders);
   }
 
   int buildBodyNodes({required bool addMembersToLibrary}) {
     int count = 0;
-    Iterator<SourceMemberBuilder> iterator = nameSpace
-        .filteredIterator<SourceMemberBuilder>(includeDuplicates: false)
-        .join(nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
-            includeDuplicates: false));
+    Iterator<SourceMemberBuilder> iterator =
+        filteredMembersIterator<SourceMemberBuilder>(includeDuplicates: false)
+            .join(filteredConstructorsIterator<SourceMemberBuilder>(
+                includeDuplicates: false));
     while (iterator.moveNext()) {
       SourceMemberBuilder declaration = iterator.current;
       count += declaration.buildBodyNodes(
@@ -122,7 +128,7 @@ mixin SourceDeclarationBuilderMixin
         inErrorRecovery: hasErrors);
 
     Iterator<SourceMemberBuilder> constructorIterator =
-        nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
+        filteredConstructorsIterator<SourceMemberBuilder>(
             includeDuplicates: false);
     while (constructorIterator.moveNext()) {
       count += constructorIterator.current
@@ -130,7 +136,7 @@ mixin SourceDeclarationBuilderMixin
     }
 
     Iterator<SourceMemberBuilder> memberIterator =
-        nameSpace.filteredIterator(includeDuplicates: false);
+        filteredMembersIterator(includeDuplicates: false);
     while (memberIterator.moveNext()) {
       count += memberIterator.current
           .computeDefaultTypes(context, inErrorRecovery: hasErrors);
@@ -140,14 +146,14 @@ mixin SourceDeclarationBuilderMixin
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
     Iterator<SourceMemberBuilder> memberIterator =
-        nameSpace.filteredIterator(includeDuplicates: false);
+        filteredMembersIterator(includeDuplicates: false);
     while (memberIterator.moveNext()) {
       memberIterator.current
           .checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     }
 
     Iterator<SourceMemberBuilder> constructorIterator =
-        nameSpace.filteredConstructorIterator(includeDuplicates: false);
+        filteredConstructorsIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
       constructorIterator.current
           .checkTypes(libraryBuilder, nameSpace, typeEnvironment);

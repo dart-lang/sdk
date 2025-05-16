@@ -34,11 +34,11 @@ class C<T extends core::Object? = dynamic> extends core::Object {
 extension ext<T extends core::Object? = dynamic> on self::C<T%> {
   field field = self::ext|field;
   field property = self::ext|property;
+  set property = self::ext|set#property;
   field property2 = self::ext|property2;
+  static set property2 = set self::ext|property2;
   method method = self::ext|method;
   method tearoff method = self::ext|get#method;
-  set property = self::ext|set#property;
-  static set property2 = set self::ext|property2;
 }
 static field core::int ext|field;
 static final field core::int ext|property;

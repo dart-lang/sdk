@@ -93,7 +93,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
-  final MutableNameSpace _importNameSpace;
+  final ComputedMutableNameSpace _importNameSpace;
 
   late final LookupScope _importScope;
 
@@ -140,8 +140,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required bool mayImplementRestrictedTypes}) {
     LibraryNameSpaceBuilder libraryNameSpaceBuilder =
         new LibraryNameSpaceBuilder();
-    MutableNameSpace importNameSpace = new MutableNameSpace();
-    MutableNameSpace prefixNameSpace = new MutableNameSpace();
+    ComputedMutableNameSpace importNameSpace = new ComputedMutableNameSpace();
+    ComputedMutableNameSpace prefixNameSpace = new ComputedMutableNameSpace();
     return new SourceCompilationUnitImpl._(libraryNameSpaceBuilder,
         importUri: importUri,
         fileUri: fileUri,
@@ -171,8 +171,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required this.originImportUri,
       required this.indexedLibrary,
       LookupScope? parentScope,
-      required MutableNameSpace importNameSpace,
-      required MutableNameSpace prefixNameSpace,
+      required ComputedMutableNameSpace importNameSpace,
+      required ComputedMutableNameSpace prefixNameSpace,
       required this.forAugmentationLibrary,
       required SourceCompilationUnit? augmentationRoot,
       required LibraryBuilder? resolveInLibrary,
@@ -958,8 +958,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
       // TODO(johnniwinther): Can we create the core import as a parent scope
       //  instead of copying it everywhere?
-      Iterator<NamedBuilder> iterator = loader.coreLibrary.exportNameSpace
-          .filteredIterator(includeDuplicates: false);
+      Iterator<NamedBuilder> iterator =
+          loader.coreLibrary.exportNameSpace.filteredIterator();
       while (iterator.moveNext()) {
         NamedBuilder builder = iterator.current;
         addImportedBuilderToScope(
@@ -981,13 +981,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     NamedBuilder? existing = isSetter ? result?.setable : result?.getable;
     if (existing != null) {
       if (existing != builder) {
-        _importNameSpace.addLocalMember(
+        _importNameSpace.replaceLocalMember(
             name,
             computeAmbiguousDeclarationForImport(
                 _problemReporting, name, existing, builder,
                 uriOffset: new UriOffset(fileUri, charOffset)),
-            setter: isSetter,
-            allowReplace: true);
+            setter: isSetter);
       }
     } else {
       _importNameSpace.addLocalMember(name, builder, setter: isSetter);

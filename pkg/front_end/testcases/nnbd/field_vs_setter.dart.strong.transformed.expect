@@ -916,10 +916,12 @@ extension Extension on core::int? {
   field extensionInstanceFieldAndDuplicateSetter = self::Extension|extensionInstanceFieldAndDuplicateSetter;
   field duplicateExtensionInstanceFieldAndSetter1 = self::Extension|duplicateExtensionInstanceFieldAndSetter1;
   field duplicateExtensionInstanceFieldAndSetter2 = self::Extension|duplicateExtensionInstanceFieldAndSetter2;
+  set duplicateExtensionInstanceFieldAndSetter2 = self::Extension|set#duplicateExtensionInstanceFieldAndSetter2;
   static field extensionStaticFieldAndSetter = self::Extension|extensionStaticFieldAndSetter;
   static field extensionStaticFieldAndDuplicateSetter = self::Extension|extensionStaticFieldAndDuplicateSetter;
   static field duplicateExtensionStaticFieldAndSetter1 = self::Extension|duplicateExtensionStaticFieldAndSetter1;
   static field duplicateExtensionStaticFieldAndSetter2 = self::Extension|duplicateExtensionStaticFieldAndSetter2;
+  static set duplicateExtensionStaticFieldAndSetter2 = set self::Extension|duplicateExtensionStaticFieldAndSetter2;
   static field extensionStaticLateFinalFieldAndSetter = self::Extension|extensionStaticLateFinalFieldAndSetter;
   static field extensionStaticLateFinalFieldAndDuplicateSetter = self::Extension|extensionStaticLateFinalFieldAndDuplicateSetter;
   static field extensionStaticFieldAndInstanceSetter = self::Extension|extensionStaticFieldAndInstanceSetter;
@@ -930,8 +932,6 @@ extension Extension on core::int? {
   field duplicateExtensionInstanceFieldAndStaticSetter2 = self::Extension|duplicateExtensionInstanceFieldAndStaticSetter2;
   static field duplicateExtensionStaticFieldAndInstanceSetter1 = self::Extension|duplicateExtensionStaticFieldAndInstanceSetter1;
   static field duplicateExtensionStaticFieldAndInstanceSetter2 = self::Extension|duplicateExtensionStaticFieldAndInstanceSetter2;
-  set duplicateExtensionInstanceFieldAndSetter2 = self::Extension|set#duplicateExtensionInstanceFieldAndSetter2;
-  static set duplicateExtensionStaticFieldAndSetter2 = set self::Extension|duplicateExtensionStaticFieldAndSetter2;
 }
 static field core::int? topLevelFieldAndSetter;
 static field core::int? topLevelFieldAndDuplicateSetter;

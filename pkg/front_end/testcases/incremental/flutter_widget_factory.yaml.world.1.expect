@@ -72,9 +72,9 @@ library from "org-dartlang-test:///foo.dart" as foo {
     method constFoo = foo::FooExtension|constFoo;
     method tearoff constFoo = foo::FooExtension|get#constFoo;
     get getterFoo = foo::FooExtension|get#getterFoo;
+    set setterFoo = foo::FooExtension|set#setterFoo;
     operator unary- = foo::FooExtension|unary-;
     static method staticFoo = foo::FooExtension|staticFoo;
-    set setterFoo = foo::FooExtension|set#setterFoo;
   }
   static const field wid::_WidgetFactory alias = #C2;
   static const field wid::_WidgetFactory? nullableAlias = #C1;

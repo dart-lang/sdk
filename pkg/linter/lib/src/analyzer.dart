@@ -4,7 +4,6 @@
 
 export 'package:analyzer/dart/element/type_system.dart';
 export 'package:analyzer/source/line_info.dart';
-export 'package:analyzer/src/dart/ast/token.dart';
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart'
     show InheritanceManager3, Name;
 export 'package:analyzer/src/dart/error/lint_codes.dart';

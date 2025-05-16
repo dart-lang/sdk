@@ -14,15 +14,15 @@ extension Extension<T extends core::num> on core::List<T> {
   static method staticMethod = self::Extension|staticMethod;
   get getter = self::Extension|get#getter;
   static get staticGetter = get self::Extension|staticGetter;
-  get property = self::Extension|get#property;
-  static get staticProperty = get self::Extension|staticProperty;
-  get fieldSetter = self::Extension|get#fieldSetter;
-  static get staticFieldSetter = get self::Extension|staticFieldSetter;
   set setter = self::Extension|set#setter;
   static set staticSetter = set self::Extension|staticSetter;
+  get property = self::Extension|get#property;
   set property = self::Extension|set#property;
+  static get staticProperty = get self::Extension|staticProperty;
   static set staticProperty = set self::Extension|staticProperty;
+  get fieldSetter = self::Extension|get#fieldSetter;
   set fieldSetter = self::Extension|set#fieldSetter;
+  static get staticFieldSetter = get self::Extension|staticFieldSetter;
   static set staticFieldSetter = set self::Extension|staticFieldSetter;
 }
 external static extension-member method Extension|get#field<T extends core::num>(lowered core::List<self::Extension|get#field::T> #this) → self::Extension|get#field::T;
