@@ -21,7 +21,7 @@ void main(List<String> args) {
     final ArgResults argResults = argParser.parse(args);
     unawaited(
       DevToolsServer().serveDevToolsWithArgs(
-        _removeDevToolsBuildOption(args),
+        _removeDevToolsBuildOption(args)..add('--disable-cors'),
         customDevToolsPath: argResults.wasParsed(argDevToolsBuild)
             ? argResults[argDevToolsBuild]
             : null,
