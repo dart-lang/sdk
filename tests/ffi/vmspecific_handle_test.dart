@@ -14,6 +14,7 @@ import 'dylib_utils.dart';
 
 void main() {
   testHandle();
+  testHandleInReturn();
   testHandleWithInteger();
   testReadField();
   testTrueHandle();
@@ -36,6 +37,21 @@ void testHandle() {
   final result = passObjectToC(s);
   print("result = $result");
   Expect.isTrue(identical(s, result));
+}
+
+void testHandleInReturn() {
+  final string = 'foo';
+  Expect.identical(string, stringFromString(string));
+  Expect.identical(string, stringFromObject(string));
+  Expect.identical(42, intFromInt(42));
+  Expect.identical(42, intFromObject(42));
+  // TODO(https://dartbug.com/49518): Uncomment the lines below when the
+  // runtime checks are added.
+  //
+  // Expect.throws(() => stringFromObject(Object()));
+  // Expect.throws(() => stringFromObject(42));
+  // Expect.throws(() => intFromObject(Object()));
+  // Expect.throws(() => intFromObject(string));
 }
 
 void testHandleWithInteger() {
@@ -275,6 +291,23 @@ final testLibrary = dlopenPlatformSpecific("ffi_test_functions");
 
 final passObjectToC = testLibrary
     .lookupFunction<Handle Function(Handle), Object? Function(Object?)>(
+      "PassObjectToC",
+    );
+
+final stringFromString = testLibrary
+    .lookupFunction<Handle Function(Handle), String Function(String)>(
+      "PassObjectToC",
+    );
+final stringFromObject = testLibrary
+    .lookupFunction<Handle Function(Handle), String Function(Object)>(
+      "PassObjectToC",
+    );
+final intFromInt = testLibrary
+    .lookupFunction<Handle Function(Handle), int Function(int)>(
+      "PassObjectToC",
+    );
+final intFromObject = testLibrary
+    .lookupFunction<Handle Function(Handle), int Function(Object)>(
       "PassObjectToC",
     );
 

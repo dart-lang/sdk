@@ -729,7 +729,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       dartType,
       nativeType,
       nativeFieldWrappersAsPointer: true,
-      permissiveReturnType: true,
     )) {
       _errorReporter.atToken(
         errorToken,
@@ -1296,14 +1295,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   /// Validates that the given [nativeType] is, when native types are converted
   /// to their Dart equivalent, a subtype of [dartType].
-  /// [permissiveReturnType] means that the [direction] is ignored for return
-  /// types, and subtyping is allowed in either direction.
   bool _validateCompatibleFunctionTypes(
     _FfiTypeCheckDirection direction,
     TypeImpl dartType,
     TypeImpl nativeType, {
     bool nativeFieldWrappersAsPointer = false,
-    bool permissiveReturnType = false,
   }) {
     // We require both to be valid function types.
     if (dartType is! FunctionTypeImpl ||
@@ -1334,22 +1330,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     // Validate that the return types are compatible.
-    if (permissiveReturnType) {
-      // TODO(dacoharkes): Fix inconsistency between `FfiNative` and
-      // `asFunction`. http://dartbug.com/49518.
-      if (!(_validateCompatibleNativeType(
-            _FfiTypeCheckDirection.nativeToDart,
-            dartType.returnType,
-            nativeType.returnType,
-          ) ||
-          _validateCompatibleNativeType(
-            _FfiTypeCheckDirection.dartToNative,
-            dartType.returnType,
-            nativeType.returnType,
-          ))) {
-        return false;
-      }
-    } else if (!_validateCompatibleNativeType(
+    if (!_validateCompatibleNativeType(
       direction,
       dartType.returnType,
       nativeType.returnType,
@@ -1401,13 +1382,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // Don't allow other native subtypes if the Dart return type is void.
       return nativeReturnType == _PrimitiveDartType.void_;
     } else if (nativeReturnType == _PrimitiveDartType.handle) {
-      switch (direction) {
-        case _FfiTypeCheckDirection.dartToNative:
-          // Everything is a subtype of `Object?`.
-          return true;
-        case _FfiTypeCheckDirection.nativeToDart:
-          return typeSystem.isSubtypeOf(typeSystem.objectNone, dartType);
-      }
+      // `Handle` matches against any type in positions of any variance.
+      return true;
     } else if (dartType is InterfaceTypeImpl &&
         nativeType is InterfaceTypeImpl) {
       if (nativeFieldWrappersAsPointer &&
