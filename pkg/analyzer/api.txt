@@ -4538,6 +4538,7 @@ package:analyzer/file_system/file_system.dart:
     ready (getter: Future<void>)
   FolderExtension (extension on Folder):
     withAncestors (getter: Iterable<Folder>)
+    relativeIfContains (method: String? Function(String))
 package:analyzer/file_system/memory_file_system.dart:
   MemoryResourceProvider (class extends Object implements ResourceProvider):
     new (constructor: MemoryResourceProvider Function({Context? context, Duration? delayWatcherInitialization}))

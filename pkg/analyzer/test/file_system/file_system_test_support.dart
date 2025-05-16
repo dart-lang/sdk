@@ -989,6 +989,67 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     }
   }
 
+  test_relative_if_contains_immediateChild() {
+    Folder folder = getFolder(exists: false);
+    expect(
+      folder.relativeIfContains(join(defaultFolderPath, 'aaa.txt')),
+      'aaa.txt',
+    );
+  }
+
+  test_relative_if_contains_nestedChild() {
+    Folder folder = getFolder(exists: false);
+    expect(
+      folder.relativeIfContains(join(defaultFolderPath, 'aaa', 'bbb.txt')),
+      join('aaa', 'bbb.txt'),
+    );
+  }
+
+  test_relative_if_contains_os_specificic() {
+    Folder folder = getFolder(exists: false);
+    // On non-Windows path casing does matter.
+    String? expectOnCaseDifferenceImmediateChild;
+    String? expectOnCaseDifferenceNestedChild;
+    if (provider.pathContext.style.name == path.Style.windows.name) {
+      // On Windows path casing doesn't matter.
+      expectOnCaseDifferenceImmediateChild = 'aaa.txt';
+      expectOnCaseDifferenceNestedChild = join('aaa', 'bbb.txt');
+    }
+
+    var caseChangedFolder = defaultFolderPath.toUpperCase();
+
+    // Immediate child.
+    expect(
+      folder.relativeIfContains(join(caseChangedFolder, 'aaa.txt')),
+      expectOnCaseDifferenceImmediateChild,
+    );
+
+    // Nested child.
+    expect(
+      folder.relativeIfContains(join(caseChangedFolder, 'aaa', 'bbb.txt')),
+      expectOnCaseDifferenceNestedChild,
+    );
+
+    // Self (on Windows).
+    expect(folder.relativeIfContains(caseChangedFolder), isNull);
+
+    // Unrelated.
+    expect(
+      folder.relativeIfContains(join(tempPath.toUpperCase(), 'baz.txt')),
+      isNull,
+    );
+  }
+
+  test_relative_if_contains_self() {
+    Folder folder = getFolder(exists: false);
+    expect(folder.relativeIfContains(defaultFolderPath), isNull);
+  }
+
+  test_relative_if_contains_unrelated() {
+    Folder folder = getFolder(exists: false);
+    expect(folder.relativeIfContains(join(tempPath, 'baz.txt')), isNull);
+  }
+
   test_resolveSymbolicLinksSync_links_existing() {
     if (!hasSymbolicLinkSupport) return;
 
