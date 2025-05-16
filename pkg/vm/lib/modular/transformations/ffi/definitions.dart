@@ -530,7 +530,15 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           allowStructAndUnion: true,
           allowHandle: false,
         );
+
+        // Since fields induce both setters and getters, the type checks should
+        // be made both ways.
         if (shouldBeDartType == null ||
+            !env.isSubtypeOf(
+              shouldBeDartType,
+              type,
+              SubtypeCheckMode.ignoringNullabilities,
+            ) ||
             !env.isSubtypeOf(
               type,
               shouldBeDartType,

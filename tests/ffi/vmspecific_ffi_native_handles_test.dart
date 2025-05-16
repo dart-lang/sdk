@@ -7,6 +7,8 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
+import 'package:expect/expect.dart';
+
 import 'dylib_utils.dart';
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
@@ -17,7 +19,93 @@ void main() {
   testMixed();
   testManyHandlesAllDifferent();
   testManyHandlesAllSame();
+  testCallbackHandleCases();
 }
+
+void testHandleInReturn() {
+  final string = 'foo';
+  Expect.identical(string, stringFromString(string));
+  Expect.identical(string, stringFromObject(string));
+  Expect.identical(42, intFromInt(42));
+  Expect.identical(42, intFromObject(42));
+  // TODO(https://dartbug.com/49518): Uncomment the lines below when the
+  // runtime checks are added.
+  //
+  // Expect.throws(() => stringFromObject(Object()));
+  // Expect.throws(() => stringFromObject(42));
+  // Expect.throws(() => intFromObject(Object()));
+  // Expect.throws(() => intFromObject(string));
+}
+
+@Native<Handle Function(Handle)>(symbol: "PassObjectToC")
+external String stringFromString(String arg);
+
+@Native<Handle Function(Handle)>(symbol: "PassObjectToC")
+external String stringFromObject(Object arg);
+
+@Native<Handle Function(Handle)>(symbol: "PassObjectToC")
+external int intFromInt(int arg);
+
+@Native<Handle Function(Handle)>(symbol: "PassObjectToC")
+external int intFromObject(Object arg);
+
+void testCallbackHandleCases() {
+  final o = Object();
+  final s = 'foo';
+
+  Object returnObject(Object obj) => obj;
+  final nc0 = NativeCallable<Handle Function(Handle)>.isolateLocal(returnObject)
+    ..keepIsolateAlive = false;
+  Expect.identical(o, callClosureWithArgumentViaHandle(nc0.nativeFunction, o));
+  Expect.identical(s, callClosureWithArgumentViaHandle(nc0.nativeFunction, s));
+  Expect.identical(
+    42,
+    callClosureWithArgumentViaHandle(nc0.nativeFunction, 42),
+  );
+  // TODO(https://dartbug.com/49518): Uncomment the lines below when the
+  // runtime checks are added.
+  //
+  // Expect.throws(
+  //   () => callClosureWithArgumentViaHandle(nc0.nativeFunction, null),
+  // );
+
+  int returnInt(int obj) => obj;
+  final nc1 = NativeCallable<Handle Function(Handle)>.isolateLocal(returnInt)
+    ..keepIsolateAlive = false;
+  Expect.identical(
+    42,
+    callClosureWithArgumentViaHandle(nc1.nativeFunction, 42),
+  );
+  // TODO(https://dartbug.com/49518): Uncomment the lines below when the
+  // runtime checks are added.
+  //
+  // Expect.throws(() => callClosureWithArgumentViaHandle(nc1.nativeFunction, o));
+  // Expect.throws(() => callClosureWithArgumentViaHandle(nc1.nativeFunction, s));
+  // Expect.throws(
+  //   () => callClosureWithArgumentViaHandle(nc1.nativeFunction, null),
+  // );
+
+  String returnString(String obj) => obj;
+  final nc2 = NativeCallable<Handle Function(Handle)>.isolateLocal(returnString)
+    ..keepIsolateAlive = false;
+  Expect.identical(s, callClosureWithArgumentViaHandle(nc2.nativeFunction, s));
+  // TODO(https://dartbug.com/49518): Uncomment the lines below when the
+  // runtime checks are added.
+  //
+  // Expect.throws(() => callClosureWithArgumentViaHandle(nc2.nativeFunction, o));
+  // Expect.throws(() => callClosureWithArgumentViaHandle(nc2.nativeFunction, 42));
+  // Expect.throws(
+  //   () => callClosureWithArgumentViaHandle(nc2.nativeFunction, null),
+  // );
+}
+
+@Native<
+  Handle Function(Pointer<NativeFunction<Handle Function(Handle)>>, Handle)
+>(symbol: "CallClosureWithArgumentViaHandle")
+external Object? callClosureWithArgumentViaHandle(
+  Pointer<NativeFunction<Handle Function(Handle)>> callback,
+  Object? argument,
+);
 
 void testMixed() {
   callUpdateNode(

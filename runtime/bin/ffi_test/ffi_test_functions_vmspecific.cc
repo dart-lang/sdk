@@ -989,6 +989,13 @@ DART_EXPORT Dart_Handle PassObjectToC(Dart_Handle h) {
   return return_value;
 }
 
+DART_EXPORT Dart_Handle
+CallClosureWithArgumentViaHandle(Dart_Handle (*callback)(Dart_Handle),
+                                 Dart_Handle argument) {
+  printf("CallClosureWithArgumentViaHandle %p %p\n", callback, argument);
+  return callback(argument);
+}
+
 DART_EXPORT void ClosureCallbackThroughHandle(void (*callback)(Dart_Handle),
                                               Dart_Handle closureHandle) {
   printf("ClosureCallbackThroughHandle %p %p\n", callback, closureHandle);

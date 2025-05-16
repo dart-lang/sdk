@@ -926,13 +926,8 @@ void testHandleVariance() {
   testLibrary.lookupFunction<Handle Function(Handle), Object Function(MyClass)>(
       "PassObjectToC");
 
-  // Requiring a more specific return type is not, this requires a cast from
-  // the user.
+  // Returning a more specific type than Handle is okay too: it will be checked at runtime.
   testLibrary.lookupFunction<Handle Function(Handle), MyClass Function(Object)>(
-      //                                              ^^^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
-      //      ^
-      // [cfe] Expected type 'MyClass Function(Object)' to be 'Object Function(Object)', which is the Dart type corresponding to 'NativeFunction<Handle Function(Handle)>'.
       "PassObjectToC");
 }
 
@@ -1451,7 +1446,7 @@ void testReturnVoidNotVoid() {
   // Taking a more specific argument is okay.
   testLibrary.lookupFunction<Handle Function(), void Function()>("unused");
   //          ^
-  // [cfe] Expected type 'void Function()' to be 'Object Function()', which is the Dart type corresponding to 'NativeFunction<Handle Function()>'.
+  // [cfe] Expected type 'void Function()' to be 'Never Function()', which is the Dart type corresponding to 'NativeFunction<Handle Function()>'.
   //                                            ^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
 }
