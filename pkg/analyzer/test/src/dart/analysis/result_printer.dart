@@ -814,132 +814,6 @@ class LibraryManifestPrinter {
     }
   }
 
-  void _writeBaseNameMembers(BaseName name, BaseNameMembers items) {
-    void writeDeclaredId(String property, ManifestItem item) {
-      var idStr = idProvider.manifestId(item.id);
-      sink.writelnWithIndent('$name.$property: $idStr');
-    }
-
-    void writeInheritedId(String property, ManifestItemId id) {
-      var idStr = idProvider.manifestId(id);
-      sink.writelnWithIndent('$name.$property.inherited: $idStr');
-    }
-
-    void writeConstructor(DeclaredOrInheritedConstructor constructor) {
-      switch (constructor) {
-        case DeclaredConstructor(:var item):
-          writeDeclaredId('constructor', item);
-          if (configuration.withElementManifests) {
-            sink.withIndent(() {
-              _writeMetadata(item);
-              _writeNamedType('functionType', item.functionType);
-            });
-          }
-        case InheritedConstructor():
-          writeInheritedId('constructor', constructor.id);
-      }
-    }
-
-    void writeIndexEq(InstanceItemMethodItem item) {
-      writeDeclaredId('indexEq', item);
-      if (configuration.withElementManifests) {
-        sink.withIndent(() {
-          _writeMetadata(item);
-          _writeNamedType('functionType', item.functionType);
-        });
-      }
-    }
-
-    void writeMethod(InstanceItemMethodItem item) {
-      writeDeclaredId('method', item);
-      if (configuration.withElementManifests) {
-        sink.withIndent(() {
-          _writeMetadata(item);
-          _writeNamedType('functionType', item.functionType);
-        });
-      }
-    }
-
-    void writeGetter(InstanceItemGetterItem item) {
-      writeDeclaredId('getter', item);
-      if (configuration.withElementManifests) {
-        sink.withIndent(() {
-          _writeMetadata(item);
-          _writeNamedType('returnType', item.returnType);
-        });
-      }
-    }
-
-    void writeSetter(InstanceItemSetterItem item) {
-      writeDeclaredId('setter', item);
-      if (configuration.withElementManifests) {
-        sink.withIndent(() {
-          _writeMetadata(item);
-          _writeNamedType('valueType', item.valueType);
-        });
-      }
-    }
-
-    void assertHasId({
-      bool constructor = false,
-      bool getterOrMethod = false,
-      bool indexEq = false,
-      bool setter = false,
-    }) {
-      expect(items.constructorId, constructor ? isNotNull : isNull);
-      expect(items.getterOrMethodId, getterOrMethod ? isNotNull : isNull);
-      expect(items.indexEqId, indexEq ? isNotNull : isNull);
-      expect(items.setterId, setter ? isNotNull : isNull);
-    }
-
-    switch (items) {
-      case BaseNameConflict():
-        var idStr = idProvider.manifestId(items.id);
-        sink.writelnWithIndent('$name.conflict: $idStr');
-        assertHasId();
-      case BaseNameConstructor():
-        assertHasId(constructor: true);
-        writeConstructor(items.constructor);
-      case BaseNameConstructorGetter():
-        assertHasId(constructor: true, getterOrMethod: true);
-        writeConstructor(items.constructor);
-        writeGetter(items.getter);
-      case BaseNameConstructorGetterSetter():
-        assertHasId(constructor: true, getterOrMethod: true, setter: true);
-        writeConstructor(items.constructor);
-        writeGetter(items.getter);
-        writeSetter(items.setter);
-      case BaseNameConstructorMethod():
-        assertHasId(constructor: true, getterOrMethod: true);
-        writeConstructor(items.constructor);
-        writeMethod(items.method);
-      case BaseNameConstructorSetter():
-        assertHasId(constructor: true, setter: true);
-        writeConstructor(items.constructor);
-        writeSetter(items.setter);
-      case BaseNameGetter():
-        assertHasId(getterOrMethod: true);
-        writeGetter(items.getter);
-      case BaseNameGetterSetter():
-        assertHasId(getterOrMethod: true, setter: true);
-        writeGetter(items.getter);
-        writeSetter(items.setter);
-      case BaseNameIndexEq():
-        assertHasId(indexEq: true);
-        writeIndexEq(items.indexEq);
-      case BaseNameMethod():
-        assertHasId(getterOrMethod: true);
-        writeMethod(items.method);
-      case BaseNameMethodIndexEq():
-        assertHasId(getterOrMethod: true, indexEq: true);
-        writeMethod(items.method);
-        writeIndexEq(items.indexEq);
-      case BaseNameSetter():
-        assertHasId(setter: true);
-        writeSetter(items.setter);
-    }
-  }
-
   void _writeClassItem(ClassItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
@@ -959,11 +833,40 @@ class LibraryManifestPrinter {
 
   void _writeInstanceItemMembers(InstanceItem item) {
     var ignored = configuration.ignoredManifestInstanceMemberNames;
+    var declaredMembers =
+        item.declaredMembers.sorted.whereNot((entry) {
+          return ignored.contains(entry.key.asString);
+        }).toList();
+
+    var conflicts =
+        declaredMembers
+            .map((e) => (e.key, e.value))
+            .where((e) => e.$2 is BaseNameConflict)
+            .toList();
+    var conflictNames = conflicts.map((e) => e.$1).toSet();
+
+    void writeDeclaredConflicts() {
+      if (conflicts.isNotEmpty) {
+        sink.writelnWithIndent('declaredConflicts');
+        sink.withIndent(() {
+          for (var entry in conflicts) {
+            var baseName = entry.$1;
+            var value = entry.$2;
+            if (value is BaseNameConflict) {
+              var idStr = idProvider.manifestId(value.id);
+              sink.writelnWithIndent('$baseName: $idStr');
+              sink.writelnWithIndent('$baseName=: $idStr');
+            }
+          }
+        });
+      }
+    }
 
     void writeDeclaredFields() {
       var declaredFields =
           item.declaredFields.sorted.whereNot((entry) {
-            return ignored.contains(entry.key.asString);
+            return ignored.contains(entry.key.asString) ||
+                conflictNames.contains(entry.key);
           }).toList();
 
       if (declaredFields.isNotEmpty) {
@@ -986,24 +889,182 @@ class LibraryManifestPrinter {
       }
     }
 
-    void writeDeclaredMethods() {
+    void writeDeclaredGetters() {
       var declaredMembers =
           item.declaredMembers.sorted.whereNot((entry) {
-            return ignored.contains(entry.key.asString);
+            return ignored.contains(entry.key.asString) ||
+                conflictNames.contains(entry.key);
           }).toList();
 
-      if (declaredMembers.isNotEmpty) {
-        sink.writelnWithIndent('declaredMembers');
+      var getters =
+          declaredMembers
+              .map((e) => (e.key, e.value.declaredGetter))
+              .where((e) => e.$2 != null)
+              .toList();
+      if (getters.isNotEmpty) {
+        sink.writelnWithIndent('declaredGetters');
         sink.withIndent(() {
-          for (var entry in declaredMembers) {
-            _writeBaseNameMembers(entry.key, entry.value);
+          for (var entry in getters) {
+            var baseName = entry.$1;
+            var item = entry.$2;
+            if (item is! BaseNameConflict) {
+              if (item != null) {
+                var idStr = idProvider.manifestId(item.id);
+                sink.writelnWithIndent('$baseName: $idStr');
+                if (configuration.withElementManifests) {
+                  sink.withIndent(() {
+                    _writeMetadata(item);
+                    _writeNamedType('returnType', item.returnType);
+                  });
+                }
+              }
+            }
           }
         });
       }
     }
 
+    void writeDeclaredSetters() {
+      var declaredMembers =
+          item.declaredMembers.sorted.whereNot((entry) {
+            return ignored.contains(entry.key.asString) ||
+                conflictNames.contains(entry.key);
+          }).toList();
+
+      var setters =
+          declaredMembers
+              .map((e) => (e.key, e.value.declaredSetter))
+              .where((e) => e.$2 != null)
+              .toList();
+      if (setters.isNotEmpty) {
+        sink.writelnWithIndent('declaredSetters');
+        sink.withIndent(() {
+          for (var entry in setters) {
+            var baseName = entry.$1;
+            var item = entry.$2;
+            if (item != null) {
+              var idStr = idProvider.manifestId(item.id);
+              sink.writelnWithIndent('$baseName=: $idStr');
+              if (configuration.withElementManifests) {
+                sink.withIndent(() {
+                  _writeMetadata(item);
+                  _writeNamedType('valueType', item.valueType);
+                });
+              }
+            }
+          }
+        });
+      }
+    }
+
+    void writeDeclaredMethods() {
+      var declaredMembers =
+          item.declaredMembers.sorted.whereNot((entry) {
+            return ignored.contains(entry.key.asString) ||
+                conflictNames.contains(entry.key);
+          }).toList();
+
+      var methods =
+          declaredMembers
+              .map((e) => (e.key.asString, e.value.declaredMethod))
+              .where((e) => e.$2 != null)
+              .toList();
+      methods.addAll(
+        declaredMembers
+            .map((e) => ('${e.key}=', e.value.declaredIndexEq))
+            .where((e) => e.$2 != null)
+            .toList(),
+      );
+      methods.sortBy((e) => e.$1);
+      if (methods.isNotEmpty) {
+        sink.writelnWithIndent('declaredMethods');
+        sink.withIndent(() {
+          for (var entry in methods) {
+            var lookupNameStr = entry.$1;
+            var item = entry.$2;
+            if (item != null) {
+              var idStr = idProvider.manifestId(item.id);
+              sink.writelnWithIndent('$lookupNameStr: $idStr');
+              if (configuration.withElementManifests) {
+                sink.withIndent(() {
+                  _writeMetadata(item);
+                  _writeNamedType('functionType', item.functionType);
+                });
+              }
+            }
+          }
+        });
+      }
+    }
+
+    void writeDeclaredConstructors() {
+      var declaredMembers =
+          item.declaredMembers.sorted.whereNot((entry) {
+            return ignored.contains(entry.key.asString) ||
+                conflictNames.contains(entry.key);
+          }).toList();
+
+      var constructors =
+          declaredMembers
+              .map((e) => (e.key, e.value.declaredConstructor))
+              .where((e) => e.$2 != null)
+              .toList();
+      if (constructors.isNotEmpty) {
+        sink.writelnWithIndent('declaredConstructors');
+        sink.withIndent(() {
+          for (var entry in constructors) {
+            var baseName = entry.$1;
+            var item = entry.$2;
+            if (item != null) {
+              var idStr = idProvider.manifestId(item.id);
+              sink.writelnWithIndent('$baseName: $idStr');
+              if (configuration.withElementManifests) {
+                sink.withIndent(() {
+                  _writeMetadata(item);
+                  _writeNamedType('functionType', item.functionType);
+                });
+              }
+            }
+          }
+        });
+      }
+    }
+
+    void writeInheritedConstructors() {
+      var declaredMembers =
+          item.declaredMembers.sorted.whereNot((entry) {
+            return ignored.contains(entry.key.asString) ||
+                conflictNames.contains(entry.key);
+          }).toList();
+
+      var constructors =
+          declaredMembers
+              .where((e) => e.value.declaredConstructor == null)
+              .map((e) => (e.key, e.value.constructorId))
+              .where((e) => e.$2 != null)
+              .toList();
+      if (constructors.isNotEmpty) {
+        sink.writelnWithIndent('inheritedConstructors');
+        sink.withIndent(() {
+          for (var entry in constructors) {
+            var baseName = entry.$1;
+            var id = entry.$2;
+            if (id != null) {
+              var idStr = idProvider.manifestId(id);
+              sink.writelnWithIndent('$baseName: $idStr');
+            }
+          }
+        });
+      }
+    }
+
+    writeDeclaredConflicts();
     writeDeclaredFields();
+    writeDeclaredGetters();
+    writeDeclaredSetters();
     writeDeclaredMethods();
+    writeDeclaredConstructors();
+    writeInheritedConstructors();
   }
 
   void _writeInterfaceItemInterface(InterfaceItem item) {
