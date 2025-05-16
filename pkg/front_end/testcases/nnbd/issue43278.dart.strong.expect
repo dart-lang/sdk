@@ -41,8 +41,8 @@ class B extends core::Object {
 }
 extension Extension on self::B {
   get fooExtension = self::Extension|get#fooExtension;
-  get barExtension = self::Extension|get#barExtension;
   set fooExtension = self::Extension|set#fooExtension;
+  get barExtension = self::Extension|get#barExtension;
 }
 static method test<T extends self::A?>(self::A? a, self::test::T% t, dynamic d, core::int x) → dynamic {
   let final self::A? #t1 = a in invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:13:5: Error: Property 'foo' cannot be accessed on 'A?' because it is potentially null.

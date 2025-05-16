@@ -68,15 +68,15 @@ class C extends core::Object {
 }
 extension E<T extends self::G<T> = self::G<dynamic>> on T {
   get getter1 = self::E|get#getter1;
-  get getter2 = self::E|get#getter2;
   set setter1 = self::E|set#setter1;
+  get getter2 = self::E|get#getter2;
   set setter2 = self::E|set#setter2;
 }
 extension type ET<T extends self::G<T> = self::G<dynamic>>(T it) {
   abstract extension-type-member representation-field get it() → T;
   get getter1 = self::ET|get#getter1;
-  get getter2 = self::ET|get#getter2;
   set setter1 = self::ET|set#setter1;
+  get getter2 = self::ET|get#getter2;
   set setter2 = self::ET|set#setter2;
   constructor • = self::ET|constructor#;
   constructor tearoff • = self::ET|constructor#_#new#tearOff;

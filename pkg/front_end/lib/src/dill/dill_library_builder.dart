@@ -138,7 +138,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   NameSpace get libraryNameSpace => _nameSpace;
 
   @override
-  NameSpace get exportNameSpace => _exportNameSpace;
+  ComputedNameSpace get exportNameSpace => _exportNameSpace;
 
   @override
   List<Export> get exporters => mainCompilationUnit.exporters;

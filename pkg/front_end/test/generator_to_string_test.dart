@@ -116,7 +116,7 @@ Future<void> main() async {
         isUnsupported: false,
         isAugmentation: false,
         isPatch: false,
-        importNameSpace: new MutableNameSpace(),
+        importNameSpace: new ComputedMutableNameSpace(),
         libraryNameSpaceBuilder: new LibraryNameSpaceBuilder());
     libraryBuilder.compilationUnit.markLanguageVersionFinal();
     LoadLibraryBuilder loadLibraryBuilder = new LoadLibraryBuilder(

@@ -43,6 +43,26 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
 
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);
+
+  /// Returns an iterator of all members declared in this declaration, including
+  /// duplicate declarations.
+  Iterator<MemberBuilder> get unfilteredMembersIterator;
+
+  /// [Iterator] for all members declared in this declaration of type [T].
+  ///
+  /// If [includeDuplicates] is `true`, duplicate declarations are included.
+  Iterator<T> filteredMembersIterator<T extends MemberBuilder>(
+      {required bool includeDuplicates});
+
+  /// Returns an iterator of all constructors declared in this declaration,
+  /// including duplicate declarations.
+  Iterator<MemberBuilder> get unfilteredConstructorsIterator;
+
+  /// [Iterator] for all constructors declared in this declaration of type [T].
+  ///
+  /// If [includeDuplicates] is `true`, duplicate declarations are included.
+  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>(
+      {required bool includeDuplicates});
 }
 
 abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl

@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart';
 
 import '../base/name_space.dart';
 import '../base/scope.dart';
-import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
@@ -221,6 +220,28 @@ class DillExtensionTypeDeclarationBuilder
       _extensionTypeDeclaration;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Iterator<MemberBuilder> get unfilteredMembersIterator =>
+      _memberBuilders.iterator;
+
+  @override
+  Iterator<T> filteredMembersIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_memberBuilders.iterator,
+          includeDuplicates: includeDuplicates);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterator<MemberBuilder> get unfilteredConstructorsIterator =>
+      _constructorBuilders.iterator;
+
+  @override
+  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_constructorBuilders.iterator,
+          includeDuplicates: includeDuplicates);
+
+  @override
   List<NominalParameterBuilder>? get typeParameters {
     List<NominalParameterBuilder>? typeParameters = _typeParameters;
     if (typeParameters == null &&
@@ -257,14 +278,4 @@ class DillExtensionTypeDeclarationBuilder
 
   @override
   Reference get reference => _extensionTypeDeclaration.reference;
-
-  @override
-  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      new FilteredIterator<T>(_constructorBuilders.iterator,
-          includeDuplicates: false);
-
-  @override
-  Iterator<T> fullMemberIterator<T extends NamedBuilder>() =>
-      new FilteredIterator<T>(_memberBuilders.iterator,
-          includeDuplicates: false);
 }

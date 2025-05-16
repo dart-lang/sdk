@@ -12,8 +12,7 @@ import 'source_library_builder.dart';
 // TODO(johnniwinther): Merge this with [IDeclarationBuilder]? Extensions are
 // the only declarations without constructors, this might come with the static
 // extension feature.
-abstract class ClassDeclarationBuilder
-    implements IDeclarationBuilder, ClassMemberAccess {
+abstract class ClassDeclarationBuilder implements IDeclarationBuilder {
   @override
   SourceLibraryBuilder get libraryBuilder;
 

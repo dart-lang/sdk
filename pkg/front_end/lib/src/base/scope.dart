@@ -9,7 +9,6 @@ import 'package:kernel/type_environment.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
@@ -275,7 +274,7 @@ class CompilationUnitScope extends BaseNameSpaceLookupScope {
 /// The scope containing the prefixes imported into a compilation unit.
 class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
   @override
-  final NameSpace _nameSpace;
+  final ComputedNameSpace _nameSpace;
 
   @override
   final LookupScope? _parent;
@@ -292,8 +291,7 @@ class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
   void forEachExtension(void Function(ExtensionBuilder) f) {
     if (_extensions == null) {
       Set<ExtensionBuilder> extensions = _extensions = {};
-      Iterator<PrefixBuilder> iterator =
-          _nameSpace.filteredIterator(includeDuplicates: false);
+      Iterator<PrefixBuilder> iterator = _nameSpace.filteredIterator();
       while (iterator.moveNext()) {
         iterator.current.forEachExtension((e) {
           extensions.add(e);
@@ -573,6 +571,7 @@ class ScopeIterator implements Iterator<NamedBuilder> {
   bool moveNext() {
     NamedBuilder? next = _current?.next;
     if (next != null) {
+      // Coverage-ignore-block(suite): Not run.
       _current = next;
       return true;
     }
@@ -591,6 +590,7 @@ class ScopeIterator implements Iterator<NamedBuilder> {
       setters = null;
     }
     if (extensions != null) {
+      // Coverage-ignore-block(suite): Not run.
       while (extensions!.moveNext()) {
         Builder extension = extensions!.current;
         // Named extensions have already been included throw [local] so we skip
@@ -609,39 +609,6 @@ class ScopeIterator implements Iterator<NamedBuilder> {
 
   @override
   NamedBuilder get current {
-    return _current ?? // Coverage-ignore(suite): Not run.
-        (throw new StateError('No element'));
-  }
-}
-
-/// Iterator over builders mapped in a [ConstructorNameSpace], including
-/// duplicates for each directly mapped builder.
-class ConstructorNameSpaceIterator implements Iterator<MemberBuilder> {
-  Iterator<MemberBuilder>? _local;
-
-  MemberBuilder? _current;
-
-  ConstructorNameSpaceIterator(this._local);
-
-  @override
-  bool moveNext() {
-    MemberBuilder? next = _current?.next as MemberBuilder?;
-    if (next != null) {
-      _current = next;
-      return true;
-    }
-    if (_local != null) {
-      if (_local!.moveNext()) {
-        _current = _local!.current;
-        return true;
-      }
-      _local = null;
-    }
-    return false;
-  }
-
-  @override
-  MemberBuilder get current {
     return _current ?? // Coverage-ignore(suite): Not run.
         (throw new StateError('No element'));
   }

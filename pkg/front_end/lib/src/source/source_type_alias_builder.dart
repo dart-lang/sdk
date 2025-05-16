@@ -414,8 +414,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                 libraryBuilder.library)) {
           tearOffs = {};
           _tearOffDependencies = {};
-          Iterator<MemberBuilder> iterator =
-              declaration.fullConstructorIterator();
+          Iterator<MemberBuilder> iterator = declaration
+              .filteredConstructorsIterator(includeDuplicates: false);
           while (iterator.moveNext()) {
             MemberBuilder builder = iterator.current;
             String constructorName = builder.name;
@@ -471,8 +471,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                 libraryBuilder.library)) {
           tearOffs = {};
           _tearOffDependencies = {};
-          Iterator<MemberBuilder> iterator =
-              declaration.fullConstructorIterator();
+          Iterator<MemberBuilder> iterator = declaration
+              .filteredConstructorsIterator(includeDuplicates: false);
           while (iterator.moveNext()) {
             MemberBuilder builder = iterator.current;
             String constructorName = builder.name;

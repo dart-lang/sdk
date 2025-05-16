@@ -67,7 +67,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   late final NamedTypeBuilder selfType;
 
-  SourceConstructorBuilderImpl? synthesizedDefaultConstructorBuilder;
+  SourceConstructorBuilderImpl? _synthesizedDefaultConstructorBuilder;
 
   late final _EnumValuesFieldDeclaration _enumValuesFieldDeclaration;
 
@@ -137,12 +137,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
     super.buildScopes(coreLibrary);
     _createSynthesizedMembers(coreLibrary);
 
-    Iterator<MemberBuilder> constructorIterator =
-        nameSpace.filteredConstructorIterator(includeDuplicates: false);
+    Iterator<ConstructorBuilder> constructorIterator =
+        filteredConstructorsIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
-      MemberBuilder constructorBuilder = constructorIterator.current;
-      if (constructorBuilder is ConstructorBuilder &&
-          !constructorBuilder.isConst) {
+      ConstructorBuilder constructorBuilder = constructorIterator.current;
+      if (!constructorBuilder.isConst) {
         libraryBuilder.addProblem(messageEnumNonConstConstructor,
             constructorBuilder.fileOffset, noLength, fileUri);
       }
@@ -272,8 +271,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
       customValuesDeclaration.next = valuesBuilder;
       nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
           valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
+      addMemberInternal(valuesBuilder, addToNameSpace: false);
     } else {
-      nameSpaceInternal.addLocalMember("values", valuesBuilder, setter: false);
+      addMemberInternal(valuesBuilder, addToNameSpace: true);
       nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
           valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
     }
@@ -281,7 +281,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // The default constructor is added if no generative or unnamed factory
     // constructors are declared.
     bool needsSynthesizedDefaultConstructor = true;
-    Iterator<MemberBuilder> iterator = nameSpace.unfilteredConstructorIterator;
+    Iterator<MemberBuilder> iterator = unfilteredConstructorsIterator;
     while (iterator.moveNext()) {
       MemberBuilder constructorBuilder = iterator.current;
       if (constructorBuilder is! FactoryBuilder ||
@@ -322,30 +322,30 @@ class SourceEnumBuilder extends SourceClassBuilder {
               fileUri: fileUri,
               fileOffset: fileOffset,
               lookupScope: _introductory.compilationUnitScope);
-      synthesizedDefaultConstructorBuilder = new SourceConstructorBuilderImpl(
-          modifiers: Modifiers.Const,
-          name: "",
-          libraryBuilder: libraryBuilder,
-          declarationBuilder: this,
-          fileUri: fileUri,
-          fileOffset: fileOffset,
-          constructorReference: constructorReference,
-          tearOffReference: tearOffReference,
-          nameScheme: new NameScheme(
-              isInstanceMember: false,
-              containerName: new ClassName(name),
-              containerType: ContainerType.Class,
-              libraryName: libraryName),
-          introductory: constructorDeclaration);
-      synthesizedDefaultConstructorBuilder!
-          .registerInitializedField(valuesBuilder);
-      nameSpaceInternal.addConstructor(
-          "", synthesizedDefaultConstructorBuilder!);
+      SourceConstructorBuilderImpl constructorBuilder =
+          _synthesizedDefaultConstructorBuilder =
+              new SourceConstructorBuilderImpl(
+                  modifiers: Modifiers.Const,
+                  name: "",
+                  libraryBuilder: libraryBuilder,
+                  declarationBuilder: this,
+                  fileUri: fileUri,
+                  fileOffset: fileOffset,
+                  constructorReference: constructorReference,
+                  tearOffReference: tearOffReference,
+                  nameScheme: new NameScheme(
+                      isInstanceMember: false,
+                      containerName: new ClassName(name),
+                      containerType: ContainerType.Class,
+                      libraryName: libraryName),
+                  introductory: constructorDeclaration);
+      constructorBuilder.registerInitializedField(valuesBuilder);
+      addConstructorInternal(constructorBuilder, addToNameSpace: true);
       nameSpaceBuilder.checkTypeParameterConflict(
           libraryBuilder,
-          synthesizedDefaultConstructorBuilder!.name,
-          synthesizedDefaultConstructorBuilder!,
-          synthesizedDefaultConstructorBuilder!.fileUri);
+          _synthesizedDefaultConstructorBuilder!.name,
+          _synthesizedDefaultConstructorBuilder!,
+          _synthesizedDefaultConstructorBuilder!.fileUri);
     }
 
     SourceMethodBuilder toStringBuilder = new SourceMethodBuilder(
@@ -367,8 +367,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         modifiers: Modifiers.empty,
         reference: toStringReference,
         tearOffReference: null);
-    nameSpaceInternal.addLocalMember(toStringBuilder.name, toStringBuilder,
-        setter: false);
+    addMemberInternal(toStringBuilder, addToNameSpace: true);
     nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
         toStringBuilder.name, toStringBuilder, toStringBuilder.fileUri);
 
@@ -410,9 +409,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // they are processed via the pipeline for constructor parsing and
     // building.
     if (identical(this.supertypeBuilder, _underscoreEnumTypeBuilder)) {
-      if (synthesizedDefaultConstructorBuilder != null) {
+      if (_synthesizedDefaultConstructorBuilder != null) {
         Constructor constructor =
-            synthesizedDefaultConstructorBuilder!.invokeTarget as Constructor;
+            _synthesizedDefaultConstructorBuilder!.invokeTarget as Constructor;
         ClassBuilder objectClass = objectType.declaration as ClassBuilder;
         ClassBuilder enumClass =
             _underscoreEnumTypeBuilder.declaration as ClassBuilder;
@@ -439,7 +438,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   constructor.function, libraryBuilder.library))
             ..parent = constructor);
         }
-        synthesizedDefaultConstructorBuilder = null;
+        _synthesizedDefaultConstructorBuilder = null;
       }
     }
 

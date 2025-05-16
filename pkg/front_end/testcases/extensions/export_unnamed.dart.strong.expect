@@ -12,11 +12,11 @@ library;
 import self as exp;
 import "dart:core" as core;
 
+extension /* unnamed */ _extension#0 on core::String {
+  static method staticMethod = exp::_extension#0|staticMethod;
+}
 extension NamedExtension on core::String {
   static method staticMethod = exp::NamedExtension|staticMethod;
 }
-extension /* unnamed */ _extension#1 on core::String {
-  static method staticMethod = exp::_extension#1|staticMethod;
-}
-static extension-member method _extension#1|staticMethod() → void {}
+static extension-member method _extension#0|staticMethod() → void {}
 static extension-member method NamedExtension|staticMethod() → void {}

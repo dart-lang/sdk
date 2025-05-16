@@ -890,8 +890,8 @@ class KernelTarget {
         bool isConstructorAdded = false;
         Map<TypeParameter, DartType>? substitutionMap;
 
-        Iterator<MemberBuilder> iterator =
-            superclassBuilder.fullConstructorIterator();
+        Iterator<MemberBuilder> iterator = superclassBuilder
+            .filteredConstructorsIterator(includeDuplicates: false);
         while (iterator.moveNext()) {
           MemberBuilder memberBuilder = iterator.current;
           String name = memberBuilder.name;
@@ -1305,7 +1305,7 @@ class KernelTarget {
     List<SourcePropertyBuilder> lateFinalFields = [];
 
     Iterator<SourcePropertyBuilder> fieldIterator =
-        classDeclaration.fullMemberIterator<SourcePropertyBuilder>();
+        classDeclaration.filteredMembersIterator(includeDuplicates: false);
     while (fieldIterator.moveNext()) {
       SourcePropertyBuilder fieldBuilder = fieldIterator.current;
       if (!fieldBuilder.hasConcreteField) {
@@ -1332,8 +1332,7 @@ class KernelTarget {
     Set<SourcePropertyBuilder>? uninitializedInstanceFields;
 
     Iterator<ConstructorDeclarationBuilder> constructorIterator =
-        classDeclaration
-            .fullConstructorIterator<ConstructorDeclarationBuilder>();
+        classDeclaration.filteredConstructorsIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
       ConstructorDeclarationBuilder constructor = constructorIterator.current;
       if (constructor.isEffectivelyRedirecting) continue;

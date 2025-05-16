@@ -50,23 +50,23 @@ class Class<T extends core::Object? = dynamic> extends self::SuperClass {
 extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
   method extensionInstanceMember = self::Extension|extensionInstanceMember;
   method tearoff extensionInstanceMember = self::Extension|get#extensionInstanceMember;
+  set extensionInstanceSetter = self::Extension|set#extensionInstanceSetter;
   static method extensionStaticMember = self::Extension|extensionStaticMember;
+  static set extensionStaticSetter = set self::Extension|extensionStaticSetter;
   method instanceTest = self::Extension|instanceTest;
   method tearoff instanceTest = self::Extension|get#instanceTest;
   static method staticTest = self::Extension|staticTest;
-  set extensionInstanceSetter = self::Extension|set#extensionInstanceSetter;
-  static set extensionStaticSetter = set self::Extension|extensionStaticSetter;
 }
 extension type ExtensionType<T extends core::Object? = dynamic>(self::Class<T%> c) implements self::Class<T%> {
   abstract extension-type-member representation-field get c() → self::Class<T%>;
   method extensionTypeInstanceMember = self::ExtensionType|extensionTypeInstanceMember;
   method tearoff extensionTypeInstanceMember = self::ExtensionType|get#extensionTypeInstanceMember;
+  set extensionTypeInstanceSetter = self::ExtensionType|set#extensionTypeInstanceSetter;
   static method extensionTypeStaticMember = self::ExtensionType|extensionTypeStaticMember;
+  static set extensionTypeStaticSetter = set self::ExtensionType|extensionTypeStaticSetter;
   method instanceTest = self::ExtensionType|instanceTest;
   method tearoff instanceTest = self::ExtensionType|get#instanceTest;
   static method staticTest = self::ExtensionType|staticTest;
-  set extensionTypeInstanceSetter = self::ExtensionType|set#extensionTypeInstanceSetter;
-  static set extensionTypeStaticSetter = set self::ExtensionType|extensionTypeStaticSetter;
   constructor _ = self::ExtensionType|constructor#_;
   constructor tearoff _ = self::ExtensionType|constructor#_#_#tearOff;
   constructor • = self::ExtensionType|constructor#;

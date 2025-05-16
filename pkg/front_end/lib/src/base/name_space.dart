@@ -33,47 +33,34 @@ abstract class NameSpace {
   LookupResult? lookupLocalMember(String name);
 
   void forEachLocalExtension(void Function(ExtensionBuilder member) f);
-
-  /// Returns an iterator of all members and setters mapped in this name space,
-  /// including duplicate members mapped to the same name.
-  Iterator<NamedBuilder> get unfilteredIterator;
-
-  /// Returns a filtered iterator of members and setters mapped in this name
-  /// space.
-  ///
-  /// Only members of type [T] are included. If [parent] is provided, on members
-  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
-  /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included.
-  Iterator<T> filteredIterator<T extends NamedBuilder>(
-      {required bool includeDuplicates});
 }
 
 abstract class MutableNameSpace implements NameSpace {
-  factory MutableNameSpace() = NameSpaceImpl._;
-
-  void addLocalMember(String name, NamedBuilder member,
-      {required bool setter, bool allowReplace = false});
+  void addLocalMember(String name, NamedBuilder member, {required bool setter});
 
   /// Adds [builder] to the extensions in this name space.
   void addExtension(ExtensionBuilder builder);
 }
 
-abstract class DeclarationNameSpace implements NameSpace {
-  MemberBuilder? lookupConstructor(String name);
-
-  /// Returns an iterator of all constructors mapped in this scope,
-  /// including duplicate constructors mapped to the same name.
-  Iterator<MemberBuilder> get unfilteredConstructorIterator;
-
-  /// Returns a filtered iterator of constructors mapped in this scope.
+abstract class ComputedNameSpace implements NameSpace {
+  /// Returns a filtered iterator of members and setters mapped in this name
+  /// space.
   ///
   /// Only members of type [T] are included. If [parent] is provided, on members
-  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
-  /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included.
-  Iterator<T> filteredConstructorIterator<T extends MemberBuilder>(
-      {required bool includeDuplicates});
+  /// declared in [parent] are included. Duplicates are not included.
+  Iterator<T> filteredIterator<T extends NamedBuilder>();
+}
+
+abstract class ComputedMutableNameSpace
+    implements MutableNameSpace, ComputedNameSpace {
+  factory ComputedMutableNameSpace() = NameSpaceImpl._;
+
+  void replaceLocalMember(String name, NamedBuilder member,
+      {required bool setter});
+}
+
+abstract class DeclarationNameSpace implements NameSpace {
+  MemberBuilder? lookupConstructor(String name);
 }
 
 abstract class MutableDeclarationNameSpace
@@ -81,7 +68,7 @@ abstract class MutableDeclarationNameSpace
   void addConstructor(String name, MemberBuilder builder);
 }
 
-base class NameSpaceImpl implements NameSpace, MutableNameSpace {
+base class NameSpaceImpl implements NameSpace, ComputedMutableNameSpace {
   Map<String, NamedBuilder>? _getables;
   Map<String, NamedBuilder>? _setables;
   Set<ExtensionBuilder>? _extensions;
@@ -96,7 +83,12 @@ base class NameSpaceImpl implements NameSpace, MutableNameSpace {
 
   @override
   void addLocalMember(String name, NamedBuilder member,
-      {required bool setter, bool allowReplace = false}) {
+      {required bool setter}) {
+    _addLocalMember(name, member, setter: setter, allowReplace: false);
+  }
+
+  void _addLocalMember(String name, NamedBuilder member,
+      {required bool setter, required bool allowReplace}) {
     if (setter) {
       assert(
           _setables == null ||
@@ -119,15 +111,26 @@ base class NameSpaceImpl implements NameSpace, MutableNameSpace {
   }
 
   @override
+  void replaceLocalMember(String name, NamedBuilder member,
+      {required bool setter}) {
+    _addLocalMember(name, member, setter: setter, allowReplace: true);
+  }
+
+  @override
   void addExtension(ExtensionBuilder builder) {
     (_extensions ??= {}).add(builder);
   }
 
   @override
-  Iterator<T> filteredIterator<T extends NamedBuilder>(
-      {required bool includeDuplicates}) {
-    return new FilteredIterator<T>(unfilteredIterator,
-        includeDuplicates: includeDuplicates);
+  Iterator<T> filteredIterator<T extends NamedBuilder>() {
+    return new FilteredIterator<T>(
+        new ScopeIterator(
+            _getables?.values.iterator,
+            _setables?.values.iterator,
+            _extensions
+                // Coverage-ignore(suite): Not run.
+                ?.iterator),
+        includeDuplicates: false);
   }
 
   @override
@@ -153,12 +156,6 @@ base class NameSpaceImpl implements NameSpace, MutableNameSpace {
   LookupResult? lookupLocalMember(String name) {
     return LookupResult.createResult(_getables?[name], _setables?[name]);
   }
-
-  @override
-  Iterator<NamedBuilder> get unfilteredIterator => new ScopeIterator(
-      _getables?.values.iterator,
-      _setables?.values.iterator,
-      _extensions?.iterator);
 }
 
 final class SourceLibraryNameSpace extends NameSpaceImpl {
@@ -267,19 +264,6 @@ abstract base class DeclarationNameSpaceBase extends NameSpaceImpl
 
   @override
   MemberBuilder? lookupConstructor(String name) => _constructors?[name];
-
-  /// Returns an iterator of all constructors mapped in this scope,
-  /// including duplicate constructors mapped to the same name.
-  @override
-  Iterator<MemberBuilder> get unfilteredConstructorIterator =>
-      new ConstructorNameSpaceIterator(_constructors?.values.iterator);
-
-  @override
-  Iterator<T> filteredConstructorIterator<T extends MemberBuilder>(
-      {required bool includeDuplicates}) {
-    return new FilteredIterator<T>(unfilteredConstructorIterator,
-        includeDuplicates: includeDuplicates);
-  }
 }
 
 final class SourceDeclarationNameSpace extends DeclarationNameSpaceBase {

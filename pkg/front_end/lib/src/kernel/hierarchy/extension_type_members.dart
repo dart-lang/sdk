@@ -33,8 +33,8 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
   ExtensionTypeMembersNode build() {
     Map<Name, _Tuple> memberMap = {};
 
-    Iterator<MemberBuilder> iterator =
-        extensionTypeDeclarationBuilder.fullMemberIterator<MemberBuilder>();
+    Iterator<MemberBuilder> iterator = extensionTypeDeclarationBuilder
+        .filteredMembersIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       MemberBuilder memberBuilder = iterator.current;
       for (ClassMember classMember in memberBuilder.localMembers) {
@@ -45,7 +45,6 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
             memberMap[name] =
                 new _Tuple.declareExtensionTypeGetable(classMember);
           } else {
-            // Coverage-ignore-block(suite): Not run.
             tuple.declaredExtensionTypeGetable = classMember;
           }
         } else {
@@ -354,7 +353,6 @@ class _Tuple {
   ClassMember? get declaredExtensionTypeGetable =>
       _declaredExtensionTypeGetable;
 
-  // Coverage-ignore(suite): Not run.
   void set declaredExtensionTypeGetable(ClassMember? value) {
     assert(!value!.forSetter);
     assert(

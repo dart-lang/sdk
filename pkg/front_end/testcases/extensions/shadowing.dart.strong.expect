@@ -23,15 +23,15 @@ class Class extends core::Object {
 }
 extension /* unnamed */ _extension#0 on core::int {
   get getter = self::_extension#0|get#getter;
+  set setter = self::_extension#0|set#setter;
   method method = self::_extension#0|method;
   method tearoff method = self::_extension#0|get#method;
-  set setter = self::_extension#0|set#setter;
 }
 extension /* unnamed */ _extension#1 on self::Class {
   get getter = self::_extension#1|get#getter;
+  set setter = self::_extension#1|set#setter;
   method method = self::_extension#1|method;
   method tearoff method = self::_extension#1|get#method;
-  set setter = self::_extension#1|set#setter;
 }
 static field core::int getter = 42;
 static field core::int setter = 42;

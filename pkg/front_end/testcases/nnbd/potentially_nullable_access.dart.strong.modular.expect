@@ -437,11 +437,11 @@ extension Extension on self::Class {
   method call = self::Extension|call;
   method tearoff call = self::Extension|get#call;
   get extensionProperty = self::Extension|get#extensionProperty;
+  set extensionProperty = self::Extension|set#extensionProperty;
   method extensionMethod = self::Extension|extensionMethod;
   method tearoff extensionMethod = self::Extension|get#extensionMethod;
   get extensionFunctionGetter = self::Extension|get#extensionFunctionGetter;
   get extensionFunctionTypeGetter = self::Extension|get#extensionFunctionTypeGetter;
-  set extensionProperty = self::Extension|set#extensionProperty;
 }
 static field core::num topLevelBinary = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:37:34: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
 var topLevelBinary = nullableInt + 0;

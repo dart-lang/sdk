@@ -22,7 +22,8 @@ class PrefixBuilder extends NamedBuilderImpl implements LookupResult {
   @override
   final String name;
 
-  final MutableNameSpace _prefixNameSpace = new MutableNameSpace();
+  final ComputedMutableNameSpace _prefixNameSpace =
+      new ComputedMutableNameSpace();
 
   late final LookupScope _prefixScope =
       new NameSpaceLookupScope(_prefixNameSpace, ScopeKind.library);
@@ -85,8 +86,7 @@ class PrefixBuilder extends NamedBuilderImpl implements LookupResult {
       NamedBuilder result = computeAmbiguousDeclarationForImport(
           parent, name, existing, member,
           uriOffset: new UriOffset(fileUri, prefixOffset));
-      _prefixNameSpace.addLocalMember(name, result,
-          setter: isSetter, allowReplace: true);
+      _prefixNameSpace.replaceLocalMember(name, result, setter: isSetter);
     } else {
       _prefixNameSpace.addLocalMember(name, member, setter: isSetter);
     }

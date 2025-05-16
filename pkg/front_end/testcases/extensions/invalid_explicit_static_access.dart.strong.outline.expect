@@ -5,10 +5,10 @@ import "dart:core" as core;
 extension Extension on core::String {
   static method method = self::Extension|method;
   static get getter = get self::Extension|getter;
-  static get property = get self::Extension|property;
-  static field field = self::Extension|field;
   static set setter = set self::Extension|setter;
+  static get property = get self::Extension|property;
   static set property = set self::Extension|property;
+  static field field = self::Extension|field;
 }
 static field dynamic Extension|field;
 static extension-member method Extension|method() → dynamic
