@@ -14,7 +14,7 @@ library;
 //   A a = x; // Error.
 //         ^
 //
-// pkg/front_end/testcases/nnbd/assignability_error_messages.dart:31:10: Error: Can't assign spread elements of type 'B?' to collection elements of type 'A' because 'B?' is nullable and 'A' isn't.
+// pkg/front_end/testcases/nnbd/assignability_error_messages.dart:31:10: Error: Can't assign spread elements of type 'B?' to collection elements of type 'A'.
 //  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 //   <A>[...l]; // Error.
@@ -96,7 +96,7 @@ library;
 //   List<A> y = x; // Error.
 //               ^
 //
-// pkg/front_end/testcases/nnbd/assignability_error_messages.dart:57:16: Error: Can't assign spread elements of type 'List<B?>' to collection elements of type 'List<A>' because 'B?' is nullable and 'A' isn't.
+// pkg/front_end/testcases/nnbd/assignability_error_messages.dart:57:16: Error: Can't assign spread elements of type 'List<B?>' to collection elements of type 'List<A>'.
 //  - 'List' is from 'dart:core'.
 //  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
@@ -213,7 +213,7 @@ static method foo(self::B? x, core::List<self::B?> l, core::Map<self::B?, self::
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   A a = x; // Error.
         ^" in let self::B? #t2 = x in #t2 == null ?{self::A} #t2 as{TypeError} self::A : #t2{self::A};
-  core::_GrowableList::_literal1<self::A>(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:31:10: Error: Can't assign spread elements of type 'B?' to collection elements of type 'A' because 'B?' is nullable and 'A' isn't.
+  core::_GrowableList::_literal1<self::A>(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:31:10: Error: Can't assign spread elements of type 'B?' to collection elements of type 'A'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   <A>[...l]; // Error.
@@ -308,7 +308,7 @@ static method bar(core::List<self::B?> x, core::List<core::List<self::B?>> l, co
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   List<A> y = x; // Error.
               ^" in x as{TypeError} core::List<self::A>;
-  core::_GrowableList::_literal1<core::List<self::A>>(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:57:16: Error: Can't assign spread elements of type 'List<B?>' to collection elements of type 'List<A>' because 'B?' is nullable and 'A' isn't.
+  core::_GrowableList::_literal1<core::List<self::A>>(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:57:16: Error: Can't assign spread elements of type 'List<B?>' to collection elements of type 'List<A>'.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
