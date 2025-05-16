@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (!member.isSetter) continue;
 
       var element = member.declaredFragment?.element;
-      var interface = element?.enclosingElement2;
+      var interface = element?.enclosingElement;
       if (interface is! InterfaceElement) continue;
 
       var name = Name.forElement(element!);

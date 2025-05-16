@@ -243,7 +243,7 @@ Location? newLocation_fromElement(engine.Element? element) {
     return null;
   }
   if (element is engine.FormalParameterElement &&
-      element.enclosingElement2 == null) {
+      element.enclosingElement == null) {
     return null;
   }
   var fragment = element.firstFragment;
@@ -300,7 +300,7 @@ Location newLocation_fromUnit(
 /// Construct based on an element from the analyzer engine.
 OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
   var element = convertElement(member);
-  var className = member.enclosingElement2!.displayName;
+  var className = member.enclosingElement!.displayName;
   return OverriddenMember(element, className);
 }
 

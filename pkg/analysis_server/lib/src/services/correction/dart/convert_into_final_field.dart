@@ -56,7 +56,7 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
     // The getter must not be in an extension or extension type unless it is
     // static.
     if (!getterElement.isStatic) {
-      switch (getterElement.enclosingElement2) {
+      switch (getterElement.enclosingElement) {
         case ExtensionElement() || ExtensionTypeElement():
           return;
       }

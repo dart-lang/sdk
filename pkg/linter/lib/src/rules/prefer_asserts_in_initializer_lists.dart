@@ -65,12 +65,12 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
 
   bool _hasAccessor(PropertyAccessorElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement2);
+    return classes != null && classes.contains(element.enclosingElement);
   }
 
   bool _hasMethod(MethodElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement2);
+    return classes != null && classes.contains(element.enclosingElement);
   }
 
   bool _paramMatchesField(

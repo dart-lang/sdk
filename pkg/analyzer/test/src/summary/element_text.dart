@@ -250,7 +250,7 @@ class _Element2Writer extends _AbstractElementWriter {
   });
 
   void writeLibraryElement(LibraryElementImpl e) {
-    expect(e.enclosingElement2, isNull);
+    expect(e.enclosingElement, isNull);
 
     _sink.writelnWithIndent('library');
     _sink.withIndent(() {
@@ -392,7 +392,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       var superConstructor = e.superConstructor2;
       if (superConstructor != null) {
-        var enclosingElement = superConstructor.enclosingElement2;
+        var enclosingElement = superConstructor.enclosingElement;
         if (enclosingElement is ClassElementImpl2 &&
             !enclosingElement.isDartCoreObject) {
           _writeElementReference('superConstructor', superConstructor);
@@ -496,7 +496,7 @@ class _Element2Writer extends _AbstractElementWriter {
             if (expectedEnclosingElement is Member) {
               expectedEnclosingElement = expectedEnclosingElement.baseElement;
             }
-            expect(element.enclosingElement2, expectedEnclosingElement);
+            expect(element.enclosingElement, expectedEnclosingElement);
           }
           write(element);
         }
@@ -951,7 +951,7 @@ class _Element2Writer extends _AbstractElementWriter {
   void _writeGetterElement(GetterElementImpl e) {
     var variable = e.variable3;
     if (variable != null) {
-      var variableEnclosing = variable.enclosingElement2;
+      var variableEnclosing = variable.enclosingElement;
       if (variableEnclosing is LibraryElement) {
         expect(variableEnclosing.topLevelVariables, contains(variable));
       } else if (variableEnclosing is InterfaceElement) {
@@ -1556,7 +1556,7 @@ class _Element2Writer extends _AbstractElementWriter {
   void _writeSetterElement(SetterElementImpl e) {
     var variable = e.variable3;
     if (variable != null) {
-      var variableEnclosing = variable.enclosingElement2;
+      var variableEnclosing = variable.enclosingElement;
       if (variableEnclosing is LibraryElement) {
         expect(variableEnclosing.topLevelVariables, contains(variable));
       } else if (variableEnclosing is InterfaceElement) {

@@ -185,7 +185,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _checkMember(Fragment fragment) {
     if (fragment is ConstructorFragment &&
-        fragment.element.enclosingElement2 is EnumElement) {
+        fragment.element.enclosingElement is EnumElement) {
       // Enum constructors aren't callable from outside of the enum, so they
       // aren't public API.
       return;

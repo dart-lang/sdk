@@ -1130,7 +1130,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     );
     var fragment = node.declaredFragment!;
     var element = fragment.element;
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (!element.isStatic && enclosingElement is InterfaceElement) {
       var overriddenMembers = inheritanceManager.getOverridden4(
         enclosingElement,
@@ -1636,7 +1636,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     Element? currentElement = element;
     while (currentElement != enclosingLibrary) {
       depth++;
-      currentElement = currentElement?.enclosingElement2;
+      currentElement = currentElement?.enclosingElement;
     }
     return depth;
   }
@@ -1936,7 +1936,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var reference = _leftMostIdentifier(node);
     var element = reference?.element;
     if (element is FormalParameterElement) {
-      var definingElement = element.enclosingElement2!;
+      var definingElement = element.enclosingElement!;
       var depth = _parameterReferenceDepth(node, definingElement);
       _recordDistance('function depth of referenced parameter', depth);
     } else if (element != null) {

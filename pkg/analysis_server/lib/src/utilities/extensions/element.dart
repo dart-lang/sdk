@@ -48,12 +48,12 @@ extension ElementExtensions on Element {
       }
     }
 
-    var ancestor = enclosingElement2;
+    var ancestor = enclosingElement;
     if (ancestor is InterfaceElement) {
       if (ancestor.metadata2.hasDeprecated) {
         return true;
       }
-      ancestor = ancestor.enclosingElement2;
+      ancestor = ancestor.enclosingElement;
     }
     return ancestor is LibraryElement && ancestor.metadata2.hasDeprecated;
   }
@@ -63,7 +63,7 @@ extension ElementExtensions on Element {
     var current = this;
     while (true) {
       yield current;
-      var enclosing = current.enclosingElement2;
+      var enclosing = current.enclosingElement;
       if (enclosing == null) {
         break;
       }
@@ -94,7 +94,7 @@ extension MethodElementExtensions on MethodElement {
     if (name3 != 'cast') {
       return false;
     }
-    var definingClass = enclosingElement2;
+    var definingClass = enclosingElement;
     if (definingClass is! ClassElement) {
       return false;
     }
@@ -110,7 +110,7 @@ extension MethodElementExtensions on MethodElement {
     if (name3 != 'toList') {
       return false;
     }
-    var definingClass = enclosingElement2;
+    var definingClass = enclosingElement;
     if (definingClass is! ClassElement) {
       return false;
     }
@@ -123,7 +123,7 @@ extension MethodElementExtensions on MethodElement {
     if (name3 != 'toSet') {
       return false;
     }
-    var definingClass = enclosingElement2;
+    var definingClass = enclosingElement;
     if (definingClass is! ClassElement) {
       return false;
     }

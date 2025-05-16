@@ -189,7 +189,7 @@ class AnnotationVerifier {
       }
     } else if (parent is ConstructorDeclaration) {
       var element = parent.declaredFragment!.element;
-      var class_ = element.enclosingElement2;
+      var class_ = element.enclosingElement;
       if (class_.isPrivate || parentElementIsPrivate) {
         _errorReporter.atNode(
           node.name,
@@ -210,7 +210,7 @@ class AnnotationVerifier {
         var invokedElement = element.element2!;
         var name = invokedElement.name3;
         if (invokedElement is ConstructorElement) {
-          var className = invokedElement.enclosingElement2.name3;
+          var className = invokedElement.enclosingElement.name3;
           if (name!.isEmpty) {
             name = className;
           } else {
@@ -415,7 +415,7 @@ class AnnotationVerifier {
       } else if (parent.declaredFragment?.element case var declaredElement?) {
         if (element.isVisibleForOverriding &&
             (!declaredElement.isInstanceMember ||
-                declaredElement.enclosingElement2 is ExtensionTypeElement)) {
+                declaredElement.enclosingElement is ExtensionTypeElement)) {
           reportInvalidVisibleForOverriding();
         }
 

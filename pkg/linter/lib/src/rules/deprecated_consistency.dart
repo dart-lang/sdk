@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var constructorElement = node.declaredFragment?.element;
     if (constructorElement != null &&
-        constructorElement.enclosingElement2.hasDeprecated &&
+        constructorElement.enclosingElement.hasDeprecated &&
         !constructorElement.hasDeprecated) {
       var nodeToAnnotate = node.name ?? node.returnType;
       rule.reportAtOffset(

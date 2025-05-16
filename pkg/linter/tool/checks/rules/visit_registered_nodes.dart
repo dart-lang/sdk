@@ -47,7 +47,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
     // Unifying and Generalizing visitors are doing the right thing.)
     // For now we flag methods inherited from SimpleAstVisitor since they
     // surely don't do anything.
-    return member?.enclosingElement2?.name3 != 'SimpleAstVisitor';
+    return member?.enclosingElement?.name3 != 'SimpleAstVisitor';
   }
 
   @override

@@ -51,8 +51,8 @@ class _Visitor extends SimpleAstVisitor<void> {
               ? node
                   .thisOrAncestorOfType<AssignmentExpression>()
                   ?.writeElement2
-                  ?.enclosingElement2
-              : node.element?.enclosingElement2,
+                  ?.enclosingElement
+              : node.element?.enclosingElement,
         )) {
       rule.reportAtToken(question);
     }
@@ -63,9 +63,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var operator = node.operator;
     if (operator == null) return;
     if (node.isNullAware &&
-        _isExtensionOnNullableType(
-          node.methodName.element?.enclosingElement2,
-        )) {
+        _isExtensionOnNullableType(node.methodName.element?.enclosingElement)) {
       rule.reportAtToken(operator);
     }
   }
@@ -78,8 +76,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
       if (_isExtensionOnNullableType(
         realParent is AssignmentExpression
-            ? realParent.writeElement2?.enclosingElement2
-            : node.propertyName.element?.enclosingElement2,
+            ? realParent.writeElement2?.enclosingElement
+            : node.propertyName.element?.enclosingElement,
       )) {
         rule.reportAtToken(node.operator);
       }

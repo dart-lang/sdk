@@ -245,7 +245,7 @@ class SelectionCoverageTest {
         for (var visitedNodeList in visitedNodeLists) {
           unvisitedNodeLists.remove(visitedNodeList);
           var overridden = inheritanceManager.getOverridden4(
-            visitedNodeList.enclosingElement2 as InterfaceElement,
+            visitedNodeList.enclosingElement as InterfaceElement,
             Name(visitedNodeList.library2.uri, visitedNodeList.name3!),
           );
           if (overridden != null) {

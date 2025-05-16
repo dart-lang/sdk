@@ -308,7 +308,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
           usedElements.addElement(parameter);
         }
       }
-      var enclosingElement = element?.enclosingElement2;
+      var enclosingElement = element?.enclosingElement;
       if (element == null) {
         if (isIdentifierRead) {
           usedElements.unresolvedReadMembers.add(node.name);
@@ -810,7 +810,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     if (element.isPrivate) {
       return false;
     }
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
 
     if (enclosingElement is EnumElement) {
       if (element is ConstructorElement && element.isGenerative) {
@@ -838,7 +838,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     bool elementIsStaticVariable =
         element is VariableElement && element.isStatic;
     if (element.isPublic) {
-      if (_isPrivateClassOrExtension(element.enclosingElement2!) &&
+      if (_isPrivateClassOrExtension(element.enclosingElement!) &&
           elementIsStaticVariable) {
         // Public static fields of private classes, mixins, and extensions are
         // inaccessible from outside the library in which they are declared.
@@ -875,7 +875,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         element is LocalFunctionElement && !element.isStatic) {
       // local variable or function
     } else if (element is FormalParameterElement) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       // Only report unused parameters of constructors, methods, and top-level
       // functions.
       if (enclosingElement is! ConstructorElement &&
@@ -888,7 +888,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       if (enclosingElement is ConstructorElement &&
-          enclosingElement.enclosingElement2.typeParameters2.isNotEmpty) {
+          enclosingElement.enclosingElement.typeParameters2.isNotEmpty) {
         // There is an issue matching arguments of instance creation
         // expressions for generic classes with parameters, so for now,
         // consider every parameter of a constructor of a generic class
@@ -958,7 +958,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   Iterable<ExecutableElement> _overriddenElements(Element element) {
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is InterfaceElement) {
       var elementName = element.name3;
       if (elementName != null) {
@@ -1047,7 +1047,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     // constructor in the class. A single unused, private constructor may serve
     // the purpose of preventing the class from being extended. In serving this
     // purpose, the constructor is "used."
-    if (element.enclosingElement2.constructors2.length > 1 &&
+    if (element.enclosingElement.constructors2.length > 1 &&
         !_isUsedMember(element)) {
       _reportDiagnosticForElement(WarningCode.UNUSED_ELEMENT, element, [
         element.displayName,

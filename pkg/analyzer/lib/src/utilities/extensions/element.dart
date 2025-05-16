@@ -18,7 +18,7 @@ class MockLibraryImportElement implements Element, PrefixFragment {
     : import = import as LibraryImportImpl;
 
   @override
-  LibraryElement get enclosingElement2 => library2;
+  LibraryElement get enclosingElement => library2;
 
   @override
   ElementKind get kind => ElementKind.IMPORT;
@@ -131,7 +131,7 @@ extension Element2Extension on Element {
   bool get isProtected {
     var self = this;
     if (self is PropertyAccessorElement &&
-        self.enclosingElement2 is InterfaceElement) {
+        self.enclosingElement is InterfaceElement) {
       if (self.metadata2.hasProtected) {
         return true;
       }
@@ -141,7 +141,7 @@ extension Element2Extension on Element {
       }
     }
     if (self is MethodElement &&
-        self.enclosingElement2 is InterfaceElement &&
+        self.enclosingElement is InterfaceElement &&
         self.metadata2.hasProtected) {
       return true;
     }
@@ -260,7 +260,7 @@ extension ExecutableElementOrMemberExtension on ExecutableElementOrMember {
       asElement2.baseElement.firstFragment as ExecutableFragmentImpl;
 
   FragmentImpl get enclosingElementImpl =>
-      asElement2.enclosingElement2!.firstFragment as FragmentImpl;
+      asElement2.enclosingElement!.firstFragment as FragmentImpl;
 }
 
 extension ExtensionElementImpl2Extension on ExtensionElementImpl2 {

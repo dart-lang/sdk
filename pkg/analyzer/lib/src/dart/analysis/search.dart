@@ -621,11 +621,13 @@ class Search {
     // Prepare the element name.
     String name = element.displayName;
     var externalElement = element;
-    if (externalElement case FormalParameterElement(:var enclosingElement2?)) {
+    if (externalElement case FormalParameterElement(
+      enclosingElement: var enclosingElement2?,
+    )) {
       externalElement = enclosingElement2;
     }
     if (externalElement is ConstructorElement) {
-      name = externalElement.enclosingElement2.displayName;
+      name = externalElement.enclosingElement.displayName;
     }
 
     var elementPath = element.firstFragment.libraryFragment?.source.fullName;
@@ -946,7 +948,7 @@ class Search {
     );
     if (parameter.isNamed ||
         parameter.isOptionalPositional ||
-        parameter.enclosingElement2 is ConstructorElement) {
+        parameter.enclosingElement is ConstructorElement) {
       results.addAll(await _searchReferences(parameter, searchedFiles));
     }
     return results;
@@ -1313,7 +1315,7 @@ class _FindLibraryDeclarations {
       return;
     }
 
-    var enclosing = element.enclosingElement2;
+    var enclosing = element.enclosingElement;
 
     String? className;
     String? mixinName;

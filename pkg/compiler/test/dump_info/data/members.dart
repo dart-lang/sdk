@@ -41,12 +41,12 @@
   "code": "B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n"
 },
   {
-  "id": "constant/B.List_A = A._setArrayType(makeConstList([B.C_A]), A.findType(\"JSArray<A>\"));\n",
+  "id": "constant/B.List_A = makeConstList([B.C_A], A.findType(\"JSArray<A>\"));\n",
   "kind": "constant",
   "name": "",
-  "size": 78,
+  "size": 61,
   "outputUnit": "outputUnit/main",
-  "code": "B.List_A = A._setArrayType(makeConstList([B.C_A]), A.findType(\"JSArray<A>\"));\n"
+  "code": "B.List_A = makeConstList([B.C_A], A.findType(\"JSArray<A>\"));\n"
 }],
  deferredFiles=[{}],
  dependencies=[{}],

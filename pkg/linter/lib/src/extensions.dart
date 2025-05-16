@@ -258,7 +258,7 @@ extension ConstructorElementExtension on ConstructorElement {
     required String constructorName,
   }) =>
       library2.name3 == uri &&
-      enclosingElement2.name3 == className &&
+      enclosingElement.name3 == className &&
       name3 == constructorName;
 }
 
@@ -365,7 +365,7 @@ extension ElementExtension on Element? {
 
     if (member == null) return null;
 
-    var interfaceElement = member.enclosingElement2;
+    var interfaceElement = member.enclosingElement;
     if (interfaceElement is! InterfaceElement) return null;
 
     var name = Name.forElement(member);
@@ -392,7 +392,7 @@ extension ExpressionExtension on Expression {
     var elementName = element.name3;
     if (elementName == null) return false;
 
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return false;
 
     var superTypes = enclosingElement.allSupertypes;
@@ -545,7 +545,7 @@ extension InterfaceElementExtension on InterfaceElement {
   /// Whether this element has the exact [name] and defined in the file with
   /// the given [uri].
   bool isExactly(String name, Uri uri) =>
-      name3 == name && enclosingElement2.uri == uri;
+      name3 == name && enclosingElement.uri == uri;
 }
 
 extension InterfaceTypeExtension on InterfaceType {
@@ -600,7 +600,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
     var name = element?.name3;
     if (name == null) return false;
 
-    var parentElement = element?.enclosingElement2;
+    var parentElement = element?.enclosingElement;
     if (parentElement is! InterfaceElement) return false;
 
     var parentLibrary = parentElement.library2;
@@ -626,7 +626,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
   MethodElement? lookUpInheritedMethod() {
     var declaredElement = declaredFragment?.element;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement2;
+      var parent = declaredElement.enclosingElement;
       if (parent is InterfaceElement) {
         var methodName = Name.forElement(declaredElement);
         if (methodName == null) return null;

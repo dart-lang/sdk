@@ -674,7 +674,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
             enclosingClass,
             ...enclosingClass.allSupertypes.map((t) => t.element3),
           ];
-      return enclosingClasses.contains(element.enclosingElement2);
+      return enclosingClasses.contains(element.enclosingElement);
     }
     return false;
   }

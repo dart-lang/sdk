@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -617,6 +618,48 @@ DotShorthandInvocation
     C<C<dynamic>>
     dynamic
 ''');
+  }
+
+  test_postfixOperator() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  static C member() => C(1);
+  int x;
+  C(this.x);
+}
+
+void main() {
+  C c = .member()++;
+  print(c);
+}
+''',
+      [
+        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 87, 6),
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 95, 2),
+      ],
+    );
+  }
+
+  test_prefixOperator() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  static C member() => C(1);
+  int x;
+  C(this.x);
+}
+
+void main() {
+  C c = ++.member();
+  print(c);
+}
+''',
+      [
+        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 89, 6),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 96, 1),
+      ],
+    );
   }
 
   test_requiredParameters_missing() async {

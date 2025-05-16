@@ -152,6 +152,37 @@ Future<int> asyncTest() async {
   return await d.asyncMethod(1);
 }
 
+void asyncClosureTest() {
+  int test = 0;
+  int unused = 0;
+
+  void foo() async {
+    // Breakpoint: asyncClosureBP0
+    print('\$test');
+
+    {
+      int test = 1;
+
+      // Breakpoint: asyncClosureBP1
+      print('\$test');
+      {
+        int test = 2;
+
+        // Breakpoint: asyncClosureBP2
+        print('\$test');
+
+        // Breakpoint: asyncClosureBP3
+        print('\$test');
+
+        // Breakpoint: asyncClosureBP4
+        print('\$test');
+      }
+    }
+  }
+
+  foo();
+}
+
 void closuresTest() {
   int x = 15;
 
@@ -294,6 +325,7 @@ main() {
   "1234".parseIntPlusOne();
   callFooTest();
   asyncTest();
+  asyncClosureTest();
   closuresTest();
   forLoopTest();
   iteratorLoopTest();
@@ -1278,6 +1310,35 @@ void runAgnosticSharedTestsShard1(
             breakpointId: 'globalFunctionBP',
             expression: 'identical(1, 1)',
             expectedResult: 'true');
+      });
+    });
+
+    group('async function', () {
+      test('local variable', () async {
+        await driver.checkInFrame(
+            breakpointId: 'asyncClosureBP0',
+            expression: 'test',
+            expectedResult: '0');
+
+        await driver.checkInFrame(
+            breakpointId: 'asyncClosureBP1',
+            expression: 'test',
+            expectedResult: '1');
+
+        await driver.checkInFrame(
+            breakpointId: 'asyncClosureBP2',
+            expression: 'test',
+            expectedResult: '2');
+
+        await driver.checkInFrame(
+            breakpointId: 'asyncClosureBP3',
+            expression: 'notTest',
+            expectedError: "Undefined name 'notTest'");
+
+        await driver.checkInFrame(
+            breakpointId: 'asyncClosureBP4',
+            expression: 'unused',
+            expectedError: 'Value not found in scope');
       });
     });
   });

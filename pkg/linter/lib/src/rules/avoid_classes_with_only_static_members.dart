@@ -45,7 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element.isSealed) return;
 
     for (var member in element.interfaceMembers.values) {
-      var enclosingElement = member.enclosingElement2;
+      var enclosingElement = member.enclosingElement;
       if (enclosingElement is ClassElement &&
           !enclosingElement.isDartCoreObject) {
         return;

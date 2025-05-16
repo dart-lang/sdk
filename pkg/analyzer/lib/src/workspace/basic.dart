@@ -17,8 +17,8 @@ class BasicWorkspace extends SimpleWorkspace {
   /// Each basic workspace is itself one package.
   late final BasicWorkspacePackage theOnlyPackage;
 
-  BasicWorkspace._(ResourceProvider provider, Packages packages, String root)
-    : super(provider, packages, root) {
+  BasicWorkspace._(ResourceProvider provider, Packages packages, Folder root)
+    : super(provider, packages, root.path) {
     theOnlyPackage = BasicWorkspacePackage(root, this);
   }
 
@@ -44,9 +44,9 @@ class BasicWorkspace extends SimpleWorkspace {
   ) {
     Resource resource = provider.getResource(path);
     if (resource is File) {
-      path = resource.parent.path;
+      resource = resource.parent;
     }
-    return BasicWorkspace._(provider, packages, path);
+    return BasicWorkspace._(provider, packages, resource as Folder);
   }
 }
 
@@ -57,7 +57,7 @@ class BasicWorkspace extends SimpleWorkspace {
 /// a given package in a [BasicWorkspace].
 class BasicWorkspacePackage extends WorkspacePackage {
   @override
-  final String root;
+  final Folder root;
 
   @override
   final SimpleWorkspace workspace;
@@ -75,7 +75,7 @@ class BasicWorkspacePackage extends WorkspacePackage {
     // There is a 1-1 relationship between [BasicWorkspace]s and
     // [BasicWorkspacePackage]s. If a file is in a package's workspace, then it
     // is in the package as well.
-    return workspace.provider.pathContext.isWithin(root, filePath);
+    return workspace.provider.pathContext.isWithin(root.path, filePath);
   }
 
   @override

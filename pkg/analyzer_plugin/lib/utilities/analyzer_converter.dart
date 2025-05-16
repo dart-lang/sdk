@@ -199,7 +199,7 @@ class AnalyzerConverter {
       return null;
     }
     if (element is analyzer.FormalParameterElement &&
-        element.enclosingElement2 == null) {
+        element.enclosingElement == null) {
       return null;
     }
     var fragment = element.firstFragment;

@@ -74,7 +74,7 @@ class CanRenameResponse {
     RefactoringStatus result,
     String newName,
   ) {
-    var parentClass = element.enclosingElement2;
+    var parentClass = element.enclosingElement;
     // Check if the "newName" is the name of the enclosing class.
     if (parentClass.name3 == newName) {
       result.addError(
@@ -362,7 +362,7 @@ class CheckNameResponse {
 
   Future<CiderReplaceMatch?> _replaceSyntheticConstructor() async {
     var element = canRename.refactoringElement.element;
-    var interfaceElement = element.enclosingElement2!;
+    var interfaceElement = element.enclosingElement!;
 
     var fileResolver = canRename._fileResolver;
     var libraryPath = interfaceElement.library2!.firstFragment.source.fullName;
@@ -452,7 +452,7 @@ class CiderRenameComputer {
   }
 
   bool _canRenameElement(Element element) {
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (element is ConstructorElement) {
       return true;
     }

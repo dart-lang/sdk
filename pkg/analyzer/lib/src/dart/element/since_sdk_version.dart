@@ -31,7 +31,7 @@ class SinceSdkVersionComputer {
 
     if (element is LibraryElement) {
       return specified;
-    } else if (element.enclosingElement2 case HasSinceSdkVersion hasSince?) {
+    } else if (element.enclosingElement case HasSinceSdkVersion hasSince?) {
       var enclosing = hasSince.sinceSdkVersion;
       return specified.maxWith(enclosing);
     } else {

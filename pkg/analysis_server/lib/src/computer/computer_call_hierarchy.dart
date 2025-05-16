@@ -108,7 +108,7 @@ class CallHierarchyItem {
       file = element.firstFragment.libraryFragment!.source.fullName,
       kind = CallHierarchyKind.forElement(element) {
     var enclosingElement =
-        element.enclosingElement2 ??
+        element.enclosingElement ??
         element.firstFragment.enclosingFragment?.element;
     var container =
         enclosingElement != null ? _getContainer(enclosingElement) : null;
@@ -145,7 +145,7 @@ class CallHierarchyItem {
   static Element _nonSynthetic(Element element) {
     element = element.nonSynthetic2;
     if (element.isSynthetic) {
-      element = element.enclosingElement2 ?? element;
+      element = element.enclosingElement ?? element;
     }
     return element;
   }

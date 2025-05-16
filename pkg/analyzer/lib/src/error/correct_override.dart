@@ -127,9 +127,9 @@ class CovariantParametersVerifier {
             CompileTimeErrorCode.INVALID_OVERRIDE,
             arguments: [
               _thisMember.name3!,
-              _thisMember.enclosingElement2!.name3!,
+              _thisMember.enclosingElement!.name3!,
               _thisMember.type,
-              superMember.enclosingElement2!.name3!,
+              superMember.enclosingElement!.name3!,
               superMember.type,
             ],
           );
@@ -140,7 +140,7 @@ class CovariantParametersVerifier {
 
   List<_SuperMember> _superMembers() {
     var classHierarchy = _session.classHierarchy;
-    var classElement = _thisMember.enclosingElement2 as InterfaceElementImpl2;
+    var classElement = _thisMember.enclosingElement as InterfaceElementImpl2;
     var interfaces = classHierarchy.implementedInterfaces(classElement);
 
     var superMembers = <_SuperMember>[];
@@ -263,6 +263,5 @@ class _SuperParameter {
 
   _SuperParameter(this.element, this.type);
 
-  ExecutableElement get member =>
-      element.enclosingElement2 as ExecutableElement;
+  ExecutableElement get member => element.enclosingElement as ExecutableElement;
 }

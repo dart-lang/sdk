@@ -117,7 +117,7 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
   bool get canBeConst {
     var element = declaredFragment!.element;
 
-    var classElement = element.enclosingElement2;
+    var classElement = element.enclosingElement;
     if (classElement is ClassElement && classElement.hasNonFinalField) {
       return false;
     }

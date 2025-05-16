@@ -210,11 +210,11 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 extension on Element {
   String get declarationLocation {
     var sourceName = firstFragment.libraryFragment!.source.shortName;
-    var executable = enclosingElement2;
+    var executable = enclosingElement;
     String className = '';
     String executableName = '';
     if (executable is MethodElement) {
-      var namescope = executable.enclosingElement2 as ClassElement?;
+      var namescope = executable.enclosingElement as ClassElement?;
       className = namescope?.displayName ?? '';
       if (className.isNotEmpty && executable.displayName.isNotEmpty) {
         className += '.';

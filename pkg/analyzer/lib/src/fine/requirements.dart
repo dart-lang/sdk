@@ -610,7 +610,7 @@ class RequirementsManifest {
       return;
     }
 
-    switch (element.enclosingElement2) {
+    switch (element.enclosingElement) {
       case InstanceElementImpl2 instanceElement:
         record_instanceElement_getField(element: instanceElement, name: name);
       default:

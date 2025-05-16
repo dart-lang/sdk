@@ -45,7 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element == null) return;
     if (element.isConst) return;
     if (node.body is! EmptyFunctionBody) return;
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
 
     if (enclosingElement.mixins.isNotEmpty) return;
     if (!_hasImmutableAnnotation(enclosingElement)) return;
@@ -85,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declaredElement == null) {
       return false;
     }
-    var clazz = declaredElement.enclosingElement2;
+    var clazz = declaredElement.enclosingElement;
     // Constructor with super-initializer.
     var superInvocation =
         node.initializers.whereType<SuperConstructorInvocation>().firstOrNull;

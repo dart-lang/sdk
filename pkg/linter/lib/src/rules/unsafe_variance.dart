@@ -62,7 +62,7 @@ class _UnsafeVarianceChecker extends VarianceChecker {
   }
 
   bool owningDeclarationSupportsVariance(Element element) {
-    var parent = element.enclosingElement2;
+    var parent = element.enclosingElement;
     while (parent != null) {
       switch (parent) {
         case InstanceElement():
@@ -77,7 +77,7 @@ class _UnsafeVarianceChecker extends VarianceChecker {
         case ExecutableElement():
           return false;
       }
-      parent = parent.enclosingElement2;
+      parent = parent.enclosingElement;
     }
     return false;
   }

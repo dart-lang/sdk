@@ -164,7 +164,7 @@ mixin EditableArgumentsMixin {
 
   /// Returns the name of an enum constant prefixed with the enum name.
   static String? getQualifiedEnumConstantName(FieldElement enumConstant) {
-    var enumName = enumConstant.enclosingElement2.name3;
+    var enumName = enumConstant.enclosingElement.name3;
     var name = enumConstant.name3;
     return enumName != null && name != null ? '$enumName.$name' : null;
   }
@@ -182,7 +182,7 @@ extension on InvocationExpressionImpl {
     // We only support @widgetFactory on extension methods.
     var element = switch (function) {
       Identifier(:var element)
-          when element?.enclosingElement2 is ExtensionElement =>
+          when element?.enclosingElement is ExtensionElement =>
         element,
       _ => null,
     };

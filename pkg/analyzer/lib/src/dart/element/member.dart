@@ -40,7 +40,11 @@ class ConstructorMember extends ExecutableMember
   String get displayName => declaration.displayName;
 
   @override
-  InterfaceElementImpl2 get enclosingElement2 => _element2.enclosingElement2;
+  InterfaceElementImpl2 get enclosingElement => _element2.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  InterfaceElementImpl2 get enclosingElement2 => enclosingElement;
 
   @override
   ConstructorFragment get firstFragment => _element2.firstFragment;
@@ -218,7 +222,11 @@ abstract class ExecutableMember extends Member
   String get displayName => declaration.displayName;
 
   @override
-  Element? get enclosingElement2 => _element2.enclosingElement2;
+  Element? get enclosingElement => _element2.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
 
   @override
   List<FormalParameterElementMixin> get formalParameters =>
@@ -487,7 +495,11 @@ class FieldMember extends VariableMember
   String get displayName => declaration.displayName;
 
   @override
-  InstanceElement get enclosingElement2 => _element2.enclosingElement2;
+  InstanceElement get enclosingElement => _element2.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  InstanceElement get enclosingElement2 => enclosingElement;
 
   @override
   FieldFragment get firstFragment => _element2.firstFragment;
@@ -954,7 +966,11 @@ class ParameterMember extends VariableMember
   FormalParameterElementImpl get element => declaration.element;
 
   @override
-  Element? get enclosingElement2 => _element2.enclosingElement2;
+  Element? get enclosingElement => _element2.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
 
   @override
   FormalParameterFragment get firstFragment => _element2.firstFragment;
@@ -1163,9 +1179,13 @@ abstract class PropertyAccessorMember extends ExecutableMember
       _declaration as PropertyAccessorFragmentImpl;
 
   @override
-  Element get enclosingElement2 {
-    return super.enclosingElement2!;
+  Element get enclosingElement {
+    return super.enclosingElement!;
   }
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element get enclosingElement2 => enclosingElement;
 
   @override
   bool get isGetter => declaration.isGetter;

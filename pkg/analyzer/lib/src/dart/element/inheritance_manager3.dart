@@ -505,7 +505,7 @@ class InheritanceManager3 {
         continue;
       }
 
-      var class_ = executable.asElement2.enclosingElement2;
+      var class_ = executable.asElement2.enclosingElement;
       if (class_ is ClassElement && class_.isDartCoreObject) {
         continue;
       }
@@ -654,7 +654,7 @@ class InheritanceManager3 {
         }
 
         var current = currentList.single;
-        if (candidate2.enclosingElement2 == mixinElement) {
+        if (candidate2.enclosingElement == mixinElement) {
           namedCandidates[name] = [candidate];
           if (current.kind != candidate.kind) {
             var currentIsGetter = current.kind == ElementKind.GETTER;
@@ -1072,7 +1072,7 @@ class InheritanceManager3 {
     Name name,
     ExecutableElementOrMember executable,
   ) {
-    if (executable.asElement2.enclosingElement2 == class_.asElement2) {
+    if (executable.asElement2.enclosingElement == class_.asElement2) {
       return executable;
     }
 
@@ -1259,7 +1259,7 @@ class InheritanceManager3 {
   }
 
   static bool _isDeclaredInObject(ExecutableElementOrMember element) {
-    var enclosing = element.asElement2.enclosingElement2;
+    var enclosing = element.asElement2.enclosingElement;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
   }
 }

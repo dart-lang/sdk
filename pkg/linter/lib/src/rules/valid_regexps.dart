@@ -32,7 +32,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.constructorName.element?.enclosingElement2;
+    var element = node.constructorName.element?.enclosingElement;
     if (element == null) return;
 
     if (element.name3 == 'RegExp' && element.library2.isDartCore) {

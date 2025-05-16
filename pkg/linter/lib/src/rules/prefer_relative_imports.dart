@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       // TODO(pq): `context.package.contains(source)` should work (but does
       // not).
-      var packageRoot = context.package?.root;
+      var packageRoot = context.package?.root.path;
       return packageRoot != null &&
           path.isWithin(packageRoot, importedLibrary.source.fullName);
     }

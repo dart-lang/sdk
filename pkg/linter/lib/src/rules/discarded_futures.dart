@@ -102,7 +102,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _isMapPutIfAbsentInvocation(Expression expr) =>
       expr is MethodInvocation &&
       expr.methodName.name == 'putIfAbsent' &&
-      _isMapClass(expr.methodName.element?.enclosingElement2);
+      _isMapClass(expr.methodName.element?.enclosingElement);
 
   void _reportOnExpression(Expression expr) {
     rule.reportAtNode(switch (expr) {

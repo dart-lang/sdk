@@ -17,7 +17,6 @@ import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
 
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 export 'package:analyzer/src/lint/state.dart'
@@ -263,11 +262,11 @@ abstract class LinterContext {
 
   TypeSystem get typeSystem;
 
-  static bool _isInLibDir(String? path, WorkspacePackage? package) {
+  static bool _isInLibDir(String? filePath, WorkspacePackage? package) {
     if (package == null) return false;
-    if (path == null) return false;
-    var libDir = p.join(package.root, 'lib');
-    return p.isWithin(libDir, path);
+    if (filePath == null) return false;
+    var libDir = package.root.getChildAssumingFolder('lib');
+    return libDir.contains(filePath);
   }
 }
 

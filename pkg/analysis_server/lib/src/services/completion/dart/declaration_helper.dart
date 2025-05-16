@@ -235,7 +235,7 @@ class DeclarationHelper {
     FieldElement? fieldToInclude,
   ) {
     var constructorElement = constructor.declaredFragment?.element;
-    var containingElement = constructorElement?.enclosingElement2;
+    var containingElement = constructorElement?.enclosingElement;
     if (containingElement == null) {
       return;
     }
@@ -605,7 +605,7 @@ class DeclarationHelper {
     ConstructorElement redirectingConstructor,
     LibraryElement library,
   ) {
-    var classElement = redirectingConstructor.enclosingElement2;
+    var classElement = redirectingConstructor.enclosingElement;
     var classType = classElement.thisType;
     var typeSystem = library.typeSystem;
     for (var classElement in library.classes) {
@@ -1413,7 +1413,7 @@ class DeclarationHelper {
               (containingElement is EnumElement && field.name3 == 'values')) &&
           field.isVisibleIn(request.libraryElement)) {
         if (field.isEnumConstant) {
-          var enumElement = field.enclosingElement2;
+          var enumElement = field.enclosingElement;
           var matcherScore = state.matcher.score(
             '${enumElement.name3}.${field.name3}',
           );
@@ -1573,7 +1573,7 @@ class DeclarationHelper {
     }
 
     if (element.isProtected) {
-      var elementInterface = element.enclosingElement2;
+      var elementInterface = element.enclosingElement;
       if (elementInterface is! InterfaceElement) {
         return false;
       }
@@ -1672,10 +1672,10 @@ class DeclarationHelper {
   void _suggestClass(ClassElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if ((mustBeExtendable &&
-              !element.isExtendableIn2(request.libraryElement)) ||
+              !element.isExtendableIn(request.libraryElement)) ||
           (mustBeImplementable &&
-              !element.isImplementableIn2(request.libraryElement)) ||
-          (mustBeMixable && !element.isMixableIn2(request.libraryElement))) {
+              !element.isImplementableIn(request.libraryElement)) ||
+          (mustBeMixable && !element.isMixableIn(request.libraryElement))) {
         return;
       }
       if (!(mustBeConstant && !objectPatternAllowed) && !excludeTypeNames) {
@@ -1716,7 +1716,7 @@ class DeclarationHelper {
     }
     if (importData?.isNotImported ?? false) {
       if (!visibilityTracker.isVisible(
-        element: element.enclosingElement2,
+        element: element.enclosingElement,
         importData: importData,
       )) {
         // If the constructor is on a class from a not-yet-imported library and
@@ -1732,7 +1732,7 @@ class DeclarationHelper {
       // Add the class to the visibility tracker so that we will know later that
       // any non-imported elements with the same name are not visible.
       visibilityTracker.isVisible(
-        element: element.enclosingElement2,
+        element: element.enclosingElement,
         importData: importData,
       );
     }
@@ -1940,7 +1940,7 @@ class DeclarationHelper {
       }
       var matcherScore = state.matcher.score(method.displayName);
       if (matcherScore != -1) {
-        var enclosingElement = method.enclosingElement2;
+        var enclosingElement = method.enclosingElement;
         if (method.name3 == 'setState' &&
             enclosingElement is ClassElement &&
             enclosingElement.isExactState) {
@@ -2109,7 +2109,7 @@ class DeclarationHelper {
           contextType,
         )) {
       if (element.isEnumConstant) {
-        var enumElement = element.enclosingElement2;
+        var enumElement = element.enclosingElement;
         var matcherScore = state.matcher.score(
           '${enumElement.displayName}.${element.displayName}',
         );

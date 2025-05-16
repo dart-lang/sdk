@@ -932,7 +932,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
-    if (element.enclosingElement2 is! LibraryElement) {
+    if (element.enclosingElement is! LibraryElement) {
       _hiddenElements!.declare(element);
     }
 
@@ -1986,7 +1986,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         errorReporter.atNode(
           highlightedNode,
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
-          arguments: [variable.name3!, variable.enclosingElement2.displayName],
+          arguments: [variable.name3!, variable.enclosingElement.displayName],
         );
       } else {
         errorReporter.atNode(
@@ -2205,7 +2205,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             arguments: [
               enclosingClass.displayName,
               name,
-              inherited.asElement2.enclosingElement2!.displayName,
+              inherited.asElement2.enclosingElement!.displayName,
             ],
           );
         }
@@ -2233,7 +2233,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.asElement2.enclosingElement2.displayName,
+            inherited.asElement2.enclosingElement.displayName,
           ],
         );
       }
@@ -2270,7 +2270,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.asElement2.enclosingElement2!.displayName,
+            inherited.asElement2.enclosingElement!.displayName,
           ],
         );
         conflictingDeclaredNames.add(name);
@@ -2285,7 +2285,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.asElement2.enclosingElement2!.displayName,
+            inherited.asElement2.enclosingElement!.displayName,
           ],
         );
         conflictingDeclaredNames.add(name);
@@ -2319,8 +2319,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 filePath: method.source.fullName,
                 message:
                     formatList("The method is inherited from the {0} '{1}'.", [
-                      method.asElement2.enclosingElement2!.kind.displayName,
-                      method.asElement2.enclosingElement2!.name3,
+                      method.asElement2.enclosingElement!.kind.displayName,
+                      method.asElement2.enclosingElement!.name3,
                     ]),
                 offset: method.nameOffset,
                 length: method.nameLength,
@@ -2330,8 +2330,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 filePath: setter.source.fullName,
                 message:
                     formatList("The setter is inherited from the {0} '{1}'.", [
-                      setter.asElement2.enclosingElement2.kind.displayName,
-                      setter.asElement2.enclosingElement2.name3,
+                      setter.asElement2.enclosingElement.kind.displayName,
+                      setter.asElement2.enclosingElement.name3,
                     ]),
                 offset: setter.nameOffset,
                 length: setter.nameLength,
@@ -2662,12 +2662,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.atNode(
         constructor.returnType,
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-        arguments: ["'${field.enclosingElement2.name3}.${field.name3}'"],
+        arguments: ["'${field.enclosingElement.name3}.${field.name3}'"],
       );
       return true;
     } else if (instanceFields.length > 1) {
       var fieldNames = instanceFields
-          .map((field) => "'${field.enclosingElement2.name3}.${field.name3}'")
+          .map((field) => "'${field.enclosingElement.name3}.${field.name3}'")
           .join(', ');
       errorReporter.atNode(
         constructor.returnType,
@@ -2707,7 +2707,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     errorReporter.atNode(
       errorNode,
       CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
-      arguments: [element.enclosingElement2.displayName],
+      arguments: [element.enclosingElement.displayName],
     );
     return true;
   }
@@ -2726,7 +2726,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // check if there is non-final field
-    var classElement = constructorElement.enclosingElement2;
+    var classElement = constructorElement.enclosingElement;
     if (classElement is! ClassElement || !classElement.hasNonFinalField) {
       return;
     }
@@ -3306,7 +3306,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var contextMessages =
           candidates.map<DiagnosticMessage>((executable) {
             var nonSynthetic = executable.nonSynthetic2;
-            var container = executable.enclosingElement2 as InterfaceElement;
+            var container = executable.enclosingElement as InterfaceElement;
             return DiagnosticMessageImpl(
               filePath:
                   executable.firstFragment.libraryFragment.source.fullName,
@@ -3705,7 +3705,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // OK, instance member
         return;
       }
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is ExtensionElement) {
         if (target is ExtensionOverride) {
           // OK, target is an extension override
@@ -3827,7 +3827,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var constructorElement = node.element;
     if (constructorElement != null &&
         constructorElement.isGenerative &&
-        constructorElement.enclosingElement2 is EnumElement) {
+        constructorElement.enclosingElement is EnumElement) {
       if (_currentLibrary.featureSet.isEnabled(Feature.enhanced_enums)) {
         errorReporter.atNode(
           node,
@@ -3867,7 +3867,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // not a class member
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement &&
         enclosingElement is! ExtensionElement) {
       return;
@@ -4425,7 +4425,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             arguments: [
               name,
               namedType.name.lexeme,
-              inheritedMember.enclosingElement2!.name3!,
+              inheritedMember.enclosingElement!.name3!,
             ],
           );
           return true;
@@ -5013,7 +5013,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       redirectedElement,
       redirectedConstructor,
     );
-    var redirectedClass = redirectedElement?.enclosingElement2;
+    var redirectedClass = redirectedElement?.enclosingElement;
     if (redirectedClass is ClassElement &&
         redirectedClass.isAbstract &&
         redirectedElement != null &&
@@ -5326,7 +5326,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }) {
     if (_enclosingExecutable.inStaticMethod || _isInStaticVariableDeclaration) {
       if (element is TypeParameterElement &&
-          element.enclosingElement2 is InstanceElement) {
+          element.enclosingElement is InstanceElement) {
         // The class's type parameters are not in scope for static methods.
         // However all other type parameters are legal (e.g. the static method's
         // type parameters, or a local function's type parameters).
@@ -5593,7 +5593,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement == null) {
       return;
     }

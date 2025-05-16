@@ -239,7 +239,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isOverride(MethodDeclaration node, PropertyAccessorElement element) {
-    var container = element.enclosingElement2;
+    var container = element.enclosingElement;
     if (node.isStatic) return false;
     if (container is ExtensionElement) return false;
     if (container is ExtensionTypeElement) return false;

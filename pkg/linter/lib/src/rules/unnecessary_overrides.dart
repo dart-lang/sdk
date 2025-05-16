@@ -184,7 +184,7 @@ class _UnnecessaryGetterOverrideVisitor
   ExecutableElement? getInheritedElement(MethodDeclaration node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
     var getterName = element.name3;
     if (getterName == null) return null;
@@ -213,7 +213,7 @@ class _UnnecessaryMethodOverrideVisitor
     var element = node.declaredFragment?.element;
     if (element == null) return null;
 
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
 
     return enclosingElement.firstFragment.element.thisType.lookUpMethod3(
@@ -246,7 +246,7 @@ class _UnnecessaryOperatorOverrideVisitor
   ExecutableElement? getInheritedElement(node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
     var methodName = element.name3;
     if (methodName == null) return null;
@@ -295,7 +295,7 @@ class _UnnecessarySetterOverrideVisitor
   ExecutableElement? getInheritedElement(node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
     return enclosingElement.thisType.lookUpSetter3(
       node.name.lexeme,

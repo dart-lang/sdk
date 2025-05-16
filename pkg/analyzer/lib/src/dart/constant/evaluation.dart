@@ -461,7 +461,7 @@ class ConstantEvaluationEngine {
       return null;
     }
     var typeProvider = constructor.library2.typeProvider;
-    if (constructor.asElement2.enclosingElement2 ==
+    if (constructor.asElement2.enclosingElement ==
         typeProvider.symbolElement2) {
       // The dart:core.Symbol has a const factory constructor that redirects
       // to dart:_internal.Symbol.  That in turn redirects to an external
@@ -653,7 +653,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   @override
   Constant visitBinaryExpression(BinaryExpression node) {
     var operatorElement = node.element;
-    var operatorContainer = operatorElement?.enclosingElement2;
+    var operatorContainer = operatorElement?.enclosingElement;
     switch (operatorContainer) {
       case ExtensionElement():
         return InvalidConstant.forEntity(
@@ -1233,7 +1233,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   @override
   Constant visitPrefixExpression(PrefixExpression node) {
     var operatorElement = node.element;
-    var operatorContainer = operatorElement?.enclosingElement2;
+    var operatorContainer = operatorElement?.enclosingElement;
     switch (operatorContainer) {
       case ExtensionElement():
         return InvalidConstant.forEntity(
@@ -1861,7 +1861,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return null;
     }
 
-    var propertyContainer = propertyElement?.enclosingElement2;
+    var propertyContainer = propertyElement?.enclosingElement;
     switch (propertyContainer) {
       case ExtensionElement():
         return InvalidConstant.forEntity(
@@ -2868,7 +2868,7 @@ class _InstanceCreationEvaluator {
 
   /// Evaluates this constructor call as a factory constructor call.
   Constant evaluateFactoryConstructorCall(List<Expression> arguments) {
-    var definingClass = _constructor.asElement2.enclosingElement2;
+    var definingClass = _constructor.asElement2.enclosingElement;
     var argumentCount = arguments.length;
     if (_constructor.name == "fromEnvironment") {
       if (!_checkFromEnvironmentArguments(arguments, definingType)) {

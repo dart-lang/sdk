@@ -110,7 +110,7 @@ DartType? _jsTypeForStaticInterop(InterfaceType type) {
     var annotationElement = annotation.element2;
     if (annotationElement is ConstructorElement &&
         annotationElement.isFromLibrary(_dartJsInteropUri) &&
-        annotationElement.enclosingElement2.name3 == 'JS') {
+        annotationElement.enclosingElement.name3 == 'JS') {
       hasJS = true;
       dartJsInterop = annotationElement.library2;
     } else if (annotationElement is GetterElement &&

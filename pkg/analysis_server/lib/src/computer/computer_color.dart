@@ -74,7 +74,7 @@ class ColorComputer {
 
     var constructor = expression.constructorName;
     var staticElement = constructor.element;
-    var classElement = staticElement?.enclosingElement2;
+    var classElement = staticElement?.enclosingElement;
     var className = classElement?.name3;
     var constructorName = constructor.name?.name;
     var constructorArgs = expression.argumentList.arguments.toList();

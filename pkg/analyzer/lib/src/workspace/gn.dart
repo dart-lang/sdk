@@ -91,7 +91,7 @@ class GnWorkspace extends Workspace {
       }
 
       if (folder.getChildAssumingFile(file_paths.buildGn).exists) {
-        return GnWorkspacePackage(folder.path, this);
+        return GnWorkspacePackage(folder, this);
       }
     }
     return null;
@@ -212,7 +212,7 @@ class GnWorkspace extends Workspace {
 /// a given package in a GnWorkspace.
 class GnWorkspacePackage extends WorkspacePackage {
   @override
-  final String root;
+  final Folder root;
 
   @override
   final GnWorkspace workspace;
@@ -226,14 +226,14 @@ class GnWorkspacePackage extends WorkspacePackage {
     if (workspace.findFile(filePath) == null) {
       return false;
     }
-    if (!workspace.provider.pathContext.isWithin(root, filePath)) {
+    if (!root.contains(filePath)) {
       return false;
     }
 
     // Just because [filePath] is within [root] does not mean it is in this
     // package; it could be in a "subpackage." Must go through the work of
     // learning exactly which package [filePath] is contained in.
-    return workspace.findPackageFor(filePath)!.root == root;
+    return workspace.findPackageFor(filePath)!.root.path == root.path;
   }
 
   @override
@@ -243,14 +243,12 @@ class GnWorkspacePackage extends WorkspacePackage {
   bool sourceIsInPublicApi(Source source) {
     var filePath = filePathFromSource(source);
     if (filePath == null) return false;
-    var libFolder = workspace.provider.pathContext.join(root, 'lib');
-    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
-      var libSrcFolder = workspace.provider.pathContext.join(
-        root,
-        'lib',
-        'src',
-      );
-      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+    var libFolder = root.getChildAssumingFolder('lib');
+    if (libFolder.contains(filePath)) {
+      var libSrcFolder = root
+          .getChildAssumingFolder('lib')
+          .getChildAssumingFolder('src');
+      return !libSrcFolder.contains(filePath);
     }
     return false;
   }

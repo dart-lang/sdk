@@ -187,7 +187,7 @@ class FunctionReferenceResolver {
     ExecutableElement element, {
     required bool implicitReceiver,
   }) {
-    var enclosingElement = element.enclosingElement2!;
+    var enclosingElement = element.enclosingElement!;
     if (implicitReceiver) {
       if (_resolver.enclosingExtension != null) {
         _resolver.errorReporter.atNode(

@@ -33,7 +33,7 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
   final fields = <FieldElement, VariableDeclaration>{};
 
   bool overridesField(FieldElement field) {
-    var enclosingElement = field.enclosingElement2;
+    var enclosingElement = field.enclosingElement;
     if (enclosingElement is! InterfaceElement) return false;
 
     return enclosingElement.getOverridden(

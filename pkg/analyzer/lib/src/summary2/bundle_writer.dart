@@ -1013,7 +1013,7 @@ class ResolutionSink extends _SummaryDataWriter {
       return const [];
     }
 
-    var enclosing = declaration.enclosingElement2;
+    var enclosing = declaration.enclosingElement;
     if (enclosing is InstanceElement) {
       var typeParameters = enclosing.typeParameters2;
       if (typeParameters.isEmpty) {

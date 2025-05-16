@@ -738,7 +738,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeReference(Element element) {
-    if (element.enclosingElement2 is LibraryElement) {
+    if (element.enclosingElement is LibraryElement) {
       _writeLibraryReference(element);
     }
     write(element.displayName);
@@ -1166,10 +1166,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
       var element = type.element3;
-      var enclosing = element.enclosingElement2;
+      var enclosing = element.enclosingElement;
       while (enclosing is GenericFunctionTypeElement ||
           enclosing is FormalParameterElement) {
-        enclosing = enclosing!.enclosingElement2;
+        enclosing = enclosing!.enclosingElement;
       }
       if (enclosing == _enclosingExecutable ||
           enclosing == _enclosingClass ||
