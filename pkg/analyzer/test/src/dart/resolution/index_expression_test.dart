@@ -161,6 +161,7 @@ IndexExpression
     token: b
     element: <null>
     staticType: InvalidType
+  question: ?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
@@ -183,6 +184,7 @@ IndexExpression
     token: b
     element: <null>
     staticType: InvalidType
+  question: ?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
@@ -377,6 +379,7 @@ IndexExpression
     token: a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
+  question: ?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
@@ -675,6 +678,7 @@ AssignmentExpression
       token: a
       element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
+    question: ?
     leftBracket: [
     index: IntegerLiteral
       literal: 0
@@ -915,6 +919,7 @@ AssignmentExpression
       token: a
       element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
+    question: ?
     leftBracket: [
     index: IntegerLiteral
       literal: 0

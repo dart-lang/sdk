@@ -669,6 +669,7 @@ class AstBuilder extends StackListener {
     var typeParameter = TypeParameterImpl(
       comment: comment,
       metadata: metadata,
+      varianceKeyword: null,
       name: name.token,
       extendsKeyword: null,
       bound: null,
@@ -1393,7 +1394,7 @@ class AstBuilder extends StackListener {
         covariantKeyword: covariantKeyword,
         externalKeyword: externalToken,
         staticKeyword: staticToken,
-        fieldList: variableList,
+        fields: variableList,
         semicolon: semicolon,
       ),
     );
@@ -1944,6 +1945,8 @@ class AstBuilder extends StackListener {
     reportErrorIfSuper(initializer);
     push(
       VariableDeclarationImpl(
+        comment: null,
+        metadata: [],
         name: name.token,
         equals: equals,
         initializer: initializer,
@@ -2476,6 +2479,8 @@ class AstBuilder extends StackListener {
       variable = node;
     } else if (node is SimpleIdentifierImpl) {
       variable = VariableDeclarationImpl(
+        comment: null,
+        metadata: [],
         name: node.token,
         equals: null,
         initializer: null,
@@ -2593,7 +2598,7 @@ class AstBuilder extends StackListener {
         comment: comment,
         metadata: metadata,
         libraryKeyword: libraryKeyword,
-        name: name,
+        name2: name,
         semicolon: semicolon,
       ),
     );
@@ -3013,7 +3018,7 @@ class AstBuilder extends StackListener {
         metadata: metadata,
         partKeyword: partKeyword,
         uri: uri,
-        configurations: configurations,
+        configurations: configurations ?? [],
         semicolon: semicolon,
       ),
     );
@@ -3633,7 +3638,7 @@ class AstBuilder extends StackListener {
         metadata: metadata,
         augmentKeyword: augmentToken,
         externalKeyword: externalToken,
-        variableList: variableList,
+        variables: variableList,
         semicolon: semicolon,
       ),
     );
@@ -3850,6 +3855,8 @@ class AstBuilder extends StackListener {
     // TODO(ahe): Don't push initializers, instead install them.
     push(
       VariableDeclarationImpl(
+        comment: null,
+        metadata: [],
         name: identifier.token,
         equals: equals,
         initializer: initializer,
@@ -3935,7 +3942,7 @@ class AstBuilder extends StackListener {
 
     push(
       VariableDeclarationStatementImpl(
-        variableList: VariableDeclarationListImpl(
+        variables: VariableDeclarationListImpl(
           comment: comment,
           metadata: metadata,
           lateKeyword: modifiers?.lateToken,
@@ -4659,7 +4666,7 @@ class AstBuilder extends StackListener {
     if (patternKeyword != null) {
       var metadata = pop() as List<AnnotationImpl>?;
       forLoopParts = ForEachPartsWithPatternImpl(
-        metadata: metadata,
+        metadata: metadata ?? [],
         keyword: patternKeyword,
         pattern: variableOrDeclaration as DartPatternImpl,
         inKeyword: inKeyword,
@@ -4734,7 +4741,7 @@ class AstBuilder extends StackListener {
     ForPartsImpl forLoopParts;
     if (initializerPart is VariableDeclarationStatementImpl) {
       forLoopParts = ForPartsWithDeclarationsImpl(
-        variableList: initializerPart.variables,
+        variables: initializerPart.variables,
         leftSeparator: leftSeparator,
         condition: condition,
         rightSeparator: rightSeparator,
@@ -5382,6 +5389,8 @@ class AstBuilder extends StackListener {
     var name = pop() as SimpleIdentifierImpl;
     push(
       VariableDeclarationImpl(
+        comment: null,
+        metadata: [],
         name: name.token,
         equals: null,
         initializer: null,
@@ -6301,7 +6310,7 @@ class AstBuilder extends StackListener {
       name: nameToken,
       parameters: parameters,
       separator: separator,
-      initializers: null,
+      initializers: [],
       redirectedConstructor: redirectedConstructor,
       body: body,
     );

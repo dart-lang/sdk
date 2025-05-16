@@ -1982,6 +1982,7 @@ IndexExpression
     token: a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int?
+  question: ?
   leftBracket: [
   index: IntegerLiteral
     literal: 0

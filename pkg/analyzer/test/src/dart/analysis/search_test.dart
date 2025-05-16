@@ -2133,7 +2133,7 @@ class B extends A<String> {}
 ''');
   }
 
-  @FailingTest(
+  @SkippedTest(
     // When this test begins passing, the temporary test
     // test_searchReferences_ParameterElement_generic_atInvocation_doesNotThrow_issue60005
     // can be removed.

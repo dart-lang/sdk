@@ -149,7 +149,7 @@ class CAssert {
     var node = findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
-  const: const
+  constKeyword: const
   period: .
   constructorName: SimpleIdentifier
     token: named
@@ -217,7 +217,7 @@ void main() {
     var node = findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
-  const: const
+  constKeyword: const
   period: .
   constructorName: SimpleIdentifier
     token: named
@@ -428,7 +428,7 @@ void main() {
     var identifier = findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(identifier, r'''
 DotShorthandConstructorInvocation
-  const: const
+  constKeyword: const
   period: .
   constructorName: SimpleIdentifier
     token: named

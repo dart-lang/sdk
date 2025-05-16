@@ -616,11 +616,11 @@ class AstBinaryReader {
     var condition = _readOptionalNode() as ExpressionImpl?;
     var updaters = _readNodeList<ExpressionImpl>();
     return ForPartsWithDeclarationsImpl(
+      variables: variables,
       condition: condition,
       leftSeparator: Tokens.semicolon(),
       rightSeparator: Tokens.semicolon(),
       updaters: updaters,
-      variableList: variables,
     );
   }
 
@@ -1344,7 +1344,7 @@ class AstBinaryReader {
 
   TypeLiteral _readTypeLiteral() {
     var typeName = readNode() as NamedTypeImpl;
-    var node = TypeLiteralImpl(typeName: typeName);
+    var node = TypeLiteralImpl(type: typeName);
     _readExpressionResolution(node);
     return node;
   }
@@ -1357,6 +1357,7 @@ class AstBinaryReader {
     var node = TypeParameterImpl(
       comment: null,
       metadata: metadata,
+      varianceKeyword: null,
       name: name,
       extendsKeyword: bound != null ? Tokens.extends_() : null,
       bound: bound,
@@ -1384,6 +1385,8 @@ class AstBinaryReader {
     var initializer = _readOptionalNode() as ExpressionImpl?;
 
     var node = VariableDeclarationImpl(
+      comment: null,
+      metadata: [],
       name: name,
       equals: Tokens.eq(),
       initializer: initializer,

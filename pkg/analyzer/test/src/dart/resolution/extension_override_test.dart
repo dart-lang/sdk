@@ -477,6 +477,7 @@ IndexExpression
     element2: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
+  question: ?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
@@ -516,6 +517,7 @@ AssignmentExpression
       element2: <testLibrary>::@extension::E
       extendedType: int
       staticType: null
+    question: ?
     leftBracket: [
     index: IntegerLiteral
       literal: 0
