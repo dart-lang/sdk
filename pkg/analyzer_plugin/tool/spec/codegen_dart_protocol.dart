@@ -54,6 +54,12 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     'TypeHierarchyItem': ['interfaces', 'mixins', 'subclasses'],
   };
 
+  /// Class members for which the list type should not be the default,
+  /// but QueueList for performance reasons.
+  static const Map<String, List<String>> _useQueueList = {
+    'SourceFileEdit': ['edits'],
+  };
+
   /// The disclaimer added to the documentation comment for each of the classes
   /// that are generated.
   static const String disclaimer =
@@ -461,7 +467,12 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           // given, the constructor should populate with the empty list.
           var fieldType = field.type;
           if (fieldType is TypeList) {
-            var defaultValue = '<${dartType(fieldType.itemType)}>[]';
+            String defaultValue;
+            if (_useQueueList[className]?.contains(field.name) ?? false) {
+              defaultValue = 'QueueList<${dartType(fieldType.itemType)}>()';
+            } else {
+              defaultValue = '<${dartType(fieldType.itemType)}>[]';
+            }
             initializers.add('${field.name} = ${field.name} ?? $defaultValue');
           } else {
             throw Exception("Don't know how to create default field value.");
