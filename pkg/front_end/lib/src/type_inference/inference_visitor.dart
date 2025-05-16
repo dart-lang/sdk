@@ -2366,34 +2366,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     } else if (spreadTypeBound is InterfaceType) {
       if (!isAssignable(inferredTypeArgument, spreadElementType)) {
-        IsSubtypeOf subtypeCheckResult =
-            typeSchemaEnvironment.performNullabilityAwareSubtypeCheck(
-                spreadElementType, inferredTypeArgument);
-        if (subtypeCheckResult.isSubtypeWhenIgnoringNullabilities()) {
-          if (spreadElementType == subtypeCheckResult.subtype &&
-              inferredTypeArgument == subtypeCheckResult.supertype) {
-            replacement = helper.buildProblem(
-                templateSpreadElementTypeMismatchNullability.withArguments(
-                    spreadElementType, inferredTypeArgument),
-                element.expression.fileOffset,
-                1);
-          } else {
-            replacement = helper.buildProblem(
-                templateSpreadElementTypeMismatchPartNullability.withArguments(
-                    spreadElementType,
-                    inferredTypeArgument,
-                    subtypeCheckResult.subtype!,
-                    subtypeCheckResult.supertype!),
-                element.expression.fileOffset,
-                1);
-          }
-        } else {
-          replacement = helper.buildProblem(
-              templateSpreadElementTypeMismatch.withArguments(
-                  spreadElementType, inferredTypeArgument),
-              element.expression.fileOffset,
-              1);
-        }
+        replacement = helper.buildProblem(
+            templateSpreadElementTypeMismatch.withArguments(
+                spreadElementType, inferredTypeArgument),
+            element.expression.fileOffset,
+            1);
       }
       if (spreadType.isPotentiallyNullable &&
           spreadType is! DynamicType &&

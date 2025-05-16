@@ -32,7 +32,7 @@ void fullDemotion() {
   x.expectStaticType<Exactly<Object>>();
 }
 
-// If a variable's declared type is T, then NonNUll(T) is a type of interest.
+// If a variable's declared type is T, then NonNull(T) is a type of interest.
 void toiNonNullDeclaredType() {
   var x = 0 as num?; // `num` is a type of interest.
   x.expectStaticType<Exactly<num?>>();

@@ -8,6 +8,8 @@
 
 import 'dart:convert' hide JsonDecoder;
 
+import 'package:collection/collection.dart' show QueueList;
+
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 
@@ -3759,7 +3761,7 @@ class SourceFileEdit implements HasToJson {
   List<SourceEdit> edits;
 
   SourceFileEdit(this.file, this.fileStamp, {List<SourceEdit>? edits})
-      : edits = edits ?? <SourceEdit>[];
+      : edits = edits ?? QueueList<SourceEdit>();
 
   factory SourceFileEdit.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json,
