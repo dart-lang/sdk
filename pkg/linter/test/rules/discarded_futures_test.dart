@@ -265,13 +265,15 @@ Future<int> g() async => 0;
     await assertDiagnostics(
       '''
 void f() {
-  // ignore: await_in_wrong_context
   await g();
 }
 
-Future<void> g() async { }
+Future<void> g() async {}
 ''',
-      [lint(55, 1)],
+      [
+        // No lint.
+        error(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 13, 5),
+      ],
     );
   }
 
@@ -280,14 +282,16 @@ Future<void> g() async { }
       '''
 class C {
   void f() {
-    // ignore: await_in_wrong_context
     await g();
   }
 
-  Future<void> g() async { }
+  Future<void> g() async {}
 }
 ''',
-      [lint(71, 1)],
+      [
+        // No lint.
+        error(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 27, 5),
+      ],
     );
   }
 
