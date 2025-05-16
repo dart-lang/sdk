@@ -1449,7 +1449,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   /// A mapping from libraries that need to be imported in order to make visible
   /// the names used in generated code, to information about these imports.
-  Map<Uri, _LibraryImport> librariesToImport = {};
+  final Map<Uri, _LibraryImport> _librariesToImport = {};
 
   /// A mapping of elements to pending imports that will be added to make them
   /// visible in the generated code.
@@ -1472,10 +1472,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   bool get hasEdits =>
-      super.hasEdits || librariesToImport.isNotEmpty || fileHeader != null;
+      super.hasEdits || _librariesToImport.isNotEmpty || fileHeader != null;
 
   @override
-  List<Uri> get requiredImports => librariesToImport.keys.toList();
+  List<Uri> get requiredImports => _librariesToImport.keys.toList();
 
   CodeStyleOptions get _codeStyleOptions => resolvedUnit.session.analysisContext
       .getAnalysisOptionsForFile(resolvedUnit.file)
@@ -1544,8 +1544,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         createEditsForImports: _createEditsForImports);
     copy.fileEdit.edits.addAll(fileEdit.edits);
     copy.importPrefixGenerator = importPrefixGenerator;
-    for (var entry in librariesToImport.entries) {
-      copy.librariesToImport[entry.key] = entry.value;
+    for (var entry in _librariesToImport.entries) {
+      copy._librariesToImport[entry.key] = entry.value;
     }
     for (var entry in _elementLibrariesToImport.entries) {
       copy._elementLibrariesToImport[entry.key] = entry.value;
@@ -1561,8 +1561,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void finalize() {
-    if (_createEditsForImports && librariesToImport.isNotEmpty) {
-      _addLibraryImports(librariesToImport.values);
+    if (_createEditsForImports && _librariesToImport.isNotEmpty) {
+      _addLibraryImports(_librariesToImport.values);
     }
     var header = fileHeader;
     if (header != null) {
@@ -1741,7 +1741,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
 
     // Queued change.
-    var importChange = (libraryChangeBuilder ?? this).librariesToImport[uri];
+    var importChange = (libraryChangeBuilder ?? this)._librariesToImport[uri];
     return importChange != null;
   }
 
@@ -1909,7 +1909,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     super.revert();
 
     for (var uri in _revertData._addedLibrariesToImport) {
-      librariesToImport.remove(uri);
+      _librariesToImport.remove(uri);
     }
 
     _revertData._addedLibrariesToImport.clear();
@@ -2400,7 +2400,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     bool forceAbsolute = false,
     bool forceRelative = false,
   }) {
-    var import = (libraryChangeBuilder ?? this).librariesToImport[uri];
+    var import = (libraryChangeBuilder ?? this)._librariesToImport[uri];
     var existingShownNames = <List<String>>[];
     var existingHiddenNames = <List<String>>[];
 
@@ -2457,7 +2457,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       if (showName != null) {
         import._ensureShown(showName, useShow: useShow);
       }
-      (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
+      (libraryChangeBuilder ?? this)._librariesToImport[uri] = import;
       _revertData._addedLibrariesToImport.add(uri);
     }
     return import;
@@ -2506,7 +2506,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // And finally, remove the remaining candidates from the set of libraries to
     // be imported.
     (libraryChangeBuilder ?? this)
-        .librariesToImport
+        ._librariesToImport
         .removeWhere((_, import) => candidatesToRemove.contains(import));
   }
 
