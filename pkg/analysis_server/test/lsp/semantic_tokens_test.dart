@@ -1492,6 +1492,34 @@ f({String? a, dynamic b}) {
     await _initializeAndVerifyTokens(content, expected);
   }
 
+  Future<void> test_namedRecordFields_extension() async {
+    var content = '''
+extension on ({int field,}) {
+  get other => field + this.field;
+}
+''';
+
+    var expected = [
+      _Token('extension', SemanticTokenTypes.keyword),
+      _Token('on', SemanticTokenTypes.keyword),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('get', SemanticTokenTypes.keyword),
+      _Token('other', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('field', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('this', SemanticTokenTypes.keyword),
+      _Token('field', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
   Future<void> test_never() async {
     var content = '''
 Never f() => throw '';
@@ -1842,6 +1870,34 @@ void f() {
         CustomSemanticTokenModifiers.control,
       ]),
       _Token('isEven', SemanticTokenTypes.variable),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_positionalRecordFields_extension() async {
+    var content = r'''
+extension on (int field, double,) {
+  get other => $1 + $2;
+}
+''';
+
+    var expected = [
+      _Token('extension', SemanticTokenTypes.keyword),
+      _Token('on', SemanticTokenTypes.keyword),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('double', SemanticTokenTypes.class_),
+      _Token('get', SemanticTokenTypes.keyword),
+      _Token('other', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token(r'$1', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token(r'$2', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);

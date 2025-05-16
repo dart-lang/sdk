@@ -28,6 +28,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
 /// A computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a Dart [CompilationUnit].
@@ -292,11 +293,16 @@ class DartUnitHighlightsComputer {
       } else {
         type = HighlightRegionType.INSTANCE_SETTER_REFERENCE;
       }
-    } else if (element == null &&
-        parent is PropertyAccess &&
-        nameToken == parent.propertyName.token) {
+    } else if (element == null) {
+      DartType? staticType;
+      if (parent is PropertyAccess && nameToken == parent.propertyName.token) {
+        staticType = parent.realTarget.staticType;
+      } else if (parent.enclosingInstanceElement case ExtensionElement(
+        :var extendedType,
+      ) when parent is! PrefixedIdentifier) {
+        staticType = extendedType;
+      }
       // Handle tokens that are references to record fields.
-      var staticType = parent.realTarget.staticType;
       if (staticType is RecordType) {
         type =
             staticType.fieldByName(nameToken.lexeme) != null
