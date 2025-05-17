@@ -1542,6 +1542,12 @@ class LinterLintCode extends LintCode {
         uniqueName: 'strict_top_level_inference_split_to_types',
       );
 
+  static const LintCode switch_on_type = LinterLintCode(
+    LintNames.switch_on_type,
+    "Avoid switch statements on a 'Type'.",
+    correctionMessage: "Try using pattern matching on a variable instead.",
+  );
+
   static const LintCode test_types_in_equals = LinterLintCode(
     LintNames.test_types_in_equals,
     "Missing type test for '{0}' in '=='.",

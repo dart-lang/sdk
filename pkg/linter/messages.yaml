@@ -11344,6 +11344,82 @@ LintCode:
           : _children = children,
             super(style) {
       ```
+  switch_on_type:
+    problemMessage: "Avoid switch statements on a 'Type'."
+    correctionMessage: "Try using pattern matching on a variable instead."
+    state:
+      stable: "3.0"
+    categories: [unintentional, style, languageFeatureUsage, errorProne]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a switch statement or switch
+      expression is used on either the value of a `Type` or a `toString` call
+      on a `Type`.
+
+      #### Example
+
+      The following code produces this diagnostic because the switch statement
+      is used on a `Type`:
+
+      ```dart
+      void f(Object o) {
+        switch ([!o.runtimeType!]) {
+          case const (int):
+            print('int');
+          case const (String):
+            print('String');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Use pattern matching on the variable instead:
+
+      ```dart
+      void f(Object o) {
+        switch (o) {
+          case int():
+            print('int');
+          case String():
+            print('String');
+        }
+      }
+      ```
+    deprecatedDetails: |-
+      **AVOID** using switch on `Type`.
+
+      Switching on `Type` is not type-safe and can lead to bugs if the
+      class hierarchy changes. Prefer to use pattern matching on the variable
+      instead.
+
+      **BAD:**
+      ```dart
+      void f(Object o) {
+        switch (o.runtimeType) {
+          case int:
+            print('int');
+          case String:
+            print('String');
+        }
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      void f(Object o) {
+        switch(o) {
+          case int():
+            print('int');
+          case String _:
+            print('String');
+          default:
+            print('other');
+        }
+      }
+      ```
   test_types_in_equals:
     problemMessage: "Missing type test for '{0}' in '=='."
     correctionMessage: "Try testing the type of '{0}'."

@@ -85,7 +85,17 @@ AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING:
   status: noFix
   notes: |-
     The fix needs to be made in the included file.
+AnalysisOptionsWarningCode.INCOMPATIBLE_INCLUDED_LINT:
+  status: noFix
+  notes: |-
+    Without knowing which rule the user would prefer to use, we cannot remove
+    the reported one.
 AnalysisOptionsWarningCode.INCOMPATIBLE_LINT:
+  status: noFix
+  notes: |-
+    Without knowing which rule the user would prefer to use, we cannot remove
+    the reported one.
+AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_FILE:
   status: noFix
   notes: |-
     Without knowing which rule the user would prefer to use, we cannot remove
@@ -2394,6 +2404,8 @@ LintCode.strict_top_level_inference_split_to_types:
     Conceivably for variable declarations we can search some space (like the
     library or the compilation unit) for what values are assigned, and suggest
     the LUB of those value(s)' type(s).
+LintCode.switch_on_type:
+  status: noFix
 LintCode.test_types_in_equals:
   status: noFix
 LintCode.throw_in_finally:

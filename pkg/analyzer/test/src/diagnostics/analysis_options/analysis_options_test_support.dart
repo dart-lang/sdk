@@ -32,11 +32,15 @@ abstract class AbstractAnalysisOptionsTest
       sourceFactory,
       '/',
       sdkVersionConstraint,
+      resourceProvider,
     );
     var errorListener = GatheringErrorListener();
     errorListener.addAll(diagnostics);
     errorListener.assertErrors(expectedErrors);
   }
+
+  Future<void> assertNoErrorsInCode(String code) async =>
+      await assertErrorsInCode(code, const []);
 
   ExpectedError error(
     DiagnosticCode code,

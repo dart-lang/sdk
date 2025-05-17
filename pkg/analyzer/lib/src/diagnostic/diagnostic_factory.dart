@@ -11,6 +11,7 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:yaml/yaml.dart';
 
 /// A factory used to create diagnostics.
 class DiagnosticFactory {
@@ -282,6 +283,29 @@ class DiagnosticFactory {
       ],
     );
   }
+
+  Diagnostic incompatibleIncludedLint({
+    required Source source,
+    required String referenceRule,
+    required String incompatibleRule,
+    required YamlNode reference,
+    required YamlNode incompatible,
+  }) => Diagnostic.tmp(
+    source: source,
+    offset: incompatible.span.start.offset,
+    length: incompatible.span.end.offset,
+    errorCode: AnalysisOptionsWarningCode.INCOMPATIBLE_INCLUDED_LINT,
+    arguments: [referenceRule, incompatibleRule],
+    contextMessages: [
+      DiagnosticMessageImpl(
+        filePath: source.fullName,
+        length: reference.span.length,
+        message: 'The included file with the reference rule.',
+        offset: reference.span.start.offset,
+        url: source.uri.toString(),
+      ),
+    ],
+  );
 
   Diagnostic invalidNullAwareAfterShortCircuit(
     Source source,

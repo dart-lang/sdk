@@ -2103,6 +2103,76 @@ import 'dart:^';
     expect(res.any((c) => c.label == 'dart:async'), isTrue);
   }
 
+  Future<void> test_importedSymbol_libraryImported_hidingVariable() async {
+    newFile(join(projectFolderPath, 'lib', 'import.dart'), '''
+enum MyEnum {
+  value1,
+  value2,
+}
+void myFunction(MyEnum _) {}
+var myVariable = 1;
+''');
+
+    var content = '''
+import 'import.dart' hide myVariable;
+
+void main() {
+  myFunction(MyE^);
+}
+''';
+
+    var expectedContent = '''
+import 'import.dart' hide myVariable;
+
+void main() {
+  myFunction(MyEnum.value1);
+}
+''';
+
+    var completionLabel = 'MyEnum.value1';
+
+    await _checkCompletionEdits(
+      mainFileUri,
+      content,
+      completionLabel,
+      expectedContent,
+    );
+  }
+
+  Future<void> test_importedSymbol_libraryImported_showingEnum() async {
+    newFile(join(projectFolderPath, 'lib', 'import.dart'), '''
+enum MyEnum {
+  value1,
+  value2,
+}
+''');
+
+    var content = '''
+import 'import.dart' show MyEnum;
+
+void main() {
+  MyEnum _ = My^;
+}
+''';
+
+    var expectedContent = '''
+import 'import.dart' show MyEnum;
+
+void main() {
+  MyEnum _ = MyEnum.value1;
+}
+''';
+
+    var completionLabel = 'MyEnum.value1';
+
+    await _checkCompletionEdits(
+      mainFileUri,
+      content,
+      completionLabel,
+      expectedContent,
+    );
+  }
+
   Future<void> test_insertReplaceRanges() async {
     setCompletionItemInsertReplaceSupport();
 

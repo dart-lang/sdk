@@ -4,6 +4,7 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
@@ -45,35 +46,125 @@ class DeprecatedSince3Lint extends TestLintRule {
 @reflectiveTest
 class OptionsRuleValidatorIncludedFileTest extends AbstractAnalysisOptionsTest
     with OptionsRuleValidatorTestMixin {
-  test_deprecated_rule_inInclude_ok() {
+  void test_compatible_multiple_include() {
+    newFile('/included1.yaml', '''
+linter:
+  rules:
+    rule_pos: true
+''');
+    newFile('/included2.yaml', '''
+linter:
+  rules:
+    rule_pos: true
+''');
+    assertNoErrors('''
+include:
+  - included1.yaml
+  - included2.yaml
+''');
+  }
+
+  void test_deprecated_rule_inInclude_ok() {
     newFile('/included.yaml', '''
 linter:
   rules:
     - deprecated_lint
 ''');
 
-    assertErrorsInCode('''
+    assertNoErrorsInCode('''
 include: included.yaml
-''', []);
+''');
   }
 
-  test_removed_rule_inInclude_ok() {
+  void test_incompatible_multiple_include() {
+    newFile('/included1.yaml', '''
+linter:
+  rules:
+    rule_neg: true
+''');
+    newFile('/included2.yaml', '''
+linter:
+  rules:
+    rule_pos: true
+''');
+    assertErrors(
+      '''
+include:
+  - included1.yaml
+  - included2.yaml
+''',
+      [AnalysisOptionsWarningCode.INCOMPATIBLE_INCLUDED_LINT],
+    );
+  }
+
+  void test_incompatible_noTrigger_invalidMap() {
+    newFile('/included.yaml', '''
+linter:
+  rules:
+    rule_neg: true
+''');
+    assertNoErrors('''
+include: included.yaml
+
+linter:
+  rules:
+    rule_neg: true
+    rule_pos: 
+''');
+  }
+
+  void test_incompatible_rule_map_include() {
+    newFile('/included.yaml', '''
+linter:
+  rules:
+    rule_neg: true
+''');
+    assertErrors(
+      '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+''',
+      [AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_FILE],
+    );
+  }
+
+  void test_incompatible_unsuportedValue_invalidMap() {
+    newFile('/included.yaml', '''
+linter:
+  rules:
+    rule_neg: true
+''');
+    assertErrors(
+      '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: invalid_value
+''',
+      [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE],
+    );
+  }
+
+  void test_removed_rule_inInclude_ok() {
     newFile('/included.yaml', '''
 linter:
   rules:
     - removed_in_2_12_lint
 ''');
-
-    assertErrorsInCode('''
+    assertNoErrorsInCode('''
 include: included.yaml
-''', []);
+''');
   }
 }
 
 @reflectiveTest
 class OptionsRuleValidatorTest extends AbstractAnalysisOptionsTest
     with OptionsRuleValidatorTestMixin {
-  test_deprecated_rule() {
+  void test_deprecated_rule() {
     assertErrors(
       '''
 linter:
@@ -84,7 +175,7 @@ linter:
     );
   }
 
-  test_deprecated_rule_map() {
+  void test_deprecated_rule_map() {
     assertErrors(
       '''
 linter:
@@ -95,7 +186,7 @@ linter:
     );
   }
 
-  test_deprecated_rule_withReplacement() {
+  void test_deprecated_rule_withReplacement() {
     assertErrors(
       '''
 linter:
@@ -106,7 +197,7 @@ linter:
     );
   }
 
-  test_deprecated_rule_withSince_inCurrentSdk() {
+  void test_deprecated_rule_withSince_inCurrentSdk() {
     assertErrors(
       '''
 linter:
@@ -118,31 +209,23 @@ linter:
     );
   }
 
-  test_deprecated_rule_withSince_notInCurrentSdk() {
-    assertErrors(
-      '''
+  void test_deprecated_rule_withSince_notInCurrentSdk() {
+    assertNoErrors('''
 linter:
   rules:
     - deprecated_since_3_lint
-''',
-      [],
-      sdk: Version(2, 17, 0),
-    );
+''', sdk: Version(2, 17, 0));
   }
 
-  test_deprecated_rule_withSince_unknownSdk() {
-    assertErrors(
-      '''
+  void test_deprecated_rule_withSince_unknownSdk() {
+    assertNoErrors('''
 linter:
   rules:
     - deprecated_since_3_lint
-''',
-      // No error
-      [],
-    );
+''');
   }
 
-  test_duplicated_rule() {
+  void test_duplicated_rule() {
     assertErrors(
       '''
 linter:
@@ -154,7 +237,7 @@ linter:
     );
   }
 
-  test_incompatible_rule() {
+  void test_incompatible_rule() {
     assertErrors(
       '''
 linter:
@@ -166,7 +249,7 @@ linter:
     );
   }
 
-  test_incompatible_rule_map() {
+  void test_incompatible_rule_map() {
     assertErrors(
       '''
 linter:
@@ -178,16 +261,16 @@ linter:
     );
   }
 
-  test_incompatible_rule_map_disabled() {
-    assertErrors('''
+  void test_incompatible_rule_map_disabled() {
+    assertNoErrors('''
 linter:
   rules:
     rule_pos: true
     rule_neg: false
-''', []);
+''');
   }
 
-  test_removed_rule() {
+  void test_removed_rule() {
     assertErrors(
       '''
 linter:
@@ -199,19 +282,15 @@ linter:
     );
   }
 
-  test_removed_rule_notYet_ok() {
-    assertErrors(
-      '''
+  void test_removed_rule_notYet_ok() {
+    assertNoErrors('''
 linter:
   rules:
     - removed_in_2_12_lint
-''',
-      [],
-      sdk: Version(2, 11, 0),
-    );
+''', sdk: Version(2, 11, 0));
   }
 
-  test_replaced_rule() {
+  void test_replaced_rule() {
     assertErrors(
       '''
 linter:
@@ -223,23 +302,23 @@ linter:
     );
   }
 
-  test_stable_rule() {
-    assertErrors('''
+  void test_stable_rule() {
+    assertNoErrors('''
 linter:
   rules:
     - stable_lint
-''', []);
+''');
   }
 
-  test_stable_rule_map() {
-    assertErrors('''
+  void test_stable_rule_map() {
+    assertNoErrors('''
 linter:
   rules:
     stable_lint: true
-''', []);
+''');
   }
 
-  test_undefined_rule() {
+  void test_undefined_rule() {
     assertErrors(
       '''
 linter:
@@ -250,7 +329,7 @@ linter:
     );
   }
 
-  test_undefined_rule_map() {
+  void test_undefined_rule_map() {
     assertErrors(
       '''
 linter:
@@ -270,15 +349,25 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
     List<DiagnosticCode> expectedCodes, {
     VersionConstraint? sdk,
   }) {
-    GatheringErrorListener listener = GatheringErrorListener();
-    ErrorReporter reporter = ErrorReporter(
-      listener,
-      StringSource(content, 'analysis_options.yaml'),
+    var listener = GatheringErrorListener();
+    var source = StringSource(content, 'analysis_options.yaml');
+    var reporter = ErrorReporter(listener, source);
+    var validator = LinterRuleOptionsValidator(
+      optionsProvider: AnalysisOptionsProvider(sourceFactory),
+      resourceProvider: resourceProvider,
+      sdkVersionConstraint: sdk,
     );
-    var validator = LinterRuleOptionsValidator(sdkVersionConstraint: sdk);
-    validator.validate(reporter, loadYamlNode(content) as YamlMap);
+    validator.validate(
+      reporter,
+      loadYamlNode(content, sourceUrl: source.uri) as YamlMap,
+    );
     listener.assertErrorsWithCodes(expectedCodes);
   }
+
+  /// Assert that when the validator is used on the given [content] no errors
+  /// are produced.
+  void assertNoErrors(String content, {VersionConstraint? sdk}) =>
+      assertErrors(content, const [], sdk: sdk);
 
   @override
   void setUp() {

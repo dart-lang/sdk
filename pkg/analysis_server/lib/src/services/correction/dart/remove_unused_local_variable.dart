@@ -53,12 +53,15 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
           if (declarationStatement is VariableDeclarationStatement) {
             if (declarationList.variables.length == 1) {
               var initializer = declarationList.variables.first.initializer;
-              if (initializer is MethodInvocation) {
+              if (initializer?.unParenthesized
+                  case MethodInvocation() ||
+                      FunctionExpressionInvocation() ||
+                      AwaitExpression()) {
                 _commands.add(
                   _DeleteSourceRangeCommand(
                     sourceRange: SourceRange(
                       declarationStatement.offset,
-                      initializer.offset - declarationStatement.offset,
+                      initializer!.offset - declarationStatement.offset,
                     ),
                   ),
                 );
