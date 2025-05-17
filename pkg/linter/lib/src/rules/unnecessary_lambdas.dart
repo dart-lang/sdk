@@ -94,7 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final TypeSystem typeSystem;
 
   _Visitor(this.rule, LinterContext context)
-    : constructorTearOffsEnabled = context.isEnabled(
+    : constructorTearOffsEnabled = context.isFeatureEnabled(
         Feature.constructor_tearoffs,
       ),
       typeSystem = context.typeSystem;

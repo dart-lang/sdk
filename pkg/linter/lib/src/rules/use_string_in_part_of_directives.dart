@@ -9,7 +9,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Use string in part of directives.';
 
@@ -52,5 +51,5 @@ class _Visitor extends SimpleAstVisitor<void> {
 extension on LinterContext {
   bool get hasEnancedPartsFeatureEnabled =>
       this is LinterContextWithResolvedResults &&
-      isEnabled(Feature.enhanced_parts);
+      isFeatureEnabled(Feature.enhanced_parts);
 }

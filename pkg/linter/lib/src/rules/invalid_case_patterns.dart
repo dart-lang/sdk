@@ -10,7 +10,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Use case expressions that are valid in Dart 3.0.';
 
@@ -34,7 +33,7 @@ class InvalidCasePatterns extends LintRule {
   ) {
     // This lint rule is only meant for code which does not have 'patterns'
     // enabled.
-    if (context.isEnabled(Feature.patterns)) return;
+    if (context.isFeatureEnabled(Feature.patterns)) return;
 
     var visitor = _Visitor(this);
     registry.addSwitchCase(this, visitor);

@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = "Avoid switch statements on a 'Type'.";
 
@@ -31,7 +30,7 @@ class SwitchOnType extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    if (!context.isEnabled(Feature.patterns)) return;
+    if (!context.isFeatureEnabled(Feature.patterns)) return;
     var visitor = _Visitor(this, context);
     registry.addSwitchExpression(this, visitor);
     registry.addSwitchStatement(this, visitor);

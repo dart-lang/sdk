@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 import '../utils.dart';
 
 const _desc =
@@ -38,7 +37,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule, LinterContext context)
-    : _wildCardVariablesEnabled = context.isEnabled(Feature.wildcard_variables);
+    : _wildCardVariablesEnabled = context.isFeatureEnabled(
+        Feature.wildcard_variables,
+      );
 
   @override
   void visitImportDirective(ImportDirective node) {

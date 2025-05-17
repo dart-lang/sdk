@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -247,6 +248,9 @@ abstract class LinterContext {
 
   TypeSystem get typeSystem;
 
+  /// Whether the given [feature] is enabled in this linter context.
+  bool isFeatureEnabled(Feature feature);
+
   static bool _isInLibDir(String? filePath, WorkspacePackage? package) {
     if (package == null) return false;
     if (filePath == null) return false;
@@ -298,6 +302,12 @@ final class LinterContextWithParsedResults implements LinterContext {
       throw UnsupportedError(
         'LinterContext with parsed results does not include a TypeSystem',
       );
+
+  @override
+  bool isFeatureEnabled(Feature feature) =>
+      throw UnsupportedError(
+        'LinterContext with parsed results does not include a LibraryElement',
+      );
 }
 
 /// A [LinterContext] for a library, resolved into [ResolvedUnitResult]s.
@@ -347,6 +357,10 @@ final class LinterContextWithResolvedResults implements LinterContext {
   @override
   LibraryElement get libraryElement2 =>
       definingUnit.unit.declaredFragment!.element;
+
+  @override
+  bool isFeatureEnabled(Feature feature) =>
+      libraryElement2.featureSet.isEnabled(feature);
 }
 
 /// Provides access to information needed by lint rules that is not available
