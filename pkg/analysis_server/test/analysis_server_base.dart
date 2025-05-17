@@ -276,12 +276,20 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     );
   }
 
+  /// Deletes the analysis options YAML file at [testPackageRootPath].
   void deleteTestPackageAnalysisOptionsFile() {
-    deleteAnalysisOptionsYamlFile(testPackageRootPath);
+    var path = join(testPackageRootPath, file_paths.analysisOptionsYaml);
+    deleteFile(path);
   }
 
+  /// Deletes the `package_config.json` file at [testPackageRootPath].
   void deleteTestPackageConfigJsonFile() {
-    deletePackageConfigJsonFile(testPackageRootPath);
+    var filePath = join(
+      testPackageRootPath,
+      file_paths.dotDartTool,
+      file_paths.packageConfigJson,
+    );
+    deleteFile(filePath);
   }
 
   /// Returns the offset of [search] in [testFileContent].
