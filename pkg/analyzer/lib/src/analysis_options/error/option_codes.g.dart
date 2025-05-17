@@ -154,12 +154,44 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   ///  Parameters:
   ///  0: the rule name
   ///  1: the incompatible rule
+  static const AnalysisOptionsWarningCode
+  INCOMPATIBLE_INCLUDED_LINT = AnalysisOptionsWarningCode(
+    'INCOMPATIBLE_LINT',
+    "This file enables '{0}' that is incompatible with '{1}' enabled in "
+        "another include.",
+    correctionMessage:
+        "Try removing one of the incompatible files or locally disable one of "
+        "the conflicting rules.",
+    uniqueName: 'INCOMPATIBLE_INCLUDED_LINT',
+  );
+
+  ///  An error code indicating an incompatible rule.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  ///  1: the incompatible rule
   static const AnalysisOptionsWarningCode INCOMPATIBLE_LINT =
       AnalysisOptionsWarningCode(
         'INCOMPATIBLE_LINT',
         "The rule '{0}' is incompatible with the rule '{1}'.",
         correctionMessage: "Try removing one of the incompatible rules.",
       );
+
+  ///  An error code indicating an incompatible rule.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  ///  1: the incompatible rule
+  ///  2: the path of the file containing the conflicting rule
+  static const AnalysisOptionsWarningCode
+  INCOMPATIBLE_LINT_FILE = AnalysisOptionsWarningCode(
+    'INCOMPATIBLE_LINT',
+    "The rule '{0}' is incompatible with the rule '{1}' enabled at '{2}'.",
+    correctionMessage:
+        "Try removing the incompatible rule or locally disable the conflicting "
+        "rule.",
+    uniqueName: 'INCOMPATIBLE_LINT_FILE',
+  );
 
   ///  An error code indicating that a plugin is being configured with an invalid
   ///  value for an option and a detail message is provided.

@@ -73,10 +73,13 @@ class ErrorCodeValuesTest {
 }
 
 @reflectiveTest
-class OptionsFileValidatorTest with LintRegistrationMixin {
-  final OptionsFileValidator validator = OptionsFileValidator(
+class OptionsFileValidatorTest
+    with LintRegistrationMixin, ResourceProviderMixin {
+  late final OptionsFileValidator validator = OptionsFileValidator(
     TestSource(),
     sourceIsOptionsForContextRoot: true,
+    optionsProvider: optionsProvider,
+    resourceProvider: resourceProvider,
   );
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
@@ -620,6 +623,7 @@ class OptionsProviderTest with ResourceProviderMixin {
       sourceFactory,
       '/',
       null /*sdkVersionConstraint*/,
+      resourceProvider,
     );
 
     assertErrorsInList(diagnostics, expectedErrors);
@@ -806,6 +810,7 @@ analyzer:
       sourceFactory,
       '/',
       null /*sdkVersionConstraint*/,
+      resourceProvider,
     );
     expect(
       diagnostics.map((Diagnostic e) => e.errorCode),

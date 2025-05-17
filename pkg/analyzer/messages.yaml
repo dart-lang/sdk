@@ -140,6 +140,29 @@ AnalysisOptionsWarningCode:
       Parameters:
       0: the rule name
       1: the incompatible rule
+  INCOMPATIBLE_LINT_FILE:
+    sharedName: INCOMPATIBLE_LINT
+    problemMessage: "The rule '{0}' is incompatible with the rule '{1}' enabled at '{2}'."
+    correctionMessage: "Try removing the incompatible rule or locally disable the conflicting rule."
+    hasPublishedDocs: false
+    comment: |-
+      An error code indicating an incompatible rule.
+
+      Parameters:
+      0: the rule name
+      1: the incompatible rule
+      2: the path of the file containing the conflicting rule
+  INCOMPATIBLE_INCLUDED_LINT:
+    sharedName: INCOMPATIBLE_LINT
+    problemMessage: "This file enables '{0}' that is incompatible with '{1}' enabled in another include."
+    correctionMessage: "Try removing one of the incompatible files or locally disable one of the conflicting rules."
+    hasPublishedDocs: false
+    comment: |-
+      An error code indicating an incompatible rule.
+
+      Parameters:
+      0: the rule name
+      1: the incompatible rule
   INVALID_OPTION:
     problemMessage: "Invalid option specified for '{0}': {1}"
     hasPublishedDocs: false
