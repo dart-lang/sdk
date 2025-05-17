@@ -92,11 +92,6 @@ sealed class State {
   /// A short description, suitable for displaying in documentation or a
   /// diagnostic message.
   String get label;
-
-  /// An optional description that can be used in documentation or diagnostic
-  /// reporting.
-  @Deprecated('Not set by any lint rule, remove any usages.')
-  String? getDescription() => null;
 }
 
 extension StateExtension on State {
