@@ -59,24 +59,13 @@ sealed class AbstractAnalysisRule {
   /// A list of incompatible rule ids.
   List<String> get incompatibleRules => const [];
 
-  /// The lint codes associated with this analysis rule.
-  @Deprecated("Use 'diagnosticCodes' instead.")
-  List<DiagnosticCode> get lintCodes => diagnosticCodes;
-
   /// Returns a visitor that visits a [Pubspec] to perform analysis.
   ///
   /// Diagnostics are reported via this [LintRule]'s error [reporter].
   PubspecVisitor? get pubspecVisitor => null;
 
-  @protected
-  // Protected so that analysis rule visitors do not access this directly.
-  // TODO(srawlins): With the new availability of an ErrorReporter on
-  // LinterContextUnit, we should probably remove this reporter. But whatever
-  // the new API would be is not yet decided. It might also change with the
-  // notion of post-processing lint rules that have access to all unit
-  // reporters at once.
-  ErrorReporter get reporter => _reporter;
-
+  /// Sets the [ErrorReporter] for the [CompilationUnit] currently being
+  /// visited.
   set reporter(ErrorReporter value) => _reporter = value;
 
   /// Registers node processors in the given [registry].
@@ -95,7 +84,7 @@ sealed class AbstractAnalysisRule {
     required DiagnosticCode diagnosticCode,
   }) {
     if (node != null && !node.isSynthetic) {
-      reporter.atNode(
+      _reporter.atNode(
         node,
         diagnosticCode,
         arguments: arguments,
@@ -111,7 +100,7 @@ sealed class AbstractAnalysisRule {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
   }) {
-    reporter.atOffset(
+    _reporter.atOffset(
       offset: offset,
       length: length,
       errorCode: diagnosticCode,
@@ -135,7 +124,7 @@ sealed class AbstractAnalysisRule {
       arguments: arguments,
       contextMessages: contextMessages,
     );
-    reporter.reportError(diagnostic);
+    _reporter.reportError(diagnostic);
   }
 
   void _reportAtToken(
@@ -145,7 +134,7 @@ sealed class AbstractAnalysisRule {
     List<DiagnosticMessage>? contextMessages,
   }) {
     if (!token.isSynthetic) {
-      reporter.atToken(
+      _reporter.atToken(
         token,
         diagnosticCode,
         arguments: arguments,
@@ -165,10 +154,6 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [diagnosticCode];
-
-  /// The code to report for a violation.
-  @Deprecated("Use 'diagnosticCode' instead.")
-  DiagnosticCode get lintCode => diagnosticCode;
 
   /// Reports a diagnostic at [node] with message [arguments] and
   /// [contextMessages].
@@ -436,7 +421,7 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
       arguments: arguments,
       contextMessages: contextMessages,
     );
-    reporter.reportError(error);
+    _reporter.reportError(error);
   }
 
   /// Reports [errorCode] at [token], with message [arguments] and
