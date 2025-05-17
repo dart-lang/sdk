@@ -621,10 +621,8 @@ class Search {
     // Prepare the element name.
     String name = element.displayName;
     var externalElement = element;
-    if (externalElement case FormalParameterElement(
-      enclosingElement: var enclosingElement2?,
-    )) {
-      externalElement = enclosingElement2;
+    if (externalElement case FormalParameterElement(:var enclosingElement?)) {
+      externalElement = enclosingElement;
     }
     if (externalElement is ConstructorElement) {
       name = externalElement.enclosingElement.displayName;

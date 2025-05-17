@@ -45,12 +45,12 @@ class ImplementationHandler
     var path = pathOfDoc(params.textDocument);
     var unit = await performance.runAsync(
       'requireResolvedUnit',
-      (_) async => path.mapResult(requireResolvedUnit),
+      (_) => path.mapResult(requireResolvedUnit),
     );
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await performance.runAsync(
       '_getImplementations',
-      (performance) async => (unit, offset).mapResults(
+      (performance) => (unit, offset).mapResults(
         (unit, offset) => _getImplementations(unit, offset, token, performance),
       ),
     );

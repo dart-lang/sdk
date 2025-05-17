@@ -4,7 +4,7 @@
 
 import 'dart:io' as io;
 
-import 'package:analysis_server_client/protocol.dart';
+import 'package:analysis_server_client/protocol.dart' hide Element;
 import 'package:analysis_server_client/server.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -172,12 +172,20 @@ class _Generator {
 
   void _generateBeginToken(_ImplClass implClass, StringBuffer buffer) {
     if (implClass.isAnnotatedNodeSubclass) {
+      if (implClass.doNotGenerateLookupNames.contains(
+        'firstTokenAfterCommentAndMetadata',
+      )) {
+        return;
+      }
       buffer.write('''\n
 @generated
 @override
 Token get firstTokenAfterCommentAndMetadata {
 ''');
     } else {
+      if (implClass.doNotGenerateLookupNames.contains('beginToken')) {
+        return;
+      }
       buffer.write('''\n
 @generated
 @override
@@ -262,6 +270,10 @@ if (${property.name}.beginToken case var result?) {
     _ImplClass implClass,
     StringBuffer buffer,
   ) {
+    if (implClass.doNotGenerateLookupNames.contains('_childContainingRange')) {
+      return;
+    }
+
     buffer.write('''
 \n  @generated
   @override
@@ -317,6 +329,10 @@ if ($propertyName.$invocation case var result?) {
   }
 
   void _generateChildEntities(_ImplClass implClass, StringBuffer buffer) {
+    if (implClass.doNotGenerateLookupNames.contains('_childEntities')) {
+      return;
+    }
+
     buffer.write('''
 \n@generated
 @override
@@ -348,6 +364,10 @@ ChildEntities get _childEntities =>''');
   }
 
   void _generateConstructor(_ImplClass implClass, StringBuffer buffer) {
+    if (implClass.doNotGenerateLookupNames.contains('new')) {
+      return;
+    }
+
     buffer.write('''
 \n@generated
     ${implClass.name}({
@@ -431,6 +451,10 @@ required super.metadata,''');
   }
 
   void _generateEndToken(_ImplClass implClass, StringBuffer buffer) {
+    if (implClass.doNotGenerateLookupNames.contains('endToken')) {
+      return;
+    }
+
     buffer.write('''\n
 @generated
 @override
@@ -562,6 +586,10 @@ set $propertyName(${property.typeCode} $propertyName) {
   }
 
   void _generateResolveExpression(_ImplClass implClass, StringBuffer buffer) {
+    if (implClass.doNotGenerateLookupNames.contains('resolveExpression')) {
+      return;
+    }
+
     if (implClass.interfaceElement.isExpressionOrSubtype) {
       buffer.write('''
 \n@generated
@@ -588,6 +616,10 @@ void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
   }
 
   void _generateVisitChildren(_ImplClass implClass, StringBuffer buffer) {
+    if (implClass.doNotGenerateLookupNames.contains('visitChildren')) {
+      return;
+    }
+
     buffer.write('''
 \n@generated
 @override
@@ -641,9 +673,19 @@ void visitChildren(AstVisitor visitor) {''');
         String memberName;
         switch (member) {
           case ConstructorDeclarationImpl():
-            memberName = member.declaredFragment!.element.lookupName!;
+            var element = member.declaredFragment!.element;
+            memberName = element.lookupName!;
+            if (element.metadata2.hasDoNotGenerate) {
+              implClass.doNotGenerateLookupNames.add(memberName);
+              continue;
+            }
           case MethodDeclarationImpl():
-            memberName = member.declaredFragment!.element.lookupName!;
+            var element = member.declaredFragment!.element;
+            memberName = element.lookupName!;
+            if (element.metadata2.hasDoNotGenerate) {
+              implClass.doNotGenerateLookupNames.add(memberName);
+              continue;
+            }
           case FieldDeclarationImpl():
             var field = member.fields.variables.single;
             memberName = field.declaredFragment!.element.lookupName!;
@@ -721,6 +763,7 @@ class _ImplClass {
   final ClassDeclarationImpl node;
   final InterfaceElement interfaceElement;
   final List<_Property> properties;
+  final Set<String> doNotGenerateLookupNames = {};
   int leftBracketOffset;
 
   late final Set<String> generatedLookupNames = () {
@@ -929,6 +972,16 @@ extension _DartTypeExtension on DartType {
   }
 }
 
+extension _ElementAnnotationExtension on ElementAnnotation {
+  bool get isDoNotGenerate {
+    if (element2 case ConstructorElement constructorElement) {
+      var interfaceElement = constructorElement.enclosingElement;
+      return interfaceElement.isDoNotGenerateExactly;
+    }
+    return false;
+  }
+}
+
 extension _InterfaceElementExtension on InterfaceElement {
   static final uriAst = Uri.parse('package:analyzer/src/dart/ast/ast.dart');
   static final uriToken = Uri.parse(
@@ -937,6 +990,10 @@ extension _InterfaceElementExtension on InterfaceElement {
 
   bool get isAnnotatedNodeExactly {
     return library2.uri == uriAst && name3 == 'AnnotatedNode';
+  }
+
+  bool get isDoNotGenerateExactly {
+    return library2.uri == uriAst && name3 == 'DoNotGenerate';
   }
 
   bool get isExpressionExactly {
@@ -994,5 +1051,11 @@ extension _InterfaceTypeExtension on InterfaceType {
     return element3.isListExactly &&
         typeArguments.length == 1 &&
         typeArguments.single.isToken;
+  }
+}
+
+extension _MetadataExtension on Metadata {
+  bool get hasDoNotGenerate {
+    return annotations.any((annotation) => annotation.isDoNotGenerate);
   }
 }

@@ -50,18 +50,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitExpressionStatement(ExpressionStatement node) {
     var expr = node.expression;
     if (expr is AssignmentExpression) return;
-
-    if (_isEnclosedInAsyncFunctionBody(node)) {
-      return;
-    }
-
-    if (expr case AwaitExpression(:var expression)) {
-      expr = expression;
-    }
-
-    if (expr.isAwaitNotRequired) {
-      return;
-    }
+    if (_isEnclosedInAsyncFunctionBody(node)) return;
+    if (expr is AwaitExpression) return;
+    if (expr.isAwaitNotRequired) return;
 
     var type = expr.staticType;
     if (type == null) {

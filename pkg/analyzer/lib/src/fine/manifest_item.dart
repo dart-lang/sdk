@@ -241,6 +241,16 @@ sealed class InstanceItem<E extends InstanceElementImpl2>
     inheritedConstructors[lookupName] = id;
   }
 
+  void beforeUpdatingMembers() {
+    declaredConflicts.clear();
+    declaredFields.clear();
+    declaredGetters.clear();
+    declaredSetters.clear();
+    declaredMethods.clear();
+    declaredConstructors.clear();
+    inheritedConstructors.clear();
+  }
+
   ManifestItemId? getConstructorId(LookupName name) {
     return declaredConstructors[name]?.id ??
         inheritedConstructors[name] ??

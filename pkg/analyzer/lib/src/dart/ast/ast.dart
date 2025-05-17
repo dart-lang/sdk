@@ -6596,6 +6596,14 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   DirectiveImpl({required super.comment, required super.metadata});
 }
 
+/// Works together with [GenerateNodeImpl], annotated constructors and methods
+/// will not be generated.
+class DoNotGenerate {
+  final String reason;
+
+  const DoNotGenerate({required this.reason});
+}
+
 /// A do statement.
 ///
 ///    doStatement ::=
@@ -10351,27 +10359,38 @@ abstract final class FormalParameterList implements AstNode {
   Token get rightParenthesis;
 }
 
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftParenthesis'),
+    GenerateNodeProperty('parameters'),
+    GenerateNodeProperty('leftDelimiter'),
+    GenerateNodeProperty('rightDelimiter'),
+    GenerateNodeProperty('rightParenthesis'),
+  ],
+)
 final class FormalParameterListImpl extends AstNodeImpl
     implements FormalParameterList {
+  @generated
   @override
   final Token leftParenthesis;
 
-  final NodeListImpl<FormalParameterImpl> _parameters = NodeListImpl._();
+  @generated
+  @override
+  final NodeListImpl<FormalParameterImpl> parameters = NodeListImpl._();
 
+  @generated
   @override
   final Token? leftDelimiter;
 
+  @generated
   @override
   final Token? rightDelimiter;
 
+  @generated
   @override
   final Token rightParenthesis;
 
-  /// Initializes a newly created parameter list.
-  ///
-  /// The [leftDelimiter] and [rightDelimiter] can be `null` if there are no
-  /// optional or named parameters, but it must be the case that either both are
-  /// `null` or that both are non-`null`.
+  @generated
   FormalParameterListImpl({
     required this.leftParenthesis,
     required List<FormalParameterImpl> parameters,
@@ -10379,32 +10398,36 @@ final class FormalParameterListImpl extends AstNodeImpl
     required this.rightDelimiter,
     required this.rightParenthesis,
   }) {
-    _parameters._initialize(this, parameters);
+    this.parameters._initialize(this, parameters);
   }
 
+  @generated
   @override
-  Token get beginToken => leftParenthesis;
+  Token get beginToken {
+    return leftParenthesis;
+  }
 
+  @generated
   @override
-  Token get endToken => rightParenthesis;
+  Token get endToken {
+    return rightParenthesis;
+  }
 
   @experimental
   @override
   List<FormalParameterFragmentImpl?> get parameterFragments {
-    return _parameters.map((node) => node.declaredFragment).toList();
+    return parameters.map((node) => node.declaredFragment).toList();
   }
 
   @override
-  NodeListImpl<FormalParameterImpl> get parameters => _parameters;
-
-  @override
+  @DoNotGenerate(reason: 'Has special logic for delimiters')
   ChildEntities get _childEntities {
     // TODO(paulberry): include commas.
     var result = ChildEntities()..addToken('leftParenthesis', leftParenthesis);
     bool leftDelimiterNeeded = leftDelimiter != null;
-    int length = _parameters.length;
+    int length = parameters.length;
     for (int i = 0; i < length; i++) {
-      FormalParameter parameter = _parameters[i];
+      FormalParameter parameter = parameters[i];
       if (leftDelimiterNeeded && leftDelimiter!.offset < parameter.offset) {
         result.addToken('leftDelimiter', leftDelimiter);
         leftDelimiterNeeded = false;
@@ -10416,17 +10439,24 @@ final class FormalParameterListImpl extends AstNodeImpl
       ..addToken('rightParenthesis', rightParenthesis);
   }
 
+  @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFormalParameterList(this);
 
+  @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    _parameters.accept(visitor);
+    parameters.accept(visitor);
   }
 
+  @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    return _parameters._elementContainingRange(rangeOffset, rangeEnd);
+    if (parameters._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
   }
 }
 
@@ -22270,12 +22300,14 @@ abstract final class StringInterpolation implements SingleStringLiteral {
   InterpolationString get lastString;
 }
 
+@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('elements')])
 final class StringInterpolationImpl extends SingleStringLiteralImpl
     implements StringInterpolation {
-  /// The elements that are composed to produce the resulting string.
-  final NodeListImpl<InterpolationElementImpl> _elements = NodeListImpl._();
+  @generated
+  @override
+  final NodeListImpl<InterpolationElementImpl> elements = NodeListImpl._();
 
-  /// Initializes a newly created string interpolation expression.
+  @DoNotGenerate(reason: 'Has useful asserts')
   StringInterpolationImpl({required List<InterpolationElementImpl> elements}) {
     // TODO(scheglov): Replace asserts with appropriately typed parameters.
     assert(elements.length > 2, 'Expected at last three elements.');
@@ -22291,29 +22323,38 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
       elements.last is InterpolationStringImpl,
       'The last element must be a string.',
     );
-    _elements._initialize(this, elements);
+    this.elements._initialize(this, elements);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    if (elements.beginToken case var result?) {
+      return result;
+    }
+    throw StateError('Expected at least one non-null');
   }
 
   @override
-  Token get beginToken => _elements.beginToken!;
-
-  @override
   int get contentsEnd {
-    var element = _elements.last as InterpolationString;
+    var element = elements.last as InterpolationString;
     return element.contentsEnd;
   }
 
   @override
   int get contentsOffset {
-    var element = _elements.first as InterpolationString;
+    var element = elements.first as InterpolationString;
     return element.contentsOffset;
   }
 
+  @generated
   @override
-  NodeListImpl<InterpolationElementImpl> get elements => _elements;
-
-  @override
-  Token get endToken => _elements.endToken!;
+  Token get endToken {
+    if (elements.endToken case var result?) {
+      return result;
+    }
+    throw StateError('Expected at least one non-null');
+  }
 
   @override
   InterpolationStringImpl get firstString =>
@@ -22332,27 +22373,31 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   InterpolationStringImpl get lastString =>
       elements.last as InterpolationStringImpl;
 
+  @generated
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addNodeList('elements', elements);
 
   StringLexemeHelper get _firstHelper {
-    var lastString = _elements.first as InterpolationString;
+    var lastString = elements.first as InterpolationString;
     String lexeme = lastString.contents.lexeme;
     return StringLexemeHelper(lexeme, true, false);
   }
 
+  @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitStringInterpolation(this);
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitStringInterpolation(this, contextType: contextType);
   }
 
+  @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    _elements.accept(visitor);
+    elements.accept(visitor);
   }
 
   @override
@@ -22360,9 +22405,14 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
     throw ArgumentError();
   }
 
+  @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    return _elements._elementContainingRange(rangeOffset, rangeEnd);
+    if (elements._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
   }
 }
 

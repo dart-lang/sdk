@@ -509,7 +509,7 @@ import 'b.dart';
   }
 
   @failingTest
-  Future<void> test_project_folder_ancestor() async {
+  Future<void> test_project_folder_ancestor() {
     // For this, we need the project to not be at top level (/project) so we can
     // rename an ancestor folder.
     fail('Not yet implemented/tested');

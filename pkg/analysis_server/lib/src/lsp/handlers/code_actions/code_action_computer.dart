@@ -95,7 +95,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
     required this.performance,
   });
 
-  Future<ErrorOr<TextDocumentCodeActionResult>> compute() async {
+  Future<ErrorOr<TextDocumentCodeActionResult>> compute() {
     var path = pathOfDoc(textDocument);
     return path.mapResult((unitPath) async {
       if (!server.isAnalyzed(unitPath) ||

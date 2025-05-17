@@ -260,7 +260,7 @@ class CompletionLabelDetailsTest extends AbstractCompletionTest {
     required String? filterText,
     required String? detail,
     String? resolvedDetailPrefix,
-  }) async {
+  }) {
     return expectLabels(
       content,
       completionFileUri: completionFileUri,

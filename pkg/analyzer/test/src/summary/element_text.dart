@@ -663,7 +663,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeFormalParameterElement(FormalParameterElement e) {
     e as FormalParameterElementMixin;
-    // if (e.isNamed && e.enclosingElement2 is ExecutableElement) {
+    // if (e.isNamed && e.enclosingElement is ExecutableElement) {
     //   expect(e.reference, isNotNull);
     // } else {
     //   expect(e.reference, isNull);
@@ -1401,7 +1401,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
-      // _writeElementReference(e.enclosingElement2, label: 'enclosingElement2');
+      // _writeElementReference(e.enclosingElement, label: 'enclosingElement');
       if (e.hasEnclosingTypeParameterReference) {
         _sink.writelnWithIndent('hasEnclosingTypeParameterReference: true');
       }
@@ -1426,9 +1426,9 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(e);
     });
 
-    // if (e.isSynthetic && e.enclosingElement2 is EnumElementImpl) {
+    // if (e.isSynthetic && e.enclosingElement is EnumElementImpl) {
     //   expect(e.name, 'toString');
-    //   expect(e.nonSynthetic2, same(e.enclosingElement2));
+    //   expect(e.nonSynthetic2, same(e.enclosingElement));
     // } else {
     //   _assertNonSyntheticElementSelf(e);
     // }

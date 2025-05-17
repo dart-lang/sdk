@@ -1317,6 +1317,8 @@ class DeclarationHelper {
         includeMethods: true,
         includeSetters: true,
       );
+    } else if (thisType is RecordType) {
+      _addFieldsOfRecordType(type: thisType, excludedFields: {});
     }
   }
 

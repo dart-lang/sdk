@@ -135,13 +135,7 @@ class LibraryManifestBuilder {
     encodingContext.withTypeParameters(element.typeParameters2, (
       typeParameters,
     ) {
-      classItem.declaredConflicts.clear();
-      // classItem.declaredFields.clear(); // TODO(scheglov): restore
-      classItem.declaredGetters.clear();
-      classItem.declaredSetters.clear();
-      classItem.declaredMethods.clear();
-      classItem.declaredConstructors.clear();
-      classItem.inheritedConstructors.clear();
+      classItem.beforeUpdatingMembers();
       _addInterfaceElementMembers(
         encodingContext: encodingContext,
         instanceElement: element,
@@ -396,13 +390,7 @@ class LibraryManifestBuilder {
     encodingContext.withTypeParameters(element.typeParameters2, (
       typeParameters,
     ) {
-      mixinItem.declaredConflicts.clear();
-      // mixinItem.declaredFields.clear(); // TODO(scheglov): restore
-      mixinItem.declaredGetters.clear();
-      mixinItem.declaredSetters.clear();
-      mixinItem.declaredMethods.clear();
-      mixinItem.declaredConstructors.clear();
-      mixinItem.inheritedConstructors.clear();
+      mixinItem.beforeUpdatingMembers();
       _addInterfaceElementMembers(
         encodingContext: encodingContext,
         instanceElement: element,

@@ -44,7 +44,7 @@ class ReferencesHandler
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await message.performance.runAsync(
       '_getReferences',
-      (performance) async => (unit, offset).mapResults(
+      (performance) => (unit, offset).mapResults(
         (unit, offset) => _getReferences(unit, offset, params, performance),
       ),
     );

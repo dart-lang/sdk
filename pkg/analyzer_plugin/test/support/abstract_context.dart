@@ -36,7 +36,7 @@ class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  Future<AnalysisSession> get session async => sessionFor(testPackageRootPath);
+  Future<AnalysisSession> get session => sessionFor(testPackageRootPath);
 
   /// The file system-specific `analysis_options.yaml` path.
   String get testPackageAnalysisOptionsPath =>
