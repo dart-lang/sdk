@@ -79,7 +79,7 @@ class _VerifyTests {
       }
     }
     var relativePath = path.relative(directory.path, from: testDirPath);
-    test(relativePath, () async {
+    test(relativePath, () {
       if (testFileNames.isEmpty) return;
       if (testAllFile == null) return;
 
