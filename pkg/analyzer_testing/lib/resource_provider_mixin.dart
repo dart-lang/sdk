@@ -35,12 +35,6 @@ mixin ResourceProviderMixin {
   /// path context.
   String convertPath(String filePath) => resourceProvider.convertPath(filePath);
 
-  /// Deletes the analysis options YAML file at [directoryPath].
-  void deleteAnalysisOptionsYamlFile(String directoryPath) {
-    var path = join(directoryPath, file_paths.analysisOptionsYaml);
-    deleteFile(path);
-  }
-
   /// Deletes the file at [path].
   void deleteFile(String path) {
     resourceProvider.getFile(convertPath(path)).delete();
@@ -49,16 +43,6 @@ mixin ResourceProviderMixin {
   /// Deletes the folder at [path].
   void deleteFolder(String path) {
     resourceProvider.getFolder(convertPath(path)).delete();
-  }
-
-  /// Deletes the `package_config.json` file at [directoryPath].
-  void deletePackageConfigJsonFile(String directoryPath) {
-    var path = join(
-      directoryPath,
-      file_paths.dotDartTool,
-      file_paths.packageConfigJson,
-    );
-    deleteFile(path);
   }
 
   /// Returns [uri] as a String.

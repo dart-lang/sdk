@@ -10,7 +10,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Use super-initializer parameters where possible.';
 
@@ -43,7 +42,7 @@ class UseSuperParameters extends MultiAnalysisRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    if (!context.isEnabled(Feature.super_parameters)) return;
+    if (!context.isFeatureEnabled(Feature.super_parameters)) return;
 
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);

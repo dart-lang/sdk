@@ -28,7 +28,7 @@ class UseNullAwareElements extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    if (!context.isEnabled(Feature.null_aware_elements)) return;
+    if (!context.isFeatureEnabled(Feature.null_aware_elements)) return;
     var visitor = _Visitor(this);
     registry.addIfElement(this, visitor);
   }

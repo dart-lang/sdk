@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r"Don't use explicit `break`s when a break is implied.";
 
@@ -24,7 +23,7 @@ class UnnecessaryBreaks extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    if (!context.isEnabled(Feature.patterns)) return;
+    if (!context.isFeatureEnabled(Feature.patterns)) return;
 
     var visitor = _Visitor(this);
     registry.addBreakStatement(this, visitor);

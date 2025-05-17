@@ -264,11 +264,11 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   /// Asserts that there are no diagnostics in the given [content].
-  Future<void> assertNoDiagnostics(String content) async =>
+  Future<void> assertNoDiagnostics(String content) =>
       assertDiagnostics(content, const []);
 
   /// Asserts that there are no diagnostics in the file at the given [path].
-  Future<void> assertNoDiagnosticsInFile(String path) async =>
+  Future<void> assertNoDiagnosticsInFile(String path) =>
       assertDiagnosticsInFile(path, const []);
 
   /// Asserts that no diagnostics are reported when resolving [content].

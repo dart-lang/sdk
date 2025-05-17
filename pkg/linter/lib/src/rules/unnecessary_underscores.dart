@@ -11,7 +11,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Unnecessary underscores can be removed.';
@@ -28,7 +27,7 @@ class UnnecessaryUnderscores extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    if (!context.isEnabled(Feature.wildcard_variables)) return;
+    if (!context.isFeatureEnabled(Feature.wildcard_variables)) return;
     var visitor = _Visitor(this);
     registry.addFormalParameterList(this, visitor);
     registry.addVariableDeclaration(this, visitor);

@@ -45,7 +45,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule, LinterContext context)
-    : _wildCardVariablesEnabled = context.isEnabled(Feature.wildcard_variables);
+    : _wildCardVariablesEnabled = context.isFeatureEnabled(
+        Feature.wildcard_variables,
+      );
 
   bool isWildcardIdentifier(String lexeme) =>
       _wildCardVariablesEnabled && lexeme == '_';
