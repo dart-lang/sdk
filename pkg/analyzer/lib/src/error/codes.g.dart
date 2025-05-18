@@ -4582,6 +4582,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
+  ///  The documentation is in `front_end/message.yaml`.
   static const CompileTimeErrorCode
   RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA = CompileTimeErrorCode(
     'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
@@ -7032,6 +7033,7 @@ class WarningCode extends DiagnosticCode {
     'INVALID_WIDGET_PREVIEW_APPLICATION',
     "The '@Preview(...)' annotation can only be applied to public, statically "
         "accessible constructors and functions.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -7043,6 +7045,7 @@ class WarningCode extends DiagnosticCode {
     "'@Preview(...)' can only accept arguments that consist of literals and "
         "public symbols.",
     correctionMessage: "Rename private symbol '{0}' to '{1}'.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
