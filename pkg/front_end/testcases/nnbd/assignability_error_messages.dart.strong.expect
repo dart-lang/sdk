@@ -24,13 +24,13 @@ library;
 //   <A>[...l2]; // Error.
 //          ^
 //
-// pkg/front_end/testcases/nnbd/assignability_error_messages.dart:33:13: Error: Can't assign spread entry keys of type 'B?' to map entry keys of type 'A' because 'B?' is nullable and 'A' isn't.
+// pkg/front_end/testcases/nnbd/assignability_error_messages.dart:33:13: Error: Can't assign spread entry keys of type 'B?' to map entry keys of type 'A'.
 //  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 //   <A, A>{...m}; // Error.
 //             ^
 //
-// pkg/front_end/testcases/nnbd/assignability_error_messages.dart:33:13: Error: Can't assign spread entry values of type 'B?' to map entry values of type 'A' because 'B?' is nullable and 'A' isn't.
+// pkg/front_end/testcases/nnbd/assignability_error_messages.dart:33:13: Error: Can't assign spread entry values of type 'B?' to map entry values of type 'A'.
 //  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 //   <A, A>{...m}; // Error.
@@ -103,14 +103,14 @@ library;
 //   <List<A>>[...l]; // Error.
 //                ^
 //
-// pkg/front_end/testcases/nnbd/assignability_error_messages.dart:58:25: Error: Can't assign spread entry keys of type 'List<B?>' to map entry keys of type 'List<A>' because 'B?' is nullable and 'A' isn't.
+// pkg/front_end/testcases/nnbd/assignability_error_messages.dart:58:25: Error: Can't assign spread entry keys of type 'List<B?>' to map entry keys of type 'List<A>'.
 //  - 'List' is from 'dart:core'.
 //  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 //   <List<A>, List<A>>{...m}; // Error.
 //                         ^
 //
-// pkg/front_end/testcases/nnbd/assignability_error_messages.dart:58:25: Error: Can't assign spread entry values of type 'List<B?>' to map entry values of type 'List<A>' because 'B?' is nullable and 'A' isn't.
+// pkg/front_end/testcases/nnbd/assignability_error_messages.dart:58:25: Error: Can't assign spread entry values of type 'List<B?>' to map entry values of type 'List<A>'.
 //  - 'List' is from 'dart:core'.
 //  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
@@ -221,11 +221,11 @@ static method foo(self::B? x, core::List<self::B?> l, core::Map<self::B?, self::
   <self::A>[invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:32:10: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
   <A>[...l2]; // Error.
          ^"];
-  <self::A, self::A>{invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:33:13: Error: Can't assign spread entry keys of type 'B?' to map entry keys of type 'A' because 'B?' is nullable and 'A' isn't.
+  <self::A, self::A>{invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:33:13: Error: Can't assign spread entry keys of type 'B?' to map entry keys of type 'A'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   <A, A>{...m}; // Error.
-            ^": invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:33:13: Error: Can't assign spread entry values of type 'B?' to map entry values of type 'A' because 'B?' is nullable and 'A' isn't.
+            ^": invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:33:13: Error: Can't assign spread entry values of type 'B?' to map entry values of type 'A'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   <A, A>{...m}; // Error.
@@ -303,12 +303,12 @@ static method bar(core::List<self::B?> x, core::List<core::List<self::B?>> l, co
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   <List<A>>[...l]; // Error.
                ^"];
-  <core::List<self::A>, core::List<self::A>>{invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:58:25: Error: Can't assign spread entry keys of type 'List<B?>' to map entry keys of type 'List<A>' because 'B?' is nullable and 'A' isn't.
+  <core::List<self::A>, core::List<self::A>>{invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:58:25: Error: Can't assign spread entry keys of type 'List<B?>' to map entry keys of type 'List<A>'.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   <List<A>, List<A>>{...m}; // Error.
-                        ^": invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:58:25: Error: Can't assign spread entry values of type 'List<B?>' to map entry values of type 'List<A>' because 'B?' is nullable and 'A' isn't.
+                        ^": invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:58:25: Error: Can't assign spread entry values of type 'List<B?>' to map entry values of type 'List<A>'.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.

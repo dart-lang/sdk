@@ -4464,68 +4464,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression? keyError;
       Expression? valueError;
       if (!isAssignable(inferredKeyType, actualKeyType)) {
-        IsSubtypeOf subtypeCheckResult =
-            typeSchemaEnvironment.performNullabilityAwareSubtypeCheck(
-                actualKeyType, inferredKeyType);
-        if (subtypeCheckResult.isSubtypeWhenIgnoringNullabilities()) {
-          if (actualKeyType == subtypeCheckResult.subtype &&
-              inferredKeyType == subtypeCheckResult.supertype) {
-            keyError = helper.buildProblem(
-                templateSpreadMapEntryElementKeyTypeMismatchNullability
-                    .withArguments(actualKeyType, inferredKeyType),
-                entry.expression.fileOffset,
-                1);
-          } else {
-            keyError = helper.buildProblem(
-                // ignore: lines_longer_than_80_chars
-                templateSpreadMapEntryElementKeyTypeMismatchPartNullability
-                    .withArguments(
-                        actualKeyType,
-                        inferredKeyType,
-                        subtypeCheckResult.subtype!,
-                        subtypeCheckResult.supertype!),
-                entry.expression.fileOffset,
-                1);
-          }
-        } else {
-          keyError = helper.buildProblem(
-              templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
-                  actualKeyType, inferredKeyType),
-              entry.expression.fileOffset,
-              1);
-        }
+        keyError = helper.buildProblem(
+            templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
+                actualKeyType, inferredKeyType),
+            entry.expression.fileOffset,
+            1);
       }
       if (!isAssignable(inferredValueType, actualValueType)) {
-        IsSubtypeOf subtypeCheckResult =
-            typeSchemaEnvironment.performNullabilityAwareSubtypeCheck(
-                actualValueType, inferredValueType);
-        if (subtypeCheckResult.isSubtypeWhenIgnoringNullabilities()) {
-          if (actualValueType == subtypeCheckResult.subtype &&
-              inferredValueType == subtypeCheckResult.supertype) {
-            valueError = helper.buildProblem(
-                templateSpreadMapEntryElementValueTypeMismatchNullability
-                    .withArguments(actualValueType, inferredValueType),
-                entry.expression.fileOffset,
-                1);
-          } else {
-            valueError = helper.buildProblem(
-                // ignore: lines_longer_than_80_chars
-                templateSpreadMapEntryElementValueTypeMismatchPartNullability
-                    .withArguments(
-                        actualValueType,
-                        inferredValueType,
-                        subtypeCheckResult.subtype!,
-                        subtypeCheckResult.supertype!),
-                entry.expression.fileOffset,
-                1);
-          }
-        } else {
-          valueError = helper.buildProblem(
-              templateSpreadMapEntryElementValueTypeMismatch.withArguments(
-                  actualValueType, inferredValueType),
-              entry.expression.fileOffset,
-              1);
-        }
+        valueError = helper.buildProblem(
+            templateSpreadMapEntryElementValueTypeMismatch.withArguments(
+                actualValueType, inferredValueType),
+            entry.expression.fileOffset,
+            1);
       }
       if (spreadType.isPotentiallyNullable &&
           spreadType is! DynamicType &&
