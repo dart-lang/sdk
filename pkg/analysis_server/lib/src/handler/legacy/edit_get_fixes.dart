@@ -133,7 +133,6 @@ class EditGetFixesHandler extends LegacyHandler
       sourceFactory,
       analysisContext.contextRoot.root.path,
       sdkVersionConstraint,
-      resourceProvider,
     );
     var options = _getOptions(sourceFactory, content);
     if (options == null) {

@@ -403,7 +403,6 @@ class ContextManagerImpl implements ContextManager {
         driver.sourceFactory,
         driver.currentSession.analysisContext.contextRoot.root.path,
         sdkVersionConstraint,
-        resourceProvider,
       );
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(

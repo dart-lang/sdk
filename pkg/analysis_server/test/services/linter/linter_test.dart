@@ -9,7 +9,6 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
-import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,17 +20,14 @@ void main() {
 }
 
 @reflectiveTest
-class LinterRuleOptionsValidatorTest with ResourceProviderMixin {
+class LinterRuleOptionsValidatorTest {
   late RecordingErrorListener recorder;
 
   late ErrorReporter reporter;
 
   List<Diagnostic> get errors => recorder.errors;
 
-  LinterRuleOptionsValidator get validator => LinterRuleOptionsValidator(
-    optionsProvider: AnalysisOptionsProvider(),
-    resourceProvider: resourceProvider,
-  );
+  LinterRuleOptionsValidator get validator => LinterRuleOptionsValidator();
 
   void setUp() {
     registerLintRules();

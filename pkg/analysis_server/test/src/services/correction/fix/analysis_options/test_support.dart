@@ -52,7 +52,6 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
       sourceFactory,
       '/',
       dart2_12,
-      resourceProvider,
     );
     if (diagnosticFilter != null) {
       if (errors.length == 1) {

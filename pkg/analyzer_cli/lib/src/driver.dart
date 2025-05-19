@@ -282,7 +282,6 @@ class Driver implements CommandLineStarter {
             analysisDriver.sourceFactory,
             contextRoot.root.path,
             sdkVersionConstraint,
-            resourceProvider,
           );
           var analysisOptions = fileResult.analysisOptions;
           await formatter.formatErrors([
