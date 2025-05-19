@@ -1618,7 +1618,14 @@ if (!self.deferred_loader) {
         );
       }
       await Promise.all(reloadFilePromises).then((_) => {
-        this.hotReloadEnd();
+        if (dartDevEmbedderConfig.captureHotReloadEndHandler != null) {
+          // Let the app decide when to update the libraries.
+          dartDevEmbedderConfig.captureHotReloadEndHandler(() => {
+            this.hotReloadEnd();
+          });
+        } else {
+          this.hotReloadEnd();
+        }
       });
     }
 
@@ -2053,6 +2060,16 @@ if (!self.deferred_loader) {
      * @type {?function()}
      */
     mainErrorCallback = null;
+
+    /*
+     * An optional handler that acts as a wrapper around the push of the hot
+     * reloaded libraries into the Dart runtime which completes the hot reload.
+     * Passed an opaque function as an argument that pushes the libraries that
+     * were previously loaded into the page during a call to
+     * `DartDevEmbedder.hotReload` when called.
+     * @type {?function(function())}
+     */
+    captureHotReloadEndHandler = null;
   }
 
   const dartDevEmbedderConfig = new DartDevEmbedderConfiguration();
