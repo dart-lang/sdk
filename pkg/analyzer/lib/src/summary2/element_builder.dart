@@ -45,13 +45,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   void buildDeclarationElements(CompilationUnit unit) {
     _visitPropertyFirst<TopLevelVariableDeclaration>(unit.declarations);
-    _unitElement.accessors = _enclosingContext.propertyAccessors;
     _unitElement.classes = _enclosingContext.classes;
     _unitElement.enums = _enclosingContext.enums;
     _unitElement.extensions = _enclosingContext.extensions;
     _unitElement.extensionTypes = _enclosingContext.extensionTypes;
     _unitElement.functions = _enclosingContext.functions;
+    _unitElement.getters = _enclosingContext.getters;
     _unitElement.mixins = _enclosingContext.mixins;
+    _unitElement.setters = _enclosingContext.setters;
     _unitElement.topLevelVariables = _enclosingContext.topLevelVariables;
     _unitElement.typeAliases = _enclosingContext.typeAliases;
   }
@@ -169,10 +170,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
     fragment.typeParameters = holder.typeParameters;
-    fragment.accessors = holder.propertyAccessors;
-    fragment.constructors = holder.constructors;
     fragment.fields = holder.fields;
+    fragment.getters = holder.getters;
+    fragment.setters = holder.setters;
     fragment.methods = holder.methods;
+    fragment.constructors = holder.constructors;
 
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
@@ -494,11 +496,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
 
-    fragment.accessors = holder.propertyAccessors;
-    fragment.constructors = holder.constructors;
-    fragment.fields = holder.fields;
-    fragment.methods = holder.methods;
     fragment.typeParameters = holder.typeParameters;
+    fragment.fields = holder.fields;
+    fragment.getters = holder.getters;
+    fragment.setters = holder.setters;
+    fragment.methods = holder.methods;
+    fragment.constructors = holder.constructors;
     elementBuilder.addFragment(fragment);
   }
 
@@ -582,8 +585,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
     fragment.typeParameters = holder.typeParameters;
-    fragment.accessors = holder.propertyAccessors;
     fragment.fields = holder.fields;
+    fragment.getters = holder.getters;
+    fragment.setters = holder.setters;
     fragment.methods = holder.methods;
 
     node.onClause?.accept(this);
@@ -652,11 +656,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
 
-    fragment.accessors = holder.propertyAccessors;
-    fragment.constructors = holder.constructors;
-    fragment.fields = holder.fields;
-    fragment.methods = holder.methods;
     fragment.typeParameters = holder.typeParameters;
+    fragment.fields = holder.fields;
+    fragment.getters = holder.getters;
+    fragment.setters = holder.setters;
+    fragment.methods = holder.methods;
+    fragment.constructors = holder.constructors;
 
     var executables = const <ExecutableFragmentImpl>[]
         .followedBy(fragment.accessors)
@@ -1300,8 +1305,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
     fragment.typeParameters = holder.typeParameters;
-    fragment.accessors = holder.propertyAccessors;
     fragment.fields = holder.fields;
+    fragment.getters = holder.getters;
+    fragment.setters = holder.setters;
     fragment.methods = holder.methods;
 
     node.onClause?.accept(this);
@@ -1892,6 +1898,7 @@ class _EnclosingContext {
   final List<MethodFragmentImpl> _methods = [];
   final List<MixinFragmentImpl> _mixins = [];
   final List<FormalParameterFragmentImpl> _parameters = [];
+  // TODO(scheglov): Use getters / setters instead.
   final List<PropertyAccessorFragmentImpl> _propertyAccessors = [];
   final List<TopLevelVariableFragmentImpl> _topLevelVariables = [];
   final List<TypeAliasFragmentImpl> _typeAliases = [];
@@ -1946,6 +1953,10 @@ class _EnclosingContext {
     return _functions.toFixedList();
   }
 
+  List<GetterFragmentImpl> get getters {
+    return _propertyAccessors.whereType<GetterFragmentImpl>().toFixedList();
+  }
+
   bool get isDartCoreEnum {
     var fragment = this.fragment;
     return fragment is ClassFragmentImpl && fragment.isDartCoreEnum;
@@ -1963,8 +1974,8 @@ class _EnclosingContext {
     return _parameters.toFixedList();
   }
 
-  List<PropertyAccessorFragmentImpl> get propertyAccessors {
-    return _propertyAccessors.toFixedList();
+  List<SetterFragmentImpl> get setters {
+    return _propertyAccessors.whereType<SetterFragmentImpl>().toFixedList();
   }
 
   List<TopLevelVariableFragmentImpl> get topLevelVariables {

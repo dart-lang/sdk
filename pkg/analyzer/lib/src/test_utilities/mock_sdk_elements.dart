@@ -153,7 +153,7 @@ class _MockSdkElementsBuilder {
 
     deprecatedElement.fields = [_field('message', stringType, isFinal: true)];
 
-    deprecatedElement.accessors =
+    deprecatedElement.getters =
         deprecatedElement.fields.map((f) => f.getter!).toList();
 
     deprecatedElement.constructors = [
@@ -191,7 +191,7 @@ class _MockSdkElementsBuilder {
       staticConstDoubleField('maxFinite'),
     ];
 
-    doubleElement.accessors =
+    doubleElement.getters =
         doubleElement.fields.map((field) => field.getter!).toList();
 
     doubleElement.methods = [
@@ -408,7 +408,7 @@ class _MockSdkElementsBuilder {
 
     iterableElement.constructors = [_constructor(isConst: true)];
 
-    _setAccessors(iterableElement, [
+    _setGetters(iterableElement, [
       _getter('iterator', iteratorType(eType)),
       _getter('last', eType),
     ]);
@@ -433,7 +433,7 @@ class _MockSdkElementsBuilder {
         );
     iteratorElement.supertype = objectType;
 
-    _setAccessors(iterableElement, [_getter('current', eType)]);
+    _setGetters(iterableElement, [_getter('current', eType)]);
 
     _buildClassElement(iteratorElement);
     return iteratorElement;
@@ -463,7 +463,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
-    _setAccessors(listElement, [_getter('length', intType)]);
+    _setGetters(listElement, [_getter('length', intType)]);
 
     listElement.methods = [
       _method('[]', eType, parameters: [_requiredParameter('index', intType)]),
@@ -504,7 +504,7 @@ class _MockSdkElementsBuilder {
         );
     mapElement.supertype = objectType;
 
-    _setAccessors(mapElement, [_getter('length', intType)]);
+    _setGetters(mapElement, [_getter('length', intType)]);
 
     mapElement.methods = [
       _method('[]', vType, parameters: [_requiredParameter('key', objectType)]),
@@ -618,7 +618,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
-    _setAccessors(numElement, [
+    _setGetters(numElement, [
       _getter('isInfinite', boolType),
       _getter('isNaN', boolType),
       _getter('isNegative', boolType),
@@ -657,7 +657,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
-    _setAccessors(objectElement, [
+    _setGetters(objectElement, [
       _getter('hashCode', intType),
       _getter('runtimeType', typeType),
     ]);
@@ -825,7 +825,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
-    _setAccessors(stringElement, [
+    _setGetters(stringElement, [
       _getter('isEmpty', boolType),
       _getter('length', intType),
       _getter('codeUnits', listType(intType)),
@@ -1045,7 +1045,7 @@ class _MockSdkElementsBuilder {
     );
   }
 
-  PropertyAccessorFragmentImpl _getter(
+  GetterFragmentImpl _getter(
     String name,
     TypeImpl type, {
     bool isStatic = false,
@@ -1172,7 +1172,7 @@ class _MockSdkElementsBuilder {
       _interfaceType(overrideElement),
     );
 
-    _coreUnit.accessors = <PropertyAccessorFragmentImpl>[
+    _coreUnit.getters = <GetterFragmentImpl>[
       deprecatedVariable.getter!,
       overrideVariable.getter!,
     ];
@@ -1209,14 +1209,14 @@ class _MockSdkElementsBuilder {
     return FormalParameterElementImpl(fragment);
   }
 
-  /// Set the [accessors] and the corresponding fields for the [classElement].
-  void _setAccessors(
+  /// Set the [getters] and the corresponding fields for the [classElement].
+  void _setGetters(
     ClassFragmentImpl classElement,
-    List<PropertyAccessorFragmentImpl> accessors,
+    List<GetterFragmentImpl> getters,
   ) {
-    classElement.accessors = accessors;
+    classElement.getters = getters;
     classElement.fields =
-        accessors
+        getters
             .map((accessor) => accessor.variable2)
             .cast<FieldFragmentImpl>()
             .toList();

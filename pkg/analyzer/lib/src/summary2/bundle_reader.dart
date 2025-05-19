@@ -727,19 +727,22 @@ class LibraryReader {
   ) {
     var unitElement = fragment.enclosingElement3;
 
-    var accessors = <PropertyAccessorFragmentImpl>[];
     var fields = <FieldFragmentImpl>[];
-    _readFields(unitElement, fragment, reference, accessors, fields);
+    var getters = <GetterFragmentImpl>[];
+    var setters = <SetterFragmentImpl>[];
+    _readFields(unitElement, fragment, reference, fields, getters, setters);
     _readPropertyAccessors(
       unitElement,
       fragment,
       reference,
-      accessors,
+      getters,
+      setters,
       fields,
       '@field',
     );
     fragment.fields = fields.toFixedList();
-    fragment.accessors = accessors.toFixedList();
+    fragment.getters = getters.toFixedList();
+    fragment.setters = setters.toFixedList();
 
     fragment.constructors = _readConstructors(unitElement, fragment, reference);
     fragment.methods = _readMethods(unitElement, fragment, reference);
@@ -880,20 +883,23 @@ class LibraryReader {
     EnumElementFlags.read(_reader, fragment);
     fragment.typeParameters = _readTypeParameters();
 
-    var accessors = <PropertyAccessorFragmentImpl>[];
     var fields = <FieldFragmentImpl>[];
+    var getters = <GetterFragmentImpl>[];
+    var setters = <SetterFragmentImpl>[];
 
-    _readFields(unitElement, fragment, reference, accessors, fields);
+    _readFields(unitElement, fragment, reference, fields, getters, setters);
     _readPropertyAccessors(
       unitElement,
       fragment,
       reference,
-      accessors,
+      getters,
+      setters,
       fields,
       '@field',
     );
     fragment.fields = fields.toFixedList();
-    fragment.accessors = accessors.toFixedList();
+    fragment.getters = getters.toFixedList();
+    fragment.setters = setters.toFixedList();
 
     fragment.constructors = _readConstructors(unitElement, fragment, reference);
     fragment.methods = _readMethods(unitElement, fragment, reference);
@@ -968,19 +974,22 @@ class LibraryReader {
     ExtensionElementFlags.read(_reader, fragment);
     fragment.typeParameters = _readTypeParameters();
 
-    var accessors = <PropertyAccessorFragmentImpl>[];
     var fields = <FieldFragmentImpl>[];
+    var getters = <GetterFragmentImpl>[];
+    var setters = <SetterFragmentImpl>[];
     _readPropertyAccessors(
       unitElement,
       fragment,
       reference,
-      accessors,
+      getters,
+      setters,
       fields,
       '@field',
     );
-    _readFields(unitElement, fragment, reference, accessors, fields);
-    fragment.accessors = accessors;
+    _readFields(unitElement, fragment, reference, fields, getters, setters);
     fragment.fields = fields;
+    fragment.getters = getters;
+    fragment.setters = setters;
 
     fragment.methods = _readMethods(unitElement, fragment, reference);
 
@@ -1032,18 +1041,21 @@ class LibraryReader {
     fragment.typeParameters = _readTypeParameters();
 
     var fields = <FieldFragmentImpl>[];
-    var accessors = <PropertyAccessorFragmentImpl>[];
-    _readFields(unitElement, fragment, reference, accessors, fields);
+    var getters = <GetterFragmentImpl>[];
+    var setters = <SetterFragmentImpl>[];
+    _readFields(unitElement, fragment, reference, fields, getters, setters);
     _readPropertyAccessors(
       unitElement,
       fragment,
       reference,
-      accessors,
+      getters,
+      setters,
       fields,
       '@field',
     );
     fragment.fields = fields;
-    fragment.accessors = accessors;
+    fragment.getters = getters;
+    fragment.setters = setters;
 
     fragment.constructors = _readConstructors(unitElement, fragment, reference);
     fragment.methods = _readMethods(unitElement, fragment, reference);
@@ -1120,28 +1132,23 @@ class LibraryReader {
     LibraryFragmentImpl unitElement,
     FragmentImpl classElement,
     Reference classReference,
-    List<PropertyAccessorFragmentImpl> accessors,
     List<FieldFragmentImpl> variables,
+    List<GetterFragmentImpl> getters,
+    List<SetterFragmentImpl> setters,
   ) {
-    var createdElements = <FieldFragmentImpl>[];
-    var variableElementCount = _reader.readUInt30();
-    for (var i = 0; i < variableElementCount; i++) {
-      var variable = _readFieldElement(
-        unitElement,
-        classElement,
-        classReference,
-      );
-      createdElements.add(variable);
-      variables.add(variable);
+    var fieldCount = _reader.readUInt30();
+    for (var i = 0; i < fieldCount; i++) {
+      var field = _readFieldElement(unitElement, classElement, classReference);
+      variables.add(field);
 
-      var getter = variable.getter;
-      if (getter is GetterFragmentImpl) {
-        accessors.add(getter);
+      var getter = field.getter;
+      if (getter != null) {
+        getters.add(getter);
       }
 
-      var setter = variable.setter;
-      if (setter is SetterFragmentImpl) {
-        accessors.add(setter);
+      var setter = field.setter;
+      if (setter != null) {
+        setters.add(setter);
       }
     }
   }
@@ -1317,18 +1324,21 @@ class LibraryReader {
     fragment.typeParameters = _readTypeParameters();
 
     var fields = <FieldFragmentImpl>[];
-    var accessors = <PropertyAccessorFragmentImpl>[];
-    _readFields(unitElement, fragment, reference, accessors, fields);
+    var getters = <GetterFragmentImpl>[];
+    var setters = <SetterFragmentImpl>[];
+    _readFields(unitElement, fragment, reference, fields, getters, setters);
     _readPropertyAccessors(
       unitElement,
       fragment,
       reference,
-      accessors,
+      getters,
+      setters,
       fields,
       '@field',
     );
     fragment.fields = fields.toFixedList();
-    fragment.accessors = accessors.toFixedList();
+    fragment.getters = getters.toFixedList();
+    fragment.setters = setters.toFixedList();
 
     fragment.constructors = _readConstructors(unitElement, fragment, reference);
     fragment.methods = _readMethods(unitElement, fragment, reference);
@@ -1485,7 +1495,8 @@ class LibraryReader {
     LibraryFragmentImpl unitElement,
     FragmentImpl enclosingElement,
     Reference enclosingReference,
-    List<PropertyAccessorFragmentImpl> accessorFragments,
+    List<GetterFragmentImpl> gettersFragments,
+    List<SetterFragmentImpl> settersFragments,
     List<PropertyInducingElementImpl> propertyFragments,
     String containerRefName, {
     List<TopLevelVariableElementImpl2>? variables2,
@@ -1497,7 +1508,12 @@ class LibraryReader {
         enclosingElement,
         enclosingReference,
       );
-      accessorFragments.add(accessor);
+      switch (accessor) {
+        case GetterFragmentImpl getter:
+          gettersFragments.add(getter);
+        case SetterFragmentImpl setter:
+          settersFragments.add(setter);
+      }
 
       if (accessor.isAugmentation) {
         continue;
@@ -1649,7 +1665,8 @@ class LibraryReader {
   void _readTopLevelVariables(
     LibraryFragmentImpl unitElement,
     Reference unitReference,
-    List<PropertyAccessorFragmentImpl> accessors,
+    List<GetterFragmentImpl> getters,
+    List<SetterFragmentImpl> setters,
     List<TopLevelVariableFragmentImpl> variables,
   ) {
     var variableElementCount = _reader.readUInt30();
@@ -1659,12 +1676,12 @@ class LibraryReader {
 
       var getter = variable.getter;
       if (getter is GetterFragmentImpl) {
-        accessors.add(getter);
+        getters.add(getter);
       }
 
       var setter = variable.setter;
       if (setter is SetterFragmentImpl) {
-        accessors.add(setter);
+        setters.add(setter);
       }
     }
   }
@@ -1778,25 +1795,29 @@ class LibraryReader {
     _readMixins(unitElement, unitReference);
     _readTypeAliases(unitElement, unitReference);
 
-    var accessorFragments = <PropertyAccessorFragmentImpl>[];
     var variableFragments = <TopLevelVariableFragmentImpl>[];
+    var getters = <GetterFragmentImpl>[];
+    var setters = <SetterFragmentImpl>[];
     _readTopLevelVariables(
       unitElement,
       unitReference,
-      accessorFragments,
+      getters,
+      setters,
       variableFragments,
     );
     _readPropertyAccessors(
       unitElement,
       unitElement,
       unitReference,
-      accessorFragments,
+      getters,
+      setters,
       variableFragments,
       '@topLevelVariable',
       variables2: _libraryElement.topLevelVariables,
     );
-    unitElement.accessors = accessorFragments.toFixedList();
     unitElement.topLevelVariables = variableFragments.toFixedList();
+    unitElement.getters = getters.toFixedList();
+    unitElement.setters = setters.toFixedList();
 
     unitElement.parts = _reader.readTypedList(() {
       return _readPartInclude(containerUnit: unitElement);

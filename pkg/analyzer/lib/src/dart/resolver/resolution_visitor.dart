@@ -705,10 +705,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     ExecutableFragmentImpl fragment;
     if (_elementWalker != null) {
-      fragment =
-          node.isGetter || node.isSetter
-              ? _elementWalker!.getAccessor()
-              : _elementWalker!.getFunction();
+      if (node.isGetter) {
+        fragment = _elementWalker!.getGetter();
+      } else if (node.isSetter) {
+        fragment = _elementWalker!.getSetter();
+      } else {
+        fragment = _elementWalker!.getFunction();
+      }
       node.declaredFragment = fragment;
       expression.declaredFragment = fragment;
     } else {
@@ -1045,10 +1048,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    var fragment =
-        node.isGetter || node.isSetter
-            ? _elementWalker!.getAccessor()
-            : _elementWalker!.getFunction();
+    ExecutableFragmentImpl fragment;
+    if (node.isGetter) {
+      fragment = _elementWalker!.getGetter();
+    } else if (node.isSetter) {
+      fragment = _elementWalker!.getSetter();
+    } else {
+      fragment = _elementWalker!.getFunction();
+    }
     node.declaredFragment = fragment;
 
     _setOrCreateMetadataElements(fragment, node.metadata);

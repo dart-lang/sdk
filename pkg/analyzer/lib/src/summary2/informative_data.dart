@@ -108,7 +108,8 @@ class InformativeDataApplier {
       applier.applyToParts(unitElement.parts);
     });
 
-    _applyToAccessors(unitElement.accessors, unitInfo.accessors);
+    _applyToAccessors(unitElement.getters, unitInfo.getters);
+    _applyToAccessors(unitElement.setters, unitInfo.setters);
 
     forCorrespondingPairs(
       unitElement.classes
@@ -235,7 +236,8 @@ class InformativeDataApplier {
     void applyToMembers() {
       _applyToConstructors(element.constructors, info.constructors);
       _applyToFields(element.fields, info.fields);
-      _applyToAccessors(element.accessors, info.accessors);
+      _applyToAccessors(element.getters, info.getters);
+      _applyToAccessors(element.setters, info.setters);
       _applyToMethods(element.methods, info.methods);
     }
 
@@ -340,7 +342,8 @@ class InformativeDataApplier {
     );
     _applyToConstructors(element.constructors, info.constructors);
     _applyToFields(element.fields, info.fields);
-    _applyToAccessors(element.accessors, info.accessors);
+    _applyToAccessors(element.getters, info.getters);
+    _applyToAccessors(element.setters, info.setters);
     _applyToMethods(element.methods, info.methods);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
@@ -376,7 +379,8 @@ class InformativeDataApplier {
       info.typeParameters,
     );
     _applyToFields(element.fields, info.fields);
-    _applyToAccessors(element.accessors, info.accessors);
+    _applyToAccessors(element.getters, info.getters);
+    _applyToAccessors(element.setters, info.setters);
     _applyToMethods(element.methods, info.methods);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
@@ -453,7 +457,8 @@ class InformativeDataApplier {
     var restConstructors = element.constructors.skip(1).toList();
     _applyToConstructors(restConstructors, info.constructors);
 
-    _applyToAccessors(element.accessors, info.accessors);
+    _applyToAccessors(element.getters, info.getters);
+    _applyToAccessors(element.setters, info.setters);
     _applyToMethods(element.methods, info.methods);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
@@ -652,7 +657,8 @@ class InformativeDataApplier {
     );
     _applyToConstructors(element.constructors, info.constructors);
     _applyToFields(element.fields, info.fields);
-    _applyToAccessors(element.accessors, info.accessors);
+    _applyToAccessors(element.getters, info.getters);
+    _applyToAccessors(element.setters, info.setters);
     _applyToMethods(element.methods, info.methods);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
@@ -753,7 +759,8 @@ class _InfoClassDeclaration {
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoConstructorDeclaration> constructors;
   final List<_InfoFieldDeclaration> fields;
-  final List<_InfoMethodDeclaration> accessors;
+  final List<_InfoMethodDeclaration> getters;
+  final List<_InfoMethodDeclaration> setters;
   final List<_InfoMethodDeclaration> methods;
   final Uint32List constantOffsets;
 
@@ -786,7 +793,8 @@ class _InfoClassDeclaration {
         () => _InfoConstructorDeclaration(reader),
       ),
       fields: reader.readTypedList(() => _InfoFieldDeclaration(reader)),
-      accessors: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      getters: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      setters: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
       methods: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
       constantOffsets: reader.readUInt30List(),
     );
@@ -804,7 +812,8 @@ class _InfoClassDeclaration {
     required this.typeParameters,
     required this.constructors,
     required this.fields,
-    required this.accessors,
+    required this.getters,
+    required this.setters,
     required this.methods,
     required this.constantOffsets,
   });
@@ -921,7 +930,8 @@ class _InfoExtensionTypeDeclaration {
   final _InfoExtensionTypeRepresentation representation;
   final List<_InfoConstructorDeclaration> constructors;
   final List<_InfoFieldDeclaration> fields;
-  final List<_InfoMethodDeclaration> accessors;
+  final List<_InfoMethodDeclaration> getters;
+  final List<_InfoMethodDeclaration> setters;
   final List<_InfoMethodDeclaration> methods;
   final Uint32List constantOffsets;
 
@@ -938,7 +948,8 @@ class _InfoExtensionTypeDeclaration {
         () => _InfoConstructorDeclaration(reader),
       ),
       fields: reader.readTypedList(() => _InfoFieldDeclaration(reader)),
-      accessors: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      getters: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      setters: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
       methods: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
       constantOffsets: reader.readUInt30List(),
     );
@@ -954,7 +965,8 @@ class _InfoExtensionTypeDeclaration {
     required this.representation,
     required this.constructors,
     required this.fields,
-    required this.accessors,
+    required this.getters,
+    required this.setters,
     required this.methods,
     required this.constantOffsets,
   });
@@ -1300,8 +1312,7 @@ class _InformativeDataWriter {
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
       _writeFields(node.members);
-      _writeGettersSetters(node.members);
-      _writeMethods(node.members);
+      _writeGettersSettersMethods(node.members);
       _writeOffsets(
         metadata: node.metadata,
         typeParameters: node.typeParameters,
@@ -1330,8 +1341,7 @@ class _InformativeDataWriter {
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
       _writeEnumFields(node.constants, node.members);
-      _writeGettersSetters(node.members);
-      _writeMethods(node.members);
+      _writeGettersSettersMethods(node.members);
       _writeOffsets(
         metadata: node.metadata,
         enumConstants: node.constants,
@@ -1348,8 +1358,7 @@ class _InformativeDataWriter {
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
       _writeFields(node.members);
-      _writeGettersSetters(node.members);
-      _writeMethods(node.members);
+      _writeGettersSettersMethods(node.members);
       _writeOffsets(
         metadata: node.metadata,
         typeParameters: node.typeParameters,
@@ -1366,8 +1375,7 @@ class _InformativeDataWriter {
       _writeRepresentation(node, node.representation);
       _writeConstructors(node.members);
       _writeFields(node.members);
-      _writeGettersSetters(node.members);
-      _writeMethods(node.members);
+      _writeGettersSettersMethods(node.members);
       _writeOffsets(
         metadata: node.metadata,
         typeParameters: node.typeParameters,
@@ -1377,7 +1385,28 @@ class _InformativeDataWriter {
     sink.writeList2<FunctionDeclaration>(
       unit.declarations
           .whereType<FunctionDeclaration>()
-          .where((e) => e.isGetter || e.isSetter)
+          .where((e) => e.isGetter)
+          .toList(),
+      (node) {
+        sink.writeUInt30(node.offset);
+        sink.writeUInt30(node.length);
+        sink.writeUInt30(node.name.offset);
+        sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
+        _writeDocumentationComment(node);
+        _writeTypeParameters(node.functionExpression.typeParameters);
+        _writeFormalParameters(node.functionExpression.parameters);
+        _writeOffsets(
+          metadata: node.metadata,
+          typeParameters: node.functionExpression.typeParameters,
+          formalParameters: node.functionExpression.parameters,
+        );
+      },
+    );
+
+    sink.writeList2<FunctionDeclaration>(
+      unit.declarations
+          .whereType<FunctionDeclaration>()
+          .where((e) => e.isSetter)
           .toList(),
       (node) {
         sink.writeUInt30(node.offset);
@@ -1462,8 +1491,7 @@ class _InformativeDataWriter {
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
       _writeFields(node.members);
-      _writeGettersSetters(node.members);
-      _writeMethods(node.members);
+      _writeGettersSettersMethods(node.members);
       _writeOffsets(
         metadata: node.metadata,
         typeParameters: node.typeParameters,
@@ -1607,27 +1635,38 @@ class _InformativeDataWriter {
     });
   }
 
-  void _writeGettersSetters(List<ClassMember> members) {
-    sink.writeList<MethodDeclaration>(
-      members
-          .whereType<MethodDeclaration>()
-          .where((e) => e.isGetter || e.isSetter)
-          .toList(),
-      (node) {
-        sink.writeUInt30(node.offset);
-        sink.writeUInt30(node.length);
-        sink.writeUInt30(node.name.offset);
-        sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
-        _writeDocumentationComment(node);
-        _writeTypeParameters(node.typeParameters);
-        _writeFormalParameters(node.parameters);
-        _writeOffsets(
-          metadata: node.metadata,
-          typeParameters: node.typeParameters,
-          formalParameters: node.parameters,
-        );
-      },
-    );
+  void _writeGettersSettersMethods(List<ClassMember> members) {
+    var getters = <MethodDeclaration>[];
+    var setters = <MethodDeclaration>[];
+    var methods = <MethodDeclaration>[];
+    for (var method in members.whereType<MethodDeclaration>()) {
+      if (method.isGetter) {
+        getters.add(method);
+      } else if (method.isSetter) {
+        setters.add(method);
+      } else {
+        methods.add(method);
+      }
+    }
+
+    void writeMethodAny(MethodDeclaration node) {
+      sink.writeUInt30(node.offset);
+      sink.writeUInt30(node.length);
+      sink.writeUInt30(node.name.offset);
+      sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
+      _writeDocumentationComment(node);
+      _writeTypeParameters(node.typeParameters);
+      _writeFormalParameters(node.parameters);
+      _writeOffsets(
+        metadata: node.metadata,
+        typeParameters: node.typeParameters,
+        formalParameters: node.parameters,
+      );
+    }
+
+    sink.writeList(getters, writeMethodAny);
+    sink.writeList(setters, writeMethodAny);
+    sink.writeList(methods, writeMethodAny);
   }
 
   void _writeLibraryName(CompilationUnit unit) {
@@ -1652,29 +1691,6 @@ class _InformativeDataWriter {
       importDirectives: unit.directives.whereType<ImportDirective>(),
       exportDirectives: unit.directives.whereType<ExportDirective>(),
       partDirectives: unit.directives.whereType<PartDirective>(),
-    );
-  }
-
-  void _writeMethods(List<ClassMember> members) {
-    sink.writeList<MethodDeclaration>(
-      members
-          .whereType<MethodDeclaration>()
-          .where((e) => !(e.isGetter || e.isSetter))
-          .toList(),
-      (node) {
-        sink.writeUInt30(node.offset);
-        sink.writeUInt30(node.length);
-        sink.writeUInt30(node.name.offset);
-        sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
-        _writeDocumentationComment(node);
-        _writeTypeParameters(node.typeParameters);
-        _writeFormalParameters(node.parameters);
-        _writeOffsets(
-          metadata: node.metadata,
-          typeParameters: node.typeParameters,
-          formalParameters: node.parameters,
-        );
-      },
     );
   }
 
@@ -1875,7 +1891,8 @@ class _InfoUnit {
   final List<_InfoClassDeclaration> enums;
   final List<_InfoClassDeclaration> extensions;
   final List<_InfoExtensionTypeDeclaration> extensionTypes;
-  final List<_InfoMethodDeclaration> accessors;
+  final List<_InfoMethodDeclaration> getters;
+  final List<_InfoMethodDeclaration> setters;
   final List<_InfoFunctionDeclaration> functions;
   final List<_InfoFunctionTypeAlias> functionTypeAliases;
   final List<_InfoGenericTypeAlias> genericTypeAliases;
@@ -1905,7 +1922,8 @@ class _InfoUnit {
       extensionTypes: reader.readTypedList(
         () => _InfoExtensionTypeDeclaration(reader),
       ),
-      accessors: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      getters: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      setters: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
       functions: reader.readTypedList(() => _InfoFunctionDeclaration(reader)),
       functionTypeAliases: reader.readTypedList(
         () => _InfoFunctionTypeAlias(reader),
@@ -1937,7 +1955,8 @@ class _InfoUnit {
     required this.enums,
     required this.extensions,
     required this.extensionTypes,
-    required this.accessors,
+    required this.getters,
+    required this.setters,
     required this.functions,
     required this.functionTypeAliases,
     required this.genericTypeAliases,

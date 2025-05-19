@@ -416,12 +416,6 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
   ClassFragmentImpl(super.name, super.offset);
 
   @override
-  set accessors(List<PropertyAccessorFragmentImpl> accessors) {
-    assert(!isMixinApplication);
-    super.accessors = accessors;
-  }
-
-  @override
   set constructors(List<ConstructorFragmentImpl> constructors) {
     assert(!isMixinApplication);
     super.constructors = constructors;
@@ -437,6 +431,12 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
   set fields(List<FieldFragmentImpl> fields) {
     assert(!isMixinApplication);
     super.fields = fields;
+  }
+
+  @override
+  set getters(List<GetterFragmentImpl> getters) {
+    assert(!isMixinApplication);
+    super.getters = getters;
   }
 
   bool get hasExtendsClause {
@@ -551,6 +551,12 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
   @override
   ClassFragmentImpl? get previousFragment {
     return super.previousFragment as ClassFragmentImpl?;
+  }
+
+  @override
+  set setters(List<SetterFragmentImpl> setters) {
+    assert(!isMixinApplication);
+    super.setters = setters;
   }
 
   @override
@@ -2753,9 +2759,10 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
 
   @override
   List<Fragment> get children3 => [
-    ...accessors,
     ...fields,
+    ...getters,
     ...methods,
+    ...setters,
     ...typeParameters,
   ];
 
@@ -4513,11 +4520,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   @override
   List<GetterElementImpl> get getters {
     _readMembers();
-    return firstFragment.accessors
-        .where((e) => e.isGetter)
-        .map((e) => e.asElement2 as GetterElementImpl)
-        .nonNulls
-        .toList();
+    return firstFragment.getters.map((e) => e.element).toList();
   }
 
   @Deprecated('Use getters instead')
@@ -4569,11 +4572,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   @override
   List<SetterElementImpl> get setters {
     _readMembers();
-    return firstFragment.accessors
-        .where((e) => e.isSetter)
-        .map((e) => e.asElement2 as SetterElementImpl?)
-        .nonNulls
-        .toList();
+    return firstFragment.setters.map((e) => e.element).toList();
   }
 
   @Deprecated('Use setters instead')
@@ -4847,29 +4846,14 @@ abstract class InstanceFragmentImpl extends _ExistingElementImpl
   InstanceFragmentImpl? nextFragment;
 
   List<FieldFragmentImpl> _fields = _Sentinel.fieldElement;
-
-  List<PropertyAccessorFragmentImpl> _accessors =
-      _Sentinel.propertyAccessorElement;
-
+  List<GetterFragmentImpl> _getters = _Sentinel.getterElement;
+  List<SetterFragmentImpl> _setters = _Sentinel.setterElement;
   List<MethodFragmentImpl> _methods = _Sentinel.methodElement;
 
   InstanceFragmentImpl(super.name, super.nameOffset);
 
-  /// The declared accessors (getters and setters).
   List<PropertyAccessorFragmentImpl> get accessors {
-    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
-      return _accessors;
-    }
-
-    linkedData?.readMembers(this);
-    return _accessors;
-  }
-
-  set accessors(List<PropertyAccessorFragmentImpl> accessors) {
-    for (var accessor in accessors) {
-      accessor.enclosingElement3 = this;
-    }
-    _accessors = accessors;
+    return [...getters, ...setters];
   }
 
   @override
@@ -4905,8 +4889,21 @@ abstract class InstanceFragmentImpl extends _ExistingElementImpl
   List<FieldFragment> get fields2 => fields.cast<FieldFragment>();
 
   @override
-  List<GetterFragmentImpl> get getters =>
-      accessors.whereType<GetterFragmentImpl>().toList();
+  List<GetterFragmentImpl> get getters {
+    if (!identical(_getters, _Sentinel.getterElement)) {
+      return _getters;
+    }
+
+    linkedData?.readMembers(this);
+    return _getters;
+  }
+
+  set getters(List<GetterFragmentImpl> getters) {
+    for (var getter in getters) {
+      getter.enclosingElement3 = this;
+    }
+    _getters = getters;
+  }
 
   @override
   List<ElementAnnotationImpl> get metadata {
@@ -4939,8 +4936,21 @@ abstract class InstanceFragmentImpl extends _ExistingElementImpl
   int get offset => _nameOffset;
 
   @override
-  List<SetterFragmentImpl> get setters =>
-      accessors.whereType<SetterFragmentImpl>().toList();
+  List<SetterFragmentImpl> get setters {
+    if (!identical(_setters, _Sentinel.setterElement)) {
+      return _setters;
+    }
+
+    linkedData?.readMembers(this);
+    return _setters;
+  }
+
+  set setters(List<SetterFragmentImpl> setters) {
+    for (var setter in setters) {
+      setter.enclosingElement3 = this;
+    }
+    _setters = setters;
+  }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
     this.reference = reference;
@@ -5301,10 +5311,11 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
 
   @override
   List<Fragment> get children3 => [
-    ...accessors,
-    ...fields,
     ...constructors,
+    ...fields,
+    ...getters,
     ...methods,
+    ...setters,
     ...typeParameters,
   ];
 
@@ -5903,11 +5914,7 @@ class LibraryElementImpl extends ElementImpl2 implements LibraryElement {
   List<GetterElementImpl> get getters {
     var declarations = <GetterElementImpl>{};
     for (var unit in units) {
-      declarations.addAll(
-        unit._accessors
-            .where((accessor) => accessor.isGetter)
-            .map((accessor) => accessor.element as GetterElementImpl),
-      );
+      declarations.addAll(unit.getters.map((fragment) => fragment.element));
     }
     return declarations.toList();
   }
@@ -5990,11 +5997,7 @@ class LibraryElementImpl extends ElementImpl2 implements LibraryElement {
   List<SetterElementImpl> get setters {
     var declarations = <SetterElementImpl>{};
     for (var unit in units) {
-      declarations.addAll(
-        unit._accessors
-            .where((accessor) => accessor.isSetter)
-            .map((accessor) => accessor.element as SetterElementImpl),
-      );
+      declarations.addAll(unit.setters.map((fragment) => fragment.element));
     }
     return declarations.toList();
   }
@@ -6231,9 +6234,11 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   /// The parts included by this unit.
   List<PartIncludeImpl> _parts = const <PartIncludeImpl>[];
 
-  /// A list containing all of the top-level accessors (getters and setters)
-  /// contained in this compilation unit.
-  List<PropertyAccessorFragmentImpl> _accessors = const [];
+  /// All top-level getters in this compilation unit.
+  List<GetterFragmentImpl> _getters = _Sentinel.getterElement;
+
+  /// All top-level setters in this compilation unit.
+  List<SetterFragmentImpl> _setters = _Sentinel.setterElement;
 
   List<ClassFragmentImpl> _classes = const [];
 
@@ -6278,28 +6283,20 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   }
 
   List<PropertyAccessorFragmentImpl> get accessors {
-    return _accessors;
-  }
-
-  /// Set the top-level accessors (getters and setters) contained in this
-  /// compilation unit to the given [accessors].
-  set accessors(List<PropertyAccessorFragmentImpl> accessors) {
-    for (var accessor in accessors) {
-      accessor.enclosingElement3 = this;
-    }
-    _accessors = accessors;
+    return [...getters, ...setters];
   }
 
   @override
   List<Fragment> get children3 {
     return [
-      ...accessors,
       ...classes,
       ...enums,
       ...extensions,
       ...extensionTypes,
       ...functions,
+      ...getters,
       ...mixins,
+      ...setters,
       ...typeAliases,
       ...topLevelVariables,
     ];
@@ -6403,11 +6400,14 @@ class LibraryFragmentImpl extends _ExistingElementImpl
       functions.cast<TopLevelFunctionFragment>();
 
   @override
-  List<GetterFragment> get getters =>
-      accessors
-          .where((element) => element.isGetter)
-          .cast<GetterFragment>()
-          .toList();
+  List<GetterFragmentImpl> get getters => _getters;
+
+  set getters(List<GetterFragmentImpl> getters) {
+    for (var getter in getters) {
+      getter.enclosingElement3 = this;
+    }
+    _getters = getters;
+  }
 
   @override
   int get hashCode => source.hashCode;
@@ -6562,11 +6562,14 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   AnalysisSession get session => library.session;
 
   @override
-  List<SetterFragment> get setters =>
-      accessors
-          .where((element) => element.isSetter)
-          .cast<SetterFragment>()
-          .toList();
+  List<SetterFragmentImpl> get setters => _setters;
+
+  set setters(List<SetterFragmentImpl> setters) {
+    for (var setter in setters) {
+      setter.enclosingElement3 = this;
+    }
+    _setters = setters;
+  }
 
   List<TopLevelVariableFragmentImpl> get topLevelVariables {
     return _variables;
@@ -10667,11 +10670,11 @@ class _Sentinel {
   static final List<ConstructorFragmentImpl> constructorElement =
       List.unmodifiable([]);
   static final List<FieldFragmentImpl> fieldElement = List.unmodifiable([]);
+  static final List<GetterFragmentImpl> getterElement = List.unmodifiable([]);
   static final List<LibraryExportImpl> libraryExport = List.unmodifiable([]);
   static final List<LibraryImportImpl> libraryImport = List.unmodifiable([]);
   static final List<MethodFragmentImpl> methodElement = List.unmodifiable([]);
-  static final List<PropertyAccessorFragmentImpl> propertyAccessorElement =
-      List.unmodifiable([]);
+  static final List<SetterFragmentImpl> setterElement = List.unmodifiable([]);
 }
 
 extension on Fragment {

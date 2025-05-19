@@ -12,8 +12,6 @@ class ElementWalker {
   String? libraryFilePath;
   String? unitFilePath;
 
-  List<PropertyAccessorFragmentImpl>? _accessors;
-  int _accessorIndex = 0;
   List<ClassFragmentImpl>? _classes;
   int _classIndex = 0;
   List<ConstructorFragmentImpl>? _constructors;
@@ -26,10 +24,14 @@ class ElementWalker {
   int _extensionTypeIndex = 0;
   List<ExecutableFragmentImpl>? _functions;
   int _functionIndex = 0;
+  List<GetterFragmentImpl>? _getters;
+  int _getterIndex = 0;
   List<MixinFragmentImpl>? _mixins;
   int _mixinIndex = 0;
   List<FormalParameterFragmentImpl>? _parameters;
   int _parameterIndex = 0;
+  List<SetterFragmentImpl>? _setters;
+  int _setterIndex = 0;
   List<TypeAliasFragmentImpl>? _typedefs;
   int _typedefIndex = 0;
   List<TypeParameterFragmentImpl>? _typeParameters;
@@ -40,12 +42,13 @@ class ElementWalker {
   /// Creates an [ElementWalker] which walks the child elements of a class
   /// element.
   ElementWalker.forClass(ClassFragmentImpl this.fragment)
-    : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
-      _constructors =
+    : _constructors =
           fragment.isMixinApplication
               ? null
               : fragment.constructors.where(_isNotSynthetic).toList(),
       _functions = fragment.methods,
+      _getters = fragment.getters.where(_isNotSynthetic).toList(),
+      _setters = fragment.setters.where(_isNotSynthetic).toList(),
       _typeParameters = fragment.typeParameters,
       _variables = fragment.fields.where(_isNotSynthetic).toList();
 
@@ -55,22 +58,24 @@ class ElementWalker {
     LibraryFragmentImpl this.fragment, {
     this.libraryFilePath,
     this.unitFilePath,
-  }) : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
-       _classes = fragment.classes,
+  }) : _classes = fragment.classes,
        _enums = fragment.enums,
        _extensions = fragment.extensions,
        _extensionTypes = fragment.extensionTypes,
        _functions = fragment.functions,
+       _getters = fragment.getters.where(_isNotSynthetic).toList(),
        _mixins = fragment.mixins,
+       _setters = fragment.setters.where(_isNotSynthetic).toList(),
        _typedefs = fragment.typeAliases,
        _variables = fragment.topLevelVariables.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a enum
   /// element.
   ElementWalker.forEnum(EnumFragmentImpl this.fragment)
-    : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
-      _constructors = fragment.constructors.where(_isNotSynthetic).toList(),
+    : _constructors = fragment.constructors.where(_isNotSynthetic).toList(),
       _functions = fragment.methods,
+      _getters = fragment.getters.where(_isNotSynthetic).toList(),
+      _setters = fragment.setters.where(_isNotSynthetic).toList(),
       _typeParameters = fragment.typeParameters,
       _variables = fragment.fields.where(_isNotSynthetic).toList();
 
@@ -84,15 +89,17 @@ class ElementWalker {
   /// Creates an [ElementWalker] which walks the child elements of an extension
   /// element.
   ElementWalker.forExtension(ExtensionFragmentImpl this.fragment)
-    : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
-      _functions = fragment.methods,
+    : _functions = fragment.methods,
+      _getters = fragment.getters.where(_isNotSynthetic).toList(),
+      _setters = fragment.setters.where(_isNotSynthetic).toList(),
       _typeParameters = fragment.typeParameters,
       _variables = fragment.fields.where(_isNotSynthetic).toList();
 
   ElementWalker.forExtensionType(ExtensionTypeFragmentImpl this.fragment)
-    : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
-      _constructors = fragment.constructors,
+    : _constructors = fragment.constructors,
       _functions = fragment.methods,
+      _getters = fragment.getters.where(_isNotSynthetic).toList(),
+      _setters = fragment.setters.where(_isNotSynthetic).toList(),
       _typeParameters = fragment.typeParameters,
       _variables = fragment.fields.where(_isNotSynthetic).toList();
 
@@ -111,9 +118,10 @@ class ElementWalker {
   /// Creates an [ElementWalker] which walks the child elements of a mixin
   /// element.
   ElementWalker.forMixin(MixinFragmentImpl this.fragment)
-    : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
-      _constructors = fragment.constructors.where(_isNotSynthetic).toList(),
+    : _constructors = fragment.constructors.where(_isNotSynthetic).toList(),
       _functions = fragment.methods,
+      _getters = fragment.getters.where(_isNotSynthetic).toList(),
+      _setters = fragment.setters.where(_isNotSynthetic).toList(),
       _typeParameters = fragment.typeParameters,
       _variables = fragment.fields.where(_isNotSynthetic).toList();
 
@@ -137,12 +145,6 @@ class ElementWalker {
 
   void consumeParameters() {
     _parameterIndex = _parameters!.length;
-  }
-
-  /// Returns the next non-synthetic child of [fragment] which is an accessor;
-  /// throws an [IndexError] if there are no more.
-  PropertyAccessorFragmentImpl getAccessor() {
-    return _accessors![_accessorIndex++];
   }
 
   /// Returns the next non-synthetic child of [fragment] which is a class;
@@ -170,6 +172,12 @@ class ElementWalker {
   /// no more.
   ExecutableFragmentImpl getFunction() => _functions![_functionIndex++];
 
+  /// Returns the next non-synthetic child of [fragment] which is a getter;
+  /// throws an [IndexError] if there are no more.
+  GetterFragmentImpl getGetter() {
+    return _getters![_getterIndex++];
+  }
+
   /// Returns the next non-synthetic child of [fragment] which is a mixin;
   /// throws an [IndexError] if there are no more.
   MixinFragmentImpl getMixin() => _mixins![_mixinIndex++];
@@ -177,6 +185,12 @@ class ElementWalker {
   /// Returns the next non-synthetic child of [fragment] which is a parameter;
   /// throws an [IndexError] if there are no more.
   FormalParameterFragmentImpl getParameter() => _parameters![_parameterIndex++];
+
+  /// Returns the next non-synthetic child of [fragment] which is a setter;
+  /// throws an [IndexError] if there are no more.
+  SetterFragmentImpl getSetter() {
+    return _setters![_setterIndex++];
+  }
 
   /// Returns the next non-synthetic child of [fragment] which is a typedef;
   /// throws an [IndexError] if there are no more.
@@ -206,12 +220,13 @@ class ElementWalker {
       }
     }
 
-    check(_accessors, _accessorIndex);
     check(_classes, _classIndex);
     check(_constructors, _constructorIndex);
     check(_enums, _enumIndex);
     check(_functions, _functionIndex);
+    check(_getters, _getterIndex);
     check(_parameters, _parameterIndex);
+    check(_setters, _setterIndex);
     check(_typedefs, _typedefIndex);
     check(_typeParameters, _typeParameterIndex);
     check(_variables, _variableIndex);
