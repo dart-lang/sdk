@@ -7,6 +7,7 @@
 // VMOptions=--experimental-shared-data --print-stacktrace-at-throw
 // VMOptions=--experimental-shared-data --print-stacktrace-at-throw --use-slow-path
 // VMOptions=--experimental-shared-data --print-stacktrace-at-throw --use-slow-path --stacktrace-every=100
+// VMOptions=--experimental-shared-data --print-stacktrace-at-throw --use-slow-path --shared_slow_path_triggers_gc
 // VMOptions=--experimental-shared-data --print-stacktrace-at-throw --dwarf_stack_traces --no-retain_function_objects --no-retain_code_objects
 // VMOptions=--experimental-shared-data --print-stacktrace-at-throw --test_il_serialization
 // VMOptions=--experimental-shared-data --print-stacktrace-at-throw --profiler --profile_vm=true
