@@ -122,7 +122,6 @@ abstract class TestRunner {
 
   // Convert mode to tag.
   static String getTag(String mode) {
-    if (mode.endsWith('debug-ia32')) return 'DebugIA32';
     if (mode.endsWith('debug-x64')) return 'DebugX64';
     if (mode.endsWith('debug-x64c')) return 'DebugX64C';
     if (mode.endsWith('debug-arm32')) return 'DebugSIMARM';
@@ -130,7 +129,6 @@ abstract class TestRunner {
     if (mode.endsWith('debug-arm64c')) return 'DebugSIMARM64C';
     if (mode.endsWith('debug-riscv32')) return 'DebugSIMRISCV32';
     if (mode.endsWith('debug-riscv64')) return 'DebugSIMRISCV64';
-    if (mode.endsWith('ia32')) return 'ReleaseIA32';
     if (mode.endsWith('x64')) return 'ReleaseX64';
     if (mode.endsWith('x64c')) return 'ReleaseX64C';
     if (mode.endsWith('arm32')) return 'ReleaseSIMARM';
@@ -745,7 +743,6 @@ class DartFuzzTestSession {
 
   // Modes used on cluster runs.
   static const List<String> clusterModes = [
-    'jit-debug-ia32',
     'jit-debug-x64',
     'jit-debug-x64c',
     'jit-debug-arm32',
@@ -753,7 +750,6 @@ class DartFuzzTestSession {
     'jit-debug-arm64c',
     'jit-debug-riscv32',
     'jit-debug-riscv64',
-    'jit-ia32',
     'jit-x64',
     'jit-x64c',
     'jit-arm32',

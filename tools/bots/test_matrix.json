@@ -87,7 +87,6 @@
     ],
     "front-end": [
       ".dart_tool/package_config.json",
-      "out/ReleaseIA32/",
       "out/ReleaseX64/",
       "pkg/",
       "runtime/tests/",
@@ -114,7 +113,6 @@
       "third_party/pkg/",
       "third_party/requirejs/",
       "tools/",
-      "xcodebuild/ReleaseIA32/",
       "xcodebuild/ReleaseX64/"
     ],
     "fuzzer": [
@@ -1479,16 +1477,6 @@
       },
       "steps": [
         {
-          "name": "build dart debug ia32",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=debug",
-            "--arch=ia32",
-            "--no-clang",
-            "runtime"
-          ]
-        },
-        {
           "name": "build dart debug x64",
           "script": "tools/build.py",
           "arguments": [
@@ -1519,16 +1507,6 @@
             "--no-clang",
             "runtime",
             "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "build dart release ia32",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--arch=ia32",
-            "--no-clang",
-            "runtime"
           ]
         },
         {
@@ -3514,15 +3492,6 @@
             "--arch=simriscv32,simriscv64",
             "runtime",
             "dartaotruntime"
-          ]
-        },
-        {
-          "name": "build dart (ia32)",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=debug,release",
-            "--arch=ia32",
-            "runtime"
           ]
         },
         {
