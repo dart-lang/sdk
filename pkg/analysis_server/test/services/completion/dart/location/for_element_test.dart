@@ -19,19 +19,19 @@ f() => [for (var e in c) ^];
 ''');
     assertResponse(r'''
 suggestions
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   if
     kind: keyword
   const
     kind: keyword
-  false
-    kind: keyword
   for
     kind: keyword
-  null
-    kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }

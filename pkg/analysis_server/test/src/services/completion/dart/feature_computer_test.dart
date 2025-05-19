@@ -562,6 +562,14 @@ void f() {
 ''', 'Iterable<dynamic>');
   }
 
+  Future<void> test_forElement() async {
+    await assertContextType('''
+List<String> f() => [
+  for (int i = 0; i < 10; i ++) ^
+];
+''', 'String');
+  }
+
   Future<void> test_forPartsWithPattern_condition() async {
     await assertContextType('''
 void f() {
@@ -578,12 +586,28 @@ void f(bool b, int e) {
 ''', 'bool');
   }
 
+  Future<void> test_ifElement_else() async {
+    await assertContextType('''
+List<String> f(bool b) => [
+  if (b) '' else ^
+];
+''', 'String');
+  }
+
   Future<void> test_ifElement_identifier() async {
     await assertContextType('''
 void f(bool b, int e) {
   var m = <int, String>{if (b^) e : ''};
 }
 ''', 'bool');
+  }
+
+  Future<void> test_ifElement_then() async {
+    await assertContextType('''
+List<String> f(bool b) => [
+  if (b) ^
+];
+''', 'String');
   }
 
   Future<void> test_ifStatement_condition() async {

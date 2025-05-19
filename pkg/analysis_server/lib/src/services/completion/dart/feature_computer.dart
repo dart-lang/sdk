@@ -766,6 +766,16 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType? visitForElement(ForElement node) {
+    if (range
+        .endStart(node.leftParenthesis, node.rightParenthesis)
+        .contains(offset)) {
+      return node.forLoopParts.accept(this);
+    }
+    return node.parent!.accept(this);
+  }
+
+  @override
   DartType? visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     if (range
         .endStart(node.leftSeparator, node.rightSeparator)
@@ -812,7 +822,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
         .contains(offset)) {
       return typeProvider.boolType;
     }
-    return null;
+    return node.parent?.accept(this);
   }
 
   @override
