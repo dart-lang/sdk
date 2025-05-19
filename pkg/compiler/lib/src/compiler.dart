@@ -783,7 +783,6 @@ class Compiler {
         final dumpInfoData = DumpInfoProgramData.fromEmitterResults(
           backendStrategy.emitterTask,
           dumpInfoRegistry,
-          codegenResults,
           programSize,
         );
         dumpInfoRegistry.close();
