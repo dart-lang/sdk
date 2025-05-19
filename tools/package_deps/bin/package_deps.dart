@@ -193,13 +193,6 @@ class Package implements Comparable<Package> {
     var devdeps = devDependencies;
     devdeps.remove(packageName);
 
-    // if (deps.isNotEmpty) {
-    //   print('  deps    : ${deps}');
-    // }
-    // if (devdeps.isNotEmpty) {
-    //   print('  dev deps: ${devdeps}');
-    // }
-
     void out(String message) {
       logger.stdout(logger.ansi.emphasized(message));
     }
@@ -467,22 +460,35 @@ class SdkDeps {
 
   void _findPackages(Directory dir) {
     var pubspec = File(path.join(dir.path, 'pubspec.yaml'));
+
     if (pubspec.existsSync()) {
       var doc = yaml.loadYamlDocument(pubspec.readAsStringSync());
-      var contents = doc.contents as yaml.YamlMap;
-      var name = contents['name'];
-      var version = contents['version'];
-      var dep = ResolvedDep(
-        packageName: name,
-        relativePath: path.relative(dir.path),
-        version: version == null ? null : Version.parse(version),
-      );
-      _resolvedPackageVersions[name] = dep;
-    } else {
-      // Continue to recurse.
-      for (var subDir in dir.listSync().whereType<Directory>()) {
-        _findPackages(subDir);
+      if (doc.contents is! yaml.YamlMap) {
+        // Stop recursing.
+        return;
       }
+
+      var contents = doc.contents as yaml.YamlMap;
+      final isWorkspace = contents.containsKey('workspace');
+
+      if (!isWorkspace) {
+        var name = contents['name'];
+        var version = contents['version'];
+        var dep = ResolvedDep(
+          packageName: name,
+          relativePath: path.relative(dir.path),
+          version: version == null ? null : Version.parse(version),
+        );
+        _resolvedPackageVersions[name] = dep;
+
+        // We've found a leaf package - stop recursing.
+        return;
+      }
+    }
+
+    // Continue to recurse.
+    for (var subDir in dir.listSync().whereType<Directory>()) {
+      _findPackages(subDir);
     }
   }
 }

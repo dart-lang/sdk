@@ -139,12 +139,12 @@ vars = {
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "2d4b07ae9a11ede9d434dbef5cded0ad08e22e3f", # rolled manually while native assets are experimental
-  "protobuf_rev": "b7753f6fc29402679e05e9a510074002f0826d48",
+  "protobuf_rev": "deda2883eb3c8437a89bdae524b732fffef6150c",
   "pub_rev": "59406faad8959e332da98260bab894feb8500908", # rolled manually
   "shelf_rev": "082d3ac2d13a98700d8148e8fad8f3e12a6fd0e1",
   "sync_http_rev": "dc54465f07d9652875deeade643256dafa2fbc6c",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
-  "test_rev": "b9c59ea01ab0c055d120fd6542af663704c16938",
+  "test_rev": "5ffcb36fd6c82843f25ed96585a4b9e96022e7f9",
   "tools_rev": "36f5c9f9989e06e79323499914c50e78ab1a6621",
   "vector_math_rev": "13f185f7e97d559e003f5ac79201da12f9a01049",
   "web_rev": "f1becf07db9faa56559d2844c3c6d430dc9b37de",
