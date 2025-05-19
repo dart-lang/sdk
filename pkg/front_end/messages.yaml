@@ -5181,24 +5181,6 @@ SpreadMapEntryElementKeyTypeMismatch:
       Map<int, int> b = <int, int>{...a};
     }
 
-SpreadMapEntryElementKeyTypeMismatchNullability:
-  problemMessage: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type' is nullable and '#type2' isn't."
-  analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
-  script: >
-    main() {
-      Map<String?, int> a = <String?, int>{"foo": 42, null: 87};
-      Map<String, int> b = <String, int>{...a};
-    }
-
-SpreadMapEntryElementKeyTypeMismatchPartNullability:
-  problemMessage: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type3' is nullable and '#type4' isn't."
-  analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
-  script: >
-    main() {
-      Map<List<String?>, int> a = <List<String?>, int>{["foo"]: 42, [null]: 87};
-      Map<List<String>, int> b = <List<String>, int>{...a};
-    }
-
 SpreadMapEntryElementValueTypeMismatch:
   problemMessage: "Can't assign spread entry values of type '#type' to map entry values of type '#type2'."
   analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
@@ -5206,24 +5188,6 @@ SpreadMapEntryElementValueTypeMismatch:
     main() {
       Map<String, int> a = <String, int>{"foo": 42};
       Map<String, String> b = <String, String>{...a};
-    }
-
-SpreadMapEntryElementValueTypeMismatchNullability:
-  problemMessage: "Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type' is nullable and '#type2' isn't."
-  analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
-  script: >
-    main() {
-      Map<String, int?> a = <String, int?>{"foo": 42, "bar": null};
-      Map<String, int> b = <String, int>{...a};
-    }
-
-SpreadMapEntryElementValueTypeMismatchPartNullability:
-  problemMessage: "Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type3' is nullable and '#type4' isn't."
-  analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
-  script: >
-    main() {
-      Map<String, List<int?>> a = <String, List<int?>>{"foo": [42], "bar": [null]};
-      Map<String, List<int>> b = <String, List<int>>{...a};
     }
 
 CantDisambiguateNotEnoughInformation:

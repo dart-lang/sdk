@@ -83,15 +83,10 @@ mixin ResourceProviderMixin {
     part8,
   );
 
-  /// Writes [content] to the file at [path].
-  void modifyFile(String path, String content) {
-    String convertedPath = convertPath(path);
-    resourceProvider.getFile(convertedPath).writeAsStringSync(content);
-  }
-
   /// Writes [content] to [file].
   void modifyFile2(File file, String content) {
-    modifyFile(file.path, content);
+    String convertedPath = convertPath(file.path);
+    resourceProvider.getFile(convertedPath).writeAsStringSync(content);
   }
 
   /// Writes a new `analysis_options.yaml` file at [directoryPath] with

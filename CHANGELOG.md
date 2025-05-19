@@ -38,6 +38,23 @@ constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
   Container<dynamic>().value('Invocation with missing runtime checks!');
   ```
 
+#### Pub
+
+- Git dependencies can now be version-solved based on git tags.
+
+  Use a `tag_pattern` in the descriptor and a version constraint, and all
+  commits matching the pattern will be considered during resolution. For
+  example:
+
+  ```yaml
+  dependencies:
+    my_dependency:
+      git:
+        url: https://github.com/example/my_dependency
+        tag_pattern: v{{version}}
+      version: ^2.0.1
+  ```
+
 ## 3.8.0
 
 **Released on:** 2025-05-20

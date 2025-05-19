@@ -1374,8 +1374,8 @@ class Translator with KernelNodes {
         return selector.paramInfo;
       }
     }
-    return staticParamInfo.putIfAbsent(
-        target, () => ParameterInfo.fromMember(target));
+    return staticParamInfo.putIfAbsent(target,
+        () => ParameterInfo.fromMember(target, target.asMember.isAbstract));
   }
 
   w.ValueType preciseThisFor(Member member, {bool nullable = false}) {

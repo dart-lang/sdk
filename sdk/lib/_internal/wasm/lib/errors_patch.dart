@@ -24,6 +24,7 @@ class Error {
   @pragma("wasm:entry-point")
   StackTrace? _stackTrace;
 
+  @pragma("wasm:entry-point")
   static void _trySetStackTrace(Object object, StackTrace stackTrace) {
     // Guard against implementors of [Error] that do not have the stack trace
     // field by ensuring the error object is a direct/indirect subclass.

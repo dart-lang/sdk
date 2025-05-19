@@ -170,7 +170,7 @@ analyzer:
       '.dart_tool/package_config.json',
     );
     var generatedProject = join(testPackageRootPath, '.dart_tool/foo');
-    var generatedFile = join(generatedProject, 'lib', 'foo.dart');
+    var generatedFilePath = join(generatedProject, 'lib', 'foo.dart');
 
     // Add the generated project into package_config.json.
     var config = PackageConfigFileBuilder();
@@ -178,7 +178,7 @@ analyzer:
     newFile(configPath, config.toContent(toUriStr: toUriStr));
 
     // Set up project that references the class prior to initial analysis.
-    newFile(generatedFile, 'class A {}');
+    var generatedFile = newFile(generatedFilePath, 'class A {}');
     addTestFile('''
 import 'package:foo/foo.dart';
 A? a;
@@ -191,7 +191,7 @@ A? a;
 
     // Remove the class, which should cause the main project to have an analysis
     // error.
-    modifyFile(generatedFile, '');
+    modifyFile2(generatedFile, '');
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
