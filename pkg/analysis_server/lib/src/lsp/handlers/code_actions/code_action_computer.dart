@@ -46,6 +46,14 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
   /// How the request was triggered.
   final CodeActionTriggerKind? triggerKind;
 
+  /// Whether non-standard LSP snippets are allowed in edits produced.
+  ///
+  /// This is usually true for the `textDocument/codeAction` request (because we
+  /// support it for [CodeActionLiteral]s) but `false` for the
+  /// [Commands.applyCodeAction] handler because it's not supported for
+  /// `workspace/applyEdit` reverse requests.
+  final bool allowSnippets;
+
   /// Whether [CodeAction]s can be [Command]s or not.
   ///
   /// This is usually true (because there is no capability for this), however
@@ -92,6 +100,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
     required this.triggerKind,
     required this.allowCommands,
     required this.allowCodeActionLiterals,
+    required this.allowSnippets,
     required this.performance,
   });
 
@@ -237,8 +246,9 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
           callerCapabilities: callerCapabilities,
           allowCodeActionLiterals: allowCodeActionLiterals,
           allowCommands: allowCommands,
-          triggerKind: triggerKind,
+          allowSnippets: allowSnippets,
           analysisOptions: analysisOptions,
+          triggerKind: triggerKind,
           willBeDeduplicated: true,
         ),
       if (isPubspec)
@@ -254,6 +264,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
           callerCapabilities: callerCapabilities,
           allowCodeActionLiterals: allowCodeActionLiterals,
           allowCommands: allowCommands,
+          allowSnippets: allowSnippets,
           analysisOptions: analysisOptions,
         ),
       if (isAnalysisOptions)
@@ -269,6 +280,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
           callerCapabilities: callerCapabilities,
           allowCodeActionLiterals: allowCodeActionLiterals,
           allowCommands: allowCommands,
+          allowSnippets: allowSnippets,
           analysisOptions: analysisOptions,
         ),
       PluginCodeActionsProducer(
@@ -283,6 +295,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
         callerCapabilities: callerCapabilities,
         allowCodeActionLiterals: allowCodeActionLiterals,
         allowCommands: allowCommands,
+        allowSnippets: allowSnippets,
         analysisOptions: analysisOptions,
       ),
     ];

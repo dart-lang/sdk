@@ -57,6 +57,7 @@ class CodeActionHandler
       triggerKind: params.context.triggerKind,
       allowCommands: true,
       allowCodeActionLiterals: supportsLiterals,
+      allowSnippets: true, // We allow snippets from code actions requests.
       performance: performance,
     );
 

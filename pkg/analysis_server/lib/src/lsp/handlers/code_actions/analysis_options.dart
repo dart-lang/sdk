@@ -31,6 +31,7 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.allowCodeActionLiterals,
     required super.allowCommands,
     required super.analysisOptions,
+    required super.allowSnippets,
   });
 
   @override
