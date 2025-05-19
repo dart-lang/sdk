@@ -81,7 +81,7 @@ vars = {
   # https://chrome-infra-packages.appspot.com/p/gn/gn
   "gn_version": "git_revision:0c25d1bbde6ef17e1e6d3938011f56a00c02e457",
 
-  "reclient_version": "git_revision:c7349324c93c6e0d85bc1e00b5d7526771006ea0",
+  "reclient_version": "re_client_version:0.178.0.5ee9d3e8-gomaip",
   "download_reclient": True,
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/core
