@@ -80,8 +80,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   final WidgetPreviewVerifier _widgetPreviewVerifier;
 
-  /// The [WorkspacePackage] in which [_currentLibrary] is declared.
-  final WorkspacePackage? _workspacePackage;
+  /// The [WorkspacePackageImpl] in which [_currentLibrary] is declared.
+  final WorkspacePackageImpl? _workspacePackage;
 
   /// True if inference failures should be reported, otherwise false.
   final bool _strictInference;
@@ -98,7 +98,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     CompilationUnit unit, {
     required TypeSystemImpl typeSystem,
     required AnalysisOptions analysisOptions,
-    required WorkspacePackage? workspacePackage,
+    required WorkspacePackageImpl? workspacePackage,
   }) : _nullType = typeProvider.nullType,
        _typeSystem = typeSystem,
        _strictInference = analysisOptions.strictInference,
@@ -1618,7 +1618,7 @@ class _InvalidAccessVerifier {
 
   final ErrorReporter _errorReporter;
   final LibraryElement _library;
-  final WorkspacePackage? _workspacePackage;
+  final WorkspacePackageImpl? _workspacePackage;
 
   final bool _inTemplateSource;
   final bool _inTestDirectory;

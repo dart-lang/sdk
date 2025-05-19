@@ -16,7 +16,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/state.dart';
-import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;

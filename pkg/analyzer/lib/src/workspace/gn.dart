@@ -81,7 +81,7 @@ class GnWorkspace extends Workspace {
   }
 
   @override
-  WorkspacePackage? findPackageFor(String filePath) {
+  WorkspacePackageImpl? findPackageFor(String filePath) {
     var startFolder = provider.getFolder(filePath);
     for (var folder in startFolder.withAncestors) {
       if (folder.path.length < root.length) {
@@ -210,7 +210,7 @@ class GnWorkspace extends Workspace {
 /// Separate from [Packages] or package maps, this class is designed to simply
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a GnWorkspace.
-class GnWorkspacePackage extends WorkspacePackage {
+class GnWorkspacePackage extends WorkspacePackageImpl {
   @override
   final Folder root;
 

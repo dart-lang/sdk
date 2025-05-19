@@ -386,7 +386,7 @@ class ContextManagerImpl implements ContextManager {
   /// options file at the given [path].
   void _analyzeAnalysisOptionsYaml(
     AnalysisDriver driver,
-    WorkspacePackage? package,
+    WorkspacePackageImpl? package,
     String path,
   ) {
     var convertedErrors = const <protocol.AnalysisError>[];

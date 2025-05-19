@@ -180,7 +180,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
   /// The contents of the package config file.
   late final String? _packageConfigContent;
 
-  final Map<String, WorkspacePackage> _workspacePackages = {};
+  final Map<String, WorkspacePackageImpl> _workspacePackages = {};
 
   factory PackageConfigWorkspace(
     ResourceProvider provider, //Packages packages,
@@ -211,7 +211,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     _packageConfigContent = packageConfigFile.readAsStringSync();
   }
 
-  Iterable<WorkspacePackage> get allPackages =>
+  Iterable<WorkspacePackageImpl> get allPackages =>
       _workspacePackages.values.toSet();
 
   @override
@@ -305,7 +305,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
   /// can be for a source file or a generated file. Generated files are located
   /// in the '.dart_tool/build/generated' folder of the containing package.
   @override
-  WorkspacePackage? findPackageFor(String filePath) {
+  WorkspacePackageImpl? findPackageFor(String filePath) {
     var pathContext = provider.pathContext;
     // Must be in this workspace.
     if (!pathContext.isWithin(root, filePath)) {
@@ -402,7 +402,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
 /// Separate from [Packages] or package maps, this class is designed to simply
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a [PackageConfigWorkspace].
-class PubPackage extends WorkspacePackage {
+class PubPackage extends WorkspacePackageImpl {
   static const List<String> _generatedPathParts = [
     file_paths.dotDartTool,
     file_paths.packageBuild,

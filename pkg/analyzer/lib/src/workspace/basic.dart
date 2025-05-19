@@ -23,7 +23,7 @@ class BasicWorkspace extends SimpleWorkspace {
   }
 
   @override
-  WorkspacePackage? findPackageFor(String filePath) {
+  WorkspacePackageImpl? findPackageFor(String filePath) {
     Folder folder = provider.getFolder(filePath);
     if (provider.pathContext.isWithin(root, folder.path)) {
       return theOnlyPackage;
@@ -55,7 +55,7 @@ class BasicWorkspace extends SimpleWorkspace {
 /// Separate from [Packages] or package maps, this class is designed to simply
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a [BasicWorkspace].
-class BasicWorkspacePackage extends WorkspacePackage {
+class BasicWorkspacePackage extends WorkspacePackageImpl {
   @override
   final Folder root;
 

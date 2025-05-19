@@ -12,8 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
     show BaseDeprecatedMemberUseVerifier;
-import 'package:analyzer/src/workspace/workspace.dart' // ignore: implementation_imports
-    show WorkspacePackage;
+import 'package:analyzer/workspace/workspace.dart';
 
 import '../analyzer.dart';
 

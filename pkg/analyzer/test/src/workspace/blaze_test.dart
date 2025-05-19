@@ -701,7 +701,7 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
         BlazeWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
     var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
-    WorkspacePackage? package = workspace.findPackageFor(targetFile.path);
+    WorkspacePackageImpl? package = workspace.findPackageFor(targetFile.path);
     expect(package, isNull);
   }
 
@@ -717,7 +717,7 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
           lookForBuildFileSubstitutes: false,
         )!;
 
-    WorkspacePackage? package = workspace.findPackageFor(
+    WorkspacePackageImpl? package = workspace.findPackageFor(
       convertPath('/ws/some/code/lib/code.dart'),
     );
     expect(package, isNull);
