@@ -349,12 +349,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       bool isVoidAllowed = false,
       bool coerceExpression = true,
       Template<Message Function(DartType, DartType)>? errorTemplate,
-      Template<Message Function(DartType, DartType)>? nullabilityErrorTemplate,
-      Template<Message Function(DartType)>? nullabilityNullErrorTemplate,
-      Template<Message Function(DartType, DartType)>?
-          nullabilityNullTypeErrorTemplate,
-      Template<Message Function(DartType, DartType, DartType, DartType)>?
-          nullabilityPartErrorTemplate,
       Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
     return ensureAssignableResult(expectedType,
             new ExpressionInferenceResult(expressionType, expression),
@@ -364,10 +358,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             isVoidAllowed: isVoidAllowed,
             coerceExpression: coerceExpression,
             errorTemplate: errorTemplate,
-            nullabilityErrorTemplate: nullabilityErrorTemplate,
-            nullabilityNullErrorTemplate: nullabilityNullErrorTemplate,
-            nullabilityNullTypeErrorTemplate: nullabilityNullTypeErrorTemplate,
-            nullabilityPartErrorTemplate: nullabilityPartErrorTemplate,
             whyNotPromoted: whyNotPromoted)
         .expression;
   }
@@ -463,34 +453,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       bool isVoidAllowed = false,
       bool isCoercionAllowed = true,
       Template<Message Function(DartType, DartType)>? errorTemplate,
-      Template<Message Function(DartType, DartType)>? nullabilityErrorTemplate,
-      Template<Message Function(DartType)>? nullabilityNullErrorTemplate,
-      Template<Message Function(DartType, DartType)>?
-          nullabilityNullTypeErrorTemplate,
-      Template<Message Function(DartType, DartType, DartType, DartType)>?
-          nullabilityPartErrorTemplate,
       Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
-    // [errorTemplate], [nullabilityErrorTemplate], and
-    // [nullabilityPartErrorTemplate] should be provided together.
-    assert((errorTemplate == null) == (nullabilityErrorTemplate == null) &&
-        (nullabilityErrorTemplate == null) ==
-            (nullabilityPartErrorTemplate == null));
-    // [nullabilityNullErrorTemplate] and [nullabilityNullTypeErrorTemplate]
-    // should be provided together.
-    assert((nullabilityNullErrorTemplate == null) ==
-        (nullabilityNullTypeErrorTemplate == null));
     errorTemplate ??= templateInvalidAssignmentError;
-    if (nullabilityErrorTemplate == null) {
-      // Use [templateInvalidAssignmentErrorNullabilityNull] only if no
-      // specific [nullabilityErrorTemplate] template was passed.
-      nullabilityNullErrorTemplate ??=
-          templateInvalidAssignmentErrorNullabilityNull;
-    }
-    nullabilityNullTypeErrorTemplate ??= nullabilityErrorTemplate ??
-        templateInvalidAssignmentErrorNullabilityNullType;
-    nullabilityErrorTemplate ??= templateInvalidAssignmentErrorNullability;
-    nullabilityPartErrorTemplate ??=
-        templateInvalidAssignmentErrorPartNullability;
 
     fileOffset ??= inferenceResult.expression.fileOffset;
     contextType = computeGreatestClosure(contextType);
@@ -558,47 +522,29 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         break;
       case AssignabilityKind.unassignableNullability:
         if (expressionType == assignabilityResult.subtype &&
-            contextType == assignabilityResult.supertype) {
-          if (expression is NullLiteral &&
-              nullabilityNullErrorTemplate != null) {
-            result = _wrapUnassignableExpression(
-                expression,
-                expressionType,
-                contextType,
-                nullabilityNullErrorTemplate
-                    .withArguments(declaredContextType ?? contextType));
-          } else if (expressionType is NullType) {
-            result = _wrapUnassignableExpression(
-                expression,
-                expressionType,
-                contextType,
-                nullabilityNullTypeErrorTemplate.withArguments(
-                    expressionType, declaredContextType ?? contextType));
-          } else {
-            whyNotPromoted ??= flowAnalysis.whyNotPromoted(expression);
-            result = _wrapUnassignableExpression(
-                expression,
-                expressionType,
-                contextType,
-                nullabilityErrorTemplate.withArguments(
-                    expressionType, declaredContextType ?? contextType),
-                context: getWhyNotPromotedContext(
-                    whyNotPromoted.call(),
-                    expression,
-                    // Coverage-ignore(suite): Not run.
-                    (type) => typeSchemaEnvironment.isSubtypeOf(type,
-                        contextType, SubtypeCheckMode.withNullabilities)));
-          }
+            contextType == assignabilityResult.supertype &&
+            expression is! NullLiteral &&
+            expressionType is! NullType) {
+          whyNotPromoted ??= flowAnalysis.whyNotPromoted(expression);
+          result = _wrapUnassignableExpression(
+              expression,
+              expressionType,
+              contextType,
+              errorTemplate.withArguments(
+                  expressionType, declaredContextType ?? contextType),
+              context: getWhyNotPromotedContext(
+                  whyNotPromoted.call(),
+                  expression,
+                  // Coverage-ignore(suite): Not run.
+                  (type) => typeSchemaEnvironment.isSubtypeOf(
+                      type, contextType, SubtypeCheckMode.withNullabilities)));
         } else {
           result = _wrapUnassignableExpression(
               expression,
               expressionType,
               contextType,
-              nullabilityPartErrorTemplate.withArguments(
-                  expressionType,
-                  declaredContextType ?? contextType,
-                  assignabilityResult.subtype!,
-                  assignabilityResult.supertype!));
+              errorTemplate.withArguments(
+                  expressionType, declaredContextType ?? contextType));
         }
         break;
     }
@@ -623,12 +569,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       bool isVoidAllowed = false,
       bool coerceExpression = true,
       Template<Message Function(DartType, DartType)>? errorTemplate,
-      Template<Message Function(DartType, DartType)>? nullabilityErrorTemplate,
-      Template<Message Function(DartType)>? nullabilityNullErrorTemplate,
-      Template<Message Function(DartType, DartType)>?
-          nullabilityNullTypeErrorTemplate,
-      Template<Message Function(DartType, DartType, DartType, DartType)>?
-          nullabilityPartErrorTemplate,
       Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
     if (coerceExpression) {
       ExpressionInferenceResult? coercionResult = coerceExpressionForAssignment(
@@ -651,10 +591,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         isVoidAllowed: isVoidAllowed,
         isCoercionAllowed: coerceExpression,
         errorTemplate: errorTemplate,
-        nullabilityErrorTemplate: nullabilityErrorTemplate,
-        nullabilityNullErrorTemplate: nullabilityNullErrorTemplate,
-        nullabilityNullTypeErrorTemplate: nullabilityNullTypeErrorTemplate,
-        nullabilityPartErrorTemplate: nullabilityPartErrorTemplate,
         whyNotPromoted: whyNotPromoted);
 
     return inferenceResult;
@@ -2066,15 +2002,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             expectedType, argumentResultToCheck,
             isVoidAllowed: expectedType is VoidType,
             isCoercionAllowed: coerceExpression,
-            errorTemplate: templateArgumentTypeNotAssignable,
-            nullabilityErrorTemplate:
-                templateArgumentTypeNotAssignableNullability,
-            nullabilityPartErrorTemplate:
-                templateArgumentTypeNotAssignablePartNullability,
-            nullabilityNullErrorTemplate:
-                templateArgumentTypeNotAssignableNullabilityNull,
-            nullabilityNullTypeErrorTemplate:
-                templateArgumentTypeNotAssignableNullabilityNullType);
+            errorTemplate: templateArgumentTypeNotAssignable);
 
         argumentExpression = argumentResultToCheck.expression;
         if (namedArgumentExpression == null) {

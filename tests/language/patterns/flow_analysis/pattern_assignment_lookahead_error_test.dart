@@ -18,7 +18,7 @@ int f(int? i) {
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //   ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] A value of type 'int?' can't be assigned to a variable of type 'num' because 'int?' is nullable and 'num' isn't.
+    // [cfe] A value of type 'int?' can't be assigned to a variable of type 'num'.
 
     // Now assign a nullable value to `i`.
     (i,) = (null,);

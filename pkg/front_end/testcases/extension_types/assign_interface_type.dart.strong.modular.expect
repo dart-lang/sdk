@@ -2,22 +2,22 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/assign_interface_type.dart:39:7: Error: A value of type 'C' can't be assigned to a variable of type 'Object' because 'C' is nullable and 'Object' isn't.
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:39:7: Error: A value of type 'C' can't be assigned to a variable of type 'Object'.
 //  - 'Object' is from 'dart:core'.
 //   o = c; // Error
 //       ^
 //
-// pkg/front_end/testcases/extension_types/assign_interface_type.dart:41:7: Error: A value of type 'D2' can't be assigned to a variable of type 'Object' because 'D2' is nullable and 'Object' isn't.
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:41:7: Error: A value of type 'D2' can't be assigned to a variable of type 'Object'.
 //  - 'Object' is from 'dart:core'.
 //   o = d2; // Error
 //       ^
 //
-// pkg/front_end/testcases/extension_types/assign_interface_type.dart:44:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'Object' because 'G<T1>' is nullable and 'Object' isn't.
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:44:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'Object'.
 //  - 'Object' is from 'dart:core'.
 //   o = g1; // Error
 //       ^
 //
-// pkg/front_end/testcases/extension_types/assign_interface_type.dart:45:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'Object' because 'G<T2>' is nullable and 'Object' isn't.
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:45:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'Object'.
 //  - 'Object' is from 'dart:core'.
 //   o = g2; // Error
 //       ^
@@ -385,22 +385,22 @@ static method test<T1 extends core::Object? = dynamic, T2 extends self::A, T3 ex
   o = o;
   o = a;
   o = b;
-  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:39:7: Error: A value of type 'C' can't be assigned to a variable of type 'Object' because 'C' is nullable and 'Object' isn't.
+  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:39:7: Error: A value of type 'C' can't be assigned to a variable of type 'Object'.
  - 'Object' is from 'dart:core'.
   o = c; // Error
       ^" in c as{TypeError} core::Object;
   o = d;
-  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:41:7: Error: A value of type 'D2' can't be assigned to a variable of type 'Object' because 'D2' is nullable and 'Object' isn't.
+  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:41:7: Error: A value of type 'D2' can't be assigned to a variable of type 'Object'.
  - 'Object' is from 'dart:core'.
   o = d2; // Error
       ^" in d2 as{TypeError} core::Object;
   o = e;
   o = f;
-  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:44:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'Object' because 'G<T1>' is nullable and 'Object' isn't.
+  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:44:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'Object'.
  - 'Object' is from 'dart:core'.
   o = g1; // Error
       ^" in g1 as{TypeError} core::Object;
-  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:45:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'Object' because 'G<T2>' is nullable and 'Object' isn't.
+  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:45:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'Object'.
  - 'Object' is from 'dart:core'.
   o = g2; // Error
       ^" in g2 as{TypeError} core::Object;

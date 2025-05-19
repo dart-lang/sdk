@@ -32,7 +32,7 @@ class D0 extends A<dynamic> {
     takesObject(x); // Check that member does not return `Object`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -64,7 +64,7 @@ class D2 extends A<void> {
     takesObject(x); // Check that member does not return `Object`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -189,7 +189,7 @@ class ND0 extends A<FutureOr<dynamic>> {
     takesObject(x); // Check that member does not return `Object`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -221,7 +221,7 @@ class ND2 extends A<FutureOr<void>> {
     takesObject(x); // Check that member does not return `Object`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -345,7 +345,7 @@ class DND0 extends A<FutureOr<dynamic> Function()> {
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -377,7 +377,7 @@ class DND2 extends A<FutureOr<void> Function()> {
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -508,7 +508,7 @@ class WND0 extends A<Wrap<FutureOr<dynamic>>> {
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<FutureOr<Object?>>?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<FutureOr<Object?>>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -528,7 +528,7 @@ class WND1 extends A<Wrap<FutureOr<Object?>>> {
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<dynamic>?' can't be assigned to the parameter type 'Object' because 'dynamic' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<dynamic>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -548,7 +548,7 @@ class WND2 extends A<Wrap<FutureOr<void>>> {
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<Object?>?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<Object?>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -568,7 +568,7 @@ class WND3 extends A<Wrap<FutureOr<Object?>>> {
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<void>?' can't be assigned to the parameter type 'Object' because 'void' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<void>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -588,7 +588,7 @@ class WND4 extends A<Wrap<FutureOr<void>>> {
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<dynamic>?' can't be assigned to the parameter type 'Object' because 'dynamic' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<dynamic>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -608,7 +608,7 @@ class WND5 extends A<Wrap<FutureOr<dynamic>>> {
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<void>?' can't be assigned to the parameter type 'Object' because 'void' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<void>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -628,7 +628,7 @@ class WND6 extends A<Wrap<FutureOr<void>>> {
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<void>?' can't be assigned to the parameter type 'Object' because 'void' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<void>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -648,6 +648,6 @@ class WND7 extends A<Wrap<FutureOr<dynamic>>> {
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<dynamic>?' can't be assigned to the parameter type 'Object' because 'dynamic' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<dynamic>?' can't be assigned to the parameter type 'Object'.
   }
 }

@@ -182,12 +182,12 @@ library;
 //   Object foo() {}
 //          ^^^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:79:21: Error: The value 'null' can't be returned from a function with return type 'Object' because 'Object' is not nullable.
+// pkg/front_end/testcases/general/abstract_members.dart:79:21: Error: A value of type 'Null' can't be returned from a function with return type 'Object'.
 //  - 'Object' is from 'dart:core'.
 //   Object get foo => null;
 //                     ^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:87:21: Error: The value 'null' can't be returned from a function with return type 'Object' because 'Object' is not nullable.
+// pkg/front_end/testcases/general/abstract_members.dart:87:21: Error: A value of type 'Null' can't be returned from a function with return type 'Object'.
 //  - 'Object' is from 'dart:core'.
 //   Object get foo => null;
 //                     ^
@@ -315,7 +315,7 @@ class G extends core::Object {
     : super core::Object::•()
     ;
   get foo() → core::Object
-    return invalid-expression "pkg/front_end/testcases/general/abstract_members.dart:79:21: Error: The value 'null' can't be returned from a function with return type 'Object' because 'Object' is not nullable.
+    return invalid-expression "pkg/front_end/testcases/general/abstract_members.dart:79:21: Error: A value of type 'Null' can't be returned from a function with return type 'Object'.
  - 'Object' is from 'dart:core'.
   Object get foo => null;
                     ^" in null as{TypeError} core::Object;
@@ -330,7 +330,7 @@ class Bar extends core::Object {
     : super core::Object::•()
     ;
   get foo() → core::Object
-    return invalid-expression "pkg/front_end/testcases/general/abstract_members.dart:87:21: Error: The value 'null' can't be returned from a function with return type 'Object' because 'Object' is not nullable.
+    return invalid-expression "pkg/front_end/testcases/general/abstract_members.dart:87:21: Error: A value of type 'Null' can't be returned from a function with return type 'Object'.
  - 'Object' is from 'dart:core'.
   Object get foo => null;
                     ^" in null as{TypeError} core::Object;
