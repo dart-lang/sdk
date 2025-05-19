@@ -143,11 +143,6 @@ _vm_builder(
     category = "vm|jit|mr",
     dimensions = mac,
 )
-_nightly_builder(
-    "vm-win-release-ia32",
-    category = "vm|jit|wr3",
-    dimensions = windows,
-)
 _vm_builder(
     "vm-win-debug-x64",
     category = "vm|jit|wd",
@@ -304,10 +299,6 @@ _nightly_builder(
 )
 
 # vm|misc
-_nightly_builder(
-    "vm-eager-optimization-linux-release-ia32",
-    category = "vm|misc|j",
-)
 _nightly_builder(
     "vm-eager-optimization-linux-release-x64",
     category = "vm|misc|j",
