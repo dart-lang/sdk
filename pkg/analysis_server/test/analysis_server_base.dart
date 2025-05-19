@@ -300,7 +300,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   }
 
   void modifyTestFile(String content) {
-    modifyFile(testFilePath, content);
+    modifyFile2(testFile, content);
   }
 
   /// Returns the offset of [search] in [file].

@@ -68,13 +68,13 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_pausesWatcherEvents() async {
-    newFile(mainFilePath, '// ORIGINAL');
+    var mainFile = newFile(mainFilePath, '// ORIGINAL');
     await initialize();
     await initialAnalysis;
 
     await _TestTemporaryOverlayOperation(server, () async {
       // Modify the file to trigger watcher events
-      modifyFile(mainFilePath, '// CHANGED');
+      modifyFile2(mainFile, '// CHANGED');
 
       // Ensure we still have the original content.
       await pumpEventQueue(times: 5000);

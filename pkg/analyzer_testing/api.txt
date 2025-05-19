@@ -35,7 +35,6 @@ package:analyzer_testing/resource_provider_mixin.dart:
     getFile (method: File Function(String))
     getFolder (method: Folder Function(String))
     join (method: String Function(String, [String?, String?, String?, String?, String?, String?, String?]))
-    modifyFile (method: void Function(String, String))
     modifyFile2 (method: void Function(File, String))
     newAnalysisOptionsYamlFile (method: File Function(String, String))
     newBazelBuildFile (method: File Function(String, String))
