@@ -1624,11 +1624,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         variable.type, inferredType, variableGet,
         isVoidAllowed: true,
         fileOffset: parent.fileOffset,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
-        nullabilityErrorTemplate:
-            templateForInLoopElementTypeNotAssignableNullability,
-        nullabilityPartErrorTemplate:
-            templateForInLoopElementTypeNotAssignablePartNullability);
+        errorTemplate: templateForInLoopElementTypeNotAssignable);
     Statement? expressionEffect;
     if (!identical(implicitDowncast, variableGet)) {
       variable.initializer = implicitDowncast..parent = variable;
@@ -1668,10 +1664,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         wrapType(const DynamicType(), iterableClass, Nullability.nonNullable),
         inferredExpressionType,
         iterable,
-        errorTemplate: templateForInLoopTypeNotIterable,
-        nullabilityErrorTemplate: templateForInLoopTypeNotIterableNullability,
-        nullabilityPartErrorTemplate:
-            templateForInLoopTypeNotIterablePartNullability);
+        errorTemplate: templateForInLoopTypeNotIterable);
     DartType inferredType = const DynamicType();
     if (inferredExpressionType is TypeDeclarationType) {
       // TODO(johnniwinther): Should we use the type of
@@ -1803,10 +1796,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             Nullability.nonNullable),
         result.expressionType.unwrapTypeView(),
         iterable,
-        errorTemplate: templateForInLoopTypeNotIterable,
-        nullabilityErrorTemplate: templateForInLoopTypeNotIterableNullability,
-        nullabilityPartErrorTemplate:
-            templateForInLoopTypeNotIterablePartNullability);
+        errorTemplate: templateForInLoopTypeNotIterable);
     // This is matched by the call to [forEach_end] in
     // [inferElement], [inferMapEntry] or [inferForInStatement].
     flowAnalysis.forEach_bodyBegin(node);
@@ -6774,14 +6764,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType contextType =
         rightType.withDeclaredNullability(Nullability.nullable);
     rightResult = ensureAssignableResult(contextType, rightResult,
-        errorTemplate: templateArgumentTypeNotAssignable,
-        nullabilityErrorTemplate: templateArgumentTypeNotAssignableNullability,
-        nullabilityPartErrorTemplate:
-            templateArgumentTypeNotAssignablePartNullability,
-        nullabilityNullErrorTemplate:
-            templateArgumentTypeNotAssignableNullabilityNull,
-        nullabilityNullTypeErrorTemplate:
-            templateArgumentTypeNotAssignableNullabilityNullType);
+        errorTemplate: templateArgumentTypeNotAssignable);
     right = rightResult.expression;
 
     FunctionType functionType =

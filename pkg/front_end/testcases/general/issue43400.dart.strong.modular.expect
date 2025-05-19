@@ -6,7 +6,7 @@ library;
 //   static Generic<A> field = null;
 //                  ^
 //
-// pkg/front_end/testcases/general/issue43400.dart:8:29: Error: The value 'null' can't be assigned to a variable of type 'Generic<invalid-type>' because 'Generic<invalid-type>' is not nullable.
+// pkg/front_end/testcases/general/issue43400.dart:8:29: Error: A value of type 'Null' can't be assigned to a variable of type 'Generic<invalid-type>'.
 //  - 'Generic' is from 'pkg/front_end/testcases/general/issue43400.dart'.
 //   static Generic<A> field = null;
 //                             ^
@@ -22,7 +22,7 @@ class Generic<A extends core::Object? = dynamic> extends core::Object {
 extension Extension<A extends core::Object? = dynamic> on self::Generic<A%> {
   static field field = self::Extension|field;
 }
-static field self::Generic<invalid-type> Extension|field = invalid-expression "pkg/front_end/testcases/general/issue43400.dart:8:29: Error: The value 'null' can't be assigned to a variable of type 'Generic<invalid-type>' because 'Generic<invalid-type>' is not nullable.
+static field self::Generic<invalid-type> Extension|field = invalid-expression "pkg/front_end/testcases/general/issue43400.dart:8:29: Error: A value of type 'Null' can't be assigned to a variable of type 'Generic<invalid-type>'.
  - 'Generic' is from 'pkg/front_end/testcases/general/issue43400.dart'.
   static Generic<A> field = null;
                             ^" in null as{TypeError} self::Generic<invalid-type>;

@@ -25,23 +25,23 @@ void f2(NotGeneric? x) {
   useNonNullable(x?[0] = 1);
   //             ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int' because 'int?' is nullable and 'int' isn't.
+  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
   x?[0] += 1;
   useNonNullable(x?[0] += 1);
   //             ^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int' because 'int?' is nullable and 'int' isn't.
+  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
   x?[0]++;
   useNonNullable(x?[0]++);
   //             ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int' because 'int?' is nullable and 'int' isn't.
+  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
   ++x?[0];
   useNonNullable(++x?[0]);
   //             ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //               ^
-  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int' because 'int?' is nullable and 'int' isn't.
+  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
 }
 
 void f3<T extends num>(Generic<T>? x) {

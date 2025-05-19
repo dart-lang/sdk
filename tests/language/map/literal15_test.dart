@@ -12,10 +12,10 @@ void main() {
   var m1 = const <String, int>{null: 10, 'null': 20};
   //                           ^^^^
   // [analyzer] COMPILE_TIME_ERROR.MAP_KEY_TYPE_NOT_ASSIGNABLE
-  // [cfe] The value 'null' can't be assigned to a variable of type 'String' because 'String' is not nullable.
+  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'String'.
 
   var m2 = const <Comparable, int>{null: 10, 'null': 20};
   //                               ^^^^
   // [analyzer] COMPILE_TIME_ERROR.MAP_KEY_TYPE_NOT_ASSIGNABLE
-  // [cfe] The value 'null' can't be assigned to a variable of type 'Comparable<dynamic>' because 'Comparable<dynamic>' is not nullable.
+  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'Comparable<dynamic>'.
 }

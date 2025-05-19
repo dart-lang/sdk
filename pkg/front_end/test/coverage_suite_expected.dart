@@ -195,7 +195,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/name_space.dart": (
-    hitCount: 129,
+    hitCount: 133,
     missCount: 0,
   ),
   // 100.0%.
@@ -1061,12 +1061,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/type_inference/inference_visitor.dart": (
-    hitCount: 8392,
+    hitCount: 8371,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/type_inference/inference_visitor_base.dart": (
-    hitCount: 2460,
+    hitCount: 2447,
     missCount: 0,
   ),
   // 100.0%.
