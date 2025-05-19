@@ -86,9 +86,12 @@ luci.list_view(
     title = "Dart Fuzzer Console",
 )
 
-luci.list_view(
+luci.console_view(
     name = "iso-stress",
+    repo = "https://dart.googlesource.com/sdk",
     title = "VM Isolate Stress Test Console",
+    refs = ["refs/heads/main"],
+    header = "console-header.textpb",
 )
 
 luci.gitiles_poller(
@@ -188,13 +191,13 @@ luci.list_view_entry(
 )
 
 # VM isolate stress test console
-luci.list_view_entry(
+luci.console_view_entry(
     builder = "iso-stress-linux-x64",
-    list_view = "iso-stress",
+    console_view = "iso-stress",
 )
-luci.list_view_entry(
+luci.console_view_entry(
     builder = "iso-stress-linux-arm64",
-    list_view = "iso-stress",
+    console_view = "iso-stress",
 )
 
 dart.try_builder(
