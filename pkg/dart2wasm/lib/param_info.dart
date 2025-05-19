@@ -51,8 +51,10 @@ class ParameterInfo {
   ParameterInfo._(this.takesContextOrReceiver, this.typeParamCount,
       this.positional, this.named);
 
-  factory ParameterInfo.fromMember(Reference target) {
+  factory ParameterInfo.fromMember(
+      Reference target, bool useDefaultValueSentinel) {
     final member = target.asMember; // Constructor, Field, or Procedure
+    assert(!member.isAbstract || useDefaultValueSentinel);
     final function = member.function;
 
     if (target.isTearOffReference) {
@@ -74,12 +76,18 @@ class ParameterInfo {
           List.generate(function.positionalParameters.length, (i) {
         // A required parameter has no default value.
         if (i < function.requiredParameterCount) return null;
-        return _defaultValue(function.positionalParameters[i]);
+        if (useDefaultValueSentinel) return defaultValueSentinel;
+        return _defaultValue(function.positionalParameters[i])!;
       });
 
       final named = {
         for (VariableDeclaration param in function.namedParameters)
-          param.name!: _defaultValue(param)
+          if (param.isRequired)
+            param.name!: null
+          else
+            param.name!: useDefaultValueSentinel
+                ? defaultValueSentinel
+                : _defaultValue(param)!,
       };
 
       return ParameterInfo._(

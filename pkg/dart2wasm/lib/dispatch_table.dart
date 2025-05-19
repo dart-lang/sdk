@@ -39,7 +39,7 @@ class SelectorInfo {
   final int callCount;
 
   /// Least upper bound of [ParameterInfo]s of all targets.
-  final ParameterInfo paramInfo;
+  late final ParameterInfo paramInfo;
 
   /// Is this an implicit or explicit setter?
   final bool isSetter;
@@ -48,10 +48,14 @@ class SelectorInfo {
   ///
   /// We create multiple entry points when any implementation of this selector
   /// performs type checks on the passed arguments.
-  bool useMultipleEntryPoints = false;
+  late bool useMultipleEntryPoints;
 
-  bool isDynamicSubmoduleOverridable = false;
-  bool isDynamicSubmoduleCallable = false;
+  late bool isDynamicSubmoduleOverridable;
+  late bool isDynamicSubmoduleCallable;
+
+  /// Whether the computation of [paramInfo] should enforce usage of sentinels
+  /// for optional parameters.
+  late bool _useSentinelForOptionalParameters;
 
   /// Wasm function type for the selector.
   ///
@@ -65,6 +69,7 @@ class SelectorInfo {
   SelectorTargets? _unchecked;
   SelectorTargets? _normal;
 
+  /// The set of references we use to calculate the [paramInfo].
   final List<Reference> _references = [];
 
   SelectorTargets targets({required bool unchecked}) {
@@ -80,8 +85,7 @@ class SelectorInfo {
     this.dispatchTable,
     this.id,
     this.name,
-    this.callCount,
-    this.paramInfo, {
+    this.callCount, {
     required this.isSetter,
   });
 
@@ -94,6 +98,7 @@ class SelectorInfo {
       useMultipleEntryPoints,
       isDynamicSubmoduleOverridable,
       isDynamicSubmoduleCallable,
+      _useSentinelForOptionalParameters,
     ]);
     sink.writeNullable(_checked, (targets) => targets.serialize(sink));
     sink.writeNullable(_unchecked, (targets) => targets.serialize(sink));
@@ -111,6 +116,7 @@ class SelectorInfo {
       useMultipleEntryPoints,
       isDynamicSubmoduleOverridable,
       isDynamicSubmoduleCallable,
+      useSentinelForOptionalParameters,
     ] = source.readBoolList();
     final checked =
         source.readNullable(() => SelectorTargets.deserialize(source));
@@ -120,22 +126,19 @@ class SelectorInfo {
         source.readNullable(() => SelectorTargets.deserialize(source));
     final references = source.readList(source.readReference);
 
-    final paramInfo = references.skip(1).fold(
-        ParameterInfo.fromMember(references.first),
-        (p, e) => p..merge(ParameterInfo.fromMember(e)));
-    return SelectorInfo._(dispatchTable, id, name, callCount, paramInfo,
+    final paramInfo = _parameterInfoFromReferences(
+        references, useSentinelForOptionalParameters);
+    return SelectorInfo._(dispatchTable, id, name, callCount,
         isSetter: isSetter)
       ..useMultipleEntryPoints = useMultipleEntryPoints
       ..isDynamicSubmoduleCallable = isDynamicSubmoduleCallable
       ..isDynamicSubmoduleOverridable = isDynamicSubmoduleOverridable
+      .._useSentinelForOptionalParameters = useSentinelForOptionalParameters
       .._checked = checked
       .._unchecked = unchecked
-      .._normal = normal;
-  }
-
-  void _addImplementationReference(Reference reference) {
-    _references.add(reference);
-    paramInfo.merge(ParameterInfo.fromMember(reference));
+      .._normal = normal
+      .._references.addAll(references)
+      ..paramInfo = paramInfo;
   }
 
   String entryPointName(bool unchecked) {
@@ -473,9 +476,6 @@ class DispatchTable {
             metadata.methodOrSetterCalledDynamically ||
             member.name.text == "call");
 
-    final isDynamicSubmoduleOverridable =
-        member.isDynamicSubmoduleOverridable(translator.coreTypes);
-
     // The compiler will generate calls to `noSuchMethod` in the dynamic
     // invocation forwarders. So we ensure that the call count is positive.
     final isNoSuchMethod = member == translator.objectNoSuchMethod;
@@ -484,20 +484,9 @@ class DispatchTable {
     final selector = _selectorInfo.putIfAbsent(
         selectorId,
         () => SelectorInfo._(this, selectorId, member.name.text, callCount,
-            ParameterInfo.fromMember(target),
             isSetter: isSetter));
     assert(selector.isSetter == isSetter);
-    final useMultipleEntryPoints = !member.isAbstract &&
-        !member.isExternal &&
-        !target.isGetter &&
-        !target.isTearOffReference &&
-        translator.needToCheckTypesFor(member);
-    selector.useMultipleEntryPoints |= useMultipleEntryPoints;
-    selector.isDynamicSubmoduleOverridable |= isDynamicSubmoduleOverridable;
-    selector.isDynamicSubmoduleCallable |=
-        member.isDynamicSubmoduleCallable(translator.coreTypes);
-
-    selector._addImplementationReference(target);
+    selector._references.add(target);
 
     if (calledDynamically) {
       if (isGetter) {
@@ -639,6 +628,30 @@ class DispatchTable {
       }
     }
 
+    _selectorInfo.forEach((_, selector) {
+      bool isDynamicSubmoduleCallable = false;
+      bool isDynamicSubmoduleOverridable = false;
+      for (final target in selector._references) {
+        final member = target.asMember;
+        isDynamicSubmoduleOverridable |=
+            member.isDynamicSubmoduleOverridable(translator.coreTypes);
+        isDynamicSubmoduleCallable |=
+            member.isDynamicSubmoduleCallable(translator.coreTypes);
+      }
+      selector.isDynamicSubmoduleOverridable = isDynamicSubmoduleOverridable;
+      selector.isDynamicSubmoduleCallable = isDynamicSubmoduleCallable;
+
+      if (!selectorTargets.containsKey(selector)) {
+        // There are no concrete implementations for the given [selector].
+        selector._normal = SelectorTargets([], []);
+        selector.useMultipleEntryPoints = false;
+        selector._useSentinelForOptionalParameters = true;
+        selector.paramInfo = _parameterInfoFromReferences(
+            selector._references, selector._useSentinelForOptionalParameters);
+      } else {
+        // Will be initialized in the `selectorTargets.forEach()` below.
+      }
+    });
     selectorTargets
         .forEach((SelectorInfo selector, Map<int, Reference> targets) {
       final List<({Range range, Reference target})> ranges = targets.entries
@@ -664,6 +677,47 @@ class DispatchTable {
       }
       ranges.length = writeIndex + 1;
 
+      bool useMultipleEntryPoints = false;
+      final implementationReferences = <Reference>[];
+      for (final targetRange in ranges) {
+        final target = targetRange.target;
+        final member = target.asMember;
+        assert(!member.isAbstract);
+
+        // Compute [useMultipleEntryPoints]
+        if (!member.isExternal &&
+            !target.isGetter &&
+            !target.isTearOffReference &&
+            translator.needToCheckTypesFor(member)) {
+          useMultipleEntryPoints = true;
+        }
+        implementationReferences.add(target);
+      }
+      selector.useMultipleEntryPoints = useMultipleEntryPoints;
+
+      if (!selector.isDynamicSubmoduleOverridable &&
+          implementationReferences.isNotEmpty) {
+        // We have global knowledge of all targets of the selector. We can use
+        // this global knowledge to compute the [ParameterInfo].
+        selector._references.clear();
+        selector._references.addAll(implementationReferences);
+        selector._useSentinelForOptionalParameters = false;
+      } else {
+        // Case 1) We may have no targets for the selector, but there may
+        // still be calls to it (see e.g. https://dartbug.com/60733).
+        //
+        // Case 2) We may have 3rd party implementations of the selector
+        // in a dynamic module with unknown default values for optionals.
+        //
+        // => We make caller pass sentinel if the optional parameter is not
+        // provided.
+        selector._useSentinelForOptionalParameters = true;
+      }
+      selector.paramInfo = _parameterInfoFromReferences(
+          selector._references, selector._useSentinelForOptionalParameters);
+
+      // Split up [ranges] into those that are statically dispatched to and
+      // those are used via dispatch table.
       final staticDispatchRanges = selector.isDynamicSubmoduleOverridable
           ? const <({Range range, Reference target})>[]
           : (translator.options.polymorphicSpecialization || ranges.length == 1)
@@ -751,20 +805,6 @@ class DispatchTable {
         selector._normal!.offset = rows[rowIndex++].offset;
       }
     }
-
-    _selectorInfo.forEach((_, selector) {
-      if (!selectorTargets.containsKey(selector)) {
-        // There are no concrete implementations for the given [selector].
-        // But there may be an abstract interface target which is targed by a
-        // call. In this case the call should be unreachable.
-        if (selector.useMultipleEntryPoints) {
-          selector._checked = SelectorTargets(const [], const []);
-          selector._unchecked = SelectorTargets(const [], const []);
-        } else {
-          selector._normal = SelectorTargets(const [], const []);
-        }
-      }
-    });
 
     _initializeWasmTable();
   }
@@ -872,12 +912,33 @@ bool _isUsedViaDispatchTableCall(SelectorInfo selector) {
 
   final targets = selector.targets(unchecked: false);
 
+  //  If there's 0 or 1 target than the call sites will either emit an
+  //  unreachable or a direct call, so no call site goes via dispatch table, so
+  //  we don't need a row in the table.
   if (targets.targetRanges.length <= 1) return false;
+
+  // If all targets are dispatched to via static polymorphic dispatchers,
+  // then no callsite will emit a dispatch table call, so we don't need a row in
+  // the table.
   if (targets.staticDispatchRanges.length == targets.targetRanges.length) {
     return false;
   }
 
   return true;
+}
+
+ParameterInfo _parameterInfoFromReferences(
+    List<Reference> references, bool useDefaultValueSentinel) {
+  // We know all target implementations (closed world) if all of them use
+  // the same default value for optionals, we can make the caller pass it.
+  final first = references.first;
+  final paramInfo = ParameterInfo.fromMember(
+      first, useDefaultValueSentinel || first.asMember.isAbstract);
+  for (final target in references.skip(1)) {
+    paramInfo.merge(ParameterInfo.fromMember(
+        target, useDefaultValueSentinel || target.asMember.isAbstract));
+  }
+  return paramInfo;
 }
 
 /// Build a row-displacement table based on fitting the [rows].
