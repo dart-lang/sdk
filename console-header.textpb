@@ -20,6 +20,10 @@ links: {
         url: "/p/dart/g/cq/builders"
         alt: "SDK CQ Status"
     }
+}
+
+links: {
+    name: "Tests"
     links: {
         text: "Results Feed"
         url: "https://dart-ci.firebaseapp.com/"
@@ -31,15 +35,25 @@ links: {
         alt: "Current Test Results"
     }
     links: {
+        text: "Flaky Tests"
+        url: "https://goto.google.com/dart-vm-flakiness/"
+        alt: "Flaky Tests"
+    }
+}
+
+links: {
+    name: "Resources"
+    links: {
         text: "Dart Infrastructure Chat"
         url: "https://chat.google.com/preview/room/AAAAtyvwZMA"
         alt: "Dart Infrastructure Chat"
     }
 }
+
 console_groups: {
     console_ids: "dart/dart-fuzz"
+    console_ids: "dart/iso-stress"
     console_ids: "dart/flutter-engine"
     console_ids: "dart/flutter-web"
-    console_ids: "dart/iso-stress"
 }
 tree_name: "dart"
