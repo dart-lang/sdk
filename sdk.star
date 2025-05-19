@@ -54,7 +54,7 @@ sdk_builder_category()
 dart.try_builder(
     "dart-sdk-linux",
     properties = {
-        "archs": ["ia32", "x64"],
+        "archs": ["x64"],
         "dartdoc_arch": "x64",
         "disable_bcid": True,
         "upload_version": True,
@@ -109,7 +109,7 @@ dart.try_builder(
 dart.try_builder(
     "dart-sdk-win",
     dimensions = windows,
-    properties = {"archs": ["ia32", "x64"], "disable_bcid": True},
+    properties = {"archs": ["x64"], "disable_bcid": True},
     recipe = "release/sdk",
 )
 
