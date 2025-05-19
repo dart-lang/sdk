@@ -38,7 +38,7 @@ class _StdIOUtils {
         type,
       );
     }
-    return Stdout._(IOSink(_StdConsumer(fd)), fd);
+    return Stdout._(IOSink(_StdConsumer._(fd)), fd);
   }
 
   @patch
