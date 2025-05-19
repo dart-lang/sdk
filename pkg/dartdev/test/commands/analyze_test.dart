@@ -319,6 +319,31 @@ void defineAnalyze() {
       expect(result.stdout, contains('return_of_invalid_type'));
       expect(result.stdout, contains('1 issue found.'));
     });
+
+    test('error with context message', () async {
+      p = project(mainSrc: '''
+part 'a.dart';
+
+class B extends A {
+  @override
+  void m(String p) {}
+}
+''');
+      p.file('lib${path.separator}a.dart', '''
+part of 'main.dart';
+
+class A {
+  void m(int p) {}
+}
+''');
+      var result = await p.runAnalyze([p.mainPath]);
+
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('a.dart:4:8.'));
+      expect(result.stdout, contains('invalid_override'));
+      expect(result.stdout, contains('1 issue found.'));
+    });
   });
 
   test('warning --fatal-warnings', () async {
