@@ -1546,6 +1546,7 @@ class LinterLintCode extends LintCode {
     LintNames.switch_on_type,
     "Avoid switch statements on a 'Type'.",
     correctionMessage: "Try using pattern matching on a variable instead.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode test_types_in_equals = LinterLintCode(
@@ -1840,6 +1841,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try removing the use of 'unawaited', as the unawaited element is "
         "annotated with '@awaitNotRequired'.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode unnecessary_underscores = LinterLintCode(

@@ -1,5 +1,7 @@
 ## 3.9.0
 
+**Released on:** Unreleased
+
 ### Language
 
 Dart 3.9 assumes null safety when computing type promotion, reachability, and
@@ -11,6 +13,14 @@ constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
 [language version]: https://dart.dev/guides/language/evolution
 
 ### Tools
+
+#### Analyzer
+
+- Add the [`switch_on_type`][] lint rule.
+- Add the [`unnecessary_unawaited`][] lint rule.
+
+[`switch_on_type`]: http://dart.dev/lints/switch_on_type
+[`unnecessary_unawaited`]: http://dart.dev/lints/unnecessary_unawaited
 
 #### Dart Development Compiler (dartdevc)
 
@@ -166,13 +176,12 @@ Full details are in the [feature specification][null-aware elements].
 - Add LSP document links for dependency packages in pubspec files.
 - Fix various issues around patterns, like highlighting, navigation, and
   autocompletion.
+- Add the [`use_null_aware_elements`][] lint rule.
 - Add the experimental [`unnecessary_ignore`][] lint rule.
-- Add the [`switch_on_runtimetype`][] lint rule that reports when a switch
-  statement or switch expression uses an expression's `runtimeType` as its
-  switch variable.
 - (Thanks [@FMorschel](https://github.com/FMorschel) for many of the above
   enhancements!)
 
+[`use_null_aware_elements`]: http://dart.dev/lints/use_null_aware_elements
 [`unnecessary_ignore`]: http://dart.dev/lints/unnecessary_ignore
 
 #### Dart Development Compiler (dartdevc)
