@@ -1618,9 +1618,9 @@ if (!self.deferred_loader) {
         );
       }
       await Promise.all(reloadFilePromises).then((_) => {
-        if (dartDevEmbedderConfig.captureHotReloadEndHandler != null) {
+        if (dartDevEmbedderConfig.capturedHotReloadEndHandler != null) {
           // Let the app decide when to update the libraries.
-          dartDevEmbedderConfig.captureHotReloadEndHandler(() => {
+          dartDevEmbedderConfig.capturedHotReloadEndHandler(() => {
             this.hotReloadEnd();
           });
         } else {
@@ -2069,7 +2069,7 @@ if (!self.deferred_loader) {
      * `DartDevEmbedder.hotReload` when called.
      * @type {?function(function())}
      */
-    captureHotReloadEndHandler = null;
+    capturedHotReloadEndHandler = null;
   }
 
   const dartDevEmbedderConfig = new DartDevEmbedderConfiguration();
