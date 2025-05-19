@@ -864,9 +864,11 @@ class DispatchTable {
 }
 
 bool _isUsedViaDispatchTableCall(SelectorInfo selector) {
-  if (selector.isDynamicSubmoduleCallable) return true;
-  if (selector.callCount == 0) return false;
-  if (selector.isDynamicSubmoduleOverridable) return true;
+  // If there's no callers in this module and no callers in dynamic modules then
+  // there's no need for us to create a dispatch table entry.
+  if (selector.callCount == 0 && !selector.isDynamicSubmoduleCallable) {
+    return false;
+  }
 
   final targets = selector.targets(unchecked: false);
 
