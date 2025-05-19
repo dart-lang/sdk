@@ -41,9 +41,9 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
       b.ref_null(w.HeapType.struct);
     }
 
-    // _AsyncCompleter _completer
+    // _Future _future
     types.makeType(this, functionNode.emittedValueType!);
-    call(translator.makeAsyncCompleter.reference);
+    call(translator.makeFuture.reference);
 
     // Allocate `_AsyncSuspendState`
     call(translator.newAsyncSuspendState.reference);
@@ -61,18 +61,11 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
     translator.callFunction(resumeFun, b);
     b.drop(); // drop null
 
-    // (3) Return the completer's future.
+    // (3) Return the future.
 
     b.local_get(asyncStateLocal);
-    final completerFutureGetterType = translator
-        .signatureForDirectCall(translator.completerFuture.getterReference);
     b.struct_get(
-        asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-    translator.convertType(
-        b,
-        asyncSuspendStateInfo.struct.fields[5].type.unpacked,
-        completerFutureGetterType.inputs[0]);
-    call(translator.completerFuture.getterReference);
+        asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateFuture);
     b.return_();
     b.end();
 
@@ -179,10 +172,9 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
   @override
   void emitReturn(void Function() emitValue) {
     b.local_get(_suspendStateLocal);
-    b.struct_get(
-        asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
     emitValue();
-    call(translator.getFunctionEntry(translator.completerComplete.reference,
+    call(translator.getFunctionEntry(
+        translator.asyncSuspendStateComplete.reference,
         uncheckedEntry: true));
     b.return_();
   }
@@ -262,10 +254,9 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     // Final state: return.
     emitTargetLabel(targets.last);
     b.local_get(_suspendStateLocal);
-    b.struct_get(
-        asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
     b.ref_null(translator.topInfo.struct);
-    call(translator.getFunctionEntry(translator.completerComplete.reference,
+    call(translator.getFunctionEntry(
+        translator.asyncSuspendStateComplete.reference,
         uncheckedEntry: true));
     b.return_();
     b.end(); // masterLoop
@@ -277,20 +268,16 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
 
     void callCompleteError() {
       b.local_get(_suspendStateLocal);
-      b.struct_get(
-          asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
       b.local_get(exceptionLocal);
       b.local_get(stackTraceLocal);
-      call(translator.completerCompleteError.reference);
+      call(translator.asyncSuspendStateCompleteError.reference);
       b.return_();
     }
 
     void callCompleteErrorWithCurrentStack() {
       b.local_get(_suspendStateLocal);
-      b.struct_get(
-          asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
       b.local_get(exceptionLocal);
-      call(translator.completerCompleteErrorWithCurrentStack.reference);
+      call(translator.asyncSuspendStateCompleteErrorWithCurrentStack.reference);
       b.return_();
     }
 

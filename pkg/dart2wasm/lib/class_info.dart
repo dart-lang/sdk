@@ -21,7 +21,7 @@ class FieldIndex {
   static const asyncSuspendStateResume = 2;
   static const asyncSuspendStateContext = 3;
   static const asyncSuspendStateTargetIndex = 4;
-  static const asyncSuspendStateCompleter = 5;
+  static const asyncSuspendStateFuture = 5;
   static const asyncSuspendStateCurrentException = 6;
   static const asyncSuspendStateCurrentExceptionStackTrace = 7;
   static const asyncSuspendStateCurrentReturnValue = 8;
@@ -95,8 +95,8 @@ class FieldIndex {
         FieldIndex.asyncSuspendStateContext);
     check(translator.asyncSuspendStateClass, "_targetIndex",
         FieldIndex.asyncSuspendStateTargetIndex);
-    check(translator.asyncSuspendStateClass, "_completer",
-        FieldIndex.asyncSuspendStateCompleter);
+    check(translator.asyncSuspendStateClass, "_future",
+        FieldIndex.asyncSuspendStateFuture);
     check(translator.asyncSuspendStateClass, "_currentException",
         FieldIndex.asyncSuspendStateCurrentException);
     check(translator.asyncSuspendStateClass, "_currentExceptionStackTrace",
