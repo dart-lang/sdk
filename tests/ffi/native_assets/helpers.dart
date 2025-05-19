@@ -28,8 +28,8 @@ final ffiTestFunctionsFileName = dylibName('ffi_test_functions');
 
 final cwdUri = Directory.current.uri;
 
-final platformExecutableUriAbsolute = cwdUri.resolve(
-  Platform.executable.replaceAll('\\', '/'),
+final platformExecutableUriAbsolute = cwdUri.resolveUri(
+  Uri.file(Platform.resolvedExecutable),
 );
 
 /// The build folder on desktop platforms.
