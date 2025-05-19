@@ -657,10 +657,14 @@ extension on Element {
     ) when variable3.isInPublicApiOf(packageName)) {
       return true;
     }
-    if (this case Annotatable(
-      metadata2: Metadata(:var annotations),
-    ) when annotations.any(_isPublicApiAnnotation)) {
-      return true;
+    if (packageName == 'analyzer') {
+      // Any element annotated with `@analyzerPublicApi` is considered to be
+      // part of the public API of the analyzer package.
+      if (this case Annotatable(
+        metadata2: Metadata(:var annotations),
+      ) when annotations.any(_isPublicApiAnnotation)) {
+        return true;
+      }
     }
     if (name3 case var name? when !name.isPublic) return false;
     if (library2!.uri.isInPublicLibOf(packageName)) return true;

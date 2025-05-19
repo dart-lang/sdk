@@ -16,5 +16,5 @@ Future<void> main() async {
 
 /// The path to the `analyzer_testing` package.
 final String analyzerTestingPkgPath = normalize(
-  join(pkg_root.packageRoot, 'analyzer_testing'),
+  join(pkg_root.packageRoot, 'analysis_server_plugin'),
 );
