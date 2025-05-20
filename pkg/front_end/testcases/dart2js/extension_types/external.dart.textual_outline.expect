@@ -26,6 +26,7 @@ extension type B._(A a) {
   external static void set staticSetter(B b);
   external static B get staticProperty;
   external static void set staticProperty(B b);
+  external B methodWithOptionalArgument([B? b]);
 }
 
 void method(A a) {}
