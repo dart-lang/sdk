@@ -4,12 +4,12 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -23,7 +23,7 @@ class UnreachableFromMain extends LintRule {
     : super(
         name: LintNames.unreachable_from_main,
         description: _desc,
-        state: State.stable(since: Version(3, 1, 0)),
+        state: RuleState.stable(since: Version(3, 1, 0)),
       );
 
   @override

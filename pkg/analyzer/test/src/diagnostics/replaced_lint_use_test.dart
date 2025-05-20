@@ -20,7 +20,7 @@ class RemovedLint extends LintRule {
   RemovedLint()
     : super(
         name: 'removed_lint',
-        state: State.removed(since: dart3, replacedBy: 'replacing_lint'),
+        state: RuleState.removed(since: dart3, replacedBy: 'replacing_lint'),
         description: '',
       );
 
@@ -78,7 +78,7 @@ class ReplacingLint extends LintRule {
   ReplacingLint()
     : super(
         name: 'replacing_lint',
-        state: State.removed(since: dart3),
+        state: RuleState.removed(since: dart3),
         description: '',
       );
 

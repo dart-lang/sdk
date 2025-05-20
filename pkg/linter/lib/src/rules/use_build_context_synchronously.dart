@@ -7,10 +7,9 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/resolver/exit_detector.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/lint/constants.dart';
+import 'package:analyzer/src/dart/resolver/exit_detector.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -924,7 +923,7 @@ class UseBuildContextSynchronously extends MultiAnalysisRule {
     : super(
         name: LintNames.use_build_context_synchronously,
         description: _desc,
-        state: State.stable(since: Version(3, 2, 0)),
+        state: RuleState.stable(since: Version(3, 2, 0)),
       );
 
   @override

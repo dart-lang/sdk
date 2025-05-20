@@ -27,7 +27,7 @@ class DeprecatedRule extends LintRule {
     : super(
         name: 'deprecated_rule',
         description: '',
-        state: State.deprecated(since: dart2_12),
+        state: RuleState.deprecated(since: dart2_12),
       );
 
   @override
@@ -42,7 +42,7 @@ class RemovedRule extends LintRule {
   );
 
   RemovedRule()
-    : super(name: 'removed_rule', description: '', state: State.removed());
+    : super(name: 'removed_rule', description: '', state: RuleState.removed());
 
   @override
   DiagnosticCode get diagnosticCode => code;

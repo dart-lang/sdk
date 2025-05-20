@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -13,7 +14,7 @@ class AvoidAs extends LintRule {
     : super(
         name: LintNames.avoid_as,
         description: _desc,
-        state: State.removed(since: dart2_12),
+        state: RuleState.removed(since: dart2_12),
       );
 
   @override

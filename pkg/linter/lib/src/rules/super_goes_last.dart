@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -14,7 +15,7 @@ class SuperGoesLast extends LintRule {
     : super(
         name: LintNames.super_goes_last,
         description: _desc,
-        state: State.removed(since: dart3),
+        state: RuleState.removed(since: dart3),
       );
 
   @override

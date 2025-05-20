@@ -21,7 +21,7 @@ import 'package:meta/meta.dart';
 
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 export 'package:analyzer/src/lint/state.dart'
-    show dart2_12, dart3, dart3_3, State;
+    show dart2_12, dart3, dart3_3, RuleState;
 
 /// Describes an [AbstractAnalysisRule] which reports diagnostics using exactly
 /// one [DiagnosticCode].
@@ -41,13 +41,14 @@ sealed class AbstractAnalysisRule {
   /// Lint name.
   final String name;
 
-  /// The state of a lint, and optionally since when the state began.
-  final State state;
+  /// The state of this analysis rule, optionally indicating the "version" that
+  /// this state started applying to this rule.
+  final RuleState state;
 
   AbstractAnalysisRule({
     required this.name,
     required this.description,
-    this.state = const State.stable(),
+    this.state = const RuleState.stable(),
   });
 
   /// Indicates whether this analysis rule can work with just the parsed
