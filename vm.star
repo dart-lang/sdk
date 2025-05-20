@@ -157,15 +157,13 @@ _nightly_builder(
     "vm-win-debug-arm64",
     category = "vm|jit|wad",
     dimensions = [windows11, arm64, flutter_pool],
-    properties = [{"clobber": False}, no_reclient],
-    rbe = False,
+    properties = [no_reclient],
 )
 _vm_builder(
     "vm-win-release-arm64",
     category = "vm|jit|war",
     dimensions = [windows11, arm64, flutter_pool],
-    properties = [{"clobber": False}, no_reclient],
-    rbe = False,
+    properties = [no_reclient],
 )
 
 # vm|appjit
@@ -245,15 +243,13 @@ _nightly_builder(
     "vm-aot-win-debug-arm64",
     category = "vm|aot|wad",
     dimensions = [windows11, arm64, flutter_pool],
-    properties = [{"clobber": False}, no_reclient],
-    rbe = False,
+    properties = [no_reclient],
 )
 _vm_builder(
     "vm-aot-win-release-arm64",
     category = "vm|aot|war",
     dimensions = [windows11, arm64, flutter_pool],
-    properties = [{"clobber": False}, no_reclient],
-    rbe = False,
+    properties = [no_reclient],
 )
 
 # vm|aot|android
