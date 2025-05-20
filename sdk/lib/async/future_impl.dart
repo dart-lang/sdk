@@ -217,6 +217,7 @@ class _FutureListener<S, T> {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:never-inline")
+  @pragma("vm:invisible")
   FutureOr<T> handleValue(S sourceResult) {
     return _zone.runUnary<FutureOr<T>, S>(_onValue, sourceResult);
   }

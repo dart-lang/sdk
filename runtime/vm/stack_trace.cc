@@ -420,7 +420,7 @@ bool AsyncAwareStackUnwinder::HandleSynchronousFrame() {
     object_ = GetReceiver();
     InitializeAwaiterFrameFromFutureListener(object_);
     UnwindToAwaiter();
-    return true;  // Hide this frame from the stack trace.
+    return false;  // Do not hide this from the stack trace.
   }
 
   return false;
