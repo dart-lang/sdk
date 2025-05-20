@@ -16,7 +16,6 @@ import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_class_builder.dart';
-import '../source/source_extension_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import 'lookup_result.dart';
@@ -474,6 +473,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   bool get isSynthesized => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isConflictingSetter => false;
 
   @override
@@ -556,60 +556,66 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder
   NamedBuilder get setable => this;
 }
 
-/// Iterator over builders mapped in a [Scope], including duplicates for each
-/// directly mapped builder.
-class ScopeIterator implements Iterator<NamedBuilder> {
-  Iterator<NamedBuilder>? local;
-  Iterator<NamedBuilder>? setters;
-  Iterator<NamedBuilder>? extensions;
+class LookupResultIterator implements Iterator<NamedBuilder> {
+  Iterator<LookupResult>? _lookupResultIterator;
+  Iterator<ExtensionBuilder>? _extensionsIterator;
+  LookupResult? _currentLookupResult;
+  NamedBuilder? _currentBuilder;
 
-  NamedBuilder? _current;
-
-  ScopeIterator(this.local, this.setters, this.extensions);
+  LookupResultIterator(this._lookupResultIterator, this._extensionsIterator);
 
   @override
   bool moveNext() {
-    NamedBuilder? next = _current?.next;
+    NamedBuilder? next = _currentBuilder?.next;
     if (next != null) {
       // Coverage-ignore-block(suite): Not run.
-      _current = next;
+      _currentBuilder = next;
       return true;
     }
-    if (local != null) {
-      if (local!.moveNext()) {
-        _current = local!.current;
-        return true;
-      }
-      local = null;
+    next = _currentLookupResult?.setable;
+    if (next != null) {
+      _currentLookupResult = null;
+      _currentBuilder = next;
+      return true;
     }
-    if (setters != null) {
-      if (setters!.moveNext()) {
-        _current = setters!.current;
-        return true;
-      }
-      setters = null;
-    }
-    if (extensions != null) {
-      // Coverage-ignore-block(suite): Not run.
-      while (extensions!.moveNext()) {
-        Builder extension = extensions!.current;
-        // Named extensions have already been included throw [local] so we skip
-        // them here.
-        if (extension is SourceExtensionBuilder &&
-            extension.isUnnamedExtension) {
-          _current = extension;
+    if (_lookupResultIterator != null) {
+      if (_lookupResultIterator!.moveNext()) {
+        LookupResult result = _lookupResultIterator!.current;
+        if (result is NamedBuilder) {
+          _currentBuilder = result as NamedBuilder;
           return true;
+        } else {
+          next = result.getable;
+          if (next != null) {
+            _currentBuilder = next;
+            _currentLookupResult = result;
+            return true;
+          }
+          // Coverage-ignore-block(suite): Not run.
+          next = result.setable;
+          if (next != null) {
+            _currentBuilder = next;
+            return true;
+          }
         }
+      } else {
+        _lookupResultIterator = null;
       }
-      extensions = null;
     }
-    _current = null;
+    if (_extensionsIterator != null) {
+      // Coverage-ignore-block(suite): Not run.
+      if (_extensionsIterator!.moveNext()) {
+        _currentBuilder = _extensionsIterator!.current;
+      } else {
+        _extensionsIterator = null;
+      }
+    }
     return false;
   }
 
   @override
   NamedBuilder get current {
-    return _current ?? // Coverage-ignore(suite): Not run.
+    return _currentBuilder ?? // Coverage-ignore(suite): Not run.
         (throw new StateError('No element'));
   }
 }

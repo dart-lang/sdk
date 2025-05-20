@@ -150,7 +150,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/incremental_compiler.dart": (
-    hitCount: 828,
+    hitCount: 834,
     missCount: 0,
   ),
   // 100.0%.
@@ -180,7 +180,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/lookup_result.dart": (
-    hitCount: 36,
+    hitCount: 39,
     missCount: 0,
   ),
   // 100.0%.
@@ -195,7 +195,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/name_space.dart": (
-    hitCount: 133,
+    hitCount: 175,
     missCount: 0,
   ),
   // 100.0%.
@@ -215,7 +215,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/scope.dart": (
-    hitCount: 193,
+    hitCount: 192,
     missCount: 0,
   ),
   // 100.0%.
@@ -1061,7 +1061,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/type_inference/inference_visitor.dart": (
-    hitCount: 8371,
+    hitCount: 8329,
     missCount: 0,
   ),
   // 100.0%.

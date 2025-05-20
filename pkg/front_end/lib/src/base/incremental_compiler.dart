@@ -599,13 +599,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Map<LibraryBuilder, Map<String, NamedBuilder>>? replacementSettersMap =
             {};
 
-        _experimentalInvalidationFillReplacementMaps(
-            convertedLibraries!, replacementMap, replacementSettersMap);
+        Map<LibraryBuilder, NameSpace> replacementLookupMap = {};
+
+        _experimentalInvalidationFillReplacementMaps(convertedLibraries!,
+            replacementMap, replacementSettersMap, replacementLookupMap);
 
         for (DillLibraryBuilder builder
             in experimentalInvalidation.originalNotReusedLibraries) {
           if (builder.isBuilt) {
-            builder.patchUpExportScope(replacementMap, replacementSettersMap);
+            builder.patchUpExportScope(
+                replacementMap, replacementSettersMap, replacementLookupMap);
 
             // Clear cached calculations that points (potential) to now replaced
             // things.
@@ -768,7 +771,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   void _experimentalInvalidationFillReplacementMaps(
       Map<LibraryBuilder, CompilationUnit> rebuildBodiesMap,
       Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMap,
-      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementSettersMap) {
+      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementSettersMap,
+      Map<LibraryBuilder, NameSpace> replacementLookupMap) {
     for (MapEntry<LibraryBuilder, CompilationUnit> entry
         in rebuildBodiesMap.entries) {
       Map<String, NamedBuilder> childReplacementMap = {};
@@ -776,6 +780,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       CompilationUnit mainCompilationUnit = rebuildBodiesMap[entry.key]!;
       replacementMap[entry.key] = childReplacementMap;
       replacementSettersMap[entry.key] = childReplacementSettersMap;
+      replacementLookupMap[entry.key] =
+          mainCompilationUnit.libraryBuilder.libraryNameSpace;
+
       Iterator<NamedBuilder> iterator =
           mainCompilationUnit.libraryBuilder.unfilteredMembersIterator;
       while (iterator.moveNext()) {
@@ -842,14 +849,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Maps from old library builder to map of new content.
       Map<LibraryBuilder, Map<String, NamedBuilder>> replacementSettersMap = {};
 
-      _experimentalInvalidationFillReplacementMaps(
-          rebuildBodiesMap, replacementMap, replacementSettersMap);
+      Map<LibraryBuilder, NameSpace> replacementLookupMap = {};
+
+      _experimentalInvalidationFillReplacementMaps(rebuildBodiesMap,
+          replacementMap, replacementSettersMap, replacementLookupMap);
 
       for (DillLibraryBuilder builder
           in experimentalInvalidation.originalNotReusedLibraries) {
         // There's only something to patch up if it was build already.
         if (builder.isBuilt) {
-          builder.patchUpExportScope(replacementMap, replacementSettersMap);
+          builder.patchUpExportScope(
+              replacementMap, replacementSettersMap, replacementLookupMap);
         }
       }
     }

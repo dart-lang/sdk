@@ -1600,9 +1600,6 @@ class LibraryNameSpaceBuilder {
 
     Set<ExtensionBuilder> extensions = {};
 
-    MutableNameSpace nameSpace = new SourceLibraryNameSpace(
-        getables: getables, setables: setables, extensions: extensions);
-
     void _addBuilder(_AddBuilder addBuilder) {
       String name = addBuilder.name;
       NamedBuilder declaration = addBuilder.declaration;
@@ -1695,7 +1692,9 @@ class LibraryNameSpaceBuilder {
         _addBuilder(addBuilder);
       }
     }
-    return nameSpace;
+
+    return new SourceLibraryNameSpace(
+        getables: getables, setables: setables, extensions: extensions);
   }
 }
 
