@@ -25,7 +25,10 @@ class OmitObviousPropertyTypes extends LintRule {
       LinterLintCode.omit_obvious_property_types;
 
   @override
-  List<String> get incompatibleRules => const ['always_specify_types'];
+  List<String> get incompatibleRules => const [
+    'always_specify_types',
+    'type_annotate_public_apis',
+  ];
 
   @override
   void registerNodeProcessors(

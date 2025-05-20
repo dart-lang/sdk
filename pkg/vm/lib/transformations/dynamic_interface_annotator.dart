@@ -66,6 +66,14 @@ void annotateComponent(
   );
 
   final hierarchy = ClassHierarchy(component, coreTypes);
+
+  copyCanBeOverriddenToMixinApplications(
+    canBeOverriddenAnnotator.annotatedMembers,
+    canBeOverriddenAnnotator.pragma,
+    component,
+    hierarchy,
+  );
+
   _ImplicitOverridesAnnotator(
     pragmaConstant(coreTypes, kDynModuleCanBeOverriddenImplicitlyPragmaName),
     hierarchy,
@@ -627,6 +635,52 @@ class _DiscoverLanguageImplPragmasVisitor extends RecursiveVisitor {
         throw 'Expected instance member $node';
       }
       spec.canBeOverridden.add(node);
+    }
+  }
+}
+
+// Mixin transformation copies all members of mixins into mixin applications.
+// So we need to copy can-be-overridden pragmas from members of mixins to
+// their copies in the transformed mixin applications.
+void copyCanBeOverriddenToMixinApplications(
+  Set<Member> overriddenMembers,
+  Constant pragma,
+  Component component,
+  ClassHierarchy hierarchy,
+) {
+  void processMember(Member original, Class mixinApplication) {
+    if (!original.isInstanceMember) {
+      return;
+    }
+    if (!overriddenMembers.contains(original)) {
+      return;
+    }
+    final member = ClassHierarchy.findMemberByName(
+      hierarchy.getDeclaredMembers(
+        mixinApplication,
+        setters: original is Procedure && original.isSetter,
+      ),
+      original.name,
+    );
+    if (member == null) {
+      return;
+    }
+    if (overriddenMembers.add(member)) {
+      member.addAnnotation(ConstantExpression(pragma));
+    }
+  }
+
+  for (final library in component.libraries) {
+    for (final cls in library.classes) {
+      if (cls.isEliminatedMixin) {
+        final origin = cls.implementedTypes.last.classNode;
+        for (final proc in origin.procedures) {
+          processMember(proc, cls);
+        }
+        for (final field in origin.fields) {
+          processMember(field, cls);
+        }
+      }
     }
   }
 }

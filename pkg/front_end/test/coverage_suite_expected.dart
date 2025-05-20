@@ -730,7 +730,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/dynamic_module_validator.dart": (
-    hitCount: 404,
+    hitCount: 411,
     missCount: 0,
   ),
   // 100.0%.
