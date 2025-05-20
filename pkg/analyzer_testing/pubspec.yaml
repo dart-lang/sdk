@@ -7,7 +7,9 @@ resolution: workspace
 
 dependencies:
   analyzer: ^8.0.0-dev
+  meta: ^1.10.0
   path: ^1.9.0
+  test: ^1.25.0
 
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
