@@ -1101,7 +1101,7 @@ const_(obj) => JS('', '''(() => {
   return $obj;
 })()''');
 
-constFn(x) => JS('', '() => x');
+constFn(x) => JS('', '() => #', x);
 
 /// Gets the extension symbol given a member [name].
 ///
