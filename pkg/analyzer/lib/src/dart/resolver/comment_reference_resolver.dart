@@ -65,6 +65,11 @@ class CommentReferenceResolver {
 
     var name = expression.identifier;
 
+    if (prefixElement is TypeAliasElement) {
+      // When resolving `name`, use the aliased element.
+      prefixElement = prefixElement.aliasedType.element3;
+    }
+
     if (prefixElement is PrefixElement) {
       var prefixScope = prefixElement.scope;
       var lookupResult = prefixScope.lookup(name.name);
@@ -132,6 +137,12 @@ class CommentReferenceResolver {
     name.element = element;
 
     var propertyName = expression.propertyName;
+
+    if (element is TypeAliasElement) {
+      // When resolving `propertyName`, use the aliased element.
+      element = element.aliasedType.element3;
+    }
+
     if (element is InterfaceElement) {
       propertyName.element =
           element.getMethod(propertyName.name) ??
