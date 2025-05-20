@@ -259,10 +259,10 @@ WasmExternRef? callMethodVarArgsRaw(
 ) => JS<WasmExternRef?>("(o, m, a) => o[m].apply(o, a)", o, method, args);
 
 String typeof(WasmExternRef? object) =>
-    JSStringImpl(JS<WasmExternRef?>("o => typeof o", object));
+    JSStringImpl.fromRefUnchecked(JS<WasmExternRef?>("o => typeof o", object));
 
 String stringify(WasmExternRef? object) =>
-    JSStringImpl(JS<WasmExternRef?>("o => String(o)", object));
+    JSStringImpl.fromRefUnchecked(JS<WasmExternRef?>("o => String(o)", object));
 
 void promiseThen(
   WasmExternRef? promise,
@@ -491,20 +491,30 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
     ExternRefType.null_ || ExternRefType.undefined => null,
     ExternRefType.boolean => toDartBool(ref),
     ExternRefType.number => toDartNumber(ref),
-    ExternRefType.string => JSStringImpl.box(ref),
+    ExternRefType.string => JSStringImpl.fromRefUnchecked(ref),
     ExternRefType.array => toDartList(ref),
-    ExternRefType.int8Array => js_types.JSInt8ArrayImpl.fromJSArray(ref),
-    ExternRefType.uint8Array => js_types.JSUint8ArrayImpl.fromJSArray(ref),
+    ExternRefType.int8Array => js_types.JSInt8ArrayImpl.fromRefUnchecked(ref),
+    ExternRefType.uint8Array => js_types.JSUint8ArrayImpl.fromRefUnchecked(ref),
     ExternRefType.uint8ClampedArray =>
-      js_types.JSUint8ClampedArrayImpl.fromJSArray(ref),
-    ExternRefType.int16Array => js_types.JSInt16ArrayImpl.fromJSArray(ref),
-    ExternRefType.uint16Array => js_types.JSUint16ArrayImpl.fromJSArray(ref),
-    ExternRefType.int32Array => js_types.JSInt32ArrayImpl.fromJSArray(ref),
-    ExternRefType.uint32Array => js_types.JSUint32ArrayImpl.fromJSArray(ref),
-    ExternRefType.float32Array => js_types.JSFloat32ArrayImpl.fromJSArray(ref),
-    ExternRefType.float64Array => js_types.JSFloat64ArrayImpl.fromJSArray(ref),
-    ExternRefType.arrayBuffer => js_types.JSArrayBufferImpl.fromRef(ref),
-    ExternRefType.dataView => js_types.JSDataViewImpl.fromRef(ref),
+      js_types.JSUint8ClampedArrayImpl.fromRefUnchecked(ref),
+    ExternRefType.int16Array => js_types.JSInt16ArrayImpl.fromRefUnchecked(ref),
+    ExternRefType.uint16Array => js_types.JSUint16ArrayImpl.fromRefUnchecked(
+      ref,
+    ),
+    ExternRefType.int32Array => js_types.JSInt32ArrayImpl.fromRefUnchecked(ref),
+    ExternRefType.uint32Array => js_types.JSUint32ArrayImpl.fromRefUnchecked(
+      ref,
+    ),
+    ExternRefType.float32Array => js_types.JSFloat32ArrayImpl.fromRefUnchecked(
+      ref,
+    ),
+    ExternRefType.float64Array => js_types.JSFloat64ArrayImpl.fromRefUnchecked(
+      ref,
+    ),
+    ExternRefType.arrayBuffer => js_types.JSArrayBufferImpl.fromRefUnchecked(
+      ref,
+    ),
+    ExternRefType.dataView => js_types.JSDataViewImpl.fromRefUnchecked(ref),
     ExternRefType.unknown =>
       isJSWrappedDartFunction(ref)
           ? unwrapJSWrappedDartFunction(ref)

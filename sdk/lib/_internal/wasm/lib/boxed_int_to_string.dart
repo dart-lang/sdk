@@ -35,5 +35,5 @@ String _jsBigIntToString(int i, int radix) {
           WasmI64.fromInt(i),
           WasmI32.fromInt(radix),
         );
-  return JSStringImpl(result);
+  return JSStringImpl.fromRefUnchecked(result);
 }
