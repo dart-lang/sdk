@@ -191,7 +191,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
         if (metadata.annotations[i].isReflectiveTest) {
           // The class is instantiated through the use of mirrors in
           // 'test_reflective_loader'.
-          var unnamedConstructor = element.constructors2.firstWhereOrNull(
+          var unnamedConstructor = element.constructors.firstWhereOrNull(
             (constructor) => constructor.name3 == 'new',
           );
           if (unnamedConstructor != null) {

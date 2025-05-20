@@ -186,7 +186,7 @@ class FindElement2 extends _FindElementBase {
       for (var class_ in classes) {
         findInExecutables(class_.getters);
         findInExecutables(class_.setters);
-        findInExecutables(class_.constructors2);
+        findInExecutables(class_.constructors);
         findInExecutables(class_.methods);
       }
     }
@@ -361,19 +361,19 @@ abstract class _FindElementBase {
 
     for (var class_ in libraryElement.classes) {
       if (of == null || class_.name3 == of) {
-        findIn(class_.constructors2);
+        findIn(class_.constructors);
       }
     }
 
     for (var enum_ in libraryElement.enums) {
       if (of == null || enum_.name3 == of) {
-        findIn(enum_.constructors2);
+        findIn(enum_.constructors);
       }
     }
 
     for (var extensionType in libraryElement.extensionTypes) {
       if (of == null || extensionType.name3 == of) {
-        findIn(extensionType.constructors2);
+        findIn(extensionType.constructors);
       }
     }
 
@@ -447,7 +447,7 @@ abstract class _FindElementBase {
     FormalParameterElement? result;
 
     for (var class_ in libraryElement.classes) {
-      for (var constructor in class_.constructors2) {
+      for (var constructor in class_.constructors) {
         for (var formalParameter in constructor.formalParameters) {
           if (formalParameter.name3 == name) {
             if (result != null) {
@@ -512,7 +512,7 @@ abstract class _FindElementBase {
     return _findInClassesLike(
       className: name,
       fromClass:
-          (e) => e.constructors2.firstWhereOrNull((element) {
+          (e) => e.constructors.firstWhereOrNull((element) {
             return element.name3 == 'new';
           }),
       fromExtension: (_) => null,

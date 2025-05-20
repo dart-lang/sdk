@@ -11832,7 +11832,7 @@ class A {
 }
 ''');
 
-    var constructors = library.getClass2('A')!.constructors2;
+    var constructors = library.getClass2('A')!.constructors;
     expect(constructors, hasLength(1));
   }
 
@@ -18004,7 +18004,7 @@ class X = A with M;
 ''');
 
     var X = library.getClass2('X')!;
-    expect(X.constructors2, hasLength(1));
+    expect(X.constructors, hasLength(1));
   }
 
   test_classAlias_constructors_default() async {

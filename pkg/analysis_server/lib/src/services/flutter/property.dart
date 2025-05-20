@@ -486,7 +486,7 @@ class _EdgeInsetsProperty {
       }
     }
 
-    onlyConstructor = classEdgeInsets.constructors2.firstWhereOrNull(
+    onlyConstructor = classEdgeInsets.constructors.firstWhereOrNull(
       (e) => e.name3 == 'only',
     );
 

@@ -3405,7 +3405,8 @@ package:analyzer/dart/element/element.dart:
   InterfaceElement (class extends Object implements InstanceElement):
     new (constructor: InterfaceElement Function())
     allSupertypes (getter: List<InterfaceType>)
-    constructors2 (getter: List<ConstructorElement>)
+    constructors (getter: List<ConstructorElement>)
+    constructors2 (getter: List<ConstructorElement>, deprecated)
     firstFragment (getter: InterfaceFragment)
     fragments (getter: List<InterfaceFragment>)
     inheritedConcreteMembers (getter: Map<Name, ExecutableElement>)
@@ -3426,7 +3427,8 @@ package:analyzer/dart/element/element.dart:
     lookUpInheritedMethod2 (method: MethodElement? Function({required LibraryElement library, required String methodName}))
   InterfaceFragment (class extends Object implements InstanceFragment):
     new (constructor: InterfaceFragment Function())
-    constructors2 (getter: List<ConstructorFragment>)
+    constructors (getter: List<ConstructorFragment>)
+    constructors2 (getter: List<ConstructorFragment>, deprecated)
     element (getter: InterfaceElement)
     interfaces (getter: List<InterfaceType>)
     mixins (getter: List<InterfaceType>)

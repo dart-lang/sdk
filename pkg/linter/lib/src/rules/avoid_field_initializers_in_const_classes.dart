@@ -70,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (element == null) return;
 
       // no lint if several constructors
-      if (element.constructors2.length > 1) return;
+      if (element.constructors.length > 1) return;
 
       var visitor = HasParameterReferenceVisitor(
         declaration.parameters.parameterFragments,
@@ -93,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var declaredElement = parent.declaredFragment?.element;
       if (declaredElement == null) return;
 
-      if (declaredElement.constructors2.every((e) => !e.isConst)) {
+      if (declaredElement.constructors.every((e) => !e.isConst)) {
         return;
       }
       for (var variable in node.fields.variables) {

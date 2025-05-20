@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var declaredElement = node.declaredFragment?.element;
     if (declaredElement == null) return;
 
-    var constructors = declaredElement.constructors2;
+    var constructors = declaredElement.constructors;
     if (constructors.isNotEmpty &&
         constructors.any((c) => !c.isDefaultConstructor)) {
       return;

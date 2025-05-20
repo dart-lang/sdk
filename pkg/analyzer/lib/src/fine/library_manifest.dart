@@ -205,7 +205,7 @@ class LibraryManifestBuilder {
       // The supertype could be a mixin application itself.
       addForElement(superElement);
 
-      for (var constructor in element.constructors2) {
+      for (var constructor in element.constructors) {
         var lookupName = constructor.lookupName?.asLookupName;
         if (lookupName == null) {
           continue;
@@ -416,7 +416,7 @@ class LibraryManifestBuilder {
       return;
     }
 
-    for (var constructor in instanceElement.constructors2) {
+    for (var constructor in instanceElement.constructors) {
       _addInterfaceElementConstructor(
         encodingContext: encodingContext,
         interfaceItem: interfaceItem,
@@ -1211,7 +1211,7 @@ class _LibraryMatch {
     required InterfaceElementImpl2 interfaceElement,
     required InterfaceItem item,
   }) {
-    for (var constructor in interfaceElement.constructors2) {
+    for (var constructor in interfaceElement.constructors) {
       if (!_matchInterfaceElementConstructor(
         interfaceItem: item,
         interfaceMatchContext: matchContext,

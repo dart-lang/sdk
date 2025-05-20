@@ -106,7 +106,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         if (!newName.startsWith('_')) {
           var interfaceElement = renameElement.enclosingElement;
           if (interfaceElement is InterfaceElement) {
-            for (var constructor in interfaceElement.constructors2) {
+            for (var constructor in interfaceElement.constructors) {
               for (var parameter in constructor.formalParameters) {
                 if (parameter is FieldFormalParameterElement &&
                     parameter.field2 == renameElement) {

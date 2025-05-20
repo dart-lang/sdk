@@ -73,7 +73,7 @@ it might look something like this:
 void printMembers(LibraryElement libraryElement) {
   for (ClassElement classElement in libraryElement.classes) {
     print(classElement.name3);
-    for (ConstructorElement constructorElement in classElement.constructors2) {
+    for (ConstructorElement constructorElement in classElement.constructors) {
       if (!constructorElement.isSynthetic) {
         print('  ${constructorElement.displayName}');
       }

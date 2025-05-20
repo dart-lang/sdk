@@ -929,7 +929,7 @@ void f() {
 ''');
 
     var A = findElement2.class_('A');
-    var element = A.constructors2.single;
+    var element = A.constructors.single;
     expect(element.name3, 'named');
 
     await assertElementReferencesText(element, r'''
