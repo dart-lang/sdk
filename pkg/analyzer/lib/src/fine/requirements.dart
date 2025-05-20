@@ -62,7 +62,14 @@ class ExportRequirement {
 
     // Every now exported ID must be previously exported.
     var actualCount = 0;
-    for (var topEntry in libraryManifest.items.entries) {
+    var declaredTopEntries = <MapEntry<LookupName, TopLevelItem>>[
+      ...libraryManifest.declaredClasses.entries,
+      ...libraryManifest.declaredMixins.entries,
+      ...libraryManifest.declaredGetters.entries,
+      ...libraryManifest.declaredSetters.entries,
+      ...libraryManifest.declaredFunctions.entries,
+    ];
+    for (var topEntry in declaredTopEntries) {
       var name = topEntry.key;
       if (name.isPrivate) {
         continue;
@@ -371,7 +378,9 @@ class RequirementsManifest {
         var instanceName = instanceEntry.key;
         var requirements = instanceEntry.value;
 
-        var instanceItem = libraryManifest.items[instanceName];
+        var instanceItem =
+            libraryManifest.declaredClasses[instanceName] ??
+            libraryManifest.declaredMixins[instanceName];
         if (instanceItem is! InstanceItem) {
           return TopLevelNotInterface(
             libraryUri: libraryUri,
@@ -452,7 +461,9 @@ class RequirementsManifest {
 
       for (var interfaceEntry in libraryEntry.value.entries) {
         var interfaceName = interfaceEntry.key;
-        var interfaceItem = libraryManifest.items[interfaceName];
+        var interfaceItem =
+            libraryManifest.declaredClasses[interfaceName] ??
+            libraryManifest.declaredMixins[interfaceName];
         if (interfaceItem is! InterfaceItem) {
           return TopLevelNotInterface(
             libraryUri: libraryUri,
@@ -770,9 +781,9 @@ class RequirementsManifest {
         for (var entry in exportMap.definedNames2.entries) {
           var lookupName = entry.key.asLookupName;
           // TODO(scheglov): must always be not null.
-          var item = manifest.items[lookupName];
-          if (item != null) {
-            exportedIds[lookupName] = item.id;
+          var id = manifest.getExportedId(lookupName);
+          if (id != null) {
+            exportedIds[lookupName] = id;
           }
         }
 
@@ -804,7 +815,9 @@ class RequirementsManifest {
     var instanceName = element.lookupName!.asLookupName;
 
     var instancesMap = instances[libraryElement.uri] ??= {};
-    var instanceItem = manifest.items[instanceName];
+    var instanceItem =
+        manifest.declaredClasses[instanceName] ??
+        manifest.declaredMixins[instanceName];
 
     // SAFETY: every instance element must be in the manifest.
     instanceItem as InstanceItem;
@@ -833,7 +846,9 @@ class RequirementsManifest {
     var interfaceName = element.lookupName!.asLookupName;
 
     var interfacesMap = interfaces[libraryElement.uri] ??= {};
-    var interfaceItem = manifest.items[interfaceName];
+    var interfaceItem =
+        manifest.declaredClasses[interfaceName] ??
+        manifest.declaredMixins[interfaceName];
 
     // SAFETY: every interface element must be in the manifest.
     interfaceItem as InterfaceItem;

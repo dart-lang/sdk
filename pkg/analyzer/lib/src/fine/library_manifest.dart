@@ -23,20 +23,38 @@ class LibraryManifest {
   /// This does not include names that are declared in this library.
   final Map<LookupName, ManifestItemId> reExportMap;
 
-  /// The manifests of the top-level items.
-  final Map<LookupName, TopLevelItem> items;
+  final Map<LookupName, ClassItem> declaredClasses;
+  final Map<LookupName, MixinItem> declaredMixins;
+  final Map<LookupName, TopLevelGetterItem> declaredGetters;
+  final Map<LookupName, TopLevelSetterItem> declaredSetters;
+  final Map<LookupName, TopLevelFunctionItem> declaredFunctions;
 
-  LibraryManifest({required this.reExportMap, required this.items});
+  LibraryManifest({
+    required this.reExportMap,
+    required this.declaredClasses,
+    required this.declaredMixins,
+    required this.declaredGetters,
+    required this.declaredSetters,
+    required this.declaredFunctions,
+  });
 
   factory LibraryManifest.read(SummaryDataReader reader) {
     return LibraryManifest(
-      reExportMap: reader.readMap(
-        readKey: () => LookupName.read(reader),
-        readValue: () => ManifestItemId.read(reader),
+      reExportMap: reader.readLookupNameToIdMap(),
+      declaredClasses: reader.readLookupNameMap(
+        readValue: () => ClassItem.read(reader),
       ),
-      items: reader.readMap(
-        readKey: () => LookupName.read(reader),
-        readValue: () => TopLevelItem.read(reader),
+      declaredMixins: reader.readLookupNameMap(
+        readValue: () => MixinItem.read(reader),
+      ),
+      declaredGetters: reader.readLookupNameMap(
+        readValue: () => TopLevelGetterItem.read(reader),
+      ),
+      declaredSetters: reader.readLookupNameMap(
+        readValue: () => TopLevelSetterItem.read(reader),
+      ),
+      declaredFunctions: reader.readLookupNameMap(
+        readValue: () => TopLevelFunctionItem.read(reader),
       ),
     );
   }
@@ -44,20 +62,21 @@ class LibraryManifest {
   /// Returns the ID of a top-level element either declared or re-exported,
   /// or `null` if there is no such element.
   ManifestItemId? getExportedId(LookupName name) {
-    return items[name]?.id ?? reExportMap[name];
+    return declaredClasses[name]?.id ??
+        declaredMixins[name]?.id ??
+        declaredGetters[name]?.id ??
+        declaredSetters[name]?.id ??
+        declaredFunctions[name]?.id ??
+        reExportMap[name];
   }
 
   void write(BufferedSink sink) {
-    sink.writeMap(
-      reExportMap,
-      writeKey: (lookupName) => lookupName.write(sink),
-      writeValue: (id) => id.write(sink),
-    );
-    sink.writeMap(
-      items,
-      writeKey: (lookupName) => lookupName.write(sink),
-      writeValue: (item) => item.write(sink),
-    );
+    reExportMap.write(sink);
+    declaredClasses.write(sink);
+    declaredMixins.write(sink);
+    declaredGetters.write(sink);
+    declaredSetters.write(sink);
+    declaredFunctions.write(sink);
   }
 }
 
@@ -119,7 +138,7 @@ class LibraryManifestBuilder {
 
   void _addClass({
     required EncodeContext encodingContext,
-    required Map<LookupName, TopLevelItem> newItems,
+    required Map<LookupName, ClassItem> newItems,
     required ClassElementImpl2 element,
     required LookupName lookupName,
   }) {
@@ -374,7 +393,7 @@ class LibraryManifestBuilder {
 
   void _addMixin({
     required EncodeContext encodingContext,
-    required Map<LookupName, TopLevelItem> newItems,
+    required Map<LookupName, MixinItem> newItems,
     required MixinElementImpl2 element,
     required LookupName lookupName,
   }) {
@@ -430,11 +449,8 @@ class LibraryManifestBuilder {
         // If not, then look into new manifest.
         if (id == null) {
           var newManifest = newManifests[elementLibraryUri];
-          // Maybe declared in this library.
-          id ??= newManifest?.items[name]?.id;
-          // Maybe exported from this library.
+          id ??= newManifest?.getExportedId(name);
           // TODO(scheglov): repeat for re-re-exports
-          id ??= newManifest?.reExportMap[name];
         }
 
         if (id == null) {
@@ -448,7 +464,7 @@ class LibraryManifestBuilder {
 
   void _addTopLevelFunction({
     required EncodeContext encodingContext,
-    required Map<LookupName, TopLevelItem> newItems,
+    required Map<LookupName, TopLevelFunctionItem> newItems,
     required TopLevelFunctionElementImpl element,
     required LookupName lookupName,
   }) {
@@ -464,7 +480,7 @@ class LibraryManifestBuilder {
 
   void _addTopLevelGetter({
     required EncodeContext encodingContext,
-    required Map<LookupName, TopLevelItem> newItems,
+    required Map<LookupName, TopLevelGetterItem> newItems,
     required GetterElementImpl element,
     required LookupName lookupName,
   }) {
@@ -480,7 +496,7 @@ class LibraryManifestBuilder {
 
   void _addTopLevelSetter({
     required EncodeContext encodingContext,
-    required Map<LookupName, TopLevelItem> newItems,
+    required Map<LookupName, TopLevelSetterItem> newItems,
     required SetterElementImpl element,
     required LookupName lookupName,
   }) {
@@ -525,7 +541,12 @@ class LibraryManifestBuilder {
 
     for (var libraryElement in libraryElements) {
       var libraryUri = libraryElement.uri;
-      var newItems = <LookupName, TopLevelItem>{};
+      var newClassItems = <LookupName, ClassItem>{};
+      var newMixinItems = <LookupName, MixinItem>{};
+      var newTopLevelGetters = <LookupName, TopLevelGetterItem>{};
+      var newTopLevelSetters = <LookupName, TopLevelSetterItem>{};
+      var newTopLevelFunctions = <LookupName, TopLevelFunctionItem>{};
+
       for (var element in libraryElement.children2) {
         var lookupName = element.lookupName?.asLookupName;
         if (lookupName == null) {
@@ -536,35 +557,35 @@ class LibraryManifestBuilder {
           case ClassElementImpl2():
             _addClass(
               encodingContext: encodingContext,
-              newItems: newItems,
+              newItems: newClassItems,
               element: element,
               lookupName: lookupName,
             );
           case GetterElementImpl():
             _addTopLevelGetter(
               encodingContext: encodingContext,
-              newItems: newItems,
+              newItems: newTopLevelGetters,
               element: element,
               lookupName: lookupName,
             );
           case MixinElementImpl2():
             _addMixin(
               encodingContext: encodingContext,
-              newItems: newItems,
+              newItems: newMixinItems,
               element: element,
               lookupName: lookupName,
             );
           case SetterElementImpl():
             _addTopLevelSetter(
               encodingContext: encodingContext,
-              newItems: newItems,
+              newItems: newTopLevelSetters,
               element: element,
               lookupName: lookupName,
             );
           case TopLevelFunctionElementImpl():
             _addTopLevelFunction(
               encodingContext: encodingContext,
-              newItems: newItems,
+              newItems: newTopLevelFunctions,
               element: element,
               lookupName: lookupName,
             );
@@ -572,7 +593,14 @@ class LibraryManifestBuilder {
         }
       }
 
-      var newManifest = LibraryManifest(reExportMap: {}, items: newItems);
+      var newManifest = LibraryManifest(
+        reExportMap: {},
+        declaredClasses: newClassItems,
+        declaredMixins: newMixinItems,
+        declaredGetters: newTopLevelGetters,
+        declaredSetters: newTopLevelSetters,
+        declaredFunctions: newTopLevelFunctions,
+      );
       libraryElement.manifest = newManifest;
       newManifests[libraryUri] = newManifest;
     }
@@ -714,7 +742,15 @@ class LibraryManifestBuilder {
 
   /// Returns the manifest from [inputManifests], empty if absent.
   LibraryManifest _getInputManifest(Uri uri) {
-    return inputManifests[uri] ?? LibraryManifest(reExportMap: {}, items: {});
+    return inputManifests[uri] ??
+        LibraryManifest(
+          reExportMap: {},
+          declaredClasses: {},
+          declaredMixins: {},
+          declaredGetters: {},
+          declaredSetters: {},
+          declaredFunctions: {},
+        );
   }
 
   ManifestItemId _getInterfaceElementMemberId(ExecutableElementImpl2 element) {
@@ -861,8 +897,8 @@ class _LibraryMatch {
     required LookupName? name,
     required ClassElementImpl2 element,
   }) {
-    var item = manifest.items[name];
-    if (item is! ClassItem) {
+    var item = manifest.declaredClasses[name];
+    if (item == null) {
       return false;
     }
 
@@ -1074,8 +1110,8 @@ class _LibraryMatch {
     required LookupName? name,
     required MixinElementImpl2 element,
   }) {
-    var item = manifest.items[name];
-    if (item is! MixinItem) {
+    var item = manifest.declaredMixins[name];
+    if (item == null) {
       return false;
     }
 
@@ -1099,8 +1135,8 @@ class _LibraryMatch {
     required LookupName? name,
     required TopLevelFunctionElementImpl element,
   }) {
-    var item = manifest.items[name];
-    if (item is! TopLevelFunctionItem) {
+    var item = manifest.declaredFunctions[name];
+    if (item == null) {
       return false;
     }
 
@@ -1117,8 +1153,8 @@ class _LibraryMatch {
     required LookupName? name,
     required GetterElementImpl element,
   }) {
-    var item = manifest.items[name];
-    if (item is! TopLevelGetterItem) {
+    var item = manifest.declaredGetters[name];
+    if (item == null) {
       return false;
     }
 
@@ -1135,8 +1171,8 @@ class _LibraryMatch {
     required LookupName? name,
     required SetterElementImpl element,
   }) {
-    var item = manifest.items[name];
-    if (item is! TopLevelSetterItem) {
+    var item = manifest.declaredSetters[name];
+    if (item == null) {
       return false;
     }
 

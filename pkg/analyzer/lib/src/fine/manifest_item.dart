@@ -77,12 +77,6 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
       interface: ManifestInterface.read(reader),
     );
   }
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind.class_);
-    super.write(sink);
-  }
 }
 
 /// The item for [InstanceElementImpl2].
@@ -806,7 +800,7 @@ class ManifestInterface {
 
   factory ManifestInterface.read(SummaryDataReader reader) {
     return ManifestInterface(
-      map: _LookupNameToIdMapExtension.read(reader),
+      map: reader.readLookupNameToIdMap(),
       combinedIds: reader.readMap(
         readKey: () => ManifestItemIdList.read(reader),
         readValue: () => ManifestItemId.read(reader),
@@ -977,7 +971,6 @@ class MixinItem extends InterfaceItem<MixinElementImpl2> {
 
   @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind.mixin_);
     super.write(sink);
     superclassConstraints.writeList(sink);
   }
@@ -1020,7 +1013,6 @@ class TopLevelFunctionItem extends TopLevelItem<TopLevelFunctionElementImpl> {
 
   @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind.topLevelFunction);
     super.write(sink);
     functionType.writeNoTag(sink);
   }
@@ -1071,7 +1063,6 @@ class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
 
   @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind.topLevelGetter);
     super.write(sink);
     returnType.write(sink);
     constInitializer.writeOptional(sink);
@@ -1081,22 +1072,6 @@ class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
 sealed class TopLevelItem<E extends AnnotatableElementImpl>
     extends ManifestItem<E> {
   TopLevelItem({required super.id, required super.metadata});
-
-  static TopLevelItem<AnnotatableElementImpl> read(SummaryDataReader reader) {
-    var kind = reader.readEnum(_ManifestItemKind.values);
-    switch (kind) {
-      case _ManifestItemKind.class_:
-        return ClassItem.read(reader);
-      case _ManifestItemKind.mixin_:
-        return MixinItem.read(reader);
-      case _ManifestItemKind.topLevelFunction:
-        return TopLevelFunctionItem.read(reader);
-      case _ManifestItemKind.topLevelGetter:
-        return TopLevelGetterItem.read(reader);
-      case _ManifestItemKind.topLevelSetter:
-        return TopLevelSetterItem.read(reader);
-    }
-  }
 }
 
 class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
@@ -1139,7 +1114,6 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
 
   @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind.topLevelSetter);
     super.write(sink);
     valueType.write(sink);
   }
@@ -1147,12 +1121,37 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
 
 enum _InstanceItemMemberItemKind { field, constructor, method, getter, setter }
 
-enum _ManifestItemKind {
-  class_,
-  mixin_,
-  topLevelFunction,
-  topLevelGetter,
-  topLevelSetter,
+extension LookupNameToIdMapExtension on Map<LookupName, ManifestItemId> {
+  void write(BufferedSink sink) {
+    sink.writeMap(
+      this,
+      writeKey: (name) => name.write(sink),
+      writeValue: (items) => items.write(sink),
+    );
+  }
+}
+
+extension LookupNameToItemMapExtension on Map<LookupName, ManifestItem> {
+  void write(BufferedSink sink) {
+    sink.writeMap(
+      this,
+      writeKey: (name) => name.write(sink),
+      writeValue: (items) => items.write(sink),
+    );
+  }
+}
+
+extension SummaryDataReaderExtension on SummaryDataReader {
+  Map<LookupName, V> readLookupNameMap<V>({required V Function() readValue}) {
+    return readMap(
+      readKey: () => LookupName.read(this),
+      readValue: () => readValue(),
+    );
+  }
+
+  Map<LookupName, ManifestItemId> readLookupNameToIdMap() {
+    return readLookupNameMap(readValue: () => ManifestItemId.read(this));
+  }
 }
 
 extension _AnnotatableElementExtension on AnnotatableElementImpl {
@@ -1180,23 +1179,6 @@ extension _GetterElementImplExtension on GetterElementImpl {
       }
     }
     return null;
-  }
-}
-
-extension _LookupNameToIdMapExtension on Map<LookupName, ManifestItemId> {
-  void write(BufferedSink sink) {
-    sink.writeMap(
-      this,
-      writeKey: (name) => name.write(sink),
-      writeValue: (items) => items.write(sink),
-    );
-  }
-
-  static Map<LookupName, ManifestItemId> read(SummaryDataReader reader) {
-    return reader.readMap(
-      readKey: () => LookupName.read(reader),
-      readValue: () => ManifestItemId.read(reader),
-    );
   }
 }
 
@@ -1262,14 +1244,5 @@ extension _PropertyAccessExtension on PropertyAccessorElementImpl2 {
     } else {
       return metadata2;
     }
-  }
-}
-
-extension _SummaryDataReaderExtension on SummaryDataReader {
-  Map<LookupName, ManifestItemId> readLookupNameToIdMap() {
-    return readMap(
-      readKey: () => LookupName.read(this),
-      readValue: () => ManifestItemId.read(this),
-    );
   }
 }
