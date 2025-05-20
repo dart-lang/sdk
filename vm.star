@@ -111,8 +111,6 @@ _vm_builder(
     "vm-linux-release-arm64",
     category = "vm|jit|a6",
     dimensions = [jammy, arm64],
-    properties = {"clobber": False},
-    rbe = False,  # b/306641265
 )
 _vm_builder(
     "vm-mac-debug-arm64",
@@ -219,8 +217,6 @@ _nightly_builder(
     "vm-aot-linux-release-arm64",
     category = "vm|aot|a6",
     dimensions = [jammy, arm64],
-    properties = {"clobber": False},
-    rbe = False,  # b/306641265
 )
 _vm_builder(
     "vm-aot-mac-release-arm64",
@@ -338,29 +334,21 @@ _nightly_builder(
     "vm-asan-linux-release-arm64",
     category = "vm|misc|sanitizer|a",
     dimensions = [jammy, arm64],
-    properties = {"clobber": False},
-    rbe = False,  # b/306641265
 )
 _nightly_builder(
     "vm-msan-linux-release-arm64",
     category = "vm|misc|sanitizer|m",
     dimensions = [jammy, arm64],
-    properties = {"clobber": False},
-    rbe = False,  # b/306641265
 )
 _nightly_builder(
     "vm-tsan-linux-release-arm64",
     category = "vm|misc|sanitizer|t",
     dimensions = [jammy, arm64],
-    properties = {"clobber": False},
-    rbe = False,  # b/306641265
 )
 _nightly_builder(
     "vm-ubsan-linux-release-arm64",
     category = "vm|misc|sanitizer|u",
     dimensions = [jammy, arm64],
-    properties = {"clobber": False},
-    rbe = False,  # b/306641265
 )
 _nightly_builder(
     "vm-reload-linux-debug-x64",
@@ -496,13 +484,10 @@ _vm_builder(
     "iso-stress-linux-x64",
     channels = ["try"],
     notifies = "dart-vm-team",
-    properties = slow_shards,
 )
 _nightly_builder(
     "iso-stress-linux-arm64",
     category = None,
     channels = ["try"],
     dimensions = [jammy, arm64],
-    properties = [slow_shards, {"clobber": False}, no_reclient],
-    rbe = False,  # b/306641265
 )
