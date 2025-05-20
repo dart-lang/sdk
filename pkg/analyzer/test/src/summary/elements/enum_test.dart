@@ -213,12 +213,12 @@ library
                       baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
                       substitution: {T: int}
                   argumentList: ArgumentList
-                    leftParenthesis: ( @0
+                    leftParenthesis: ( @17
                     arguments
                       IntegerLiteral
                         literal: 1 @18
                         staticType: int
-                    rightParenthesis: ) @0
+                    rightParenthesis: ) @19
                   staticType: E<int>
               getter2: <testLibraryFragment>::@enum::E::@getter::int
             hasInitializer string @22
@@ -235,11 +235,11 @@ library
                       baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
                       substitution: {T: String}
                   argumentList: ArgumentList
-                    leftParenthesis: ( @0
+                    leftParenthesis: ( @28
                     arguments
                       SimpleStringLiteral
                         literal: '2' @29
-                    rightParenthesis: ) @0
+                    rightParenthesis: ) @32
                   staticType: E<String>
               getter2: <testLibraryFragment>::@enum::E::@getter::string
             synthetic values
@@ -463,12 +463,12 @@ library
                       baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
                       substitution: {T: double}
                   argumentList: ArgumentList
-                    leftParenthesis: ( @0
+                    leftParenthesis: ( @23
                     arguments
                       IntegerLiteral
                         literal: 42 @24
                         staticType: double
-                    rightParenthesis: ) @0
+                    rightParenthesis: ) @26
                   staticType: E<double>
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
@@ -1687,12 +1687,12 @@ library
                       staticType: null
                     element: <testLibraryFragment>::@enum::E::@constructor::named#element
                   argumentList: ArgumentList
-                    leftParenthesis: ( @0
+                    leftParenthesis: ( @18
                     arguments
                       IntegerLiteral
                         literal: 42 @19
                         staticType: int
-                    rightParenthesis: ) @0
+                    rightParenthesis: ) @21
                   staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
@@ -1792,12 +1792,12 @@ library
                       type: E
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
-                    leftParenthesis: ( @0
+                    leftParenthesis: ( @12
                     arguments
                       IntegerLiteral
                         literal: 42 @13
                         staticType: int
-                    rightParenthesis: ) @0
+                    rightParenthesis: ) @15
                   staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values

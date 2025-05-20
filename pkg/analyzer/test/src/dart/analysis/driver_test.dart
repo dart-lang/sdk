@@ -12830,6 +12830,423 @@ class B = A with M;
     );
   }
 
+  test_dependency_enum_constant_argument() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  foo(0);
+  const A(int _)
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          foo: #M1
+          values: #M2
+        declaredGetters
+          foo: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M7
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+          requestedGetters
+            foo: #M3
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  foo(1);
+  const A(int _)
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          foo: #M8
+          values: #M9
+        declaredGetters
+          foo: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M8
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M8
+          requestedGetters
+            foo: #M3
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_enum_method_returnType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          foo: #M5
+        interface
+          map
+            foo: #M5
+            index: #M6
+  requirements
+    topLevels
+      dart:core
+        int: #M7
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M8
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M5
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          foo: #M9
+        interface
+          map
+            foo: #M9
+            index: #M6
+  requirements
+    topLevels
+      dart:core
+        double: #M10
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M5
+    actualId: #M9
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M9
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_enum_method_returnType_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  int foo() {}
+  int bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          bar: #M5
+          foo: #M6
+        interface
+          map
+            bar: #M5
+            foo: #M6
+            index: #M7
+  requirements
+    topLevels
+      dart:core
+        int: #M8
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M9
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M6
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  int foo() {}
+  double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          bar: #M10
+          foo: #M6
+        interface
+          map
+            bar: #M10
+            foo: #M6
+            index: #M7
+  requirements
+    topLevels
+      dart:core
+        double: #M11
+        int: #M8
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_export_noLibrary() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 final a = 0;
@@ -35135,6 +35552,756 @@ const d = b;
       b: #M8
       c: #M6
       d: #M9
+''',
+    );
+  }
+
+  test_manifest_enum_constants_replace() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {
+  c1, c2
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c2: #M2
+          values: #M3
+        declaredGetters
+          c1: #M4
+          c2: #M5
+          values: #M6
+        interface
+          map
+            index: #M7
+''',
+      updatedCode: r'''
+enum A {
+  c1, c3
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c3: #M8
+          values: #M9
+        declaredGetters
+          c1: #M4
+          c3: #M10
+          values: #M6
+        interface
+          map
+            index: #M7
+''',
+    );
+  }
+
+  test_manifest_enum_constants_update_argument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {
+  c1(1),
+  c2(2),
+  c3(3);
+  const A(int _);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c2: #M2
+          c3: #M3
+          values: #M4
+        declaredGetters
+          c1: #M5
+          c2: #M6
+          c3: #M7
+          values: #M8
+        interface
+          map
+            index: #M9
+''',
+      updatedCode: r'''
+enum A {
+  c1(1),
+  c2(20),
+  c3(3);
+  const A(int _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c2: #M10
+          c3: #M3
+          values: #M11
+        declaredGetters
+          c1: #M5
+          c2: #M6
+          c3: #M7
+          values: #M8
+        interface
+          map
+            index: #M9
+''',
+    );
+  }
+
+  test_manifest_enum_constants_update_typeArgument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A<T> {
+  c1<int>(),
+  c2<int>(),
+  c3<int>();
+  const A();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c2: #M2
+          c3: #M3
+          values: #M4
+        declaredGetters
+          c1: #M5
+          c2: #M6
+          c3: #M7
+          values: #M8
+        interface
+          map
+            index: #M9
+''',
+      updatedCode: r'''
+enum A<T> {
+  c1<int>(),
+  c2<double>(),
+  c3<int>();
+  const A();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c2: #M10
+          c3: #M3
+          values: #M11
+        declaredGetters
+          c1: #M5
+          c2: #M12
+          c3: #M7
+          values: #M8
+        interface
+          map
+            index: #M9
+''',
+    );
+  }
+
+  test_manifest_enum_field_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {
+  v;
+  final int foo = 0;
+  final int bar = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          bar: #M5
+          foo: #M6
+          v: #M7
+          values: #M8
+        interface
+          map
+            bar: #M5
+            foo: #M6
+            index: #M9
+''',
+      updatedCode: r'''
+enum A {
+  v;
+  final int foo = 0;
+  final double bar = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M10
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          bar: #M11
+          foo: #M6
+          v: #M7
+          values: #M8
+        interface
+          map
+            bar: #M11
+            foo: #M6
+            index: #M9
+''',
+    );
+  }
+
+  test_manifest_enum_getter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {
+  v;
+  int get foo {}
+  int get bar {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          bar: #M5
+          foo: #M6
+          v: #M7
+          values: #M8
+        interface
+          map
+            bar: #M5
+            foo: #M6
+            index: #M9
+''',
+      updatedCode: r'''
+enum A {
+  v;
+  int get foo {}
+  double get bar {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M10
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          bar: #M11
+          foo: #M6
+          v: #M7
+          values: #M8
+        interface
+          map
+            bar: #M11
+            foo: #M6
+            index: #M9
+''',
+    );
+  }
+
+  test_manifest_enum_implements_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A { v }
+class B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M0
+    declaredEnums
+      A: #M1
+        declaredFields
+          v: #M2
+          values: #M3
+        declaredGetters
+          v: #M4
+          values: #M5
+        interface
+          map
+            index: #M6
+''',
+      updatedCode: r'''
+enum A implements B { v }
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M0
+    declaredEnums
+      A: #M7
+        declaredFields
+          v: #M8
+          values: #M9
+        declaredGetters
+          v: #M10
+          values: #M11
+        interface
+          map
+            index: #M6
+''',
+    );
+  }
+
+  test_manifest_enum_implements_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A implements B { v }
+class B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M0
+    declaredEnums
+      A: #M1
+        declaredFields
+          v: #M2
+          values: #M3
+        declaredGetters
+          v: #M4
+          values: #M5
+        interface
+          map
+            index: #M6
+''',
+      updatedCode: r'''
+enum A { v }
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M0
+    declaredEnums
+      A: #M7
+        declaredFields
+          v: #M8
+          values: #M9
+        declaredGetters
+          v: #M10
+          values: #M11
+        interface
+          map
+            index: #M6
+''',
+    );
+  }
+
+  test_manifest_enum_it_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A { v }
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+''',
+      updatedCode: r'''
+enum A { v }
+enum B { v }
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+      B: #M6
+        declaredFields
+          v: #M7
+          values: #M8
+        declaredGetters
+          v: #M9
+          values: #M10
+        interface
+          map
+            index: #M5
+''',
+    );
+  }
+
+  test_manifest_enum_it_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A { v }
+enum B { v }
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+      B: #M6
+        declaredFields
+          v: #M7
+          values: #M8
+        declaredGetters
+          v: #M9
+          values: #M10
+        interface
+          map
+            index: #M5
+''',
+      updatedCode: r'''
+enum A { v }
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+''',
+    );
+  }
+
+  test_manifest_enum_method() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {
+  v;
+  int foo() {}
+  int bar() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          bar: #M5
+          foo: #M6
+        interface
+          map
+            bar: #M5
+            foo: #M6
+            index: #M7
+''',
+      updatedCode: r'''
+enum A {
+  v;
+  int foo() {}
+  double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          bar: #M8
+          foo: #M6
+        interface
+          map
+            bar: #M8
+            foo: #M6
+            index: #M7
+''',
+    );
+  }
+
+  test_manifest_enum_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {
+  v;
+  set foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          v: #M5
+          values: #M6
+        declaredSetters
+          bar=: #M7
+          foo=: #M8
+        interface
+          map
+            bar=: #M7
+            foo=: #M8
+            index: #M9
+''',
+      updatedCode: r'''
+enum A {
+  v;
+  set foo(int _) {}
+  set bar(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M10
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          v: #M5
+          values: #M6
+        declaredSetters
+          bar=: #M11
+          foo=: #M8
+        interface
+          map
+            bar=: #M11
+            foo=: #M8
+            index: #M9
+''',
+    );
+  }
+
+  test_manifest_enum_with_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A { v }
+
+mixin M {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+    declaredMixins
+      M: #M6
+        declaredMethods
+          foo: #M7
+        interface
+          map
+            foo: #M7
+''',
+      updatedCode: r'''
+enum A with M { v }
+
+mixin M {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M8
+        declaredFields
+          v: #M9
+          values: #M10
+        declaredGetters
+          v: #M11
+          values: #M12
+        interface
+          map
+            foo: #M7
+            index: #M5
+    declaredMixins
+      M: #M6
+        declaredMethods
+          foo: #M7
+        interface
+          map
+            foo: #M7
+''',
+    );
+  }
+
+  test_manifest_enum_with_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A with M { v }
+
+mixin M {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            foo: #M5
+            index: #M6
+    declaredMixins
+      M: #M7
+        declaredMethods
+          foo: #M5
+        interface
+          map
+            foo: #M5
+''',
+      updatedCode: r'''
+enum A { v }
+
+mixin M {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M8
+        declaredFields
+          v: #M9
+          values: #M10
+        declaredGetters
+          v: #M11
+          values: #M12
+        interface
+          map
+            index: #M6
+    declaredMixins
+      M: #M7
+        declaredMethods
+          foo: #M5
+        interface
+          map
+            foo: #M5
 ''',
     );
   }

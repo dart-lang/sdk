@@ -718,30 +718,13 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
               rightParenthesis: Tokens.closeParenthesis(),
             ),
           );
-          _linkTokens(superInvocation);
+          AstNodeImpl.linkNodeTokens(superInvocation);
           superInvocation.element = superclassConstructor.asElement2;
           implicitConstructor.constantInitializers = [superInvocation];
 
           return implicitConstructor;
         })
         .toList(growable: false);
-  }
-
-  static void _linkTokens(AstNode parent) {
-    Token? lastToken;
-    for (var entity in parent.childEntities) {
-      switch (entity) {
-        case Token token:
-          lastToken?.next = token;
-          token.previous = lastToken;
-          lastToken = token;
-        case AstNode node:
-          _linkTokens(node);
-          lastToken?.next = node.beginToken;
-          node.beginToken.previous = lastToken;
-          lastToken = node.endToken;
-      }
-    }
   }
 }
 

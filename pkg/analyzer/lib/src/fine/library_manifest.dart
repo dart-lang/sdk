@@ -24,6 +24,7 @@ class LibraryManifest {
   final Map<LookupName, ManifestItemId> reExportMap;
 
   final Map<LookupName, ClassItem> declaredClasses;
+  final Map<LookupName, EnumItem> declaredEnums;
   final Map<LookupName, MixinItem> declaredMixins;
   final Map<LookupName, TopLevelGetterItem> declaredGetters;
   final Map<LookupName, TopLevelSetterItem> declaredSetters;
@@ -33,6 +34,7 @@ class LibraryManifest {
   LibraryManifest({
     required this.reExportMap,
     required this.declaredClasses,
+    required this.declaredEnums,
     required this.declaredMixins,
     required this.declaredGetters,
     required this.declaredSetters,
@@ -45,6 +47,9 @@ class LibraryManifest {
       reExportMap: reader.readLookupNameToIdMap(),
       declaredClasses: reader.readLookupNameMap(
         readValue: () => ClassItem.read(reader),
+      ),
+      declaredEnums: reader.readLookupNameMap(
+        readValue: () => EnumItem.read(reader),
       ),
       declaredMixins: reader.readLookupNameMap(
         readValue: () => MixinItem.read(reader),
@@ -68,6 +73,7 @@ class LibraryManifest {
   /// or `null` if there is no such element.
   ManifestItemId? getExportedId(LookupName name) {
     return declaredClasses[name]?.id ??
+        declaredEnums[name]?.id ??
         declaredMixins[name]?.id ??
         declaredGetters[name]?.id ??
         declaredSetters[name]?.id ??
@@ -78,6 +84,7 @@ class LibraryManifest {
   void write(BufferedSink sink) {
     reExportMap.write(sink);
     declaredClasses.write(sink);
+    declaredEnums.write(sink);
     declaredMixins.write(sink);
     declaredGetters.write(sink);
     declaredSetters.write(sink);
@@ -225,6 +232,33 @@ class LibraryManifestBuilder {
         }
       }
     }
+  }
+
+  void _addEnum({
+    required EncodeContext encodingContext,
+    required Map<LookupName, TopLevelItem> newItems,
+    required EnumElementImpl2 element,
+    required LookupName lookupName,
+  }) {
+    var enumItem = _getOrBuildElementItem(element, () {
+      return EnumItem.fromElement(
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+    });
+    newItems[lookupName] = enumItem;
+
+    encodingContext.withTypeParameters(element.typeParameters2, (
+      typeParameters,
+    ) {
+      enumItem.beforeUpdatingMembers();
+      _addInterfaceElementMembers(
+        encodingContext: encodingContext,
+        instanceElement: element,
+        interfaceItem: enumItem,
+      );
+    });
   }
 
   void _addInstanceElementField({
@@ -564,6 +598,7 @@ class LibraryManifestBuilder {
     for (var libraryElement in libraryElements) {
       var libraryUri = libraryElement.uri;
       var newClassItems = <LookupName, ClassItem>{};
+      var newEnumItems = <LookupName, EnumItem>{};
       var newMixinItems = <LookupName, MixinItem>{};
       var newTopLevelGetters = <LookupName, TopLevelGetterItem>{};
       var newTopLevelSetters = <LookupName, TopLevelSetterItem>{};
@@ -581,6 +616,13 @@ class LibraryManifestBuilder {
             _addClass(
               encodingContext: encodingContext,
               newItems: newClassItems,
+              element: element,
+              lookupName: lookupName,
+            );
+          case EnumElementImpl2():
+            _addEnum(
+              encodingContext: encodingContext,
+              newItems: newEnumItems,
               element: element,
               lookupName: lookupName,
             );
@@ -627,6 +669,7 @@ class LibraryManifestBuilder {
       var newManifest = LibraryManifest(
         reExportMap: {},
         declaredClasses: newClassItems,
+        declaredEnums: newEnumItems,
         declaredMixins: newMixinItems,
         declaredGetters: newTopLevelGetters,
         declaredSetters: newTopLevelSetters,
@@ -778,6 +821,7 @@ class LibraryManifestBuilder {
         LibraryManifest(
           reExportMap: {},
           declaredClasses: {},
+          declaredEnums: {},
           declaredMixins: {},
           declaredGetters: {},
           declaredSetters: {},
@@ -893,6 +937,10 @@ class _LibraryMatch {
           if (!_matchClass(name: name, element: element)) {
             structureMismatched.add(element);
           }
+        case EnumElementImpl2():
+          if (!_matchEnum(name: name, element: element)) {
+            structureMismatched.add(element);
+          }
         case GetterElementImpl():
           if (!_matchTopGetter(name: name, element: element)) {
             structureMismatched.add(element);
@@ -956,6 +1004,37 @@ class _LibraryMatch {
       element: element,
       item: item,
       matchContext: matchContext,
+    );
+
+    return true;
+  }
+
+  bool _matchEnum({
+    required LookupName? name,
+    required EnumElementImpl2 element,
+  }) {
+    var item = manifest.declaredEnums[name];
+    if (item is! EnumItem) {
+      return false;
+    }
+
+    var matchContext = MatchContext(parent: null);
+    if (!item.match(matchContext, element)) {
+      return false;
+    }
+
+    _addMatchingElementItem(element, item, matchContext);
+
+    _matchInterfaceElementConstructors(
+      matchContext: matchContext,
+      interfaceElement: element,
+      item: item,
+    );
+
+    _matchInstanceElementExecutables(
+      matchContext: matchContext,
+      element: element,
+      item: item,
     );
 
     return true;

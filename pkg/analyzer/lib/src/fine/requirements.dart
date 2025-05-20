@@ -64,6 +64,7 @@ class ExportRequirement {
     var actualCount = 0;
     var declaredTopEntries = <MapEntry<LookupName, TopLevelItem>>[
       ...libraryManifest.declaredClasses.entries,
+      ...libraryManifest.declaredEnums.entries,
       ...libraryManifest.declaredMixins.entries,
       ...libraryManifest.declaredGetters.entries,
       ...libraryManifest.declaredSetters.entries,
@@ -380,6 +381,7 @@ class RequirementsManifest {
 
         var instanceItem =
             libraryManifest.declaredClasses[instanceName] ??
+            libraryManifest.declaredEnums[instanceName] ??
             libraryManifest.declaredMixins[instanceName];
         if (instanceItem is! InstanceItem) {
           return TopLevelNotInterface(
@@ -463,6 +465,7 @@ class RequirementsManifest {
         var interfaceName = interfaceEntry.key;
         var interfaceItem =
             libraryManifest.declaredClasses[interfaceName] ??
+            libraryManifest.declaredEnums[interfaceName] ??
             libraryManifest.declaredMixins[interfaceName];
         if (interfaceItem is! InterfaceItem) {
           return TopLevelNotInterface(
@@ -817,6 +820,7 @@ class RequirementsManifest {
     var instancesMap = instances[libraryElement.uri] ??= {};
     var instanceItem =
         manifest.declaredClasses[instanceName] ??
+        manifest.declaredEnums[instanceName] ??
         manifest.declaredMixins[instanceName];
 
     // SAFETY: every instance element must be in the manifest.
@@ -848,6 +852,7 @@ class RequirementsManifest {
     var interfacesMap = interfaces[libraryElement.uri] ??= {};
     var interfaceItem =
         manifest.declaredClasses[interfaceName] ??
+        manifest.declaredEnums[interfaceName] ??
         manifest.declaredMixins[interfaceName];
 
     // SAFETY: every interface element must be in the manifest.
