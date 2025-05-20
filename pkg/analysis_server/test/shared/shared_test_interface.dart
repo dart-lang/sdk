@@ -83,6 +83,5 @@ abstract interface class SharedTestInterface {
     bool meta = false,
     bool pedantic = false,
     bool vector_math = false,
-    bool macro = false,
   });
 }

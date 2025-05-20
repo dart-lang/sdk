@@ -55,6 +55,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.callerCapabilities,
     required super.allowCodeActionLiterals,
     required super.allowCommands,
+    required super.allowSnippets,
     required super.analysisOptions,
     required this.triggerKind,
     required this.willBeDeduplicated,

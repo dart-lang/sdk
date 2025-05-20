@@ -380,7 +380,7 @@ class AnalyzeCommand extends DartdevCommand {
 
       // Add any context messages as bullet list items.
       for (var message in error.contextMessages) {
-        var contextPath = _relativePath(error.file, relativeToDir);
+        var contextPath = _relativePath(message.filePath, relativeToDir);
         var messageSentenceFragment = trimEnd(message.message, '.');
 
         log.stdout('$_bodyIndent'

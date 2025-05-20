@@ -13,7 +13,7 @@ resolution: workspace
 
 dependencies:
   fixnum: ^1.0.0
-  protobuf: ">=4.0.0 <5.0.0"
+  protobuf: ^4.0.0
 
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the

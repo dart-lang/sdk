@@ -126,7 +126,7 @@ Widget build() {
 >>>>>>>>>> lib/test.dart
 import 'package:flutter/widgets.dart';
 Widget build() {
-  return Center($0child: Text(''));
+  return Center(child: Text(''));
 }
 ''';
 

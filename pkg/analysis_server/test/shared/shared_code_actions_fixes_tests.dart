@@ -701,6 +701,38 @@ name: $testPackageName
     );
   }
 
+  Future<void> test_snippets() async {
+    setSnippetTextEditSupport();
+
+    const content = '''
+abstract class A {
+  void m();
+}
+
+class ^B extends A {}
+''';
+
+    const expectedContent = r'''
+abstract class A {
+  void m();
+}
+
+class B extends A {
+  @override
+  void m() {
+    // TODO: implement m$0
+  }
+}
+''';
+
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('quickfix.create.missingOverrides'),
+      title: 'Create 1 missing override',
+    );
+  }
+
   Future<void> test_snippets_createMethod_functionTypeNestedParameters() async {
     const content = '''
 class A {
@@ -785,6 +817,43 @@ useFunction(int g(a, b)) {}
       expectedContent,
       kind: CodeActionKind('quickfix.create.localVariable'),
       title: "Create local variable 'test'",
+    );
+  }
+
+  /// The non-standard snippets we supported are only supported for
+  /// [CodeActionLiteral]s and not for [Command]s (which go via
+  /// workspace/applyEdit) so even if enabled, they should not be returned.
+  Future<void> test_snippets_unsupportedForCommands() async {
+    setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
+    setSnippetTextEditSupport(); // will be ignored
+
+    const content = '''
+abstract class A {
+  void m();
+}
+
+class ^B extends A {}
+''';
+
+    // No $0 placeholder in this content (unlike in `test_snippets`).
+    const expectedContent = r'''
+abstract class A {
+  void m();
+}
+
+class B extends A {
+  @override
+  void m() {
+    // TODO: implement m
+  }
+}
+''';
+
+    await verifyCommandCodeActionEdits(
+      content,
+      expectedContent,
+      command: Commands.applyCodeAction,
+      title: 'Create 1 missing override',
     );
   }
 

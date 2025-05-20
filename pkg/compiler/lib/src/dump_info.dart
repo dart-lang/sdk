@@ -7,9 +7,9 @@ library;
 import 'dart:convert' show JsonEncoder, JsonDecoder;
 
 import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:dart2js_info/binary_serialization.dart' as dump_info;
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
-import 'package:dart2js_info/binary_serialization.dart' as dump_info;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 
@@ -18,8 +18,8 @@ import 'common.dart';
 import 'common/codegen.dart';
 import 'common/elements.dart' show JElementEnvironment;
 import 'common/names.dart';
-import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common/ram_usage.dart';
+import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'constants/values.dart' show ConstantValue;
 import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
 import 'elements/entities.dart';
@@ -29,10 +29,10 @@ import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'js/js.dart' as js_ast;
+import 'js_backend/field_analysis.dart';
 import 'js_emitter/code_emitter_task.dart';
 import 'js_model/elements.dart';
 import 'js_model/js_world.dart' show JClosedWorld;
-import 'js_backend/field_analysis.dart';
 import 'options.dart';
 import 'serialization/serialization.dart';
 import 'universe/world_impact.dart' show WorldImpact;
@@ -212,7 +212,6 @@ class DumpInfoProgramData {
   factory DumpInfoProgramData.fromEmitterResults(
     CodeEmitterTask emitterTask,
     DumpInfoJsAstRegistry dumpInfoRegistry,
-    CodegenResults codegenResults,
     int programSize,
   ) {
     final outputUnitSizes = emitterTask.emitter.generatedSizes;

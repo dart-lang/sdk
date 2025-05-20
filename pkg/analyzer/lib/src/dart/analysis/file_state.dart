@@ -485,10 +485,10 @@ class FileState {
   /// The [FileSource] of the file with the [uri].
   final FileSource source;
 
-  /// The [WorkspacePackage] that contains this file.
+  /// The [WorkspacePackageImpl] that contains this file.
   ///
   /// It might be `null` if the file is outside of the workspace.
-  final WorkspacePackage? workspacePackage;
+  final WorkspacePackageImpl? workspacePackage;
 
   /// The [FeatureSet] for this file.
   ///
@@ -1553,7 +1553,7 @@ class FileSystemState {
   FeatureSet _getFeatureSet(
     String path,
     Uri uri,
-    WorkspacePackage? workspacePackage,
+    WorkspacePackageImpl? workspacePackage,
     AnalysisOptionsImpl analysisOptions,
   ) {
     var workspacePackageExperiments = workspacePackage?.enabledExperiments;
@@ -1574,7 +1574,7 @@ class FileSystemState {
   Version _getLanguageVersion(
     String path,
     Uri uri,
-    WorkspacePackage? workspacePackage,
+    WorkspacePackageImpl? workspacePackage,
     AnalysisOptionsImpl analysisOptions,
   ) {
     var workspaceLanguageVersion = workspacePackage?.languageVersion;
@@ -1596,7 +1596,7 @@ class FileSystemState {
     OperationPerformanceImpl? performance,
   }) {
     FileSource uriSource = FileSource(resource, uri);
-    WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
+    WorkspacePackageImpl? workspacePackage = _workspace?.findPackageFor(path);
     AnalysisOptionsImpl analysisOptions = _getAnalysisOptions(resource);
     FeatureSet featureSet = _getFeatureSet(
       path,

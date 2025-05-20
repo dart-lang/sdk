@@ -582,7 +582,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
 @reflectiveTest
 class PubPackageTest extends WorkspacePackageTest {
   late final PackageConfigWorkspace myWorkspace;
-  late final WorkspacePackage myPackage;
+  late final WorkspacePackageImpl myPackage;
 
   String get fooPackageLibPath => '$fooPackageRootPath/lib';
 

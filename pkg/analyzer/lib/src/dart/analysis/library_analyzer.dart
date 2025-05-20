@@ -384,7 +384,7 @@ class LibraryAnalyzer {
     var definingUnit = _libraryElement.definingCompilationUnit;
     var analysesToContextUnits = <FileAnalysis, LintRuleUnitContext>{};
     LintRuleUnitContext? definingContextUnit;
-    WorkspacePackage? workspacePackage;
+    WorkspacePackageImpl? workspacePackage;
     for (var fileAnalysis in _libraryFiles.values) {
       var linterContextUnit = LintRuleUnitContext(
         file: fileAnalysis.file.resource,

@@ -211,7 +211,7 @@ class _FileStreamConsumer implements StreamConsumer<List<int>> {
     : _file = file,
       _openFuture = file.open(mode: mode);
 
-  _FileStreamConsumer.fromStdio(int fd)
+  _FileStreamConsumer._fromStdio(int fd)
     : _openFuture = new Future.value(_File._openStdioSync(fd));
 
   _FileStreamConsumer.fromRandomAccessFile(RandomAccessFile f)

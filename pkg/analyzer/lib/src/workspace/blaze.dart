@@ -586,7 +586,7 @@ class BlazeWorkspace extends Workspace
 /// Separate from [Packages] or package maps, this class is designed to simply
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a [BlazeWorkspace].
-class BlazeWorkspacePackage extends WorkspacePackage {
+class BlazeWorkspacePackage extends WorkspacePackageImpl {
   /// A prefix for any URI of a path in this package.
   final String _uriPrefix;
 

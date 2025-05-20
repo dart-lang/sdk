@@ -1136,7 +1136,7 @@ class _AnalysisContextCollectionPrinter {
 
   final Map<AnalysisOptionsImpl, String> _analysisOptions = Map.identity();
   final Map<Workspace, (int, String)> _workspaces = Map.identity();
-  final Map<Workspace, Map<WorkspacePackage, String>> _workspacePackages =
+  final Map<Workspace, Map<WorkspacePackageImpl, String>> _workspacePackages =
       Map.identity();
 
   _AnalysisContextCollectionPrinter({
@@ -1170,7 +1170,7 @@ class _AnalysisContextCollectionPrinter {
     return _indexIdOfWorkspace(workspace).$2;
   }
 
-  String _idOfWorkspacePackage(WorkspacePackage package) {
+  String _idOfWorkspacePackage(WorkspacePackageImpl package) {
     var workspace = package.workspace;
     var packages = _workspacePackages[workspace] ??= Map.identity();
     if (packages[package] case var id?) {
@@ -1327,7 +1327,7 @@ class _AnalysisContextCollectionPrinter {
     }
   }
 
-  void _writeWorkspacePackage(WorkspacePackage package) {
+  void _writeWorkspacePackage(WorkspacePackageImpl package) {
     var id = _idOfWorkspacePackage(package);
     switch (package) {
       case BasicWorkspacePackage():

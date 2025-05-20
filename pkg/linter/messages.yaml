@@ -11348,9 +11348,9 @@ LintCode:
     problemMessage: "Avoid switch statements on a 'Type'."
     correctionMessage: "Try using pattern matching on a variable instead."
     state:
-      stable: "3.0"
+      stable: "3.9"
     categories: [unintentional, style, languageFeatureUsage, errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -13668,7 +13668,7 @@ LintCode:
     state:
       stable: "3.9"
     categories: [brevity, unintentional, unusedCode]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

@@ -231,10 +231,7 @@ static void NullErrorHelper(Zone* zone,
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
 }
 
-static void DoThrowNullError(Isolate* isolate,
-                             Thread* thread,
-                             Zone* zone,
-                             bool is_param) {
+static void DoThrowNullError(Thread* thread, Zone* zone, bool is_param) {
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   const StackFrame* caller_frame = iterator.NextFrame();
@@ -244,7 +241,7 @@ static void DoThrowNullError(Isolate* isolate,
   const uword pc_offset = caller_frame->pc() - code.PayloadStart();
 
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
 
   const CodeSourceMap& map =
@@ -266,7 +263,7 @@ static void DoThrowNullError(Isolate* isolate,
 }
 
 DEFINE_RUNTIME_ENTRY(NullError, 0) {
-  DoThrowNullError(isolate, thread, zone, /*is_param=*/false);
+  DoThrowNullError(thread, zone, /*is_param=*/false);
 }
 
 // Collects information about pointers within the top |kMaxSlotsCollected|
@@ -315,7 +312,7 @@ DEFINE_RUNTIME_ENTRY(DispatchTableNullError, 1) {
     RELEASE_ASSERT(caller_frame->IsDartFrame());
     ReportImpossibleNullError(cid.Value(), caller_frame, thread);
   }
-  DoThrowNullError(isolate, thread, zone, /*is_param=*/false);
+  DoThrowNullError(thread, zone, /*is_param=*/false);
 }
 
 DEFINE_RUNTIME_ENTRY(NullErrorWithSelector, 1) {
@@ -328,7 +325,7 @@ DEFINE_RUNTIME_ENTRY(NullCastError, 0) {
 }
 
 DEFINE_RUNTIME_ENTRY(ArgumentNullError, 0) {
-  DoThrowNullError(isolate, thread, zone, /*is_param=*/true);
+  DoThrowNullError(thread, zone, /*is_param=*/true);
 }
 
 DEFINE_RUNTIME_ENTRY(ArgumentError, 1) {
@@ -423,7 +420,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateDouble, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(
       Object::Handle(zone, Double::New(0.0, SpaceForRuntimeAllocation())));
@@ -453,7 +450,7 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxFloat64x2, 0) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(
       zone, Integer::New(kMaxInt64, SpaceForRuntimeAllocation())));
@@ -462,7 +459,7 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat32x4, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(
       zone, Float32x4::New(0.0, 0.0, 0.0, 0.0, SpaceForRuntimeAllocation())));
@@ -471,7 +468,7 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat32x4, 0) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat64x2, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(
       zone, Float64x2::New(0.0, 0.0, SpaceForRuntimeAllocation())));
@@ -480,7 +477,7 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat64x2, 0) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateInt32x4, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(
       zone, Int32x4::New(0, 0, 0, 0, SpaceForRuntimeAllocation())));
@@ -1564,7 +1561,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       // Ensure we do have a STC (lazily create it if not) and all threads use
       // the same STC.
       {
-        SafepointMutexLocker ml(isolate->group()->subtype_test_cache_mutex());
+        SafepointMutexLocker ml(
+            thread->isolate_group()->subtype_test_cache_mutex());
         cache ^= pool.ObjectAt<std::memory_order_acquire>(stc_pool_idx);
         if (cache.IsNull()) {
           resolve_dst_name();
@@ -1600,10 +1598,10 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 
 DEFINE_RUNTIME_ENTRY(Throw, 1) {
   if (FLAG_gc_at_throw) {
-    isolate->group()->heap()->CollectGarbage(thread, GCType::kEvacuate,
-                                             GCReason::kDebugging);
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging,
-                                                /*compact=*/true);
+    thread->isolate_group()->heap()->CollectGarbage(thread, GCType::kEvacuate,
+                                                    GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging,
+                                                       /*compact=*/true);
   }
 
   const Instance& exception = Instance::CheckedHandle(zone, arguments.ArgAt(0));
@@ -1612,10 +1610,10 @@ DEFINE_RUNTIME_ENTRY(Throw, 1) {
 
 DEFINE_RUNTIME_ENTRY(ReThrow, 3) {
   if (FLAG_gc_at_throw) {
-    isolate->group()->heap()->CollectGarbage(thread, GCType::kEvacuate,
-                                             GCReason::kDebugging);
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging,
-                                                /*compact=*/true);
+    thread->isolate_group()->heap()->CollectGarbage(thread, GCType::kEvacuate,
+                                                    GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging,
+                                                       /*compact=*/true);
   }
 
   const Instance& exception = Instance::CheckedHandle(zone, arguments.ArgAt(0));
@@ -1682,8 +1680,8 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   ASSERT(caller_frame != nullptr);
   Code& orig_stub = Code::Handle(zone);
   if (!caller_frame->is_interpreted()) {
-    orig_stub =
-        isolate->group()->debugger()->GetPatchedStubAddress(caller_frame->pc());
+    orig_stub = thread->isolate_group()->debugger()->GetPatchedStubAddress(
+        caller_frame->pc());
   }
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
@@ -2015,11 +2013,9 @@ class SavedUnlinkedCallMapKeyEqualsTraits : public AllStatic {
 using UnlinkedCallMap = UnorderedHashMap<SavedUnlinkedCallMapKeyEqualsTraits>;
 
 static void SaveUnlinkedCall(Zone* zone,
-                             Isolate* isolate,
+                             IsolateGroup* isolate_group,
                              uword frame_pc,
                              const UnlinkedCall& unlinked_call) {
-  IsolateGroup* isolate_group = isolate->group();
-
   SafepointMutexLocker ml(isolate_group->unlinked_call_map_mutex());
   if (isolate_group->saved_unlinked_calls() == Array::null()) {
     const auto& initial_map =
@@ -2040,10 +2036,8 @@ static void SaveUnlinkedCall(Zone* zone,
 }
 
 static UnlinkedCallPtr LoadUnlinkedCall(Zone* zone,
-                                        Isolate* isolate,
+                                        IsolateGroup* isolate_group,
                                         uword pc) {
-  IsolateGroup* isolate_group = isolate->group();
-
   SafepointMutexLocker ml(isolate_group->unlinked_call_map_mutex());
   ASSERT(isolate_group->saved_unlinked_calls() != Array::null());
   UnlinkedCallMap unlinked_call_map(zone,
@@ -2109,7 +2103,7 @@ class PatchableCallHandler {
                        StackFrame* caller_frame,
                        const Code& caller_code,
                        const Function& caller_function)
-      : isolate_(thread->isolate()),
+      : isolate_group_(thread->isolate_group()),
         thread_(thread),
         zone_(thread->zone()),
         caller_arguments_(caller_arguments),
@@ -2190,7 +2184,7 @@ class PatchableCallHandler {
   ICDataPtr NewICData();
   ICDataPtr NewICDataWithTarget(intptr_t cid, const Function& target);
 
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   Thread* thread_;
   Zone* zone_;
   const GrowableArray<const Instance*>& caller_arguments_;
@@ -2271,8 +2265,8 @@ bool PatchableCallHandler::CanExtendSingleTargetRange(
     *upper = receiver().GetClassId();
   }
 
-  return IsSingleTarget(isolate_->group(), zone_, unchecked_lower,
-                        unchecked_upper, target_function, name);
+  return IsSingleTarget(isolate_group_, zone_, unchecked_lower, unchecked_upper,
+                        target_function, name);
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
@@ -2288,8 +2282,8 @@ void PatchableCallHandler::DoMonomorphicMissAOT(
     old_expected_cid = MonomorphicSmiableCall::Cast(old_data).expected_cid();
   }
   const bool is_monomorphic_hit = old_expected_cid == receiver().GetClassId();
-  const auto& old_receiver_class = Class::Handle(
-      zone_, isolate_->group()->class_table()->At(old_expected_cid));
+  const auto& old_receiver_class =
+      Class::Handle(zone_, isolate_group_->class_table()->At(old_expected_cid));
   const auto& old_target = Function::Handle(
       zone_, Resolve(thread_, zone_, caller_arguments_, old_receiver_class,
                      name_, args_descriptor_));
@@ -2656,7 +2650,8 @@ FunctionPtr PatchableCallHandler::ResolveTargetFunction(const Object& data) {
       //
       // In JIT mode we always use ICData from the call site, which has the
       // correct name/args-descriptor.
-      SaveUnlinkedCall(zone_, isolate_, caller_frame_->pc(), unlinked_call);
+      SaveUnlinkedCall(zone_, isolate_group_, caller_frame_->pc(),
+                       unlinked_call);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
       name_ = unlinked_call.target_name();
@@ -2670,7 +2665,7 @@ FunctionPtr PatchableCallHandler::ResolveTargetFunction(const Object& data) {
       FALL_THROUGH;
     case kSingleTargetCacheCid: {
       const auto& unlinked_call = UnlinkedCall::Handle(
-          zone_, LoadUnlinkedCall(zone_, isolate_, caller_frame_->pc()));
+          zone_, LoadUnlinkedCall(zone_, isolate_group_, caller_frame_->pc()));
       name_ = unlinked_call.target_name();
       args_descriptor_ = unlinked_call.arguments_descriptor();
       break;
@@ -2717,7 +2712,7 @@ void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
   //
   // Mutators are only stopped if we actually need to patch a patchable call.
   // We may not do that if we e.g. just add one more check to an ICData.
-  SafepointMutexLocker ml(thread_->isolate_group()->patchable_call_mutex());
+  SafepointMutexLocker ml(isolate_group_->patchable_call_mutex());
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   data =
@@ -4122,13 +4117,13 @@ DEFINE_RUNTIME_ENTRY(NotLoaded, 0) {
 }
 
 DEFINE_RUNTIME_ENTRY(FfiAsyncCallbackSend, 1) {
-  Dart_Port target_port = Thread::Current()->unboxed_int64_runtime_arg();
+  Dart_Port target_port = thread->unboxed_int64_runtime_arg();
   TRACE_RUNTIME_CALL("FfiAsyncCallbackSend %p", (void*)target_port);
   const Object& message = Object::Handle(zone, arguments.ArgAt(0));
   const Array& msg_array = Array::Handle(zone, Array::New(3));
   msg_array.SetAt(0, message);
   PersistentHandle* handle =
-      isolate->group()->api_state()->AllocatePersistentHandle();
+      thread->isolate_group()->api_state()->AllocatePersistentHandle();
   handle->set_ptr(msg_array);
   PortMap::PostMessage(
       Message::New(target_port, handle, Message::kNormalPriority));

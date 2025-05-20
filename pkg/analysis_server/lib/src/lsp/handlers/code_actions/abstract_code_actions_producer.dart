@@ -39,6 +39,14 @@ abstract class AbstractCodeActionsProducer
   final int length;
   final bool Function(CodeActionKind?) shouldIncludeKind;
 
+  /// Whether non-standard LSP snippets are allowed in edits produced.
+  ///
+  /// This is usually true for the `textDocument/codeAction` request (because we
+  /// support it for [CodeActionLiteral]s) but `false` for the
+  /// [Commands.applyCodeAction] handler because it's not supported for
+  /// `workspace/applyEdit` reverse requests.
+  final bool allowSnippets;
+
   /// The capabilities of the caller making the request for [CodeAction]s.
   final LspClientCapabilities callerCapabilities;
 
@@ -78,6 +86,7 @@ abstract class AbstractCodeActionsProducer
     required this.editorCapabilities,
     required this.allowCommands,
     required this.allowCodeActionLiterals,
+    required this.allowSnippets,
     required this.analysisOptions,
   });
 
@@ -139,7 +148,7 @@ abstract class AbstractCodeActionsProducer
         server,
         editorCapabilities,
         change,
-        allowSnippets: true,
+        allowSnippets: allowSnippets,
         filePath: path,
         lineInfo: lineInfo,
       ),

@@ -147,7 +147,7 @@ mixin MockPackagesMixin {
     return packageFolder.getChildAssumingFolder('lib');
   }
 
-  /// Add files of the given [packageName] to the [provider].
+  /// Adds files of the given [packageName] to the [resourceProvider].
   Folder _addFiles(String packageName) {
     var cachedFiles = _cachedFiles;
     if (cachedFiles == null) {

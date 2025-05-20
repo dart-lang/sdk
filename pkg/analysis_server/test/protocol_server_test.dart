@@ -53,6 +53,7 @@ class AnalysisErrorTest {
     result = _ResolvedUnitResultImplMock(
       lineInfo: lineInfo,
       errors: [engineError],
+      path: 'foo.dart',
     );
   }
 
@@ -70,6 +71,7 @@ class AnalysisErrorTest {
       _ResolvedUnitResultImplMock(
         lineInfo: engine.LineInfo([0, 5, 9, 20]),
         errors: [engineError],
+        path: 'bar.dart',
       ),
       engineError,
     );
@@ -441,7 +443,14 @@ class _ResolvedUnitResultImplMock implements engine.ResolvedUnitResultImpl {
   @override
   final List<engine.Diagnostic> errors;
 
-  _ResolvedUnitResultImplMock({required this.lineInfo, required this.errors});
+  @override
+  final String path;
+
+  _ResolvedUnitResultImplMock({
+    required this.lineInfo,
+    required this.errors,
+    required this.path,
+  });
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

@@ -130,6 +130,58 @@ suggestions
 ''');
   }
 
+  Future<void> test_expectedType_namedField_forElement() async {
+    await computeSuggestions('''
+List<({int f01})> f() {
+  return [
+    for (int i = 0; i < 10; i++)
+      (^),
+  ];
+}
+''');
+    assertResponse(r'''
+suggestions
+  |f01: |
+    kind: namedArgument
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+  }
+
+  Future<void> test_expectedType_namedField_ifElement() async {
+    await computeSuggestions('''
+List<({int f01})> f() {
+  return [
+    if (1 == 1)
+      (^),
+  ];
+}
+''');
+    assertResponse(r'''
+suggestions
+  |f01: |
+    kind: namedArgument
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+  }
+
   Future<void> test_matchingContext_namedField_name() async {
     await computeSuggestions('''
 void f(({int f01, int f02, int g01}) x0) {

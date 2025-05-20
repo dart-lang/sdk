@@ -354,7 +354,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
 }
 
 class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
-  final WorkspacePackage? _workspacePackage;
+  final WorkspacePackageImpl? _workspacePackage;
   final ErrorReporter _errorReporter;
 
   DeprecatedMemberUseVerifier(

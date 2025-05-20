@@ -13,8 +13,7 @@ import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/lint/constants.dart' // ignore: implementation_imports
     show ExpressionExtension;
-import 'package:analyzer/src/workspace/workspace.dart' // ignore: implementation_imports
-    show WorkspacePackage;
+import 'package:analyzer/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
 
 import 'analyzer.dart';

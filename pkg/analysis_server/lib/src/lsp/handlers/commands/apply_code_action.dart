@@ -147,6 +147,10 @@ class ApplyCodeActionCommandHandler
       // ability to applyEdit has been checked at the top of this method.
       allowCommands: false,
       allowCodeActionLiterals: true,
+
+      // We don't support non-standard snippets for `workspace/applyEdit`, only
+      // CodeActionLiterals.
+      allowSnippets: false,
     );
     var actions = await computer.compute();
 

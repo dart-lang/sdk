@@ -284,7 +284,7 @@ abstract class _FileSystemWatcher {
   }
 
   static Stream _listenOnSocket(int socketId, int id, int pathId) {
-    final nativeSocket = _NativeSocket.watch(socketId);
+    final nativeSocket = _NativeSocket._watch(socketId);
     final rawSocket = _RawSocket(nativeSocket);
     return rawSocket.expand((event) {
       var stops = [];

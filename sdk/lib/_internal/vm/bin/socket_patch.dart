@@ -1280,10 +1280,10 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     _nativeSetSocketId(id, typeFlags);
   }
 
-  _NativeSocket.watchSignal(int id)
+  _NativeSocket._watchSignal(int id)
     : this._watchCommon(id, typeInternalSignalSocket);
 
-  _NativeSocket.watch(int id) : this._watchCommon(id, typeInternalSocket);
+  _NativeSocket._watch(int id) : this._watchCommon(id, typeInternalSocket);
 
   bool get isListening => (typeFlags & typeListeningSocket) != 0;
   bool get isPipe => (typeFlags & typePipe) != 0;

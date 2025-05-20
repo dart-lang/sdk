@@ -4860,6 +4860,13 @@ package:analyzer/utilities/package_config_file_builder.dart:
     add (method: void Function({String? languageVersion, required String name, String packageUri, required String rootPath}))
     copy (method: PackageConfigFileBuilder Function())
     toContent (method: String Function({required String Function(String) toUriStr}))
+package:analyzer/workspace/workspace.dart:
+  WorkspacePackage (class extends Object):
+    new (constructor: WorkspacePackage Function())
+    canHavePublicApi (getter: bool)
+    root (getter: Folder)
+    contains (method: bool Function(Source))
+    isInTestDirectory (method: bool Function(File))
 dart:async:
   Future (referenced)
   Stream (referenced)

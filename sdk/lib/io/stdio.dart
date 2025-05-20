@@ -280,7 +280,7 @@ class Stdout extends _StdSink implements IOSink {
   /// The returned `IOSink` will be initialized with an [encoding] of UTF-8 and
   /// will not do line ending conversion.
   IOSink get nonBlocking {
-    return _nonBlocking ??= new IOSink(new _FileStreamConsumer.fromStdio(_fd));
+    return _nonBlocking ??= new IOSink(new _FileStreamConsumer._fromStdio(_fd));
   }
 }
 
@@ -317,7 +317,7 @@ class StdinException implements IOException {
 class _StdConsumer implements StreamConsumer<List<int>> {
   final RandomAccessFile _file;
 
-  _StdConsumer(int fd) : _file = _File._openStdioSync(fd);
+  _StdConsumer._(int fd) : _file = _File._openStdioSync(fd);
 
   Future addStream(Stream<List<int>> stream) {
     var completer = new Completer();

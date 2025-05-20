@@ -21,8 +21,8 @@ class AnnotationVerifier {
   /// The current library.
   final LibraryElement _currentLibrary;
 
-  /// The [WorkspacePackage] in which [_currentLibrary] is declared.
-  final WorkspacePackage? _workspacePackage;
+  /// The [WorkspacePackageImpl] in which [_currentLibrary] is declared.
+  final WorkspacePackageImpl? _workspacePackage;
 
   /// Whether [_currentLibrary] is part of its containing package's public API.
   late final bool _inPackagePublicApi =
