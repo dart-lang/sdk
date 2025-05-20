@@ -497,10 +497,10 @@ abstract class _TypeSubstitutor
     if (useCounter == before) return type;
 
     return FunctionTypeBuilder(
-      typeParameters,
-      formalParameters,
-      returnType,
-      type.nullabilitySuffix,
+      typeParameters: typeParameters,
+      formalParameters: formalParameters,
+      returnType: returnType,
+      nullabilitySuffix: type.nullabilitySuffix,
     );
   }
 
@@ -541,11 +541,11 @@ abstract class _TypeSubstitutor
     }
 
     return NamedTypeBuilder(
-      type.linker,
-      type.typeSystem,
-      type.element3,
-      arguments,
-      type.nullabilitySuffix,
+      linker: type.linker,
+      typeSystem: type.typeSystem,
+      element3: type.element3,
+      arguments: arguments,
+      nullabilitySuffix: type.nullabilitySuffix,
     );
   }
 

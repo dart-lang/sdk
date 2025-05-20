@@ -36,11 +36,11 @@ class FunctionTypeBuilder extends TypeBuilder {
   /// and set for the [node].
   FunctionTypeImpl? _type;
 
-  FunctionTypeBuilder(
-    this.typeParameters,
-    this.formalParameters,
-    this.returnType,
-    this.nullabilitySuffix, {
+  FunctionTypeBuilder({
+    required this.typeParameters,
+    required this.formalParameters,
+    required this.returnType,
+    required this.nullabilitySuffix,
     this.node,
   });
 
@@ -49,26 +49,10 @@ class FunctionTypeBuilder extends TypeBuilder {
     NullabilitySuffix nullabilitySuffix,
   ) {
     return FunctionTypeBuilder(
-      _getTypeParameters(node.typeParameters),
-      getParameters(node.parameters),
-      _getNodeType(node.returnType),
-      nullabilitySuffix,
-      node: node,
-    );
-  }
-
-  factory FunctionTypeBuilder.v2({
-    required List<TypeParameterElementImpl2> typeParameters,
-    required List<FormalParameterElementImpl> formalParameters,
-    required TypeImpl returnType,
-    required NullabilitySuffix nullabilitySuffix,
-    GenericFunctionTypeImpl? node,
-  }) {
-    return FunctionTypeBuilder(
-      typeParameters,
-      formalParameters,
-      returnType,
-      nullabilitySuffix,
+      typeParameters: _getTypeParameters(node.typeParameters),
+      formalParameters: getParameters(node.parameters),
+      returnType: _getNodeType(node.returnType),
+      nullabilitySuffix: nullabilitySuffix,
       node: node,
     );
   }
@@ -144,10 +128,10 @@ class FunctionTypeBuilder extends TypeBuilder {
     }
 
     return FunctionTypeBuilder(
-      typeParameters,
-      formalParameters,
-      returnType,
-      nullabilitySuffix,
+      typeParameters: typeParameters,
+      formalParameters: formalParameters,
+      returnType: returnType,
+      nullabilitySuffix: nullabilitySuffix,
       node: node,
     );
   }
@@ -197,10 +181,10 @@ class FunctionTypeBuilder extends TypeBuilder {
       }
 
       return FunctionTypeBuilder(
-        _getTypeParameters(node.typeParameters),
-        getParameters(node.parameters),
-        _getNodeType(node.returnType),
-        nullabilitySuffix,
+        typeParameters: _getTypeParameters(node.typeParameters),
+        formalParameters: getParameters(node.parameters),
+        returnType: _getNodeType(node.returnType),
+        nullabilitySuffix: nullabilitySuffix,
       );
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');

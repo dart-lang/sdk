@@ -471,11 +471,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       );
     } else {
       var builder = NamedTypeBuilder.of(
-        linker,
-        typeSystem,
-        node,
-        element,
-        nullabilitySuffix,
+        linker: linker,
+        typeSystem: typeSystem,
+        node: node,
+        element: element,
+        nullabilitySuffix: nullabilitySuffix,
       );
       node.type = builder;
       nodesToBuildType.addTypeBuilder(builder);
