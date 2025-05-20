@@ -1770,32 +1770,14 @@
         "vm-win-release-arm64"
       ],
       "meta": {
-        "description": "This configuration is for the ARM64 JIT builders, no shards.",
-        "__comment__": "--no-clang because Clang is inconsisent about varargs: dartbug.com/52644"
+        "description": "This configuration is for the ARM64 JIT builders, no shards."
       },
       "steps": [
         {
-          "name": "build dart - step 1 - gen-snapshot - divided to avoid timeout",
+          "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--no-clang",
-            "gen_snapshot"
-          ]
-        },
-        {
-          "name": "build dart - step 2 - runtime/bin:dart - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "--no-clang",
-            "runtime/bin:dart",
-            "runtime/bin:run_vm_tests"
-          ]
-        },
-        {
-          "name": "build dart - step 3 - runtime - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "--no-clang",
+            "--rbe",
             "runtime"
           ]
         },
@@ -1821,32 +1803,16 @@
         "vm-aot-win-release-arm64"
       ],
       "meta": {
-        "description": "This configuration is for the ARM64 AOT builders, no shards.",
-        "__comment__": "--no-clang because Clang is inconsisent about varargs: dartbug.com/52644"
+        "description": "This configuration is for the ARM64 AOT builders, no shards."
       },
       "steps": [
         {
-          "name": "build dart - step 1 - gen-snapshot - divided to avoid timeout",
+          "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--no-clang",
-            "gen_snapshot"
-          ]
-        },
-        {
-          "name": "build dart - step 2 - runtime - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "--no-clang",
-            "dartaotruntime"
-          ]
-        },
-        {
-          "name": "build dart - step 3 - runtime/bin:dart - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "--no-clang",
-            "runtime"
+            "--rbe",
+            "runtime",
+            "runtime_precompiled"
           ]
         },
         {
@@ -3189,32 +3155,12 @@
           ]
         },
         {
-          "name": "build dart - step 1 - gen-snapshot - divided to avoid timeout",
+          "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "gen_snapshot"
-          ]
-        },
-        {
-          "name": "build dart - step 2 - runtime/bin:dart - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime/bin:dart",
-            "runtime/bin:run_vm_tests"
-          ]
-        },
-        {
-          "name": "build dart - step 3 - runtime - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "build dart - step 4 - sdk, ddc_stable_test - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
+            "--rbe",
             "create_sdk",
+            "dartanalyzer",
             "ddc_stable_test"
           ]
         },

@@ -134,7 +134,10 @@ bootstrap_path = None
 def StartRBE(out_dir, env):
     global rbe_started, bootstrap_path
     if not rbe_started:
-        rbe_dir = 'buildtools/reclient'
+        if utils.IsWindows():
+          rbe_dir = 'buildtools/reclient-win'
+        else:
+          rbe_dir = 'buildtools/reclient'
         with open(os.path.join(out_dir, 'args.gn'), 'r') as fp:
             for line in fp:
                 if 'rbe_dir' in line:

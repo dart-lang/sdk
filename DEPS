@@ -470,6 +470,19 @@ deps = {
     'dep_type': 'cipd',
   },
 
+  # windows-arm64 package is not available, use the windows-x64 package and
+  # rely on transparent emulation.
+  Var("dart_root") + '/buildtools/reclient-win': {
+    'packages': [
+      {
+        'package': 'infra/rbe/client/windows-amd64',
+        'version': Var('reclient_version'),
+      }
+    ],
+    'condition': 'host_os == "win"',
+    'dep_type': 'cipd',
+  },
+
   Var("dart_root") + "/third_party/webdriver/chrome": {
     "packages": [
       {
@@ -491,6 +504,9 @@ deps = {
       "condition": "host_os != 'win'",
       "dep_type": "cipd",
   },
+
+  # windows-arm64 package is not available, use the windows-x64 package and
+  # rely on transparent emulation.
   Var("dart_root") + "/buildtools/win": {
       "packages": [
           {
