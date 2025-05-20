@@ -798,22 +798,53 @@ class LibraryManifestPrinter {
   });
 
   void write(LibraryManifest manifest) {
-    var entries = manifest.items.sorted;
-    sink.writeElements('manifest', entries, (entry) {
-      var topLevelItem = entry.value;
-      _writeNamedId(entry.key, topLevelItem.id);
-      switch (topLevelItem) {
-        case ClassItem():
-          _writeClassItem(topLevelItem);
-        case MixinItem():
-          _writeMixinItem(topLevelItem);
-        case TopLevelFunctionItem():
-          _writeTopLevelFunctionItem(topLevelItem);
-        case TopLevelGetterItem():
-          _writeTopLevelGetterItem(topLevelItem);
-        case TopLevelSetterItem():
-          _writeTopLevelSetterItem(topLevelItem);
-      }
+    var classEntries = manifest.declaredClasses.sorted;
+    sink.writeElements('declaredClasses', classEntries, (entry) {
+      var item = entry.value;
+      _writeNamedId(entry.key, item.id);
+      _writeClassItem(item);
+    });
+
+    var enumEntries = manifest.declaredEnums.sorted;
+    sink.writeElements('declaredEnums', enumEntries, (entry) {
+      var item = entry.value;
+      _writeNamedId(entry.key, item.id);
+      _writeEnumItem(item);
+    });
+
+    var mixinEntries = manifest.declaredMixins.sorted;
+    sink.writeElements('declaredMixins', mixinEntries, (entry) {
+      var item = entry.value;
+      _writeNamedId(entry.key, item.id);
+      _writeMixinItem(item);
+    });
+
+    var getterEntries = manifest.declaredGetters.sorted;
+    sink.writeElements('declaredGetters', getterEntries, (entry) {
+      var item = entry.value;
+      _writeNamedId(entry.key, item.id);
+      _writeTopLevelGetterItem(item);
+    });
+
+    var setterEntries = manifest.declaredSetters.sorted;
+    sink.writeElements('declaredSetters', setterEntries, (entry) {
+      var item = entry.value;
+      _writeNamedId(entry.key, item.id);
+      _writeTopLevelSetterItem(item);
+    });
+
+    var functionEntries = manifest.declaredFunctions;
+    sink.writeElements('declaredFunctions', functionEntries.sorted, (entry) {
+      var item = entry.value;
+      _writeNamedId(entry.key, item.id);
+      _writeTopLevelFunctionItem(item);
+    });
+
+    var variableEntries = manifest.declaredVariables;
+    sink.writeElements('declaredVariables', variableEntries.sorted, (entry) {
+      var item = entry.value;
+      _writeNamedId(entry.key, item.id);
+      _writeTopLevelVariableItem(item);
     });
 
     var reExportEntries = manifest.reExportMap.sorted;
@@ -833,6 +864,22 @@ class LibraryManifestPrinter {
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeNamedType('supertype', item.supertype);
+        _writeTypeList('mixins', item.mixins);
+        _writeTypeList('interfaces', item.interfaces);
+      });
+    }
+
+    sink.withIndent(() {
+      _writeInstanceItemMembers(item);
+      _writeInterfaceItemInterface(item);
+    });
+  }
+
+  void _writeEnumItem(EnumItem item) {
+    if (configuration.withElementManifests) {
+      sink.withIndent(() {
+        _writeMetadata(item);
+        _writeTypeParameters(item.typeParameters);
         _writeTypeList('mixins', item.mixins);
         _writeTypeList('interfaces', item.interfaces);
       });
@@ -1163,7 +1210,6 @@ class LibraryManifestPrinter {
       sink.withIndent(() {
         _writeMetadata(item);
         _writeNamedType('returnType', item.returnType);
-        _writeNode('constInitializer', item.constInitializer);
       });
     }
   }
@@ -1173,6 +1219,16 @@ class LibraryManifestPrinter {
       sink.withIndent(() {
         _writeMetadata(item);
         _writeNamedType('valueType', item.valueType);
+      });
+    }
+  }
+
+  void _writeTopLevelVariableItem(TopLevelVariableItem item) {
+    if (configuration.withElementManifests) {
+      sink.withIndent(() {
+        _writeMetadata(item);
+        _writeNamedType('type', item.type);
+        _writeNode('constInitializer', item.constInitializer);
       });
     }
   }

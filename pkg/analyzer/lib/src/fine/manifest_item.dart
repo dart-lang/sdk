@@ -77,11 +77,70 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
       interface: ManifestInterface.read(reader),
     );
   }
+}
 
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind.class_);
-    super.write(sink);
+class EnumItem extends InterfaceItem<EnumElementImpl2> {
+  EnumItem({
+    required super.id,
+    required super.metadata,
+    required super.typeParameters,
+    required super.declaredConflicts,
+    required super.declaredFields,
+    required super.declaredGetters,
+    required super.declaredSetters,
+    required super.declaredMethods,
+    required super.declaredConstructors,
+    required super.inheritedConstructors,
+    required super.interface,
+    required super.supertype,
+    required super.mixins,
+    required super.interfaces,
+  });
+
+  factory EnumItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required EnumElementImpl2 element,
+  }) {
+    return context.withTypeParameters(element.typeParameters2, (
+      typeParameters,
+    ) {
+      return EnumItem(
+        id: id,
+        metadata: ManifestMetadata.encode(context, element.metadata2),
+        typeParameters: typeParameters,
+        declaredConflicts: {},
+        declaredFields: {},
+        declaredGetters: {},
+        declaredSetters: {},
+        declaredMethods: {},
+        declaredConstructors: {},
+        inheritedConstructors: {},
+        interface: ManifestInterface.empty(),
+        supertype: element.supertype?.encode(context),
+        mixins: element.mixins.encode(context),
+        interfaces: element.interfaces.encode(context),
+      );
+    });
+  }
+
+  factory EnumItem.read(SummaryDataReader reader) {
+    return EnumItem(
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      typeParameters: ManifestTypeParameter.readList(reader),
+      declaredConflicts: reader.readLookupNameToIdMap(),
+      declaredFields: InstanceItemFieldItem.readMap(reader),
+      declaredGetters: InstanceItemGetterItem.readMap(reader),
+      declaredSetters: InstanceItemSetterItem.readMap(reader),
+      declaredMethods: InstanceItemMethodItem.readMap(reader),
+      declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
+      inheritedConstructors: reader.readLookupNameToIdMap(),
+      supertype: ManifestType.readOptional(reader),
+      mixins: ManifestType.readList(reader),
+      interfaces: ManifestType.readList(reader),
+      interface: ManifestInterface.read(reader),
+    );
   }
 }
 
@@ -806,7 +865,7 @@ class ManifestInterface {
 
   factory ManifestInterface.read(SummaryDataReader reader) {
     return ManifestInterface(
-      map: _LookupNameToIdMapExtension.read(reader),
+      map: reader.readLookupNameToIdMap(),
       combinedIds: reader.readMap(
         readKey: () => ManifestItemIdList.read(reader),
         readValue: () => ManifestItemId.read(reader),
@@ -977,7 +1036,6 @@ class MixinItem extends InterfaceItem<MixinElementImpl2> {
 
   @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind.mixin_);
     super.write(sink);
     superclassConstraints.writeList(sink);
   }
@@ -1020,7 +1078,6 @@ class TopLevelFunctionItem extends TopLevelItem<TopLevelFunctionElementImpl> {
 
   @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind.topLevelFunction);
     super.write(sink);
     functionType.writeNoTag(sink);
   }
@@ -1028,13 +1085,11 @@ class TopLevelFunctionItem extends TopLevelItem<TopLevelFunctionElementImpl> {
 
 class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
   final ManifestType returnType;
-  final ManifestNode? constInitializer;
 
   TopLevelGetterItem({
     required super.id,
     required super.metadata,
     required this.returnType,
-    required this.constInitializer,
   });
 
   factory TopLevelGetterItem.fromElement({
@@ -1049,7 +1104,6 @@ class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
         element.thisOrVariableMetadata,
       ),
       returnType: element.returnType.encode(context),
-      constInitializer: element.constInitializer?.encode(context),
     );
   }
 
@@ -1058,45 +1112,25 @@ class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       returnType: ManifestType.read(reader),
-      constInitializer: ManifestNode.readOptional(reader),
     );
   }
 
   @override
   bool match(MatchContext context, GetterElementImpl element) {
     return super.match(context, element) &&
-        returnType.match(context, element.returnType) &&
-        constInitializer.match(context, element.constInitializer);
+        returnType.match(context, element.returnType);
   }
 
   @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind.topLevelGetter);
     super.write(sink);
     returnType.write(sink);
-    constInitializer.writeOptional(sink);
   }
 }
 
 sealed class TopLevelItem<E extends AnnotatableElementImpl>
     extends ManifestItem<E> {
   TopLevelItem({required super.id, required super.metadata});
-
-  static TopLevelItem<AnnotatableElementImpl> read(SummaryDataReader reader) {
-    var kind = reader.readEnum(_ManifestItemKind.values);
-    switch (kind) {
-      case _ManifestItemKind.class_:
-        return ClassItem.read(reader);
-      case _ManifestItemKind.mixin_:
-        return MixinItem.read(reader);
-      case _ManifestItemKind.topLevelFunction:
-        return TopLevelFunctionItem.read(reader);
-      case _ManifestItemKind.topLevelGetter:
-        return TopLevelGetterItem.read(reader);
-      case _ManifestItemKind.topLevelSetter:
-        return TopLevelSetterItem.read(reader);
-    }
-  }
 }
 
 class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
@@ -1139,20 +1173,97 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
 
   @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind.topLevelSetter);
     super.write(sink);
     valueType.write(sink);
   }
 }
 
+class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl2> {
+  final ManifestType type;
+  final ManifestNode? constInitializer;
+
+  TopLevelVariableItem({
+    required super.id,
+    required super.metadata,
+    required this.type,
+    required this.constInitializer,
+  });
+
+  factory TopLevelVariableItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required TopLevelVariableElementImpl2 element,
+  }) {
+    return TopLevelVariableItem(
+      id: id,
+      metadata: ManifestMetadata.encode(context, element.metadata2),
+      type: element.type.encode(context),
+      constInitializer: element.constantInitializer2?.expression.encode(
+        context,
+      ),
+    );
+  }
+
+  factory TopLevelVariableItem.read(SummaryDataReader reader) {
+    return TopLevelVariableItem(
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      type: ManifestType.read(reader),
+      constInitializer: ManifestNode.readOptional(reader),
+    );
+  }
+
+  @override
+  bool match(MatchContext context, TopLevelVariableElementImpl2 element) {
+    return super.match(context, element) &&
+        type.match(context, element.type) &&
+        constInitializer.match(
+          context,
+          element.constantInitializer2?.expression,
+        );
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    type.write(sink);
+    constInitializer.writeOptional(sink);
+  }
+}
+
 enum _InstanceItemMemberItemKind { field, constructor, method, getter, setter }
 
-enum _ManifestItemKind {
-  class_,
-  mixin_,
-  topLevelFunction,
-  topLevelGetter,
-  topLevelSetter,
+extension LookupNameToIdMapExtension on Map<LookupName, ManifestItemId> {
+  void write(BufferedSink sink) {
+    sink.writeMap(
+      this,
+      writeKey: (name) => name.write(sink),
+      writeValue: (items) => items.write(sink),
+    );
+  }
+}
+
+extension LookupNameToItemMapExtension on Map<LookupName, ManifestItem> {
+  void write(BufferedSink sink) {
+    sink.writeMap(
+      this,
+      writeKey: (name) => name.write(sink),
+      writeValue: (items) => items.write(sink),
+    );
+  }
+}
+
+extension SummaryDataReaderExtension on SummaryDataReader {
+  Map<LookupName, V> readLookupNameMap<V>({required V Function() readValue}) {
+    return readMap(
+      readKey: () => LookupName.read(this),
+      readValue: () => readValue(),
+    );
+  }
+
+  Map<LookupName, ManifestItemId> readLookupNameToIdMap() {
+    return readLookupNameMap(readValue: () => ManifestItemId.read(this));
+  }
 }
 
 extension _AnnotatableElementExtension on AnnotatableElementImpl {
@@ -1167,36 +1278,6 @@ extension _AnnotatableElementExtension on AnnotatableElementImpl {
 extension _AstNodeExtension on AstNode {
   ManifestNode encode(EncodeContext context) {
     return ManifestNode.encode(context, this);
-  }
-}
-
-extension _GetterElementImplExtension on GetterElementImpl {
-  // TODO(scheglov): remove it when add top-level variable
-  Expression? get constInitializer {
-    if (isSynthetic) {
-      var variable = variable3!;
-      if (variable.isConst) {
-        return variable.constantInitializer2?.expression;
-      }
-    }
-    return null;
-  }
-}
-
-extension _LookupNameToIdMapExtension on Map<LookupName, ManifestItemId> {
-  void write(BufferedSink sink) {
-    sink.writeMap(
-      this,
-      writeKey: (name) => name.write(sink),
-      writeValue: (items) => items.write(sink),
-    );
-  }
-
-  static Map<LookupName, ManifestItemId> read(SummaryDataReader reader) {
-    return reader.readMap(
-      readKey: () => LookupName.read(reader),
-      readValue: () => ManifestItemId.read(reader),
-    );
   }
 }
 
@@ -1262,14 +1343,5 @@ extension _PropertyAccessExtension on PropertyAccessorElementImpl2 {
     } else {
       return metadata2;
     }
-  }
-}
-
-extension _SummaryDataReaderExtension on SummaryDataReader {
-  Map<LookupName, ManifestItemId> readLookupNameToIdMap() {
-    return readMap(
-      readKey: () => LookupName.read(this),
-      readValue: () => ManifestItemId.read(this),
-    );
   }
 }

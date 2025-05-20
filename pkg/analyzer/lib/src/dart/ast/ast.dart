@@ -1462,6 +1462,23 @@ sealed class AstNodeImpl implements AstNode {
     // Handle the general case.
     return offset <= rangeOffset && end >= rangeEnd;
   }
+
+  static void linkNodeTokens(AstNode parent) {
+    Token? lastToken;
+    for (var entity in parent.childEntities) {
+      switch (entity) {
+        case Token token:
+          lastToken?.next = token;
+          token.previous = lastToken;
+          lastToken = token;
+        case AstNode node:
+          linkNodeTokens(node);
+          lastToken?.next = node.beginToken;
+          node.beginToken.previous = lastToken;
+          lastToken = node.endToken;
+      }
+    }
+  }
 }
 
 /// Mixin for any [AstNodeImpl] that can potentially introduce a new scope.

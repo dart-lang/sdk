@@ -291,7 +291,19 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
 
     // SAFETY: if we can reference the element, it has a name.
     var topLevelName = topLevelElement.lookupName!.asLookupName;
-    var topLevelItem = manifest.items[topLevelName];
+    TopLevelItem? topLevelItem;
+    switch (topLevelElement) {
+      case ClassElement():
+        topLevelItem = manifest.declaredClasses[topLevelName];
+      case MixinElement():
+        topLevelItem = manifest.declaredMixins[topLevelName];
+      case GetterElement():
+        return manifest.declaredGetters[topLevelName]?.id;
+      case SetterElement():
+        return manifest.declaredSetters[topLevelName]?.id;
+      case TopLevelFunctionElement():
+        return manifest.declaredFunctions[topLevelName]?.id;
+    }
 
     // TODO(scheglov): remove it after supporting all elements
     if (topLevelItem == null) {

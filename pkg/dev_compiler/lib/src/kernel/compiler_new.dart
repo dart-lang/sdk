@@ -3830,10 +3830,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         DDCTypeEnvironment environment, String recipe) {
       switch (environment) {
         case EmptyTypeEnvironment():
-          return js.call('#._Universe.eval(#, "$recipe", true)', [
-            _emitLibraryName(_rtiLibrary),
-            _runtimeCall('typeUniverse'),
-          ]);
+          // Cache ground types in the type table for fast lookup. The table will
+          // lazily lookup the RTI object on first access and then replace the
+          // lazy getter with the initialized RTI object.
+          return _typeTable.nameType(
+              type,
+              js.call('#._Universe.eval(#, "$recipe", true)', [
+                _emitLibraryName(_rtiLibrary),
+                _runtimeCall('typeUniverse'),
+              ]));
         case BindingTypeEnvironment():
           js_ast.Expression env;
           if (environment.isSingleTypeParameter) {

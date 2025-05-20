@@ -5487,7 +5487,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -5507,7 +5507,7 @@ void f() {
         int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M6
   requirements
 [operation] analyzeFile
@@ -5547,7 +5547,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -5638,7 +5638,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -5658,7 +5658,7 @@ void f() {
         int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M6
   requirements
 [operation] analyzeFile
@@ -5698,7 +5698,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M7
@@ -5789,7 +5789,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -5809,7 +5809,7 @@ void f() {
         int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M6
   requirements
 [operation] analyzeFile
@@ -5849,7 +5849,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -5937,7 +5937,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -5952,7 +5952,7 @@ void f() {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
 [operation] analyzeFile
@@ -5985,7 +5985,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -6062,7 +6062,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -6077,7 +6077,7 @@ void f() {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
 [operation] analyzeFile
@@ -6110,7 +6110,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M5
@@ -6186,7 +6186,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1
@@ -6196,7 +6196,7 @@ void f() {
         int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M3
   requirements
 [operation] analyzeFile
@@ -6226,7 +6226,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M4
@@ -6296,14 +6296,14 @@ void f() {
       32 +2 UNDEFINED_METHOD
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M2
   requirements
 [operation] analyzeFile
@@ -6341,7 +6341,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
@@ -6408,7 +6408,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
@@ -6419,7 +6419,7 @@ void f() {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
 [operation] analyzeFile
@@ -6450,7 +6450,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
@@ -6500,7 +6500,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
@@ -6508,7 +6508,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M3
   requirements
 [operation] analyzeFile
@@ -6538,7 +6538,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
@@ -6612,7 +6612,7 @@ class B extends A {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1
@@ -6622,7 +6622,7 @@ class B extends A {
         int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       B: #M3
         declaredConstructors
           foo: #M4
@@ -6673,7 +6673,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M5
@@ -6695,7 +6695,7 @@ class A {
     actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       B: #M3
         declaredConstructors
           foo: #M4
@@ -6774,7 +6774,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           new: #M1
@@ -6784,7 +6784,7 @@ void f() {
         int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M3
   requirements
 [operation] analyzeFile
@@ -6814,7 +6814,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           new: #M4
@@ -6885,7 +6885,7 @@ import 'a.dart';
       7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M1
@@ -6930,7 +6930,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M3
@@ -7011,7 +7011,7 @@ import 'a.dart';
       7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           bar: #M1
@@ -7058,7 +7058,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           bar: #M4
@@ -7113,7 +7113,7 @@ import 'a.dart';
       7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -7163,7 +7163,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M4
@@ -7249,7 +7249,7 @@ import 'a.dart';
       7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M1
@@ -7303,7 +7303,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M6
@@ -7365,7 +7365,7 @@ import 'a.dart';
       7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -7415,7 +7415,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M4
@@ -7501,7 +7501,7 @@ import 'a.dart';
       7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M1
@@ -7555,7 +7555,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M6
@@ -7617,7 +7617,7 @@ import 'a.dart';
       7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -7665,7 +7665,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M3
@@ -7749,7 +7749,7 @@ import 'a.dart';
       7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M1
@@ -7800,7 +7800,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M4
@@ -7859,7 +7859,7 @@ import 'a.dart';
       7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -7909,7 +7909,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M4
@@ -7995,7 +7995,7 @@ import 'a.dart';
       7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M1
@@ -8049,7 +8049,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M6
@@ -8110,7 +8110,7 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -8129,7 +8129,7 @@ void f(B b) {
         int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M5
   requirements
     topLevels
@@ -8171,7 +8171,7 @@ class B extends A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -8201,7 +8201,7 @@ class B extends A<double> {}
     actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M8
   requirements
     topLevels
@@ -8268,7 +8268,7 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -8287,7 +8287,7 @@ void f(B b) {
         int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M5
   requirements
     topLevels
@@ -8329,7 +8329,7 @@ class B implements A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -8359,7 +8359,7 @@ class B implements A<double> {}
     actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M8
   requirements
     topLevels
@@ -8426,7 +8426,7 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -8445,7 +8445,7 @@ void f(B b) {
         int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M5
   requirements
     topLevels
@@ -8487,7 +8487,7 @@ class B with A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -8517,7 +8517,7 @@ class B with A<double> {}
     actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M8
   requirements
     topLevels
@@ -8588,13 +8588,14 @@ void f (B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
         declaredGetters
           _foo: #M2
       B: #M3
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -8639,13 +8640,14 @@ void f (B b) {
 [status] working
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _foo: #M6
         declaredGetters
           _foo: #M7
       B: #M3
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -8706,7 +8708,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -8721,7 +8723,7 @@ void f(A a) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -8766,7 +8768,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M5
@@ -8849,7 +8851,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M1
@@ -8867,7 +8869,7 @@ void f(A a) {
         int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M6
   requirements
     topLevels
@@ -8912,7 +8914,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M2
@@ -8963,7 +8965,7 @@ A foo() {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
   requirements
     topLevels
@@ -8998,7 +9000,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M1
   requirements
 [future] getErrors T2
@@ -9016,7 +9018,7 @@ class A {}
     actualId: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M2
   requirements
     topLevels
@@ -9075,12 +9077,12 @@ A foo() {}
       19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M1
   requirements
     topLevels
@@ -9116,7 +9118,7 @@ class B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M2
   requirements
@@ -9160,13 +9162,13 @@ A foo() {}
       19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M2
   requirements
     topLevels
@@ -9202,7 +9204,7 @@ class B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M3
       B: #M1
   requirements
@@ -9221,7 +9223,7 @@ class B {}
     actualId: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M4
   requirements
     topLevels
@@ -9282,14 +9284,14 @@ A foo() {}
       19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
       C: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M3
   requirements
     topLevels
@@ -9326,7 +9328,7 @@ class C {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M4
       C: #M2
@@ -9368,12 +9370,12 @@ A foo() => throw 0;
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M1
   requirements
     topLevels
@@ -9420,7 +9422,7 @@ A foo() => throw 0;
     actualId: <null>
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M2
   requirements
     topLevels
@@ -9478,13 +9480,13 @@ A foo() => throw 0;
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M2
   requirements
     topLevels
@@ -9517,7 +9519,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
   requirements
 [future] getErrors T2
@@ -9560,12 +9562,12 @@ void f(A a) {
       35 +3 UNDEFINED_METHOD
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M1
   requirements
     topLevels
@@ -9608,7 +9610,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -9683,7 +9685,7 @@ void f(C c) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -9704,7 +9706,7 @@ void f(C c) {
         int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M5
   requirements
     topLevels
@@ -9743,7 +9745,7 @@ class C extends B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -9775,7 +9777,7 @@ class C extends B {}
     actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M9
   requirements
     topLevels
@@ -9837,7 +9839,7 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -9854,7 +9856,7 @@ void f(B b) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -9891,7 +9893,7 @@ class B extends A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -9919,7 +9921,7 @@ class B extends A<double> {}
     actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M7
   requirements
     topLevels
@@ -9981,7 +9983,7 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -9998,7 +10000,7 @@ void f(B b) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -10035,7 +10037,7 @@ class B implements A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -10063,7 +10065,7 @@ class B implements A<double> {}
     actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M7
   requirements
     topLevels
@@ -10125,7 +10127,7 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -10142,7 +10144,7 @@ void f(B b) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -10179,7 +10181,7 @@ class B with A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -10207,7 +10209,7 @@ class B with A<double> {}
     actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M7
   requirements
     topLevels
@@ -10273,11 +10275,12 @@ void f (B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           _foo: #M1
       B: #M2
+    declaredFunctions
       f: #M3
   requirements
     topLevels
@@ -10320,11 +10323,12 @@ void f (B b) {
 [status] working
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           _foo: #M5
       B: #M2
+    declaredFunctions
       f: #M3
   requirements
     topLevels
@@ -10392,11 +10396,12 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           _foo: #M1
       B: #M2
+    declaredFunctions
       f: #M3
   requirements
     topLevels
@@ -10439,11 +10444,12 @@ void f(B b) {
 [status] working
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           _foo: #M5
       B: #M2
+    declaredFunctions
       f: #M3
   requirements
     topLevels
@@ -10515,13 +10521,14 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       B: #M0
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M1
         declaredMethods
           _foo: #M2
+    declaredFunctions
       f: #M3
   requirements
     topLevels
@@ -10564,13 +10571,14 @@ void f(B b) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       B: #M0
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M1
         declaredMethods
           _bar: #M4
+    declaredFunctions
       f: #M3
   requirements
     topLevels
@@ -10640,7 +10648,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -10650,7 +10658,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M2
   requirements
     topLevels
@@ -10683,7 +10691,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
   requirements
 [future] getErrors T2
@@ -10755,7 +10763,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -10768,7 +10776,7 @@ void f(A a) {
         int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M3
   requirements
     topLevels
@@ -10808,7 +10816,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M4
@@ -10884,7 +10892,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M1
@@ -10899,7 +10907,7 @@ void f(A a) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -10940,7 +10948,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M5
@@ -10993,12 +11001,12 @@ void f(A a) {
       35 +3 UNDEFINED_SETTER
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M1
   requirements
     topLevels
@@ -11050,7 +11058,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M2
@@ -11135,7 +11143,7 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -11154,7 +11162,7 @@ void f(B b) {
         int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M5
   requirements
     topLevels
@@ -11196,7 +11204,7 @@ class B extends A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -11226,7 +11234,7 @@ class B extends A<double> {}
     actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M8
   requirements
     topLevels
@@ -11293,7 +11301,7 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -11312,7 +11320,7 @@ void f(B b) {
         int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M5
   requirements
     topLevels
@@ -11354,7 +11362,7 @@ class B implements A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -11384,7 +11392,7 @@ class B implements A<double> {}
     actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M8
   requirements
     topLevels
@@ -11451,7 +11459,7 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -11470,7 +11478,7 @@ void f(B b) {
         int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M5
   requirements
     topLevels
@@ -11512,7 +11520,7 @@ class B with A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -11542,7 +11550,7 @@ class B with A<double> {}
     actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M8
   requirements
     topLevels
@@ -11613,13 +11621,14 @@ void f (B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
         declaredSetters
           _foo=: #M2
       B: #M3
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -11664,13 +11673,14 @@ void f (B b) {
 [status] working
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _foo: #M6
         declaredSetters
           _foo=: #M7
       B: #M3
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -11731,7 +11741,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -11746,7 +11756,7 @@ void f(A a) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -11789,7 +11799,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
   requirements
 [future] getErrors T2
@@ -11870,7 +11880,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -11885,7 +11895,7 @@ void f(A a) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -11930,7 +11940,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M5
@@ -12012,7 +12022,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -12024,7 +12034,7 @@ void f() {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
 [operation] analyzeFile
@@ -12066,7 +12076,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M5
@@ -12148,7 +12158,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M1
@@ -12162,7 +12172,7 @@ void f() {
         int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M6
   requirements
 [operation] analyzeFile
@@ -12205,7 +12215,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M7
@@ -12257,7 +12267,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -12267,7 +12277,7 @@ void f() {
         int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M3
   requirements
 [operation] analyzeFile
@@ -12309,7 +12319,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M4
@@ -12389,7 +12399,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M1
@@ -12400,7 +12410,7 @@ void f() {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
 [operation] analyzeFile
@@ -12443,7 +12453,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M5
@@ -12492,7 +12502,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -12504,7 +12514,7 @@ void f() {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
 [operation] analyzeFile
@@ -12541,7 +12551,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M5
@@ -12618,7 +12628,7 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M1
@@ -12632,7 +12642,7 @@ void f() {
         int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M6
   requirements
 [operation] analyzeFile
@@ -12670,7 +12680,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M7
@@ -12725,13 +12735,14 @@ void f() {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1
       B: #M2
         inheritedConstructors
           named: #M1
+    declaredMixins
       M: #M3
   requirements
     topLevels
@@ -12739,7 +12750,7 @@ void f() {
         int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M5
   requirements
 [operation] analyzeFile
@@ -12771,13 +12782,14 @@ class B = A with M;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M6
       B: #M2
         inheritedConstructors
           named: #M6
+    declaredMixins
       M: #M3
   requirements
     topLevels
@@ -12818,6 +12830,423 @@ class B = A with M;
     );
   }
 
+  test_dependency_enum_constant_argument() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  foo(0);
+  const A(int _)
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          foo: #M1
+          values: #M2
+        declaredGetters
+          foo: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M7
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+          requestedGetters
+            foo: #M3
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  foo(1);
+  const A(int _)
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          foo: #M8
+          values: #M9
+        declaredGetters
+          foo: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M8
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M8
+          requestedGetters
+            foo: #M3
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_enum_method_returnType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          foo: #M5
+        interface
+          map
+            foo: #M5
+            index: #M6
+  requirements
+    topLevels
+      dart:core
+        int: #M7
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M8
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M5
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          foo: #M9
+        interface
+          map
+            foo: #M9
+            index: #M6
+  requirements
+    topLevels
+      dart:core
+        double: #M10
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M5
+    actualId: #M9
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M9
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_enum_method_returnType_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  int foo() {}
+  int bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          bar: #M5
+          foo: #M6
+        interface
+          map
+            bar: #M5
+            foo: #M6
+            index: #M7
+  requirements
+    topLevels
+      dart:core
+        int: #M8
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M9
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M6
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  int foo() {}
+  double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          bar: #M10
+          foo: #M6
+        interface
+          map
+            bar: #M10
+            foo: #M6
+            index: #M7
+  requirements
+    topLevels
+      dart:core
+        double: #M11
+        int: #M8
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_export_noLibrary() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 final a = 0;
@@ -12842,8 +13271,10 @@ export ':';
       a: package:test/a.dart::<fragment>::@getter::a#element
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -12865,8 +13296,10 @@ final a = 1;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [future] getLibraryByUri T2
   library
@@ -12904,8 +13337,10 @@ export 'a.dart';
       a: package:test/a.dart::<fragment>::@getter::a#element
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -12928,9 +13363,12 @@ final b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
   requirements
 [future] getLibraryByUri T2
   library
@@ -12946,17 +13384,17 @@ final b = 0;
     exportedUri: package:test/a.dart
     name: b
     expectedId: <null>
-    actualId: #M1
+    actualId: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
       a: #M0
-      b: #M1
+      b: #M2
   requirements
     exportRequirements
       package:test/a.dart
         a: #M0
-        b: #M1
+        b: #M2
 [status] idle
 ''',
     );
@@ -12985,8 +13423,10 @@ export 'a.dart' hide b;
       a: package:test/a.dart::<fragment>::@getter::a#element
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13011,9 +13451,12 @@ final b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
   requirements
 [future] getLibraryByUri T2
   library
@@ -13051,8 +13494,10 @@ export 'a.dart' hide c;
       a: package:test/a.dart::<fragment>::@getter::a#element
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13077,9 +13522,12 @@ final b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
   requirements
 [future] getLibraryByUri T2
   library
@@ -13095,19 +13543,19 @@ final b = 0;
     exportedUri: package:test/a.dart
     name: b
     expectedId: <null>
-    actualId: #M1
+    actualId: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
       a: #M0
-      b: #M1
+      b: #M2
   requirements
     exportRequirements
       package:test/a.dart
         combinators
           hide c
         a: #M0
-        b: #M1
+        b: #M2
 [status] idle
 ''',
     );
@@ -13136,8 +13584,10 @@ export 'a.dart' show a;
       a: package:test/a.dart::<fragment>::@getter::a#element
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13162,9 +13612,12 @@ final b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
   requirements
 [future] getLibraryByUri T2
   library
@@ -13202,8 +13655,10 @@ export 'a.dart' show a, b;
       a: package:test/a.dart::<fragment>::@getter::a#element
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13228,9 +13683,12 @@ final b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
   requirements
 [future] getLibraryByUri T2
   library
@@ -13246,19 +13704,19 @@ final b = 0;
     exportedUri: package:test/a.dart
     name: b
     expectedId: <null>
-    actualId: #M1
+    actualId: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
       a: #M0
-      b: #M1
+      b: #M2
   requirements
     exportRequirements
       package:test/a.dart
         combinators
           show a, b
         a: #M0
-        b: #M1
+        b: #M2
 [status] idle
 ''',
     );
@@ -13287,8 +13745,10 @@ export 'a.dart' show a, b hide c;
       a: package:test/a.dart::<fragment>::@getter::a#element
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13314,9 +13774,12 @@ final b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
   requirements
 [future] getLibraryByUri T2
   library
@@ -13332,12 +13795,12 @@ final b = 0;
     exportedUri: package:test/a.dart
     name: b
     expectedId: <null>
-    actualId: #M1
+    actualId: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
       a: #M0
-      b: #M1
+      b: #M2
   requirements
     exportRequirements
       package:test/a.dart
@@ -13345,7 +13808,7 @@ final b = 0;
           show a, b
           hide c
         a: #M0
-        b: #M1
+        b: #M2
 [status] idle
 ''',
     );
@@ -13374,8 +13837,10 @@ export 'a.dart';
       a: package:test/a.dart::<fragment>::@getter::a#element
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13398,9 +13863,12 @@ final _b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
-      _b: #M1
+    declaredGetters
+      _b: #M2
       a: #M0
+    declaredVariables
+      _b: #M3
+      a: #M1
   requirements
 [future] getLibraryByUri T2
   library
@@ -13441,9 +13909,12 @@ export 'a.dart';
       b: package:test/a.dart::<fragment>::@getter::b#element
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13467,8 +13938,10 @@ final a = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M2
   requirements
 [future] getLibraryByUri T2
   library
@@ -13519,9 +13992,12 @@ export 'a.dart' show a;
       a: package:test/a.dart::<fragment>::@getter::a#element
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13545,8 +14021,10 @@ final a = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M2
   requirements
 [future] getLibraryByUri T2
   library
@@ -13587,9 +14065,12 @@ export 'a.dart';
       b: package:test/a.dart::<fragment>::@getter::b#element
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13614,9 +14095,12 @@ final c = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
-      c: #M2
+      c: #M4
+    declaredVariables
+      a: #M2
+      c: #M5
   requirements
 [future] getLibraryByUri T2
   library
@@ -13632,17 +14116,17 @@ final c = 0;
     exportedUri: package:test/a.dart
     name: c
     expectedId: <null>
-    actualId: #M2
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
       a: #M0
-      c: #M2
+      c: #M4
   requirements
     exportRequirements
       package:test/a.dart
         a: #M0
-        c: #M2
+        c: #M4
 [status] idle
 ''',
     );
@@ -13680,8 +14164,10 @@ final x = a;
       x: <testLibraryFragment>::@getter::x#element
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
@@ -13693,8 +14179,10 @@ final x = a;
         a: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M1
+    declaredGetters
+      x: #M2
+    declaredVariables
+      x: #M3
   requirements
     topLevels
       dart:core
@@ -13715,8 +14203,10 @@ final a = 1.2;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
-      a: #M2
+    declaredGetters
+      a: #M4
+    declaredVariables
+      a: #M5
   requirements
 [future] getLibraryByUri T2
   library
@@ -13733,31 +14223,33 @@ final a = 1.2;
     exportedUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M2
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/b.dart
     reExportMap
-      a: #M2
+      a: #M4
   requirements
     exportRequirements
       package:test/a.dart
-        a: #M2
+        a: #M4
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/b.dart
     name: a
     expectedId: #M0
-    actualId: #M2
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M3
+    declaredGetters
+      x: #M6
+    declaredVariables
+      x: #M7
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/b.dart
-        a: #M2
+        a: #M4
 [status] idle
 ''',
     );
@@ -13790,7 +14282,7 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -13809,7 +14301,7 @@ void f(B b) {
         int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M5
   requirements
     topLevels
@@ -13851,7 +14343,7 @@ mixin B on A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -13881,7 +14373,7 @@ mixin B on A<double> {}
     actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M8
   requirements
     topLevels
@@ -13945,7 +14437,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -13960,7 +14452,7 @@ void f(A a) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -14005,7 +14497,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M5
@@ -14088,7 +14580,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M1
@@ -14106,7 +14598,7 @@ void f(A a) {
         int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M6
   requirements
     topLevels
@@ -14151,7 +14643,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M2
@@ -14202,7 +14694,7 @@ A foo() {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
   requirements
     topLevels
@@ -14237,7 +14729,7 @@ mixin A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M1
   requirements
 [future] getErrors T2
@@ -14255,7 +14747,7 @@ mixin A {}
     actualId: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M2
   requirements
     topLevels
@@ -14314,12 +14806,12 @@ A foo() {}
       19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M1
   requirements
     topLevels
@@ -14355,7 +14847,7 @@ mixin B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M2
   requirements
@@ -14399,13 +14891,13 @@ A foo() {}
       19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M2
   requirements
     topLevels
@@ -14441,7 +14933,7 @@ mixin B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M3
       B: #M1
   requirements
@@ -14460,7 +14952,7 @@ mixin B {}
     actualId: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M4
   requirements
     topLevels
@@ -14521,14 +15013,14 @@ A foo() {}
       19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M1
       C: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M3
   requirements
     topLevels
@@ -14565,7 +15057,7 @@ mixin C {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M4
       C: #M2
@@ -14607,12 +15099,12 @@ A foo() => throw 0;
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M1
   requirements
     topLevels
@@ -14659,7 +15151,7 @@ A foo() => throw 0;
     actualId: <null>
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M2
   requirements
     topLevels
@@ -14717,13 +15209,13 @@ A foo() => throw 0;
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M2
   requirements
     topLevels
@@ -14756,7 +15248,7 @@ mixin A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
   requirements
 [future] getErrors T2
@@ -14799,12 +15291,12 @@ void f(A a) {
       35 +3 UNDEFINED_METHOD
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M1
   requirements
     topLevels
@@ -14847,7 +15339,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M2
@@ -14920,7 +15412,7 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -14937,7 +15429,7 @@ void f(B b) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -14974,7 +15466,7 @@ mixin B implements A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -15002,7 +15494,7 @@ mixin B implements A<double> {}
     actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M7
   requirements
     topLevels
@@ -15064,7 +15556,7 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -15081,7 +15573,7 @@ void f(B b) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -15118,7 +15610,7 @@ mixin B on A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -15146,7 +15638,7 @@ mixin B on A<double> {}
     actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M7
   requirements
     topLevels
@@ -15206,7 +15698,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -15216,7 +15708,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M2
   requirements
     topLevels
@@ -15249,7 +15741,7 @@ mixin A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
   requirements
 [future] getErrors T2
@@ -15321,7 +15813,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -15334,7 +15826,7 @@ void f(A a) {
         int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M3
   requirements
     topLevels
@@ -15374,7 +15866,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M4
@@ -15450,7 +15942,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           bar: #M1
@@ -15465,7 +15957,7 @@ void f(A a) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -15506,7 +15998,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           bar: #M5
@@ -15559,12 +16051,12 @@ void f(A a) {
       35 +3 UNDEFINED_SETTER
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M1
   requirements
     topLevels
@@ -15616,7 +16108,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M2
@@ -15701,7 +16193,7 @@ void f(B b) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -15720,7 +16212,7 @@ void f(B b) {
         int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M5
   requirements
     topLevels
@@ -15762,7 +16254,7 @@ mixin B on A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -15792,7 +16284,7 @@ mixin B on A<double> {}
     actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M8
   requirements
     topLevels
@@ -15856,7 +16348,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -15871,7 +16363,7 @@ void f(A a) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -15914,7 +16406,7 @@ mixin A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
   requirements
 [future] getErrors T2
@@ -15995,7 +16487,7 @@ void f(A a) {
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -16010,7 +16502,7 @@ void f(A a) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       f: #M4
   requirements
     topLevels
@@ -16055,7 +16547,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M5
@@ -16133,7 +16625,7 @@ final x = foo();
         type: int
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredFunctions
       foo: #M0
   requirements
     topLevels
@@ -16141,8 +16633,10 @@ final x = foo();
         int: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       x: #M2
+    declaredVariables
+      x: #M3
   requirements
     topLevels
       dart:core
@@ -16158,12 +16652,12 @@ double foo() {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
-      foo: #M3
+    declaredFunctions
+      foo: #M4
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M5
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -16174,17 +16668,19 @@ double foo() {}
     libraryUri: package:test/a.dart
     name: foo
     expectedId: #M0
-    actualId: #M3
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M5
+    declaredGetters
+      x: #M6
+    declaredVariables
+      x: #M7
   requirements
     topLevels
       dart:core
         foo: <null>
       package:test/a.dart
-        foo: #M3
+        foo: #M4
 [status] idle
 ''',
     );
@@ -16211,7 +16707,7 @@ final x = foo();
         type: int
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredFunctions
       bar: #M0
       foo: #M1
   requirements
@@ -16220,8 +16716,10 @@ final x = foo();
         int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -16238,13 +16736,13 @@ double bar() {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
-      bar: #M4
+    declaredFunctions
+      bar: #M5
       foo: #M1
   requirements
     topLevels
       dart:core
-        double: #M5
+        double: #M6
         int: #M2
 [future] getLibraryByUri T2
   library
@@ -16278,16 +16776,20 @@ final x = a;
         type: int
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M2
+    declaredGetters
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -16303,12 +16805,14 @@ double get a => 1.2;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
-      a: #M3
+    declaredGetters
+      a: #M5
+    declaredVariables
+      a: #M6
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M7
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -16319,17 +16823,19 @@ double get a => 1.2;
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M5
+    declaredGetters
+      x: #M8
+    declaredVariables
+      x: #M9
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M3
+        a: #M5
 [status] idle
 ''',
     );
@@ -16356,17 +16862,22 @@ final x = a;
         type: int
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
   requirements
     topLevels
       dart:core
-        int: #M2
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M3
+    declaredGetters
+      x: #M5
+    declaredVariables
+      x: #M6
   requirements
     topLevels
       dart:core
@@ -16383,14 +16894,17 @@ double get b => 1.2;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M4
+      b: #M7
+    declaredVariables
+      a: #M2
+      b: #M8
   requirements
     topLevels
       dart:core
-        double: #M5
-        int: #M2
+        double: #M9
+        int: #M4
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -16423,13 +16937,17 @@ final x = a;
         type: int
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M1
+    declaredGetters
+      x: #M2
+    declaredVariables
+      x: #M3
   requirements
     topLevels
       dart:core
@@ -16447,8 +16965,10 @@ final a = 1.2;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
-      a: #M2
+    declaredGetters
+      a: #M4
+    declaredVariables
+      a: #M5
   requirements
 [future] getLibraryByUri T2
   library
@@ -16460,17 +16980,19 @@ final a = 1.2;
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M2
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M3
+    declaredGetters
+      x: #M6
+    declaredVariables
+      x: #M7
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M2
+        a: #M4
 [status] idle
 ''',
     );
@@ -16503,8 +17025,10 @@ final x = a;
         type: int
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
@@ -16516,8 +17040,10 @@ final x = a;
         a: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M1
+    declaredGetters
+      x: #M2
+    declaredVariables
+      x: #M3
   requirements
     topLevels
       dart:core
@@ -16538,8 +17064,10 @@ final a = 1.2;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
-      a: #M2
+    declaredGetters
+      a: #M4
+    declaredVariables
+      a: #M5
   requirements
 [future] getLibraryByUri T2
   library
@@ -16552,31 +17080,33 @@ final a = 1.2;
     exportedUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M2
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/b.dart
     reExportMap
-      a: #M2
+      a: #M4
   requirements
     exportRequirements
       package:test/a.dart
-        a: #M2
+        a: #M4
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/b.dart
     name: a
     expectedId: #M0
-    actualId: #M2
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M3
+    declaredGetters
+      x: #M6
+    declaredVariables
+      x: #M7
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/b.dart
-        a: #M2
+        a: #M4
 [status] idle
 ''',
     );
@@ -16591,8 +17121,10 @@ final a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       // Here `k02` is for `dart:core`.
       expectedInitialDriverState: r'''
@@ -16638,9 +17170,12 @@ final a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
-      b: #M2
+    declaredGetters
+      a: #M2
+      b: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
       // Note a new bundle key is generated: k05
       // TODO(scheglov): Here is a memory leak: k01 is still present.
@@ -16693,8 +17228,10 @@ final a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       expectedInitialDriverState: r'''
 files
@@ -16729,9 +17266,12 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
       expectedUpdatedDriverState: r'''
 files
@@ -16781,13 +17321,13 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           _foo: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       B: #M2
         declaredFields
           _foo: #M3
@@ -16805,7 +17345,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       B: #M2
         declaredFields
           _foo: #M3
@@ -16845,12 +17385,12 @@ class C extends B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       B: #M0
         declaredMethods
           _foo: #M1
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M2
         declaredFields
           _foo: #M3
@@ -16877,12 +17417,12 @@ class C extends B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       B: #M0
         declaredMethods
           _foo: #M1
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M2
         declaredFields
           _foo: #M3
@@ -16913,7 +17453,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M1
@@ -16927,7 +17467,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           zzz: #M2
@@ -16952,7 +17492,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -16968,7 +17508,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -16994,7 +17534,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17016,7 +17556,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17047,7 +17587,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -17067,7 +17607,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -17095,7 +17635,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17121,7 +17661,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17156,7 +17696,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -17178,7 +17718,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -17211,7 +17751,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17249,7 +17789,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17296,7 +17836,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17338,7 +17878,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17387,7 +17927,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -17423,7 +17963,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -17467,7 +18007,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17505,7 +18045,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17547,7 +18087,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -17567,7 +18107,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -17599,7 +18139,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17631,7 +18171,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17672,7 +18212,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17709,7 +18249,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17753,7 +18293,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -17783,7 +18323,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -17821,7 +18361,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17854,7 +18394,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17894,7 +18434,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17928,7 +18468,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -17971,7 +18511,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -18010,7 +18550,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -18056,7 +18596,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -18088,7 +18628,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -18128,7 +18668,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -18163,7 +18703,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -18202,7 +18742,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -18222,7 +18762,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -18250,7 +18790,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -18270,7 +18810,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -18299,7 +18839,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -18320,7 +18860,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -18349,7 +18889,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -18371,7 +18911,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -18400,7 +18940,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -18420,7 +18960,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -18448,7 +18988,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -18469,7 +19009,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -18499,7 +19039,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -18521,7 +19061,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -18553,7 +19093,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -18585,7 +19125,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -18625,7 +19165,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -18662,7 +19202,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -18705,7 +19245,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -18735,7 +19275,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -18772,7 +19312,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -18805,7 +19345,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -18841,7 +19381,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -18863,7 +19403,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -18894,7 +19434,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -18914,7 +19454,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -18945,7 +19485,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -18980,7 +19520,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19024,7 +19564,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19063,7 +19603,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19109,7 +19649,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -19142,7 +19682,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -19183,7 +19723,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19217,7 +19757,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19255,7 +19795,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -19271,7 +19811,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -19298,7 +19838,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -19318,7 +19858,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -19350,7 +19890,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19383,7 +19923,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19425,7 +19965,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19462,7 +20002,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19506,7 +20046,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -19537,7 +20077,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -19576,7 +20116,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19608,7 +20148,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19644,7 +20184,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -19661,7 +20201,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -19692,7 +20232,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19724,7 +20264,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19765,7 +20305,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19802,7 +20342,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19846,7 +20386,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -19876,7 +20416,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -19914,7 +20454,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19946,7 +20486,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -19985,7 +20525,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20016,7 +20556,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20056,7 +20596,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20092,7 +20632,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20135,7 +20675,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -20164,7 +20704,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -20201,7 +20741,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20232,7 +20772,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20267,7 +20807,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -20283,7 +20823,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -20313,7 +20853,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20344,7 +20884,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20384,7 +20924,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20420,7 +20960,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20463,7 +21003,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -20492,7 +21032,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -20529,7 +21069,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20560,7 +21100,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20595,7 +21135,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -20611,7 +21151,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -20641,7 +21181,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20672,7 +21212,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20712,7 +21252,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20748,7 +21288,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20791,7 +21331,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -20820,7 +21360,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -20857,7 +21397,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20888,7 +21428,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20926,7 +21466,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20955,7 +21495,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -20993,7 +21533,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -21027,7 +21567,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -21068,7 +21608,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -21095,7 +21635,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -21130,7 +21670,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -21159,7 +21699,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -21192,7 +21732,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -21209,7 +21749,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -21234,7 +21774,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           []: #M1
@@ -21253,7 +21793,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           []: #M2
@@ -21280,7 +21820,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -21300,7 +21840,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -21328,7 +21868,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           []: #M1
@@ -21349,7 +21889,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           []: #M2
@@ -21381,7 +21921,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -21411,7 +21951,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -21448,7 +21988,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []=: #M1
@@ -21478,7 +22018,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []=: #M1
@@ -21514,7 +22054,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -21541,7 +22081,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -21575,7 +22115,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []=: #M1
@@ -21603,7 +22143,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []=: #M1
@@ -21634,7 +22174,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []=: #M1
@@ -21651,7 +22191,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []=: #M1
@@ -21679,7 +22219,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
         declaredMethods
@@ -21703,7 +22243,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
         declaredMethods
@@ -21731,7 +22271,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           []: #M1
@@ -21750,7 +22290,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           []: #M2
@@ -21780,7 +22320,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -21808,7 +22348,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -21843,7 +22383,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []=: #M1
@@ -21870,7 +22410,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []=: #M1
@@ -21900,7 +22440,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -21919,7 +22459,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -21947,7 +22487,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -21966,7 +22506,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -21993,7 +22533,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22016,7 +22556,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22048,7 +22588,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -22069,7 +22609,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -22101,7 +22641,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22136,7 +22676,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22180,7 +22720,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22219,7 +22759,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22265,7 +22805,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -22298,7 +22838,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -22339,7 +22879,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22374,7 +22914,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22413,7 +22953,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -22432,7 +22972,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -22463,7 +23003,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22494,7 +23034,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22534,7 +23074,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22570,7 +23110,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22613,7 +23153,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -22642,7 +23182,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -22679,7 +23219,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22711,7 +23251,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22750,7 +23290,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22781,7 +23321,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22821,7 +23361,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22857,7 +23397,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22900,7 +23440,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -22929,7 +23469,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -22966,7 +23506,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -22998,7 +23538,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -23034,7 +23574,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -23051,7 +23591,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -23076,7 +23616,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -23095,7 +23635,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -23123,7 +23663,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -23143,7 +23683,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -23171,7 +23711,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -23192,7 +23732,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -23222,7 +23762,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -23244,7 +23784,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -23272,7 +23812,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -23291,7 +23831,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -23318,7 +23858,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -23338,7 +23878,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -23367,7 +23907,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -23388,7 +23928,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -23419,7 +23959,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -23448,7 +23988,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -23485,7 +24025,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -23519,7 +24059,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -23559,7 +24099,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -23586,7 +24126,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -23620,7 +24160,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -23650,7 +24190,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -23683,7 +24223,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -23702,7 +24242,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -23730,7 +24270,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -23749,7 +24289,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -23779,7 +24319,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -23811,7 +24351,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -23852,7 +24392,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -23888,7 +24428,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -23931,7 +24471,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -23961,7 +24501,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -23999,7 +24539,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24030,7 +24570,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24065,7 +24605,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24081,7 +24621,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24108,7 +24648,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -24127,7 +24667,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -24158,7 +24698,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24190,7 +24730,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24231,7 +24771,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24267,7 +24807,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24310,7 +24850,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -24340,7 +24880,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -24378,7 +24918,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24409,7 +24949,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24444,7 +24984,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24463,7 +25003,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24496,7 +25036,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24530,7 +25070,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24573,7 +25113,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24612,7 +25152,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24658,7 +25198,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -24690,7 +25230,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -24730,7 +25270,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24764,7 +25304,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24805,7 +25345,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24836,7 +25376,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24876,7 +25416,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24912,7 +25452,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -24955,7 +25495,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -24984,7 +25524,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -25021,7 +25561,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25052,7 +25592,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25087,7 +25627,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -25101,7 +25641,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -25128,7 +25668,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25157,7 +25697,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25194,7 +25734,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25228,7 +25768,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25268,7 +25808,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -25295,7 +25835,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -25329,7 +25869,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25358,7 +25898,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25390,7 +25930,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25406,7 +25946,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25436,7 +25976,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25467,7 +26007,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25507,7 +26047,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25543,7 +26083,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25586,7 +26126,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -25615,7 +26155,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -25652,7 +26192,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25683,7 +26223,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25722,13 +26262,14 @@ class B = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M1
       B: #M2
         inheritedConstructors
           foo: #M1
+    declaredMixins
       M: #M3
 ''',
       updatedCode: r'''
@@ -25744,15 +26285,16 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M1
       B: #M2
         inheritedConstructors
           foo: #M1
-      M: #M3
       Z: #M4
+    declaredMixins
+      M: #M3
 ''',
     );
   }
@@ -25773,7 +26315,7 @@ class B = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -25781,6 +26323,7 @@ class B = A with M;
       B: #M2
         inheritedConstructors
           foo: #M1
+    declaredMixins
       M: #M3
 ''',
       updatedCode: r'''
@@ -25797,7 +26340,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M4
@@ -25805,8 +26348,9 @@ class Z {}
       B: #M2
         inheritedConstructors
           foo: #M4
-      M: #M3
       Z: #M5
+    declaredMixins
+      M: #M3
 ''',
     );
   }
@@ -25827,7 +26371,7 @@ class B = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25844,6 +26388,7 @@ class B = A with M;
         interface
           map
             foo: #M2
+    declaredMixins
       M: #M5
 ''',
       updatedCode: r'''
@@ -25860,7 +26405,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25877,8 +26422,9 @@ class Z {}
         interface
           map
             foo: #M2
-      M: #M5
       Z: #M6
+    declaredMixins
+      M: #M5
 ''',
     );
   }
@@ -25900,7 +26446,7 @@ class B = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25921,6 +26467,7 @@ class B = A with M;
           map
             foo: #M2
             foo=: #M3
+    declaredMixins
       M: #M6
 ''',
       updatedCode: r'''
@@ -25938,7 +26485,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -25959,8 +26506,9 @@ class Z {}
           map
             foo: #M2
             foo=: #M3
-      M: #M6
       Z: #M7
+    declaredMixins
+      M: #M6
 ''',
     );
   }
@@ -25981,7 +26529,7 @@ class B = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -25996,6 +26544,7 @@ class B = A with M;
         interface
           map
             foo: #M1
+    declaredMixins
       M: #M4
 ''',
       updatedCode: r'''
@@ -26012,7 +26561,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -26027,8 +26576,9 @@ class Z {}
         interface
           map
             foo: #M1
-      M: #M4
       Z: #M5
+    declaredMixins
+      M: #M4
 ''',
     );
   }
@@ -26049,7 +26599,7 @@ class B = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -26066,6 +26616,7 @@ class B = A with M;
         interface
           map
             foo=: #M2
+    declaredMixins
       M: #M5
 ''',
       updatedCode: r'''
@@ -26082,7 +26633,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -26099,8 +26650,9 @@ class Z {}
         interface
           map
             foo=: #M2
-      M: #M5
       Z: #M6
+    declaredMixins
+      M: #M5
 ''',
     );
   }
@@ -26119,7 +26671,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -26143,7 +26695,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -26176,7 +26728,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -26204,7 +26756,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -26239,7 +26791,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []=: #M1
@@ -26263,7 +26815,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []=: #M1
@@ -26296,7 +26848,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -26324,7 +26876,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           []: #M1
@@ -26359,7 +26911,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -26385,7 +26937,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -26420,7 +26972,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -26451,7 +27003,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -26489,7 +27041,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -26513,7 +27065,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -26545,7 +27097,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -26571,7 +27123,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -26600,7 +27152,7 @@ class A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
 ''',
       updatedCode: r'''
@@ -26610,7 +27162,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
 ''',
@@ -26628,7 +27180,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M1
@@ -26642,7 +27194,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           bar: #M2
@@ -26663,7 +27215,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M1
@@ -26677,7 +27229,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           bar: #M2
@@ -26698,7 +27250,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           new: #M1
@@ -26711,7 +27263,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           new: #M2
@@ -26730,7 +27282,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1
@@ -26743,7 +27295,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M2
@@ -26763,7 +27315,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
@@ -26778,7 +27330,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
@@ -26799,7 +27351,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -26820,7 +27372,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -26847,7 +27399,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -26868,7 +27420,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -26894,7 +27446,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1
@@ -26907,7 +27459,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M2
@@ -26928,7 +27480,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           f: #M1
@@ -26951,7 +27503,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           f: #M1
@@ -26981,7 +27533,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           f: #M1
@@ -27006,7 +27558,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           f: #M1
@@ -27034,7 +27586,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1
@@ -27047,7 +27599,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M2
@@ -27070,7 +27622,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1
@@ -27090,7 +27642,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1
@@ -27118,7 +27670,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           f: #M1
@@ -27151,7 +27703,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           f: #M1
@@ -27189,7 +27741,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           f: #M1
@@ -27220,7 +27772,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           f: #M1
@@ -27252,7 +27804,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1
@@ -27265,7 +27817,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1
@@ -27285,7 +27837,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -27306,7 +27858,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -27334,7 +27886,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           f: #M1
@@ -27357,7 +27909,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           f: #M1
@@ -27388,7 +27940,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1
@@ -27408,7 +27960,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1
@@ -27430,7 +27982,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M1
@@ -27443,7 +27995,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M2
@@ -27462,7 +28014,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M1
@@ -27475,7 +28027,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M2
@@ -27494,7 +28046,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M1
@@ -27507,7 +28059,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M2
@@ -27526,7 +28078,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M1
@@ -27539,7 +28091,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           foo: #M2
@@ -27561,7 +28113,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           bar: #M1
@@ -27578,7 +28130,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           bar: #M1
@@ -27598,7 +28150,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           _foo: #M1
@@ -27612,7 +28164,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           _foo: #M1
@@ -27632,7 +28184,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           _foo: #M1
@@ -27646,7 +28198,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           _foo: #M1
@@ -27665,7 +28217,7 @@ class B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
 ''',
@@ -27676,7 +28228,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M2
       B: #M1
 ''',
@@ -27694,7 +28246,7 @@ class C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
       C: #M2
@@ -27707,7 +28259,7 @@ class C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M3
       B: #M4
       C: #M2
@@ -27726,7 +28278,7 @@ class C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
       C: #M2
@@ -27739,7 +28291,7 @@ class C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M3
       B: #M1
       C: #M2
@@ -27758,7 +28310,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
@@ -27777,7 +28329,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
@@ -27805,7 +28357,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
@@ -27823,7 +28375,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M5
@@ -27846,7 +28398,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
@@ -27864,7 +28416,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M3
@@ -27888,7 +28440,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
@@ -27906,7 +28458,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
@@ -27930,7 +28482,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
@@ -27945,7 +28497,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M3
@@ -27966,7 +28518,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
@@ -27981,7 +28533,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
@@ -28005,7 +28557,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
@@ -28034,7 +28586,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M7
@@ -28066,7 +28618,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _a: #M1
@@ -28082,7 +28634,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _a: #M1
@@ -28108,7 +28660,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _a: #M1
@@ -28124,7 +28676,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _a: #M1
@@ -28147,7 +28699,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _a: #M1
@@ -28165,7 +28717,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _a: #M1
@@ -28195,7 +28747,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -28216,7 +28768,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M4
@@ -28239,7 +28791,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -28256,7 +28808,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M4
@@ -28283,7 +28835,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
@@ -28304,7 +28856,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M4
@@ -28333,7 +28885,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -28358,7 +28910,7 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M4
@@ -28392,7 +28944,7 @@ class B extends A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -28417,7 +28969,7 @@ class B extends A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M4
@@ -28451,7 +29003,7 @@ class B implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -28476,7 +29028,7 @@ class B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M4
@@ -28510,7 +29062,7 @@ class B implements A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -28535,7 +29087,7 @@ class B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M4
@@ -28569,7 +29121,7 @@ class B with A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -28594,7 +29146,7 @@ class B with A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M4
@@ -28628,7 +29180,7 @@ class B with A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -28653,7 +29205,7 @@ class B with A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M4
@@ -28691,7 +29243,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -28731,7 +29283,7 @@ abstract class C implements A, B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -28775,7 +29327,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M1
@@ -28799,7 +29351,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M1
@@ -28826,7 +29378,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
@@ -28842,7 +29394,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
@@ -28868,7 +29420,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
@@ -28884,7 +29436,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
@@ -28911,7 +29463,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         supertype: Object @ dart:core
         declaredFields
@@ -28932,7 +29484,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         supertype: Object @ dart:core
         declaredFields
@@ -28959,7 +29511,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -28975,7 +29527,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M3
@@ -28998,7 +29550,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -29016,7 +29568,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M3
@@ -29037,7 +29589,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -29052,7 +29604,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M3
@@ -29073,7 +29625,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -29088,7 +29640,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M3
@@ -29112,7 +29664,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -29131,7 +29683,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M3
@@ -29154,7 +29706,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -29173,7 +29725,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M3
@@ -29196,7 +29748,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -29215,7 +29767,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M3
@@ -29238,7 +29790,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -29257,7 +29809,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M3
@@ -29280,7 +29832,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -29296,7 +29848,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M3
@@ -29316,7 +29868,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -29332,7 +29884,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M3
@@ -29351,7 +29903,7 @@ class B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
 ''',
@@ -29362,7 +29914,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M2
       B: #M1
 ''',
@@ -29379,7 +29931,7 @@ class B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
 ''',
@@ -29390,7 +29942,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M2
       B: #M1
 ''',
@@ -29408,7 +29960,7 @@ class C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
       C: #M2
@@ -29421,7 +29973,7 @@ class C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M3
       B: #M1
       C: #M2
@@ -29441,7 +29993,7 @@ class B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
 ''',
@@ -29454,7 +30006,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M2
 ''',
@@ -29472,7 +30024,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -29489,7 +30041,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M2
@@ -29515,7 +30067,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -29538,7 +30090,7 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M3
@@ -29569,7 +30121,7 @@ class B extends A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -29592,7 +30144,7 @@ class B extends A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M3
@@ -29625,7 +30177,7 @@ class C extends B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -29654,7 +30206,7 @@ class C extends B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M4
@@ -29690,7 +30242,7 @@ class B implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -29713,7 +30265,7 @@ class B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M3
@@ -29744,7 +30296,7 @@ class B implements A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -29767,7 +30319,7 @@ class B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M3
@@ -29798,7 +30350,7 @@ class B with A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -29821,7 +30373,7 @@ class B with A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M3
@@ -29852,7 +30404,7 @@ class B with A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -29875,7 +30427,7 @@ class B with A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M3
@@ -29910,7 +30462,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -29937,7 +30489,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -29970,7 +30522,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30005,7 +30557,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30048,7 +30600,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30080,7 +30632,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M2
         declaredMethods
@@ -30113,7 +30665,7 @@ abstract class D implements B, C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30149,7 +30701,7 @@ abstract class D implements B, C {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30192,7 +30744,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30226,7 +30778,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30260,7 +30812,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30277,7 +30829,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M2
@@ -30301,7 +30853,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30318,7 +30870,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M2
@@ -30342,7 +30894,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30359,7 +30911,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M2
@@ -30383,7 +30935,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30399,7 +30951,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -30422,7 +30974,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         supertype: Object @ dart:core
         declaredMethods
@@ -30443,7 +30995,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         supertype: Object @ dart:core
         declaredMethods
@@ -30470,7 +31022,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30487,7 +31039,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M2
@@ -30511,7 +31063,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30527,7 +31079,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30549,7 +31101,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -30565,7 +31117,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -30588,7 +31140,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -30605,7 +31157,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -30628,7 +31180,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -30645,7 +31197,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -30668,7 +31220,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -30685,7 +31237,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -30705,7 +31257,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -30722,7 +31274,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -30745,7 +31297,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -30762,7 +31314,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -30785,7 +31337,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -30802,7 +31354,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -30822,7 +31374,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -30836,7 +31388,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -30856,7 +31408,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M1
@@ -30870,7 +31422,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -30892,7 +31444,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M1
@@ -30913,7 +31465,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M1
@@ -30937,7 +31489,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           _foo: #M1
@@ -30951,7 +31503,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           _foo: #M1
@@ -30974,7 +31526,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           _foo: #M1
@@ -30988,7 +31540,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           _foo: #M1
@@ -31012,7 +31564,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           bar: #M1
@@ -31030,7 +31582,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -31053,7 +31605,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         supertype: Object @ dart:core
         declaredMethods
@@ -31072,7 +31624,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         supertype: Object @ dart:core
         declaredMethods
@@ -31097,7 +31649,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -31113,7 +31665,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -31132,7 +31684,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -31145,7 +31697,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -31164,7 +31716,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -31177,7 +31729,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -31199,7 +31751,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -31216,7 +31768,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -31239,7 +31791,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -31256,7 +31808,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -31279,7 +31831,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -31296,7 +31848,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -31319,7 +31871,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -31336,7 +31888,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -31359,7 +31911,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -31373,7 +31925,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -31396,7 +31948,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -31410,7 +31962,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -31433,7 +31985,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -31447,7 +31999,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -31467,7 +32019,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -31481,7 +32033,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M2
@@ -31502,7 +32054,7 @@ class A<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         typeParameters
           bound: <null>
@@ -31528,7 +32080,7 @@ class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         typeParameters
           bound: <null>
@@ -31563,7 +32115,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -31579,7 +32131,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -31601,7 +32153,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -31617,7 +32169,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
@@ -31637,7 +32189,7 @@ class _A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       _A: #M0
 ''',
       updatedCode: r'''
@@ -31647,7 +32199,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       B: #M1
       _A: #M0
 ''',
@@ -31663,7 +32215,7 @@ class A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
 ''',
       updatedCode: '',
@@ -31687,7 +32239,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -31712,7 +32264,7 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M4
@@ -31746,7 +32298,7 @@ class B extends A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -31771,7 +32323,7 @@ class B extends A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M4
@@ -31805,7 +32357,7 @@ class B implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -31830,7 +32382,7 @@ class B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M4
@@ -31864,7 +32416,7 @@ class B implements A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -31889,7 +32441,7 @@ class B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M4
@@ -31923,7 +32475,7 @@ class B with A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -31948,7 +32500,7 @@ class B with A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M4
@@ -31982,7 +32534,7 @@ class B with A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -32007,7 +32559,7 @@ class B with A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M4
@@ -32045,7 +32597,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -32085,7 +32637,7 @@ abstract class C implements A, B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -32129,7 +32681,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M1
@@ -32153,7 +32705,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M1
@@ -32180,7 +32732,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
@@ -32196,7 +32748,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
@@ -32222,7 +32774,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
@@ -32238,7 +32790,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
@@ -32264,7 +32816,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -32280,7 +32832,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           bar: #M3
@@ -32303,7 +32855,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -32321,7 +32873,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M3
@@ -32342,7 +32894,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -32357,7 +32909,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M3
@@ -32381,7 +32933,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -32396,7 +32948,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M3
@@ -32417,7 +32969,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -32436,7 +32988,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M3
@@ -32459,7 +33011,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -32478,7 +33030,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M3
@@ -32501,7 +33053,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -32520,7 +33072,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M3
@@ -32543,7 +33095,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -32562,7 +33114,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M3
@@ -32585,7 +33137,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -32601,7 +33153,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M3
@@ -32621,7 +33173,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -32637,7 +33189,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConflicts
           foo: #M3
@@ -32664,7 +33216,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         supertype: Object @ dart:core
         declaredFields
@@ -32716,7 +33268,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         supertype: Object @ dart:core
         declaredFields
@@ -32769,7 +33321,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         supertype: Object @ dart:core
         declaredFields
@@ -32790,7 +33342,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         supertype: Object @ dart:core
         declaredFields
@@ -32819,14 +33371,15 @@ class X = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
-      M: #M2
-      X: #M3
+      X: #M2
         inheritedConstructors
           c1: #M1
+    declaredMixins
+      M: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -32839,16 +33392,17 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
           c2: #M4
-      M: #M2
-      X: #M3
+      X: #M2
         inheritedConstructors
           c1: #M1
           c2: #M4
+    declaredMixins
+      M: #M3
 ''',
     );
   }
@@ -32867,17 +33421,18 @@ class X2 = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
-      M: #M2
-      X1: #M3
+      X1: #M2
         inheritedConstructors
           c1: #M1
-      X2: #M4
+      X2: #M3
         inheritedConstructors
           c1: #M1
+    declaredMixins
+      M: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -32891,20 +33446,21 @@ class X2 = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
           c2: #M5
-      M: #M2
-      X1: #M3
+      X1: #M2
         inheritedConstructors
           c1: #M1
           c2: #M5
-      X2: #M4
+      X2: #M3
         inheritedConstructors
           c1: #M1
           c2: #M5
+    declaredMixins
+      M: #M4
 ''',
     );
   }
@@ -32923,17 +33479,18 @@ class X2 = X1 with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
-      M: #M2
-      X1: #M3
+      X1: #M2
         inheritedConstructors
           c1: #M1
-      X2: #M4
+      X2: #M3
         inheritedConstructors
           c1: #M1
+    declaredMixins
+      M: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -32947,20 +33504,21 @@ class X2 = X1 with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
           c2: #M5
-      M: #M2
-      X1: #M3
+      X1: #M2
         inheritedConstructors
           c1: #M1
           c2: #M5
-      X2: #M4
+      X2: #M3
         inheritedConstructors
           c1: #M1
           c2: #M5
+    declaredMixins
+      M: #M4
 ''',
     );
   }
@@ -32979,16 +33537,17 @@ class X = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
           c2: #M2
-      M: #M3
-      X: #M4
+      X: #M3
         inheritedConstructors
           c1: #M1
           c2: #M2
+    declaredMixins
+      M: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -33001,16 +33560,17 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
           c2: #M5
-      M: #M3
-      X: #M4
+      X: #M3
         inheritedConstructors
           c1: #M1
           c2: #M5
+    declaredMixins
+      M: #M4
 ''',
     );
   }
@@ -33029,16 +33589,17 @@ class X = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
           c2: #M2
-      M: #M3
-      X: #M4
+      X: #M3
         inheritedConstructors
           c1: #M1
           c2: #M2
+    declaredMixins
+      M: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -33050,14 +33611,15 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
-      M: #M3
-      X: #M4
+      X: #M3
         inheritedConstructors
           c1: #M1
+    declaredMixins
+      M: #M4
 ''',
     );
   }
@@ -33075,12 +33637,13 @@ class Y = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
-      M: #M2
-      X: #M3
-      Y: #M4
+      X: #M2
+      Y: #M3
+    declaredMixins
+      M: #M4
 ''',
       updatedCode: r'''
 class A {}
@@ -33092,12 +33655,13 @@ class Y = B with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
-      M: #M2
-      X: #M3
+      X: #M2
       Y: #M5
+    declaredMixins
+      M: #M4
 ''',
     );
   }
@@ -33121,7 +33685,7 @@ class X = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo1: #M1
@@ -33133,24 +33697,25 @@ class X = A with M;
           map
             foo1: #M3
             foo2: #M4
-      M: #M5
-        declaredFields
-          foo3: #M6
-          foo4: #M7
-        declaredGetters
-          foo3: #M8
-          foo4: #M9
-        interface
-          map
-            foo3: #M8
-            foo4: #M9
-      X: #M10
+      X: #M5
         interface
           map
             foo1: #M3
             foo2: #M4
-            foo3: #M8
-            foo4: #M9
+            foo3: #M6
+            foo4: #M7
+    declaredMixins
+      M: #M8
+        declaredFields
+          foo3: #M9
+          foo4: #M10
+        declaredGetters
+          foo3: #M6
+          foo4: #M7
+        interface
+          map
+            foo3: #M6
+            foo4: #M7
 ''',
       updatedCode: r'''
 class A {
@@ -33168,7 +33733,7 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo1: #M1
@@ -33180,24 +33745,25 @@ class X = A with M;
           map
             foo1: #M3
             foo2: #M12
-      M: #M5
-        declaredFields
-          foo3: #M6
-          foo4: #M13
-        declaredGetters
-          foo3: #M8
-          foo4: #M14
-        interface
-          map
-            foo3: #M8
-            foo4: #M14
-      X: #M10
+      X: #M5
         interface
           map
             foo1: #M3
             foo2: #M12
-            foo3: #M8
-            foo4: #M14
+            foo3: #M6
+            foo4: #M13
+    declaredMixins
+      M: #M8
+        declaredFields
+          foo3: #M9
+          foo4: #M14
+        declaredGetters
+          foo3: #M6
+          foo4: #M13
+        interface
+          map
+            foo3: #M6
+            foo4: #M13
 ''',
     );
   }
@@ -33216,13 +33782,14 @@ class X4 = Object with M implements A;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
-      M: #M1
-      X1: #M2
-      X2: #M3
-      X3: #M4
-      X4: #M5
+      X1: #M1
+      X2: #M2
+      X3: #M3
+      X4: #M4
+    declaredMixins
+      M: #M5
 ''',
       updatedCode: r'''
 class A {}
@@ -33235,13 +33802,14 @@ class X4 = Object with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
-      M: #M1
-      X1: #M2
-      X2: #M3
+      X1: #M1
+      X2: #M2
       X3: #M6
       X4: #M7
+    declaredMixins
+      M: #M5
 ''',
     );
   }
@@ -33259,10 +33827,11 @@ class Y = Object with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      M: #M0
-      X: #M1
-      Y: #M2
+    declaredClasses
+      X: #M0
+      Y: #M1
+    declaredMixins
+      M: #M2
 ''',
       updatedCode: r'''
 mixin M {}
@@ -33274,10 +33843,11 @@ class Y = Object with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      M: #M0
-      X: #M1
+    declaredClasses
+      X: #M0
       Y: #M3
+    declaredMixins
+      M: #M2
 ''',
     );
   }
@@ -33301,7 +33871,7 @@ class X = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo1: #M1
@@ -33310,19 +33880,20 @@ class X = A with M;
           map
             foo1: #M1
             foo2: #M2
-      M: #M3
+      X: #M3
+        interface
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M4
+            foo4: #M5
+    declaredMixins
+      M: #M6
         declaredMethods
           foo3: #M4
           foo4: #M5
         interface
           map
-            foo3: #M4
-            foo4: #M5
-      X: #M6
-        interface
-          map
-            foo1: #M1
-            foo2: #M2
             foo3: #M4
             foo4: #M5
 ''',
@@ -33342,7 +33913,7 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo1: #M1
@@ -33351,19 +33922,20 @@ class X = A with M;
           map
             foo1: #M1
             foo2: #M7
-      M: #M3
+      X: #M3
+        interface
+          map
+            foo1: #M1
+            foo2: #M7
+            foo3: #M4
+            foo4: #M8
+    declaredMixins
+      M: #M6
         declaredMethods
           foo3: #M4
           foo4: #M8
         interface
           map
-            foo3: #M4
-            foo4: #M8
-      X: #M6
-        interface
-          map
-            foo1: #M1
-            foo2: #M7
             foo3: #M4
             foo4: #M8
 ''',
@@ -33389,7 +33961,7 @@ class X = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo1: #M1
@@ -33401,24 +33973,25 @@ class X = A with M;
           map
             foo1=: #M3
             foo2=: #M4
-      M: #M5
-        declaredFields
-          foo3: #M6
-          foo4: #M7
-        declaredSetters
-          foo3=: #M8
-          foo4=: #M9
-        interface
-          map
-            foo3=: #M8
-            foo4=: #M9
-      X: #M10
+      X: #M5
         interface
           map
             foo1=: #M3
             foo2=: #M4
-            foo3=: #M8
-            foo4=: #M9
+            foo3=: #M6
+            foo4=: #M7
+    declaredMixins
+      M: #M8
+        declaredFields
+          foo3: #M9
+          foo4: #M10
+        declaredSetters
+          foo3=: #M6
+          foo4=: #M7
+        interface
+          map
+            foo3=: #M6
+            foo4=: #M7
 ''',
       updatedCode: r'''
 class A {
@@ -33436,7 +34009,7 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo1: #M1
@@ -33448,24 +34021,25 @@ class X = A with M;
           map
             foo1=: #M3
             foo2=: #M12
-      M: #M5
-        declaredFields
-          foo3: #M6
-          foo4: #M13
-        declaredSetters
-          foo3=: #M8
-          foo4=: #M14
-        interface
-          map
-            foo3=: #M8
-            foo4=: #M14
-      X: #M10
+      X: #M5
         interface
           map
             foo1=: #M3
             foo2=: #M12
-            foo3=: #M8
-            foo4=: #M14
+            foo3=: #M6
+            foo4=: #M13
+    declaredMixins
+      M: #M8
+        declaredFields
+          foo3: #M9
+          foo4: #M14
+        declaredSetters
+          foo3=: #M6
+          foo4=: #M13
+        interface
+          map
+            foo3=: #M6
+            foo4=: #M13
 ''',
     );
   }
@@ -33483,12 +34057,18 @@ const e = '$b' 'x';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
       c: #M2
       d: #M3
       e: #M4
+    declaredVariables
+      a: #M5
+      b: #M6
+      c: #M7
+      d: #M8
+      e: #M9
 ''',
       updatedCode: r'''
 const a = 1;
@@ -33500,12 +34080,18 @@ const e = '$b' 'x';
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M5
+    declaredGetters
+      a: #M0
       b: #M1
-      c: #M6
-      d: #M7
+      c: #M2
+      d: #M3
       e: #M4
+    declaredVariables
+      a: #M10
+      b: #M6
+      c: #M11
+      d: #M12
+      e: #M9
 ''',
     );
   }
@@ -33522,11 +34108,16 @@ const d = b as int;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 const a = 0;
@@ -33537,11 +34128,16 @@ const d = b as int;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M4
+      b: #M1
       c: #M2
-      d: #M5
+      d: #M3
+    declaredVariables
+      a: #M4
+      b: #M8
+      c: #M6
+      d: #M9
 ''',
     );
   }
@@ -33555,8 +34151,10 @@ const a = 0 + 1;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = 0 + 1;
@@ -33565,9 +34163,12 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -33582,9 +34183,12 @@ const b = a + 2;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
       updatedCode: r'''
 const a = 1;
@@ -33593,9 +34197,12 @@ const b = a + 2;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M2
-      b: #M3
+    declaredGetters
+      a: #M0
+      b: #M1
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
     );
   }
@@ -33609,8 +34216,10 @@ const a = 0 + 1;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = 2 + 1;
@@ -33618,8 +34227,10 @@ const a = 2 + 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M2
 ''',
     );
   }
@@ -33638,15 +34249,19 @@ const x = a + 1;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           +: #M1
         interface
           map
             +: #M1
+    declaredGetters
       a: #M2
       x: #M3
+    declaredVariables
+      a: #M4
+      x: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -33659,15 +34274,19 @@ const x = a + 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
-          +: #M4
+          +: #M6
         interface
           map
-            +: #M4
+            +: #M6
+    declaredGetters
       a: #M2
-      x: #M5
+      x: #M7
+    declaredVariables
+      a: #M4
+      x: #M8
 ''',
     );
   }
@@ -33681,8 +34300,10 @@ const a = 0 + 1;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = 0 - 1;
@@ -33690,8 +34311,10 @@ const a = 0 - 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M2
 ''',
     );
   }
@@ -33706,9 +34329,12 @@ const b = 2 + a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
       updatedCode: r'''
 const a = 1;
@@ -33717,9 +34343,12 @@ const b = 2 + a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M2
-      b: #M3
+    declaredGetters
+      a: #M0
+      b: #M1
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
     );
   }
@@ -33734,14 +34363,17 @@ const b = 0 + a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       b: #M0
         returnType: double @ dart:core
+    declaredVariables
+      b: #M1
+        type: double @ dart:core
         constInitializer
           tokenBuffer: 0+a
           tokenLengthList: [1, 1, 1]
           elements
-            [0] (dart:core, num, +) #M1
+            [0] (dart:core, num, +) #M2
           elementIndexList
             0 = null
             5 = element 0
@@ -33753,23 +34385,30 @@ const b = 0 + a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M2
+    declaredGetters
+      a: #M3
         returnType: int @ dart:core
+      b: #M4
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M5
+        type: int @ dart:core
         constInitializer
           tokenBuffer: 1
           tokenLengthList: [1]
-      b: #M3
-        returnType: int @ dart:core
+      b: #M6
+        type: int @ dart:core
         constInitializer
           tokenBuffer: 0+a
           tokenLengthList: [1, 1, 1]
           elements
             [0] (package:test/test.dart, a) <null>
-            [1] (dart:core, num, +) #M1
+            [1] (package:test/test.dart, a) <null>
+            [2] (dart:core, num, +) #M2
           elementIndexList
             5 = element 0
             13 = element 1
+            21 = element 2
 ''',
     );
   }
@@ -33785,23 +34424,30 @@ const b = 1 + a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
         returnType: int @ dart:core
+      b: #M1
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M2
+        type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
-      b: #M1
-        returnType: int @ dart:core
+      b: #M3
+        type: int @ dart:core
         constInitializer
           tokenBuffer: 1+a
           tokenLengthList: [1, 1, 1]
           elements
             [0] (package:test/test.dart, a) <null>
-            [1] (dart:core, num, +) #M2
+            [1] (package:test/test.dart, a) <null>
+            [2] (dart:core, num, +) #M4
           elementIndexList
             5 = element 0
             13 = element 1
+            21 = element 2
 ''',
       updatedCode: r'''
 const b = 1 + a;
@@ -33809,14 +34455,17 @@ const b = 1 + a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      b: #M3
+    declaredGetters
+      b: #M5
         returnType: double @ dart:core
+    declaredVariables
+      b: #M6
+        type: double @ dart:core
         constInitializer
           tokenBuffer: 1+a
           tokenLengthList: [1, 1, 1]
           elements
-            [0] (dart:core, num, +) #M2
+            [0] (dart:core, num, +) #M4
           elementIndexList
             0 = null
             5 = element 0
@@ -33833,8 +34482,10 @@ const a = true;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = true;
@@ -33843,9 +34494,12 @@ const b = false;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -33862,11 +34516,16 @@ const d = b ? 0 : 1;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 const a = true;
@@ -33877,11 +34536,16 @@ const d = b ? 0 : 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M4
+      b: #M1
       c: #M2
-      d: #M5
+      d: #M3
+    declaredVariables
+      a: #M4
+      b: #M8
+      c: #M6
+      d: #M9
 ''',
     );
   }
@@ -33898,11 +34562,14 @@ const a = A.named();
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1
+    declaredGetters
       a: #M2
+    declaredVariables
+      a: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -33913,11 +34580,14 @@ const a = A.named();
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
-          named: #M3
-      a: #M4
+          named: #M4
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M5
 ''',
     );
   }
@@ -33935,11 +34605,14 @@ const a = A();
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           new: #M1
+    declaredGetters
       a: #M2
+    declaredVariables
+      a: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -33950,11 +34623,14 @@ const a = A();
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
-          new: #M3
-      a: #M4
+          new: #M4
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M5
 ''',
     );
   }
@@ -33972,11 +34648,14 @@ const a = A();
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           new: #M1
+    declaredGetters
       a: #M2
+    declaredVariables
+      a: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -33988,16 +34667,19 @@ const a = A();
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
-          foo: #M3
+          foo: #M4
         declaredConstructors
           new: #M1
         interface
           map
-            foo: #M3
+            foo: #M4
+    declaredGetters
       a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -34012,9 +34694,12 @@ const b = 0 as dynamic;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
       updatedCode: r'''
 const a = 0 as dynamic;
@@ -34023,9 +34708,12 @@ const b = 0 as int;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M2
+      b: #M4
+    declaredVariables
+      a: #M2
+      b: #M5
 ''',
     );
   }
@@ -34045,12 +34733,18 @@ const d = A(b);
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
+    declaredGetters
       a: #M1
       b: #M2
       c: #M3
       d: #M4
+    declaredVariables
+      a: #M5
+      b: #M6
+      c: #M7
+      d: #M8
 ''',
       updatedCode: r'''
 class A {
@@ -34064,12 +34758,18 @@ const d = A(b);
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
-      a: #M5
+    declaredGetters
+      a: #M1
       b: #M2
-      c: #M6
+      c: #M3
       d: #M4
+    declaredVariables
+      a: #M9
+      b: #M6
+      c: #M10
+      d: #M8
 ''',
     );
   }
@@ -34083,8 +34783,10 @@ const a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = 0;
@@ -34093,9 +34795,12 @@ const b = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -34109,8 +34814,10 @@ const a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = 1;
@@ -34118,8 +34825,10 @@ const a = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M2
 ''',
     );
   }
@@ -34136,11 +34845,16 @@ const d = [b];
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 const a = 1;
@@ -34151,11 +34865,16 @@ const d = [b];
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M4
+    declaredGetters
+      a: #M0
       b: #M1
-      c: #M5
+      c: #M2
       d: #M3
+    declaredVariables
+      a: #M8
+      b: #M5
+      c: #M9
+      d: #M7
 ''',
     );
   }
@@ -34172,11 +34891,16 @@ const d = {b: 0};
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 const a = 1;
@@ -34187,11 +34911,16 @@ const d = {b: 0};
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M4
+    declaredGetters
+      a: #M0
       b: #M1
-      c: #M5
+      c: #M2
       d: #M3
+    declaredVariables
+      a: #M8
+      b: #M5
+      c: #M9
+      d: #M7
 ''',
     );
   }
@@ -34208,11 +34937,16 @@ const d = {0: b};
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 const a = 1;
@@ -34223,11 +34957,16 @@ const d = {0: b};
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M4
+    declaredGetters
+      a: #M0
       b: #M1
-      c: #M5
+      c: #M2
       d: #M3
+    declaredVariables
+      a: #M8
+      b: #M5
+      c: #M9
+      d: #M7
 ''',
     );
   }
@@ -34244,11 +34983,15 @@ const b = B;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
       B: #M1
+    declaredGetters
       a: #M2
       b: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
       updatedCode: r'''
 class A {}
@@ -34259,11 +35002,15 @@ const b = B;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
-      B: #M4
+      B: #M6
+    declaredGetters
       a: #M2
-      b: #M5
+      b: #M3
+    declaredVariables
+      a: #M4
+      b: #M7
 ''',
     );
   }
@@ -34283,7 +35030,7 @@ const d = A.b;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
@@ -34291,8 +35038,12 @@ const d = A.b;
         declaredGetters
           a: #M3
           b: #M4
+    declaredGetters
       c: #M5
       d: #M6
+    declaredVariables
+      c: #M7
+      d: #M8
 ''',
       updatedCode: r'''
 class A {
@@ -34306,16 +35057,20 @@ const d = A.b;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
-          b: #M7
+          b: #M9
         declaredGetters
           a: #M3
           b: #M4
+    declaredGetters
       c: #M5
       d: #M6
+    declaredVariables
+      c: #M7
+      d: #M10
 ''',
     );
   }
@@ -34337,7 +35092,7 @@ const d = self.A.b;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
@@ -34345,8 +35100,12 @@ const d = self.A.b;
         declaredGetters
           a: #M3
           b: #M4
+    declaredGetters
       c: #M5
       d: #M6
+    declaredVariables
+      c: #M7
+      d: #M8
 ''',
       updatedCode: r'''
 import '' as self;
@@ -34362,16 +35121,20 @@ const d = self.A.b;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           a: #M1
-          b: #M7
+          b: #M9
         declaredGetters
           a: #M3
           b: #M4
+    declaredGetters
       c: #M5
       d: #M6
+    declaredVariables
+      c: #M7
+      d: #M10
 ''',
     );
   }
@@ -34389,11 +35152,16 @@ const d = self.b;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 import '' as self;
@@ -34405,11 +35173,16 @@ const d = self.b;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M4
+      b: #M1
       c: #M2
-      d: #M5
+      d: #M3
+    declaredVariables
+      a: #M4
+      b: #M8
+      c: #M6
+      d: #M9
 ''',
     );
   }
@@ -34428,8 +35201,10 @@ const z = x.x + y.y;
   package:test/a.dart
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       z: #M0
+    declaredVariables
+      z: #M1
 ''',
       updatedCode: r'''
 import 'a.dart' as y;
@@ -34438,8 +35213,10 @@ const z = x.x + y.y;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      z: #M1
+    declaredGetters
+      z: #M0
+    declaredVariables
+      z: #M2
 ''',
     );
   }
@@ -34462,12 +35239,16 @@ const z = p.x;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       x: #M0
+    declaredVariables
+      x: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      z: #M1
+    declaredGetters
+      z: #M2
+    declaredVariables
+      z: #M3
 ''',
       updatedCode: r'''
 import 'b.dart' as p;
@@ -34476,12 +35257,16 @@ const z = p.x;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/b.dart
-    manifest
-      x: #M2
+    declaredGetters
+      x: #M4
+    declaredVariables
+      x: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      z: #M3
+    declaredGetters
+      z: #M2
+    declaredVariables
+      z: #M6
 ''',
     );
   }
@@ -34499,15 +35284,19 @@ const b = -a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           unary-: #M1
         interface
           map
             unary-: #M1
+    declaredGetters
       a: #M2
       b: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -34519,15 +35308,19 @@ const b = -a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
-          unary-: #M4
+          unary-: #M6
         interface
           map
-            unary-: #M4
+            unary-: #M6
+    declaredGetters
       a: #M2
-      b: #M5
+      b: #M7
+    declaredVariables
+      a: #M4
+      b: #M8
 ''',
     );
   }
@@ -34545,15 +35338,19 @@ const b = -a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           unary-: #M1
         interface
           map
             unary-: #M1
+    declaredGetters
       a: #M2
       b: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -34566,17 +35363,21 @@ const b = -a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
+          foo: #M6
           unary-: #M1
         interface
           map
-            foo: #M4
+            foo: #M6
             unary-: #M1
+    declaredGetters
       a: #M2
       b: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
     );
   }
@@ -34590,8 +35391,10 @@ const a = '0'.length;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = '1'.length;
@@ -34599,8 +35402,10 @@ const a = '1'.length;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M2
 ''',
     );
   }
@@ -34617,11 +35422,16 @@ const d = {b};
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 const a = 1;
@@ -34632,11 +35442,866 @@ const d = {b};
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M4
+    declaredGetters
+      a: #M0
       b: #M1
-      c: #M5
+      c: #M2
       d: #M3
+    declaredVariables
+      a: #M8
+      b: #M5
+      c: #M9
+      d: #M7
+''',
+    );
+  }
+
+  test_manifest_constInitializer_simpleIdentifier_field() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static const a = 0;
+  static const b = 0;
+  static const c = a;
+  static const d = b;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          a: #M1
+          b: #M2
+          c: #M3
+          d: #M4
+        declaredGetters
+          a: #M5
+          b: #M6
+          c: #M7
+          d: #M8
+''',
+      updatedCode: r'''
+class A {
+  static const a = 0;
+  static const b = 1;
+  static const c = a;
+  static const d = b;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          a: #M1
+          b: #M9
+          c: #M3
+          d: #M10
+        declaredGetters
+          a: #M5
+          b: #M6
+          c: #M7
+          d: #M8
+''',
+    );
+  }
+
+  test_manifest_constInitializer_simpleIdentifier_topVariable() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = 0;
+const c = a;
+const d = b;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
+''',
+      updatedCode: r'''
+const a = 0;
+const b = 1;
+const c = a;
+const d = b;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+    declaredVariables
+      a: #M4
+      b: #M8
+      c: #M6
+      d: #M9
+''',
+    );
+  }
+
+  test_manifest_enum_constants_replace() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {
+  c1, c2
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c2: #M2
+          values: #M3
+        declaredGetters
+          c1: #M4
+          c2: #M5
+          values: #M6
+        interface
+          map
+            index: #M7
+''',
+      updatedCode: r'''
+enum A {
+  c1, c3
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c3: #M8
+          values: #M9
+        declaredGetters
+          c1: #M4
+          c3: #M10
+          values: #M6
+        interface
+          map
+            index: #M7
+''',
+    );
+  }
+
+  test_manifest_enum_constants_update_argument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {
+  c1(1),
+  c2(2),
+  c3(3);
+  const A(int _);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c2: #M2
+          c3: #M3
+          values: #M4
+        declaredGetters
+          c1: #M5
+          c2: #M6
+          c3: #M7
+          values: #M8
+        interface
+          map
+            index: #M9
+''',
+      updatedCode: r'''
+enum A {
+  c1(1),
+  c2(20),
+  c3(3);
+  const A(int _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c2: #M10
+          c3: #M3
+          values: #M11
+        declaredGetters
+          c1: #M5
+          c2: #M6
+          c3: #M7
+          values: #M8
+        interface
+          map
+            index: #M9
+''',
+    );
+  }
+
+  test_manifest_enum_constants_update_typeArgument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A<T> {
+  c1<int>(),
+  c2<int>(),
+  c3<int>();
+  const A();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c2: #M2
+          c3: #M3
+          values: #M4
+        declaredGetters
+          c1: #M5
+          c2: #M6
+          c3: #M7
+          values: #M8
+        interface
+          map
+            index: #M9
+''',
+      updatedCode: r'''
+enum A<T> {
+  c1<int>(),
+  c2<double>(),
+  c3<int>();
+  const A();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c2: #M10
+          c3: #M3
+          values: #M11
+        declaredGetters
+          c1: #M5
+          c2: #M12
+          c3: #M7
+          values: #M8
+        interface
+          map
+            index: #M9
+''',
+    );
+  }
+
+  test_manifest_enum_field_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {
+  v;
+  final int foo = 0;
+  final int bar = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          bar: #M5
+          foo: #M6
+          v: #M7
+          values: #M8
+        interface
+          map
+            bar: #M5
+            foo: #M6
+            index: #M9
+''',
+      updatedCode: r'''
+enum A {
+  v;
+  final int foo = 0;
+  final double bar = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M10
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          bar: #M11
+          foo: #M6
+          v: #M7
+          values: #M8
+        interface
+          map
+            bar: #M11
+            foo: #M6
+            index: #M9
+''',
+    );
+  }
+
+  test_manifest_enum_getter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {
+  v;
+  int get foo {}
+  int get bar {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          bar: #M5
+          foo: #M6
+          v: #M7
+          values: #M8
+        interface
+          map
+            bar: #M5
+            foo: #M6
+            index: #M9
+''',
+      updatedCode: r'''
+enum A {
+  v;
+  int get foo {}
+  double get bar {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M10
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          bar: #M11
+          foo: #M6
+          v: #M7
+          values: #M8
+        interface
+          map
+            bar: #M11
+            foo: #M6
+            index: #M9
+''',
+    );
+  }
+
+  test_manifest_enum_implements_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A { v }
+class B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M0
+    declaredEnums
+      A: #M1
+        declaredFields
+          v: #M2
+          values: #M3
+        declaredGetters
+          v: #M4
+          values: #M5
+        interface
+          map
+            index: #M6
+''',
+      updatedCode: r'''
+enum A implements B { v }
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M0
+    declaredEnums
+      A: #M7
+        declaredFields
+          v: #M8
+          values: #M9
+        declaredGetters
+          v: #M10
+          values: #M11
+        interface
+          map
+            index: #M6
+''',
+    );
+  }
+
+  test_manifest_enum_implements_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A implements B { v }
+class B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M0
+    declaredEnums
+      A: #M1
+        declaredFields
+          v: #M2
+          values: #M3
+        declaredGetters
+          v: #M4
+          values: #M5
+        interface
+          map
+            index: #M6
+''',
+      updatedCode: r'''
+enum A { v }
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M0
+    declaredEnums
+      A: #M7
+        declaredFields
+          v: #M8
+          values: #M9
+        declaredGetters
+          v: #M10
+          values: #M11
+        interface
+          map
+            index: #M6
+''',
+    );
+  }
+
+  test_manifest_enum_it_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A { v }
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+''',
+      updatedCode: r'''
+enum A { v }
+enum B { v }
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+      B: #M6
+        declaredFields
+          v: #M7
+          values: #M8
+        declaredGetters
+          v: #M9
+          values: #M10
+        interface
+          map
+            index: #M5
+''',
+    );
+  }
+
+  test_manifest_enum_it_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A { v }
+enum B { v }
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+      B: #M6
+        declaredFields
+          v: #M7
+          values: #M8
+        declaredGetters
+          v: #M9
+          values: #M10
+        interface
+          map
+            index: #M5
+''',
+      updatedCode: r'''
+enum A { v }
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+''',
+    );
+  }
+
+  test_manifest_enum_method() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {
+  v;
+  int foo() {}
+  int bar() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          bar: #M5
+          foo: #M6
+        interface
+          map
+            bar: #M5
+            foo: #M6
+            index: #M7
+''',
+      updatedCode: r'''
+enum A {
+  v;
+  int foo() {}
+  double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          bar: #M8
+          foo: #M6
+        interface
+          map
+            bar: #M8
+            foo: #M6
+            index: #M7
+''',
+    );
+  }
+
+  test_manifest_enum_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {
+  v;
+  set foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          v: #M5
+          values: #M6
+        declaredSetters
+          bar=: #M7
+          foo=: #M8
+        interface
+          map
+            bar=: #M7
+            foo=: #M8
+            index: #M9
+''',
+      updatedCode: r'''
+enum A {
+  v;
+  set foo(int _) {}
+  set bar(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M10
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          v: #M5
+          values: #M6
+        declaredSetters
+          bar=: #M11
+          foo=: #M8
+        interface
+          map
+            bar=: #M11
+            foo=: #M8
+            index: #M9
+''',
+    );
+  }
+
+  test_manifest_enum_with_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A { v }
+
+mixin M {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+    declaredMixins
+      M: #M6
+        declaredMethods
+          foo: #M7
+        interface
+          map
+            foo: #M7
+''',
+      updatedCode: r'''
+enum A with M { v }
+
+mixin M {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M8
+        declaredFields
+          v: #M9
+          values: #M10
+        declaredGetters
+          v: #M11
+          values: #M12
+        interface
+          map
+            foo: #M7
+            index: #M5
+    declaredMixins
+      M: #M6
+        declaredMethods
+          foo: #M7
+        interface
+          map
+            foo: #M7
+''',
+    );
+  }
+
+  test_manifest_enum_with_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A with M { v }
+
+mixin M {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            foo: #M5
+            index: #M6
+    declaredMixins
+      M: #M7
+        declaredMethods
+          foo: #M5
+        interface
+          map
+            foo: #M5
+''',
+      updatedCode: r'''
+enum A { v }
+
+mixin M {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M8
+        declaredFields
+          v: #M9
+          values: #M10
+        declaredGetters
+          v: #M11
+          values: #M12
+        interface
+          map
+            index: #M6
+    declaredMixins
+      M: #M7
+        declaredMethods
+          foo: #M5
+        interface
+          map
+            foo: #M5
 ''',
     );
   }
@@ -34651,8 +36316,10 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 @deprecated
@@ -34662,9 +36329,12 @@ int get b => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -34678,8 +36348,10 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 @deprecated
@@ -34688,7 +36360,9 @@ int get a => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
+      a: #M2
+    declaredVariables
       a: #M1
 ''',
     );
@@ -34704,8 +36378,10 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 int get a => 0;
@@ -34713,7 +36389,9 @@ int get a => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
+      a: #M2
+    declaredVariables
       a: #M1
 ''',
     );
@@ -34730,9 +36408,12 @@ int get foo => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
       foo: #M1
+    declaredVariables
+      a: #M2
+      foo: #M3
 ''',
       updatedCode: r'''
 const a = 1;
@@ -34742,8 +36423,11 @@ int get foo => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M2
+    declaredGetters
+      a: #M0
+      foo: #M4
+    declaredVariables
+      a: #M5
       foo: #M3
 ''',
     );
@@ -34759,8 +36443,10 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 @override
@@ -34769,7 +36455,9 @@ int get a => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
+      a: #M2
+    declaredVariables
       a: #M1
 ''',
     );
@@ -34784,7 +36472,7 @@ mixin A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
 ''',
       updatedCode: r'''
@@ -34794,7 +36482,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M1
 ''',
@@ -34812,7 +36500,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M1
@@ -34831,7 +36519,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M1
@@ -34858,7 +36546,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M1
@@ -34876,7 +36564,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M3
@@ -34900,7 +36588,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M1
@@ -34918,7 +36606,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M1
@@ -34942,7 +36630,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M1
@@ -34957,7 +36645,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M3
@@ -34978,7 +36666,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M1
@@ -34993,7 +36681,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M1
@@ -35017,7 +36705,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M1
@@ -35046,7 +36734,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M1
@@ -35078,7 +36766,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _a: #M1
@@ -35094,7 +36782,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _a: #M1
@@ -35120,7 +36808,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _a: #M1
@@ -35136,7 +36824,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _a: #M1
@@ -35159,7 +36847,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _a: #M1
@@ -35177,7 +36865,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _a: #M1
@@ -35207,7 +36895,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M1
@@ -35228,7 +36916,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           a: #M4
@@ -35257,7 +36945,7 @@ mixin B implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -35282,7 +36970,7 @@ mixin B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M4
@@ -35316,7 +37004,7 @@ mixin B implements A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -35341,7 +37029,7 @@ mixin B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M4
@@ -35375,7 +37063,7 @@ mixin B on A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -35400,7 +37088,7 @@ mixin B on A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M4
@@ -35434,7 +37122,7 @@ mixin B on A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -35459,7 +37147,7 @@ mixin B on A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M4
@@ -35494,7 +37182,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M1
@@ -35518,7 +37206,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M1
@@ -35545,7 +37233,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _foo: #M1
@@ -35561,7 +37249,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _foo: #M1
@@ -35587,7 +37275,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _foo: #M1
@@ -35603,7 +37291,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _foo: #M1
@@ -35630,7 +37318,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         superclassConstraints
           Object @ dart:core
@@ -35652,7 +37340,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         superclassConstraints
           Object @ dart:core
@@ -35680,7 +37368,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -35696,7 +37384,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M3
@@ -35719,7 +37407,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -35737,7 +37425,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M3
@@ -35758,7 +37446,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -35773,7 +37461,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M3
@@ -35794,7 +37482,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -35809,7 +37497,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M3
@@ -35832,7 +37520,7 @@ mixin B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M1
 ''',
@@ -35843,7 +37531,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M2
       B: #M1
 ''',
@@ -35860,7 +37548,7 @@ mixin B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M1
 ''',
@@ -35871,7 +37559,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M2
       B: #M1
 ''',
@@ -35889,7 +37577,7 @@ mixin C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M1
       C: #M2
@@ -35902,7 +37590,7 @@ mixin C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M3
       B: #M1
       C: #M2
@@ -35922,7 +37610,7 @@ mixin B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M1
 ''',
@@ -35935,7 +37623,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M2
 ''',
@@ -35953,7 +37641,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -35970,7 +37658,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           bar: #M2
@@ -35996,7 +37684,7 @@ mixin B implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -36019,7 +37707,7 @@ mixin B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           bar: #M3
@@ -36050,7 +37738,7 @@ mixin B implements A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -36073,7 +37761,7 @@ mixin B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           bar: #M3
@@ -36104,7 +37792,7 @@ mixin B on A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -36127,7 +37815,7 @@ mixin B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           bar: #M3
@@ -36158,7 +37846,7 @@ mixin B extends A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -36181,7 +37869,7 @@ mixin B extends A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           bar: #M3
@@ -36213,7 +37901,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           bar: #M1
@@ -36234,7 +37922,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           bar: #M1
@@ -36258,7 +37946,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           _foo: #M1
@@ -36272,7 +37960,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           _foo: #M1
@@ -36295,7 +37983,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           _foo: #M1
@@ -36309,7 +37997,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           _foo: #M1
@@ -36333,7 +38021,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           bar: #M1
@@ -36351,7 +38039,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M2
@@ -36374,7 +38062,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         superclassConstraints
           Object @ dart:core
@@ -36394,7 +38082,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         superclassConstraints
           Object @ dart:core
@@ -36420,7 +38108,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -36436,7 +38124,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M2
@@ -36455,7 +38143,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -36468,7 +38156,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M2
@@ -36487,7 +38175,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -36500,7 +38188,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M2
@@ -36523,7 +38211,7 @@ mixin A<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         typeParameters
           bound: <null>
@@ -36550,7 +38238,7 @@ mixin A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         typeParameters
           bound: <null>
@@ -36586,7 +38274,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -36602,7 +38290,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M2
@@ -36624,7 +38312,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M1
@@ -36640,7 +38328,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredMethods
           foo: #M2
@@ -36661,7 +38349,7 @@ mixin B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M1
 ''',
@@ -36672,7 +38360,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M2
       B: #M1
 ''',
@@ -36690,7 +38378,7 @@ mixin C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M1
       C: #M2
@@ -36703,7 +38391,7 @@ mixin C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M3
       B: #M4
       C: #M2
@@ -36722,7 +38410,7 @@ mixin C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M1
       C: #M2
@@ -36735,7 +38423,7 @@ mixin C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M3
       B: #M1
       C: #M2
@@ -36752,7 +38440,7 @@ mixin _A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       _A: #M0
 ''',
       updatedCode: r'''
@@ -36762,7 +38450,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       B: #M1
       _A: #M0
 ''',
@@ -36779,7 +38467,7 @@ mixin B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
       B: #M1
 ''',
@@ -36789,7 +38477,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       B: #M1
 ''',
     );
@@ -36808,7 +38496,7 @@ mixin B implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -36833,7 +38521,7 @@ mixin B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M4
@@ -36867,7 +38555,7 @@ mixin B implements A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -36892,7 +38580,7 @@ mixin B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M4
@@ -36926,7 +38614,7 @@ mixin B on A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -36951,7 +38639,7 @@ mixin B on A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M4
@@ -36985,7 +38673,7 @@ mixin B on A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -37010,7 +38698,7 @@ mixin B on A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M4
@@ -37045,7 +38733,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M1
@@ -37069,7 +38757,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M1
@@ -37096,7 +38784,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _foo: #M1
@@ -37112,7 +38800,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _foo: #M1
@@ -37138,7 +38826,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _foo: #M1
@@ -37154,7 +38842,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           _foo: #M1
@@ -37180,7 +38868,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -37196,7 +38884,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           bar: #M3
@@ -37219,7 +38907,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -37237,7 +38925,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M3
@@ -37258,7 +38946,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -37273,7 +38961,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M3
@@ -37297,7 +38985,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M1
@@ -37312,7 +39000,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         declaredFields
           foo: #M3
@@ -37334,7 +39022,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         superclassConstraints
           Object @ dart:core
@@ -37356,7 +39044,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredMixins
       A: #M0
         superclassConstraints
           Object @ dart:core
@@ -37382,7 +39070,7 @@ void foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37392,7 +39080,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M0
 ''',
@@ -37408,7 +39096,7 @@ void foo({int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37418,7 +39106,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M0
 ''',
@@ -37434,7 +39122,7 @@ void foo({int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37444,7 +39132,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M2
 ''',
@@ -37460,7 +39148,7 @@ void foo({int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37470,7 +39158,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M2
 ''',
@@ -37486,7 +39174,7 @@ void foo([int a]) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37496,7 +39184,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M0
 ''',
@@ -37512,7 +39200,7 @@ void foo([int a]) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37522,7 +39210,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M0
 ''',
@@ -37538,7 +39226,7 @@ void foo([int a]) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37548,7 +39236,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M2
 ''',
@@ -37564,7 +39252,7 @@ void foo({required int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37574,7 +39262,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M0
 ''',
@@ -37590,7 +39278,7 @@ void foo({required int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37600,7 +39288,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M2
 ''',
@@ -37616,7 +39304,7 @@ void foo({required int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37625,7 +39313,7 @@ void foo(int a) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M1
 ''',
     );
@@ -37640,7 +39328,7 @@ void foo({required int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37650,7 +39338,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M2
 ''',
@@ -37666,7 +39354,7 @@ void foo(int a) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37676,7 +39364,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M0
 ''',
@@ -37692,7 +39380,7 @@ void foo(int a) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37702,7 +39390,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M0
 ''',
@@ -37718,7 +39406,7 @@ void foo(int a) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37727,7 +39415,7 @@ void foo({required int a}) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M1
 ''',
     );
@@ -37742,7 +39430,7 @@ void foo(int a) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37752,7 +39440,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M2
 ''',
@@ -37771,7 +39459,7 @@ void b() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       a: #M0
       b: #M1
 ''',
@@ -37784,7 +39472,7 @@ void b() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       a: #M0
       b: #M2
 ''',
@@ -37800,7 +39488,7 @@ void _foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       _foo: #M0
 ''',
       updatedCode: r'''
@@ -37810,7 +39498,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       _foo: #M0
       bar: #M1
 ''',
@@ -37826,7 +39514,7 @@ int foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37835,7 +39523,7 @@ double foo() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M1
 ''',
     );
@@ -37850,7 +39538,7 @@ Map<T, U> foo<T extends num, U>() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37860,7 +39548,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       bar: #M1
       foo: #M2
 ''',
@@ -37876,7 +39564,7 @@ void foo<T>() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37885,7 +39573,7 @@ void foo<T, U>() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M1
 ''',
     );
@@ -37900,7 +39588,7 @@ void foo<T extends num>() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37909,7 +39597,7 @@ void foo<T extends int>() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M1
 ''',
     );
@@ -37924,7 +39612,7 @@ void foo<T, U>() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M0
 ''',
       updatedCode: r'''
@@ -37933,7 +39621,7 @@ void foo<T>() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredFunctions
       foo: #M1
 ''',
     );
@@ -37948,8 +39636,10 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 int get a => 0;
@@ -37958,9 +39648,12 @@ int get b => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -37974,8 +39667,10 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 int get a => 1;
@@ -37999,9 +39694,12 @@ int get b => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
       updatedCode: r'''
 @Deprecated('0')
@@ -38012,9 +39710,12 @@ int get b => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M2
+      b: #M4
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
     );
   }
@@ -38028,8 +39729,10 @@ int get _a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       _a: #M0
+    declaredVariables
+      _a: #M1
 ''',
       updatedCode: r'''
 int get _a => 0;
@@ -38038,9 +39741,12 @@ int get b => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       _a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      _a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38054,8 +39760,10 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 double get a => 0;
@@ -38063,8 +39771,10 @@ double get a => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38078,8 +39788,10 @@ set a(int _) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredSetters
       a=: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 set a(int _) {}
@@ -38088,9 +39800,12 @@ set b(int _) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredSetters
       a=: #M0
-      b=: #M1
+      b=: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38104,8 +39819,10 @@ set a(int _) { 0; }
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredSetters
       a=: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 set a(int _) { 1; }
@@ -38129,9 +39846,12 @@ set b(int _) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredSetters
       a=: #M0
       b=: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
       updatedCode: r'''
 @Deprecated('0')
@@ -38142,9 +39862,12 @@ set b(int _) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredSetters
       a=: #M0
-      b=: #M2
+      b=: #M4
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
     );
   }
@@ -38159,9 +39882,12 @@ set a(int _) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredSetters
       a=: #M0
         valueType: int @ dart:core
+    declaredVariables
+      a: #M1
+        type: int @ dart:core
 ''',
       updatedCode: r'''
 set a(double _) {}
@@ -38169,9 +39895,12 @@ set a(double _) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a=: #M1
+    declaredSetters
+      a=: #M2
         valueType: double @ dart:core
+    declaredVariables
+      a: #M3
+        type: double @ dart:core
 ''',
     );
   }
@@ -38185,8 +39914,10 @@ final a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final a = 0;
@@ -38195,9 +39926,12 @@ final b = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38211,8 +39945,10 @@ final a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final a = 1.2;
@@ -38220,8 +39956,10 @@ final a = 1.2;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38235,8 +39973,10 @@ const a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = 1;
@@ -38244,8 +39984,10 @@ const a = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M2
 ''',
     );
   }
@@ -38259,8 +40001,10 @@ final a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final a = 1;
@@ -38268,8 +40012,10 @@ final a = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
     );
   }
@@ -38286,11 +40032,15 @@ var b = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      a=: #M1
-      b: #M2
+      b: #M1
+    declaredSetters
+      a=: #M2
       b=: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
       updatedCode: r'''
 @Deprecated('0')
@@ -38301,11 +40051,15 @@ var b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      a=: #M1
-      b: #M4
-      b=: #M5
+      b: #M6
+    declaredSetters
+      a=: #M2
+      b=: #M7
+    declaredVariables
+      a: #M4
+      b: #M8
 ''',
     );
   }
@@ -38319,8 +40073,10 @@ const _a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       _a: #M0
+    declaredVariables
+      _a: #M1
 ''',
       updatedCode: r'''
 const _a = 0;
@@ -38329,9 +40085,12 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       _a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      _a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38345,8 +40104,10 @@ final _a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       _a: #M0
+    declaredVariables
+      _a: #M1
 ''',
       updatedCode: r'''
 final _a = 0;
@@ -38355,9 +40116,12 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       _a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      _a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38371,9 +40135,12 @@ var _a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       _a: #M0
+    declaredSetters
       _a=: #M1
+    declaredVariables
+      _a: #M2
 ''',
       updatedCode: r'''
 var _a = 0;
@@ -38382,11 +40149,15 @@ var b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       _a: #M0
+      b: #M3
+    declaredSetters
       _a=: #M1
-      b: #M2
-      b=: #M3
+      b=: #M4
+    declaredVariables
+      _a: #M2
+      b: #M5
 ''',
     );
   }
@@ -38400,9 +40171,12 @@ int? a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredSetters
       a=: #M1
+    declaredVariables
+      a: #M2
 ''',
       updatedCode: r'''
 double? a;
@@ -38410,9 +40184,12 @@ double? a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M2
-      a=: #M3
+    declaredGetters
+      a: #M3
+    declaredSetters
+      a=: #M4
+    declaredVariables
+      a: #M5
 ''',
     );
   }
@@ -38426,8 +40203,10 @@ final dynamic a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final dynamic a = 0;
@@ -38436,9 +40215,12 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38452,8 +40234,10 @@ final dynamic a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final int a = 0;
@@ -38461,8 +40245,10 @@ final int a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38476,8 +40262,10 @@ final int Function() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final int Function() a;
@@ -38486,9 +40274,12 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38502,8 +40293,10 @@ final void Function({int p1}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({int p1}) a;
@@ -38512,9 +40305,12 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38528,8 +40324,10 @@ final void Function({int p1}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({int p1, double p2}) a;
@@ -38537,8 +40335,10 @@ final void Function({int p1, double p2}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38552,8 +40352,10 @@ final void Function({int p1, double p2}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({int p1}) a;
@@ -38561,8 +40363,10 @@ final void Function({int p1}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38576,8 +40380,10 @@ final void Function({int p}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function(int p) a;
@@ -38585,8 +40391,10 @@ final void Function(int p) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38600,8 +40408,10 @@ final void Function({required int p1}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({int p1}) a;
@@ -38609,8 +40419,10 @@ final void Function({int p1}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38624,8 +40436,10 @@ final void Function({int p1}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({required int p1}) a;
@@ -38633,8 +40447,10 @@ final void Function({required int p1}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38648,8 +40464,10 @@ final void Function({int p1}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({double p1}) a;
@@ -38657,8 +40475,10 @@ final void Function({double p1}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38672,8 +40492,10 @@ final int Function() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final int Function()? a;
@@ -38681,8 +40503,10 @@ final int Function()? a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38696,8 +40520,10 @@ final void Function(int p1) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function(int p1) a;
@@ -38706,9 +40532,12 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38722,8 +40551,10 @@ final void Function(int p1) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function(int p1, double p2) a;
@@ -38731,8 +40562,10 @@ final void Function(int p1, double p2) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38746,8 +40579,10 @@ final void Function(int p1, double p2) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function(int p1) a;
@@ -38755,8 +40590,10 @@ final void Function(int p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38770,8 +40607,10 @@ final void Function(int p) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({int p}) a;
@@ -38779,8 +40618,10 @@ final void Function({int p}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38794,8 +40635,10 @@ final void Function(int p1) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function([int p1]) a;
@@ -38803,8 +40646,10 @@ final void Function([int p1]) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38818,8 +40663,10 @@ final void Function([int p1]) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function(int p1) a;
@@ -38827,8 +40674,10 @@ final void Function(int p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38842,8 +40691,10 @@ final void Function(int p1) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function(double p1) a;
@@ -38851,8 +40702,10 @@ final void Function(double p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38866,8 +40719,10 @@ final int Function() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final double Function() a;
@@ -38875,8 +40730,10 @@ final double Function() a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38890,8 +40747,10 @@ final T Function<T>() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final T Function<T>() a;
@@ -38900,9 +40759,12 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38916,8 +40778,10 @@ final void Function<E1>() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function<E1, E2>() a;
@@ -38925,8 +40789,10 @@ final void Function<E1, E2>() a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38940,8 +40806,10 @@ final T Function<T extends int>() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final T Function<T extends double>() a;
@@ -38949,8 +40817,10 @@ final T Function<T extends double>() a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38964,8 +40834,10 @@ final void Function<E1, E2>() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function<E1>() a;
@@ -38973,8 +40845,10 @@ final void Function<E1>() a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38988,8 +40862,10 @@ final int a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final double a = 0;
@@ -38997,8 +40873,10 @@ final double a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39012,8 +40890,10 @@ final int a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final int? a = 0;
@@ -39021,8 +40901,10 @@ final int? a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39036,8 +40918,10 @@ final List<int> a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final List<double> a = 0;
@@ -39045,8 +40929,10 @@ final List<double> a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39060,8 +40946,10 @@ final NotType a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final NotType a = 0;
@@ -39070,9 +40958,12 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -39086,8 +40977,10 @@ final Never a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final Never a;
@@ -39096,9 +40989,12 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -39112,8 +41008,10 @@ final Never a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final Never? a;
@@ -39121,8 +41019,10 @@ final Never? a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39136,8 +41036,10 @@ final ({int f1}) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final ({int f1}) a = 0;
@@ -39146,9 +41048,12 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -39162,8 +41067,10 @@ final ({int f1}) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final ({int f1, double f2}) a = 0;
@@ -39171,8 +41078,10 @@ final ({int f1, double f2}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39186,8 +41095,10 @@ final ({int f1}) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final ({int f2}) a = 0;
@@ -39195,8 +41106,10 @@ final ({int f2}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39210,8 +41123,10 @@ final ({int f1, double f2}) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final ({int f1}) a = 0;
@@ -39219,8 +41134,10 @@ final ({int f1}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39234,8 +41151,10 @@ final ({int f1, double f2}) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final ({double f2, int f1}) a = 0;
@@ -39243,8 +41162,10 @@ final ({double f2, int f1}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
     );
   }
@@ -39258,8 +41179,10 @@ final ({int f1}) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final ({double f1}) a = 0;
@@ -39267,8 +41190,10 @@ final ({double f1}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39282,8 +41207,10 @@ final (int,) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final (int,)? a = 0;
@@ -39291,8 +41218,10 @@ final (int,)? a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39306,8 +41235,10 @@ final (int,) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final (int,) a = 0;
@@ -39316,9 +41247,12 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -39332,8 +41266,10 @@ final (int,) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final (int, double) a = 0;
@@ -39341,8 +41277,10 @@ final (int, double) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39356,8 +41294,10 @@ final (int x,) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final (int y,) a = 0;
@@ -39365,8 +41305,10 @@ final (int y,) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
     );
   }
@@ -39380,8 +41322,10 @@ final (int, double) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final (int,) a = 0;
@@ -39389,8 +41333,10 @@ final (int,) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39404,8 +41350,10 @@ final (int,) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final (double,) a = 0;
@@ -39413,8 +41361,10 @@ final (double,) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      a: #M1
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39428,8 +41378,10 @@ final void a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void a = 0;
@@ -39438,9 +41390,12 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -39460,16 +41415,20 @@ final x = a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M2
+    declaredGetters
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -39501,34 +41460,38 @@ double get a => 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
-      a: #M3
+    declaredGetters
+      a: #M5
+    declaredVariables
+      a: #M6
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M7
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M5
+    declaredGetters
+      x: #M8
+    declaredVariables
+      x: #M9
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M3
+        a: #M5
 [operation] produceErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -39544,7 +41507,7 @@ double get a => 0;
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M3
+        a: #M5
 [status] idle
 ''',
     );
@@ -39565,16 +41528,20 @@ final x = a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M2
+    declaredGetters
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -39607,13 +41574,16 @@ int get b => 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M3
+      b: #M5
+    declaredVariables
+      a: #M1
+      b: #M6
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsFromBytes
@@ -39649,16 +41619,20 @@ final x = a;
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M2
+    declaredGetters
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -39690,12 +41664,14 @@ double get a => 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
-      a: #M3
+    declaredGetters
+      a: #M5
+    declaredVariables
+      a: #M6
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -39706,23 +41682,25 @@ double get a => 0;
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M5
+    declaredGetters
+      x: #M8
+    declaredVariables
+      x: #M9
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M3
+        a: #M5
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -39738,7 +41716,7 @@ double get a => 0;
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M3
+        a: #M5
 [status] idle
 ''',
     );
@@ -39764,16 +41742,20 @@ final x = a;
     flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M2
+    declaredGetters
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -39806,13 +41788,16 @@ int get b => 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M3
+      b: #M5
+    declaredVariables
+      a: #M1
+      b: #M6
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -39848,16 +41833,20 @@ final x = a;
         type: int
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M2
+    declaredGetters
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -39873,12 +41862,14 @@ double get a => 1.2;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
-      a: #M3
+    declaredGetters
+      a: #M5
+    declaredVariables
+      a: #M6
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M7
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -39889,17 +41880,19 @@ double get a => 1.2;
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M5
+    declaredGetters
+      x: #M8
+    declaredVariables
+      x: #M9
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M3
+        a: #M5
 [status] idle
 ''',
     );
@@ -39925,16 +41918,20 @@ final x = a;
         type: int
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
-      x: #M2
+    declaredGetters
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -39951,13 +41948,16 @@ int get b => 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredGetters
       a: #M0
-      b: #M3
+      b: #M5
+    declaredVariables
+      a: #M1
+      b: #M6
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -39992,7 +41992,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -40048,7 +42048,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -40101,7 +42101,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
@@ -40150,7 +42150,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
   requirements
 [operation] linkLibraryCycle
@@ -40196,7 +42196,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -40249,7 +42249,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -40310,7 +42310,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -40368,7 +42368,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -40429,7 +42429,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredFields
           foo: #M1
@@ -40487,7 +42487,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
-    manifest
+    declaredClasses
       A: #M0
         declaredConstructors
           named: #M1

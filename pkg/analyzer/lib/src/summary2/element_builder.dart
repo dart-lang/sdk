@@ -368,7 +368,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         constant.metadata,
       );
 
-      var constructorSelector = constant.arguments?.constructorSelector;
+      var constantArguments = constant.arguments;
+      var constructorSelector = constantArguments?.constructorSelector;
       var constructorName = constructorSelector?.name.name;
 
       var initializer = InstanceCreationExpressionImpl(
@@ -377,7 +378,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           type: NamedTypeImpl(
             importPrefix: null,
             name: StringToken(TokenType.STRING, fragment.name, -1),
-            typeArguments: constant.arguments?.typeArguments,
+            typeArguments: constantArguments?.typeArguments,
             question: null,
           ),
           period: constructorName != null ? Tokens.period() : null,
@@ -388,11 +389,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
                   )
                   : null,
         ),
-        argumentList: ArgumentListImpl(
-          leftParenthesis: Tokens.openParenthesis(),
-          arguments: [...?constant.arguments?.argumentList.arguments],
-          rightParenthesis: Tokens.closeParenthesis(),
-        ),
+        argumentList:
+            constantArguments != null
+                ? constantArguments.argumentList
+                : ArgumentListImpl(
+                  leftParenthesis: Tokens.openParenthesis(),
+                  arguments: [],
+                  rightParenthesis: Tokens.closeParenthesis(),
+                ),
         typeArguments: null,
       );
 
@@ -415,6 +419,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
       _linker.elementNodes[field] = variableDeclaration;
 
+      AstNodeImpl.linkNodeTokens(initializer);
       field.constantInitializer = initializer;
 
       var refName = field.name2 ?? '${_nextUnnamedId++}';
@@ -441,6 +446,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       elements: valuesElements,
       rightBracket: Tokens.closeSquareBracket(),
     );
+    AstNodeImpl.linkNodeTokens(initializer);
     valuesField.constantInitializer = initializer;
 
     var variableDeclaration = VariableDeclarationImpl(

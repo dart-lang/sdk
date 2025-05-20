@@ -1759,7 +1759,7 @@ class _InformativeDataWriter {
       addFormalParameters(aliasedType.parameters);
     }
     enumConstantArguments?.typeArguments?.accept(collector);
-    enumConstantArguments?.argumentList.arguments.accept(collector);
+    enumConstantArguments?.argumentList.accept(collector);
     sink.writeUint30List(collector.offsets);
   }
 
@@ -2101,9 +2101,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpressionImpl) {
       initializer.constructorName.type.typeArguments?.accept(this);
-      for (var argument in initializer.argumentList.arguments) {
-        argument.accept(this);
-      }
+      initializer.argumentList.accept(this);
     }
   }
 }
