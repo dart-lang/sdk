@@ -33664,16 +33664,16 @@ const e = '$b' 'x';
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M10
+      a: #M0
       b: #M1
-      c: #M11
-      d: #M12
+      c: #M2
+      d: #M3
       e: #M4
     declaredVariables
-      a: #M13
+      a: #M10
       b: #M6
-      c: #M14
-      d: #M15
+      c: #M11
+      d: #M12
       e: #M9
 ''',
     );
@@ -33713,14 +33713,14 @@ const d = b as int;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M8
+      b: #M1
       c: #M2
-      d: #M9
+      d: #M3
     declaredVariables
       a: #M4
-      b: #M10
+      b: #M8
       c: #M6
-      d: #M11
+      d: #M9
 ''',
     );
   }
@@ -33781,11 +33781,11 @@ const b = a + 2;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
+      a: #M0
+      b: #M1
+    declaredVariables
       a: #M4
       b: #M5
-    declaredVariables
-      a: #M6
-      b: #M7
 ''',
     );
   }
@@ -33811,9 +33811,9 @@ const a = 2 + 1;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M2
+      a: #M0
     declaredVariables
-      a: #M3
+      a: #M2
 ''',
     );
   }
@@ -33895,9 +33895,9 @@ const a = 0 - 1;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M2
+      a: #M0
     declaredVariables
-      a: #M3
+      a: #M2
 ''',
     );
   }
@@ -33927,11 +33927,11 @@ const b = 2 + a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
+      a: #M0
+      b: #M1
+    declaredVariables
       a: #M4
       b: #M5
-    declaredVariables
-      a: #M6
-      b: #M7
 ''',
     );
   }
@@ -33949,22 +33949,14 @@ const b = 0 + a;
     declaredGetters
       b: #M0
         returnType: double @ dart:core
-        constInitializer
-          tokenBuffer: 0+a
-          tokenLengthList: [1, 1, 1]
-          elements
-            [0] (dart:core, num, +) #M1
-          elementIndexList
-            0 = null
-            5 = element 0
     declaredVariables
-      b: #M2
+      b: #M1
         type: double @ dart:core
         constInitializer
           tokenBuffer: 0+a
           tokenLengthList: [1, 1, 1]
           elements
-            [0] (dart:core, num, +) #M1
+            [0] (dart:core, num, +) #M2
           elementIndexList
             0 = null
             5 = element 0
@@ -33979,20 +33971,8 @@ const b = 0 + a;
     declaredGetters
       a: #M3
         returnType: int @ dart:core
-        constInitializer
-          tokenBuffer: 1
-          tokenLengthList: [1]
       b: #M4
         returnType: int @ dart:core
-        constInitializer
-          tokenBuffer: 0+a
-          tokenLengthList: [1, 1, 1]
-          elements
-            [0] (package:test/test.dart, a) <null>
-            [1] (dart:core, num, +) #M1
-          elementIndexList
-            5 = element 0
-            13 = element 1
     declaredVariables
       a: #M5
         type: int @ dart:core
@@ -34006,10 +33986,12 @@ const b = 0 + a;
           tokenLengthList: [1, 1, 1]
           elements
             [0] (package:test/test.dart, a) <null>
-            [1] (dart:core, num, +) #M1
+            [1] (package:test/test.dart, a) <null>
+            [2] (dart:core, num, +) #M2
           elementIndexList
             5 = element 0
             13 = element 1
+            21 = element 2
 ''',
     );
   }
@@ -34028,37 +34010,27 @@ const b = 1 + a;
     declaredGetters
       a: #M0
         returnType: int @ dart:core
-        constInitializer
-          tokenBuffer: 0
-          tokenLengthList: [1]
       b: #M1
         returnType: int @ dart:core
-        constInitializer
-          tokenBuffer: 1+a
-          tokenLengthList: [1, 1, 1]
-          elements
-            [0] (package:test/test.dart, a) <null>
-            [1] (dart:core, num, +) #M2
-          elementIndexList
-            5 = element 0
-            13 = element 1
     declaredVariables
-      a: #M3
+      a: #M2
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
-      b: #M4
+      b: #M3
         type: int @ dart:core
         constInitializer
           tokenBuffer: 1+a
           tokenLengthList: [1, 1, 1]
           elements
             [0] (package:test/test.dart, a) <null>
-            [1] (dart:core, num, +) #M2
+            [1] (package:test/test.dart, a) <null>
+            [2] (dart:core, num, +) #M4
           elementIndexList
             5 = element 0
             13 = element 1
+            21 = element 2
 ''',
       updatedCode: r'''
 const b = 1 + a;
@@ -34069,14 +34041,6 @@ const b = 1 + a;
     declaredGetters
       b: #M5
         returnType: double @ dart:core
-        constInitializer
-          tokenBuffer: 1+a
-          tokenLengthList: [1, 1, 1]
-          elements
-            [0] (dart:core, num, +) #M2
-          elementIndexList
-            0 = null
-            5 = element 0
     declaredVariables
       b: #M6
         type: double @ dart:core
@@ -34084,7 +34048,7 @@ const b = 1 + a;
           tokenBuffer: 1+a
           tokenLengthList: [1, 1, 1]
           elements
-            [0] (dart:core, num, +) #M2
+            [0] (dart:core, num, +) #M4
           elementIndexList
             0 = null
             5 = element 0
@@ -34157,14 +34121,14 @@ const d = b ? 0 : 1;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M8
+      b: #M1
       c: #M2
-      d: #M9
+      d: #M3
     declaredVariables
       a: #M4
-      b: #M10
+      b: #M8
       c: #M6
-      d: #M11
+      d: #M9
 ''',
     );
   }
@@ -34204,9 +34168,9 @@ const a = A.named();
         declaredConstructors
           named: #M4
     declaredGetters
-      a: #M5
+      a: #M2
     declaredVariables
-      a: #M6
+      a: #M5
 ''',
     );
   }
@@ -34247,9 +34211,9 @@ const a = A();
         declaredConstructors
           new: #M4
     declaredGetters
-      a: #M5
+      a: #M2
     declaredVariables
-      a: #M6
+      a: #M5
 ''',
     );
   }
@@ -34380,14 +34344,14 @@ const d = A(b);
     declaredClasses
       A: #M0
     declaredGetters
-      a: #M9
+      a: #M1
       b: #M2
-      c: #M10
+      c: #M3
       d: #M4
     declaredVariables
-      a: #M11
+      a: #M9
       b: #M6
-      c: #M12
+      c: #M10
       d: #M8
 ''',
     );
@@ -34445,9 +34409,9 @@ const a = 1;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M2
+      a: #M0
     declaredVariables
-      a: #M3
+      a: #M2
 ''',
     );
   }
@@ -34485,14 +34449,14 @@ const d = [b];
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M8
+      a: #M0
       b: #M1
-      c: #M9
+      c: #M2
       d: #M3
     declaredVariables
-      a: #M10
+      a: #M8
       b: #M5
-      c: #M11
+      c: #M9
       d: #M7
 ''',
     );
@@ -34531,14 +34495,14 @@ const d = {b: 0};
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M8
+      a: #M0
       b: #M1
-      c: #M9
+      c: #M2
       d: #M3
     declaredVariables
-      a: #M10
+      a: #M8
       b: #M5
-      c: #M11
+      c: #M9
       d: #M7
 ''',
     );
@@ -34577,14 +34541,14 @@ const d = {0: b};
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M8
+      a: #M0
       b: #M1
-      c: #M9
+      c: #M2
       d: #M3
     declaredVariables
-      a: #M10
+      a: #M8
       b: #M5
-      c: #M11
+      c: #M9
       d: #M7
 ''',
     );
@@ -34626,10 +34590,10 @@ const b = B;
       B: #M6
     declaredGetters
       a: #M2
-      b: #M7
+      b: #M3
     declaredVariables
       a: #M4
-      b: #M8
+      b: #M7
 ''',
     );
   }
@@ -34689,7 +34653,7 @@ const d = A.b;
       d: #M6
     declaredVariables
       c: #M7
-      d: #M8
+      d: #M10
 ''',
     );
   }
@@ -34753,7 +34717,7 @@ const d = self.A.b;
       d: #M6
     declaredVariables
       c: #M7
-      d: #M8
+      d: #M10
 ''',
     );
   }
@@ -34794,14 +34758,14 @@ const d = self.b;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M8
+      b: #M1
       c: #M2
-      d: #M9
+      d: #M3
     declaredVariables
       a: #M4
-      b: #M10
+      b: #M8
       c: #M6
-      d: #M11
+      d: #M9
 ''',
     );
   }
@@ -34833,9 +34797,9 @@ const z = x.x + y.y;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      z: #M2
+      z: #M0
     declaredVariables
-      z: #M3
+      z: #M2
 ''',
     );
   }
@@ -34883,9 +34847,9 @@ const z = p.x;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      z: #M6
+      z: #M2
     declaredVariables
-      z: #M7
+      z: #M6
 ''',
     );
   }
@@ -35022,9 +34986,9 @@ const a = '1'.length;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M2
+      a: #M0
     declaredVariables
-      a: #M3
+      a: #M2
 ''',
     );
   }
@@ -35062,15 +35026,115 @@ const d = {b};
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M8
+      a: #M0
       b: #M1
-      c: #M9
+      c: #M2
       d: #M3
     declaredVariables
-      a: #M10
+      a: #M8
       b: #M5
-      c: #M11
+      c: #M9
       d: #M7
+''',
+    );
+  }
+
+  test_manifest_constInitializer_simpleIdentifier_field() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static const a = 0;
+  static const b = 0;
+  static const c = a;
+  static const d = b;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          a: #M1
+          b: #M2
+          c: #M3
+          d: #M4
+        declaredGetters
+          a: #M5
+          b: #M6
+          c: #M7
+          d: #M8
+''',
+      updatedCode: r'''
+class A {
+  static const a = 0;
+  static const b = 1;
+  static const c = a;
+  static const d = b;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          a: #M1
+          b: #M9
+          c: #M3
+          d: #M10
+        declaredGetters
+          a: #M5
+          b: #M6
+          c: #M7
+          d: #M8
+''',
+    );
+  }
+
+  test_manifest_constInitializer_simpleIdentifier_topVariable() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = 0;
+const c = a;
+const d = b;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
+''',
+      updatedCode: r'''
+const a = 0;
+const b = 1;
+const c = a;
+const d = b;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+    declaredVariables
+      a: #M4
+      b: #M8
+      c: #M6
+      d: #M9
 ''',
     );
   }
@@ -35193,10 +35257,10 @@ int get foo => 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M4
-      foo: #M5
+      a: #M0
+      foo: #M4
     declaredVariables
-      a: #M6
+      a: #M5
       foo: #M3
 ''',
     );
@@ -38754,9 +38818,9 @@ const a = 1;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M2
+      a: #M0
     declaredVariables
-      a: #M3
+      a: #M2
 ''',
     );
   }

@@ -1020,13 +1020,11 @@ class TopLevelFunctionItem extends TopLevelItem<TopLevelFunctionElementImpl> {
 
 class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
   final ManifestType returnType;
-  final ManifestNode? constInitializer;
 
   TopLevelGetterItem({
     required super.id,
     required super.metadata,
     required this.returnType,
-    required this.constInitializer,
   });
 
   factory TopLevelGetterItem.fromElement({
@@ -1041,7 +1039,6 @@ class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
         element.thisOrVariableMetadata,
       ),
       returnType: element.returnType.encode(context),
-      constInitializer: element.constInitializer?.encode(context),
     );
   }
 
@@ -1050,22 +1047,19 @@ class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       returnType: ManifestType.read(reader),
-      constInitializer: ManifestNode.readOptional(reader),
     );
   }
 
   @override
   bool match(MatchContext context, GetterElementImpl element) {
     return super.match(context, element) &&
-        returnType.match(context, element.returnType) &&
-        constInitializer.match(context, element.constInitializer);
+        returnType.match(context, element.returnType);
   }
 
   @override
   void write(BufferedSink sink) {
     super.write(sink);
     returnType.write(sink);
-    constInitializer.writeOptional(sink);
   }
 }
 
@@ -1219,19 +1213,6 @@ extension _AnnotatableElementExtension on AnnotatableElementImpl {
 extension _AstNodeExtension on AstNode {
   ManifestNode encode(EncodeContext context) {
     return ManifestNode.encode(context, this);
-  }
-}
-
-extension _GetterElementImplExtension on GetterElementImpl {
-  // TODO(scheglov): remove it when add top-level variable
-  Expression? get constInitializer {
-    if (isSynthetic) {
-      var variable = variable3!;
-      if (variable.isConst) {
-        return variable.constantInitializer2?.expression;
-      }
-    }
-    return null;
   }
 }
 

@@ -1187,7 +1187,6 @@ class LibraryManifestPrinter {
       sink.withIndent(() {
         _writeMetadata(item);
         _writeNamedType('returnType', item.returnType);
-        _writeNode('constInitializer', item.constInitializer);
       });
     }
   }
