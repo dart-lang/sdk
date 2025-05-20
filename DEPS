@@ -64,8 +64,7 @@ vars = {
   "checkout_flute": False,
 
   # Checkout Android dependencies only on Mac and Linux.
-  "download_android_deps":
-    "host_os == mac or (host_os == linux and host_cpu == x64)",
+  "download_android_deps": False,
 
   # Checkout extra javascript engines for testing or benchmarking. You can
   # self-service update these by following the go/dart-engprod/browsers.md
