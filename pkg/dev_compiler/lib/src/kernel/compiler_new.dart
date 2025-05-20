@@ -5542,13 +5542,22 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitDynamicSet(DynamicSet node) {
-    return _emitPropertySet(node.receiver, null, node.value, node.name.text);
+    return _runtimeCall('dput$_replSuffix(#, #, #)', [
+      _visitExpression(node.receiver),
+      _emitMemberName(node.name.text),
+      _visitExpression(node.value)
+    ]);
   }
 
   @override
   js_ast.Expression visitInstanceSet(InstanceSet node) {
-    return _emitPropertySet(
-        node.receiver, node.interfaceTarget, node.value, node.name.text);
+    var target = node.interfaceTarget;
+    var value = isJsMember(target) ? _assertInterop(node.value) : node.value;
+    return js.call('#.# = #', [
+      _visitExpression(node.receiver),
+      _emitMemberName(node.name.text, member: target),
+      _visitExpression(value)
+    ]);
   }
 
   /// True when the result of evaluating [e] is not known to have the Object
@@ -5637,24 +5646,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   // _emitMemberName would be a nice place to handle it, but we don't have
   // access to the target expression there (needed for `dart.replNameLookup`).
   String get _replSuffix => _options.replCompile ? 'Repl' : '';
-
-  js_ast.Expression _emitPropertySet(Expression receiver, Member? member,
-      Expression value, String memberName) {
-    var jsName = _emitMemberName(memberName, member: member);
-
-    if (member != null && isJsMember(member)) {
-      value = _assertInterop(value);
-    }
-
-    var jsReceiver = _visitExpression(receiver);
-    var jsValue = _visitExpression(value);
-
-    if (member == null) {
-      return _runtimeCall(
-          'dput$_replSuffix(#, #, #)', [jsReceiver, jsName, jsValue]);
-    }
-    return js.call('#.# = #', [jsReceiver, jsName, jsValue]);
-  }
 
   @override
   js_ast.Expression visitAbstractSuperPropertyGet(
