@@ -423,6 +423,22 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied});
 
   /// Creates one or more edits that will convert the given function [body] from
+  /// being asynchronous to be synchronous. This includes removing the `async`
+  /// modifier to the body as well as potentially replacing the return type of
+  /// the function to the `Future` type argument.
+  ///
+  /// There is currently a limitation in that the function body must not be a
+  /// generator.
+  ///
+  /// Throws an [ArgumentError] if the function body is not both synchronous and
+  /// a non-generator.
+  void convertFunctionFromAsyncToSync({
+    required FunctionBody body,
+    required TypeSystem typeSystem,
+    required TypeProvider typeProvider,
+  });
+
+  /// Creates one or more edits that will convert the given function [body] from
   /// being synchronous to be asynchronous. This includes adding the `async`
   /// modifier to the body as well as potentially replacing the return type of
   /// the function to `Future`.
@@ -571,6 +587,17 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// The [typeSystem] is used to check the current type, because if it is
   /// already `Future`, no edit will be added.
   void replaceTypeWithFuture({
+    required TypeAnnotation typeAnnotation,
+    required TypeSystem typeSystem,
+    required TypeProvider typeProvider,
+  });
+
+  /// Optionally creates an edit to replace the given [typeAnnotation] with the
+  /// `Future` type argument.
+  ///
+  /// The [typeSystem] is used to check the current type, because if it is not
+  /// a `Future`, no edit will be added.
+  void replaceTypeWithFutureArgument({
     required TypeAnnotation typeAnnotation,
     required TypeSystem typeSystem,
     required TypeProvider typeProvider,

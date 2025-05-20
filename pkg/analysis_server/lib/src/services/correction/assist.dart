@@ -361,6 +361,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Join variable declaration',
   );
+  static const REMOVE_ASYNC = AssistKind(
+    'dart.assist.remove.async',
+    DartAssistKindPriority.DEFAULT,
+    "Remove 'async' modifier",
+  );
   static const REMOVE_DIGIT_SEPARATORS = AssistKind(
     'dart.assist.remove.digitSeparators',
     DartAssistKindPriority.DEFAULT,
