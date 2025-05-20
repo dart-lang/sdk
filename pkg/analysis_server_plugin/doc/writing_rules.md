@@ -35,7 +35,7 @@ class MyRule extends AnalysisRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(
@@ -51,16 +51,21 @@ Let's look at each declaration individually:
 * `class MyRule extends AnalysisRule` - The rule class must extend
   `AnalysisRule`.
 
-* `static const LintCode _code` and `LintCode get lintCode` - Each rule class
-  must implement either `LintCode get lintCode` or `List<LintCode> get
-  lintCodes`, depending on whether there is only one diagnostic that it can
-  report, or multiple.
+* `static const LintCode _code` and `LintCode get diagnosticCode` - The rule class
+  must implement `LintCode get diagnosticCode`, for infrastructure to be able
+  to register the diagnostic code that the rule can report.
 
   A `LintCode` is the template for each diagnostic that is to be reported. It
   contains the diagnostic name, problem message, and optionally the correction
   message. We instantiate a `LintCode` as a static field so that it can also be
-  made const. If the rule needs to report more than one `LintCode`, with
-  different problem messages, then multiple static fields can be declared.
+  made const.
+
+  Alternatively, if a rule can report several different diagnostic codes
+  (typically for differentiated messages), it can instead extend
+  `MultiAnalysisRule`, and then implement `List<LintCode> get diagnosticCodes`
+  instead of `LintCode get diagnosticCode`. The rule can then declare the
+  different `LintCode`s in multiple static fields, which are referenced in the
+  `diagnosticCodes` getter.
 
 * `MyRule()` - The rule class must have a constructor that calls `super()`,
   passing along the name of the rule, and a description. Typically this
