@@ -23,6 +23,9 @@ mixin CodeActionsTestMixin
         LspVerifyEditHelpersMixin {
   final String simplePubspecContent = 'name: my_project';
 
+  /// Whether the server supports the "Fix All" command (currently LSP-only).
+  bool get serverSupportsFixAll => true;
+
   /// Initializes the server with some basic configuration and expects to find
   /// a [CodeAction] with [kind]/[command]/[title].
   Future<CodeAction> expectCodeAction(
