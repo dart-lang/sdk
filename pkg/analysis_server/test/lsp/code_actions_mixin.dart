@@ -236,8 +236,8 @@ mixin CodeActionsTestMixin
         return false;
       }
 
-      if (kind != null) {
-        expect(actionKind, kind);
+      if (kind != null && actionKind != kind) {
+        return false;
       }
 
       // Some tests filter by only supplying a command, so if there is no
