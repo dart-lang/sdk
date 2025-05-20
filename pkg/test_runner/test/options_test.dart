@@ -160,14 +160,7 @@ TestConfiguration parseConfiguration(List<String> arguments) {
 
 List<TestConfiguration> parseConfigurations(List<String> arguments) {
   var parser = OptionsParser('pkg/test_runner/test/test_matrix.json');
-  var configurations = parser.parse(arguments);
-
-  // By default, without an explicit selector, you get two configurations, one
-  // for observatory_ui, and one for all the other selectors. Discard the
-  // observatory one to keep things simpler.
-  configurations
-      .removeWhere((config) => config.selectors.containsKey('observatory_ui'));
-  return configurations;
+  return parser.parse(arguments);
 }
 
 void expectValidationError(List<String> arguments, String error) {

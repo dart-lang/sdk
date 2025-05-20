@@ -485,27 +485,6 @@ def _CheckCopyrightYear(input_api, output_api):
     ]
 
 
-def _CheckNoNewObservatoryServiceTests(input_api, output_api):
-    """Ensures that no new tests are added to the Observatory test suite."""
-    files = []
-
-    for f in input_api.AffectedFiles(include_deletes=False):
-        path = f.LocalPath()
-        if is_dart_file(path) and path.startswith(
-                "runtime/observatory/tests/service/") and f.Action(
-                ) == 'A' and os.path.isfile(path):
-            files.append(path)
-
-    if not files:
-        return []
-
-    return [
-        output_api.PresubmitError(
-            'New VM service tests should be added to pkg/vm_service/test, ' +
-            'not runtime/observatory/tests/service:\n' + '\n'.join(files))
-    ]
-
-
 def _CheckDevCompilerSync(input_api, output_api):
     """Make sure that any changes in the original and the temporary forked
     version of the DDC compiler are kept in sync. If a CL touches the
@@ -571,7 +550,6 @@ def _CommonChecks(input_api, output_api):
         input_api.canned_checks.CheckPatchFormatted(input_api, output_api))
     results.extend(_CheckCopyrightYear(input_api, output_api))
     results.extend(_CheckAnalyzerFiles(input_api, output_api))
-    results.extend(_CheckNoNewObservatoryServiceTests(input_api, output_api))
     results.extend(_CheckDevCompilerSync(input_api, output_api))
     results.extend(_CheckDartApiWinCSync(input_api, output_api))
     return results

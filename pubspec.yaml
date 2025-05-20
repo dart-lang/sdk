@@ -311,8 +311,6 @@ dependency_overrides:
     path: third_party/pkg/tools/pkgs/io
   devtools_shared:
     path: third_party/devtools/devtools_shared
-  observatory_test_package:
-    path: runtime/observatory/tests/service/observatory_test_package
   # heapsnapshot has dependencies from outside the sdk, so cannot be part of
   # the workspace. https://github.com/dart-lang/sdk/issues/50061
   heapsnapshot:
