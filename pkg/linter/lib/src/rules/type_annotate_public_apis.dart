@@ -21,6 +21,9 @@ class TypeAnnotatePublicApis extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.type_annotate_public_apis;
 
   @override
+  List<String> get incompatibleRules => const ['omit_obvious_property_types'];
+
+  @override
   void registerNodeProcessors(
     NodeLintRegistry registry,
     LinterContext context,
