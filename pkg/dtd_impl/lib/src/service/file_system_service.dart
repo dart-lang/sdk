@@ -63,6 +63,11 @@ class FileSystemService extends InternalService {
       );
   }
 
+  @override
+  void shutdown() {
+    _ideWorkspaceRoots.clear();
+  }
+
   void _ensureIDEWorkspaceRootsContainUri(Uri uri) {
     // If in unrestricted mode, no need to do these checks.
     if (unrestrictedMode) return;

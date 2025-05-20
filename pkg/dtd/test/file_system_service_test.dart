@@ -6,7 +6,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:dtd/dtd.dart';
-import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -85,7 +84,7 @@ void main() {
 
   group('restricted', () {
     setUp(() async {
-      toolingDaemonProcess = ToolingDaemonTestProcess(unrestricted: false);
+      toolingDaemonProcess = ToolingDaemonTestProcess();
       await toolingDaemonProcess.start();
       dtdUri = toolingDaemonProcess.uri;
       dtdSecret = toolingDaemonProcess.trustedSecret!;
@@ -93,7 +92,7 @@ void main() {
       client = await DartToolingDaemon.connect(dtdUri);
     });
 
-    group('FileSystem', () {
+    group(kFileSystemServiceName, () {
       group('setIDEWorkspaceRoots', () {
         test('wrong secret is unauthorized', () {
           expect(
@@ -688,8 +687,4 @@ void main() {
       },
     );
   });
-}
-
-Matcher throwsAnRpcError(int code) {
-  return throwsA(predicate((p0) => (p0 is RpcException) && (p0.code == code)));
 }

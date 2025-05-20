@@ -1,3 +1,9 @@
+## 2.6.0
+
+- Add `ConnectedAppService` to store the connections to Dart and Flutter
+applications that DTD is aware of.
+- Log exceptions from invalid `streamNotify` events.
+
 ## 2.5.1
 
 - Widen the dependency on `unified_analytics` to include 8.0.0.

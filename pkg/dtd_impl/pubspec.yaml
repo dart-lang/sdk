@@ -13,6 +13,7 @@ dependencies:
   args: any
   collection: any
   dart_service_protocol_shared: any
+  dds: any
   dtd: any
   file: any
   json_rpc_2: any
@@ -22,6 +23,7 @@ dependencies:
   sse: any
   stream_channel: any
   unified_analytics: any
+  vm_service: any
   web_socket_channel: any
 
 # We use 'any' version constraints here as we get our package versions from
