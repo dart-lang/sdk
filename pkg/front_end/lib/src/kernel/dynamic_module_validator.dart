@@ -616,6 +616,9 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     if (target is Procedure) {
       target = _unwrapMixinStubs(target);
     }
+    if (target is Member) {
+      target = _unwrapMixinCopy(target);
+    }
     if (!_isFromDynamicModule(target) &&
         !_isSpecified(target, spec.callable) &&
         !languageImplPragmas.isCallable(target)) {
@@ -692,6 +695,22 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     return member;
   }
 
+  // Unwrap copied method from an eliminated mixin to get actual
+  // interface member.
+  Member _unwrapMixinCopy(Member member) {
+    if (!member.isInstanceMember) {
+      return member;
+    }
+    Class enclosingClass = member.enclosingClass!;
+    if (!enclosingClass.isEliminatedMixin) {
+      return member;
+    }
+    // Coverage-ignore-block(suite): Not run.
+    Class origin = enclosingClass.implementedTypes.last.classNode;
+    return hierarchy.getInterfaceMember(origin, member.name,
+        setter: member is Procedure && member.isSetter)!;
+  }
+
   void _verifyOverrides(
       List<Member> implementationMembers, List<Member> interfaceMembers) {
     int i = 0, j = 0;
@@ -716,6 +735,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   void _verifyOverride(Member ownMember, Member superMember) {
+    superMember = _unwrapMixinCopy(superMember);
     if (!_isFromDynamicModule(superMember) &&
         !_isSpecified(superMember, spec.canBeOverridden) &&
         !languageImplPragmas.canBeOverridden(superMember)) {
