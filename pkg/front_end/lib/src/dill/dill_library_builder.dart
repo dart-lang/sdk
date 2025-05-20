@@ -503,7 +503,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   /// to map, mapping from name to new (replacement) builder.
   void patchUpExportScope(
       Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMap,
-      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMapSetters) {
-    _exportNameSpace.patchUpScope(replacementMap, replacementMapSetters);
+      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMapSetters,
+      Map<LibraryBuilder, NameSpace> replacementLookupMap) {
+    _exportNameSpace.patchUpScope(
+        replacementMap, replacementMapSetters, replacementLookupMap);
   }
 }

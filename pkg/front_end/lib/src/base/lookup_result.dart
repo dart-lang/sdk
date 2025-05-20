@@ -16,18 +16,23 @@ abstract class LookupResult {
   /// Creates a [LookupResult] for [getable] and [setable] which filters
   /// instance members if [staticOnly] is `true`, and creates an
   /// [AmbiguousBuilder] for duplicates using [fileUri] and [fileOffset].
-  static LookupResult? createProcessedResult(
-      NamedBuilder? getable, NamedBuilder? setable,
+  static LookupResult? createProcessedResult(LookupResult? result,
       {required String name,
       required Uri fileUri,
       required int fileOffset,
       required bool staticOnly}) {
+    if (result == null) return null;
+    NamedBuilder? getable = result.getable;
+    NamedBuilder? setable = result.setable;
+    bool changed = false;
     if (getable != null) {
       if (getable.next != null) {
         getable = new AmbiguousBuilder(name, getable, fileOffset, fileUri);
+        changed = true;
       }
       if (staticOnly && getable.isDeclarationInstanceMember) {
         getable = null;
+        changed = true;
       }
     }
     if (setable != null) {
@@ -38,14 +43,20 @@ abstract class LookupResult {
         if (firstSetable is MemberBuilder && firstSetable.isConflictingSetter) {
           setable = null;
         }
+        changed = true;
       } else if (setable is MemberBuilder && setable.isConflictingSetter) {
         setable = null;
+        changed = true;
       }
       if (setable != null &&
           staticOnly &&
           setable.isDeclarationInstanceMember) {
         setable = null;
+        changed = true;
       }
+    }
+    if (!changed) {
+      return result;
     }
 
     return _fromBuilders(getable, setable, assertNoGetterSetterConflict: true);
@@ -61,7 +72,9 @@ abstract class LookupResult {
       {required bool assertNoGetterSetterConflict}) {
     if (getable is LookupResult) {
       LookupResult lookupResult = getable as LookupResult;
-      if (setable == null) {
+      if (setable == getable) {
+        return lookupResult;
+      } else if (setable == null) {
         return lookupResult;
       } else {
         assert(getable != setable,

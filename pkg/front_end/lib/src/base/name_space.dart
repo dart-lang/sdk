@@ -53,7 +53,7 @@ abstract class ComputedNameSpace implements NameSpace {
 
 abstract class ComputedMutableNameSpace
     implements MutableNameSpace, ComputedNameSpace {
-  factory ComputedMutableNameSpace() = NameSpaceImpl._;
+  factory ComputedMutableNameSpace() = ComputedMutableNameSpaceImpl._;
 
   void replaceLocalMember(String name, NamedBuilder member,
       {required bool setter});
@@ -68,52 +68,163 @@ abstract class MutableDeclarationNameSpace
   void addConstructor(String name, MemberBuilder builder);
 }
 
-base class NameSpaceImpl implements NameSpace, ComputedMutableNameSpace {
-  Map<String, NamedBuilder>? _getables;
-  Map<String, NamedBuilder>? _setables;
+base class NameSpaceImpl implements MutableNameSpace {
+  Map<String, LookupResult>? _content;
   Set<ExtensionBuilder>? _extensions;
 
   NameSpaceImpl._(
       {Map<String, NamedBuilder>? getables,
       Map<String, NamedBuilder>? setables,
       Set<ExtensionBuilder>? extensions})
-      : _getables = getables,
-        _setables = setables,
-        _extensions = extensions;
+      : _extensions = extensions {
+    if (getables != null) {
+      for (MapEntry<String, NamedBuilder> entry in getables.entries) {
+        addLocalMember(entry.key, entry.value, setter: false);
+      }
+    }
+    if (setables != null) {
+      for (MapEntry<String, NamedBuilder> entry in setables.entries) {
+        addLocalMember(entry.key, entry.value, setter: true);
+      }
+    }
+  }
 
   @override
   void addLocalMember(String name, NamedBuilder member,
       {required bool setter}) {
-    _addLocalMember(name, member, setter: setter, allowReplace: false);
+    Map<String, LookupResult> content = _content ??= {};
+    LookupResult? existing = content[name];
+    if (existing != null) {
+      if (setter) {
+        assert(existing.getable != null,
+            "No existing getable for $name: $existing.");
+        content[name] = new GetableSetableResult(existing.getable!, member);
+        return;
+      } else {
+        assert(existing.setable != null,
+            "No existing setable for $name: $existing.");
+        content[name] = new GetableSetableResult(member, existing.setable!);
+        return;
+      }
+    }
+    if (member is LookupResult) {
+      content[name] = member as LookupResult;
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      content[name] =
+          setter ? new SetableResult(member) : new GetableResult(member);
+    }
   }
 
-  void _addLocalMember(String name, NamedBuilder member,
-      {required bool setter, required bool allowReplace}) {
-    if (setter) {
-      assert(
-          _setables == null ||
-              !_setables!.containsKey(name) ||
-              _setables![name] == member ||
-              allowReplace,
-          "Trying to map setable $member to $name "
-          "replacing the existing value ${_setables?[name]}");
-      (_setables ??= {})[name] = member;
+  @override
+  // Coverage-ignore(suite): Not run.
+  void addExtension(ExtensionBuilder builder) {
+    (_extensions ??= {}).add(builder);
+  }
+
+  @override
+  void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
+    _extensions?.forEach(f);
+  }
+
+  @override
+  LookupResult? lookupLocal(String name,
+      {required Uri fileUri,
+      required int fileOffset,
+      required bool staticOnly}) {
+    return LookupResult.createProcessedResult(_content?[name],
+        name: name,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        staticOnly: staticOnly);
+  }
+
+  @override
+  LookupResult? lookupLocalMember(String name) => _content?[name];
+}
+
+base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
+  Map<String, LookupResult>? _content;
+  Set<ExtensionBuilder>? _extensions;
+
+  ComputedMutableNameSpaceImpl._();
+
+  @override
+  void addLocalMember(String name, NamedBuilder member,
+      {required bool setter}) {
+    Map<String, LookupResult> content = _content ??= {};
+    LookupResult? existing = content[name];
+    if (existing != null) {
+      if (setter) {
+        assert(
+            existing.setable == null ||
+                existing.setable == member ||
+                // TODO(johnniwinther): Remove this case when getables and
+                //  setables are contained in the same map in the name space.
+                (member is PropertyBuilder && member.isConflictingSetter),
+            "Trying to map setable $member to $name "
+            "replacing the existing value ${existing.setable}");
+        if (existing.getable != null) {
+          content[name] = new GetableSetableResult(existing.getable!, member);
+          return;
+        }
+      } else {
+        assert(
+            existing.getable == null || existing.getable == member,
+            "Trying to map getable $member to $name "
+            "replacing the existing value ${existing.getable}");
+        if (existing.setable != null) {
+          content[name] = new GetableSetableResult(member, existing.setable!);
+          return;
+        }
+      }
+    }
+    if (member is LookupResult) {
+      content[name] = member as LookupResult;
     } else {
-      assert(
-          _getables == null ||
-              !_getables!.containsKey(name) ||
-              _getables![name] == member ||
-              allowReplace,
-          "Trying to map getable $member to $name "
-          "replacing the existing value ${_getables?[name]}");
-      (_getables ??= {})[name] = member;
+      content[name] = setter
+          ?
+          // Coverage-ignore(suite): Not run.
+          new SetableResult(member)
+          : new GetableResult(member);
     }
   }
 
   @override
   void replaceLocalMember(String name, NamedBuilder member,
       {required bool setter}) {
-    _addLocalMember(name, member, setter: setter, allowReplace: true);
+    Map<String, LookupResult> content = _content!;
+    LookupResult? existing = content[name];
+    assert(existing != null, "No existing result for $name.");
+    if (existing != null) {
+      if (setter) {
+        assert(
+            existing.setable != null,
+            "Trying to map setable $member to $name "
+            "replacing the existing value ${existing.setable}");
+        if (existing.getable != null) {
+          // Coverage-ignore-block(suite): Not run.
+          content[name] = new GetableSetableResult(existing.getable!, member);
+          return;
+        }
+      } else {
+        assert(
+            existing.getable != null,
+            "Trying to map setable $member to $name "
+            "replacing the existing value ${existing.getable}");
+        if (existing.setable != null) {
+          content[name] = new GetableSetableResult(member, existing.setable!);
+          return;
+        }
+      }
+    }
+    if (member is LookupResult) {
+      content[name] = member as LookupResult;
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      content[name] =
+          setter ? new SetableResult(member) : new GetableResult(member);
+    }
   }
 
   @override
@@ -124,9 +235,8 @@ base class NameSpaceImpl implements NameSpace, ComputedMutableNameSpace {
   @override
   Iterator<T> filteredIterator<T extends NamedBuilder>() {
     return new FilteredIterator<T>(
-        new ScopeIterator(
-            _getables?.values.iterator,
-            _setables?.values.iterator,
+        new LookupResultIterator(
+            _content?.values.iterator,
             _extensions
                 // Coverage-ignore(suite): Not run.
                 ?.iterator),
@@ -143,9 +253,7 @@ base class NameSpaceImpl implements NameSpace, ComputedMutableNameSpace {
       {required Uri fileUri,
       required int fileOffset,
       required bool staticOnly}) {
-    NamedBuilder? getable = _getables?[name];
-    NamedBuilder? setable = _setables?[name];
-    return LookupResult.createProcessedResult(getable, setable,
+    return LookupResult.createProcessedResult(_content?[name],
         name: name,
         fileUri: fileUri,
         fileOffset: fileOffset,
@@ -153,9 +261,7 @@ base class NameSpaceImpl implements NameSpace, ComputedMutableNameSpace {
   }
 
   @override
-  LookupResult? lookupLocalMember(String name) {
-    return LookupResult.createResult(_getables?[name], _setables?[name]);
-  }
+  LookupResult? lookupLocalMember(String name) => _content?[name];
 }
 
 final class SourceLibraryNameSpace extends NameSpaceImpl {
@@ -175,70 +281,61 @@ String? areNameSpacesEquivalent(
     {required Uri importUri,
     required NameSpace sourceNameSpace,
     required NameSpace dillNameSpace}) {
-  sourceNameSpace as NameSpaceImpl;
-  dillNameSpace as NameSpaceImpl;
-
-  Map<String, NamedBuilder>? sourceGetables = sourceNameSpace._getables;
-  Map<String, NamedBuilder>? sourceSetables = sourceNameSpace._setables;
-
-  Map<String, NamedBuilder>? dillGetables = dillNameSpace._getables;
-  Map<String, NamedBuilder>? dillSetables = dillNameSpace._setables;
+  sourceNameSpace as ComputedMutableNameSpaceImpl;
+  dillNameSpace as ComputedMutableNameSpaceImpl;
 
   bool isEquivalent = true;
   StringBuffer sb = new StringBuffer();
   sb.writeln('Mismatch on ${importUri}:');
-  if (sourceGetables != null) {
-    for (MapEntry<String, NamedBuilder> sourceEntry in sourceGetables.entries) {
-      Builder? dillBuilder = dillGetables?[sourceEntry.key];
-      if (dillBuilder == null) {
-        if ((sourceEntry.key == 'dynamic' || sourceEntry.key == 'Never') &&
-            importUri == dartCore) {
-          // The source library builder for dart:core has synthetically
-          // injected builders for `dynamic` and `Never` which do not have
-          // corresponding classes in the AST.
-          continue;
+
+  Map<String, LookupResult>? sourceContent = sourceNameSpace._content;
+  Map<String, LookupResult>? dillContent = dillNameSpace._content;
+
+  if (sourceContent != null) {
+    for (MapEntry<String, LookupResult> sourceEntry in sourceContent.entries) {
+      LookupResult sourceResult = sourceEntry.value;
+      LookupResult? dillResult = dillContent?[sourceEntry.key];
+      if (sourceResult.getable != null) {
+        if (dillResult?.getable == null) {
+          if ((sourceEntry.key == 'dynamic' || sourceEntry.key == 'Never') &&
+              importUri == dartCore) {
+            // The source library builder for dart:core has synthetically
+            // injected builders for `dynamic` and `Never` which do not have
+            // corresponding classes in the AST.
+          } else {
+            sb.writeln(
+                'No dill getable for ${sourceEntry.key}: ${sourceResult}');
+            isEquivalent = false;
+          }
         }
-        sb.writeln(
-            'No dill builder for ${sourceEntry.key}: ${sourceEntry.value}');
-        isEquivalent = false;
       }
-    }
-  }
-  if (dillGetables != null) {
-    for (MapEntry<String, NamedBuilder> dillEntry in dillGetables.entries) {
-      Builder? sourceBuilder = sourceGetables?[dillEntry.key];
-      if (sourceBuilder == null) {
-        sb.writeln(
-            'No source builder for ${dillEntry.key}: ${dillEntry.value}');
-        isEquivalent = false;
-      }
-    }
-  }
-  if (sourceSetables != null) {
-    for (MapEntry<String, NamedBuilder> sourceEntry in sourceSetables.entries) {
-      Builder? dillBuilder = dillGetables?[sourceEntry.key];
-      if (dillBuilder == null) {
-        sb.writeln(
-            'No dill builder for ${sourceEntry.key}=: ${sourceEntry.value}');
-        isEquivalent = false;
-      }
-    }
-  }
-  if (dillSetables != null) {
-    for (MapEntry<String, NamedBuilder> dillEntry in dillSetables.entries) {
-      Builder? sourceBuilder = sourceSetables?[dillEntry.key];
-      if (sourceBuilder == null) {
-        sourceBuilder = sourceGetables?[dillEntry.key];
-        if (sourceBuilder is PropertyBuilder && sourceBuilder.hasSetter) {
-          // Assignable fields can be lowered into a getter and setter.
-          continue;
+      if (sourceResult.setable != null) {
+        if (dillResult?.setable == null) {
+          sb.writeln('No dill setable for ${sourceEntry.key}: ${sourceResult}');
+          isEquivalent = false;
         }
-        sb.writeln(
-            'No source builder for ${dillEntry.key}=: ${dillEntry.value}');
-        isEquivalent = false;
       }
     }
   }
+  if (dillContent != null) {
+    for (MapEntry<String, LookupResult> dillEntry in dillContent.entries) {
+      LookupResult dillResult = dillEntry.value;
+      LookupResult? sourceResult = sourceContent?[dillEntry.key];
+      if (dillResult.getable != null) {
+        if (sourceResult?.getable != null) {
+          sb.writeln('No source getable for ${dillEntry.key}=: ${dillResult}');
+          isEquivalent = false;
+        }
+      }
+      if (dillResult.setable != null) {
+        if (sourceResult?.setable != null) {
+          sb.writeln('No source setable for ${dillEntry.key}=: ${dillResult}');
+          isEquivalent = false;
+        }
+      }
+    }
+  }
+
   if (isEquivalent) {
     return null;
   }
@@ -278,22 +375,16 @@ final class DillDeclarationNameSpace extends DeclarationNameSpaceBase {
   DillDeclarationNameSpace() : super._();
 }
 
-abstract base class LazyNameSpace extends NameSpaceImpl {
+abstract base class LazyNameSpace extends ComputedMutableNameSpaceImpl {
   LazyNameSpace() : super._();
 
   /// Override this method to lazily populate the scope before access.
   void ensureNameSpace();
 
   @override
-  Map<String, NamedBuilder>? get _getables {
+  Map<String, LookupResult>? get _content {
     ensureNameSpace();
-    return super._getables;
-  }
-
-  @override
-  Map<String, NamedBuilder>? get _setables {
-    ensureNameSpace();
-    return super._setables;
+    return super._content;
   }
 
   @override
@@ -329,7 +420,8 @@ final class DillExportNameSpace extends LazyNameSpace {
   /// from name to new (replacement) builder.
   void patchUpScope(
       Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMap,
-      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMapSetters) {
+      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMapSetters,
+      Map<LibraryBuilder, NameSpace> replacementLookupMap) {
     // In the following we refer to non-setters as 'getters' for brevity.
     //
     // We have to replace all getters and setters in [_locals] and [_setters]
@@ -343,98 +435,62 @@ final class DillExportNameSpace extends LazyNameSpace {
     // For this reason we start by collecting the names of all getters/setters
     // that need (some) replacement. Afterwards we go through these names
     // handling both getters and setters at the same time.
-    Set<String> replacedNames = {};
-    _getables?.forEach((String name, Builder builder) {
-      if (replacementMap.containsKey(builder.parent)) {
-        replacedNames.add(name);
-      }
-    });
-    _setables?.forEach((String name, Builder builder) {
-      if (replacementMapSetters.containsKey(builder.parent)) {
-        replacedNames.add(name);
-      }
-    });
-    if (replacedNames.isNotEmpty) {
-      for (String name in replacedNames) {
-        // We start be collecting the relation between an existing getter/setter
-        // and the getter/setter that will replace it. This information is used
-        // below to handle all the different cases that can occur.
-        NamedBuilder? existingGetter = _getables?[name];
-        LibraryBuilder? replacementLibraryBuilderFromGetter;
-        NamedBuilder? replacementGetterFromGetter;
-        NamedBuilder? replacementSetterFromGetter;
-        if (existingGetter != null &&
-            replacementMap.containsKey(existingGetter.parent)) {
-          replacementLibraryBuilderFromGetter =
-              existingGetter.parent as LibraryBuilder;
-          replacementGetterFromGetter =
-              replacementMap[replacementLibraryBuilderFromGetter]![name];
-          replacementSetterFromGetter =
-              replacementMapSetters[replacementLibraryBuilderFromGetter]![name];
+    {
+      Set<String> replacedNames = {};
+      _content?.forEach((String name, LookupResult result) {
+        if (replacementMap.containsKey(result.getable?.parent)) {
+          replacedNames.add(name);
         }
-        NamedBuilder? existingSetter = _setables?[name];
-        LibraryBuilder? replacementLibraryBuilderFromSetter;
-        NamedBuilder? replacementGetterFromSetter;
-        NamedBuilder? replacementSetterFromSetter;
-        if (existingSetter != null &&
-            replacementMap.containsKey(existingSetter.parent)) {
-          replacementLibraryBuilderFromSetter =
-              existingSetter.parent as LibraryBuilder;
-          replacementGetterFromSetter =
-              replacementMap[replacementLibraryBuilderFromSetter]![name];
-          replacementSetterFromSetter =
-              replacementMapSetters[replacementLibraryBuilderFromSetter]![name];
+        if (replacementMapSetters.containsKey(result.setable?.parent)) {
+          replacedNames.add(name);
         }
-
-        if (existingGetter == null) {
-          // Coverage-ignore-block(suite): Not run.
-          // No existing getter.
-          if (replacementGetterFromSetter != null) {
-            // We might have had one implicitly from the setter. Use it here,
-            // if so. (This is currently not possible, but added to match the
-            // case for setters below.)
-            (_getables ??= {})[name] = replacementGetterFromSetter;
+      });
+      if (replacedNames.isNotEmpty) {
+        for (String name in replacedNames) {
+          // We start be collecting the relation between an existing getter/setter
+          // and the getter/setter that will replace it. This information is used
+          // below to handle all the different cases that can occur.
+          LookupResult existingResult = _content![name]!;
+          NamedBuilder? existingGetter = existingResult.getable;
+          NamedBuilder? existingSetter = existingResult.setable;
+          LookupResult? replacementResult;
+          if (existingGetter != null && existingSetter != null) {
+            if (existingGetter == existingSetter) {
+              replacementResult = replacementLookupMap[existingGetter.parent]!
+                  .lookupLocalMember(name);
+            } else {
+              NamedBuilder? replacementGetter =
+                  replacementLookupMap[existingGetter.parent]
+                      ?.lookupLocalMember(name)
+                      ?.getable;
+              NamedBuilder? replacementSetter =
+                  replacementLookupMap[existingSetter.parent]
+                      ?.lookupLocalMember(name)
+                      ?.setable;
+              replacementResult = LookupResult.createResult(
+                  replacementGetter ?? existingGetter,
+                  replacementSetter ?? existingSetter);
+            }
+          } else if (existingGetter != null) {
+            replacementResult = LookupResult.createResult(
+                replacementLookupMap[existingGetter.parent]
+                    ?.lookupLocalMember(name)
+                    ?.getable,
+                null);
+          } else if (existingSetter != null) {
+            replacementResult = LookupResult.createResult(
+                null,
+                replacementLookupMap[existingSetter.parent]
+                    ?.lookupLocalMember(name)
+                    ?.setable);
           }
-        } else if (existingGetter.parent ==
-            replacementLibraryBuilderFromGetter) {
-          // The existing getter should be replaced.
-          if (replacementGetterFromGetter != null) {
-            // With a new getter.
-            (_getables ??= // Coverage-ignore(suite): Not run.
-                {})[name] = replacementGetterFromGetter;
+          if (replacementResult != null) {
+            (_content ??= // Coverage-ignore(suite): Not run.
+                {})[name] = replacementResult;
           } else {
             // Coverage-ignore-block(suite): Not run.
-            // With `null`, i.e. removed. This means that the getter is
-            // implicitly available through the setter. (This is currently not
-            // possible, but handled here to match the case for setters below).
-            _getables?.remove(name);
+            _content?.remove(name);
           }
-        } else {
-          // Leave the getter in - it wasn't replaced.
-        }
-        if (existingSetter == null) {
-          // No existing setter.
-          if (replacementSetterFromGetter != null) {
-            // We might have had one implicitly from the getter. Use it here,
-            // if so.
-            (_setables ??= // Coverage-ignore(suite): Not run.
-                {})[name] = replacementSetterFromGetter as MemberBuilder;
-          }
-        } else if (existingSetter.parent ==
-            replacementLibraryBuilderFromSetter) {
-          // The existing setter should be replaced.
-          if (replacementSetterFromSetter != null) {
-            // With a new setter.
-            (_setables ??= // Coverage-ignore(suite): Not run.
-                {})[name] = replacementSetterFromSetter as MemberBuilder;
-          } else {
-            // With `null`, i.e. removed. This means that the setter is
-            // implicitly available through the getter. This happens when the
-            // getter is a field builder for an assignable field.
-            _setables?.remove(name);
-          }
-        } else {
-          // Leave the setter in - it wasn't replaced.
         }
       }
     }
