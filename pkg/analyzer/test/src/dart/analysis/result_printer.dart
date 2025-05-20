@@ -833,6 +833,13 @@ class LibraryManifestPrinter {
       _writeTopLevelFunctionItem(item);
     });
 
+    var variableEntries = manifest.declaredVariables;
+    sink.writeElements('declaredVariables', variableEntries.sorted, (entry) {
+      var item = entry.value;
+      _writeNamedId(entry.key, item.id);
+      _writeTopLevelVariableItem(item);
+    });
+
     var reExportEntries = manifest.reExportMap.sorted;
     if (reExportEntries.isNotEmpty) {
       sink.writelnWithIndent('reExportMap');
@@ -1190,6 +1197,16 @@ class LibraryManifestPrinter {
       sink.withIndent(() {
         _writeMetadata(item);
         _writeNamedType('valueType', item.valueType);
+      });
+    }
+  }
+
+  void _writeTopLevelVariableItem(TopLevelVariableItem item) {
+    if (configuration.withElementManifests) {
+      sink.withIndent(() {
+        _writeMetadata(item);
+        _writeNamedType('type', item.type);
+        _writeNode('constInitializer', item.constInitializer);
       });
     }
   }

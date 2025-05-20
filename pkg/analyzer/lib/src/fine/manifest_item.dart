@@ -1119,6 +1119,59 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
   }
 }
 
+class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl2> {
+  final ManifestType type;
+  final ManifestNode? constInitializer;
+
+  TopLevelVariableItem({
+    required super.id,
+    required super.metadata,
+    required this.type,
+    required this.constInitializer,
+  });
+
+  factory TopLevelVariableItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required TopLevelVariableElementImpl2 element,
+  }) {
+    return TopLevelVariableItem(
+      id: id,
+      metadata: ManifestMetadata.encode(context, element.metadata2),
+      type: element.type.encode(context),
+      constInitializer: element.constantInitializer2?.expression.encode(
+        context,
+      ),
+    );
+  }
+
+  factory TopLevelVariableItem.read(SummaryDataReader reader) {
+    return TopLevelVariableItem(
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      type: ManifestType.read(reader),
+      constInitializer: ManifestNode.readOptional(reader),
+    );
+  }
+
+  @override
+  bool match(MatchContext context, TopLevelVariableElementImpl2 element) {
+    return super.match(context, element) &&
+        type.match(context, element.type) &&
+        constInitializer.match(
+          context,
+          element.constantInitializer2?.expression,
+        );
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    type.write(sink);
+    constInitializer.writeOptional(sink);
+  }
+}
+
 enum _InstanceItemMemberItemKind { field, constructor, method, getter, setter }
 
 extension LookupNameToIdMapExtension on Map<LookupName, ManifestItemId> {

@@ -28,6 +28,7 @@ class LibraryManifest {
   final Map<LookupName, TopLevelGetterItem> declaredGetters;
   final Map<LookupName, TopLevelSetterItem> declaredSetters;
   final Map<LookupName, TopLevelFunctionItem> declaredFunctions;
+  final Map<LookupName, TopLevelVariableItem> declaredVariables;
 
   LibraryManifest({
     required this.reExportMap,
@@ -36,6 +37,7 @@ class LibraryManifest {
     required this.declaredGetters,
     required this.declaredSetters,
     required this.declaredFunctions,
+    required this.declaredVariables,
   });
 
   factory LibraryManifest.read(SummaryDataReader reader) {
@@ -55,6 +57,9 @@ class LibraryManifest {
       ),
       declaredFunctions: reader.readLookupNameMap(
         readValue: () => TopLevelFunctionItem.read(reader),
+      ),
+      declaredVariables: reader.readLookupNameMap(
+        readValue: () => TopLevelVariableItem.read(reader),
       ),
     );
   }
@@ -77,6 +82,7 @@ class LibraryManifest {
     declaredGetters.write(sink);
     declaredSetters.write(sink);
     declaredFunctions.write(sink);
+    declaredVariables.write(sink);
   }
 }
 
@@ -510,6 +516,22 @@ class LibraryManifestBuilder {
     newItems[lookupName] = item;
   }
 
+  void _addTopLevelVariable({
+    required EncodeContext encodingContext,
+    required Map<LookupName, TopLevelVariableItem> newItems,
+    required TopLevelVariableElementImpl2 element,
+    required LookupName lookupName,
+  }) {
+    var item = _getOrBuildElementItem(element, () {
+      return TopLevelVariableItem.fromElement(
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+    });
+    newItems[lookupName] = item;
+  }
+
   /// Assert that every manifest can be serialized, and when deserialized
   /// results in the same manifest.
   bool _assertSerialization() {
@@ -546,6 +568,7 @@ class LibraryManifestBuilder {
       var newTopLevelGetters = <LookupName, TopLevelGetterItem>{};
       var newTopLevelSetters = <LookupName, TopLevelSetterItem>{};
       var newTopLevelFunctions = <LookupName, TopLevelFunctionItem>{};
+      var newTopLevelVariables = <LookupName, TopLevelVariableItem>{};
 
       for (var element in libraryElement.children2) {
         var lookupName = element.lookupName?.asLookupName;
@@ -589,6 +612,14 @@ class LibraryManifestBuilder {
               element: element,
               lookupName: lookupName,
             );
+          case TopLevelVariableElementImpl2():
+            _addTopLevelVariable(
+              encodingContext: encodingContext,
+              newItems: newTopLevelVariables,
+              element: element,
+              lookupName: lookupName,
+            );
+
           // TODO(scheglov): add remaining elements
         }
       }
@@ -600,6 +631,7 @@ class LibraryManifestBuilder {
         declaredGetters: newTopLevelGetters,
         declaredSetters: newTopLevelSetters,
         declaredFunctions: newTopLevelFunctions,
+        declaredVariables: newTopLevelVariables,
       );
       libraryElement.manifest = newManifest;
       newManifests[libraryUri] = newManifest;
@@ -750,6 +782,7 @@ class LibraryManifestBuilder {
           declaredGetters: {},
           declaredSetters: {},
           declaredFunctions: {},
+          declaredVariables: {},
         );
   }
 
@@ -874,6 +907,10 @@ class _LibraryMatch {
           }
         case TopLevelFunctionElementImpl():
           if (!_matchTopFunction(name: name, element: element)) {
+            structureMismatched.add(element);
+          }
+        case TopLevelVariableElementImpl2():
+          if (!_matchTopVariable(name: name, element: element)) {
             structureMismatched.add(element);
           }
       }
@@ -1172,6 +1209,24 @@ class _LibraryMatch {
     required SetterElementImpl element,
   }) {
     var item = manifest.declaredSetters[name];
+    if (item == null) {
+      return false;
+    }
+
+    var matchContext = MatchContext(parent: null);
+    if (!item.match(matchContext, element)) {
+      return false;
+    }
+
+    _addMatchingElementItem(element, item, matchContext);
+    return true;
+  }
+
+  bool _matchTopVariable({
+    required LookupName? name,
+    required TopLevelVariableElementImpl2 element,
+  }) {
+    var item = manifest.declaredVariables[name];
     if (item == null) {
       return false;
     }

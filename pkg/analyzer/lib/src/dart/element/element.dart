@@ -2950,7 +2950,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
         FragmentedAnnotatableElementMixin<FieldFragmentImpl>,
         FragmentedElementMixin<FieldFragmentImpl>,
         _HasSinceSdkVersionMixin
-    implements FieldElement2OrMember, AnnotatableElementImpl {
+    implements FieldElement2OrMember {
   @override
   final FieldFragmentImpl firstFragment;
 
@@ -9108,7 +9108,7 @@ abstract class PropertyInducingElementImpl
 }
 
 abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
-    implements PropertyInducingElement2OrMember {
+    implements PropertyInducingElement2OrMember, AnnotatableElementImpl {
   @override
   PropertyInducingElementImpl get firstFragment;
 

@@ -12856,6 +12856,8 @@ export ':';
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -12879,6 +12881,8 @@ final a = 1;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [future] getLibraryByUri T2
   library
@@ -12918,6 +12922,8 @@ export 'a.dart';
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -12942,7 +12948,10 @@ final b = 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
   requirements
 [future] getLibraryByUri T2
   library
@@ -12958,17 +12967,17 @@ final b = 0;
     exportedUri: package:test/a.dart
     name: b
     expectedId: <null>
-    actualId: #M1
+    actualId: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
       a: #M0
-      b: #M1
+      b: #M2
   requirements
     exportRequirements
       package:test/a.dart
         a: #M0
-        b: #M1
+        b: #M2
 [status] idle
 ''',
     );
@@ -12999,6 +13008,8 @@ export 'a.dart' hide b;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13025,7 +13036,10 @@ final b = 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
   requirements
 [future] getLibraryByUri T2
   library
@@ -13065,6 +13079,8 @@ export 'a.dart' hide c;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13091,7 +13107,10 @@ final b = 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
   requirements
 [future] getLibraryByUri T2
   library
@@ -13107,19 +13126,19 @@ final b = 0;
     exportedUri: package:test/a.dart
     name: b
     expectedId: <null>
-    actualId: #M1
+    actualId: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
       a: #M0
-      b: #M1
+      b: #M2
   requirements
     exportRequirements
       package:test/a.dart
         combinators
           hide c
         a: #M0
-        b: #M1
+        b: #M2
 [status] idle
 ''',
     );
@@ -13150,6 +13169,8 @@ export 'a.dart' show a;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13176,7 +13197,10 @@ final b = 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
   requirements
 [future] getLibraryByUri T2
   library
@@ -13216,6 +13240,8 @@ export 'a.dart' show a, b;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13242,7 +13268,10 @@ final b = 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
   requirements
 [future] getLibraryByUri T2
   library
@@ -13258,19 +13287,19 @@ final b = 0;
     exportedUri: package:test/a.dart
     name: b
     expectedId: <null>
-    actualId: #M1
+    actualId: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
       a: #M0
-      b: #M1
+      b: #M2
   requirements
     exportRequirements
       package:test/a.dart
         combinators
           show a, b
         a: #M0
-        b: #M1
+        b: #M2
 [status] idle
 ''',
     );
@@ -13301,6 +13330,8 @@ export 'a.dart' show a, b hide c;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13328,7 +13359,10 @@ final b = 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
   requirements
 [future] getLibraryByUri T2
   library
@@ -13344,12 +13378,12 @@ final b = 0;
     exportedUri: package:test/a.dart
     name: b
     expectedId: <null>
-    actualId: #M1
+    actualId: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
       a: #M0
-      b: #M1
+      b: #M2
   requirements
     exportRequirements
       package:test/a.dart
@@ -13357,7 +13391,7 @@ final b = 0;
           show a, b
           hide c
         a: #M0
-        b: #M1
+        b: #M2
 [status] idle
 ''',
     );
@@ -13388,6 +13422,8 @@ export 'a.dart';
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13411,8 +13447,11 @@ final _b = 0;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      _b: #M1
+      _b: #M2
       a: #M0
+    declaredVariables
+      _b: #M3
+      a: #M1
   requirements
 [future] getLibraryByUri T2
   library
@@ -13456,6 +13495,9 @@ export 'a.dart';
     declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13481,6 +13523,8 @@ final a = 0;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M2
   requirements
 [future] getLibraryByUri T2
   library
@@ -13534,6 +13578,9 @@ export 'a.dart' show a;
     declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13559,6 +13606,8 @@ final a = 0;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M2
   requirements
 [future] getLibraryByUri T2
   library
@@ -13602,6 +13651,9 @@ export 'a.dart';
     declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13628,7 +13680,10 @@ final c = 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      c: #M2
+      c: #M4
+    declaredVariables
+      a: #M2
+      c: #M5
   requirements
 [future] getLibraryByUri T2
   library
@@ -13644,17 +13699,17 @@ final c = 0;
     exportedUri: package:test/a.dart
     name: c
     expectedId: <null>
-    actualId: #M2
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
       a: #M0
-      c: #M2
+      c: #M4
   requirements
     exportRequirements
       package:test/a.dart
         a: #M0
-        c: #M2
+        c: #M4
 [status] idle
 ''',
     );
@@ -13694,6 +13749,8 @@ final x = a;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
@@ -13706,7 +13763,9 @@ final x = a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M1
+      x: #M2
+    declaredVariables
+      x: #M3
   requirements
     topLevels
       dart:core
@@ -13728,7 +13787,9 @@ final a = 1.2;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      a: #M2
+      a: #M4
+    declaredVariables
+      a: #M5
   requirements
 [future] getLibraryByUri T2
   library
@@ -13745,31 +13806,33 @@ final a = 1.2;
     exportedUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M2
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/b.dart
     reExportMap
-      a: #M2
+      a: #M4
   requirements
     exportRequirements
       package:test/a.dart
-        a: #M2
+        a: #M4
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/b.dart
     name: a
     expectedId: #M0
-    actualId: #M2
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M3
+      x: #M6
+    declaredVariables
+      x: #M7
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/b.dart
-        a: #M2
+        a: #M4
 [status] idle
 ''',
     );
@@ -16155,6 +16218,8 @@ final x = foo();
   package:test/test.dart
     declaredGetters
       x: #M2
+    declaredVariables
+      x: #M3
   requirements
     topLevels
       dart:core
@@ -16171,11 +16236,11 @@ double foo() {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredFunctions
-      foo: #M3
+      foo: #M4
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M5
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -16186,17 +16251,19 @@ double foo() {}
     libraryUri: package:test/a.dart
     name: foo
     expectedId: #M0
-    actualId: #M3
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M5
+      x: #M6
+    declaredVariables
+      x: #M7
   requirements
     topLevels
       dart:core
         foo: <null>
       package:test/a.dart
-        foo: #M3
+        foo: #M4
 [status] idle
 ''',
     );
@@ -16234,6 +16301,8 @@ final x = foo();
   package:test/test.dart
     declaredGetters
       x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -16251,12 +16320,12 @@ double bar() {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredFunctions
-      bar: #M4
+      bar: #M5
       foo: #M1
   requirements
     topLevels
       dart:core
-        double: #M5
+        double: #M6
         int: #M2
 [future] getLibraryByUri T2
   library
@@ -16292,14 +16361,18 @@ final x = a;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M2
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -16316,11 +16389,13 @@ double get a => 1.2;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      a: #M3
+      a: #M5
+    declaredVariables
+      a: #M6
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M7
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -16331,17 +16406,19 @@ double get a => 1.2;
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M5
+      x: #M8
+    declaredVariables
+      x: #M9
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M3
+        a: #M5
 [status] idle
 ''',
     );
@@ -16371,14 +16448,19 @@ final x = a;
     declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
   requirements
     topLevels
       dart:core
-        int: #M2
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M3
+      x: #M5
+    declaredVariables
+      x: #M6
   requirements
     topLevels
       dart:core
@@ -16397,12 +16479,15 @@ double get b => 1.2;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M4
+      b: #M7
+    declaredVariables
+      a: #M2
+      b: #M8
   requirements
     topLevels
       dart:core
-        double: #M5
-        int: #M2
+        double: #M9
+        int: #M4
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -16437,11 +16522,15 @@ final x = a;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M1
+      x: #M2
+    declaredVariables
+      x: #M3
   requirements
     topLevels
       dart:core
@@ -16460,7 +16549,9 @@ final a = 1.2;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      a: #M2
+      a: #M4
+    declaredVariables
+      a: #M5
   requirements
 [future] getLibraryByUri T2
   library
@@ -16472,17 +16563,19 @@ final a = 1.2;
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M2
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M3
+      x: #M6
+    declaredVariables
+      x: #M7
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M2
+        a: #M4
 [status] idle
 ''',
     );
@@ -16517,6 +16610,8 @@ final x = a;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
@@ -16529,7 +16624,9 @@ final x = a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M1
+      x: #M2
+    declaredVariables
+      x: #M3
   requirements
     topLevels
       dart:core
@@ -16551,7 +16648,9 @@ final a = 1.2;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      a: #M2
+      a: #M4
+    declaredVariables
+      a: #M5
   requirements
 [future] getLibraryByUri T2
   library
@@ -16564,31 +16663,33 @@ final a = 1.2;
     exportedUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M2
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/b.dart
     reExportMap
-      a: #M2
+      a: #M4
   requirements
     exportRequirements
       package:test/a.dart
-        a: #M2
+        a: #M4
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/b.dart
     name: a
     expectedId: #M0
-    actualId: #M2
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M3
+      x: #M6
+    declaredVariables
+      x: #M7
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/b.dart
-        a: #M2
+        a: #M4
 [status] idle
 ''',
     );
@@ -16605,6 +16706,8 @@ final a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       // Here `k02` is for `dart:core`.
       expectedInitialDriverState: r'''
@@ -16651,8 +16754,11 @@ final a = 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
-      b: #M2
+      a: #M2
+      b: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
       // Note a new bundle key is generated: k05
       // TODO(scheglov): Here is a memory leak: k01 is still present.
@@ -16707,6 +16813,8 @@ final a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       expectedInitialDriverState: r'''
 files
@@ -16743,7 +16851,10 @@ final b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
       expectedUpdatedDriverState: r'''
 files
@@ -33535,6 +33646,12 @@ const e = '$b' 'x';
       c: #M2
       d: #M3
       e: #M4
+    declaredVariables
+      a: #M5
+      b: #M6
+      c: #M7
+      d: #M8
+      e: #M9
 ''',
       updatedCode: r'''
 const a = 1;
@@ -33547,11 +33664,17 @@ const e = '$b' 'x';
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M5
+      a: #M10
       b: #M1
-      c: #M6
-      d: #M7
+      c: #M11
+      d: #M12
       e: #M4
+    declaredVariables
+      a: #M13
+      b: #M6
+      c: #M14
+      d: #M15
+      e: #M9
 ''',
     );
   }
@@ -33573,6 +33696,11 @@ const d = b as int;
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 const a = 0;
@@ -33585,9 +33713,14 @@ const d = b as int;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M4
+      b: #M8
       c: #M2
-      d: #M5
+      d: #M9
+    declaredVariables
+      a: #M4
+      b: #M10
+      c: #M6
+      d: #M11
 ''',
     );
   }
@@ -33603,6 +33736,8 @@ const a = 0 + 1;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = 0 + 1;
@@ -33613,7 +33748,10 @@ const b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -33631,6 +33769,9 @@ const b = a + 2;
     declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
       updatedCode: r'''
 const a = 1;
@@ -33640,8 +33781,11 @@ const b = a + 2;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M2
-      b: #M3
+      a: #M4
+      b: #M5
+    declaredVariables
+      a: #M6
+      b: #M7
 ''',
     );
   }
@@ -33657,6 +33801,8 @@ const a = 0 + 1;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = 2 + 1;
@@ -33665,7 +33811,9 @@ const a = 2 + 1;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -33694,6 +33842,9 @@ const x = a + 1;
     declaredGetters
       a: #M2
       x: #M3
+    declaredVariables
+      a: #M4
+      x: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -33709,13 +33860,16 @@ const x = a + 1;
     declaredClasses
       A: #M0
         declaredMethods
-          +: #M4
+          +: #M6
         interface
           map
-            +: #M4
+            +: #M6
     declaredGetters
       a: #M2
-      x: #M5
+      x: #M7
+    declaredVariables
+      a: #M4
+      x: #M8
 ''',
     );
   }
@@ -33731,6 +33885,8 @@ const a = 0 + 1;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = 0 - 1;
@@ -33739,7 +33895,9 @@ const a = 0 - 1;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -33757,6 +33915,9 @@ const b = 2 + a;
     declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
       updatedCode: r'''
 const a = 1;
@@ -33766,8 +33927,11 @@ const b = 2 + a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M2
-      b: #M3
+      a: #M4
+      b: #M5
+    declaredVariables
+      a: #M6
+      b: #M7
 ''',
     );
   }
@@ -33793,6 +33957,17 @@ const b = 0 + a;
           elementIndexList
             0 = null
             5 = element 0
+    declaredVariables
+      b: #M2
+        type: double @ dart:core
+        constInitializer
+          tokenBuffer: 0+a
+          tokenLengthList: [1, 1, 1]
+          elements
+            [0] (dart:core, num, +) #M1
+          elementIndexList
+            0 = null
+            5 = element 0
 ''',
       updatedCode: r'''
 const a = 1;
@@ -33802,13 +33977,30 @@ const b = 0 + a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M2
+      a: #M3
         returnType: int @ dart:core
         constInitializer
           tokenBuffer: 1
           tokenLengthList: [1]
-      b: #M3
+      b: #M4
         returnType: int @ dart:core
+        constInitializer
+          tokenBuffer: 0+a
+          tokenLengthList: [1, 1, 1]
+          elements
+            [0] (package:test/test.dart, a) <null>
+            [1] (dart:core, num, +) #M1
+          elementIndexList
+            5 = element 0
+            13 = element 1
+    declaredVariables
+      a: #M5
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 1
+          tokenLengthList: [1]
+      b: #M6
+        type: int @ dart:core
         constInitializer
           tokenBuffer: 0+a
           tokenLengthList: [1, 1, 1]
@@ -33850,6 +34042,23 @@ const b = 1 + a;
           elementIndexList
             5 = element 0
             13 = element 1
+    declaredVariables
+      a: #M3
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+      b: #M4
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 1+a
+          tokenLengthList: [1, 1, 1]
+          elements
+            [0] (package:test/test.dart, a) <null>
+            [1] (dart:core, num, +) #M2
+          elementIndexList
+            5 = element 0
+            13 = element 1
 ''',
       updatedCode: r'''
 const b = 1 + a;
@@ -33858,8 +34067,19 @@ const b = 1 + a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      b: #M3
+      b: #M5
         returnType: double @ dart:core
+        constInitializer
+          tokenBuffer: 1+a
+          tokenLengthList: [1, 1, 1]
+          elements
+            [0] (dart:core, num, +) #M2
+          elementIndexList
+            0 = null
+            5 = element 0
+    declaredVariables
+      b: #M6
+        type: double @ dart:core
         constInitializer
           tokenBuffer: 1+a
           tokenLengthList: [1, 1, 1]
@@ -33883,6 +34103,8 @@ const a = true;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = true;
@@ -33893,7 +34115,10 @@ const b = false;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -33915,6 +34140,11 @@ const d = b ? 0 : 1;
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 const a = true;
@@ -33927,9 +34157,14 @@ const d = b ? 0 : 1;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M4
+      b: #M8
       c: #M2
-      d: #M5
+      d: #M9
+    declaredVariables
+      a: #M4
+      b: #M10
+      c: #M6
+      d: #M11
 ''',
     );
   }
@@ -33952,6 +34187,8 @@ const a = A.named();
           named: #M1
     declaredGetters
       a: #M2
+    declaredVariables
+      a: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -33965,9 +34202,11 @@ const a = A.named();
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M3
+          named: #M4
     declaredGetters
-      a: #M4
+      a: #M5
+    declaredVariables
+      a: #M6
 ''',
     );
   }
@@ -33991,6 +34230,8 @@ const a = A();
           new: #M1
     declaredGetters
       a: #M2
+    declaredVariables
+      a: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34004,9 +34245,11 @@ const a = A();
     declaredClasses
       A: #M0
         declaredConstructors
-          new: #M3
+          new: #M4
     declaredGetters
-      a: #M4
+      a: #M5
+    declaredVariables
+      a: #M6
 ''',
     );
   }
@@ -34030,6 +34273,8 @@ const a = A();
           new: #M1
     declaredGetters
       a: #M2
+    declaredVariables
+      a: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34044,14 +34289,16 @@ const a = A();
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M3
+          foo: #M4
         declaredConstructors
           new: #M1
         interface
           map
-            foo: #M3
+            foo: #M4
     declaredGetters
       a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -34069,6 +34316,9 @@ const b = 0 as dynamic;
     declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
       updatedCode: r'''
 const a = 0 as dynamic;
@@ -34079,7 +34329,10 @@ const b = 0 as int;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M2
+      b: #M4
+    declaredVariables
+      a: #M2
+      b: #M5
 ''',
     );
   }
@@ -34106,6 +34359,11 @@ const d = A(b);
       b: #M2
       c: #M3
       d: #M4
+    declaredVariables
+      a: #M5
+      b: #M6
+      c: #M7
+      d: #M8
 ''',
       updatedCode: r'''
 class A {
@@ -34122,10 +34380,15 @@ const d = A(b);
     declaredClasses
       A: #M0
     declaredGetters
-      a: #M5
+      a: #M9
       b: #M2
-      c: #M6
+      c: #M10
       d: #M4
+    declaredVariables
+      a: #M11
+      b: #M6
+      c: #M12
+      d: #M8
 ''',
     );
   }
@@ -34141,6 +34404,8 @@ const a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = 0;
@@ -34151,7 +34416,10 @@ const b = 1;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -34167,6 +34435,8 @@ const a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = 1;
@@ -34175,7 +34445,9 @@ const a = 1;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -34197,6 +34469,11 @@ const d = [b];
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 const a = 1;
@@ -34208,10 +34485,15 @@ const d = [b];
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M4
+      a: #M8
       b: #M1
-      c: #M5
+      c: #M9
       d: #M3
+    declaredVariables
+      a: #M10
+      b: #M5
+      c: #M11
+      d: #M7
 ''',
     );
   }
@@ -34233,6 +34515,11 @@ const d = {b: 0};
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 const a = 1;
@@ -34244,10 +34531,15 @@ const d = {b: 0};
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M4
+      a: #M8
       b: #M1
-      c: #M5
+      c: #M9
       d: #M3
+    declaredVariables
+      a: #M10
+      b: #M5
+      c: #M11
+      d: #M7
 ''',
     );
   }
@@ -34269,6 +34561,11 @@ const d = {0: b};
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 const a = 1;
@@ -34280,10 +34577,15 @@ const d = {0: b};
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M4
+      a: #M8
       b: #M1
-      c: #M5
+      c: #M9
       d: #M3
+    declaredVariables
+      a: #M10
+      b: #M5
+      c: #M11
+      d: #M7
 ''',
     );
   }
@@ -34306,6 +34608,9 @@ const b = B;
     declaredGetters
       a: #M2
       b: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
       updatedCode: r'''
 class A {}
@@ -34318,10 +34623,13 @@ const b = B;
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M4
+      B: #M6
     declaredGetters
       a: #M2
-      b: #M5
+      b: #M7
+    declaredVariables
+      a: #M4
+      b: #M8
 ''',
     );
   }
@@ -34352,6 +34660,9 @@ const d = A.b;
     declaredGetters
       c: #M5
       d: #M6
+    declaredVariables
+      c: #M7
+      d: #M8
 ''',
       updatedCode: r'''
 class A {
@@ -34369,13 +34680,16 @@ const d = A.b;
       A: #M0
         declaredFields
           a: #M1
-          b: #M7
+          b: #M9
         declaredGetters
           a: #M3
           b: #M4
     declaredGetters
       c: #M5
       d: #M6
+    declaredVariables
+      c: #M7
+      d: #M8
 ''',
     );
   }
@@ -34408,6 +34722,9 @@ const d = self.A.b;
     declaredGetters
       c: #M5
       d: #M6
+    declaredVariables
+      c: #M7
+      d: #M8
 ''',
       updatedCode: r'''
 import '' as self;
@@ -34427,13 +34744,16 @@ const d = self.A.b;
       A: #M0
         declaredFields
           a: #M1
-          b: #M7
+          b: #M9
         declaredGetters
           a: #M3
           b: #M4
     declaredGetters
       c: #M5
       d: #M6
+    declaredVariables
+      c: #M7
+      d: #M8
 ''',
     );
   }
@@ -34456,6 +34776,11 @@ const d = self.b;
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 import '' as self;
@@ -34469,9 +34794,14 @@ const d = self.b;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M4
+      b: #M8
       c: #M2
-      d: #M5
+      d: #M9
+    declaredVariables
+      a: #M4
+      b: #M10
+      c: #M6
+      d: #M11
 ''',
     );
   }
@@ -34492,6 +34822,8 @@ const z = x.x + y.y;
   package:test/test.dart
     declaredGetters
       z: #M0
+    declaredVariables
+      z: #M1
 ''',
       updatedCode: r'''
 import 'a.dart' as y;
@@ -34501,7 +34833,9 @@ const z = x.x + y.y;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      z: #M1
+      z: #M2
+    declaredVariables
+      z: #M3
 ''',
     );
   }
@@ -34526,10 +34860,14 @@ const z = p.x;
   package:test/a.dart
     declaredGetters
       x: #M0
+    declaredVariables
+      x: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      z: #M1
+      z: #M2
+    declaredVariables
+      z: #M3
 ''',
       updatedCode: r'''
 import 'b.dart' as p;
@@ -34539,11 +34877,15 @@ const z = p.x;
 [operation] linkLibraryCycle
   package:test/b.dart
     declaredGetters
-      x: #M2
+      x: #M4
+    declaredVariables
+      x: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      z: #M3
+      z: #M6
+    declaredVariables
+      z: #M7
 ''',
     );
   }
@@ -34571,6 +34913,9 @@ const b = -a;
     declaredGetters
       a: #M2
       b: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -34585,13 +34930,16 @@ const b = -a;
     declaredClasses
       A: #M0
         declaredMethods
-          unary-: #M4
+          unary-: #M6
         interface
           map
-            unary-: #M4
+            unary-: #M6
     declaredGetters
       a: #M2
-      b: #M5
+      b: #M7
+    declaredVariables
+      a: #M4
+      b: #M8
 ''',
     );
   }
@@ -34619,6 +34967,9 @@ const b = -a;
     declaredGetters
       a: #M2
       b: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -34634,15 +34985,18 @@ const b = -a;
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
+          foo: #M6
           unary-: #M1
         interface
           map
-            foo: #M4
+            foo: #M6
             unary-: #M1
     declaredGetters
       a: #M2
       b: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
     );
   }
@@ -34658,6 +35012,8 @@ const a = '0'.length;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = '1'.length;
@@ -34666,7 +35022,9 @@ const a = '1'.length;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -34688,6 +35046,11 @@ const d = {b};
       b: #M1
       c: #M2
       d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
 ''',
       updatedCode: r'''
 const a = 1;
@@ -34699,10 +35062,15 @@ const d = {b};
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M4
+      a: #M8
       b: #M1
-      c: #M5
+      c: #M9
       d: #M3
+    declaredVariables
+      a: #M10
+      b: #M5
+      c: #M11
+      d: #M7
 ''',
     );
   }
@@ -34719,6 +35087,8 @@ int get a => 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 @deprecated
@@ -34730,7 +35100,10 @@ int get b => 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -34746,6 +35119,8 @@ int get a => 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 @deprecated
@@ -34755,6 +35130,8 @@ int get a => 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
+      a: #M2
+    declaredVariables
       a: #M1
 ''',
     );
@@ -34772,6 +35149,8 @@ int get a => 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 int get a => 0;
@@ -34780,6 +35159,8 @@ int get a => 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
+      a: #M2
+    declaredVariables
       a: #M1
 ''',
     );
@@ -34799,6 +35180,9 @@ int get foo => 0;
     declaredGetters
       a: #M0
       foo: #M1
+    declaredVariables
+      a: #M2
+      foo: #M3
 ''',
       updatedCode: r'''
 const a = 1;
@@ -34809,7 +35193,10 @@ int get foo => 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M2
+      a: #M4
+      foo: #M5
+    declaredVariables
+      a: #M6
       foo: #M3
 ''',
     );
@@ -34827,6 +35214,8 @@ int get a => 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 @override
@@ -34836,6 +35225,8 @@ int get a => 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
+      a: #M2
+    declaredVariables
       a: #M1
 ''',
     );
@@ -38016,6 +38407,8 @@ int get a => 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 int get a => 0;
@@ -38026,7 +38419,10 @@ int get b => 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38042,6 +38438,8 @@ int get a => 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 int get a => 1;
@@ -38068,6 +38466,9 @@ int get b => 0;
     declaredGetters
       a: #M0
       b: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
       updatedCode: r'''
 @Deprecated('0')
@@ -38080,7 +38481,10 @@ int get b => 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M2
+      b: #M4
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
     );
   }
@@ -38096,6 +38500,8 @@ int get _a => 0;
   package:test/test.dart
     declaredGetters
       _a: #M0
+    declaredVariables
+      _a: #M1
 ''',
       updatedCode: r'''
 int get _a => 0;
@@ -38106,7 +38512,10 @@ int get b => 0;
   package:test/test.dart
     declaredGetters
       _a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      _a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38122,6 +38531,8 @@ int get a => 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 double get a => 0;
@@ -38130,7 +38541,9 @@ double get a => 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38146,6 +38559,8 @@ set a(int _) {}
   package:test/test.dart
     declaredSetters
       a=: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 set a(int _) {}
@@ -38156,7 +38571,10 @@ set b(int _) {}
   package:test/test.dart
     declaredSetters
       a=: #M0
-      b=: #M1
+      b=: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38172,6 +38590,8 @@ set a(int _) { 0; }
   package:test/test.dart
     declaredSetters
       a=: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 set a(int _) { 1; }
@@ -38198,6 +38618,9 @@ set b(int _) {}
     declaredSetters
       a=: #M0
       b=: #M1
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
       updatedCode: r'''
 @Deprecated('0')
@@ -38210,7 +38633,10 @@ set b(int _) {}
   package:test/test.dart
     declaredSetters
       a=: #M0
-      b=: #M2
+      b=: #M4
+    declaredVariables
+      a: #M2
+      b: #M3
 ''',
     );
   }
@@ -38228,6 +38654,9 @@ set a(int _) {}
     declaredSetters
       a=: #M0
         valueType: int @ dart:core
+    declaredVariables
+      a: #M1
+        type: int @ dart:core
 ''',
       updatedCode: r'''
 set a(double _) {}
@@ -38236,8 +38665,11 @@ set a(double _) {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredSetters
-      a=: #M1
+      a=: #M2
         valueType: double @ dart:core
+    declaredVariables
+      a: #M3
+        type: double @ dart:core
 ''',
     );
   }
@@ -38253,6 +38685,8 @@ final a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final a = 0;
@@ -38263,7 +38697,10 @@ final b = 1;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38279,6 +38716,8 @@ final a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final a = 1.2;
@@ -38287,7 +38726,9 @@ final a = 1.2;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38303,6 +38744,8 @@ const a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 const a = 1;
@@ -38311,7 +38754,9 @@ const a = 1;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38327,6 +38772,8 @@ final a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final a = 1;
@@ -38336,6 +38783,8 @@ final a = 1;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
     );
   }
@@ -38358,6 +38807,9 @@ var b = 0;
     declaredSetters
       a=: #M2
       b=: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
 ''',
       updatedCode: r'''
 @Deprecated('0')
@@ -38370,10 +38822,13 @@ var b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M4
+      b: #M6
     declaredSetters
       a=: #M2
-      b=: #M5
+      b=: #M7
+    declaredVariables
+      a: #M4
+      b: #M8
 ''',
     );
   }
@@ -38389,6 +38844,8 @@ const _a = 0;
   package:test/test.dart
     declaredGetters
       _a: #M0
+    declaredVariables
+      _a: #M1
 ''',
       updatedCode: r'''
 const _a = 0;
@@ -38399,7 +38856,10 @@ const b = 0;
   package:test/test.dart
     declaredGetters
       _a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      _a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38415,6 +38875,8 @@ final _a = 0;
   package:test/test.dart
     declaredGetters
       _a: #M0
+    declaredVariables
+      _a: #M1
 ''',
       updatedCode: r'''
 final _a = 0;
@@ -38425,7 +38887,10 @@ final b = 0;
   package:test/test.dart
     declaredGetters
       _a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      _a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38443,6 +38908,8 @@ var _a = 0;
       _a: #M0
     declaredSetters
       _a=: #M1
+    declaredVariables
+      _a: #M2
 ''',
       updatedCode: r'''
 var _a = 0;
@@ -38453,10 +38920,13 @@ var b = 0;
   package:test/test.dart
     declaredGetters
       _a: #M0
-      b: #M2
+      b: #M3
     declaredSetters
       _a=: #M1
-      b=: #M3
+      b=: #M4
+    declaredVariables
+      _a: #M2
+      b: #M5
 ''',
     );
   }
@@ -38474,6 +38944,8 @@ int? a;
       a: #M0
     declaredSetters
       a=: #M1
+    declaredVariables
+      a: #M2
 ''',
       updatedCode: r'''
 double? a;
@@ -38482,9 +38954,11 @@ double? a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M2
+      a: #M3
     declaredSetters
-      a=: #M3
+      a=: #M4
+    declaredVariables
+      a: #M5
 ''',
     );
   }
@@ -38500,6 +38974,8 @@ final dynamic a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final dynamic a = 0;
@@ -38510,7 +38986,10 @@ final b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38526,6 +39005,8 @@ final dynamic a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final int a = 0;
@@ -38534,7 +39015,9 @@ final int a = 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38550,6 +39033,8 @@ final int Function() a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final int Function() a;
@@ -38560,7 +39045,10 @@ final b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38576,6 +39064,8 @@ final void Function({int p1}) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({int p1}) a;
@@ -38586,7 +39076,10 @@ final b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38602,6 +39095,8 @@ final void Function({int p1}) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({int p1, double p2}) a;
@@ -38610,7 +39105,9 @@ final void Function({int p1, double p2}) a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38626,6 +39123,8 @@ final void Function({int p1, double p2}) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({int p1}) a;
@@ -38634,7 +39133,9 @@ final void Function({int p1}) a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38650,6 +39151,8 @@ final void Function({int p}) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function(int p) a;
@@ -38658,7 +39161,9 @@ final void Function(int p) a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38674,6 +39179,8 @@ final void Function({required int p1}) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({int p1}) a;
@@ -38682,7 +39189,9 @@ final void Function({int p1}) a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38698,6 +39207,8 @@ final void Function({int p1}) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({required int p1}) a;
@@ -38706,7 +39217,9 @@ final void Function({required int p1}) a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38722,6 +39235,8 @@ final void Function({int p1}) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({double p1}) a;
@@ -38730,7 +39245,9 @@ final void Function({double p1}) a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38746,6 +39263,8 @@ final int Function() a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final int Function()? a;
@@ -38754,7 +39273,9 @@ final int Function()? a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38770,6 +39291,8 @@ final void Function(int p1) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function(int p1) a;
@@ -38780,7 +39303,10 @@ final b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38796,6 +39322,8 @@ final void Function(int p1) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function(int p1, double p2) a;
@@ -38804,7 +39332,9 @@ final void Function(int p1, double p2) a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38820,6 +39350,8 @@ final void Function(int p1, double p2) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function(int p1) a;
@@ -38828,7 +39360,9 @@ final void Function(int p1) a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38844,6 +39378,8 @@ final void Function(int p) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function({int p}) a;
@@ -38852,7 +39388,9 @@ final void Function({int p}) a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38868,6 +39406,8 @@ final void Function(int p1) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function([int p1]) a;
@@ -38876,7 +39416,9 @@ final void Function([int p1]) a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38892,6 +39434,8 @@ final void Function([int p1]) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function(int p1) a;
@@ -38900,7 +39444,9 @@ final void Function(int p1) a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38916,6 +39462,8 @@ final void Function(int p1) a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function(double p1) a;
@@ -38924,7 +39472,9 @@ final void Function(double p1) a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38940,6 +39490,8 @@ final int Function() a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final double Function() a;
@@ -38948,7 +39500,9 @@ final double Function() a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -38964,6 +39518,8 @@ final T Function<T>() a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final T Function<T>() a;
@@ -38974,7 +39530,10 @@ final b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -38990,6 +39549,8 @@ final void Function<E1>() a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function<E1, E2>() a;
@@ -38998,7 +39559,9 @@ final void Function<E1, E2>() a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39014,6 +39577,8 @@ final T Function<T extends int>() a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final T Function<T extends double>() a;
@@ -39022,7 +39587,9 @@ final T Function<T extends double>() a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39038,6 +39605,8 @@ final void Function<E1, E2>() a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void Function<E1>() a;
@@ -39046,7 +39615,9 @@ final void Function<E1>() a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39062,6 +39633,8 @@ final int a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final double a = 0;
@@ -39070,7 +39643,9 @@ final double a = 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39086,6 +39661,8 @@ final int a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final int? a = 0;
@@ -39094,7 +39671,9 @@ final int? a = 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39110,6 +39689,8 @@ final List<int> a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final List<double> a = 0;
@@ -39118,7 +39699,9 @@ final List<double> a = 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39134,6 +39717,8 @@ final NotType a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final NotType a = 0;
@@ -39144,7 +39729,10 @@ final b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -39160,6 +39748,8 @@ final Never a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final Never a;
@@ -39170,7 +39760,10 @@ final b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -39186,6 +39779,8 @@ final Never a;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final Never? a;
@@ -39194,7 +39789,9 @@ final Never? a;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39210,6 +39807,8 @@ final ({int f1}) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final ({int f1}) a = 0;
@@ -39220,7 +39819,10 @@ final b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -39236,6 +39838,8 @@ final ({int f1}) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final ({int f1, double f2}) a = 0;
@@ -39244,7 +39848,9 @@ final ({int f1, double f2}) a = 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39260,6 +39866,8 @@ final ({int f1}) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final ({int f2}) a = 0;
@@ -39268,7 +39876,9 @@ final ({int f2}) a = 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39284,6 +39894,8 @@ final ({int f1, double f2}) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final ({int f1}) a = 0;
@@ -39292,7 +39904,9 @@ final ({int f1}) a = 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39308,6 +39922,8 @@ final ({int f1, double f2}) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final ({double f2, int f1}) a = 0;
@@ -39317,6 +39933,8 @@ final ({double f2, int f1}) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
     );
   }
@@ -39332,6 +39950,8 @@ final ({int f1}) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final ({double f1}) a = 0;
@@ -39340,7 +39960,9 @@ final ({double f1}) a = 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39356,6 +39978,8 @@ final (int,) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final (int,)? a = 0;
@@ -39364,7 +39988,9 @@ final (int,)? a = 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39380,6 +40006,8 @@ final (int,) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final (int,) a = 0;
@@ -39390,7 +40018,10 @@ final b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -39406,6 +40037,8 @@ final (int,) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final (int, double) a = 0;
@@ -39414,7 +40047,9 @@ final (int, double) a = 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39430,6 +40065,8 @@ final (int x,) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final (int y,) a = 0;
@@ -39439,6 +40076,8 @@ final (int y,) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
     );
   }
@@ -39454,6 +40093,8 @@ final (int, double) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final (int,) a = 0;
@@ -39462,7 +40103,9 @@ final (int,) a = 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39478,6 +40121,8 @@ final (int,) a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final (double,) a = 0;
@@ -39486,7 +40131,9 @@ final (double,) a = 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      a: #M1
+      a: #M2
+    declaredVariables
+      a: #M3
 ''',
     );
   }
@@ -39502,6 +40149,8 @@ final void a = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
 ''',
       updatedCode: r'''
 final void a = 0;
@@ -39512,7 +40161,10 @@ final b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
-      b: #M1
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -39534,14 +40186,18 @@ final x = a;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M2
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -39574,33 +40230,37 @@ double get a => 0;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      a: #M3
+      a: #M5
+    declaredVariables
+      a: #M6
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M7
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M5
+      x: #M8
+    declaredVariables
+      x: #M9
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M3
+        a: #M5
 [operation] produceErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -39616,7 +40276,7 @@ double get a => 0;
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M3
+        a: #M5
 [status] idle
 ''',
     );
@@ -39639,14 +40299,18 @@ final x = a;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M2
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -39681,11 +40345,14 @@ int get b => 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M5
+    declaredVariables
+      a: #M1
+      b: #M6
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsFromBytes
@@ -39723,14 +40390,18 @@ final x = a;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M2
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -39763,11 +40434,13 @@ double get a => 0;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      a: #M3
+      a: #M5
+    declaredVariables
+      a: #M6
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -39778,23 +40451,25 @@ double get a => 0;
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M5
+      x: #M8
+    declaredVariables
+      x: #M9
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M3
+        a: #M5
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -39810,7 +40485,7 @@ double get a => 0;
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M3
+        a: #M5
 [status] idle
 ''',
     );
@@ -39838,14 +40513,18 @@ final x = a;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M2
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -39880,11 +40559,14 @@ int get b => 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M5
+    declaredVariables
+      a: #M1
+      b: #M6
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -39922,14 +40604,18 @@ final x = a;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M2
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -39946,11 +40632,13 @@ double get a => 1.2;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      a: #M3
+      a: #M5
+    declaredVariables
+      a: #M6
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M7
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -39961,17 +40649,19 @@ double get a => 1.2;
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M5
+      x: #M8
+    declaredVariables
+      x: #M9
   requirements
     topLevels
       dart:core
         a: <null>
       package:test/a.dart
-        a: #M3
+        a: #M5
 [status] idle
 ''',
     );
@@ -39999,14 +40689,18 @@ final x = a;
   package:test/a.dart
     declaredGetters
       a: #M0
+    declaredVariables
+      a: #M1
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M2
+      x: #M3
+    declaredVariables
+      x: #M4
   requirements
     topLevels
       dart:core
@@ -40025,11 +40719,14 @@ int get b => 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M5
+    declaredVariables
+      a: #M1
+      b: #M6
   requirements
     topLevels
       dart:core
-        int: #M1
+        int: #M2
 [future] getLibraryByUri T2
   library
     topLevelVariables
