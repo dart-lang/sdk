@@ -73,17 +73,22 @@ class String {
   @patch
   factory String.fromCharCode(int charCode) => _fromCharCode(charCode);
 
-  static String _fromOneByteCharCode(int charCode) => JSStringImpl(
-    js.JS<WasmExternRef?>('c => String.fromCharCode(c)', charCode.toDouble()),
-  );
+  static String _fromOneByteCharCode(int charCode) =>
+      JSStringImpl.fromRefUnchecked(
+        js.JS<WasmExternRef?>(
+          'c => String.fromCharCode(c)',
+          charCode.toDouble(),
+        ),
+      );
 
-  static String _fromTwoByteCharCode(int low, int high) => JSStringImpl(
-    js.JS<WasmExternRef?>(
-      '(l, h) => String.fromCharCode(h, l)',
-      low.toDouble(),
-      high.toDouble(),
-    ),
-  );
+  static String _fromTwoByteCharCode(int low, int high) =>
+      JSStringImpl.fromRefUnchecked(
+        js.JS<WasmExternRef?>(
+          '(l, h) => String.fromCharCode(h, l)',
+          low.toDouble(),
+          high.toDouble(),
+        ),
+      );
 
   static String _fromCharCode(int charCode) {
     if (0 <= charCode) {
@@ -105,7 +110,7 @@ class String {
     int index,
     int end,
   ) {
-    return JSStringImpl(
+    return JSStringImpl.fromRefUnchecked(
       js.JS<WasmExternRef?>(
         '(c, i, e) => String.fromCharCode.apply(null, new Uint32Array(c.buffer, c.byteOffset + i, e))',
         charCodes.toExternRef,

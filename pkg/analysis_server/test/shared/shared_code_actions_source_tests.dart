@@ -126,20 +126,6 @@ int minified(int x, int y) => min(x, y);
     );
   }
 
-  Future<void> test_filtersCorrectly() async {
-    createFile(testFilePath, '');
-    await initializeServer();
-
-    ofKind(CodeActionKind kind) => getCodeActions(testFileUri, kinds: [kind]);
-
-    expect(await ofKind(CodeActionKind.Source), hasLength(3));
-    expect(await ofKind(CodeActionKind.SourceOrganizeImports), hasLength(1));
-    expect(await ofKind(DartCodeActionKind.SortMembers), hasLength(1));
-    expect(await ofKind(DartCodeActionKind.FixAll), hasLength(1));
-    expect(await ofKind(CodeActionKind('source.foo')), isEmpty);
-    expect(await ofKind(CodeActionKind.Refactor), isEmpty);
-  }
-
   Future<void> test_noEdits() async {
     const content = '''
 import 'dart:async';
@@ -369,5 +355,38 @@ mixin SharedSourceCodeActionsTestMixin
     setApplyEditSupport();
     setDocumentChangesSupport();
     setSupportedCodeActionKinds([CodeActionKind.Source]);
+  }
+}
+
+/// Shared tests used by both LSP + Legacy server tests and/or integration.
+mixin SharedSourceCodeActionsTests
+    on
+        SharedTestInterface,
+        SharedSourceCodeActionsTestMixin,
+        CodeActionsTestMixin,
+        LspRequestHelpersMixin,
+        LspEditHelpersMixin,
+        LspVerifyEditHelpersMixin,
+        ClientCapabilitiesHelperMixin {
+  Future<void> test_filtersCorrectly() async {
+    createFile(testFilePath, '');
+    await initializeServer();
+
+    ofKind(CodeActionKind kind) => getCodeActions(testFileUri, kinds: [kind]);
+
+    var serverSupportsFixAll = this.serverSupportsFixAll;
+
+    expect(
+      await ofKind(CodeActionKind.Source),
+      hasLength(serverSupportsFixAll ? 3 : 2),
+    );
+    expect(await ofKind(CodeActionKind.SourceOrganizeImports), hasLength(1));
+    expect(await ofKind(DartCodeActionKind.SortMembers), hasLength(1));
+    expect(
+      await ofKind(DartCodeActionKind.FixAll),
+      hasLength(serverSupportsFixAll ? 1 : 0),
+    );
+    expect(await ofKind(CodeActionKind('source.foo')), isEmpty);
+    expect(await ofKind(CodeActionKind.Refactor), isEmpty);
   }
 }

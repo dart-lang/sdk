@@ -22,7 +22,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -1268,8 +1267,7 @@ parent3: ${node.parent?.parent?.parent}
     }
     var declaredElement = field.element2?.library2;
     var uri = declaredElement?.uri;
-    var manager = InheritanceManager3();
-    var member = manager.getMember3(type, Name(uri, name));
+    var member = type.element3.getInterfaceMember(Name(uri, name));
     if (member is GetterElement) {
       return member.returnType;
     } else if (member is MethodElement) {

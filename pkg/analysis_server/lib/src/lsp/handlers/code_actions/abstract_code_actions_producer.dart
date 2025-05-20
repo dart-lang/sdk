@@ -274,4 +274,18 @@ abstract class AbstractCodeActionsProducer
       return null;
     }
   }
+
+  /// Checks whether the server supports a given command.
+  bool serverSupportsCommand(String command) {
+    var handler = server.executeCommandHandler;
+
+    // `null` should never happen, it's set by the constructor of
+    // ExecuteCommandHandler which is invoked as part of initialization.
+    assert(handler != null);
+    if (handler == null) {
+      return false;
+    }
+
+    return handler.commandHandlers[command] != null;
+  }
 }

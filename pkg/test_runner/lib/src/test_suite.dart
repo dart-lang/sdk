@@ -756,8 +756,6 @@ class StandardTestSuite extends TestSuite {
       _enqueueStandardTest(testFile, expectationSet, onTest);
     } else if (configuration.runtime.isBrowser) {
       _enqueueBrowserTest(testFile, expectationSet, onTest);
-    } else if (suiteName == 'service') {
-      _enqueueServiceTest(testFile, expectationSet, onTest);
     } else {
       _enqueueStandardTest(testFile, expectationSet, onTest);
     }
@@ -786,44 +784,6 @@ class StandardTestSuite extends TestSuite {
       }
 
       _addTestCase(testFile, variantTestName, commands, expectations, onTest);
-    }
-  }
-
-  void _enqueueServiceTest(
-      TestFile testFile, Set<Expectation> expectations, TestCaseEvent onTest) {
-    var commonArguments = _commonArgumentsFromFile(testFile);
-
-    var vmOptionsList = getVmOptions(testFile);
-    assert(vmOptionsList.isNotEmpty);
-
-    var emitDdsTest = false;
-    for (var i = 0; i < 2; ++i) {
-      for (var vmOptionsVariant = 0;
-          vmOptionsVariant < vmOptionsList.length;
-          vmOptionsVariant++) {
-        var vmOptions = [
-          ...vmOptionsList[vmOptionsVariant],
-          ...extraVmOptions,
-          if (emitDdsTest) '-DUSE_DDS=true',
-          if (configuration.serviceResponseSizesDirectory != null)
-            '-DSERVICE_RESPONSE_SIZES_DIR=${configuration.serviceResponseSizesDirectory}',
-        ];
-        var isCrashExpected = expectations.contains(Expectation.crash);
-        var commands = _makeCommands(
-            testFile,
-            vmOptionsVariant + (vmOptionsList.length * i),
-            vmOptions,
-            commonArguments,
-            isCrashExpected);
-        var variantTestName =
-            '${testFile.name}/${emitDdsTest ? 'dds' : 'service'}';
-        if (vmOptionsList.length > 1) {
-          variantTestName = "${variantTestName}_$vmOptionsVariant";
-        }
-
-        _addTestCase(testFile, variantTestName, commands, expectations, onTest);
-      }
-      emitDdsTest = true;
     }
   }
 

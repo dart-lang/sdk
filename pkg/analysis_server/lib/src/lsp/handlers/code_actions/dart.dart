@@ -104,6 +104,10 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       (() => Commands.serverSupportedCommands.contains(command))(),
       'serverSupportedCommands did not contain $command',
     );
+    assert(
+      (() => serverSupportsCommand(command))(),
+      'This kind of server does not support $command',
+    );
 
     return _maybeWrapCommandInCodeActionLiteral(
       actionKind,
@@ -527,7 +531,8 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           'Organize Imports',
           Commands.organizeImports,
         ),
-      if (shouldIncludeKind(DartCodeActionKind.FixAll))
+      if (serverSupportsCommand(Commands.fixAll) &&
+          shouldIncludeKind(DartCodeActionKind.FixAll))
         createAction(DartCodeActionKind.FixAll, 'Fix All', Commands.fixAll),
     ];
   }

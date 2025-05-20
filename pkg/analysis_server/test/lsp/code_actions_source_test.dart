@@ -17,6 +17,7 @@ import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(SourceCodeActionsTest);
     defineReflectiveTests(SortMembersSourceCodeActionsTest);
     defineReflectiveTests(OrganizeImportsSourceCodeActionsTest);
     defineReflectiveTests(FixAllSourceCodeActionsTest);
@@ -345,3 +346,10 @@ class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest
         SharedSourceCodeActionsTestMixin,
         // Tests are defined in a shared mixin.
         SharedSortMembersSourceCodeActionsTests {}
+
+@reflectiveTest
+class SourceCodeActionsTest extends AbstractSourceCodeActionsTest
+    with
+        SharedSourceCodeActionsTestMixin,
+        // Tests are defined in a shared mixin.
+        SharedSourceCodeActionsTests {}

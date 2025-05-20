@@ -15,6 +15,9 @@ typedef DTDServiceCallback = Future<Map<String, Object?>> Function(
   Parameters params,
 );
 
+// TODO(kenz): replace all raw string values with constants from
+//  `constants.dart` that can be shared with the dtd_impl package.
+
 // TODO(danchevalier): add a serviceMethodIsAvailable experience. it will listen
 // to a stream that announces servicemethods getting registered and
 // unregistered. The state can then be presented as a listenable so that clients
@@ -31,19 +34,24 @@ class DartToolingDaemon {
   DartToolingDaemon.fromStreamChannel(StreamChannel<String> streamChannel)
       : _clientPeer = Peer(streamChannel) {
     _clientPeer.registerMethod('streamNotify', (Parameters params) {
-      final streamId = params['streamId'].asString;
-      final eventKind = params['eventKind'].asString;
-      final eventData = params['eventData'].asMap as Map<String, Object?>;
-      final timestamp = params['timestamp'].asInt;
+      try {
+        final streamId = params[EventParameters.streamId].asString;
+        final eventKind = params[EventParameters.eventKind].asString;
+        final eventData =
+            params[EventParameters.eventData].asMap as Map<String, Object?>;
+        final timestamp = params[EventParameters.timestamp].asInt;
 
-      _subscribedStreamControllers[streamId]?.add(
-        DTDEvent(
-          streamId,
-          eventKind,
-          eventData,
-          timestamp,
-        ),
-      );
+        _subscribedStreamControllers[streamId]?.add(
+          DTDEvent(
+            streamId,
+            eventKind,
+            eventData,
+            timestamp,
+          ),
+        );
+      } catch (e) {
+        print('Error while handling streamNotify event: $e');
+      }
     });
 
     _done = _clientPeer.listen();

@@ -15,6 +15,7 @@ extension type B._(A a) {
   external B.named(int i);
   external B get getter;
   external B get property;
+  external B methodWithOptionalArgument([B? b]);
   external T genericMethod<T extends B>(T t);
   external static A staticField;
   external static A staticMethod();

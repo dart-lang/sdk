@@ -73,7 +73,7 @@ class String {
     for (int i = 0; i < count; ++i) {
       dst.write(i, src.readUnsigned(start + i));
     }
-    return JSStringImpl(
+    return JSStringImpl.fromRefUnchecked(
       jsStringFromCharCodeArray(dst, 0.toWasmI32(), count.toWasmI32()),
     );
   }
@@ -96,7 +96,7 @@ class String {
     for (int i = 0; i < count; ++i) {
       dst.write(i, charCodes[start + i]);
     }
-    return JSStringImpl(
+    return JSStringImpl.fromRefUnchecked(
       jsStringFromCharCodeArray(dst, 0.toWasmI32(), count.toWasmI32()),
     );
   }
@@ -118,7 +118,7 @@ class String {
     end += offset;
 
     final data = charCodes.data;
-    return JSStringImpl(
+    return JSStringImpl.fromRefUnchecked(
       jsStringFromCharCodeArray(data, start.toWasmI32(), end.toWasmI32()),
     );
   }
@@ -146,7 +146,7 @@ class String {
       }
       dst.write(i, charCode);
     }
-    return JSStringImpl(
+    return JSStringImpl.fromRefUnchecked(
       jsStringFromCharCodeArray(dst, 0.toWasmI32(), count.toWasmI32()),
     );
   }
@@ -196,7 +196,7 @@ class String {
       }
     }
 
-    return JSStringImpl(
+    return JSStringImpl.fromRefUnchecked(
       jsStringFromCharCodeArray(list, const WasmI32(0), WasmI32.fromInt(index)),
     );
   }
