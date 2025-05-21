@@ -863,6 +863,23 @@ AssignmentExpression
 ''');
   }
 
+  test_indexExpression_unresolved_missing_type_parameter_name() async {
+    await assertErrorsInCode(
+      r'''
+abstract class A {
+   void b< extends int>();
+}
+void f(A a) {
+  a.b[0] = 0;
+}
+''',
+      [
+        error(ParserErrorCode.MISSING_IDENTIFIER, 30, 7),
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 67, 3),
+      ],
+    );
+  }
+
   test_indexExpression_unresolvedTarget_compound() async {
     await assertErrorsInCode(
       r'''

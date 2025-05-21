@@ -623,7 +623,8 @@ class ElementDisplayStringBuilder {
 
     var newTypeParameters = <TypeParameterElementImpl2>[];
     for (var typeParameter in type.typeParameters) {
-      var name = typeParameter.name3!;
+      // The type parameter name can be null in erroneous cases.
+      var name = typeParameter.name3 ?? '';
       for (var counter = 0; !namesToAvoid.add(name); counter++) {
         const unicodeSubscriptZero = 0x2080;
         const unicodeZero = 0x30;

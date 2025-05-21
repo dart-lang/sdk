@@ -88,12 +88,23 @@ uword Image::instructions_relocated_address() const {
 #endif
 }
 
+const void* Image::build_id_start() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (compiled_to_shared_object() &&
+      extra_info_->build_id_offset_ != kNoBuildId) {
+    return reinterpret_cast<const void*>(raw_memory_ +
+                                         extra_info_->build_id_offset_);
+  }
+#endif
+  return nullptr;
+}
+
 const uint8_t* Image::build_id() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(extra_info_ != nullptr);
-  if (extra_info_->build_id_offset_ != kNoBuildId) {
-    auto const note = reinterpret_cast<elf::Note*>(
-        raw_memory_ + extra_info_->build_id_offset_);
+  auto* const start = build_id_start();
+  if (start == nullptr) return nullptr;
+  if (compiled_to_elf()) {
+    auto* const note = reinterpret_cast<const elf::Note*>(start);
     return note->data + note->name_size;
   }
 #endif
@@ -103,22 +114,46 @@ const uint8_t* Image::build_id() const {
 intptr_t Image::build_id_length() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(extra_info_ != nullptr);
-  if (extra_info_->build_id_offset_ != kNoBuildId) {
-    auto const note = reinterpret_cast<elf::Note*>(
-        raw_memory_ + extra_info_->build_id_offset_);
+  auto* const start = build_id_start();
+  if (start == nullptr) return 0;
+  if (compiled_to_elf()) {
+    auto const note = reinterpret_cast<const elf::Note*>(start);
     return note->description_size;
   }
 #endif
   return 0;
 }
 
-bool Image::compiled_to_elf() const {
+bool Image::compiled_to_shared_object() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(extra_info_ != nullptr);
-  // Since assembly snapshots can't set up this field correctly (instead,
-  // it's initialized in BSS at snapshot load time), we use it to detect
-  // direct-to-ELF snapshots.
+  // Since assembly snapshots can't set up this field correctly, it is used
+  // to detect direct-to-shared-object snapshots.
   return extra_info_->instructions_relocated_address_ != kNoRelocatedAddress;
+#else
+  return false;
+#endif
+}
+
+const uint8_t* Image::shared_object_start() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (compiled_to_shared_object()) {
+    return reinterpret_cast<const uint8_t*>(
+        raw_memory_ - extra_info_->instructions_relocated_address_);
+  }
+#endif
+  return nullptr;
+}
+
+bool Image::compiled_to_elf() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (!compiled_to_shared_object()) return false;
+  constexpr intptr_t len = ARRAY_SIZE(elf::ELFMAG);
+  const uint8_t* so_start = shared_object_start();
+  for (intptr_t i = 0; i < len; ++i) {
+    if (so_start[i] != elf::ELFMAG[i]) return false;
+  }
+  return true;
 #else
   return false;
 #endif
@@ -502,16 +537,14 @@ void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
     }
   }
 
-  // Needs to happen before WriteText, as we add information about the
-  // BSSsection in the text section as an initial InstructionsSection object.
   WriteBss(vm);
 
   offset_space_ = vm ? IdSpace::kVmText : IdSpace::kIsolateText;
   WriteText(vm);
 
   // Append the direct-mapped RO data objects after the clustered snapshot
-  // and then for ELF and assembly outputs, add appropriate sections with
-  // that combined data.
+  // and then for shared object and assembly outputs, add appropriate sections
+  // with that combined data.
   offset_space_ = vm ? IdSpace::kVmData : IdSpace::kIsolateData;
   WriteROData(clustered_stream, vm);
 }
@@ -1138,13 +1171,13 @@ class DwarfAssemblyStream : public DwarfWriteStream {
 static inline Dwarf* AddDwarfIfUnstripped(
     Zone* zone,
     bool strip,
-    Elf* elf,
+    SharedObjectWriter* writer,
     const Trie<const char>* deobfuscation_trie) {
   if (!strip) {
-    if (elf != nullptr) {
+    if (writer != nullptr) {
       // Reuse the existing DWARF object.
-      ASSERT(elf->dwarf() != nullptr);
-      return elf->dwarf();
+      ASSERT(writer->dwarf() != nullptr);
+      return writer->dwarf();
     }
     return new (zone) Dwarf(zone, deobfuscation_trie);
   }
@@ -1156,12 +1189,12 @@ AssemblyImageWriter::AssemblyImageWriter(
     BaseWriteStream* stream,
     const Trie<const char>* deobfuscation_trie,
     bool strip,
-    Elf* debug_elf)
+    SharedObjectWriter* debug_so)
     : ImageWriter(thread, /*generates_assembly=*/true, deobfuscation_trie),
       assembly_stream_(stream),
       assembly_dwarf_(
-          AddDwarfIfUnstripped(zone_, strip, debug_elf, deobfuscation_trie)),
-      debug_elf_(debug_elf),
+          AddDwarfIfUnstripped(zone_, strip, debug_so, deobfuscation_trie)),
+      debug_so_(debug_so),
       label_to_symbol_name_(zone_) {
   // Set up the label mappings for the section symbols for use in relocations.
   for (intptr_t i = 0; i < kNumProgramSections; i++) {
@@ -1193,8 +1226,9 @@ void AssemblyImageWriter::Finalize() {
     dwarf_stream.LineNumberProgramPrologue();
     assembly_dwarf_->WriteLineNumberProgram(&dwarf_stream);
   }
-  if (debug_elf_ != nullptr) {
-    debug_elf_->Finalize();
+  if (debug_so_ != nullptr) {
+    TIMELINE_DURATION(thread_, Isolate, "FinalizeDebugInfo");
+    debug_so_->Finalize();
   }
 
 #if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
@@ -1458,22 +1492,22 @@ bool AssemblyImageWriter::EnterSection(ProgramSection section,
   bool global_symbol = false;
   switch (section) {
     case ProgramSection::Text:
-      if (debug_elf_ != nullptr) {
+      if (debug_so_ != nullptr) {
         current_symbols_ =
-            new (zone_) ZoneGrowableArray<Elf::SymbolData>(zone_, 0);
+            new (zone_) SharedObjectWriter::SymbolDataArray(zone_, 0);
       }
       assembly_stream_->WriteString(".text\n");
       global_symbol = true;
       break;
     case ProgramSection::Data:
-      // We create a SymbolData array even if there is no debug_elf_ because we
+      // We create a SymbolData array even if there is no debug_so_ because we
       // may be writing RO data symbols, and RO data is written in two steps:
       // 1. Serializing the read-only data objects to the clustered stream
       // 2. Writing the bytes of the clustered stream to the assembly output.
       // Thus, we'll need to interleave the symbols with the cluster bytes
       // during step 2.
       current_symbols_ =
-          new (zone_) ZoneGrowableArray<Elf::SymbolData>(zone_, 0);
+          new (zone_) SharedObjectWriter::SymbolDataArray(zone_, 0);
 #if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
     defined(DART_TARGET_OS_FUCHSIA)
       assembly_stream_->WriteString(".section .rodata\n");
@@ -1503,25 +1537,25 @@ bool AssemblyImageWriter::EnterSection(ProgramSection section,
   return true;
 }
 
-static void ElfAddSection(
-    Elf* elf,
+static void AddSharedObjectSection(
+    SharedObjectWriter* writer,
     ImageWriter::ProgramSection section,
     const char* symbol,
     intptr_t label,
     uint8_t* bytes,
     intptr_t size,
-    ZoneGrowableArray<Elf::SymbolData>* symbols,
-    ZoneGrowableArray<Elf::Relocation>* relocations = nullptr) {
-  if (elf == nullptr) return;
+    SharedObjectWriter::SymbolDataArray* symbols,
+    SharedObjectWriter::RelocationArray* relocations = nullptr) {
+  if (writer == nullptr) return;
   switch (section) {
     case ImageWriter::ProgramSection::Text:
-      elf->AddText(symbol, label, bytes, size, relocations, symbols);
+      writer->AddText(symbol, label, bytes, size, relocations, symbols);
       break;
     case ImageWriter::ProgramSection::Data:
-      elf->AddROData(symbol, label, bytes, size, relocations, symbols);
+      writer->AddROData(symbol, label, bytes, size, relocations, symbols);
       break;
     default:
-      // Other sections are handled by the Elf object internally.
+      // Other sections are handled by the shared object writer internally.
       break;
   }
 }
@@ -1542,8 +1576,8 @@ void AssemblyImageWriter::ExitSection(ProgramSection name,
 #else
   UNIMPLEMENTED();
 #endif
-  // We need to generate a text segment of the appropriate size in the ELF
-  // for two reasons:
+  // We need to generate a text segment of the appropriate size in the shared
+  // object writer for two reasons:
   //
   // * We need unique virtual addresses for each text section in the DWARF
   //   file and that the virtual addresses for payloads within those sections
@@ -1555,11 +1589,10 @@ void AssemblyImageWriter::ExitSection(ProgramSection name,
   //   corresponding segment to get the virtual address for the frame.
   //
   // Since we don't want to add the actual contents of the segment in the
-  // separate debugging information, we pass nullptr for the bytes, which
-  // creates an appropriate NOBITS section instead of PROGBITS.
-  ElfAddSection(debug_elf_, name, SectionSymbol(name, vm),
-                current_section_label_, /*bytes=*/nullptr, size,
-                current_symbols_);
+  // separate debugging information, we pass nullptr for the bytes.
+  AddSharedObjectSection(debug_so_, name, SectionSymbol(name, vm),
+                         current_section_label_, /*bytes=*/nullptr, size,
+                         current_symbols_);
   current_section_label_ = 0;
   current_symbols_ = nullptr;
 }
@@ -1621,9 +1654,11 @@ void AssemblyImageWriter::AddCodeSymbol(const Code& code,
   if (assembly_dwarf_ != nullptr) {
     assembly_dwarf_->AddCode(code, label);
   }
-  if (debug_elf_ != nullptr) {
-    current_symbols_->Add({symbol, elf::STT_FUNC, offset, code.Size(), label});
-    debug_elf_->dwarf()->AddCode(code, label);
+  if (debug_so_ != nullptr) {
+    current_symbols_->Add({symbol,
+                           SharedObjectWriter::SymbolData::Type::Function,
+                           offset, code.Size(), label});
+    debug_so_->dwarf()->AddCode(code, label);
   }
   assembly_stream_->Printf("\"%s\":\n", symbol);
 #if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
@@ -1645,7 +1680,10 @@ void AssemblyImageWriter::AddDataSymbol(const char* symbol,
   if (!FLAG_add_readonly_data_symbols) return;
   auto const label = next_label_++;
   label_to_symbol_name_.Insert(label, symbol);
-  current_symbols_->Add({symbol, elf::STT_OBJECT, offset, size, label});
+  if (debug_so_ != nullptr) {
+    current_symbols_->Add({symbol, SharedObjectWriter::SymbolData::Type::Object,
+                           offset, size, label});
+  }
 }
 
 void AssemblyImageWriter::FrameUnwindPrologue() {
@@ -1761,26 +1799,45 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
                                  NonStreamingWriteStream* vm_instructions,
                                  NonStreamingWriteStream* isolate_instructions,
                                  const Trie<const char>* deobfuscation_trie,
-                                 Elf* debug_elf,
-                                 Elf* elf)
+                                 SharedObjectWriter* debug_so,
+                                 SharedObjectWriter* so)
     : ImageWriter(thread, /*generates_assembly=*/false, deobfuscation_trie),
 #else
 BlobImageWriter::BlobImageWriter(Thread* thread,
                                  NonStreamingWriteStream* vm_instructions,
                                  NonStreamingWriteStream* isolate_instructions,
-                                 Elf* debug_elf,
-                                 Elf* elf)
+                                 SharedObjectWriter* debug_so,
+                                 SharedObjectWriter* so)
     : ImageWriter(thread, /*generates_assembly=*/false),
 #endif
       vm_instructions_(vm_instructions),
       isolate_instructions_(isolate_instructions),
-      elf_(elf),
-      debug_elf_(debug_elf) {
+      so_(so),
+      debug_so_(debug_so) {
 #if defined(DART_PRECOMPILER)
-  ASSERT_EQUAL(FLAG_precompiled_mode, elf_ != nullptr);
-  ASSERT(debug_elf_ == nullptr || debug_elf_->dwarf() != nullptr);
+  ASSERT_EQUAL(FLAG_precompiled_mode, so_ != nullptr);
+  ASSERT(debug_so_ == nullptr || debug_so_->dwarf() != nullptr);
 #else
-  RELEASE_ASSERT(elf_ == nullptr);
+  RELEASE_ASSERT(so_ == nullptr);
+  RELEASE_ASSERT(debug_so_ == nullptr);
+#endif
+}
+
+void BlobImageWriter::Finalize() {
+#if defined(DART_PRECOMPILER)
+  if (so_ != nullptr) {
+    TIMELINE_DURATION(thread_, Isolate, "FinalizeSharedObject");
+    so_->Finalize();
+  }
+  if (debug_so_ != nullptr) {
+    {
+      TIMELINE_DURATION(thread_, Isolate, "FinalizeDebugInfo");
+      debug_so_->Finalize();
+    }
+    if (so_ != nullptr) {
+      so_->AssertConsistency(debug_so_);
+    }
+  }
 #endif
 }
 
@@ -1792,7 +1849,7 @@ intptr_t BlobImageWriter::WriteBytes(const void* bytes, intptr_t size) {
 void BlobImageWriter::WriteBss(bool vm) {
 #if defined(DART_PRECOMPILER)
   // We don't actually write a BSS segment, it's created as part of the
-  // Elf constructor.
+  // Finalize() method of the shared object writer.
 #endif
 }
 
@@ -1822,7 +1879,7 @@ bool BlobImageWriter::EnterSection(ProgramSection section,
                                    intptr_t alignment,
                                    intptr_t* alignment_padding) {
 #if defined(DART_PRECOMPILER)
-  ASSERT_EQUAL(elf_ != nullptr, FLAG_precompiled_mode);
+  ASSERT_EQUAL(so_ != nullptr, FLAG_precompiled_mode);
   ASSERT(current_relocations_ == nullptr);
   ASSERT(current_symbols_ == nullptr);
 #endif
@@ -1832,29 +1889,32 @@ bool BlobImageWriter::EnterSection(ProgramSection section,
       current_section_stream_ =
           ASSERT_NOTNULL(vm ? vm_instructions_ : isolate_instructions_);
 #if defined(DART_PRECOMPILER)
-      current_relocations_ =
-          new (zone_) ZoneGrowableArray<Elf::Relocation>(zone_, 0);
-      current_symbols_ =
-          new (zone_) ZoneGrowableArray<Elf::SymbolData>(zone_, 0);
+      if (so_ != nullptr || debug_so_ != nullptr) {
+        current_relocations_ =
+            new (zone_) SharedObjectWriter::RelocationArray(zone_, 0);
+        current_symbols_ =
+            new (zone_) SharedObjectWriter::SymbolDataArray(zone_, 0);
+      }
 #endif
       break;
     case ProgramSection::Data:
       // The stream to use is passed into WriteROData and set there.
       ASSERT(current_section_stream_ != nullptr);
 #if defined(DART_PRECOMPILER)
-      current_relocations_ =
-          new (zone_) ZoneGrowableArray<Elf::Relocation>(zone_, 0);
-      current_symbols_ =
-          new (zone_) ZoneGrowableArray<Elf::SymbolData>(zone_, 0);
+      if (so_ != nullptr || debug_so_ != nullptr) {
+        current_relocations_ =
+            new (zone_) SharedObjectWriter::RelocationArray(zone_, 0);
+        current_symbols_ =
+            new (zone_) SharedObjectWriter::SymbolDataArray(zone_, 0);
+      }
 #endif
       break;
     case ProgramSection::Bss:
-      // The BSS section is pre-made in the Elf object for precompiled snapshots
-      // and unused otherwise, so there's no work that needs doing here.
+      // SharedObjectWriter::Finalize() creates the BSS section.
       return false;
     case ProgramSection::BuildId:
-      // The GNU build ID is handled specially in the Elf object, and does not
-      // get used for non-precompiled snapshots.
+      // SharedObjectWriter::Finalize() creates the appropriate type of
+      // build ID for the target format.
       return false;
   }
   intptr_t padding = current_section_stream_->Align(alignment);
@@ -1866,14 +1926,16 @@ bool BlobImageWriter::EnterSection(ProgramSection section,
 
 void BlobImageWriter::ExitSection(ProgramSection name, bool vm, intptr_t size) {
 #if defined(DART_PRECOMPILER)
-  ElfAddSection(elf_, name, SectionSymbol(name, vm), SectionLabel(name, vm),
-                current_section_stream_->buffer(), size, current_symbols_,
-                current_relocations_);
+  AddSharedObjectSection(so_, name, SectionSymbol(name, vm),
+                         SectionLabel(name, vm),
+                         current_section_stream_->buffer(), size,
+                         current_symbols_, current_relocations_);
   // We create the corresponding segment in the debugging information as well,
   // since it needs the contents to create the correct build ID.
-  ElfAddSection(debug_elf_, name, SectionSymbol(name, vm),
-                SectionLabel(name, vm), current_section_stream_->buffer(), size,
-                current_symbols_, current_relocations_);
+  AddSharedObjectSection(debug_so_, name, SectionSymbol(name, vm),
+                         SectionLabel(name, vm),
+                         current_section_stream_->buffer(), size,
+                         current_symbols_, current_relocations_);
   current_relocations_ = nullptr;
   current_symbols_ = nullptr;
 #endif
@@ -1903,9 +1965,11 @@ intptr_t BlobImageWriter::Relocation(intptr_t section_offset,
                                      intptr_t target_label,
                                      intptr_t target_offset) {
   ASSERT(FLAG_precompiled_mode);
-  current_relocations_->Add({compiler::target::kWordSize, section_offset,
-                             source_label, source_offset, target_label,
-                             target_offset});
+  if (current_relocations_ != nullptr) {
+    current_relocations_->Add({compiler::target::kWordSize, section_offset,
+                               source_label, source_offset, target_label,
+                               target_offset});
+  }
   // We write break instructions so it's easy to tell if a relocation doesn't
   // get replaced appropriately.
   return WriteTargetWord(kBreakInstructionFiller);
@@ -1915,12 +1979,16 @@ void BlobImageWriter::AddCodeSymbol(const Code& code,
                                     const char* symbol,
                                     intptr_t offset) {
   const intptr_t label = next_label_++;
-  current_symbols_->Add({symbol, elf::STT_FUNC, offset, code.Size(), label});
-  if (elf_ != nullptr && elf_->dwarf() != nullptr) {
-    elf_->dwarf()->AddCode(code, label);
+  if (current_symbols_ != nullptr) {
+    current_symbols_->Add({symbol,
+                           SharedObjectWriter::SymbolData::Type::Function,
+                           offset, code.Size(), label});
   }
-  if (debug_elf_ != nullptr) {
-    debug_elf_->dwarf()->AddCode(code, label);
+  if (so_ != nullptr && so_->dwarf() != nullptr) {
+    so_->dwarf()->AddCode(code, label);
+  }
+  if (debug_so_ != nullptr) {
+    debug_so_->dwarf()->AddCode(code, label);
   }
 }
 
@@ -1929,7 +1997,10 @@ void BlobImageWriter::AddDataSymbol(const char* symbol,
                                     size_t size) {
   if (!FLAG_add_readonly_data_symbols) return;
   const intptr_t label = next_label_++;
-  current_symbols_->Add({symbol, elf::STT_OBJECT, offset, size, label});
+  if (current_symbols_ != nullptr) {
+    current_symbols_->Add({symbol, SharedObjectWriter::SymbolData::Type::Object,
+                           offset, size, label});
+  }
 }
 #endif  // defined(DART_PRECOMPILER)
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

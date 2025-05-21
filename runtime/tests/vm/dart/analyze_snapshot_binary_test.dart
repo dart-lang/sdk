@@ -561,8 +561,10 @@ main() async {
     // Test unstripped ELF generation that is then externally stripped.
     await Future.wait([testAOT(aotDillPath, stripUtil: true)]);
 
-    // Dont test assembled snapshot for simulated platforms
-    if (!buildDir.endsWith("SIMARM64") && !buildDir.endsWith("SIMARM64C")) {
+    // Dont test assembled snapshot for simulated platforms or macos
+    if (!buildDir.endsWith("SIMARM64") &&
+        !buildDir.endsWith("SIMARM64C") &&
+        !Platform.isMacOS) {
       await Future.wait([
         // Test unstripped assembly generation that is then externally stripped.
         testAOT(aotDillPath, useAsm: true),

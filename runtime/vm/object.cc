@@ -26795,7 +26795,7 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
   // Only print the relocated address of the call when we know the saved
   // debugging information (if any) will have the same relocated address.
   // Also only print 'virt' fields for isolate addresses.
-  if (!vm && image.compiled_to_elf()) {
+  if (!vm && image.compiled_to_shared_object()) {
     const uword relocated_section_start =
         image.instructions_relocated_address();
     buffer->Printf(" virt %" Pp "", relocated_section_start + offset);
@@ -27003,10 +27003,10 @@ const char* StackTrace::ToCString() const {
 #else
     const char kUsingSimulator[] = "no";
 #endif
-    buffer.Printf("os: %s arch: %s comp: %s sim: %s\n",
-                  kHostOperatingSystemName, kTargetArchitectureName,
-                  kCompressedPointers, kUsingSimulator);
-    WriteImageBuildId(&buffer, "build_id: ", isolate_instructions);
+    buffer.Printf("os: %s arch: %s comp: %s sim: %s", kHostOperatingSystemName,
+                  kTargetArchitectureName, kCompressedPointers,
+                  kUsingSimulator);
+    WriteImageBuildId(&buffer, "\nbuild_id: ", isolate_instructions);
     buffer.AddString("\n");
     if (!loading_units.IsNull()) {
       const intptr_t unit_count = loading_units.Length();

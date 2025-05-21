@@ -6429,11 +6429,16 @@ static constexpr intptr_t kAssemblyInitialSize = 512 * KB;
 static constexpr intptr_t kInitialSize = 2 * MB;
 static constexpr intptr_t kInitialDebugSize = 1 * MB;
 
+enum class AOTSnapshotType {
+  kAssembly,
+  kElf,
+};
+
 static void CreateAppAOTSnapshot(
     Dart_StreamingWriteCallback callback,
     void* callback_data,
     bool strip,
-    bool as_elf,
+    AOTSnapshotType type,
     void* debug_callback_data,
     GrowableArray<LoadingUnitSerializationData*>* units,
     LoadingUnitSerializationData* unit,
@@ -6455,68 +6460,59 @@ static void CreateAppAOTSnapshot(
       (strip && !generate_debug) ? nullptr
                                  : ImageWriter::CreateReverseObfuscationTrie(T);
 
-  if (as_elf) {
-    StreamingWriteStream elf_stream(kInitialSize, callback, callback_data);
-    StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
-                                      callback, debug_callback_data);
+  StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
+                                    callback, debug_callback_data);
+  Dwarf* debug_dwarf = nullptr;
+  SharedObjectWriter* debug_so = nullptr;
+  if (generate_debug) {
+    debug_dwarf = new (Z) Dwarf(Z, deobfuscation_trie);
+    debug_so = new (Z) ElfWriter(
+        Z, &debug_stream, SharedObjectWriter::Type::DebugInfo, debug_dwarf);
+  }
 
-    auto const dwarf = strip ? nullptr : new (Z) Dwarf(Z, deobfuscation_trie);
-    auto const elf = new (Z) Elf(Z, &elf_stream, Elf::Type::Snapshot, dwarf);
-    // Re-use the same DWARF object if the snapshot is unstripped.
-    auto const debug_elf =
-        generate_debug
-            ? new (Z) Elf(Z, &debug_stream, Elf::Type::DebugInfo,
-                          strip ? new (Z) Dwarf(Z, deobfuscation_trie) : dwarf)
-            : nullptr;
+  StreamingWriteStream output_stream(
+      type == AOTSnapshotType::kAssembly ? kAssemblyInitialSize : kInitialSize,
+      callback, callback_data);
 
-    BlobImageWriter image_writer(T, &vm_snapshot_instructions,
-                                 &isolate_snapshot_instructions,
-                                 deobfuscation_trie, debug_elf, elf);
+  auto const use_output_writer = [&](ImageWriter* image_writer) {
     FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data,
-                              &isolate_snapshot_data, &image_writer,
-                              &image_writer);
+                              &isolate_snapshot_data, image_writer,
+                              image_writer);
 
     if (unit == nullptr || unit->id() == LoadingUnit::kRootId) {
       writer.WriteFullSnapshot(units);
     } else {
       writer.WriteUnitSnapshot(units, unit, program_hash);
     }
+    image_writer->Finalize();
+  };
 
-    elf->Finalize();
-    if (debug_elf != nullptr) {
-      debug_elf->Finalize();
-      Elf::AssertConsistency(elf, debug_elf);
-    }
+  Dwarf* const dwarf = (type == AOTSnapshotType::kAssembly || strip) ? nullptr
+                       : generate_debug ? debug_dwarf
+                                        : new (Z) Dwarf(Z, deobfuscation_trie);
+  SharedObjectWriter* so = nullptr;
+  if (type == AOTSnapshotType::kElf) {
+    so = new (Z)
+        ElfWriter(Z, &output_stream, SharedObjectWriter::Type::Snapshot, dwarf);
+  }
+
+  if (type == AOTSnapshotType::kAssembly) {
+    ASSERT(so == nullptr);
+    AssemblyImageWriter assembly_writer(T, &output_stream, deobfuscation_trie,
+                                        strip, debug_so);
+    use_output_writer(&assembly_writer);
   } else {
-    StreamingWriteStream assembly_stream(kAssemblyInitialSize, callback,
-                                         callback_data);
-    StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
-                                      callback, debug_callback_data);
-
-    auto const elf = generate_debug
-                         ? new (Z) Elf(Z, &debug_stream, Elf::Type::DebugInfo,
-                                       new (Z) Dwarf(Z, deobfuscation_trie))
-                         : nullptr;
-
-    AssemblyImageWriter image_writer(T, &assembly_stream, deobfuscation_trie,
-                                     strip, elf);
-    FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data,
-                              &isolate_snapshot_data, &image_writer,
-                              &image_writer);
-
-    if (unit == nullptr || unit->id() == LoadingUnit::kRootId) {
-      writer.WriteFullSnapshot(units);
-    } else {
-      writer.WriteUnitSnapshot(units, unit, program_hash);
-    }
-    image_writer.Finalize();
+    BlobImageWriter blob_writer(T, &vm_snapshot_instructions,
+                                &isolate_snapshot_instructions,
+                                deobfuscation_trie, debug_so, so);
+    use_output_writer(&blob_writer);
   }
 }
 
 static void Split(Dart_CreateLoadingUnitCallback next_callback,
                   void* next_callback_data,
                   bool strip,
-                  bool as_elf,
+                  AOTSnapshotType type,
                   Dart_StreamingWriteCallback write_callback,
                   Dart_StreamingCloseCallback close_callback) {
   Thread* T = Thread::Current();
@@ -6548,7 +6544,7 @@ static void Split(Dart_CreateLoadingUnitCallback next_callback,
       next_callback(next_callback_data, id, &write_callback_data,
                     &write_debug_callback_data);
     }
-    CreateAppAOTSnapshot(write_callback, write_callback_data, strip, as_elf,
+    CreateAppAOTSnapshot(write_callback, write_callback_data, strip, type,
                          write_debug_callback_data, &data, data[id],
                          program_hash);
     {
@@ -6582,8 +6578,9 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   // Mark as not split.
   T->isolate_group()->object_store()->set_loading_units(Object::null_array());
 
-  CreateAppAOTSnapshot(callback, callback_data, strip, /*as_elf*/ false,
-                       debug_callback_data, nullptr, nullptr, 0);
+  CreateAppAOTSnapshot(callback, callback_data, strip,
+                       AOTSnapshotType::kAssembly, debug_callback_data, nullptr,
+                       nullptr, 0);
 
   return Api::Success();
 #endif
@@ -6609,7 +6606,7 @@ DART_EXPORT Dart_Handle Dart_CreateAppAOTSnapshotAsAssemblies(
   CHECK_NULL(write_callback);
   CHECK_NULL(close_callback);
 
-  Split(next_callback, next_callback_data, strip, /*as_elf*/ false,
+  Split(next_callback, next_callback_data, strip, AOTSnapshotType::kAssembly,
         write_callback, close_callback);
 
   return Api::Success();
@@ -6663,7 +6660,7 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   // Mark as not split.
   T->isolate_group()->object_store()->set_loading_units(Object::null_array());
 
-  CreateAppAOTSnapshot(callback, callback_data, strip, /*as_elf*/ true,
+  CreateAppAOTSnapshot(callback, callback_data, strip, AOTSnapshotType::kElf,
                        debug_callback_data, nullptr, nullptr, 0);
 
   return Api::Success();
@@ -6688,7 +6685,7 @@ Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
   CHECK_NULL(write_callback);
   CHECK_NULL(close_callback);
 
-  Split(next_callback, next_callback_data, strip, /*as_elf*/ true,
+  Split(next_callback, next_callback_data, strip, AOTSnapshotType::kElf,
         write_callback, close_callback);
 
   return Api::Success();
