@@ -24,15 +24,6 @@ import 'server_abstract.dart';
 
 /// A mixin with helpers for applying LSP edits to strings.
 mixin LspEditHelpersMixin {
-  String applyTextEdit(String content, TextEdit edit) {
-    var startPos = edit.range.start;
-    var endPos = edit.range.end;
-    var lineInfo = LineInfo.fromContent(content);
-    var start = lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
-    var end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
-    return content.replaceRange(start, end, edit.newText);
-  }
-
   String applyTextEdits(String content, List<TextEdit> changes) {
     // Complex text manipulations are described with an array of TextEdit's,
     // representing a single change to the document.
@@ -48,22 +39,48 @@ mixin LspEditHelpersMixin {
 
     /// Ensures changes are simple enough to apply easily without any complicated
     /// logic.
-    void validateChangesCanBeApplied() {
-      for (var change1 in changes) {
-        for (var change2 in changes) {
-          if (change1 != change2 && change1.range.intersects(change2.range)) {
-            throw 'Test helper applyTextEdits does not support applying multiple edits '
-                'where the edits are not in reverse order.';
-          }
+    for (var change1 in changes) {
+      for (var change2 in changes) {
+        if (change1 != change2 && change1.range.intersects(change2.range)) {
+          throw 'Test helper applyTextEdits does not support applying multiple edits '
+              'where the edits are not in reverse order.';
         }
       }
     }
 
-    validateChangesCanBeApplied();
-
     var indexedEdits = changes.mapIndexed(TextEditWithIndex.new).toList();
     indexedEdits.sort(TextEditWithIndex.compare);
-    return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
+
+    var lineInfo = LineInfo.fromContent(content);
+    var buffer = StringBuffer();
+    var currentOffset = 0;
+
+    // Build a new string by appending parts of the original string and then
+    // the new text from each edit into a buffer. This is faster for multiple
+    // edits than sorting in reverse and repeatedly applying sequentially as it
+    // cuts out a lot of (potentially large) intermediate strings.
+    for (var edit in indexedEdits.map((e) => e.edit)) {
+      var startPos = edit.range.start;
+      var endPos = edit.range.end;
+      var start = lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
+      var end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
+
+      // Append any text between the current position and the start of this edit
+      if (start != currentOffset) {
+        buffer.write(content.substring(currentOffset, start));
+      }
+      // Append the replacement text
+      buffer.write(edit.newText);
+      // Move the current position to the end of this edit
+      currentOffset = end;
+    }
+
+    // Finally, add any remainder from after the last edit.
+    if (currentOffset != content.length) {
+      buffer.write(content.substring(currentOffset));
+    }
+
+    return buffer.toString();
   }
 
   /// Returns the text for [range] in [content].

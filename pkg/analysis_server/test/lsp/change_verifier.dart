@@ -171,19 +171,12 @@ class LspChangeVerifier {
   }
 
   String _applyTextDocumentEditEdit(String content, TextDocumentEdit edit) {
-    // To simulate the behaviour we'll get from an LSP client, apply edits from
-    // the latest offset to the earliest, but with items at the same offset
-    // being reversed so that when applied sequentially they appear in the
-    // document in-order.
-    //
-    // This is essentially a stable sort over the offset (descending), but since
-    // List.sort() is not stable so we additionally sort by index).
-    var indexedEdits =
-        edit.edits.mapIndexed(TextEditWithIndex.fromUnion).toList();
-    indexedEdits.sort(TextEditWithIndex.compare);
-    return indexedEdits
-        .map((e) => e.edit)
-        .fold(content, editHelpers.applyTextEdit);
+    // Extract the edits from the union (they all have the same superclass).
+    var edits =
+        edit.edits
+            .map((edit) => edit.map((e) => e, (e) => e, (e) => e))
+            .toList();
+    return _applyTextEdits(content, edits);
   }
 
   String _applyTextEdits(String content, List<TextEdit> changes) =>
@@ -273,8 +266,8 @@ class LspChangeVerifier {
   }
 }
 
-/// An LSP TextEdit with its index, and a comparer to sort them in a way that
-/// can be applied sequentially while preserving expected behaviour.
+/// An LSP TextEdit with its index, and comparers to stably sort them by source
+/// position (forwards).
 class TextEditWithIndex {
   final int index;
   final TextEdit edit;
@@ -286,9 +279,13 @@ class TextEditWithIndex {
     Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> edit,
   ) : edit = edit.map((e) => e, (e) => e, (e) => e);
 
-  /// Compares two [TextEditWithIndex] to sort them by the order in which they
-  /// can be sequentially applied to a String to match the behaviour of an LSP
-  /// client.
+  /// Compares two [TextEditWithIndex] to sort them stably in source-order.
+  ///
+  /// In this order, edits cannot be applied sequentially to a file because
+  /// each edit may change the location of future edits. This can be used to
+  /// apply them if all locations are computed against the original code using
+  /// a [StringBuffer] for better performance than repeatedly applying
+  /// sequentially.
   static int compare(TextEditWithIndex edit1, TextEditWithIndex edit2) {
     var end1 = edit1.edit.range.end;
     var end2 = edit2.edit.range.end;
@@ -297,11 +294,11 @@ class TextEditWithIndex {
     // https://github.com/microsoft/vscode/blob/856a306d1a9b0879727421daf21a8059e671e3ea/src/vs/editor/common/model/pieceTreeTextBuffer/pieceTreeTextBuffer.ts#L475
 
     if (end1.line != end2.line) {
-      return end1.line.compareTo(end2.line) * -1;
+      return end1.line.compareTo(end2.line);
     } else if (end1.character != end2.character) {
-      return end1.character.compareTo(end2.character) * -1;
+      return end1.character.compareTo(end2.character);
     } else {
-      return edit1.index.compareTo(edit2.index) * -1;
+      return edit1.index.compareTo(edit2.index);
     }
   }
 }
