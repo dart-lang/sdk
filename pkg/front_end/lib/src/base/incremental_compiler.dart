@@ -66,13 +66,12 @@ import '../api_prototype/incremental_kernel_generator.dart'
 import '../api_prototype/lowering_predicates.dart'
     show isExtensionThisName, syntheticThisName;
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
-import '../builder/builder.dart' show Builder, NamedBuilder;
+import '../builder/builder.dart' show Builder;
 import '../builder/declaration_builders.dart'
     show ClassBuilder, ExtensionBuilder, ExtensionTypeDeclarationBuilder;
 import '../builder/library_builder.dart'
     show CompilationUnit, LibraryBuilder, SourceCompilationUnit;
 import '../builder/member_builder.dart' show MemberBuilder;
-import '../builder/property_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
@@ -82,7 +81,6 @@ import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
-import '../source/source_extension_builder.dart';
 import '../source/source_library_builder.dart'
     show
         ImplicitLanguageVersion,
@@ -592,23 +590,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         /// dill library builders might have links (via export scopes) to the
         /// source builders. Patch that up.
 
-        // Maps from old library builder to map of new content.
-        Map<LibraryBuilder, Map<String, NamedBuilder>>? replacementMap = {};
+        // Map from old library builder to name space of new content.
+        Map<LibraryBuilder, NameSpace>? replacementNameSpaceMap = {};
 
-        // Maps from old library builder to map of new content.
-        Map<LibraryBuilder, Map<String, NamedBuilder>>? replacementSettersMap =
-            {};
-
-        Map<LibraryBuilder, NameSpace> replacementLookupMap = {};
-
-        _experimentalInvalidationFillReplacementMaps(convertedLibraries!,
-            replacementMap, replacementSettersMap, replacementLookupMap);
+        _experimentalInvalidationFillReplacementMaps(
+            convertedLibraries!, replacementNameSpaceMap);
 
         for (DillLibraryBuilder builder
             in experimentalInvalidation.originalNotReusedLibraries) {
           if (builder.isBuilt) {
-            builder.patchUpExportScope(
-                replacementMap, replacementSettersMap, replacementLookupMap);
+            builder.patchUpExportScope(replacementNameSpaceMap);
 
             // Clear cached calculations that points (potential) to now replaced
             // things.
@@ -619,8 +610,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             }
           }
         }
-        replacementMap = null;
-        replacementSettersMap = null;
+        replacementNameSpaceMap = null;
       }
     }
     nextGoodKernelTarget.loader.buildersCreatedWithReferences.clear();
@@ -770,42 +760,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// happen because of experimental invalidation.
   void _experimentalInvalidationFillReplacementMaps(
       Map<LibraryBuilder, CompilationUnit> rebuildBodiesMap,
-      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMap,
-      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementSettersMap,
-      Map<LibraryBuilder, NameSpace> replacementLookupMap) {
+      Map<LibraryBuilder, NameSpace> replacementNameSpaceMap) {
     for (MapEntry<LibraryBuilder, CompilationUnit> entry
         in rebuildBodiesMap.entries) {
-      Map<String, NamedBuilder> childReplacementMap = {};
-      Map<String, NamedBuilder> childReplacementSettersMap = {};
       CompilationUnit mainCompilationUnit = rebuildBodiesMap[entry.key]!;
-      replacementMap[entry.key] = childReplacementMap;
-      replacementSettersMap[entry.key] = childReplacementSettersMap;
-      replacementLookupMap[entry.key] =
+      replacementNameSpaceMap[entry.key] =
           mainCompilationUnit.libraryBuilder.libraryNameSpace;
-
-      Iterator<NamedBuilder> iterator =
-          mainCompilationUnit.libraryBuilder.unfilteredMembersIterator;
-      while (iterator.moveNext()) {
-        NamedBuilder childBuilder = iterator.current;
-        if (childBuilder is SourceExtensionBuilder &&
-            childBuilder.isUnnamedExtension) {
-          continue;
-        }
-        String name = childBuilder.name;
-        Map<String, Builder> map;
-        if (isMappedAsSetter(childBuilder)) {
-          map = childReplacementSettersMap;
-        } else {
-          map = childReplacementMap;
-        }
-        assert(
-            !map.containsKey(name),
-            "Unexpected double-entry for $name in "
-            "${mainCompilationUnit.importUri} "
-            "(org from ${entry.key.importUri}): "
-            "$childBuilder and ${map[name]}");
-        map[name] = childBuilder;
-      }
     }
   }
 
@@ -843,23 +803,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ExperimentalInvalidation? experimentalInvalidation,
       Map<DillLibraryBuilder, CompilationUnit> rebuildBodiesMap) {
     if (experimentalInvalidation != null) {
-      // Maps from old library builder to map of new content.
-      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMap = {};
+      // Map from old library builder to name space of new content.
+      Map<LibraryBuilder, NameSpace> replacementNameSpaceMap = {};
 
-      // Maps from old library builder to map of new content.
-      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementSettersMap = {};
-
-      Map<LibraryBuilder, NameSpace> replacementLookupMap = {};
-
-      _experimentalInvalidationFillReplacementMaps(rebuildBodiesMap,
-          replacementMap, replacementSettersMap, replacementLookupMap);
+      _experimentalInvalidationFillReplacementMaps(
+          rebuildBodiesMap, replacementNameSpaceMap);
 
       for (DillLibraryBuilder builder
           in experimentalInvalidation.originalNotReusedLibraries) {
         // There's only something to patch up if it was build already.
         if (builder.isBuilt) {
-          builder.patchUpExportScope(
-              replacementMap, replacementSettersMap, replacementLookupMap);
+          builder.patchUpExportScope(replacementNameSpaceMap);
         }
       }
     }
