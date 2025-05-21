@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -233,6 +234,15 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     // additional parenthesis.
     if (parent is SwitchExpression && parent.expression == node) {
       return false;
+    }
+
+    switch (parent) {
+      case RecordLiteral():
+      case ListLiteral():
+      case SetOrMapLiteral():
+        return false;
+      default:
+        break;
     }
 
     // check precedence

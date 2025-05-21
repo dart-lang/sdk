@@ -628,7 +628,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitConstructorReference(covariant ConstructorReferenceImpl node) {
     _typeArgumentsVerifier.checkConstructorReference(node);
-    _checkForInvalidGenerativeConstructorReference(node.constructorName);
+    _checkForInvalidGenerativeConstructorReference(
+      node.constructorName,
+      node.constructorName.element,
+    );
   }
 
   @override
@@ -650,11 +653,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
-    if (node.isConst) {
-      _checkForConstWithNonConst(
-        node,
-        node.constructorName.element as ConstructorElement?,
-        node.constKeyword,
+    var constructorElement = node.constructorName.element;
+    if (constructorElement is ConstructorElement?) {
+      if (node.isConst) {
+        _checkForConstWithNonConst(node, constructorElement, node.constKeyword);
+      }
+      _checkForInvalidGenerativeConstructorReference(
+        node.constructorName,
+        constructorElement,
       );
     }
     _requiredParametersVerifier.visitDotShorthandConstructorInvocation(node);
@@ -1096,7 +1102,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
       _checkForConstOrNewWithAbstractClass(node, namedType, type);
-      _checkForInvalidGenerativeConstructorReference(constructorName);
+      _checkForInvalidGenerativeConstructorReference(
+        constructorName,
+        constructorName.element,
+      );
       _checkForConstOrNewWithMixin(node, namedType, type);
       _requiredParametersVerifier.visitInstanceCreationExpression(node);
       _constArgumentsVerifier.visitInstanceCreationExpression(node);
@@ -3823,8 +3832,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForInvalidGenerativeConstructorReference(ConstructorName node) {
-    var constructorElement = node.element;
+  /// Verify that we're not using an enum constructor anywhere other than to
+  /// create an enum constant or as a target of constructor redirection.
+  void _checkForInvalidGenerativeConstructorReference(
+    AstNode node,
+    ConstructorElement? constructorElement,
+  ) {
     if (constructorElement != null &&
         constructorElement.isGenerative &&
         constructorElement.enclosingElement is EnumElement) {
@@ -3834,7 +3847,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
         );
       } else {
-        errorReporter.atNode(node.type, CompileTimeErrorCode.INSTANTIATE_ENUM);
+        errorReporter.atNode(node, CompileTimeErrorCode.INSTANTIATE_ENUM);
       }
     }
   }
@@ -5029,7 +5042,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         arguments: [constructorStrName, redirectedClass.name3!],
       );
     }
-    _checkForInvalidGenerativeConstructorReference(redirectedConstructor);
+    _checkForInvalidGenerativeConstructorReference(
+      redirectedConstructor,
+      redirectedElement,
+    );
   }
 
   /// Check whether the redirecting constructor, [element], is const, and

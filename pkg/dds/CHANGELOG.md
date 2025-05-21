@@ -1,5 +1,4 @@
-# 5.0.1-wip
-
+# 5.0.1
 - Widen the dependency on `package:shelf_web_socket`.
 - Require Dart SDK v. 3.5.0 or higher.
 - Started caching events sent on the 'Timer' stream. The cached events can be retrieved using the `getStreamHistory` RPC.

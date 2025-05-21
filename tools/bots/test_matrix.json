@@ -936,7 +936,6 @@
         "vm-linux-release-ia32",
         "vm-linux-release-x64",
         "vm-win-debug-x64",
-        "vm-win-release-ia32",
         "vm-win-release-x64"
       ],
       "meta": {
@@ -1714,7 +1713,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--rbe",
             "runtime"
           ]
         },
@@ -1746,7 +1744,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--rbe",
             "runtime",
             "runtime_precompiled"
           ]
@@ -2198,7 +2195,6 @@
     },
     {
       "builders": [
-        "vm-eager-optimization-linux-release-ia32",
         "vm-eager-optimization-linux-release-x64"
       ],
       "meta": {
@@ -3092,7 +3088,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--rbe",
             "create_sdk",
             "dartanalyzer",
             "ddc_stable_test"
