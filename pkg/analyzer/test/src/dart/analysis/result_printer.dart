@@ -67,18 +67,35 @@ class BundleRequirementsPrinter {
 
   void _writeExportRequirements(RequirementsManifest requirements) {
     var exportRequirements = requirements.exportRequirements.sortedBy(
-      (requirement) => requirement.exportedUri.toString(),
+      (requirement) => requirement.libraryUri.toString(),
     );
 
-    sink.writeElements('exportRequirements', exportRequirements, (requirement) {
-      sink.writelnWithIndent(requirement.exportedUri);
+    sink.writeElements('exportRequirements', exportRequirements, (
+      libraryRequirements,
+    ) {
+      sink.writelnWithIndent(libraryRequirements.libraryUri);
       sink.withIndent(() {
-        _writeExportCombinators(requirement);
-
-        var entries = requirement.exportedIds.sorted;
-        for (var entry in entries) {
-          _writeNamedId(entry);
+        if (libraryRequirements.declaredTopNames.isNotEmpty) {
+          var declaredTopNamesStr = libraryRequirements.declaredTopNames
+              .map((lookupName) => lookupName.asString)
+              .join(' ');
+          sink.writelnWithIndent('declaredTopNames: $declaredTopNamesStr');
         }
+        sink.writeElements(
+          'exports',
+          libraryRequirements.exports.sortedBy(
+            (export) => export.exportedUri.toString(),
+          ),
+          (fragment) {
+            sink.writelnWithIndent(fragment.exportedUri);
+            sink.withIndent(() {
+              _writeExportCombinators(fragment);
+              for (var entry in fragment.exportedIds.sorted) {
+                _writeNamedId(entry);
+              }
+            });
+          },
+        );
       });
     });
   }

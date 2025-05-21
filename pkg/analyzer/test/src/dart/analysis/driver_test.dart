@@ -13247,6 +13247,374 @@ enum A {
     );
   }
 
+  test_dependency_export_class_excludePrivate() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+class _B {}
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart';
+''');
+
+    configuration.elementTextConfiguration.withExportScope = true;
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
+    exportNamespace
+      A: package:test/a.dart::@class::A
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+      _B: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    reExportMap
+      A: #M0
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            A: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+class A {}
+class _B2 {}
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+      _B2: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
+    exportNamespace
+      A: package:test/a.dart::@class::A
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_export_class_localHidesExport_addHidden() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+class B {}
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart';
+class B {}
+class C {}
+''');
+
+    configuration.elementTextConfiguration.withExportScope = true;
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    classes
+      class B
+        constructors
+          synthetic new
+      class C
+        constructors
+          synthetic new
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
+      declared <testLibraryFragment>::@class::B
+      declared <testLibraryFragment>::@class::C
+    exportNamespace
+      A: package:test/a.dart::@class::A
+      B: <testLibrary>::@class::B
+      C: <testLibrary>::@class::C
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+      B: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M2
+      C: #M3
+    reExportMap
+      A: #M0
+  requirements
+    exportRequirements
+      package:test/test.dart
+        declaredTopNames: B C
+        exports
+          package:test/a.dart
+            A: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+class A {}
+class B {}
+class C {}
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+      B: #M1
+      C: #M4
+  requirements
+[future] getLibraryByUri T2
+  library
+    classes
+      class B
+        constructors
+          synthetic new
+      class C
+        constructors
+          synthetic new
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
+      declared <testLibraryFragment>::@class::B
+      declared <testLibraryFragment>::@class::C
+    exportNamespace
+      A: package:test/a.dart::@class::A
+      B: <testLibrary>::@class::B
+      C: <testLibrary>::@class::C
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_export_class_localHidesExport_addNotHidden() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+class B {}
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart';
+class B {}
+''');
+
+    configuration.elementTextConfiguration.withExportScope = true;
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    classes
+      class B
+        constructors
+          synthetic new
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
+      declared <testLibraryFragment>::@class::B
+    exportNamespace
+      A: package:test/a.dart::@class::A
+      B: <testLibrary>::@class::B
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+      B: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M2
+    reExportMap
+      A: #M0
+  requirements
+    exportRequirements
+      package:test/test.dart
+        declaredTopNames: B
+        exports
+          package:test/a.dart
+            A: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+class A {}
+class B {}
+class C {}
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+      B: #M1
+      C: #M3
+  requirements
+[future] getLibraryByUri T2
+  library
+    classes
+      class B
+        constructors
+          synthetic new
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
+      exported[(0, 0)] package:test/a.dart::<fragment>::@class::C
+      declared <testLibraryFragment>::@class::B
+    exportNamespace
+      A: package:test/a.dart::@class::A
+      B: <testLibrary>::@class::B
+      C: package:test/a.dart::@class::C
+[operation] cannotReuseLinkedBundle
+  exportIdMismatch
+    fragmentUri: package:test/test.dart
+    exportedUri: package:test/a.dart
+    name: C
+    expectedId: <null>
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M2
+    reExportMap
+      A: #M0
+      C: #M3
+  requirements
+    exportRequirements
+      package:test/test.dart
+        declaredTopNames: B
+        exports
+          package:test/a.dart
+            A: #M0
+            C: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_export_class_reExport_combinatorShow() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart' show A;
+class B {}
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'b.dart';
+''');
+
+    configuration.elementTextConfiguration.withExportScope = true;
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
+      exported[(0, 0)] package:test/b.dart::<fragment>::@class::B
+    exportNamespace
+      A: package:test/a.dart::@class::A
+      B: package:test/b.dart::@class::B
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/b.dart
+    declaredClasses
+      B: #M1
+    reExportMap
+      A: #M0
+  requirements
+    exportRequirements
+      package:test/b.dart
+        declaredTopNames: B
+        exports
+          package:test/a.dart
+            combinators
+              show A
+            A: #M0
+[operation] linkLibraryCycle
+  package:test/test.dart
+    reExportMap
+      A: #M0
+      B: #M1
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/b.dart
+            A: #M0
+            B: #M1
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+class A {}
+class A2 {}
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+      A2: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
+      exported[(0, 0)] package:test/b.dart::<fragment>::@class::B
+    exportNamespace
+      A: package:test/a.dart::@class::A
+      B: package:test/b.dart::@class::B
+[operation] readLibraryCycleBundle
+  package:test/b.dart
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_export_noLibrary() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 final a = 0;
@@ -13282,8 +13650,10 @@ export ':';
       a: #M0
   requirements
     exportRequirements
-      package:test/a.dart
-        a: #M0
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            a: #M0
 [status] idle
 ''',
       updateFiles: () {
@@ -13348,8 +13718,10 @@ export 'a.dart';
       a: #M0
   requirements
     exportRequirements
-      package:test/a.dart
-        a: #M0
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            a: #M0
 [status] idle
 ''',
       updateFiles: () {
@@ -13392,9 +13764,11 @@ final b = 0;
       b: #M2
   requirements
     exportRequirements
-      package:test/a.dart
-        a: #M0
-        b: #M2
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            a: #M0
+            b: #M2
 [status] idle
 ''',
     );
@@ -13434,10 +13808,12 @@ export 'a.dart' hide b;
       a: #M0
   requirements
     exportRequirements
-      package:test/a.dart
-        combinators
-          hide b
-        a: #M0
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            combinators
+              hide b
+            a: #M0
 [status] idle
 ''',
       updateFiles: () {
@@ -13505,10 +13881,12 @@ export 'a.dart' hide c;
       a: #M0
   requirements
     exportRequirements
-      package:test/a.dart
-        combinators
-          hide c
-        a: #M0
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            combinators
+              hide c
+            a: #M0
 [status] idle
 ''',
       updateFiles: () {
@@ -13551,11 +13929,13 @@ final b = 0;
       b: #M2
   requirements
     exportRequirements
-      package:test/a.dart
-        combinators
-          hide c
-        a: #M0
-        b: #M2
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            combinators
+              hide c
+            a: #M0
+            b: #M2
 [status] idle
 ''',
     );
@@ -13595,10 +13975,12 @@ export 'a.dart' show a;
       a: #M0
   requirements
     exportRequirements
-      package:test/a.dart
-        combinators
-          show a
-        a: #M0
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            combinators
+              show a
+            a: #M0
 [status] idle
 ''',
       updateFiles: () {
@@ -13666,10 +14048,12 @@ export 'a.dart' show a, b;
       a: #M0
   requirements
     exportRequirements
-      package:test/a.dart
-        combinators
-          show a, b
-        a: #M0
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            combinators
+              show a, b
+            a: #M0
 [status] idle
 ''',
       updateFiles: () {
@@ -13712,11 +14096,13 @@ final b = 0;
       b: #M2
   requirements
     exportRequirements
-      package:test/a.dart
-        combinators
-          show a, b
-        a: #M0
-        b: #M2
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            combinators
+              show a, b
+            a: #M0
+            b: #M2
 [status] idle
 ''',
     );
@@ -13756,11 +14142,13 @@ export 'a.dart' show a, b hide c;
       a: #M0
   requirements
     exportRequirements
-      package:test/a.dart
-        combinators
-          show a, b
-          hide c
-        a: #M0
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            combinators
+              show a, b
+              hide c
+            a: #M0
 [status] idle
 ''',
       updateFiles: () {
@@ -13803,12 +14191,14 @@ final b = 0;
       b: #M2
   requirements
     exportRequirements
-      package:test/a.dart
-        combinators
-          show a, b
-          hide c
-        a: #M0
-        b: #M2
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            combinators
+              show a, b
+              hide c
+            a: #M0
+            b: #M2
 [status] idle
 ''',
     );
@@ -13848,8 +14238,10 @@ export 'a.dart';
       a: #M0
   requirements
     exportRequirements
-      package:test/a.dart
-        a: #M0
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            a: #M0
 [status] idle
 ''',
       updateFiles: () {
@@ -13923,9 +14315,11 @@ export 'a.dart';
       b: #M1
   requirements
     exportRequirements
-      package:test/a.dart
-        a: #M0
-        b: #M1
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            a: #M0
+            b: #M1
 [status] idle
 ''',
       updateFiles: () {
@@ -13961,8 +14355,10 @@ final a = 0;
       a: #M0
   requirements
     exportRequirements
-      package:test/a.dart
-        a: #M0
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            a: #M0
 [status] idle
 ''',
     );
@@ -14005,10 +14401,12 @@ export 'a.dart' show a;
       a: #M0
   requirements
     exportRequirements
-      package:test/a.dart
-        combinators
-          show a
-        a: #M0
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            combinators
+              show a
+            a: #M0
 [status] idle
 ''',
       updateFiles: () {
@@ -14079,9 +14477,11 @@ export 'a.dart';
       b: #M1
   requirements
     exportRequirements
-      package:test/a.dart
-        a: #M0
-        b: #M1
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            a: #M0
+            b: #M1
 [status] idle
 ''',
       updateFiles: () {
@@ -14124,9 +14524,11 @@ final c = 0;
       c: #M4
   requirements
     exportRequirements
-      package:test/a.dart
-        a: #M0
-        c: #M4
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            a: #M0
+            c: #M4
 [status] idle
 ''',
     );
@@ -14175,8 +14577,10 @@ final x = a;
       a: #M0
   requirements
     exportRequirements
-      package:test/a.dart
-        a: #M0
+      package:test/b.dart
+        exports
+          package:test/a.dart
+            a: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
@@ -14230,8 +14634,10 @@ final a = 1.2;
       a: #M4
   requirements
     exportRequirements
-      package:test/a.dart
-        a: #M4
+      package:test/b.dart
+        exports
+          package:test/a.dart
+            a: #M4
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/b.dart
@@ -17036,8 +17442,10 @@ final x = a;
       a: #M0
   requirements
     exportRequirements
-      package:test/a.dart
-        a: #M0
+      package:test/b.dart
+        exports
+          package:test/a.dart
+            a: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
@@ -17087,8 +17495,10 @@ final a = 1.2;
       a: #M4
   requirements
     exportRequirements
-      package:test/a.dart
-        a: #M4
+      package:test/b.dart
+        exports
+          package:test/a.dart
+            a: #M4
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/b.dart
