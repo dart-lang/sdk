@@ -411,14 +411,20 @@ _nightly_builder(
 
 _nightly_builder(
     "vm-aot-dyn-linux-debug-x64",
-    category = "vm|misc|dm",
+    category = "vm|misc|dyn|d",
     channels = ["try"],
     location_filters = paths.to_location_filters(paths.dart2bytecode),
 )
 _nightly_builder(
-    "vm-dyn-linux-debug-x64",
-    category = "vm|misc|dm",
+    "vm-aot-dyn-linux-product-x64",
+    category = "vm|misc|dyn|p",
     channels = ["try"],
+)
+_nightly_builder(
+    "vm-dyn-linux-debug-x64",
+    category = "vm|misc|dyn|j",
+    channels = ["try"],
+    location_filters = paths.to_location_filters(paths.dart2bytecode),
 )
 
 # vm|ffi
