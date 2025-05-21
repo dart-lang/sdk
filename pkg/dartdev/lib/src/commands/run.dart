@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:dartdev/src/commands/compile.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:frontend_server/resident_frontend_server_utils.dart'
@@ -391,20 +392,26 @@ class RunCommand extends DartdevCommand {
     }
 
     String? nativeAssets;
-    final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
+    final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
       Directory.current.uri,
     );
-    if (packageConfig != null) {
+    if (packageConfigUri != null) {
+      final packageConfig =
+          await DartNativeAssetsBuilder.loadPackageConfig(packageConfigUri);
+      if (packageConfig == null) {
+        return compileErrorExitCode;
+      }
       final runPackageName = getPackageForCommand(mainCommand) ??
           await DartNativeAssetsBuilder.findRootPackageName(
             Directory.current.uri,
           );
       if (runPackageName != null) {
-        final pubspecUri =
-            await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
+        final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
+            packageConfigUri);
         final builder = DartNativeAssetsBuilder(
           pubspecUri: pubspecUri,
-          packageConfigUri: packageConfig,
+          packageConfigUri: packageConfigUri,
+          packageConfig: packageConfig,
           runPackageName: runPackageName,
           verbose: verbose,
         );

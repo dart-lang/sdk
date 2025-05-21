@@ -92,6 +92,9 @@ final class ManifestElement {
   /// The URI of the library that declares the element.
   final Uri libraryUri;
 
+  /// The kind, mostly to distinguish fields and getters.
+  final ManifestElementKind kind;
+
   /// The top-level element name.
   final String topLevelName;
 
@@ -103,6 +106,7 @@ final class ManifestElement {
 
   ManifestElement({
     required this.libraryUri,
+    required this.kind,
     required this.topLevelName,
     required this.memberName,
     required this.id,
@@ -111,6 +115,7 @@ final class ManifestElement {
   factory ManifestElement.read(SummaryDataReader reader) {
     return ManifestElement(
       libraryUri: reader.readUri(),
+      kind: reader.readEnum(ManifestElementKind.values),
       topLevelName: reader.readStringUtf8(),
       memberName: reader.readOptionalStringUtf8(),
       id: reader.readOptionalObject(() => ManifestItemId.read(reader)),
@@ -118,13 +123,14 @@ final class ManifestElement {
   }
 
   @override
-  int get hashCode => Object.hash(libraryUri, topLevelName, memberName);
+  int get hashCode => Object.hash(libraryUri, kind, topLevelName, memberName);
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is ManifestElement &&
         other.libraryUri == libraryUri &&
+        other.kind == kind &&
         other.topLevelName == topLevelName &&
         other.memberName == memberName;
   }
@@ -146,6 +152,9 @@ final class ManifestElement {
     if (givenLibraryUri != libraryUri) {
       return false;
     }
+    if (ManifestElementKind.of(element) != kind) {
+      return false;
+    }
     if (givenTopLevelElement.lookupName != topLevelName) {
       return false;
     }
@@ -162,6 +171,7 @@ final class ManifestElement {
 
   void write(BufferedSink sink) {
     sink.writeUri(libraryUri);
+    sink.writeEnum(kind);
     sink.writeStringUtf8(topLevelName);
     sink.writeOptionalStringUtf8(memberName);
     id.writeOptional(sink);
@@ -181,6 +191,7 @@ final class ManifestElement {
 
     return ManifestElement(
       libraryUri: topLevelElement.library2!.uri,
+      kind: ManifestElementKind.of(element),
       topLevelName: topLevelElement.lookupName!,
       memberName: memberElement?.lookupName,
       id: context.getElementId(element),
@@ -189,6 +200,55 @@ final class ManifestElement {
 
   static List<ManifestElement> readList(SummaryDataReader reader) {
     return reader.readTypedList(() => ManifestElement.read(reader));
+  }
+}
+
+/// Note, "instance" means inside [InstanceElement], not as "not static".
+enum ManifestElementKind {
+  class_,
+  enum_,
+  mixin_,
+  topLevelVariable,
+  topLevelGetter,
+  topLevelSetter,
+  topLevelFunction,
+  instanceField,
+  instanceGetter,
+  instanceSetter,
+  instanceMethod,
+  interfaceConstructor;
+
+  static ManifestElementKind of(Element element) {
+    switch (element) {
+      case ClassElement():
+        return ManifestElementKind.class_;
+      case EnumElement():
+        return ManifestElementKind.enum_;
+      case MixinElement():
+        return ManifestElementKind.mixin_;
+      case TopLevelVariableElement():
+        return ManifestElementKind.topLevelVariable;
+      case GetterElement():
+        if (element.enclosingElement is LibraryElement) {
+          return ManifestElementKind.topLevelGetter;
+        }
+        return ManifestElementKind.instanceGetter;
+      case SetterElement():
+        if (element.enclosingElement is LibraryElement) {
+          return ManifestElementKind.topLevelSetter;
+        }
+        return ManifestElementKind.instanceSetter;
+      case TopLevelFunctionElement():
+        return ManifestElementKind.topLevelFunction;
+      case FieldElement():
+        return ManifestElementKind.instanceField;
+      case MethodElement():
+        return ManifestElementKind.instanceMethod;
+      case ConstructorElement():
+        return ManifestElementKind.interfaceConstructor;
+      default:
+        throw StateError('Unexpected (${element.runtimeType}) $element');
+    }
   }
 }
 

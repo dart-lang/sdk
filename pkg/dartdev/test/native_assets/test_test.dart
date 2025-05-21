@@ -28,7 +28,6 @@ void main([List<String> args = const []]) async {
           (packageUri) async {
         final result = await runDart(
           arguments: [
-            '--enable-experiment=native-assets',
             'test',
           ],
           workingDirectory: packageUri,
@@ -50,7 +49,6 @@ void main([List<String> args = const []]) async {
     await nativeAssetsTest('native_add', (packageUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'run',
           'test:test',
         ],
@@ -69,22 +67,6 @@ void main([List<String> args = const []]) async {
     });
   });
 
-  test('dart build native assets disabled', timeout: longTimeout, () async {
-    await nativeAssetsTest('dart_app', (dartAppUri) async {
-      final result = await runDart(
-        arguments: [
-          'test',
-        ],
-        workingDirectory: dartAppUri,
-        logger: logger,
-        expectExitCodeZero: false,
-      );
-      expect(result.exitCode, isNot(0));
-      expect(result.stderr, contains('Enable native assets'));
-      expect(result.stderr, contains('native_add'));
-    });
-  });
-
   test('run pub get if needed', timeout: longTimeout, () async {
     await nativeAssetsTest(
       'native_add',
@@ -96,9 +78,8 @@ void main([List<String> args = const []]) async {
           ],
           workingDirectory: dartAppUri,
           logger: logger,
-          expectExitCodeZero: false,
         );
-        expect(result.exitCode, isNot(0));
+        expect(result.exitCode, equals(0));
       },
     );
   });
@@ -107,7 +88,6 @@ void main([List<String> args = const []]) async {
     await nativeAssetsTest('native_dynamic_linking', (packageUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'test',
         ],
         workingDirectory: packageUri,
@@ -134,7 +114,6 @@ void main([List<String> args = const []]) async {
             (packageUri) async {
           final result = await runDart(
             arguments: [
-              '--enable-experiment=native-assets',
               'test',
             ],
             workingDirectory: packageUri,

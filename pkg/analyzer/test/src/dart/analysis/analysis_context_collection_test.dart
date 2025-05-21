@@ -412,6 +412,7 @@ analysisOptions
       inference-using-bounds
       inline-class
       named-arguments-anywhere
+      native-assets
       non-nullable
       nonfunction-type-aliases
       null-aware-elements
@@ -491,6 +492,7 @@ analysisOptions
       inference-using-bounds
       inline-class
       named-arguments-anywhere
+      native-assets
       non-nullable
       nonfunction-type-aliases
       null-aware-elements

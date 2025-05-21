@@ -355,11 +355,6 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// used in conditional imports and `bool.fromEnvironment` constants.
   bool get isUnsupported;
 
-  /// Returns an iterator of all members (typedefs, classes and members)
-  /// declared in this library, including duplicate declarations.
-  // TODO(johnniwinther): Should the only exist on [SourceLibraryBuilder]?
-  Iterator<NamedBuilder> get unfilteredMembersIterator;
-
   /// [Iterator] for all declarations declared in this library of type [T].
   ///
   /// If [includeDuplicates] is `true`, duplicate declarations are included.

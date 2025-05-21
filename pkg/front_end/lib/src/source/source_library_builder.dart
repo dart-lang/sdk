@@ -473,7 +473,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       new FilteredIterator<T>(_memberBuilders.iterator,
           includeDuplicates: includeDuplicates);
 
-  @override
+  /// Returns an iterator of all members (typedefs, classes and members)
+  /// declared in this library, including duplicate declarations.
   Iterator<NamedBuilder> get unfilteredMembersIterator {
     return _memberBuilders.iterator;
   }

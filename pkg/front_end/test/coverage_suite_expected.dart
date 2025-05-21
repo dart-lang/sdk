@@ -150,7 +150,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/incremental_compiler.dart": (
-    hitCount: 834,
+    hitCount: 813,
     missCount: 0,
   ),
   // 100.0%.
@@ -195,7 +195,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/name_space.dart": (
-    hitCount: 175,
+    hitCount: 163,
     missCount: 0,
   ),
   // 100.0%.
@@ -455,7 +455,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_library_builder.dart": (
-    hitCount: 353,
+    hitCount: 347,
     missCount: 0,
   ),
   // 100.0%.

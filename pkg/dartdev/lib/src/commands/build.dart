@@ -120,6 +120,10 @@ class BuildCommand extends DartdevCommand {
       return 128;
     }
 
+    stdout.writeln('''The `dart build` command is in preview at the moment.
+See documentation on https://dart.dev/interop/c-interop#native-assets.
+''');
+
     final outputDir = Directory.fromUri(outputUri);
     if (await outputDir.exists()) {
       stdout.writeln('Deleting output directory: ${outputUri.toFilePath()}.');
@@ -128,17 +132,23 @@ class BuildCommand extends DartdevCommand {
     await outputDir.create(recursive: true);
 
     stdout.writeln('Building native assets.');
-    final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
+    final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
       sourceUri,
     );
+    final packageConfig =
+        await DartNativeAssetsBuilder.loadPackageConfig(packageConfigUri!);
+    if (packageConfig == null) {
+      return compileErrorExitCode;
+    }
     final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
       sourceUri,
     );
     final pubspecUri =
-        await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
+        await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfigUri);
     final builder = DartNativeAssetsBuilder(
       pubspecUri: pubspecUri,
-      packageConfigUri: packageConfig!,
+      packageConfigUri: packageConfigUri,
+      packageConfig: packageConfig,
       runPackageName: runPackageName!,
       verbose: verbose,
     );
@@ -163,7 +173,7 @@ class BuildCommand extends DartdevCommand {
         verbose: verbose,
         verbosity: args.option('verbosity')!,
         defines: [],
-        packages: packageConfig.toFilePath(),
+        packages: packageConfigUri.toFilePath(),
         targetOS: targetOS == null ? null : OS.fromString(targetOS),
         enableExperiment: args.enabledExperiments.join(','),
         tempDir: tempDir,

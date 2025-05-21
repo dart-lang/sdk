@@ -999,9 +999,6 @@ external WasmI32 _jsStringEqualsImport(WasmExternRef? s1, WasmExternRef? s2);
 @pragma("wasm:import", "wasm:js-string.fromCharCode")
 external WasmExternRef _jsStringFromCharCodeImport(WasmI32 c);
 
-@pragma("wasm:import", "wasm:js-string.fromCodePoint")
-external WasmExternRef _jsStringFromCodePointImport(WasmI32 c);
-
 @pragma("wasm:import", "wasm:js-string.length")
 external WasmI32 _jsStringLengthImport(WasmExternRef? s);
 

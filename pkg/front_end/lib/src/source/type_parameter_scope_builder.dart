@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
@@ -1594,6 +1595,7 @@ class LibraryNameSpaceBuilder {
     required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
     required List<NamedBuilder> memberBuilders,
   }) {
+    Map<String, LookupResult> content = {};
     Map<String, NamedBuilder> getables = {};
 
     Map<String, NamedBuilder> setables = {};
@@ -1693,8 +1695,15 @@ class LibraryNameSpaceBuilder {
       }
     }
 
-    return new SourceLibraryNameSpace(
-        getables: getables, setables: setables, extensions: extensions);
+    for (MapEntry<String, NamedBuilder> entry in getables.entries) {
+      LookupResult.addNamedBuilder(content, entry.key, entry.value,
+          setter: false);
+    }
+    for (MapEntry<String, NamedBuilder> entry in setables.entries) {
+      LookupResult.addNamedBuilder(content, entry.key, entry.value,
+          setter: true);
+    }
+    return new SourceLibraryNameSpace(content: content, extensions: extensions);
   }
 }
 
@@ -1893,6 +1902,7 @@ class DeclarationNameSpaceBuilder {
       required List<SourceMemberBuilder> constructorBuilders,
       required List<SourceMemberBuilder> memberBuilders}) {
     List<NominalParameterBuilder> unboundNominalParameters = [];
+    Map<String, LookupResult> content = {};
     Map<String, NamedBuilder> getables = {};
     Map<String, NamedBuilder> setables = {};
     Map<String, MemberBuilder> constructors = {};
@@ -1989,9 +1999,17 @@ class DeclarationNameSpaceBuilder {
     enclosingLibraryBuilder
         .registerUnboundNominalParameters(unboundNominalParameters);
 
+    for (MapEntry<String, NamedBuilder> entry in getables.entries) {
+      LookupResult.addNamedBuilder(content, entry.key, entry.value,
+          setter: false);
+    }
+    for (MapEntry<String, NamedBuilder> entry in setables.entries) {
+      LookupResult.addNamedBuilder(content, entry.key, entry.value,
+          setter: true);
+    }
+
     return new SourceDeclarationNameSpace(
-        getables: getables,
-        setables: setables,
+        content: content,
         // TODO(johnniwinther): Handle constructors in extensions consistently.
         // Currently they are not part of the name space but still processed
         // for instance when inferring redirecting factories.

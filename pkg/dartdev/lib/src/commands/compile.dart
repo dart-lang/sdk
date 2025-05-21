@@ -610,19 +610,25 @@ Remove debugging information from the output and save it separately to the speci
       }
     }
 
-    final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
+    final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
       Directory.current.uri,
     );
-    if (packageConfig != null) {
+    if (packageConfigUri != null) {
+      final packageConfig =
+          await DartNativeAssetsBuilder.loadPackageConfig(packageConfigUri);
+      if (packageConfig == null) {
+        return compileErrorExitCode;
+      }
       final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
         Directory.current.uri,
       );
       if (runPackageName != null) {
-        final pubspecUri =
-            await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
+        final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
+            packageConfigUri);
         final builder = DartNativeAssetsBuilder(
             pubspecUri: pubspecUri,
-            packageConfigUri: packageConfig,
+            packageConfigUri: packageConfigUri,
+            packageConfig: packageConfig,
             runPackageName: runPackageName,
             verbose: verbose,
             target: target);

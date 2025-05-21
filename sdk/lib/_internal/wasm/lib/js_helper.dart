@@ -92,6 +92,7 @@ extension JSAnyToExternRef on JSAny? {
 
 // For `dartify` and `jsify`, we match the conflation of `JSUndefined`, `JSNull`
 // and `null`.
+@pragma('wasm:entry-point')
 bool isDartNull(WasmExternRef? ref) => ref.isNull || isJSUndefined(ref);
 
 class JSArrayIteratorAdapter<T> implements Iterator<T> {
@@ -165,6 +166,7 @@ double toDartNumber(WasmExternRef? o) => JS<double>("o => o", o);
 @pragma('wasm:entry-point')
 WasmExternRef? toJSNumber(double o) => JS<WasmExternRef?>("o => o", o);
 
+@pragma('wasm:entry-point')
 bool toDartBool(WasmExternRef? o) => JS<bool>("o => o", o);
 
 WasmExternRef? toJSBoolean(bool b) => JS<WasmExternRef?>("b => !!b", b);
@@ -529,6 +531,18 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
   };
 }
 
+@pragma('wasm:entry-pint')
+int dartifyInt(WasmExternRef? ref) {
+  final dartDouble = toDartNumber(ref);
+  if (dartDouble.isFinite) {
+    final dartInt = dartDouble.toInt();
+    if (dartInt.toDouble() == dartDouble) {
+      return dartInt;
+    }
+  }
+  throw ArgumentError('JS value is not integer');
+}
+
 List<double> jsFloatTypedArrayToDartFloatTypedData(
   WasmExternRef? ref,
   List<double> makeTypedData(int size),
@@ -603,6 +617,7 @@ JSArray<T> toJSArray<T extends JSAny?>(List<T> list) {
   return result;
 }
 
+@pragma('wasm:entry-point')
 List<Object?> toDartList(WasmExternRef? ref) => List<Object?>.generate(
   objectLength(ref),
   (int n) => dartifyRaw(objectReadIndex(ref, n)),

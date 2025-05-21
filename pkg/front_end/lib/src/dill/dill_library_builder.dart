@@ -97,9 +97,9 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
 }
 
 class DillLibraryBuilder extends LibraryBuilderImpl {
-  late final DillLibraryNameSpace _nameSpace;
+  final DillLibraryNameSpace _nameSpace = new DillLibraryNameSpace();
 
-  late final DillExportNameSpace _exportNameSpace;
+  final DillExportNameSpace _exportNameSpace = new DillExportNameSpace();
 
   @override
   final Library library;
@@ -129,16 +129,18 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   final List<NamedBuilder> _memberBuilders = [];
 
-  DillLibraryBuilder(this.library, this.loader) : super(library.fileUri) {
-    _nameSpace = new DillLibraryNameSpace(this);
-    _exportNameSpace = new DillExportNameSpace(this);
+  DillLibraryBuilder(this.library, this.loader) : super(library.fileUri);
+  @override
+  NameSpace get libraryNameSpace {
+    ensureLoaded();
+    return _nameSpace;
   }
 
   @override
-  NameSpace get libraryNameSpace => _nameSpace;
-
-  @override
-  ComputedNameSpace get exportNameSpace => _exportNameSpace;
+  ComputedNameSpace get exportNameSpace {
+    ensureLoaded();
+    return _exportNameSpace;
+  }
 
   @override
   List<Export> get exporters => mainCompilationUnit.exporters;
@@ -482,12 +484,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  Iterator<NamedBuilder> get unfilteredMembersIterator {
-    ensureLoaded();
-    return _memberBuilders.iterator;
-  }
-
-  @override
   Iterator<T> filteredMembersIterator<T extends NamedBuilder>(
       {required bool includeDuplicates}) {
     ensureLoaded();
@@ -502,10 +498,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   /// builders in the export scope. The replacement maps from old LibraryBuilder
   /// to map, mapping from name to new (replacement) builder.
   void patchUpExportScope(
-      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMap,
-      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMapSetters,
-      Map<LibraryBuilder, NameSpace> replacementLookupMap) {
-    _exportNameSpace.patchUpScope(
-        replacementMap, replacementMapSetters, replacementLookupMap);
+      Map<LibraryBuilder, NameSpace> replacementNameSpaceMap) {
+    _exportNameSpace.patchUpScope(replacementNameSpaceMap);
   }
 }

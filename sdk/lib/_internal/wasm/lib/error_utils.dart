@@ -161,6 +161,13 @@ Never _throwNegativeOrZeroError(int value, [String? name]) {
   throw RangeError.range(value, 1, null, name);
 }
 
+@pragma("wasm:never-inline")
+@pragma("wasm:entry-point")
+Never _throwArgumentNullError() {
+  if (minify) throw _nullErrorWithoutDetails;
+  throw ArgumentError.notNull();
+}
+
 const _indexErrorWithoutDetails = _ErrorWithoutDetails(
   'IndexError (details omitted due to --minify)',
 );
@@ -175,6 +182,9 @@ const _negativeValueErrorWithoutDetails = _ErrorWithoutDetails(
 );
 const _negativeOrZeroValueErrorWithoutDetails = _ErrorWithoutDetails(
   'Value was negative or zero (details omitted due to --minify)',
+);
+const _nullErrorWithoutDetails = _ErrorWithoutDetails(
+  'Value must not be null (details omitted due to --minify)',
 );
 
 class _ErrorWithoutDetails implements Error {

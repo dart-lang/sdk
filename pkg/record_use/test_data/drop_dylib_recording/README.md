@@ -5,7 +5,7 @@ the recorded usages feature to tree-shake unused libraries out.
 
 ### Keep all:
 ```
-dart --enable-experiment=native-assets,record-use build bin/drop_dylib_recording_all.dart
+dart --enable-experiment=record-use build bin/drop_dylib_recording_all.dart
 ```
 The `lib/` folder now contains both libraries
 ```
@@ -16,7 +16,7 @@ Prints `Hello world: 7!`
 
 ### Treeshake using calls:
 ```
-dart --enable-experiment=native-assets,record-use build bin/drop_dylib_recording_calls.dart
+dart --enable-experiment=record-use build bin/drop_dylib_recording_calls.dart
 ```
 The `lib/` folder now contains only the `add` library.
 ```
@@ -26,7 +26,7 @@ Prints `Hello world: 7!`
 
 ### Treeshake using instances:
 ```
-dart --enable-experiment=native-assets,record-use build bin/drop_dylib_recording_instances.dart
+dart --enable-experiment=record-use build bin/drop_dylib_recording_instances.dart
 ```
 The `lib/` folder now contains only the `add` library.
 ```
