@@ -85,6 +85,7 @@ import 'join_else_with_if_test.dart' as join_else_with_if;
 import 'join_if_with_inner_test.dart' as join_if_with_inner;
 import 'join_if_with_outer_test.dart' as join_if_with_outer;
 import 'join_variable_declaration_test.dart' as join_variable_declaration;
+import 'remove_async_test.dart' as remove_async;
 import 'remove_digit_separators_test.dart' as remove_digit_separators;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'replace_conditional_with_if_else_test.dart'
@@ -177,6 +178,7 @@ void main() {
     join_if_with_inner.main();
     join_if_with_outer.main();
     join_variable_declaration.main();
+    remove_async.main();
     remove_digit_separators.main();
     remove_type_annotation.main();
     replace_conditional_with_if_else.main();

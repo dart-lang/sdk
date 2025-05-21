@@ -296,7 +296,7 @@ class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement {
     }
 
     // With only private non-factory constructors.
-    for (var constructor in constructors2) {
+    for (var constructor in constructors) {
       if (constructor.isPublic || constructor.isFactory) {
         return false;
       }
@@ -4967,15 +4967,21 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   @override
   List<Element> get children2 {
-    return [...super.children2, ...constructors2];
+    return [...super.children2, ...constructors];
   }
 
   @override
-  List<ConstructorElementImpl2> get constructors2 {
+  List<ConstructorElementImpl2> get constructors {
     _readMembers();
     return firstFragment.constructors
         .map((constructor) => constructor.element)
         .toList();
+  }
+
+  @Deprecated('Use constructors instead')
+  @override
+  List<ConstructorElementImpl2> get constructors2 {
+    return constructors;
   }
 
   @override
@@ -5081,7 +5087,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
       element: this,
       name: name,
     );
-    return constructors2.firstWhereOrNull((e) => e.name3 == name);
+    return constructors.firstWhereOrNull((e) => e.name3 == name);
   }
 
   @override
@@ -5302,6 +5308,7 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     ...typeParameters,
   ];
 
+  @override
   List<ConstructorFragmentImpl> get constructors {
     if (!identical(_constructors, _Sentinel.constructorElement)) {
       return _constructors;
@@ -5319,9 +5326,11 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     _constructors = constructors;
   }
 
+  @Deprecated('Use constructors instead')
   @override
-  List<ConstructorFragment> get constructors2 =>
-      constructors.cast<ConstructorFragment>();
+  List<ConstructorFragmentImpl> get constructors2 {
+    return constructors;
+  }
 
   @override
   String get displayName => name;

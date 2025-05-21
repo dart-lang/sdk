@@ -196,7 +196,7 @@ class LibraryBuilder {
 
   void buildEnumSyntheticConstructors() {
     bool hasConstructor(EnumFragmentImpl fragment) {
-      for (var constructor in fragment.element.constructors2) {
+      for (var constructor in fragment.element.constructors) {
         if (constructor.isGenerative || constructor.name3 == 'new') {
           return true;
         }
@@ -269,7 +269,7 @@ class LibraryBuilder {
       if (classFragment is! ClassFragmentImpl) continue;
       if (classFragment.isMixinApplication) continue;
       if (classFragment.isAugmentation) continue;
-      var hasConst = classFragment.element.constructors2.any((e) => e.isConst);
+      var hasConst = classFragment.element.constructors.any((e) => e.isConst);
       if (hasConst) {
         withConstConstructors.add(classFragment);
       }

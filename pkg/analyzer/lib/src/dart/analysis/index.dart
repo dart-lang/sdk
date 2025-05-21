@@ -733,7 +733,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // If the class has only a synthetic default constructor, then it
     // implicitly invokes the default super constructor. Associate the
     // invocation with the name of the class.
-    var defaultConstructor = declaredElement.constructors2.singleOrNull;
+    var defaultConstructor = declaredElement.constructors.singleOrNull;
     if (defaultConstructor is ConstructorElementImpl2 &&
         defaultConstructor.isSynthetic) {
       defaultConstructor.isDefaultConstructor;

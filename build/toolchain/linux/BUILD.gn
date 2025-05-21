@@ -22,7 +22,7 @@ if (use_rbe) {
       rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
 
   # TODO: Unfortunately I see no way to get build_arch reliably.
-  if (rbe_os != host_os) {
+  if (rbe_os != host_os || rbe_cpu != host_cpu) {
     compiler_args += [
       "--inputs=build/rbe,buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
       "--remote_wrapper=../../build/rbe/llvm.sh",

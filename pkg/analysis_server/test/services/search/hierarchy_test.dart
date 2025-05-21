@@ -38,8 +38,8 @@ class B extends A {
 ''');
     var classA = findElement2.class_('A');
     var classB = findElement2.class_('B');
-    var memberA = classA.constructors2[0];
-    var memberB = classB.constructors2[0];
+    var memberA = classA.constructors[0];
+    var memberB = classB.constructors[0];
     var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
       expect(members, unorderedEquals([memberA]));
     });

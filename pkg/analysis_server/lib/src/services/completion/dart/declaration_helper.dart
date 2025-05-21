@@ -162,7 +162,7 @@ class DeclarationHelper {
 
   /// Add suggestions for all constructors of [element].
   void addConstructorNamesForElement({required InterfaceElement element}) {
-    var constructors = element.constructors2;
+    var constructors = element.constructors;
     for (var constructor in constructors) {
       _suggestConstructor(
         constructor,
@@ -610,7 +610,7 @@ class DeclarationHelper {
     var typeSystem = library.typeSystem;
     for (var classElement in library.classes) {
       if (typeSystem.isSubtypeOf(classElement.thisType, classType)) {
-        for (var constructor in classElement.constructors2) {
+        for (var constructor in classElement.constructors) {
           if (constructor != redirectingConstructor &&
               constructor.isAccessibleIn2(library)) {
             _suggestConstructor(
@@ -638,7 +638,7 @@ class DeclarationHelper {
         _addStaticMembers(
           getters: element.getters,
           setters: element.setters,
-          constructors: element.constructors2,
+          constructors: element.constructors,
           containingElement: element,
           fields: element.fields,
           methods: element.methods,
@@ -656,7 +656,7 @@ class DeclarationHelper {
         _addStaticMembers(
           getters: element.getters,
           setters: element.setters,
-          constructors: element.constructors2,
+          constructors: element.constructors,
           containingElement: element,
           fields: element.fields,
           methods: element.methods,
@@ -669,16 +669,16 @@ class DeclarationHelper {
   void _addConstructors(LibraryElement library, ImportData importData) {
     for (var element in library.classes) {
       _suggestConstructors(
-        element.constructors2,
+        element.constructors,
         importData,
         allowNonFactory: !element.isAbstract,
       );
     }
     for (var element in library.enums) {
-      _suggestConstructors(element.constructors2, importData);
+      _suggestConstructors(element.constructors, importData);
     }
     for (var element in library.extensionTypes) {
-      _suggestConstructors(element.constructors2, importData);
+      _suggestConstructors(element.constructors, importData);
     }
     for (var element in library.typeAliases) {
       _addConstructorsForAliasedElement(element, importData);
@@ -694,14 +694,14 @@ class DeclarationHelper {
     var aliasedElement = alias.aliasedElement2;
     if (aliasedElement is ClassElement) {
       _suggestConstructors(
-        aliasedElement.constructors2,
+        aliasedElement.constructors,
         importData,
         allowNonFactory: !aliasedElement.isAbstract,
       );
     } else if (aliasedElement is ExtensionTypeElement) {
-      _suggestConstructors(aliasedElement.constructors2, importData);
+      _suggestConstructors(aliasedElement.constructors, importData);
     } else if (aliasedElement is MixinElement) {
-      _suggestConstructors(aliasedElement.constructors2, importData);
+      _suggestConstructors(aliasedElement.constructors, importData);
     }
   }
 
@@ -721,12 +721,12 @@ class DeclarationHelper {
       switch (element) {
         case ClassElement():
           _suggestConstructors(
-            element.constructors2,
+            element.constructors,
             importData,
             allowNonFactory: !element.isAbstract,
           );
         case ExtensionTypeElement():
-          _suggestConstructors(element.constructors2, importData);
+          _suggestConstructors(element.constructors, importData);
         case TypeAliasElement():
           _addConstructorsForAliasedElement(element, importData);
       }
@@ -1694,7 +1694,7 @@ class DeclarationHelper {
       if (!mustBeType) {
         _suggestStaticFields(element.fields, importData);
         _suggestConstructors(
-          element.constructors2,
+          element.constructors,
           importData,
           allowNonFactory: !element.isAbstract,
         );
@@ -1799,7 +1799,7 @@ class DeclarationHelper {
       if (!mustBeType) {
         _suggestStaticFields(element.fields, importData);
         _suggestConstructors(
-          element.constructors2,
+          element.constructors,
           importData,
           allowNonFactory: false,
         );
@@ -1852,7 +1852,7 @@ class DeclarationHelper {
       }
       if (!mustBeType) {
         _suggestStaticFields(element.fields, importData);
-        _suggestConstructors(element.constructors2, importData);
+        _suggestConstructors(element.constructors, importData);
       }
     }
   }

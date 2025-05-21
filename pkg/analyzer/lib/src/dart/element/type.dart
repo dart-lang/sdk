@@ -659,7 +659,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<ConstructorElementMixin2> get constructors2 {
     return _constructors ??=
-        element3.constructors2.map((constructor) {
+        element3.constructors.map((constructor) {
           return ConstructorMember.from2(constructor, this);
         }).toFixedList();
   }

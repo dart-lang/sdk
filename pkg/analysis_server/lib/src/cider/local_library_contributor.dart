@@ -193,7 +193,7 @@ class LibraryElementSuggestionBuilder
       return;
     }
 
-    for (var constructor in element.constructors2) {
+    for (var constructor in element.constructors) {
       if (constructor.isPrivate) {
         continue;
       }

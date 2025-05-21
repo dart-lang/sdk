@@ -26,7 +26,7 @@ class ConstructorInitializerResolver {
     ];
 
     for (var interfaceElement in interfaceElements) {
-      for (var constructorElement in interfaceElement.constructors2) {
+      for (var constructorElement in interfaceElement.constructors) {
         _constructorElement(interfaceElement, constructorElement);
       }
     }

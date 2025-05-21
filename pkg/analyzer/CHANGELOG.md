@@ -29,6 +29,8 @@
 * Deprecate `InstanceElement.getMethod2`, use `getMethod` instead.
 * Deprecate `InstanceFragment.fields2`, use `fields` instead.
 * Deprecate `InstanceFragment.methods2`, use `methods` instead.
+* Deprecate `InterfaceElement.constructors2`, use `constructors` instead.
+* Deprecate `InterfaceFragment.constructors2`, use `constructors` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

@@ -1986,6 +1986,12 @@ abstract class InterfaceElement implements InstanceElement {
   /// The constructors defined for this element.
   ///
   /// The list is empty for [MixinElement].
+  List<ConstructorElement> get constructors;
+
+  /// The constructors defined for this element.
+  ///
+  /// The list is empty for [MixinElement].
+  @Deprecated('Use constructors instead')
   List<ConstructorElement> get constructors2;
 
   @override
@@ -2123,7 +2129,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// since it does not need to consider all possible interface names.
   ExecutableElement? getInterfaceMember(Name name);
 
-  /// Returns the constructor from [constructors2] that has the given [name].
+  /// Returns the constructor from [constructors] that has the given [name].
   ConstructorElement? getNamedConstructor2(String name);
 
   /// Returns all members of mixins, superclasses, and interfaces that a member
@@ -2202,6 +2208,12 @@ abstract class InterfaceFragment implements InstanceFragment {
   /// The constructors declared in this fragment.
   ///
   /// The list is empty for [MixinFragment].
+  List<ConstructorFragment> get constructors;
+
+  /// The constructors declared in this fragment.
+  ///
+  /// The list is empty for [MixinFragment].
+  @Deprecated('Use constructors instead')
   List<ConstructorFragment> get constructors2;
 
   @override

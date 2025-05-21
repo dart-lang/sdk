@@ -1176,6 +1176,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Remove unnecessary assignments everywhere in file',
   );
+  static const REMOVE_ASYNC = FixKind(
+    'dart.fix.remove.async',
+    DartFixKindPriority.standard,
+    "Remove 'async' modifier",
+  );
   static const REMOVE_AWAIT = FixKind(
     'dart.fix.remove.await',
     DartFixKindPriority.standard,

@@ -134,6 +134,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_annotation.d
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_assignment.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_async.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_break.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_character.dart';
@@ -489,6 +490,7 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
     ConvertToWildcardPattern.new,
   ],
   LinterLintCode.unawaited_futures: [AddAwait.unawaited, WrapInUnawaited.new],
+  LinterLintCode.unnecessary_async: [RemoveAsync.unnecessary],
   LinterLintCode.unnecessary_await_in_return: [RemoveAwait.new],
   LinterLintCode.unnecessary_brace_in_string_interps: [
     RemoveInterpolationBraces.new,
@@ -698,7 +700,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE: [
     ReplaceReturnTypeStream.new,
   ],
-  CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE: [ReplaceReturnTypeFuture.new],
+  CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE: [
+    ReplaceReturnTypeFuture.new,
+    RemoveAsync.new,
+  ],
   CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE: [
     ReplaceReturnTypeIterable.new,
   ],

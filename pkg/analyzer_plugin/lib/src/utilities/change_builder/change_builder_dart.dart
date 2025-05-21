@@ -1509,12 +1509,39 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
-  void convertFunctionFromSyncToAsync({
-    required FunctionBody? body,
+  void convertFunctionFromAsyncToSync({
+    required FunctionBody body,
     required TypeSystem typeSystem,
     required TypeProvider typeProvider,
   }) {
-    if (body == null || body.keyword != null) {
+    if (body.keyword?.lexeme != Keyword.ASYNC.lexeme || body.star != null) {
+      throw ArgumentError(
+        'The function must have an asynchronous, non-generator body.',
+      );
+    }
+    var keyword = body.keyword!;
+    if (body is! EmptyFunctionBody) {
+      addDeletion(
+        range.startOffsetEndOffset(
+          keyword.offset,
+          keyword.end + (_isFusedWithPreviousToken(keyword.next!) ? 0 : 1),
+        ),
+      );
+    }
+    _replaceReturnTypeWithFutureArgument(
+      node: body,
+      typeSystem: typeSystem,
+      typeProvider: typeProvider,
+    );
+  }
+
+  @override
+  void convertFunctionFromSyncToAsync({
+    required FunctionBody body,
+    required TypeSystem typeSystem,
+    required TypeProvider typeProvider,
+  }) {
+    if (body.keyword != null) {
       throw ArgumentError(
           'The function must have a synchronous, non-generator body.');
     }
@@ -1899,6 +1926,32 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       var valueType = typeSystem.flatten(type);
       var futureType = typeProvider.futureType(valueType);
       if (!builder.writeType(futureType)) {
+        builder.write('void');
+      }
+    });
+  }
+
+  @override
+  void replaceTypeWithFutureArgument({
+    required TypeAnnotation? typeAnnotation,
+    required TypeSystem typeSystem,
+    required TypeProvider typeProvider,
+  }) {
+    if (typeAnnotation == null) {
+      return;
+    }
+
+    //
+    // Check whether the type needs to be replaced.
+    //
+    var type = typeAnnotation.type;
+    if (type == null || !type.isDartAsyncFuture && !type.isDartAsyncFutureOr) {
+      return;
+    }
+
+    addReplacement(range.node(typeAnnotation), (builder) {
+      var valueType = typeSystem.flatten(type);
+      if (!builder.writeType(valueType)) {
         builder.write('void');
       }
     });
@@ -2535,6 +2588,40 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         return;
       } else if (node is MethodDeclaration) {
         replaceTypeWithFuture(
+          typeAnnotation: node.returnType,
+          typeSystem: typeSystem,
+          typeProvider: typeProvider,
+        );
+        return;
+      }
+    }
+  }
+
+  /// Creates an edit to replace the return type of the innermost function
+  /// containing the given [node] with the `Future` type parameter.
+  ///
+  /// The [typeSystem] is used to check the current return type, because if it
+  /// is not a `Future`, no edit will be added.
+  void _replaceReturnTypeWithFutureArgument({
+    required AstNode? node,
+    required TypeSystem typeSystem,
+    required TypeProvider typeProvider,
+  }) {
+    while (node != null) {
+      node = node.parent;
+      if (node is FunctionDeclaration) {
+        replaceTypeWithFutureArgument(
+          typeAnnotation: node.returnType,
+          typeSystem: typeSystem,
+          typeProvider: typeProvider,
+        );
+        return;
+      } else if (node is FunctionExpression &&
+          node.parent is! FunctionDeclaration) {
+        // Closures don't have a return type.
+        return;
+      } else if (node is MethodDeclaration) {
+        replaceTypeWithFutureArgument(
           typeAnnotation: node.returnType,
           typeSystem: typeSystem,
           typeProvider: typeProvider,

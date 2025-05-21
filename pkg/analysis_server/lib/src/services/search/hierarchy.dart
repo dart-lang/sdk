@@ -171,7 +171,7 @@ getHierarchyMembersAndParameters(
       }
 
       if (includeParametersForFields && member2 is FieldElement) {
-        for (var constructor in subClass.constructors2) {
+        for (var constructor in subClass.constructors) {
           for (var parameter in constructor.formalParameters) {
             if (parameter is FieldFormalParameterElement &&
                 parameter.field2 == member2) {

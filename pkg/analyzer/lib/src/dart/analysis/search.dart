@@ -1288,7 +1288,7 @@ class _FindLibraryDeclarations {
       var element = elements[i];
       _addDeclaration(element, element.name3!);
       _addGetters(element.getters);
-      _addConstructors(element.constructors2);
+      _addConstructors(element.constructors);
       _addFields(element.fields);
       _addMethods(element.methods);
       _addSetters(element.setters);

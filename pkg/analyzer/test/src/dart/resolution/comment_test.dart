@@ -102,6 +102,34 @@ CommentReference
 ''');
   }
 
+  test_class_instanceGetter_onTypedef() async {
+    await assertNoErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+typedef B = A;
+
+/// [B.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('B.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: B
+      element: <testLibrary>::@typeAlias::B
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      staticType: null
+    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    staticType: null
+''');
+  }
+
   test_class_instanceMethod() async {
     await assertNoErrorsInCode('''
 class A {
@@ -210,6 +238,35 @@ CommentReference
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      staticType: null
+    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    staticType: null
+''');
+  }
+
+  test_class_staticGetter_onTypedef() async {
+    await assertNoErrorsInCode('''
+class A {
+  static int get foo => 0;
+}
+
+typedef B = A;
+
+/// [B.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('B.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: B
+      element: <testLibrary>::@typeAlias::B
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -949,6 +1006,42 @@ CommentReference
 ''');
   }
 
+  test_class_instanceGetter_onTypedef() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class A {
+  int get foo => 0;
+}
+typedef B = A;
+
+/// [self.B.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('B.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        element: <testLibraryFragment>::@prefix2::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: B
+        element: <testLibrary>::@typeAlias::B
+        staticType: null
+      element: <testLibrary>::@typeAlias::B
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      staticType: null
+    staticType: null
+''');
+  }
+
   test_class_instanceMethod() async {
     await assertNoErrorsInCode('''
 import '' as self;
@@ -1044,6 +1137,42 @@ CommentReference
         element: <testLibrary>::@class::A
         staticType: null
       element: <testLibrary>::@class::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      staticType: null
+    staticType: null
+''');
+  }
+
+  test_class_staticGetter_onTypedef() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class A {
+  static int get foo => 0;
+}
+typedef B = A;
+
+/// [self.B.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('B.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        element: <testLibraryFragment>::@prefix2::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: B
+        element: <testLibrary>::@typeAlias::B
+        staticType: null
+      element: <testLibrary>::@typeAlias::B
       staticType: null
     operator: .
     propertyName: SimpleIdentifier

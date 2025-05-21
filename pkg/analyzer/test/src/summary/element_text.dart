@@ -1178,7 +1178,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       _writeElementList('fields', e, e.fields, _writeFieldElement);
       if (e is InterfaceElementImpl2) {
-        var constructors = e.constructors2;
+        var constructors = e.constructors;
         if (e is MixinElementImpl2) {
           expect(constructors, isEmpty);
         } else if (configuration.withConstructors) {
@@ -1250,7 +1250,7 @@ class _Element2Writer extends _AbstractElementWriter {
       );
       _writeFragmentList('fields', f, f.fields, _writeFieldFragment);
       if (f is InterfaceFragment) {
-        var constructors = f.constructors2;
+        var constructors = f.constructors;
         if (f is MixinElement) {
           expect(constructors, isEmpty);
         } else if (configuration.withConstructors) {

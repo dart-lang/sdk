@@ -16,7 +16,7 @@ class SuperConstructorResolver {
   void perform() {
     for (var builder in _linker.builders.values) {
       for (var classElement in builder.element.classes) {
-        for (var constructorElement in classElement.constructors2) {
+        for (var constructorElement in classElement.constructors) {
           _constructor(classElement, constructorElement);
         }
       }

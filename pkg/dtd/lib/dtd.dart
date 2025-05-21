@@ -8,6 +8,7 @@ library;
 export 'src/connected_app_service.dart';
 export 'src/constants.dart';
 export 'src/dart_tooling_daemon.dart';
+export 'src/file_system/file_system_service.dart';
 export 'src/file_system/types.dart';
 export 'src/response_types.dart';
 export 'src/rpc_error_codes.dart';

@@ -29,6 +29,9 @@ declare_args() {
   if (host_os == "win") {
     rbe_dir =
         rebase_path(_dart_root + "/buildtools/reclient-win", root_build_dir)
+  } else if (host_os == "linux") {
+    rbe_dir =
+        rebase_path(_dart_root + "/buildtools/reclient-linux", root_build_dir)
   } else {
     rbe_dir = rebase_path(_dart_root + "/buildtools/reclient", root_build_dir)
   }

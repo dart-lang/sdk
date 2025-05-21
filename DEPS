@@ -482,6 +482,19 @@ deps = {
     'dep_type': 'cipd',
   },
 
+  # linux-arm64 package is not available, use the linux-x64 package and
+  # rely on transparent emulation.
+  Var("dart_root") + '/buildtools/reclient-linux': {
+    'packages': [
+      {
+        'package': 'infra/rbe/client/linux-amd64',
+        'version': Var('reclient_version'),
+      }
+    ],
+    'condition': 'host_os == "linux"',
+    'dep_type': 'cipd',
+  },
+
   Var("dart_root") + "/third_party/webdriver/chrome": {
     "packages": [
       {

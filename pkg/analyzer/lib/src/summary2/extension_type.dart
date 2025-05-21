@@ -162,7 +162,7 @@ class _Node extends graph.Node<_Node> {
             .where(typeSystem.isValidExtensionTypeSuperinterface)
             .toFixedList();
 
-    var primaryConstructor = element.constructors2.first;
+    var primaryConstructor = element.constructors.first;
     var primaryFormalParameter = primaryConstructor.formalParameters.first;
     primaryFormalParameter as FieldFormalParameterElementImpl2;
     primaryFormalParameter.type = type;

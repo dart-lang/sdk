@@ -202,7 +202,7 @@ extension ClassElementExtension on ClassElement {
     }
 
     // With only private non-factory constructors.
-    for (var constructor in constructors2) {
+    for (var constructor in constructors) {
       if (!constructor.isPrivate || constructor.isFactory) {
         return null;
       }

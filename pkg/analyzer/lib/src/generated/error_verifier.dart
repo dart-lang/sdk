@@ -3482,7 +3482,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     if (fragment is InterfaceFragmentImpl) {
       var element = fragment.element;
-      for (var constructor in element.constructors2) {
+      for (var constructor in element.constructors) {
         if (constructor.isGenerative && !constructor.isSynthetic) {
           return;
         }
@@ -3950,7 +3950,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var hasGenerativeConstConstructor = enclosingClass.constructors2.any(
+    var hasGenerativeConstConstructor = enclosingClass.constructors.any(
       (c) => c.isConst && !c.isFactory,
     );
     if (!hasGenerativeConstConstructor) return;
@@ -4172,7 +4172,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     NamedType mixinName,
     InterfaceElement mixinElement,
   ) {
-    for (var constructor in mixinElement.constructors2) {
+    for (var constructor in mixinElement.constructors) {
       if (!constructor.isSynthetic && !constructor.isFactory) {
         errorReporter.atNode(
           mixinName,
@@ -4529,7 +4529,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT].
   void _checkForNoDefaultSuperConstructorImplicit(ClassFragmentImpl fragment) {
     // do nothing if there is explicit constructor
-    var constructors = fragment.element.constructors2;
+    var constructors = fragment.element.constructors;
     if (!constructors[0].isSynthetic) {
       return;
     }
@@ -4575,7 +4575,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superType == null) {
       return false;
     }
-    if (_enclosingClass!.constructors2.every(
+    if (_enclosingClass!.constructors.every(
       (constructor) => constructor.isFactory,
     )) {
       // A class with no generative constructors *can* be extended if the
@@ -4583,11 +4583,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return false;
     }
     var superElement = superType.element3;
-    if (superElement.constructors2.isEmpty) {
+    if (superElement.constructors.isEmpty) {
       // Exclude empty constructor set, which indicates other errors occurred.
       return false;
     }
-    if (superElement.constructors2.every(
+    if (superElement.constructors.every(
       (constructor) => constructor.isFactory,
     )) {
       // For `E extends Exception`, etc., this will never work, because it has
@@ -5381,7 +5381,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     var superElement = superType.element3;
 
-    if (superElement.constructors2.every(
+    if (superElement.constructors.every(
       (constructor) => constructor.isFactory,
     )) {
       // Already reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].

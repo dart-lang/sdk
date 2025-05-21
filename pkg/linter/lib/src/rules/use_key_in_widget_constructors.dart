@@ -44,7 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (classElement != null &&
         classElement.isPublic &&
         classElement.extendsWidget &&
-        classElement.constructors2.where((e) => !e.isSynthetic).isEmpty) {
+        classElement.constructors.where((e) => !e.isSynthetic).isEmpty) {
       rule.reportAtToken(node.name);
     }
     super.visitClassDeclaration(node);
