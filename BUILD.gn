@@ -491,3 +491,9 @@ if (is_fuchsia) {
     }
   }
 }
+
+if (is_linux) {
+  group("debian_package") {
+    public_deps = [ "tools/debian_package" ]
+  }
+}
