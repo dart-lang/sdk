@@ -404,7 +404,8 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   @override
   void visitStructuralParameterType(
       StructuralParameterType node, StringBuffer sb) {
-    throw "not implemented";
+    String name = computeStructuralParameterName(node.parameter);
+    sb.write(name);
   }
 
   @override
@@ -416,12 +417,12 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
 
   @override
   void visitTypedefType(TypedefType node, StringBuffer sb) {
-    throw "not implemented";
+    sb.write(node.unalias);
   }
 
   @override
   void visitExtensionType(ExtensionType node, StringBuffer sb) {
-    throw "not implemented";
+    sb.write(node.extensionTypeErasure);
   }
 
   Map<String, dynamic> toJson() {
