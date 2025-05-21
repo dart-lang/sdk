@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:async/async.dart';
 // ignore: implementation_imports
 import 'package:vm_service/src/vm_service.dart';
 
@@ -141,26 +140,39 @@ extension DdsExtension on VmService {
   /// sent over the returned [Stream].
   Stream<Event> onEventWithHistory(String stream) {
     late StreamController<Event> controller;
-    late StreamQueue<Event> streamEvents;
+    late StreamSubscription<Event> subscription;
 
     controller = StreamController<Event>(onListen: () async {
-      streamEvents = StreamQueue<Event>(onEvent(stream));
-      final history = (await getStreamHistory(stream)).history;
-      Event? firstStreamEvent;
-      unawaited(streamEvents.peek.then((e) {
-        firstStreamEvent = e;
-      }));
-      for (final event in history) {
-        if (firstStreamEvent != null &&
-            event.timestamp! > firstStreamEvent!.timestamp!) {
-          break;
+      bool isFirstEvent = true;
+      late final Event? lastHistoricalEvent;
+      final historyRetrievedCompleter = Completer<void>();
+
+      subscription = onEvent(stream).listen((event) async {
+        if (isFirstEvent) {
+          await historyRetrievedCompleter.future;
+          isFirstEvent = false;
         }
-        controller.sink.add(event);
+        // In practice, it should be impossible for two distinct events to have
+        // the same timestamp.
+        if (lastHistoricalEvent == null ||
+            event.timestamp! > lastHistoricalEvent.timestamp!) {
+          controller.sink.add(event);
+        }
+      }, onDone: () {
+        controller.sink.close();
+      }, onError: (error, stackTrace) {
+        controller.addError(error, stackTrace);
+      });
+
+      final history = (await getStreamHistory(stream)).history;
+      lastHistoricalEvent = history.isNotEmpty ? history.last : null;
+      for (final historicalEvent in history) {
+        controller.sink.add(historicalEvent);
       }
-      unawaited(controller.sink.addStream(streamEvents.rest));
+      historyRetrievedCompleter.complete();
     }, onCancel: () {
       try {
-        streamEvents.cancel();
+        subscription.cancel();
       } on StateError {
         // Underlying stream may have already been cancelled.
       }

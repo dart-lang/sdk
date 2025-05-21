@@ -11,7 +11,6 @@ environment:
 resolution: workspace
 
 dependencies:
-  async: ^2.4.1
   dap: ^1.0.0
   vm_service: '>=14.0.0 <16.0.0'
 
