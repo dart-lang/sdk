@@ -342,6 +342,30 @@ DotShorthandConstructorInvocation
 ''');
   }
 
+  test_enum_constructor() async {
+    await assertErrorsInCode(
+      r'''
+enum E {
+  v.named();
+
+  const E.named();
+}
+
+void f() {
+  E e = .named();
+  print(e);
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          65,
+          5,
+        ),
+      ],
+    );
+  }
+
   test_equality() async {
     await assertNoErrorsInCode(r'''
 class C {
