@@ -4957,10 +4957,10 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   InterfaceTypeImpl? _thisType;
 
   /// The cached result of [allSupertypes].
-  List<InterfaceType>? _allSupertypes;
+  List<InterfaceTypeImpl>? _allSupertypes;
 
   @override
-  List<InterfaceType> get allSupertypes {
+  List<InterfaceTypeImpl> get allSupertypes {
     return _allSupertypes ??= library2.session.classHierarchy
         .implementedInterfaces(this);
   }

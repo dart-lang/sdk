@@ -7,7 +7,6 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
@@ -754,7 +753,6 @@ class LibraryManifestBuilder {
 
       // Ensure that we have interfaces of supertypes first.
       for (var superType in element.allSupertypes) {
-        superType as InterfaceTypeImpl;
         addInterfacesToFill(superType.element3);
       }
 
