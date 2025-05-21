@@ -69,14 +69,12 @@ class CreateMethod extends ResolvedCorrectionProducer {
         ExecutableElement? element;
         if (missingEquals) {
           _memberName = '==';
-          element = inheritanceManager.getInherited4(
-            classElement,
+          element = classElement.getInheritedMember(
             Name.forLibrary(classElement.library2, _memberName),
           );
         } else {
           _memberName = 'hashCode';
-          element = inheritanceManager.getInherited4(
-            classElement,
+          element = classElement.getInheritedMember(
             Name.forLibrary(classElement.library2, _memberName),
           );
         }

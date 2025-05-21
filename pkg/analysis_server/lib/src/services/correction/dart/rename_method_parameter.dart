@@ -50,8 +50,7 @@ class RenameMethodParameter extends ResolvedCorrectionProducer {
     var classElement = declaredFragment?.element;
     if (classElement is! InterfaceElement) return;
 
-    var parentMethod = inheritanceManager.getInherited4(
-      classElement,
+    var parentMethod = classElement.getInheritedMember(
       Name.forLibrary(libraryElement2, method.name.lexeme),
     );
     if (parentMethod == null) return;
