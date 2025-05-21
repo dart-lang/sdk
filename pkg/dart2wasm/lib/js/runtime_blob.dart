@@ -173,6 +173,7 @@ const jsStringPolyfill = {
         }
         return s.length;
       },
+      "test": (s) => typeof s == "string",
     };
 ''';
 
