@@ -1,4 +1,4 @@
-## 15.0.1-wip
+## 15.0.1
 - Update to version `4.19` of the spec.
 - Add `Timer` stream.
 - Add `TimerSignificantlyOverdue` event kind.
