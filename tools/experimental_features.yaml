@@ -125,7 +125,8 @@ features:
 
   native-assets:
     help: "Compile and bundle native assets."
-    channels: [ "main", "dev" ]
+    channels: [ "main", "dev", "beta" ]
+    enabledIn: '3.9.0'
 
   record-use:
     help: "Output arguments used by static functions."

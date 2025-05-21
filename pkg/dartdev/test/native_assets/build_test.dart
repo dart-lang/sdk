@@ -49,7 +49,6 @@ void main([List<String> args = const []]) async {
           final bool expectCrossOSFailure = targetOS == crossOS;
           final result = await runDart(
             arguments: [
-              '--enable-experiment=native-assets',
               if (fromDartdevSource) dartDevEntryScriptUri.toFilePath(),
               'build',
               if (targetOS != null) ...[
@@ -115,7 +114,6 @@ void main(List<String> args) {
 ''');
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'build',
           'bin/dart_app.dart',
         ],
@@ -137,7 +135,6 @@ void main(List<String> args) {
     await nativeAssetsTest('native_add_duplicate', (dartAppUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'build',
           'bin/native_add_duplicate.dart',
         ],
@@ -159,7 +156,6 @@ void main(List<String> args) {
     await nativeAssetsTest('drop_dylib_link', (dartAppUri) async {
       await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'build',
           'bin/drop_dylib_link.dart',
         ],
@@ -190,7 +186,6 @@ void main(List<String> args) {
     await nativeAssetsTest('add_asset_link', (dartAppUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'build',
           'bin/add_asset_link.dart',
         ],
@@ -219,7 +214,6 @@ void main(List<String> args) {
     await nativeAssetsTest('dart_app', (dartAppUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           if (fromDartdevSource) dartDevEntryScriptUri.toFilePath(),
           'build',
           'bin/dart_app.dart',
@@ -252,7 +246,7 @@ void main(List<String> args) {
 
         await runDart(
           arguments: [
-            '--enable-experiment=native-assets,record-use',
+            '--enable-experiment=record-use',
             'build',
             'bin/$filename.dart',
           ],
@@ -295,7 +289,6 @@ void main(List<String> args) {
       await nativeAssetsTest('native_dynamic_linking', (packageUri) async {
         await runDart(
           arguments: [
-            '--enable-experiment=native-assets',
             'build',
             'bin/native_dynamic_linking.dart',
           ],
@@ -337,7 +330,6 @@ void main(List<String> args) {
             (packageUri) async {
           await runDart(
             arguments: [
-              '--enable-experiment=native-assets',
               'build',
               'bin/user_defines.dart',
             ],

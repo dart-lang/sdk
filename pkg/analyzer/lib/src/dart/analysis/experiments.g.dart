@@ -428,8 +428,8 @@ class ExperimentalFeatures {
     isExpired: IsExpired.native_assets,
     documentation: 'Compile and bundle native assets.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
-    channels: ["main", "dev"],
+    releaseVersion: Version.parse('3.9.0'),
+    channels: ["main", "dev", "beta"],
   );
 
   static final non_nullable = ExperimentalFeature(
@@ -690,7 +690,7 @@ class IsEnabledByDefault {
   static const bool named_arguments_anywhere = true;
 
   /// Default state of the experiment "native-assets"
-  static const bool native_assets = false;
+  static const bool native_assets = true;
 
   /// Default state of the experiment "non-nullable"
   static const bool non_nullable = true;
