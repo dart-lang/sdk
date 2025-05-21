@@ -12,6 +12,18 @@ import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 /// A mixin adding functionality to write `.dart_tool/package_config.json`
 /// files along with mock packages to a [ResourceProvider].
 mixin ConfigurationFilesMixin on MockPackagesMixin {
+  /// Adds the 'flutter_test' package to the package config file for the
+  /// package-under-test.
+  ///
+  /// This allows `package:flutter_test/flutter_test.dart` imports to resolve.
+  bool get addFlutterTestPackageDep => false;
+
+  /// Adds the 'pedantic' package to the package config file for the
+  /// package-under-test.
+  ///
+  /// This allows `package:vector_math/vector_math_64.dart` imports to resolve.
+  bool get addVectorMathPackageDep => false;
+
   /// The Dart language version of the test package being used for testing.
   String get testPackageLanguageVersion => _latestLanguageVersion;
 
@@ -33,10 +45,8 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     PackageConfigFileBuilder? config,
     String? languageVersion,
     bool flutter = false,
-    bool flutter_test = false,
     bool meta = false,
     bool pedantic = false,
-    bool vector_math = false,
   }) {
     projectFolderPath = resourceProvider.convertPath(projectFolderPath);
 
@@ -66,7 +76,7 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
       config.add(name: 'flutter', rootPath: flutterLibFolder.parent.path);
     }
 
-    if (flutter_test) {
+    if (addFlutterTestPackageDep) {
       var libFolder = addFlutterTest();
       config.add(name: 'flutter_test', rootPath: libFolder.parent.path);
     }
@@ -76,7 +86,7 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
       config.add(name: 'pedantic', rootPath: libFolder.parent.path);
     }
 
-    if (vector_math) {
+    if (addVectorMathPackageDep) {
       var libFolder = addVectorMath();
       config.add(name: 'vector_math', rootPath: libFolder.parent.path);
     }
@@ -101,10 +111,8 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     PackageConfigFileBuilder? config,
     String? languageVersion,
     bool flutter = false,
-    bool flutter_test = false,
     bool meta = false,
     bool pedantic = false,
-    bool vector_math = false,
   }) {
     writePackageConfig(
       testPackageRootPath,
@@ -112,10 +120,8 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
       languageVersion: languageVersion,
       packageName: 'test',
       flutter: flutter,
-      flutter_test: flutter_test,
       meta: meta,
       pedantic: pedantic,
-      vector_math: vector_math,
     );
   }
 }
