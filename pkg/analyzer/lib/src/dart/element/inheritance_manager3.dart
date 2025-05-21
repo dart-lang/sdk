@@ -1183,7 +1183,7 @@ class InheritanceManager3 {
 
     var resultType = validOverrides
         .map((e) {
-          return typeSystem.normalize(e.type) as FunctionTypeImpl;
+          return typeSystem.normalizeFunctionType(e.type);
         })
         .reduce((previous, next) {
           return typeSystem.topMerge(previous, next) as FunctionTypeImpl;

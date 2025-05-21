@@ -175,12 +175,11 @@ class _ClassInterfaceType {
       } else if (type == _singleType) {
         return;
       } else {
-        _currentResult =
-            _typeSystem.normalize(_singleType!) as InterfaceTypeImpl;
+        _currentResult = _typeSystem.normalizeInterfaceType(_singleType!);
       }
     }
 
-    var normType = _typeSystem.normalize(type) as InterfaceTypeImpl;
+    var normType = _typeSystem.normalizeInterfaceType(type);
     try {
       _currentResult = _merge(_currentResult!, normType);
     } catch (e) {

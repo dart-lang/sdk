@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -18,7 +19,7 @@ class InvalidCasePatterns extends LintRule {
     : super(
         name: LintNames.invalid_case_patterns,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   // TODO(pq): update to add specific messages w/ specific corrections

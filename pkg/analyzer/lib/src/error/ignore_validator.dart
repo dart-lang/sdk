@@ -207,9 +207,9 @@ class IgnoreValidator {
         } else {
           var state = rule.state;
           var since = state.since.toString();
-          if (state is DeprecatedState) {
+          if (state is DeprecatedRuleState) {
             // `todo`(pq): implement
-          } else if (state is RemovedState) {
+          } else if (state is RemovedRuleState) {
             var replacedBy = state.replacedBy;
             if (replacedBy != null) {
               _errorReporter.atOffset(

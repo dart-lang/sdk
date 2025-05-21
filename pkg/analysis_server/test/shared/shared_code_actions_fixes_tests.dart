@@ -881,7 +881,7 @@ class _DeprecatedCamelCaseTypes extends LintRule {
   _DeprecatedCamelCaseTypes()
     : super(
         name: 'camel_case_types',
-        state: State.deprecated(),
+        state: RuleState.deprecated(),
         description: '',
       );
 

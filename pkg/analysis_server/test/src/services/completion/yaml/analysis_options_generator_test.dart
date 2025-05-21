@@ -313,7 +313,11 @@ class InternalRule extends LintRule {
   );
 
   InternalRule()
-    : super(name: 'internal_lint', state: State.internal(), description: '');
+    : super(
+        name: 'internal_lint',
+        state: RuleState.internal(),
+        description: '',
+      );
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -323,7 +327,7 @@ class _RemovedLint extends LintRule {
   static const LintCode _code = LintCode('removed_lint', 'Removed rule.');
 
   _RemovedLint()
-    : super(name: 'removed_lint', state: State.removed(), description: '');
+    : super(name: 'removed_lint', state: RuleState.removed(), description: '');
 
   @override
   DiagnosticCode get diagnosticCode => _code;

@@ -1477,6 +1477,14 @@ class TypeSystemImpl implements TypeSystem {
     return NormalizeHelper(this).normalize(T);
   }
 
+  FunctionTypeImpl normalizeFunctionType(FunctionTypeImpl T) {
+    return NormalizeHelper(this).normalizeFunctionType(T);
+  }
+
+  InterfaceTypeImpl normalizeInterfaceType(InterfaceTypeImpl T) {
+    return NormalizeHelper(this).normalizeInterfaceType(T);
+  }
+
   /// Returns a non-nullable version of [type].  This is equivalent to the
   /// operation `NonNull` defined in the spec.
   @override

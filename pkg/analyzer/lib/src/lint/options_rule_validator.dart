@@ -39,11 +39,11 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       .rules
       .firstWhereOrNull((rule) => rule.name == value);
 
-  bool isDeprecatedInCurrentSdk(DeprecatedState state) =>
+  bool isDeprecatedInCurrentSdk(DeprecatedRuleState state) =>
       currentSdkAllows(state.since);
 
-  bool isRemovedInCurrentSdk(State state) {
-    if (state is! RemovedState) return false;
+  bool isRemovedInCurrentSdk(RuleState state) {
+    if (state is! RemovedRuleState) return false;
     return currentSdkAllows(state.since);
   }
 
@@ -103,7 +103,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       // includes).
       if (sourceIsOptionsForContextRoot) {
         var state = rule.state;
-        if (state is DeprecatedState && isDeprecatedInCurrentSdk(state)) {
+        if (state is DeprecatedRuleState && isDeprecatedInCurrentSdk(state)) {
           var replacedBy = state.replacedBy;
           if (replacedBy != null) {
             reporter.atSourceSpan(
@@ -120,7 +120,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
           }
         } else if (isRemovedInCurrentSdk(state)) {
           var since = state.since.toString();
-          var replacedBy = (state as RemovedState).replacedBy;
+          var replacedBy = (state as RemovedRuleState).replacedBy;
           if (replacedBy != null) {
             reporter.atSourceSpan(
               node.span,
