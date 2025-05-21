@@ -441,7 +441,7 @@ class PropertyElementResolver with ScopeHelpers {
     errorReporter.atOffset(
       offset: offset,
       length: length,
-      errorCode: diagnosticCode,
+      diagnosticCode: diagnosticCode,
       arguments: arguments,
     );
   }

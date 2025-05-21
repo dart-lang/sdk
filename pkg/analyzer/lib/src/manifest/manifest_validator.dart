@@ -479,7 +479,7 @@ class ManifestValidator {
     reporter.atOffset(
       offset: span.start.offset,
       length: span.length,
-      errorCode: diagnosticCode,
+      diagnosticCode: diagnosticCode,
       arguments: arguments,
     );
   }

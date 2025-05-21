@@ -1763,7 +1763,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _errorReporter.atOffset(
       offset: offset,
       length: length,
-      errorCode: diagnosticCode,
+      diagnosticCode: diagnosticCode,
     );
   }
 

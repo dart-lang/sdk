@@ -172,7 +172,7 @@ class IgnoreValidator {
         _errorReporter.atOffset(
           offset: ignoredElement.offset,
           length: name.length,
-          errorCode: WarningCode.DUPLICATE_IGNORE,
+          diagnosticCode: WarningCode.DUPLICATE_IGNORE,
           arguments: [name],
         );
         list.remove(ignoredElement);
@@ -180,7 +180,7 @@ class IgnoreValidator {
         _errorReporter.atOffset(
           offset: ignoredElement.offset,
           length: ignoredElement.length,
-          errorCode: WarningCode.DUPLICATE_IGNORE,
+          diagnosticCode: WarningCode.DUPLICATE_IGNORE,
           arguments: [ignoredElement.type],
         );
         list.remove(ignoredElement);
@@ -213,7 +213,7 @@ class IgnoreValidator {
             var replacedBy = state.replacedBy;
             if (replacedBy != null) {
               _errorReporter.atOffset(
-                errorCode: WarningCode.REPLACED_LINT_USE,
+                diagnosticCode: WarningCode.REPLACED_LINT_USE,
                 offset: ignoredName.offset,
                 length: name.length,
                 arguments: [name, since, replacedBy],
@@ -221,7 +221,7 @@ class IgnoreValidator {
               continue;
             } else {
               _errorReporter.atOffset(
-                errorCode: WarningCode.REMOVED_LINT_USE,
+                diagnosticCode: WarningCode.REMOVED_LINT_USE,
                 offset: ignoredName.offset,
                 length: name.length,
                 arguments: [name, since],
@@ -275,7 +275,7 @@ class IgnoreValidator {
         }
 
         _errorReporter.atOffset(
-          errorCode: lintCode,
+          diagnosticCode: lintCode,
           offset: ignoredName.offset,
           length: name.length,
           arguments: [name],

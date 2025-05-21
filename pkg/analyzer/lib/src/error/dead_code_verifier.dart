@@ -284,7 +284,7 @@ class NullSafetyDeadCodeVerifier {
         _errorReporter.atOffset(
           offset: parent.offset,
           length: parent.end - parent.offset,
-          errorCode: WarningCode.DEAD_CODE,
+          diagnosticCode: WarningCode.DEAD_CODE,
         );
         offset = node.end;
       } else if (parent is DoStatement) {
@@ -297,7 +297,7 @@ class NullSafetyDeadCodeVerifier {
         _errorReporter.atOffset(
           offset: whileOffset,
           length: whileEnd - whileOffset,
-          errorCode: WarningCode.DEAD_CODE,
+          diagnosticCode: WarningCode.DEAD_CODE,
         );
         offset = parent.semicolon.next!.offset;
         if (parent.hasBreakStatement) {
@@ -318,7 +318,7 @@ class NullSafetyDeadCodeVerifier {
         _errorReporter.atOffset(
           offset: offset,
           length: length,
-          errorCode: WarningCode.DEAD_CODE,
+          diagnosticCode: WarningCode.DEAD_CODE,
         );
       }
     }
@@ -360,7 +360,7 @@ class NullSafetyDeadCodeVerifier {
         _errorReporter.atOffset(
           offset: beginToken.offset,
           length: endToken.end - beginToken.offset,
-          errorCode: WarningCode.DEAD_CODE,
+          diagnosticCode: WarningCode.DEAD_CODE,
         );
       }
     }
@@ -386,7 +386,7 @@ class NullSafetyDeadCodeVerifier {
       _errorReporter.atOffset(
         offset: offset,
         length: length,
-        errorCode: errorCode,
+        diagnosticCode: errorCode,
         arguments: arguments,
       );
       _deadCatchClauseRanges.add(SourceRange(offset, length));

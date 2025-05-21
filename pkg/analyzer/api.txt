@@ -4464,7 +4464,7 @@ package:analyzer/error/listener.dart:
     atElement2 (method: void Function(Element, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}), experimental)
     atEntity (method: void Function(SyntacticEntity, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
     atNode (method: void Function(AstNode, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
-    atOffset (method: void Function({List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data, required DiagnosticCode errorCode, required int length, required int offset}))
+    atOffset (method: void Function({List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data, DiagnosticCode? diagnosticCode, DiagnosticCode? errorCode, required int length, required int offset}))
     atSourceSpan (method: void Function(SourceSpan, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
     atToken (method: void Function(Token, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
     reportError (method: void Function(Diagnostic))

@@ -389,7 +389,7 @@ class NamedTypeResolver with ScopeHelpers {
       errorReporter.atOffset(
         offset: importPrefix.offset,
         length: nameToken.end - importPrefix.offset,
-        errorCode: CompileTimeErrorCode.NOT_A_TYPE,
+        diagnosticCode: CompileTimeErrorCode.NOT_A_TYPE,
         arguments: ['${importPrefix.name.lexeme}.${nameToken.lexeme}'],
       );
     }
@@ -446,7 +446,7 @@ class NamedTypeResolver with ScopeHelpers {
           errorReporter.atOffset(
             offset: errorRange.offset,
             length: errorRange.length,
-            errorCode:
+            diagnosticCode:
                 CompileTimeErrorCode
                     .INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
           );
@@ -455,7 +455,7 @@ class NamedTypeResolver with ScopeHelpers {
           errorReporter.atOffset(
             offset: errorRange.offset,
             length: errorRange.length,
-            errorCode:
+            diagnosticCode:
                 CompileTimeErrorCode
                     .REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
           );
@@ -486,7 +486,7 @@ class NamedTypeResolver with ScopeHelpers {
         errorReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          errorCode: diagnosticCode,
+          diagnosticCode: diagnosticCode,
         );
         hasErrorReported = true;
         return InvalidTypeImpl.instance;
@@ -521,7 +521,7 @@ class _ErrorHelper {
         errorReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          errorCode:
+          diagnosticCode:
               instanceCreation.isConst
                   ? CompileTimeErrorCode.CONST_WITH_NON_TYPE
                   : CompileTimeErrorCode.NEW_WITH_NON_TYPE,
@@ -543,7 +543,7 @@ class _ErrorHelper {
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        errorCode: CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
+        diagnosticCode: CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
         arguments: [node.name.lexeme],
       );
       return;
@@ -554,7 +554,7 @@ class _ErrorHelper {
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        errorCode: CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
+        diagnosticCode: CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
         arguments: [node.name.lexeme],
       );
       return;
@@ -565,7 +565,7 @@ class _ErrorHelper {
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        errorCode: CompileTimeErrorCode.CAST_TO_NON_TYPE,
+        diagnosticCode: CompileTimeErrorCode.CAST_TO_NON_TYPE,
         arguments: [node.name.lexeme],
       );
       return;
@@ -577,14 +577,14 @@ class _ErrorHelper {
         errorReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          errorCode: CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
+          diagnosticCode: CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
           arguments: [node.name.lexeme],
         );
       } else {
         errorReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          errorCode: CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+          diagnosticCode: CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
           arguments: [node.name.lexeme],
         );
       }
@@ -596,7 +596,7 @@ class _ErrorHelper {
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        errorCode: CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
+        diagnosticCode: CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
         arguments: [node.name.lexeme],
       );
       return;
@@ -607,7 +607,7 @@ class _ErrorHelper {
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        errorCode: CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT,
+        diagnosticCode: CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT,
         arguments: [node.name.lexeme],
       );
       return;
@@ -642,7 +642,7 @@ class _ErrorHelper {
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        errorCode: CompileTimeErrorCode.NOT_A_TYPE,
+        diagnosticCode: CompileTimeErrorCode.NOT_A_TYPE,
         arguments: [node.name.lexeme],
       );
       return;
@@ -660,7 +660,7 @@ class _ErrorHelper {
     errorReporter.atOffset(
       offset: errorRange.offset,
       length: errorRange.length,
-      errorCode: CompileTimeErrorCode.UNDEFINED_CLASS,
+      diagnosticCode: CompileTimeErrorCode.UNDEFINED_CLASS,
       arguments: [node.name.lexeme],
     );
   }

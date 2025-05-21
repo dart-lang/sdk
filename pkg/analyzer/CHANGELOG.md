@@ -32,6 +32,8 @@
 * Deprecate `InterfaceElement.constructors2`, use `constructors` instead.
 * Deprecate `InterfaceFragment.constructors2`, use `constructors` instead.
 * Deprecate `JoinPatternVariableElement.variables2`, use `variables` instead.
+* Deprecate `ErrorReporter.atOffset`'s `errorCode` parameter; use
+  `diagnosticCode` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

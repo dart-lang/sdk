@@ -31,7 +31,7 @@ class UnicodeTextVerifier {
         errorReporter.atOffset(
           offset: offset,
           length: 1,
-          errorCode: errorCode,
+          diagnosticCode: errorCode,
           arguments: [code],
         );
       }

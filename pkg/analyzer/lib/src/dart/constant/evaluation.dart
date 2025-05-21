@@ -605,7 +605,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       _errorReporter.atOffset(
         offset: result.offset,
         length: result.length,
-        errorCode: result.diagnosticCode,
+        diagnosticCode: result.diagnosticCode,
         arguments: result.arguments,
         contextMessages: result.contextMessages,
       );
@@ -2225,7 +2225,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           _errorReporter.atOffset(
             offset: expressionValue.offset,
             length: expressionValue.length,
-            errorCode: expressionValue.diagnosticCode,
+            diagnosticCode: expressionValue.diagnosticCode,
             arguments: expressionValue.arguments,
             contextMessages: expressionValue.contextMessages,
           );
