@@ -34373,7 +34373,7 @@ const b = 0 + a;
           tokenBuffer: 0+a
           tokenLengthList: [1, 1, 1]
           elements
-            [0] (dart:core, num, +) #M2
+            [0] (dart:core, instanceMethod, num, +) #M2
           elementIndexList
             0 = null
             5 = element 0
@@ -34402,9 +34402,9 @@ const b = 0 + a;
           tokenBuffer: 0+a
           tokenLengthList: [1, 1, 1]
           elements
-            [0] (package:test/test.dart, a) <null>
-            [1] (package:test/test.dart, a) <null>
-            [2] (dart:core, num, +) #M2
+            [0] (package:test/test.dart, topLevelGetter, a) <null>
+            [1] (package:test/test.dart, topLevelVariable, a) <null>
+            [2] (dart:core, instanceMethod, num, +) #M2
           elementIndexList
             5 = element 0
             13 = element 1
@@ -34441,9 +34441,9 @@ const b = 1 + a;
           tokenBuffer: 1+a
           tokenLengthList: [1, 1, 1]
           elements
-            [0] (package:test/test.dart, a) <null>
-            [1] (package:test/test.dart, a) <null>
-            [2] (dart:core, num, +) #M4
+            [0] (package:test/test.dart, topLevelGetter, a) <null>
+            [1] (package:test/test.dart, topLevelVariable, a) <null>
+            [2] (dart:core, instanceMethod, num, +) #M4
           elementIndexList
             5 = element 0
             13 = element 1
@@ -34465,7 +34465,7 @@ const b = 1 + a;
           tokenBuffer: 1+a
           tokenLengthList: [1, 1, 1]
           elements
-            [0] (dart:core, num, +) #M4
+            [0] (dart:core, instanceMethod, num, +) #M4
           elementIndexList
             0 = null
             5 = element 0

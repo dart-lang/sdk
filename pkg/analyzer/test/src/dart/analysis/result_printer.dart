@@ -1105,6 +1105,7 @@ class LibraryManifestPrinter {
   void _writelnElement(ManifestElement element) {
     var parts = [
       element.libraryUri,
+      element.kind.name,
       element.topLevelName,
       if (element.memberName case var memberName?) memberName,
     ];
