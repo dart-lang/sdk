@@ -1,4 +1,4 @@
-# 2.0.2-wip
+# 2.0.2
 - Require dart sdk v. 3.5.0 or higher.
 - Add `DdsExtension.onTimerEventWithHistory`.
 - Fix a bug that could make any `DdsExtension.on*EventWithHistory` stream
