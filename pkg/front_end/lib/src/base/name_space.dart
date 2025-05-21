@@ -36,9 +36,6 @@ abstract class NameSpace {
 
 abstract class MutableNameSpace implements NameSpace {
   void addLocalMember(String name, NamedBuilder member, {required bool setter});
-
-  /// Adds [builder] to the extensions in this name space.
-  void addExtension(ExtensionBuilder builder);
 }
 
 abstract class ComputedNameSpace implements NameSpace {
@@ -53,6 +50,9 @@ abstract class ComputedNameSpace implements NameSpace {
 abstract class ComputedMutableNameSpace
     implements MutableNameSpace, ComputedNameSpace {
   factory ComputedMutableNameSpace() = ComputedMutableNameSpaceImpl._;
+
+  /// Adds [builder] to the extensions in this name space.
+  void addExtension(ExtensionBuilder builder);
 
   void replaceLocalMember(String name, NamedBuilder member,
       {required bool setter});
@@ -72,53 +72,14 @@ base class NameSpaceImpl implements MutableNameSpace {
   Set<ExtensionBuilder>? _extensions;
 
   NameSpaceImpl._(
-      {Map<String, NamedBuilder>? getables,
-      Map<String, NamedBuilder>? setables,
-      Set<ExtensionBuilder>? extensions})
-      : _extensions = extensions {
-    if (getables != null) {
-      for (MapEntry<String, NamedBuilder> entry in getables.entries) {
-        addLocalMember(entry.key, entry.value, setter: false);
-      }
-    }
-    if (setables != null) {
-      for (MapEntry<String, NamedBuilder> entry in setables.entries) {
-        addLocalMember(entry.key, entry.value, setter: true);
-      }
-    }
-  }
+      {Map<String, LookupResult>? content, Set<ExtensionBuilder>? extensions})
+      : _content = content,
+        _extensions = extensions;
 
   @override
   void addLocalMember(String name, NamedBuilder member,
       {required bool setter}) {
-    Map<String, LookupResult> content = _content ??= {};
-    LookupResult? existing = content[name];
-    if (existing != null) {
-      if (setter) {
-        assert(existing.getable != null,
-            "No existing getable for $name: $existing.");
-        content[name] = new GetableSetableResult(existing.getable!, member);
-        return;
-      } else {
-        assert(existing.setable != null,
-            "No existing setable for $name: $existing.");
-        content[name] = new GetableSetableResult(member, existing.setable!);
-        return;
-      }
-    }
-    if (member is LookupResult) {
-      content[name] = member as LookupResult;
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      content[name] =
-          setter ? new SetableResult(member) : new GetableResult(member);
-    }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void addExtension(ExtensionBuilder builder) {
-    (_extensions ??= {}).add(builder);
+    LookupResult.addNamedBuilder(_content ??= {}, name, member, setter: setter);
   }
 
   @override
@@ -265,8 +226,7 @@ base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
 
 final class SourceLibraryNameSpace extends NameSpaceImpl {
   SourceLibraryNameSpace(
-      {required Map<String, NamedBuilder> super.getables,
-      required Map<String, NamedBuilder> super.setables,
+      {required Map<String, LookupResult> super.content,
       required Set<ExtensionBuilder> super.extensions})
       : super._();
 }
@@ -346,8 +306,7 @@ abstract base class DeclarationNameSpaceBase extends NameSpaceImpl
   Map<String, MemberBuilder>? _constructors;
 
   DeclarationNameSpaceBase._(
-      {super.getables,
-      super.setables,
+      {super.content,
       super.extensions,
       Map<String, MemberBuilder>? constructors})
       : _constructors = constructors,
@@ -364,8 +323,7 @@ abstract base class DeclarationNameSpaceBase extends NameSpaceImpl
 
 final class SourceDeclarationNameSpace extends DeclarationNameSpaceBase {
   SourceDeclarationNameSpace(
-      {required Map<String, NamedBuilder> super.getables,
-      required Map<String, NamedBuilder> super.setables,
+      {required Map<String, LookupResult> super.content,
       required Map<String, MemberBuilder>? super.constructors})
       : super._();
 }

@@ -110,6 +110,32 @@ abstract class LookupResult {
       }
     }
   }
+
+  static void addNamedBuilder(
+      Map<String, LookupResult> content, String name, NamedBuilder member,
+      {required bool setter}) {
+    LookupResult? existing = content[name];
+    if (existing != null) {
+      if (setter) {
+        assert(existing.getable != null,
+            "No existing getable for $name: $existing.");
+        content[name] = new GetableSetableResult(existing.getable!, member);
+        return;
+      } else {
+        assert(existing.setable != null,
+            "No existing setable for $name: $existing.");
+        content[name] = new GetableSetableResult(member, existing.setable!);
+        return;
+      }
+    }
+    if (member is LookupResult) {
+      content[name] = member as LookupResult;
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      content[name] =
+          setter ? new SetableResult(member) : new GetableResult(member);
+    }
+  }
 }
 
 class GetableResult implements LookupResult {
