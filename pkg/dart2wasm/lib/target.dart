@@ -169,6 +169,7 @@ class WasmTarget extends Target {
         'dart:_boxed_double',
         'dart:_boxed_int',
         'dart:_compact_hash',
+        'dart:_error_utils',
         'dart:_js_helper',
         'dart:_js_types',
         'dart:_list',
