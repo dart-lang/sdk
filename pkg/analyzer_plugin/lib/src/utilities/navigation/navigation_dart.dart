@@ -376,7 +376,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     if (node.declaredElement2 case BindPatternVariableElement(:var join2?)) {
-      for (var variable in join2.variables2) {
+      for (var variable in join2.variables) {
         computer._addRegionForElement(node.name, variable);
       }
     } else {
@@ -586,8 +586,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
           fragment,
         );
       }
-    } else if (element case JoinPatternVariableElement(:var variables2)) {
-      for (var variable in variables2) {
+    } else if (element case JoinPatternVariableElement(:var variables)) {
+      for (var variable in variables) {
         computer._addRegionForElement(node, variable);
       }
     } else {

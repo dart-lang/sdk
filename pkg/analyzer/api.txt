@@ -3440,7 +3440,8 @@ package:analyzer/dart/element/element.dart:
     firstFragment (getter: JoinPatternVariableFragment)
     fragments (getter: List<JoinPatternVariableFragment>)
     isConsistent (getter: bool)
-    variables2 (getter: List<PatternVariableElement>)
+    variables (getter: List<PatternVariableElement>)
+    variables2 (getter: List<PatternVariableElement>, deprecated)
   JoinPatternVariableFragment (class extends Object implements PatternVariableFragment):
     new (constructor: JoinPatternVariableFragment Function())
     element (getter: JoinPatternVariableElement)

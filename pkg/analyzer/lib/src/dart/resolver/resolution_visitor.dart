@@ -1975,7 +1975,7 @@ class _VariableBinder
       expandedVariables = components
           .expand((variable) {
             if (variable is JoinPatternVariableElementImpl2) {
-              return variable.variables2;
+              return variable.variables;
             } else {
               return [variable];
             }
