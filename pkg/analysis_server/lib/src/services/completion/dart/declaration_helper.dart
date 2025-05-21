@@ -1023,7 +1023,7 @@ class DeclarationHelper {
       return;
     }
     var referencingInterface = _referencingInterfaceFor(element);
-    var members = request.inheritanceManager.getInheritedMap(element);
+    var members = element.inheritedMembers;
     for (var member in members.values) {
       switch (member) {
         case MethodElement():
@@ -1060,8 +1060,8 @@ class DeclarationHelper {
     var substitution = Substitution.fromInterfaceType(type);
     var map =
         onlySuper
-            ? request.inheritanceManager.getInheritedConcreteMap(type.element3)
-            : request.inheritanceManager.getInterface2(type.element3).map2;
+            ? type.element3.inheritedConcreteMembers
+            : type.element3.interfaceMembers;
 
     var membersByName = <String, List<ExecutableElement>>{};
     for (var rawMember in map.values) {

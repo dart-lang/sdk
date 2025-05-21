@@ -31,7 +31,6 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -401,10 +400,6 @@ class DartCompletionRequest {
   /// Return `true` if free standing identifiers should be suggested
   bool get includeIdentifiers {
     return opType.includeIdentifiers;
-  }
-
-  InheritanceManager3 get inheritanceManager {
-    return analysisSession.inheritanceManager;
   }
 
   /// Answer the [DartType] for Object in dart:core
