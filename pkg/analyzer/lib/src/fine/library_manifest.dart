@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
@@ -742,12 +743,38 @@ class LibraryManifestBuilder {
   }
 
   void _fillInterfaceElementsInterface() {
+    var librarySet = libraryElements.toSet();
+    var interfaceSet = <InterfaceElementImpl2>{};
+
+    void addInterfacesToFill(InterfaceElementImpl2 element) {
+      // If not in this bundle, it has interface ready.
+      if (!librarySet.contains(element.library2)) {
+        return;
+      }
+
+      // Ensure that we have interfaces of supertypes first.
+      for (var superType in element.allSupertypes) {
+        superType as InterfaceTypeImpl;
+        addInterfacesToFill(superType.element3);
+      }
+
+      interfaceSet.add(element);
+    }
+
     for (var libraryElement in libraryElements) {
       for (var element in libraryElement.children2) {
         if (element is InterfaceElementImpl2) {
-          _fillInterfaceElementInterface(element);
+          addInterfacesToFill(element);
         }
       }
+    }
+
+    // Fill interfaces of supertypes before interfaces of subtypes.
+    // So that if there are synthetic top-merged members in interfaces of
+    // supertypes (these members are not included into declared), we can
+    // get corresponding IDs.
+    for (var element in interfaceSet) {
+      _fillInterfaceElementInterface(element);
     }
   }
 
@@ -850,11 +877,23 @@ class LibraryManifestBuilder {
       // SAFETY: null asserts are safe, because element is in this library.
       switch (element) {
         case GetterElementImpl():
-          return enclosingItem.declaredGetters[lookupName]!.id;
+          var declaredGetter = enclosingItem.declaredGetters[lookupName];
+          if (declaredGetter != null) {
+            return declaredGetter.id;
+          }
+          return enclosingItem.interface.map[lookupName]!;
         case SetterElementImpl():
-          return enclosingItem.declaredSetters[lookupName]!.id;
+          var declaredSetter = enclosingItem.declaredSetters[lookupName];
+          if (declaredSetter != null) {
+            return declaredSetter.id;
+          }
+          return enclosingItem.interface.map[lookupName]!;
         case MethodElementImpl2():
-          return enclosingItem.declaredMethods[lookupName]!.id;
+          var declaredMethod = enclosingItem.declaredMethods[lookupName];
+          if (declaredMethod != null) {
+            return declaredMethod.id;
+          }
+          return enclosingItem.interface.map[lookupName]!;
         case ConstructorElementImpl2():
           if (enclosingItem.declaredConstructors[lookupName] case var item?) {
             return item.id;

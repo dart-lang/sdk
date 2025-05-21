@@ -29313,6 +29313,106 @@ abstract class C implements A, B {
     );
   }
 
+  test_manifest_class_getter_combinedSignatures_merged_inherit() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  dynamic get foo;
+}
+
+class B {
+  void get foo;
+}
+
+abstract class C implements A, B {}
+
+abstract class D implements C {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        interface
+          map
+            foo: #M2
+      B: #M3
+        declaredFields
+          foo: #M4
+        declaredGetters
+          foo: #M5
+        interface
+          map
+            foo: #M5
+      C: #M6
+        interface
+          map
+            foo: #M7
+          combinedIds
+            [#M2, #M5]: #M7
+      D: #M8
+        interface
+          map
+            foo: #M7
+''',
+      updatedCode: r'''
+class A {
+  dynamic get foo;
+}
+
+class B {
+  void get foo;
+}
+
+abstract class C implements A, B {
+  void xxx() {}
+}
+
+abstract class D implements C {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        interface
+          map
+            foo: #M2
+      B: #M3
+        declaredFields
+          foo: #M4
+        declaredGetters
+          foo: #M5
+        interface
+          map
+            foo: #M5
+      C: #M6
+        declaredMethods
+          xxx: #M9
+        interface
+          map
+            foo: #M7
+            xxx: #M9
+          combinedIds
+            [#M2, #M5]: #M7
+      D: #M8
+        interface
+          map
+            foo: #M7
+            xxx: #M9
+''',
+    );
+  }
+
   test_manifest_class_getter_metadata() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -30579,6 +30679,190 @@ abstract class C implements A, B {}
             zzz: #M6
           combinedIds
             [#M1, #M3]: #M5
+''',
+    );
+  }
+
+  test_manifest_class_method_combinedSignatures_merged_inherit_backward() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  dynamic foo();
+}
+
+class B {
+  void foo();
+}
+
+abstract class C implements D {}
+
+abstract class D implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMethods
+          foo: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        interface
+          map
+            foo: #M5
+      D: #M6
+        interface
+          map
+            foo: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+      updatedCode: r'''
+class A {
+  dynamic foo();
+}
+
+class B {
+  void foo();
+}
+
+abstract class C implements D {}
+
+abstract class D implements A, B {
+  void xxx() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMethods
+          foo: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        interface
+          map
+            foo: #M5
+            xxx: #M7
+      D: #M6
+        declaredMethods
+          xxx: #M7
+        interface
+          map
+            foo: #M5
+            xxx: #M7
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+    );
+  }
+
+  test_manifest_class_method_combinedSignatures_merged_inherit_forward() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  dynamic foo();
+}
+
+class B {
+  void foo();
+}
+
+abstract class C implements A, B {}
+
+abstract class D implements C {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMethods
+          foo: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        interface
+          map
+            foo: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+      D: #M6
+        interface
+          map
+            foo: #M5
+''',
+      updatedCode: r'''
+class A {
+  dynamic foo();
+}
+
+class B {
+  void foo();
+}
+
+abstract class C implements A, B {
+  void xxx() {}
+}
+
+abstract class D implements C {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMethods
+          foo: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        declaredMethods
+          xxx: #M7
+        interface
+          map
+            foo: #M5
+            xxx: #M7
+          combinedIds
+            [#M1, #M3]: #M5
+      D: #M6
+        interface
+          map
+            foo: #M5
+            xxx: #M7
 ''',
     );
   }
@@ -32663,6 +32947,106 @@ abstract class C implements A, B {
             zzz: #M8
           combinedIds
             [#M2, #M5]: #M7
+''',
+    );
+  }
+
+  test_manifest_class_setter_combinedSignatures_merged_inherit() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  set foo(dynamic _);
+}
+
+abstract class B {
+  set foo(void _);
+}
+
+abstract class C implements A, B {}
+
+abstract class D implements C {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredSetters
+          foo=: #M2
+        interface
+          map
+            foo=: #M2
+      B: #M3
+        declaredFields
+          foo: #M4
+        declaredSetters
+          foo=: #M5
+        interface
+          map
+            foo=: #M5
+      C: #M6
+        interface
+          map
+            foo=: #M7
+          combinedIds
+            [#M2, #M5]: #M7
+      D: #M8
+        interface
+          map
+            foo=: #M7
+''',
+      updatedCode: r'''
+abstract class A {
+  set foo(dynamic _);
+}
+
+abstract class B {
+  set foo(void _);
+}
+
+abstract class C implements A, B {
+  void xxx() {}
+}
+
+abstract class D implements C {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredSetters
+          foo=: #M2
+        interface
+          map
+            foo=: #M2
+      B: #M3
+        declaredFields
+          foo: #M4
+        declaredSetters
+          foo=: #M5
+        interface
+          map
+            foo=: #M5
+      C: #M6
+        declaredMethods
+          xxx: #M9
+        interface
+          map
+            foo=: #M7
+            xxx: #M9
+          combinedIds
+            [#M2, #M5]: #M7
+      D: #M8
+        interface
+          map
+            foo=: #M7
+            xxx: #M9
 ''',
     );
   }
