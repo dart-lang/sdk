@@ -4918,7 +4918,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_isTemporaryVariable(v)) {
       var name = _debuggerFriendlyTemporaryVariableName(v);
       name ??= 't\$${_tempVariables.length}';
-      return _tempVariables.putIfAbsent(v, () => _emitScopedId(name!));
+      return _tempVariables.putIfAbsent(
+          v, () => _emitScopedId(name!, needsCapture: true));
     }
     var name = v.name!;
     if (isLateLoweredLocal(v)) {
