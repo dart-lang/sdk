@@ -4504,27 +4504,28 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
   const bool use_shared_stub = UseSharedSlowPathStub(opt);
-  const intptr_t kNumTemps = calls_initializer() &&
+  const intptr_t kNumTemps = does_throw_access_error_or_call_initializer() &&
                                      throw_exception_on_initialization() &&
                                      use_shared_stub
                                  ? 1
                                  : 0;
   LocationSummary* locs = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
-      calls_initializer()
+      does_throw_access_error_or_call_initializer()
           ? (throw_exception_on_initialization()
                  ? (use_shared_stub ? LocationSummary::kCallOnSharedSlowPath
                                     : LocationSummary::kCallOnSlowPath)
                  : LocationSummary::kCall)
           : LocationSummary::kNoCall);
-  if (calls_initializer() && throw_exception_on_initialization() &&
-      use_shared_stub) {
+  if (does_throw_access_error_or_call_initializer() &&
+      throw_exception_on_initialization() && use_shared_stub) {
     locs->set_temp(
         0, Location::RegisterLocation(LateInitializationErrorABI::kFieldReg));
   }
-  locs->set_out(0, calls_initializer() ? Location::RegisterLocation(
-                                             InitStaticFieldABI::kResultReg)
-                                       : Location::RequiresRegister());
+  locs->set_out(0,
+                does_throw_access_error_or_call_initializer()
+                    ? Location::RegisterLocation(InitStaticFieldABI::kResultReg)
+                    : Location::RequiresRegister());
   return locs;
 }
 
@@ -4543,8 +4544,8 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadMemoryValue(result, THR, static_cast<int32_t>(field_table_offset));
   __ LoadMemoryValue(result, result, static_cast<int32_t>(field_offset));
 
-  if (calls_initializer()) {
-    if (throw_exception_on_initialization()) {
+  if (does_throw_access_error_or_call_initializer()) {
+    if (calls_initializer() && throw_exception_on_initialization()) {
       ThrowErrorSlowPathCode* slow_path =
           new LateInitializationErrorSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
@@ -4563,22 +4564,27 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ BranchIf(NOT_EQUAL, &no_call);
 
     auto& stub = Code::ZoneHandle(compiler->zone());
-    if (field().needs_load_guard()) {
-      stub = object_store->init_static_field_stub();
-    } else {
-      // The stubs below call the initializer function directly, so make sure
-      // one is created.
-      if (original_field.has_nontrivial_initializer()) {
-        original_field.EnsureInitializerFunction();
+    if (calls_initializer()) {
+      if (field().needs_load_guard()) {
+        stub = object_store->init_static_field_stub();
+      } else {
+        // The stubs below call the initializer function directly, so make sure
+        // one is created.
+        if (original_field.has_nontrivial_initializer()) {
+          original_field.EnsureInitializerFunction();
+        }
+        stub = field().is_shared()
+                   ? (field().is_final()
+                          ? object_store
+                                ->init_shared_late_final_static_field_stub()
+                          : object_store->init_shared_late_static_field_stub())
+                   : (field().is_final()
+                          ? object_store->init_late_final_static_field_stub()
+                          : object_store->init_late_static_field_stub());
       }
-      stub =
-          field().is_shared()
-              ? (field().is_final()
-                     ? object_store->init_shared_late_final_static_field_stub()
-                     : object_store->init_shared_late_static_field_stub())
-              : (field().is_final()
-                     ? object_store->init_late_final_static_field_stub()
-                     : object_store->init_late_static_field_stub());
+    } else {
+      ASSERT(FLAG_experimental_shared_data && !field().is_shared());
+      stub = object_store->check_isolate_field_access_stub();
     }
 
     __ LoadObject(InitStaticFieldABI::kFieldReg, original_field);

@@ -10,7 +10,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/task/options.dart';
 
 /// A completion generator that can produce completion suggestions for analysis

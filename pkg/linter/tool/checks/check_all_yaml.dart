@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/state.dart';
 import 'package:linter/src/rules.dart';
 import 'package:yaml/yaml.dart';
 

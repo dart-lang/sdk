@@ -1299,7 +1299,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void CloseReceivePort(const ReceivePort& receive_port);
 
   // Visible for testing.
-  FfiCallbackMetadata::Metadata* ffi_callback_list_head() {
+  FfiCallbackMetadata::MetadataEntry* ffi_callback_list_head() {
     return ffi_callback_list_head_;
   }
 
@@ -1673,7 +1673,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   Mutex mutex_;  // Protects compiler stats.
   IsolateMessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
-  FfiCallbackMetadata::Metadata* ffi_callback_list_head_ = nullptr;
+  FfiCallbackMetadata::MetadataEntry* ffi_callback_list_head_ = nullptr;
   intptr_t ffi_callback_keep_alive_counter_ = 0;
   RelaxedAtomic<ThreadId> owner_thread_ = OSThread::kInvalidThreadId;
 

@@ -339,7 +339,7 @@ class PluginServer {
 
     // TODO(srawlins): Enable timing similar to what the linter package's
     // `benchhmark.dart` script does.
-    var nodeRegistry = NodeLintRegistry(enableTiming: false);
+    var nodeRegistry = RuleVisitorRegistry(enableTiming: false);
 
     var context = LinterContextWithResolvedResults(
       allUnits,

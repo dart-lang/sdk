@@ -1904,9 +1904,9 @@ class LoadOptimizer : public ValueObject {
 
   void ClearCallsInitializer(Instruction* instr) {
     if (auto* load_field = instr->AsLoadField()) {
-      load_field->set_calls_initializer(false);
+      load_field->clear_calls_initializer();
     } else if (auto* load_static = instr->AsLoadStaticField()) {
-      load_static->set_calls_initializer(false);
+      load_static->clear_calls_initializer();
     } else {
       UNREACHABLE();
     }

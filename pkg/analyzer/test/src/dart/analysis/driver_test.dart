@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
@@ -36350,6 +36351,52 @@ const d = b;
     );
   }
 
+  test_manifest_constInitializer_typeLiteral() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = List<int>;
+const b = List<int>;
+const c = a;
+const d = b;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
+''',
+      updatedCode: r'''
+const a = List<int>;
+const b = List<double>;
+const c = a;
+const d = b;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+    declaredVariables
+      a: #M4
+      b: #M8
+      c: #M6
+      d: #M9
+''',
+    );
+  }
+
   test_manifest_enum_constants_replace() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -43487,7 +43534,7 @@ class _AlwaysReportedLint extends LintRule {
 
   @override
   void registerNodeProcessors(
-    NodeLintRegistry registry,
+    RuleVisitorRegistry registry,
     LinterContext context,
   ) {
     var visitor = _AlwaysReportedLintVisitor(this);

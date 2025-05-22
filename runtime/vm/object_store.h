@@ -254,6 +254,7 @@ class ObjectPointerVisitor;
   RW(Code, allocate_record3_stub)                                              \
   RW(Code, allocate_record3_named_stub)                                        \
   RW(Code, allocate_unhandled_exception_stub)                                  \
+  RW(Code, check_isolate_field_access_stub)                                    \
   RW(Code, clone_context_stub)                                                 \
   RW(Code, write_barrier_wrappers_stub)                                        \
   RW(Code, array_write_barrier_stub)                                           \
@@ -361,8 +362,9 @@ class ObjectPointerVisitor;
   DO(allocate_record3_stub, AllocateRecord3)                                   \
   DO(allocate_record3_named_stub, AllocateRecord3Named)                        \
   DO(allocate_unhandled_exception_stub, AllocateUnhandledException)            \
-  DO(clone_context_stub, CloneContext)                                         \
   DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \
+  DO(clone_context_stub, CloneContext)                                         \
+  DO(check_isolate_field_access_stub, CheckIsolateFieldAccess)                 \
   DO(default_tts_stub, DefaultTypeTest)                                        \
   DO(default_nullable_tts_stub, DefaultNullableTypeTest)                       \
   DO(top_type_tts_stub, TopTypeTypeTest)                                       \

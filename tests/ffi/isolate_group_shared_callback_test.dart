@@ -51,6 +51,10 @@ class NativeLibrary {
         .lookupFunction<FnRunnerNativeType, FnRunnerType>(
           "CallFunctionOnNewThreadNonBlocking",
         );
+    callFunctionOnNewThreadBlocking = ffiTestFunctions
+        .lookupFunction<FnRunnerNativeType, FnRunnerType>(
+          "CallFunctionOnNewThreadBlocking",
+        );
     callTwoIntFunction = ffiTestFunctions
         .lookupFunction<TwoIntFnNativeType, TwoIntFnType>("CallTwoIntFunction");
     sleep = ffiTestFunctions.lookupFunction<FnSleepNativeType, FnSleepType>(
@@ -112,6 +116,7 @@ Future<void> testNativeCallableHelloWorld() async {
     }
   });
   Expect.equals(42 + (1001 * 123) * 2, result);
+  callback.close();
 }
 
 void simpleFunctionThatThrows(int a, int b) {
@@ -128,12 +133,19 @@ Future<void> testNativeCallableThrows() async {
 
   result = 42;
   resultIsReady = false;
-  lib.callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
+  // The call is blocking so that tsan does not complain about read/write
+  // race between invoking the callback and closing it few lines down below.
+  // So the main thing this test checks is condition variable timeout,
+  // which is still valuable.
+  lib.callFunctionOnNewThreadBlocking(1001, callback.nativeFunction);
 
   mutexCondvar.runLocked(() {
-    conditionVariable.wait(mutexCondvar, 10 * sleepForMs);
+    // Just have short one second sleep - the condition variable is not
+    // going to be triggered.
+    conditionVariable.wait(mutexCondvar, 1 * sleepForMs);
     Expect.isFalse(resultIsReady);
   });
+  callback.close();
 }
 
 Future<void> testNativeCallableHelloWorldClosure() async {
@@ -171,6 +183,7 @@ Future<void> testNativeCallableHelloWorldClosure() async {
     }
   });
   Expect.equals(42 + (1001 * 123) * 2, result);
+  callback.close();
 }
 
 void testNativeCallableSync() {
@@ -225,6 +238,51 @@ void testNativeCallableAccessNonSharedVar() {
   callback.close();
 }
 
+Future<void> testKeepIsolateAliveTrue() async {
+  ReceivePort rpOnExit = ReceivePort("onExit");
+  Isolate.spawn(
+    (_) async {
+      final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
+        simpleFunction,
+      );
+      callback.keepIsolateAlive = true;
+    },
+    /*message=*/ null,
+    onExit: rpOnExit.sendPort,
+  );
+  try {
+    await rpOnExit.first.timeout(Duration(seconds: 5));
+    // should not fall through, should throw TimeoutException
+    Expect.isTrue(false);
+  } catch (e) {
+    print('caught $e');
+    Expect.isTrue(e is TimeoutException);
+  }
+  rpOnExit.close();
+}
+
+Future<void> testKeepIsolateAliveFalse() async {
+  ReceivePort rpOnExit = ReceivePort("onExit");
+  Isolate.spawn(
+    (_) async {
+      final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
+        simpleFunction,
+      );
+      callback.keepIsolateAlive = false;
+    },
+    /*message=*/ null,
+    onExit: rpOnExit.sendPort,
+  );
+  try {
+    await rpOnExit.first.timeout(Duration(seconds: 30));
+  } catch (e) {
+    // should not throw timeout exception
+    print('caught $e');
+    Expect.isTrue(false);
+  }
+  rpOnExit.close();
+}
+
 main(args, message) async {
   lib = NativeLibrary();
   // Simple tests.
@@ -234,5 +292,7 @@ main(args, message) async {
   testNativeCallableSync();
   testNativeCallableSyncThrows();
   testNativeCallableAccessNonSharedVar();
+  await testKeepIsolateAliveTrue();
+  await testKeepIsolateAliveFalse();
   print("All tests completed :)");
 }

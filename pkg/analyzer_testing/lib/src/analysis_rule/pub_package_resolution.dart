@@ -153,6 +153,8 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
   /// Error codes that by default should be ignored in test expectations.
   List<DiagnosticCode> get ignoredErrorCodes => [
+    WarningCode.UNUSED_ELEMENT,
+    WarningCode.UNUSED_FIELD,
     WarningCode.UNUSED_LOCAL_VARIABLE,
   ];
 

@@ -684,8 +684,7 @@ class A<T> {
   }
 
   test_extension_method_none_fromExtended() async {
-    await assertDiagnostics(
-      '''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 }
@@ -695,15 +694,12 @@ extension on A {
     this.foo();
   }
 }
-''',
-      [error(WarningCode.UNUSED_ELEMENT, 53, 3)],
-    );
+''');
     _checkMethodNone();
   }
 
   test_extension_method_requested_formalParameter_method() async {
-    await assertDiagnostics(
-      '''
+    await assertNoDiagnostics('''
 class A {}
 
 extension on A {
@@ -713,15 +709,12 @@ extension on A {
     this.foo();
   }
 }
-''',
-      [error(WarningCode.UNUSED_ELEMENT, 53, 3)],
-    );
+''');
     _checkMethodRequested(findElement.parameter('foo'));
   }
 
   test_extension_method_requested_fromExtended_topLevelVariable() async {
-    await assertDiagnostics(
-      '''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 }
@@ -733,15 +726,12 @@ extension on A {
 }
 
 var foo = 0;
-''',
-      [error(WarningCode.UNUSED_ELEMENT, 53, 3)],
-    );
+''');
     _checkMethodRequested(findElement.topGet('foo'));
   }
 
   test_extension_method_requested_fromThisExtension() async {
-    await assertDiagnostics(
-      '''
+    await assertNoDiagnostics('''
 class A {}
 
 extension on A {
@@ -751,9 +741,7 @@ extension on A {
     this.foo();
   }
 }
-''',
-      [error(WarningCode.UNUSED_ELEMENT, 53, 3)],
-    );
+''');
     _checkMethodRequested(findElement.method('foo'));
   }
 

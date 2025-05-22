@@ -7,7 +7,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:collection/collection.dart';
@@ -39,12 +38,11 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       .rules
       .firstWhereOrNull((rule) => rule.name == value);
 
-  bool isDeprecatedInCurrentSdk(DeprecatedRuleState state) =>
-      currentSdkAllows(state.since);
+  bool isDeprecatedInCurrentSdk(RuleState state) =>
+      state.isDeprecated && currentSdkAllows(state.since);
 
   bool isRemovedInCurrentSdk(RuleState state) {
-    if (state is! RemovedRuleState) return false;
-    return currentSdkAllows(state.since);
+    return state.isRemoved && currentSdkAllows(state.since);
   }
 
   @override
@@ -103,7 +101,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       // includes).
       if (sourceIsOptionsForContextRoot) {
         var state = rule.state;
-        if (state is DeprecatedRuleState && isDeprecatedInCurrentSdk(state)) {
+        if (state.isDeprecated && isDeprecatedInCurrentSdk(state)) {
           var replacedBy = state.replacedBy;
           if (replacedBy != null) {
             reporter.atSourceSpan(
@@ -120,7 +118,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
           }
         } else if (isRemovedInCurrentSdk(state)) {
           var since = state.since.toString();
-          var replacedBy = (state as RemovedRuleState).replacedBy;
+          var replacedBy = state.replacedBy;
           if (replacedBy != null) {
             reporter.atSourceSpan(
               node.span,

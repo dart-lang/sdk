@@ -534,7 +534,7 @@ class BulkFixProcessor {
     LintRuleUnitContext currentUnit,
     List<LintRuleUnitContext> allUnits,
   ) {
-    var nodeRegistry = NodeLintRegistry(enableTiming: false);
+    var nodeRegistry = RuleVisitorRegistry(enableTiming: false);
     var context = LinterContextWithParsedResults(allUnits, currentUnit);
     var lintRules =
         _syntacticLintCodes

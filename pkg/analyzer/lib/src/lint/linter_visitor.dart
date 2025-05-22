@@ -8,9 +8,12 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/linter.dart';
 
+/// The soon-to-be-deprecated alias for a [RuleVisitorRegistry].
+typedef NodeLintRegistry = RuleVisitorRegistry;
+
 /// The AST visitor that runs handlers for nodes from the [_registry].
 class AnalysisRuleVisitor implements AstVisitor<void> {
-  final NodeLintRegistry _registry;
+  final RuleVisitorRegistry _registry;
 
   /// Whether exceptions should be propagated (by rethrowing them).
   final bool _shouldPropagateExceptions;
@@ -1142,7 +1145,7 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
 }
 
 /// The container to register visitors for separate AST node types.
-class NodeLintRegistry {
+class RuleVisitorRegistry {
   final bool _enableTiming;
   final List<_AfterLibrarySubscription> _afterLibrary = [];
   final List<_Subscription<AdjacentStrings>> _forAdjacentStrings = [];
@@ -1360,7 +1363,8 @@ class NodeLintRegistry {
   final List<_Subscription<WithClause>> _forWithClause = [];
   final List<_Subscription<YieldStatement>> _forYieldStatement = [];
 
-  NodeLintRegistry({required bool enableTiming}) : _enableTiming = enableTiming;
+  RuleVisitorRegistry({required bool enableTiming})
+    : _enableTiming = enableTiming;
 
   void addAdjacentStrings(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forAdjacentStrings.add(_Subscription(rule, visitor, _getTimer(rule)));

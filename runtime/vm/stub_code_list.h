@@ -191,6 +191,7 @@ namespace dart {
   V(AsyncExceptionHandler)                                                     \
   V(CloneSuspendState)                                                         \
   V(FfiAsyncCallbackSend)                                                      \
+  V(CheckIsolateFieldAccess)                                                   \
   V(UnknownDartCode)
 
 }  // namespace dart

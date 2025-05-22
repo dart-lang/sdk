@@ -59,6 +59,7 @@ class NativeAssetsSynthesizer {
 
     return Library(
       Uri.parse('vm:ffi:native-assets'),
+      name: 'vm:ffi:native-assets',
       fileUri: _dummyFileUri,
       annotations: [
         ConstantExpression(

@@ -18951,11 +18951,127 @@ FfiCode:
     problemMessage: "The '.address' expression can only be used as argument to a leaf native external call."
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `.address` getter is used
+      in a context other than as an argument to a native external call that is
+      marked as a leaf call (`isLeaf: true`).
+
+      #### Example
+
+      The following code produces this diagnostic because `.address` is used
+      incorrectly:
+
+      ```dart
+      import 'dart:ffi';
+      import 'dart:typed_data';
+
+      @Native<Void Function(Pointer<Uint8>)>()
+      external void nonLeafCall(Pointer<Uint8> ptr);
+
+      void main() {
+        final data = Uint8List(10);
+
+        // Incorrect: Using '.address' as an argument to a non-leaf call.
+        nonLeafCall(data.[!address!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Ensure that the `.address` expression is used directly as an argument to a
+      native external call that is annotated with `@Native(...)` and has
+      `isLeaf: true` set in its annotation.
+
+      ```dart
+      import 'dart:ffi';
+      import 'dart:typed_data';
+
+      @Native<Void Function(Pointer<Uint8>)>(isLeaf: true)
+      external void leafCall(Pointer<Uint8> ptr);
+
+      void main() {
+        final data = Uint8List(10); 
+
+        // Correct: Using .address directly as an argument to a leaf call.
+        leafCall(data.address);
+      }
+      ```
   ADDRESS_RECEIVER:
     problemMessage: "The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field."
     correctionMessage: Change the receiver of '.address' to one of the allowed kinds.
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `.address` getter is used
+      on a receiver whose static type isn't one of the allowed FFI types. The
+      `.address` getter is used to obtain a `Pointer` to the underlying memory
+      of an FFI data structure.
+
+      The receiver of `.address` must be one of the following:
+      - A concrete `TypedData` instance (e.g., `Uint8List`).
+      - An element of a concrete `TypedData` instance accessed via `[]`.
+      - An `Array<T>` instance (from `dart:ffi`).
+      - An element of an `Array<T>` instance accessed via `[]`.
+      - A field of a `Struct` or `Union` subclass, if that field's type is `Array<T>`, a nested `Struct`, or a nested `Union`.
+      - A `Struct` or `Union` instance.
+
+      #### Example
+
+      The following code produces this diagnostic for various incorrect receivers:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class MyStruct extends Struct {
+        @Uint8()
+        external int x;
+
+        @Uint8()
+        external int y;
+      }
+
+      @Native<Void Function(Pointer)>(isLeaf: true)
+      external void nativeLeafCall(Pointer ptr);
+
+      void main() {
+        final struct = Struct.create<MyStruct>();
+        final y = struct.y;
+        // Incorrect: The receiver is not a struct field, but some integer.
+        nativeLeafCall(y.[!address!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Ensure that the receiver of the `.address` getter is one of the allowed
+      types.  The `.address` getter is for obtaining a `Pointer` to the memory
+      of `TypedData`, `Array`, `Struct`, or `Union` instances, or certain
+      fields/elements thereof.
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Void Function(Pointer)>(isLeaf: true)
+      external void nativeLeafCall(Pointer ptr);
+
+      final class MyStruct extends Struct {
+        @Uint8()
+        external int x;
+
+        @Uint8()
+        external int y;
+      }
+
+      void main() {
+        final struct = Struct.create<MyStruct>();
+        // Correct: The receiver is a struct field.
+        nativeLeafCall(struct.y.address);
+      }
+      ```
   ANNOTATION_ON_POINTER_FIELD:
     problemMessage: "Fields in a struct class whose type is 'Pointer' shouldn't have any annotations."
     correctionMessage: Try removing the annotation.
@@ -19604,6 +19720,57 @@ FfiCode:
     correctionMessage: Pass as Handle instead.
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a function or method annotated
+      with `@Native` has a parameter in its FFI signature that is a `Pointer`,
+      but the corresponding Dart parameter type is a class instance that doesn't
+      extend `NativeFieldWrapperClass1` (or is a Pointer or TypedData).
+
+      #### Example
+
+      The following code produces this diagnostic because `MyService` doesn't
+      extend `NativeFieldWrapperClass1`, but the `@Native` signature for its
+      `process` method indicates the receiver should be passed as a `Pointer<Void>`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class MyService { // MyService does not extend NativeFieldWrapperClass1
+        @Native<Void Function(Pointer<Void>, Int8)>(symbol: 'MyService_process')
+        external void [!process!](int data);
+      }
+      ```
+
+      #### Common fixes
+
+      1.  **If the Dart class is intended to wrap a native object:**
+          Make the Dart class extend `NativeFieldWrapperClass1`. This is the
+          correct approach if the Dart class instance has a corresponding native
+          object whose pointer should be passed.
+          ```dart
+          import 'dart:ffi';
+
+          class MyService extends NativeFieldWrapperClass1 {
+            @Native<Void Function(Pointer<Void>, Int8)>(symbol: 'MyService_process')
+            external void process(int data);
+          }
+          ```
+
+      2.  **If you intend to pass an opaque handle to the Dart object:**
+          Change the FFI signature in the `@Native` annotation to use `Handle`
+          instead of `Pointer` for the parameter. This allows passing a
+          reference to the Dart object itself, which native code can interact
+          with using the Dart C API.
+          ```dart
+          import 'dart:ffi';
+
+          class MyService {
+            @Native<Void Function(Handle, Int8)>(symbol: 'MyService_process')
+            external void process(int data);
+          }
+          ```
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
     problemMessage: Unexpected number of Native annotation parameters. Expected {0} but has {1}.
     correctionMessage: Make sure parameters match the function annotated.

@@ -36,6 +36,15 @@ updateFooNoInitializer() {
   foo_no_initializer = 78;
 }
 
+class Baz {
+  static late final foo;
+}
+
+@pragma('vm:never-inline')
+bar() {
+  Baz.foo = 42;
+}
+
 main() {
   Expect.equals(42, IsolateGroup.runSync(() => 42));
 
@@ -95,7 +104,7 @@ main() {
     (e) => e is Error && e.toString().contains("AccessError"),
     'Expect error accessing',
   );
-  Expect.equals(foo, 56);
+  Expect.equals(56, foo);
 
   updateFooNoInitializer();
   Expect.throws(
@@ -117,7 +126,12 @@ main() {
     (e) => e is Error && e.toString().contains("AccessError"),
     'Expect error accessing',
   );
-  Expect.equals(foo_no_initializer, 78);
+  Expect.equals(78, foo_no_initializer);
+
+  {
+    bar();
+    Expect.equals(42, Baz.foo);
+  }
 
   print("All tests completed :)");
 }

@@ -18,9 +18,7 @@ class NoLeadingUnderscoresForLocalIdentifiersTest extends LintRuleTest {
   @override
   List<DiagnosticCode> get ignoredErrorCodes => [
     WarningCode.UNUSED_CATCH_STACK,
-    WarningCode.UNUSED_ELEMENT,
-    WarningCode.UNUSED_FIELD,
-    WarningCode.UNUSED_LOCAL_VARIABLE,
+    ...super.ignoredErrorCodes,
   ];
 
   @override
