@@ -850,6 +850,13 @@ class LibraryManifestPrinter {
       _writeMixinItem(item);
     });
 
+    var typeAliasEntries = manifest.declaredTypeAliases.sorted;
+    sink.writeElements('declaredTypeAliases', typeAliasEntries, (entry) {
+      var item = entry.value;
+      _writeNamedId(entry.key, item.id);
+      _writeTypeAliasItem(item);
+    });
+
     var getterEntries = manifest.declaredGetters.sorted;
     sink.writeElements('declaredGetters', getterEntries, (entry) {
       var item = entry.value;
@@ -1363,6 +1370,16 @@ class LibraryManifestPrinter {
         sink.writeln();
       case ManifestVoidType():
         sink.writeln('void');
+    }
+  }
+
+  void _writeTypeAliasItem(TypeAliasItem item) {
+    if (configuration.withElementManifests) {
+      sink.withIndent(() {
+        _writeMetadata(item);
+        _writeTypeParameters(item.typeParameters);
+        _writeNamedType('aliasedType', item.aliasedType);
+      });
     }
   }
 

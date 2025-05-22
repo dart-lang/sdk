@@ -1368,6 +1368,58 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl2> {
   }
 }
 
+class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl2> {
+  final List<ManifestTypeParameter> typeParameters;
+  final ManifestType aliasedType;
+
+  TypeAliasItem({
+    required super.id,
+    required super.metadata,
+    required this.typeParameters,
+    required this.aliasedType,
+  });
+
+  factory TypeAliasItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required TypeAliasElementImpl2 element,
+  }) {
+    return context.withTypeParameters(element.typeParameters2, (
+      typeParameters,
+    ) {
+      return TypeAliasItem(
+        id: id,
+        metadata: ManifestMetadata.encode(context, element.metadata2),
+        typeParameters: typeParameters,
+        aliasedType: element.aliasedType.encode(context),
+      );
+    });
+  }
+
+  factory TypeAliasItem.read(SummaryDataReader reader) {
+    return TypeAliasItem(
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      typeParameters: ManifestTypeParameter.readList(reader),
+      aliasedType: ManifestType.read(reader),
+    );
+  }
+
+  @override
+  bool match(MatchContext context, TypeAliasElementImpl2 element) {
+    context.addTypeParameters(element.typeParameters2);
+    return super.match(context, element) &&
+        aliasedType.match(context, element.aliasedType);
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    typeParameters.writeList(sink);
+    aliasedType.write(sink);
+  }
+}
+
 enum _InstanceItemMemberItemKind { field, constructor, method, getter, setter }
 
 extension LookupNameToIdMapExtension on Map<LookupName, ManifestItemId> {

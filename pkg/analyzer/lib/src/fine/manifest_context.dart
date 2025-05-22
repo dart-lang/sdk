@@ -209,6 +209,7 @@ enum ManifestElementKind {
   enum_,
   extensionType,
   mixin_,
+  typeAlias,
   topLevelVariable,
   topLevelGetter,
   topLevelSetter,
@@ -249,6 +250,8 @@ enum ManifestElementKind {
         return ManifestElementKind.instanceMethod;
       case ConstructorElement():
         return ManifestElementKind.interfaceConstructor;
+      case TypeAliasElement():
+        return ManifestElementKind.typeAlias;
       default:
         throw StateError('Unexpected (${element.runtimeType}) $element');
     }

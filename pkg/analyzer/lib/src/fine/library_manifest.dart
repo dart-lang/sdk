@@ -29,6 +29,7 @@ class LibraryManifest {
   final Map<LookupName, ExtensionItem> declaredExtensions;
   final Map<LookupName, ExtensionTypeItem> declaredExtensionTypes;
   final Map<LookupName, MixinItem> declaredMixins;
+  final Map<LookupName, TypeAliasItem> declaredTypeAliases;
   final Map<LookupName, TopLevelGetterItem> declaredGetters;
   final Map<LookupName, TopLevelSetterItem> declaredSetters;
   final Map<LookupName, TopLevelFunctionItem> declaredFunctions;
@@ -41,6 +42,7 @@ class LibraryManifest {
     required this.declaredExtensions,
     required this.declaredExtensionTypes,
     required this.declaredMixins,
+    required this.declaredTypeAliases,
     required this.declaredGetters,
     required this.declaredSetters,
     required this.declaredFunctions,
@@ -64,6 +66,9 @@ class LibraryManifest {
       ),
       declaredMixins: reader.readLookupNameMap(
         readValue: () => MixinItem.read(reader),
+      ),
+      declaredTypeAliases: reader.readLookupNameMap(
+        readValue: () => TypeAliasItem.read(reader),
       ),
       declaredGetters: reader.readLookupNameMap(
         readValue: () => TopLevelGetterItem.read(reader),
@@ -89,6 +94,7 @@ class LibraryManifest {
             declaredExtensions,
             declaredExtensionTypes,
             declaredMixins,
+            declaredTypeAliases,
             declaredGetters,
             declaredSetters,
             declaredFunctions,
@@ -107,6 +113,7 @@ class LibraryManifest {
         declaredExtensions[name]?.id ??
         declaredExtensionTypes[name]?.id ??
         declaredMixins[name]?.id ??
+        declaredTypeAliases[name]?.id ??
         declaredGetters[name]?.id ??
         declaredSetters[name]?.id ??
         declaredFunctions[name]?.id ??
@@ -120,6 +127,7 @@ class LibraryManifest {
     declaredExtensions.write(sink);
     declaredExtensionTypes.write(sink);
     declaredMixins.write(sink);
+    declaredTypeAliases.write(sink);
     declaredGetters.write(sink);
     declaredSetters.write(sink);
     declaredFunctions.write(sink);
@@ -654,6 +662,22 @@ class LibraryManifestBuilder {
     newItems[lookupName] = item;
   }
 
+  void _addTypeAlias({
+    required EncodeContext encodingContext,
+    required Map<LookupName, TypeAliasItem> newItems,
+    required TypeAliasElementImpl2 element,
+    required LookupName lookupName,
+  }) {
+    var item = _getOrBuildElementItem(element, () {
+      return TypeAliasItem.fromElement(
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+    });
+    newItems[lookupName] = item;
+  }
+
   /// Assert that every manifest can be serialized, and when deserialized
   /// results in the same manifest.
   bool _assertSerialization() {
@@ -690,6 +714,7 @@ class LibraryManifestBuilder {
       var newExtensionItems = <LookupName, ExtensionItem>{};
       var newExtensionTypeItems = <LookupName, ExtensionTypeItem>{};
       var newMixinItems = <LookupName, MixinItem>{};
+      var newTypeAliasItems = <LookupName, TypeAliasItem>{};
       var newTopLevelGetters = <LookupName, TopLevelGetterItem>{};
       var newTopLevelSetters = <LookupName, TopLevelSetterItem>{};
       var newTopLevelFunctions = <LookupName, TopLevelFunctionItem>{};
@@ -765,8 +790,13 @@ class LibraryManifestBuilder {
               element: element,
               lookupName: lookupName,
             );
-
-          // TODO(scheglov): add remaining elements
+          case TypeAliasElementImpl2():
+            _addTypeAlias(
+              encodingContext: encodingContext,
+              newItems: newTypeAliasItems,
+              element: element,
+              lookupName: lookupName,
+            );
         }
       }
 
@@ -777,6 +807,7 @@ class LibraryManifestBuilder {
         declaredExtensions: newExtensionItems,
         declaredExtensionTypes: newExtensionTypeItems,
         declaredMixins: newMixinItems,
+        declaredTypeAliases: newTypeAliasItems,
         declaredGetters: newTopLevelGetters,
         declaredSetters: newTopLevelSetters,
         declaredFunctions: newTopLevelFunctions,
@@ -956,6 +987,7 @@ class LibraryManifestBuilder {
           declaredExtensions: {},
           declaredExtensionTypes: {},
           declaredMixins: {},
+          declaredTypeAliases: {},
           declaredGetters: {},
           declaredSetters: {},
           declaredFunctions: {},
@@ -1112,6 +1144,10 @@ class _LibraryMatch {
           }
         case TopLevelVariableElementImpl2():
           if (!_matchTopVariable(name: name, element: element)) {
+            structureMismatched.add(element);
+          }
+        case TypeAliasElementImpl2():
+          if (!_matchTypeAlias(name: name, element: element)) {
             structureMismatched.add(element);
           }
       }
@@ -1525,6 +1561,25 @@ class _LibraryMatch {
     }
 
     _addMatchingElementItem(element, item, matchContext);
+    return true;
+  }
+
+  bool _matchTypeAlias({
+    required LookupName? name,
+    required TypeAliasElementImpl2 element,
+  }) {
+    var item = manifest.declaredTypeAliases[name];
+    if (item == null) {
+      return false;
+    }
+
+    var matchContext = MatchContext(parent: null);
+    if (!item.match(matchContext, element)) {
+      return false;
+    }
+
+    _addMatchingElementItem(element, item, matchContext);
+
     return true;
   }
 }

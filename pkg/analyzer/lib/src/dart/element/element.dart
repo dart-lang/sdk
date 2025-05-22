@@ -9675,7 +9675,7 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
         FragmentedAnnotatableElementMixin<TypeAliasFragment>,
         FragmentedElementMixin<TypeAliasFragment>,
         _HasSinceSdkVersionMixin
-    implements TypeAliasElement {
+    implements AnnotatableElementImpl, TypeAliasElement {
   @override
   final Reference reference;
 
