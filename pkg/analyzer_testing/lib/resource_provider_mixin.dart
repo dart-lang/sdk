@@ -143,7 +143,7 @@ mixin ResourceProviderMixin {
     String directoryPath,
     PackageConfigFileBuilder builder,
   ) {
-    var content = builder.toContent(toUriStr: toUriStr);
+    var content = builder.toContent(pathContext: pathContext);
     return newPackageConfigJsonFile(directoryPath, content);
   }
 

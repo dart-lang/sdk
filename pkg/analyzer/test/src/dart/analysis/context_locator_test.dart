@@ -1251,7 +1251,7 @@ ${getFolder(outPath).path}
         PackageConfigFileBuilder()..add(name: 'flutter', rootPath: flutterPath);
     var packagesFile = newPackageConfigJsonFile(
       rootFolder.path,
-      packageConfigFileBuilder.toContent(toUriStr: toUriStr),
+      packageConfigFileBuilder.toContent(pathContext: pathContext),
     );
 
     var roots = contextLocator.locateRoots(includedPaths: [rootFolder.path]);

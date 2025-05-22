@@ -349,7 +349,7 @@ analyzer:
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, config.toContent(toUriStr: toUriStr));
+    newFile(path, config.toContent(pathContext: pathContext));
   }
 
   /// Creates a simple package named [name] with [content] in the file at

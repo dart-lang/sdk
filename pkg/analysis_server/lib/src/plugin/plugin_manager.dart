@@ -887,9 +887,7 @@ class PluginManager {
         }
         packageConfigFile.writeAsStringSync(
           packageConfigBuilder.toContent(
-            toUriStr: (path) {
-              return resourceProvider.pathContext.toUri(path).toString();
-            },
+            pathContext: resourceProvider.pathContext,
           ),
         );
       } catch (exception) {
