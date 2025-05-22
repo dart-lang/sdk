@@ -50,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtNode(
         parameter,
         arguments: [parameter.name.lexeme],
-        errorCode:
+        diagnosticCode:
             LinterLintCode.avoid_types_as_parameter_names_formal_parameter,
       );
     }
@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportAtToken(
           name,
           arguments: [name.lexeme],
-          errorCode:
+          diagnosticCode:
               LinterLintCode.avoid_types_as_parameter_names_formal_parameter,
         );
       }
@@ -110,7 +110,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportAtToken(
           name,
           arguments: [name.lexeme],
-          errorCode:
+          diagnosticCode:
               LinterLintCode.avoid_types_as_parameter_names_type_parameter,
         );
       }

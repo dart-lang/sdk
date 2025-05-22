@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtToken(
         node.name,
         arguments: [node.name.lexeme],
-        errorCode: LinterLintCode.always_declare_return_types_of_functions,
+        diagnosticCode: LinterLintCode.always_declare_return_types_of_functions,
       );
     }
   }
@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtToken(
         node.name,
         arguments: [node.name.lexeme],
-        errorCode: LinterLintCode.always_declare_return_types_of_functions,
+        diagnosticCode: LinterLintCode.always_declare_return_types_of_functions,
       );
     }
   }
@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     rule.reportAtToken(
       node.name,
       arguments: [node.name.lexeme],
-      errorCode: LinterLintCode.always_declare_return_types_of_methods,
+      diagnosticCode: LinterLintCode.always_declare_return_types_of_methods,
     );
   }
 }

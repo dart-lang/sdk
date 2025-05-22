@@ -1124,7 +1124,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             asyncStateTracker.hasUnrelatedMountedCheck
                 ? LinterLintCode.use_build_context_synchronously_wrong_mounted
                 : LinterLintCode.use_build_context_synchronously_async_use;
-        rule.reportAtNode(node, errorCode: errorCode);
+        rule.reportAtNode(node, diagnosticCode: errorCode);
         return;
       }
 
@@ -1268,7 +1268,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (callback == argument.expression) {
         rule.reportAtNode(
           errorNode,
-          errorCode: LinterLintCode.use_build_context_synchronously_async_use,
+          diagnosticCode:
+              LinterLintCode.use_build_context_synchronously_async_use,
         );
       }
     }
@@ -1287,7 +1288,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           callback == positionalArguments[position]) {
         rule.reportAtNode(
           errorNode,
-          errorCode: LinterLintCode.use_build_context_synchronously_async_use,
+          diagnosticCode:
+              LinterLintCode.use_build_context_synchronously_async_use,
         );
       }
     }

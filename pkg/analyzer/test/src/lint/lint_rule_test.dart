@@ -28,7 +28,7 @@ main() {
 
         rule.reportAtToken(
           SimpleToken(TokenType.SEMICOLON, 0),
-          errorCode: TestRule.customCode,
+          diagnosticCode: TestRule.customCode,
         );
         expect(reporter.code, TestRule.customCode);
       });
@@ -42,7 +42,7 @@ main() {
 
         rule.reportAtToken(
           SimpleToken(TokenType.SEMICOLON, 0),
-          errorCode: TestRule.code,
+          diagnosticCode: TestRule.code,
         );
         expect(reporter.code, TestRule.code);
       });
@@ -57,7 +57,7 @@ main() {
         var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
-        rule.reportAtNode(node, errorCode: TestRule.customCode);
+        rule.reportAtNode(node, diagnosticCode: TestRule.customCode);
         expect(reporter.code, TestRule.customCode);
       });
       test('reportLint (default)', () {
@@ -71,7 +71,7 @@ main() {
         var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
-        rule.reportAtNode(node, errorCode: TestRule.code);
+        rule.reportAtNode(node, diagnosticCode: TestRule.code);
         expect(reporter.code, TestRule.code);
       });
     });

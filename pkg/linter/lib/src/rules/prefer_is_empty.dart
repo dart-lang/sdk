@@ -92,23 +92,23 @@ class _Visitor extends SimpleAstVisitor<void> {
           operator.type == TokenType.LT_EQ) {
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_is_empty_use_is_empty,
+          diagnosticCode: LinterLintCode.prefer_is_empty_use_is_empty,
         );
       } else if (operator.type == TokenType.GT ||
           operator.type == TokenType.BANG_EQ) {
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
+          diagnosticCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
         );
       } else if (operator.type == TokenType.LT) {
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_is_empty_always_false,
+          diagnosticCode: LinterLintCode.prefer_is_empty_always_false,
         );
       } else if (operator.type == TokenType.GT_EQ) {
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_is_empty_always_true,
+          diagnosticCode: LinterLintCode.prefer_is_empty_always_true,
         );
       }
     } else if (value == 1) {
@@ -118,12 +118,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (operator.type == TokenType.GT_EQ) {
           rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
+            diagnosticCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
           );
         } else if (operator.type == TokenType.LT) {
           rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_use_is_empty,
+            diagnosticCode: LinterLintCode.prefer_is_empty_use_is_empty,
           );
         }
       } else {
@@ -132,12 +132,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (operator.type == TokenType.LT_EQ) {
           rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
+            diagnosticCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
           );
         } else if (operator.type == TokenType.GT) {
           rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_use_is_empty,
+            diagnosticCode: LinterLintCode.prefer_is_empty_use_is_empty,
           );
         }
       }
@@ -149,14 +149,14 @@ class _Visitor extends SimpleAstVisitor<void> {
             operator.type == TokenType.LT) {
           rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_always_false,
+            diagnosticCode: LinterLintCode.prefer_is_empty_always_false,
           );
         } else if (operator.type == TokenType.BANG_EQ ||
             operator.type == TokenType.GT_EQ ||
             operator.type == TokenType.GT) {
           rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_always_true,
+            diagnosticCode: LinterLintCode.prefer_is_empty_always_true,
           );
         }
       } else {
@@ -166,14 +166,14 @@ class _Visitor extends SimpleAstVisitor<void> {
             operator.type == TokenType.GT) {
           rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_always_false,
+            diagnosticCode: LinterLintCode.prefer_is_empty_always_false,
           );
         } else if (operator.type == TokenType.BANG_EQ ||
             operator.type == TokenType.LT_EQ ||
             operator.type == TokenType.LT) {
           rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_always_true,
+            diagnosticCode: LinterLintCode.prefer_is_empty_always_true,
           );
         }
       }

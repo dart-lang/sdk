@@ -54,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var name = loopVariable.name;
       rule.reportAtToken(
         name,
-        errorCode: LinterLintCode.prefer_final_in_for_each_variable,
+        diagnosticCode: LinterLintCode.prefer_final_in_for_each_variable,
         arguments: [name.lexeme],
       );
     }
@@ -72,21 +72,21 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (!function.potentiallyMutatesAnyField(pattern.fields)) {
         rule.reportAtNode(
           pattern,
-          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+          diagnosticCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     } else if (pattern is ObjectPattern) {
       if (!function.potentiallyMutatesAnyField(pattern.fields)) {
         rule.reportAtNode(
           pattern,
-          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+          diagnosticCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     } else if (pattern is ListPattern) {
       if (!pattern.elements.any((e) => function.potentiallyMutates(e))) {
         rule.reportAtNode(
           pattern,
-          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+          diagnosticCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     } else if (pattern is MapPattern) {
@@ -95,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       )) {
         rule.reportAtNode(
           pattern,
-          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+          diagnosticCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     }

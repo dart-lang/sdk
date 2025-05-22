@@ -73,11 +73,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (type == null) return;
 
     if (!isAsync && type is VoidType) {
-      rule.reportAtNode(node, errorCode: code);
+      rule.reportAtNode(node, diagnosticCode: code);
     } else if (isAsync &&
         type.isDartAsyncFuture &&
         (type as InterfaceType).typeArguments.first is VoidType) {
-      rule.reportAtNode(node, errorCode: code);
+      rule.reportAtNode(node, diagnosticCode: code);
     }
   }
 }

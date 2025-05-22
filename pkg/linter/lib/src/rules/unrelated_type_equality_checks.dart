@@ -60,7 +60,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     rule.reportAtToken(
       node.operator,
-      errorCode: LinterLintCode.unrelated_type_equality_checks_in_expression,
+      diagnosticCode:
+          LinterLintCode.unrelated_type_equality_checks_in_expression,
       arguments: [rightType.getDisplayString(), leftType.getDisplayString()],
     );
   }
@@ -76,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     rule.reportAtNode(
       node,
-      errorCode: LinterLintCode.unrelated_type_equality_checks_in_pattern,
+      diagnosticCode: LinterLintCode.unrelated_type_equality_checks_in_pattern,
       arguments: [operandType.getDisplayString(), valueType.getDisplayString()],
     );
   }

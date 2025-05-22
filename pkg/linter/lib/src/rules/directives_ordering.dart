@@ -83,7 +83,7 @@ class DirectivesOrdering extends MultiAnalysisRule {
   void _reportLintWithDartDirectiveGoFirstMessage(AstNode node, String type) {
     reportAtNode(
       node,
-      errorCode: LinterLintCode.directives_ordering_dart,
+      diagnosticCode: LinterLintCode.directives_ordering_dart,
       arguments: [type],
     );
   }
@@ -93,12 +93,15 @@ class DirectivesOrdering extends MultiAnalysisRule {
   ) {
     reportAtNode(
       node,
-      errorCode: LinterLintCode.directives_ordering_alphabetical,
+      diagnosticCode: LinterLintCode.directives_ordering_alphabetical,
     );
   }
 
   void _reportLintWithExportDirectiveAfterImportDirectiveMessage(AstNode node) {
-    reportAtNode(node, errorCode: LinterLintCode.directives_ordering_exports);
+    reportAtNode(
+      node,
+      diagnosticCode: LinterLintCode.directives_ordering_exports,
+    );
   }
 
   void _reportLintWithPackageDirectiveBeforeRelativeMessage(
@@ -107,7 +110,8 @@ class DirectivesOrdering extends MultiAnalysisRule {
   ) {
     reportAtNode(
       node,
-      errorCode: LinterLintCode.directives_ordering_package_before_relative,
+      diagnosticCode:
+          LinterLintCode.directives_ordering_package_before_relative,
       arguments: [type],
     );
   }

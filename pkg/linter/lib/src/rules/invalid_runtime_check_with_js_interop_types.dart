@@ -424,7 +424,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtNode(
         node,
         arguments: [leftType, rightType],
-        errorCode: code,
+        diagnosticCode: code,
       );
     }
   }
@@ -439,7 +439,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtNode(
         node,
         arguments: [leftType, rightType],
-        errorCode: code,
+        diagnosticCode: code,
       );
     }
   }

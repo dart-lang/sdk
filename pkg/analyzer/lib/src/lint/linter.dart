@@ -115,14 +115,14 @@ sealed class AbstractAnalysisRule {
     PSNode node, {
     List<Object> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
-    required DiagnosticCode errorCode,
+    required DiagnosticCode diagnosticCode,
   }) {
     // Cache diagnostic and location info for creating `AnalysisErrorInfo`s.
     var diagnostic = Diagnostic.tmp(
       source: node.source,
       offset: node.span.start.offset,
       length: node.span.length,
-      errorCode: errorCode,
+      errorCode: diagnosticCode,
       arguments: arguments,
       contextMessages: contextMessages,
     );
@@ -193,7 +193,7 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
     List<DiagnosticMessage> contextMessages = const [],
   }) => _reportAtPubNode(
     node,
-    errorCode: diagnosticCode,
+    diagnosticCode: diagnosticCode,
     arguments: arguments,
     contextMessages: contextMessages,
   );
@@ -389,41 +389,41 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
     super.state,
   });
 
-  /// Reports [errorCode] at [node] with message [arguments] and
+  /// Reports [diagnosticCode] at [node] with message [arguments] and
   /// [contextMessages].
   void reportAtNode(
     AstNode? node, {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
-    required DiagnosticCode errorCode,
+    required DiagnosticCode diagnosticCode,
   }) => _reportAtNode(
     node,
-    diagnosticCode: errorCode,
+    diagnosticCode: diagnosticCode,
     arguments: arguments,
     contextMessages: contextMessages,
   );
 
-  /// Reports [errorCode] at [offset], with [length], with message [arguments]
+  /// Reports [diagnosticCode] at [offset], with [length], with message [arguments]
   /// and [contextMessages].
   void reportAtOffset(
     int offset,
     int length, {
-    required DiagnosticCode errorCode,
+    required DiagnosticCode diagnosticCode,
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
   }) => _reportAtOffset(
     offset,
     length,
-    diagnosticCode: errorCode,
+    diagnosticCode: diagnosticCode,
     arguments: arguments,
     contextMessages: contextMessages,
   );
 
-  /// Reports [errorCode] at Pubspec [node], with message [arguments] and
+  /// Reports [diagnosticCode] at Pubspec [node], with message [arguments] and
   /// [contextMessages].
   void reportAtPubNode(
     PSNode node, {
-    required DiagnosticCode errorCode,
+    required DiagnosticCode diagnosticCode,
     List<Object> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
   }) {
@@ -432,23 +432,23 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
       source: node.source,
       offset: node.span.start.offset,
       length: node.span.length,
-      errorCode: errorCode,
+      errorCode: diagnosticCode,
       arguments: arguments,
       contextMessages: contextMessages,
     );
     _reporter.reportError(error);
   }
 
-  /// Reports [errorCode] at [token], with message [arguments] and
+  /// Reports [diagnosticCode] at [token], with message [arguments] and
   /// [contextMessages].
   void reportAtToken(
     Token token, {
-    required DiagnosticCode errorCode,
+    required DiagnosticCode diagnosticCode,
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
   }) => _reportAtToken(
     token,
-    diagnosticCode: errorCode,
+    diagnosticCode: diagnosticCode,
     arguments: arguments,
     contextMessages: contextMessages,
   );

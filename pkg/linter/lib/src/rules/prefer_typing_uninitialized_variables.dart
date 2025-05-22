@@ -50,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
                 ? LinterLintCode.prefer_typing_uninitialized_variables_for_field
                 : LinterLintCode
                     .prefer_typing_uninitialized_variables_for_local_variable;
-        rule.reportAtNode(v, errorCode: code);
+        rule.reportAtNode(v, diagnosticCode: code);
       }
     }
   }

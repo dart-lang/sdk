@@ -80,19 +80,19 @@ class _Visitor extends SimpleAstVisitor<void> {
           type == TokenType.GT) {
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_contains_use_contains,
+          diagnosticCode: LinterLintCode.prefer_contains_use_contains,
         );
       } else if (type == TokenType.LT) {
         // indexOf < -1 is always false
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_contains_always_false,
+          diagnosticCode: LinterLintCode.prefer_contains_always_false,
         );
       } else if (type == TokenType.GT_EQ) {
         // indexOf >= -1 is always true
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_contains_always_true,
+          diagnosticCode: LinterLintCode.prefer_contains_always_true,
         );
       }
     } else if (value == 0) {
@@ -101,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (type == TokenType.GT_EQ || type == TokenType.LT) {
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_contains_use_contains,
+          diagnosticCode: LinterLintCode.prefer_contains_use_contains,
         );
       }
     } else if (value < -1) {
@@ -112,14 +112,14 @@ class _Visitor extends SimpleAstVisitor<void> {
           type == TokenType.LT) {
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_contains_always_false,
+          diagnosticCode: LinterLintCode.prefer_contains_always_false,
         );
       } else if (type == TokenType.BANG_EQ ||
           type == TokenType.GT_EQ ||
           type == TokenType.GT) {
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_contains_always_true,
+          diagnosticCode: LinterLintCode.prefer_contains_always_true,
         );
       }
     }
