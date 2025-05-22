@@ -227,7 +227,15 @@ class Package implements Comparable<Package> {
     // Remove package:lints and package:dart_flutter_team_lints -
     // They are often declared as dev dependencies in order
     // to bring in analysis_options configuration files.
-    extraDevDeclarations.removeAll(const ['lints', 'dart_flutter_team_lints']);
+    //
+    // Also remove package:build_runner and package:build_web_compilers as they
+    // are required by projects that are run with webdev.
+    extraDevDeclarations.removeAll(const [
+      'lints',
+      'dart_flutter_team_lints',
+      'build_runner',
+      'build_web_compilers'
+    ]);
     if (extraDevDeclarations.isNotEmpty) {
       out('  ${_printSet(extraDevDeclarations)} declared in '
           "'dev_dependencies:' but not used in dev dirs.");

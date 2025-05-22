@@ -377,6 +377,7 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
     annotateMember(node);
     if (node.isConst) {
       annotateConstantClass(node.enclosingClass);
+      node.visitChildren(this);
     }
   }
 
@@ -431,6 +432,7 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
       for (final f in node.fields) {
         if (f.isInstanceMember) {
           annotateMember(f);
+          f.initializer?.accept(this);
         }
       }
       final superclass = node.superclass;
