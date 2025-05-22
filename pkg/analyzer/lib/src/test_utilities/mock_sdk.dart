@@ -1078,6 +1078,11 @@ extension Int8ListAddress on Int8List {
 extension ArrayAddress<T extends NativeType> on Array<T> {
   external Pointer<T> get address;
 }
+
+@Since('3.5')
+extension Uint8ListAddress on Uint8List {
+  external Pointer<Uint8> get address;
+}
 '''),
 ]);
 
