@@ -678,10 +678,18 @@ class ClassIdNumbering {
         _concreteSubclassIdRangeForDynamicSubmodule);
   }
 
-  List<Range> getConcreteClassIdRangeForCurrentModule(Class klass) {
-    return translator.isDynamicSubmodule
-        ? getConcreteClassIdRangeForDynamicSubmodule(klass)
-        : getConcreteClassIdRangeForMainModule(klass);
+  /// In case the [klass] is from a dynamic module the returned class id
+  /// ranges may be relative. The caller has to ensure to use them
+  /// appropriately.
+  List<Range> getConcreteClassIdRangeForClass(Class klass) {
+    // We cannot return class id ranges for [klass] if there can be more
+    // classes in future dynamic module compilations.
+    assert(!klass.isDynamicSubmoduleExtendable(translator.coreTypes));
+
+    return !translator.isDynamicSubmodule ||
+            klass.enclosingLibrary.isFromMainModule(translator.coreTypes)
+        ? getConcreteClassIdRangeForMainModule(klass)
+        : getConcreteClassIdRangeForDynamicSubmodule(klass);
   }
 
   List<Range> _getConcreteClassIdRange(Class klass,
