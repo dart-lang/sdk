@@ -598,6 +598,7 @@ class ElfSymbolTable : public ElfSection {
       case SharedObjectWriter::SymbolData::Type::Object:
         return elf::STT_OBJECT;
     }
+    UNREACHABLE();
   }
 
   Zone* const zone_;
