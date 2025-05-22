@@ -30,7 +30,7 @@ native-assets:
     final libraryToString = kernelLibraryToString(component.libraries.single);
     final expectedKernel = '''@#C3
 @#C12
-library;
+library vm:ffi:native-assets;
 import self as self;
 
 constants  {
