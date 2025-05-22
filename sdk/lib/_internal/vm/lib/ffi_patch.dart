@@ -349,9 +349,11 @@ final class _NativeCallableListener<T extends Function>
 
 final class _NativeCallableIsolateGroupShared<T extends Function>
     extends _NativeCallableBase<T> {
-  bool _isKeepingIsolateAlive = false;
+  bool _isKeepingIsolateAlive = true;
 
-  _NativeCallableIsolateGroupShared(super._pointer);
+  _NativeCallableIsolateGroupShared(super._pointer) {
+    _updateNativeCallableKeepIsolateAliveCounter(1);
+  }
 
   @override
   void _close() {
@@ -367,7 +369,7 @@ final class _NativeCallableIsolateGroupShared<T extends Function>
   }
 
   @override
-  bool get _keepIsolateAlive => false;
+  bool get _keepIsolateAlive => _isKeepingIsolateAlive;
 }
 
 @patch

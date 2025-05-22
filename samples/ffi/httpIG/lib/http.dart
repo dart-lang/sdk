@@ -49,6 +49,7 @@ Future<String> httpGet(String uri) async {
   final response = await completer.future;
 
   rp.close();
+  callback.close();
 
   return response;
 }
@@ -59,20 +60,7 @@ late int counter;
 // Start a HTTP server on a background thread.
 ReceivePort httpServe(void Function(String) onRequest) {
   counter = 0;
-  final rp = ReceivePort()
-    ..listen(
-      (s) {
-        print('httpServe counter: $counter');
-        onRequest(s);
-      },
-      onError: (e, st) {
-        print('httpServe receiver get error $e $st');
-      },
-      onDone: () {
-        nativeHttpStopServing();
-      },
-    );
-
+  final rp = ReceivePort();
   final callback = NativeCallable<HttpCallback>.isolateGroupShared((
     Pointer<Utf8> requestPointer,
   ) {
@@ -83,6 +71,19 @@ ReceivePort httpServe(void Function(String) onRequest) {
     final s = utf8.decode(typedList);
     rp.sendPort.send(s);
   });
+  rp.listen(
+      (s) {
+        print('httpServe counter: $counter');
+        onRequest(s);
+      },
+      onError: (e, st) {
+        print('httpServe receiver get error $e $st');
+      },
+      onDone: () {
+        nativeHttpStopServing();
+        callback.close();
+      },
+    );
 
   // Invoke the native function to start the HTTP server. Our example
   // HTTP library will start a server on a background thread, and pass
