@@ -105,7 +105,7 @@ sealed class AbstractAnalysisRule {
     _reporter.atOffset(
       offset: offset,
       length: length,
-      errorCode: diagnosticCode,
+      diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: contextMessages,
     );

@@ -7,7 +7,6 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
@@ -16,6 +15,7 @@ import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 
 /// The manifest of a single library.
@@ -68,6 +68,23 @@ class LibraryManifest {
         readValue: () => TopLevelVariableItem.read(reader),
       ),
     );
+  }
+
+  Map<LookupName, ManifestItemId> get exportedIds {
+    return Map.fromEntries([
+      ...reExportMap.entries,
+      ...<Map<LookupName, TopLevelItem>>[
+            declaredClasses,
+            declaredEnums,
+            declaredMixins,
+            declaredGetters,
+            declaredSetters,
+            declaredFunctions,
+          ]
+          .expand((map) => map.entries)
+          .whereNot((entry) => entry.key.isPrivate)
+          .mapValue((item) => item.id),
+    ]);
   }
 
   /// Returns the ID of a top-level element either declared or re-exported,
@@ -754,7 +771,6 @@ class LibraryManifestBuilder {
 
       // Ensure that we have interfaces of supertypes first.
       for (var superType in element.allSupertypes) {
-        superType as InterfaceTypeImpl;
         addInterfacesToFill(superType.element3);
       }
 

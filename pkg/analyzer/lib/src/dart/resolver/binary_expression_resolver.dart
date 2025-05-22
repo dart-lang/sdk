@@ -154,7 +154,7 @@ class BinaryExpressionResolver {
       _errorReporter.atOffset(
         offset: offset,
         length: end.end - offset,
-        errorCode: errorCode,
+        diagnosticCode: errorCode,
       );
     }
 

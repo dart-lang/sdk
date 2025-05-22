@@ -133,7 +133,7 @@ class TodoFinder {
       _errorReporter.atOffset(
         offset: offset,
         length: end - offset,
-        errorCode: Todo.forKind(todoKind),
+        diagnosticCode: Todo.forKind(todoKind),
         arguments: [todoText],
       );
     }

@@ -25,6 +25,7 @@ RequirementsManifest? globalResultRequirements;
 /// This cannot be `const` because we change it in tests.
 bool withFineDependencies = false;
 
+/// Requirements for a single `export`.
 @visibleForTesting
 class ExportRequirement {
   final Uri fragmentUri;
@@ -53,41 +54,40 @@ class ExportRequirement {
     );
   }
 
-  ExportFailure? isSatisfied({required LinkedElementFactory elementFactory}) {
+  ExportFailure? isSatisfied({
+    required LinkedElementFactory elementFactory,
+    required Set<LookupName> declaredTopNames,
+  }) {
     var libraryElement = elementFactory.libraryOfUri(exportedUri);
-    var libraryManifest = libraryElement?.manifest;
-    if (libraryManifest == null) {
+    if (libraryElement == null) {
       return ExportLibraryMissing(uri: exportedUri);
     }
 
+    // SAFETY: every library has the manifest.
+    var libraryManifest = libraryElement.manifest!;
+
     // Every now exported ID must be previously exported.
     var actualCount = 0;
-    var declaredTopEntries = <MapEntry<LookupName, TopLevelItem>>[
-      ...libraryManifest.declaredClasses.entries,
-      ...libraryManifest.declaredEnums.entries,
-      ...libraryManifest.declaredMixins.entries,
-      ...libraryManifest.declaredGetters.entries,
-      ...libraryManifest.declaredSetters.entries,
-      ...libraryManifest.declaredFunctions.entries,
-    ];
-    for (var topEntry in declaredTopEntries) {
-      var name = topEntry.key;
-      if (name.isPrivate) {
+    for (var topEntry in libraryManifest.exportedIds.entries) {
+      var lookupName = topEntry.key;
+
+      // If declared locally, export is no-op.
+      if (declaredTopNames.contains(lookupName)) {
         continue;
       }
 
-      if (!_passCombinators(name)) {
+      if (!_passCombinators(lookupName)) {
         continue;
       }
 
       actualCount++;
-      var actualId = topEntry.value.id;
-      var expectedId = exportedIds[topEntry.key];
+      var actualId = topEntry.value;
+      var expectedId = exportedIds[lookupName];
       if (actualId != expectedId) {
         return ExportIdMismatch(
           fragmentUri: fragmentUri,
           exportedUri: exportedUri,
-          name: name,
+          name: lookupName,
           expectedId: expectedId,
           actualId: actualId,
         );
@@ -269,6 +269,47 @@ class InterfaceItemRequirements {
   }
 }
 
+/// Requirements for all `export`s of a library.
+@visibleForTesting
+class LibraryExportRequirements {
+  final Uri libraryUri;
+  final Set<LookupName> declaredTopNames;
+  final List<ExportRequirement> exports;
+
+  LibraryExportRequirements({
+    required this.libraryUri,
+    required this.declaredTopNames,
+    required this.exports,
+  });
+
+  factory LibraryExportRequirements.read(SummaryDataReader reader) {
+    return LibraryExportRequirements(
+      libraryUri: reader.readUri(),
+      declaredTopNames: reader.readLookupNameSet(),
+      exports: reader.readTypedList(() => ExportRequirement.read(reader)),
+    );
+  }
+
+  ExportFailure? isSatisfied({required LinkedElementFactory elementFactory}) {
+    for (var export in exports) {
+      var failure = export.isSatisfied(
+        elementFactory: elementFactory,
+        declaredTopNames: declaredTopNames,
+      );
+      if (failure != null) {
+        return failure;
+      }
+    }
+    return null;
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUri(libraryUri);
+    declaredTopNames.write(sink);
+    sink.writeList(exports, (export) => export.write(sink));
+  }
+}
+
 class RequirementsManifest {
   /// LibraryUri => TopName => ID
   final Map<Uri, Map<LookupName, ManifestItemId?>> topLevels = {};
@@ -279,7 +320,7 @@ class RequirementsManifest {
   /// LibraryUri => TopName => InterfaceItemRequirements
   final Map<Uri, Map<LookupName, InterfaceItemRequirements>> interfaces = {};
 
-  final List<ExportRequirement> exportRequirements = [];
+  final List<LibraryExportRequirements> exportRequirements = [];
 
   RequirementsManifest();
 
@@ -318,7 +359,7 @@ class RequirementsManifest {
     );
 
     result.exportRequirements.addAll(
-      reader.readTypedList(() => ExportRequirement.read(reader)),
+      reader.readTypedList(() => LibraryExportRequirements.read(reader)),
     );
 
     return result;
@@ -700,9 +741,12 @@ class RequirementsManifest {
   /// libraries are interesting.
   void removeReqForLibs(Set<Uri> bundleLibraryUriList) {
     var uriSet = bundleLibraryUriList.toSet();
-    exportRequirements.removeWhere((export) {
-      return uriSet.contains(export.exportedUri);
-    });
+
+    for (var exportRequirement in exportRequirements) {
+      exportRequirement.exports.removeWhere((export) {
+        return uriSet.contains(export.exportedUri);
+      });
+    }
 
     for (var libUri in bundleLibraryUriList) {
       topLevels.remove(libUri);
@@ -751,6 +795,15 @@ class RequirementsManifest {
   }
 
   void _addExports(LibraryElementImpl libraryElement) {
+    var declaredTopNames =
+        libraryElement.children2
+            .map((element) => element.lookupName)
+            .nonNulls
+            .map((nameStr) => nameStr.asLookupName)
+            .toSet();
+
+    var fragments = <ExportRequirement>[];
+
     for (var fragment in libraryElement.fragments) {
       for (var export in fragment.libraryExports) {
         var exportedLibrary = export.exportedLibrary2;
@@ -783,6 +836,9 @@ class RequirementsManifest {
         );
         for (var entry in exportMap.definedNames2.entries) {
           var lookupName = entry.key.asLookupName;
+          if (declaredTopNames.contains(lookupName)) {
+            continue;
+          }
           // TODO(scheglov): must always be not null.
           var id = manifest.getExportedId(lookupName);
           if (id != null) {
@@ -790,7 +846,7 @@ class RequirementsManifest {
           }
         }
 
-        exportRequirements.add(
+        fragments.add(
           ExportRequirement(
             fragmentUri: fragment.source.uri,
             exportedUri: exportedLibrary.uri,
@@ -799,6 +855,16 @@ class RequirementsManifest {
           ),
         );
       }
+    }
+
+    if (fragments.isNotEmpty) {
+      exportRequirements.add(
+        LibraryExportRequirements(
+          libraryUri: libraryElement.uri,
+          declaredTopNames: declaredTopNames,
+          exports: fragments,
+        ),
+      );
     }
   }
 

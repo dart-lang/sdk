@@ -1070,7 +1070,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.atOffset(
         offset: offset,
         length: endEntity.end - offset,
-        errorCode: diagnosticCode,
+        diagnosticCode: diagnosticCode,
       );
     }
 
@@ -1106,7 +1106,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.atOffset(
           offset: offset,
           length: node.operator.end - offset,
-          errorCode: errorCode,
+          diagnosticCode: errorCode,
         );
       }
     }
@@ -1118,7 +1118,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.atOffset(
           offset: offset,
           length: node.rightOperand.end - offset,
-          errorCode: errorCode,
+          diagnosticCode: errorCode,
         );
       }
     }
@@ -1827,7 +1827,7 @@ class _InvalidAccessVerifier {
     _errorReporter.atOffset(
       offset: errorEntity.offset,
       length: errorEntity.length,
-      errorCode: WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER,
+      diagnosticCode: WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER,
       arguments: [name],
     );
   }
@@ -1872,7 +1872,7 @@ class _InvalidAccessVerifier {
           _errorReporter.atOffset(
             offset: errorEntity.offset,
             length: errorEntity.length,
-            errorCode: WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER,
+            diagnosticCode: WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER,
             arguments: [name],
           );
         } else {

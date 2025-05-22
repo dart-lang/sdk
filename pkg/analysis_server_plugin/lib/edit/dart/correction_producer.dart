@@ -377,6 +377,7 @@ abstract class ResolvedCorrectionProducer
   AnalysisOptions get analysisOptions => sessionHelper.session.analysisContext
       .getAnalysisOptionsForFile(unitResult.file);
 
+  @Deprecated('Use InterfaceElement members instead')
   InheritanceManager3 get inheritanceManager {
     return (libraryElement2 as LibraryElementImpl).session.inheritanceManager;
   }

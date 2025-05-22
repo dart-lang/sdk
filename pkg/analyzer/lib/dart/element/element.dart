@@ -2250,13 +2250,17 @@ abstract class JoinPatternVariableElement implements PatternVariableElement {
   @override
   List<JoinPatternVariableFragment> get fragments;
 
-  /// Whether the [variables2] are consistent.
+  /// Whether the [variables] are consistent.
   ///
   /// The variables are consistent if they are present in all branches, and have
   /// the same type and finality.
   bool get isConsistent;
 
   /// The variables that join into this variable.
+  List<PatternVariableElement> get variables;
+
+  /// The variables that join into this variable.
+  @Deprecated('Use variables instead')
   List<PatternVariableElement> get variables2;
 }
 

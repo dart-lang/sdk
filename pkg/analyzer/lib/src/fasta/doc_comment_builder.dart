@@ -205,7 +205,7 @@ final class DocCommentBuilder {
             _errorReporter?.atOffset(
               offset: openingTag.offset,
               length: openingTag.end - openingTag.offset,
-              errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
+              diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
               arguments: [openingTag.type.opposingName!],
             );
           }
@@ -222,7 +222,7 @@ final class DocCommentBuilder {
     _errorReporter?.atOffset(
       offset: closingTag.offset,
       length: closingTag.end - closingTag.offset,
-      errorCode: WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG,
+      diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG,
       arguments: [closingTag.type.name],
     );
     _pushDocDirective(SimpleDocDirective(closingTag));
@@ -304,7 +304,7 @@ final class DocCommentBuilder {
         _errorReporter?.atOffset(
           offset: openingTag.offset,
           length: openingTag.end - openingTag.offset,
-          errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
+          diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
           arguments: [openingTag.type.opposingName!],
         );
       }
@@ -395,7 +395,7 @@ final class DocCommentBuilder {
     _errorReporter?.atOffset(
       offset: _characterSequence._offset + nameIndex,
       length: nameEnd - nameIndex,
-      errorCode: WarningCode.DOC_DIRECTIVE_UNKNOWN,
+      diagnosticCode: WarningCode.DOC_DIRECTIVE_UNKNOWN,
       arguments: [name],
     );
     return false;
@@ -1215,7 +1215,7 @@ final class _DirectiveParser {
     _errorReporter?.atOffset(
       offset: _offset + index - 1,
       length: 1,
-      errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
+      diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
     );
     return (positionalArguments, namedArguments);
   }
@@ -1250,7 +1250,7 @@ final class _DirectiveParser {
         _errorReporter?.atOffset(
           offset: _offset + index - 1,
           length: 1,
-          errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
+          diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
         );
         break;
       }
@@ -1260,7 +1260,7 @@ final class _DirectiveParser {
     _errorReporter?.atOffset(
       offset: extraArgumentsOffset,
       length: errorLength,
-      errorCode: WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
+      diagnosticCode: WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
     );
     _end = _offset + index;
   }

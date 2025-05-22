@@ -4957,10 +4957,10 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   InterfaceTypeImpl? _thisType;
 
   /// The cached result of [allSupertypes].
-  List<InterfaceType>? _allSupertypes;
+  List<InterfaceTypeImpl>? _allSupertypes;
 
   @override
-  List<InterfaceType> get allSupertypes {
+  List<InterfaceTypeImpl> get allSupertypes {
     return _allSupertypes ??= library2.session.classHierarchy
         .implementedInterfaces(this);
   }
@@ -5487,7 +5487,7 @@ class JoinPatternVariableElementImpl2 extends PatternVariableElementImpl2
     void append(PatternVariableElementImpl2 variable) {
       result.add(variable);
       if (variable is JoinPatternVariableElementImpl2) {
-        for (var variable in variable.variables2) {
+        for (var variable in variable.variables) {
           append(variable);
         }
       }
@@ -5497,12 +5497,16 @@ class JoinPatternVariableElementImpl2 extends PatternVariableElementImpl2
     return result;
   }
 
-  /// The variables that join into this variable.
-  List<PatternVariableFragmentImpl> get variables => _wrappedElement.variables;
-
   @override
-  List<PatternVariableElementImpl2> get variables2 =>
+  List<PatternVariableElementImpl2> get variables =>
       _wrappedElement.variables.map((fragment) => fragment.element).toList();
+
+  /// The variables that join into this variable.
+  @Deprecated('Use variables instead')
+  @override
+  List<PatternVariableElementImpl2> get variables2 {
+    return variables;
+  }
 
   @override
   JoinPatternVariableFragmentImpl get _wrappedElement =>

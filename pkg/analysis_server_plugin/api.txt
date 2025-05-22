@@ -85,7 +85,7 @@ package:analysis_server_plugin/edit/dart/correction_producer.dart:
     new (constructor: ResolvedCorrectionProducer Function({required CorrectionProducerContext context}))
     analysisOptions (getter: AnalysisOptions)
     inStaticContext (getter: bool)
-    inheritanceManager (getter: InheritanceManager3)
+    inheritanceManager (getter: InheritanceManager3, deprecated)
     libraryElement2 (getter: LibraryElement)
     libraryResult (getter: ResolvedLibraryResult)
     typeProvider (getter: TypeProvider)

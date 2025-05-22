@@ -293,7 +293,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               _errorReporter.atOffset(
                 offset: result.offset,
                 length: result.length,
-                errorCode: result.diagnosticCode,
+                diagnosticCode: result.diagnosticCode,
                 arguments: result.arguments,
                 contextMessages: result.contextMessages,
               );

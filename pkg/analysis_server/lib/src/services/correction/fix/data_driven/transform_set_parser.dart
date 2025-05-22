@@ -195,7 +195,7 @@ class TransformSetParser {
         errorReporter.atOffset(
           offset: templateOffset + variableStart,
           length: 2,
-          errorCode: TransformSetErrorCode.missingTemplateEnd,
+          diagnosticCode: TransformSetErrorCode.missingTemplateEnd,
         );
         // Ignore the invalid component, treating it as if it extended to the
         // end of the template.
@@ -207,7 +207,7 @@ class TransformSetParser {
           errorReporter.atOffset(
             offset: templateOffset + template.indexOf(name, variableStart),
             length: name.length,
-            errorCode: TransformSetErrorCode.undefinedVariable,
+            diagnosticCode: TransformSetErrorCode.undefinedVariable,
             arguments: [name],
           );
           // Ignore the invalid component.
@@ -261,7 +261,7 @@ class TransformSetParser {
       errorReporter.atOffset(
         offset: offset,
         length: length,
-        errorCode: TransformSetErrorCode.yamlSyntaxError,
+        diagnosticCode: TransformSetErrorCode.yamlSyntaxError,
         arguments: [e.message],
       );
     }
@@ -280,7 +280,7 @@ class TransformSetParser {
     errorReporter.atOffset(
       offset: span.start.offset,
       length: span.length,
-      errorCode: code,
+      diagnosticCode: code,
       arguments: arguments,
     );
   }

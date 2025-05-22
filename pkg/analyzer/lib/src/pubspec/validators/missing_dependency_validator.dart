@@ -150,7 +150,7 @@ class MissingDependencyValidator {
     reporter.atOffset(
       offset: span.start.offset,
       length: span.length,
-      errorCode: diagnosticCode,
+      diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: messages,
       data: data,

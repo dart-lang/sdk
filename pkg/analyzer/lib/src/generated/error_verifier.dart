@@ -4157,7 +4157,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           errorReporter.atOffset(
             offset: offset,
             length: end - offset,
-            errorCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+            diagnosticCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
             arguments: [constantName!],
           );
         }
@@ -4168,7 +4168,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           errorReporter.atOffset(
             offset: offset,
             length: end - offset,
-            errorCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+            diagnosticCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
             arguments: ['null'],
           );
         }
@@ -5441,7 +5441,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.atOffset(
         offset: offset,
         length: length,
-        errorCode: code,
+        diagnosticCode: code,
         arguments: arguments,
       );
     }
@@ -5558,7 +5558,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           errorReporter.atOffset(
             offset: operator.offset,
             length: endToken.end - operator.offset,
-            errorCode: code,
+            diagnosticCode: code,
             arguments: arguments,
           );
         }
@@ -5585,7 +5585,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.atOffset(
         offset: operator.offset,
         length: endToken.end - operator.offset,
-        errorCode: code,
+        diagnosticCode: code,
         arguments: arguments,
       );
     }
@@ -6365,7 +6365,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.atOffset(
         offset: offset,
         length: length,
-        errorCode: WarningCode.MULTIPLE_COMBINATORS,
+        diagnosticCode: WarningCode.MULTIPLE_COMBINATORS,
       );
     }
   }

@@ -136,6 +136,12 @@ extension IterableOfStringExtension on Iterable<String> {
   }
 }
 
+extension LookupNameIterableExtension on Iterable<LookupName> {
+  void write(BufferedSink sink) {
+    sink.writeIterable(this, (name) => name.write(sink));
+  }
+}
+
 extension StringExtension on String {
   BaseName get asBaseName {
     return BaseName(this);
@@ -153,6 +159,16 @@ extension SummaryDataReaderExtension on SummaryDataReader {
     for (var i = 0; i < length; i++) {
       var baseName = BaseName.read(this);
       result.add(baseName);
+    }
+    return result;
+  }
+
+  Set<LookupName> readLookupNameSet() {
+    var length = readUInt30();
+    var result = <LookupName>{};
+    for (var i = 0; i < length; i++) {
+      var lookupName = LookupName.read(this);
+      result.add(lookupName);
     }
     return result;
   }
