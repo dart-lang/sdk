@@ -1576,9 +1576,25 @@ declareClass(library, classIdentifier, classDeclaration) {
       !isStateBearingSymbol(property),
       originalClass,
     );
+    deleteClassMembers(originalClass, classDeclaration);
     copyProperties(originalClass, classDeclaration, copyWhen: copyWhen);
   }
   return JS<Object>('!', '#.#', library, classIdentifier);
+}
+
+/// Deletes the members from [oldClass] that are not present in [newClass].
+///
+/// Existing members not prefixed by a special identifier are replaced
+/// (see [isStateBearingSymbol]).
+///
+/// Called from generated code.
+void deleteClassMembers(Object oldClass, Object newClass) {
+  for (var name in getOwnNamesAndSymbols(oldClass)) {
+    if (JS<Object?>('', '#.#', newClass, name) == null &&
+        !isStateBearingSymbol(name)) {
+      JS('', 'delete #.#', oldClass, name);
+    }
+  }
 }
 
 /// Declares properties in [propertiesObject] on [topLevelContainer].
