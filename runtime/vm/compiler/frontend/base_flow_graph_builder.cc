@@ -634,14 +634,17 @@ Fragment BaseFlowGraphBuilder::StoreFieldGuarded(
 
 Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field,
                                                bool calls_initializer) {
-  // "Inititalizer" code is in charge of checking non-shared field access from
-  // stateless isolates(which exist when experimental_shared_data is enabled).
-  const bool do_call_initializer =
-      calls_initializer ||
+  const bool check_access =
       (dart::FLAG_experimental_shared_data && !field.is_shared());
+  const auto slow_path =
+      calls_initializer
+          ? SlowPathOnSentinelValue::kCallInitializer
+          : (check_access ? SlowPathOnSentinelValue::kThrowAccessError
+                          : SlowPathOnSentinelValue::kDoNothing);
   LoadStaticFieldInstr* load = new (Z) LoadStaticFieldInstr(
-      field, InstructionSource(), do_call_initializer,
-      do_call_initializer ? GetNextDeoptId() : DeoptId::kNone);
+      field, InstructionSource(), slow_path,
+      slow_path != SlowPathOnSentinelValue::kDoNothing ? GetNextDeoptId()
+                                                       : DeoptId::kNone);
   Push(load);
   return Fragment(load);
 }
