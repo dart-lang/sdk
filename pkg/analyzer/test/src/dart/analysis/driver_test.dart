@@ -36351,6 +36351,52 @@ const d = b;
     );
   }
 
+  test_manifest_constInitializer_typeLiteral() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = List<int>;
+const b = List<int>;
+const c = a;
+const d = b;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+      d: #M7
+''',
+      updatedCode: r'''
+const a = List<int>;
+const b = List<double>;
+const c = a;
+const d = b;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+    declaredVariables
+      a: #M4
+      b: #M8
+      c: #M6
+      d: #M9
+''',
+    );
+  }
+
   test_manifest_enum_constants_replace() async {
     await _runLibraryManifestScenario(
       initialCode: r'''

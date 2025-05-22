@@ -369,6 +369,11 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
     node.visitChildren(this);
   }
 
+  @override
+  void visitTypeLiteral(TypeLiteral node) {
+    node.visitChildren(this);
+  }
+
   void _addElement(Element? element) {
     ManifestAstElementKind kind;
     int rawIndex;
