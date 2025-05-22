@@ -23,6 +23,20 @@ void _convertDartTypeToC(
   }
 }
 
+String _getCReturnType(CoreTypes? coreTypes, DartType type) {
+  if (coreTypes == null) {
+    return 'Dart_Handle';
+  } else if (type is VoidType) {
+    return 'void';
+  } else if (type == coreTypes.intNonNullableRawType) {
+    return 'int64_t';
+  } else if (type == coreTypes.doubleNonNullableRawType) {
+    return 'double';
+  } else {
+    return 'Dart_Handle';
+  }
+}
+
 void _convertCValueToDart(
   StringBuffer buffer,
   CoreTypes coreTypes,
@@ -653,10 +667,18 @@ class EntryPointCallShim extends EntryPointFunctionShim {
 
   @override
   void _writeReturnBody(StringBuffer buffer) {
+    var isDartHandle = _getCReturnType(coreTypes, returnType) == 'Dart_Handle';
+
+    if (isDartHandle) {
+      buffer.write('Dart_NewPersistentHandle(');
+    }
     buffer.write('Dart_Invoke(');
     _writeTarget(buffer);
     buffer.write(', Dart_NewStringFromCString("$baseName"), ');
     _writeArgumentsListCountAndPointer(buffer);
     buffer.write(')');
+    if (isDartHandle) {
+      buffer.write(')');
+    }
   }
 }
