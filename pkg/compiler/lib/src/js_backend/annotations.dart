@@ -93,7 +93,10 @@ enum PragmaAnnotation {
   loadLibraryPriority('load-priority', hasOption: true),
   resourceIdentifier('resource-identifier'),
 
-  throwWithoutHelperFrame('stack-starts-at-throw');
+  throwWithoutHelperFrame('stack-starts-at-throw'),
+
+  allowCSE('allow-cse'),
+  allowDCE('allow-dce');
 
   final String name;
   final bool forFunctionsOnly;
@@ -364,6 +367,14 @@ abstract class AnnotationsData {
   /// expression generates extra code to avoid having a runtime helper on the
   /// stack?
   bool throwWithoutHelperFrame(ir.TreeNode node);
+
+  /// Returns `true` if [member] has a `@pragma('dart2js:allow-cse')`
+  /// annotation.
+  bool allowCSE(MemberEntity member);
+
+  /// Returns `true` if [member] has a `@pragma('dart2js:allow-dce')`
+  /// annotation.
+  bool allowDCE(MemberEntity member);
 }
 
 class AnnotationsDataImpl implements AnnotationsData {
@@ -668,6 +679,14 @@ class AnnotationsDataImpl implements AnnotationsData {
     }
     return false;
   }
+
+  @override
+  bool allowCSE(MemberEntity member) =>
+      _hasPragma(member, PragmaAnnotation.allowCSE);
+
+  @override
+  bool allowDCE(MemberEntity member) =>
+      _hasPragma(member, PragmaAnnotation.allowDCE);
 }
 
 class AnnotationsDataBuilder {

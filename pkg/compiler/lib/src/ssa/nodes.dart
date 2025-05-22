@@ -1175,6 +1175,11 @@ abstract class HInstruction implements SpannableWithEntity {
   SideEffects sideEffects = SideEffects.empty();
   bool _useGvn = false;
 
+  // TODO(sra): Consider whether to reduce instruction size by collecting all
+  // these instruction flags into a bitmask.
+  bool _allowCSE = false;
+  bool _allowDCE = false;
+
   // Main constructor copies the list of inputs to ensure ownership.
   HInstruction(List<HInstruction> initialInputs, this.instructionType)
     : inputs = [...initialInputs];
@@ -1218,6 +1223,26 @@ abstract class HInstruction implements SpannableWithEntity {
         !sideEffects.dependsOnSomething() &&
         !canThrow(domain);
   }
+
+  /// `true` if an instruction can be eliminated as a common subexpression -
+  /// when the instruction is equivalent to an earlier instruction may be
+  /// replaced by the value of the earlier instruction. Equivalent means that
+  /// the instruction has exactly the same inputs.
+  ///
+  /// This property is set on function invocations on the basis of annotations
+  /// and program analysis.  Usually, `allowCSE` means that the instruction is
+  /// idempotent - a second equivalent instruction returns the same value as the
+  /// first instruction without additional observable effects.
+  ///
+  ///  If an instruction is pure, it should be marked as `useGvn` instead.
+  bool get allowCSE => _allowCSE;
+
+  /// `true` if the instruction may be removed when the value is unused.
+  ///
+  /// This property is set on function invocations on the basis of annotations
+  /// and program analysis.  Usually `allowDCE` means that the instruction has
+  /// no observable effect.
+  bool get allowDCE => _allowDCE;
 
   /// An instruction is an 'allocation' is it is the sole alias for an object.
   /// This applies to instructions that allocate new objects and can be extended
@@ -1315,11 +1340,11 @@ abstract class HInstruction implements SpannableWithEntity {
   bool isInBasicBlock() => block != null;
 
   bool gvnEquals(HInstruction other) {
-    assert(useGvn() && other.useGvn());
     // Check that the type and the sideEffects match.
     bool hasSameType = typeEquals(other);
     assert(hasSameType == (_gvnType == other._gvnType));
     if (!hasSameType) return false;
+    assert((useGvn() && other.useGvn()) || (allowCSE && other.allowCSE));
     if (sideEffects != other.sideEffects) return false;
     // Check that the inputs match.
     final int inputsLength = inputs.length;
@@ -1344,7 +1369,7 @@ abstract class HInstruction implements SpannableWithEntity {
   }
 
   // These methods should be overwritten by instructions that
-  // participate in global value numbering.
+  // participate in global value numbering or allowCSE.
   _GvnType get _gvnType => _GvnType.undefined;
   bool typeEquals(covariant HInstruction other) => false;
   bool dataEquals(covariant HInstruction other) => false;
@@ -1494,6 +1519,18 @@ abstract class HInstruction implements SpannableWithEntity {
 
   @override
   String toString() => '$runtimeType()';
+}
+
+mixin HasSettableAllowCSE on HInstruction {
+  set allowCSE(bool value) {
+    _allowCSE = value;
+  }
+}
+
+mixin HasSettableAllowDCE on HInstruction {
+  set allowDCE(bool value) {
+    _allowDCE = value;
+  }
 }
 
 /// An interface implemented by certain kinds of [HInstruction]. This makes it
@@ -1868,7 +1905,8 @@ class HCreateBox extends HInstruction {
   String toString() => 'HCreateBox()';
 }
 
-abstract class HInvoke extends HInstruction {
+abstract class HInvoke extends HInstruction
+    with HasSettableAllowCSE, HasSettableAllowDCE {
   bool _isAllocation = false;
 
   /// [isInterceptedCall] is true if this invocation uses the interceptor
@@ -2207,6 +2245,10 @@ class HInvokeStatic extends HInvoke {
 
   @override
   _GvnType get _gvnType => _GvnType.invokeStatic;
+  @override
+  bool typeEquals(other) => other is HInvokeStatic;
+  @override
+  bool dataEquals(HInvokeStatic other) => element == other.element;
 
   @override
   String toString() => 'invoke static: $element';
@@ -3938,9 +3980,10 @@ class HNullCheck extends HCheck {
 
   @override
   String toString() {
+    String stickyString = sticky ? 'sticky, ' : '';
     String fieldString = field == null ? '' : ', $field';
     String selectorString = selector == null ? '' : ', $selector';
-    return 'HNullCheck($checkedInput$fieldString$selectorString)';
+    return 'HNullCheck($stickyString$checkedInput$fieldString$selectorString)';
   }
 }
 
