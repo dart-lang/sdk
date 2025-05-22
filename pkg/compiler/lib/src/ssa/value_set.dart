@@ -53,12 +53,16 @@ class ValueSet {
   void kill(Bitset flags) {
     if (flags.isEmpty) return;
     final depends = SideEffects.computeDependsOnFlags(flags);
-    // Kill in the hash table.
+    // Remove entries from the hash table that depend on the 'killed' effect
+    // flags. Keep idempotent (allowCSE) entries.
     for (int index = 0, length = table.length; index < length; index++) {
       HInstruction? instruction = table[index];
-      if (instruction != null && instruction.sideEffects.dependsOn(depends)) {
-        table[index] = null;
-        size--;
+      if (instruction != null) {
+        if (!instruction.allowCSE &&
+            instruction.sideEffects.dependsOn(depends)) {
+          table[index] = null;
+          size--;
+        }
       }
     }
     // Kill in the collisions list.
@@ -67,7 +71,7 @@ class ValueSet {
     while (current != null) {
       ValueSetNode? next = current.next;
       HInstruction cached = current.value;
-      if (cached.sideEffects.dependsOn(depends)) {
+      if (!cached.allowCSE && cached.sideEffects.dependsOn(depends)) {
         if (previous == null) {
           collisions = next;
         } else {

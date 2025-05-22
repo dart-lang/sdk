@@ -428,13 +428,14 @@ class HInstructionStringifier implements HVisitor<String> {
     String target = '$receiver.$name';
     int offset = HInvoke.argumentsOffset;
     List<HInstruction> arguments = invoke.inputs.sublist(offset);
-    final attributes = {
+    final attributes = [
       if (invoke.isInvariant) 'Invariant',
       if (invoke.isBoundsSafe) 'BoundSafe',
-    };
-    String attributesText = attributes.isEmpty ? '' : ' $attributes';
+    ];
 
-    return "${handleGenericInvoke(kind, target, arguments)}(${invoke.receiverType})$attributesText";
+    return "${handleGenericInvoke(kind, target, arguments)}"
+        "(${invoke.receiverType})"
+        "${generalAttributes(invoke, attributes)}";
   }
 
   @override
@@ -488,9 +489,11 @@ class HInstructionStringifier implements HVisitor<String> {
   @override
   String visitForeignCode(HForeignCode node) {
     var template = node.codeTemplate;
-    String code = '${template.ast}';
+    String code = template.source == null
+        ? '${template.ast}'
+        : '"${template.source}"';
     var inputs = node.inputs.map(temporaryId).join(', ');
-    return "ForeignCode: $code ($inputs)";
+    return "ForeignCode: $code ($inputs)${generalAttributes(node)}";
   }
 
   @override
@@ -679,6 +682,7 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitNullCheck(HNullCheck node) {
     String checkedInput = temporaryId(node.checkedInput);
     var comments = [
+      if (node.sticky) 'sticky',
       if (node.selector != null) 'for ${node.selector!}',
       if (node.field != null) 'for ${node.field!}',
     ].join(', ');
@@ -752,7 +756,17 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitAsCheck(HAsCheck node) {
     var inputs = node.inputs.map(temporaryId).join(', ');
     String error = node.isTypeError ? 'TypeError' : 'CastError';
-    return "AsCheck: $error $inputs";
+    return "AsCheck: $error $inputs${generalAttributes(node)}";
+  }
+
+  String generalAttributes(HInstruction node, [List<String>? inputAttributes]) {
+    final attributes = [
+      ...?inputAttributes,
+      if (node.allowCSE) 'allowCSE',
+      if (node.allowDCE) 'allowDCE',
+    ];
+    if (attributes.isEmpty) return '';
+    return ' $attributes';
   }
 
   @override

@@ -6804,6 +6804,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       );
     }
     instruction.sideEffects = _inferredData.getSideEffectsOfElement(target);
+    instruction.allowCSE = closedWorld.annotationsData.allowCSE(target);
+    instruction.allowDCE = closedWorld.annotationsData.allowDCE(target);
     push(instruction);
   }
 
@@ -6971,6 +6973,11 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         // invariant with respect to the class type variables.
         invoke.isInvariant = true;
       }
+    }
+
+    if (element != null) {
+      invoke.allowCSE = closedWorld.annotationsData.allowCSE(element);
+      invoke.allowDCE = closedWorld.annotationsData.allowDCE(element);
     }
 
     if (node is ir.InstanceInvocation ||
@@ -7890,6 +7897,14 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     // before making decisions on the basis of the callee so that cached callee
     // decisions are not a function of the call site's method.
     if (closedWorld.annotationsData.hasDisableInlining(_currentFrame!.member)) {
+      return false;
+    }
+
+    // Don't inline functions marked with 'allow-cse' and 'allow-dce' since we
+    // need the call instruction to do these optimizations. We might be able to
+    // inline simple methods afterwards.
+    if (closedWorld.annotationsData.allowCSE(function) ||
+        closedWorld.annotationsData.allowDCE(function)) {
       return false;
     }
 

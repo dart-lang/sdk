@@ -662,6 +662,7 @@ class Primitives {
     return result;
   }
 
+  @pragma('dart2js:allow-cse')
   static String stringFromCharCode(int charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
