@@ -4153,21 +4153,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           _typeBuilder.analyzeTypeArgument(argument, sourceElement),
         );
       }
-
-      // We lift this common call pattern into a helper function to save space
-      // in the output.
-      if (typeInputs.every(
-        (HInstruction input) =>
-            input.isNull(_abstractValueDomain).isDefinitelyTrue,
-      )) {
-        if (elements.isEmpty) {
-          constructor = _commonElements.setLiteralUntypedEmptyMaker;
-        } else {
-          constructor = _commonElements.setLiteralUntypedMaker;
-        }
-      } else {
-        inputs.addAll(typeInputs);
-      }
+      inputs.addAll(typeInputs);
     }
 
     // If runtime type information is needed and the set literal has no type
@@ -4256,21 +4242,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           _typeBuilder.analyzeTypeArgument(argument, sourceElement),
         );
       }
-
-      // We lift this common call pattern into a helper function to save space
-      // in the output.
-      if (typeInputs.every(
-        (HInstruction input) =>
-            input.isNull(_abstractValueDomain).isDefinitelyTrue,
-      )) {
-        if (constructorArgs.isEmpty) {
-          constructor = _commonElements.mapLiteralUntypedEmptyMaker;
-        } else {
-          constructor = _commonElements.mapLiteralUntypedMaker;
-        }
-      } else {
-        inputs.addAll(typeInputs);
-      }
+      inputs.addAll(typeInputs);
     }
 
     // If runtime type information is needed and the map literal has no type

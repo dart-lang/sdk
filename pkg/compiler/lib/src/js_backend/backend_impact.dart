@@ -445,8 +445,6 @@ class BackendImpacts {
     globalUses: [
       _commonElements.mapLiteralConstructor,
       _commonElements.mapLiteralConstructorEmpty,
-      _commonElements.mapLiteralUntypedMaker,
-      _commonElements.mapLiteralUntypedEmptyMaker,
     ],
   );
 
@@ -454,8 +452,6 @@ class BackendImpacts {
     globalUses: [
       _commonElements.setLiteralConstructor,
       _commonElements.setLiteralConstructorEmpty,
-      _commonElements.setLiteralUntypedMaker,
-      _commonElements.setLiteralUntypedEmptyMaker,
     ],
   );
 
