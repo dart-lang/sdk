@@ -184,7 +184,8 @@ class BuilderMixinInferrer {
     int length = classBuilder.isMixinApplication
         ? 1
         : classBuilder.fullNameForErrors.length;
-    classBuilder.addProblem(message, classBuilder.fileOffset, length);
+    classBuilder.libraryBuilder.addProblem(
+        message, classBuilder.fileOffset, length, classBuilder.fileUri);
   }
 
   // Coverage-ignore(suite): Not run.

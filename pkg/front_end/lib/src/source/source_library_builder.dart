@@ -406,7 +406,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// returned instead of reporting a collision.
   NamedBuilder _computeAmbiguousDeclarationForExport(
       String name, NamedBuilder declaration, NamedBuilder other,
-      {required UriOffset uriOffset}) {
+      {required UriOffsetLength uriOffset}) {
     // Prefix builders and load library builders are not part of an export
     // scope.
     assert(declaration is! PrefixBuilder,
@@ -449,12 +449,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // instead of including URIs in this message.
     Message message =
         templateDuplicatedExport.withArguments(name, firstUri, secondUri);
-    addProblem(message, uriOffset.fileOffset, noLength, uriOffset.uri);
+    addProblem(message, uriOffset.fileOffset, noLength, uriOffset.fileUri);
     // We report the error lazily (setting suppressMessage to false) because the
     // spec 18.1 states that 'It is not an error if N is introduced by two or
     // more imports but never referred to.'
-    return new InvalidTypeDeclarationBuilder(name,
-        message.withLocation(uriOffset.uri, uriOffset.fileOffset, name.length),
+    return new InvalidTypeDeclarationBuilder(
+        name,
+        message.withLocation(
+            uriOffset.fileUri, uriOffset.fileOffset, name.length),
         suppressMessage: false);
   }
 
@@ -880,14 +882,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkGetterSetterTypes(TypeEnvironment typeEnvironment,
       {required DartType getterType,
       required String getterName,
-      required Uri getterFileUri,
-      required int getterFileOffset,
-      required int getterNameLength,
+      required UriOffsetLength getterUriOffset,
       required DartType setterType,
       required String setterName,
-      required Uri setterFileUri,
-      required int setterFileOffset,
-      required int setterNameLength}) {
+      required UriOffsetLength setterUriOffset}) {
     if (libraryFeatures.getterSetterError.isEnabled ||
         getterType is InvalidType ||
         setterType is InvalidType) {
@@ -898,17 +896,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       bool isValid = typeEnvironment.isSubtypeOf(
           getterType, setterType, SubtypeCheckMode.withNullabilities);
       if (!isValid) {
-        addProblem(
+        addProblem2(
             templateInvalidGetterSetterType.withArguments(
                 getterType, getterName, setterType, setterName),
-            getterFileOffset,
-            getterNameLength,
-            getterFileUri,
+            getterUriOffset,
             context: [
               templateInvalidGetterSetterTypeSetterContext
                   .withArguments(setterName)
-                  .withLocation(
-                      setterFileUri, setterFileOffset, setterNameLength)
+                  .withLocation2(setterUriOffset)
             ]);
       }
     }

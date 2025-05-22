@@ -8,6 +8,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/metadata_builder.dart';
@@ -193,9 +194,11 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   List<ClassMember>? _localMembers;
 
+  UriOffsetLength get uriOffset => _introductory.uriOffset;
+
   @override
   List<ClassMember> get localMembers =>
-      _localMembers ??= [new _MethodClassMember(this)];
+      _localMembers ??= [new _MethodClassMember(this, uriOffset)];
 
   @override
   List<ClassMember> get localSetters => const [];
@@ -274,10 +277,10 @@ class _MethodClassMember implements ClassMember {
   late final Covariance _covariance =
       new Covariance.fromMethod(_builder.invokeTarget as Procedure);
 
-  _MethodClassMember(this._builder);
-
   @override
-  int get charOffset => _builder.fileOffset;
+  final UriOffsetLength uriOffset;
+
+  _MethodClassMember(this._builder, this.uriOffset);
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -288,12 +291,10 @@ class _MethodClassMember implements ClassMember {
       throw new UnsupportedError('$runtimeType.declarations');
 
   @override
-  Uri get fileUri => _builder.fileUri;
-
-  @override
   bool get forSetter => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullName {
     String className = declarationBuilder.fullNameForErrors;
     return "${className}.${fullNameForErrors}";

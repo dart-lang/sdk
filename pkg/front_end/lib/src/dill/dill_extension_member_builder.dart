@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/names.dart';
 
+import '../base/uri_offset.dart';
 import '../builder/method_builder.dart';
 import '../builder/property_builder.dart';
 import 'dill_builder_mixins.dart';
@@ -76,6 +78,17 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
+  UriOffsetLength get getterUriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength? get setterUriOffset => hasSetter
+      ? new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length)
+      : null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   bool get hasConstField => _field.isConst;
 
   @override
@@ -117,6 +130,11 @@ class DillExtensionSetterBuilder extends DillExtensionMemberBuilder
   @override
   SetterQuality get setterQuality =>
       procedure.isExternal ? SetterQuality.External : SetterQuality.Concrete;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get setterUriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
 }
 
 class DillExtensionGetterBuilder extends DillExtensionMemberBuilder
@@ -160,6 +178,11 @@ class DillExtensionGetterBuilder extends DillExtensionMemberBuilder
 
   @override
   SetterQuality get setterQuality => SetterQuality.Absent;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get getterUriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
 }
 
 class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder
@@ -189,6 +212,11 @@ class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get uriOffset => new UriOffsetLength(fileUri, fileOffset,
+      _descriptor.name == unaryMinusName ? 1 : _descriptor.name.text.length);
 }
 
 class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder
@@ -226,6 +254,11 @@ class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
 }
 
 class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder
@@ -266,4 +299,9 @@ class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder
   @override
   // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => _procedure.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
 }

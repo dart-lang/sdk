@@ -63,13 +63,14 @@ mixin SourceDeclarationBuilderMixin
         if (objectGetter != null && !objectGetter.isStatic ||
             // Coverage-ignore(suite): Not run.
             objectSetter != null && !objectSetter.isStatic) {
-          addProblem(
+          libraryBuilder.addProblem(
               // TODO(johnniwinther): Use a different error message for
               //  extension type declarations.
               templateExtensionMemberConflictsWithObjectMember
                   .withArguments(name),
               declaration.fileOffset,
-              name.length);
+              name.length,
+              declaration.fileUri);
         }
       }
       if (declaration.parent != this) {

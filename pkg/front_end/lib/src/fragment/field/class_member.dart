@@ -16,7 +16,7 @@ class _FieldClassMember implements ClassMember {
   _FieldClassMember(this._builder, this._fragment, {required this.forSetter});
 
   @override
-  int get charOffset => _fragment.nameOffset;
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -25,9 +25,6 @@ class _FieldClassMember implements ClassMember {
   // Coverage-ignore(suite): Not run.
   List<ClassMember> get declarations =>
       throw new UnsupportedError('$runtimeType.declarations');
-
-  @override
-  Uri get fileUri => _fragment.fileUri;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -168,8 +165,11 @@ class _SynthesizedFieldClassMember implements ClassMember {
   @override
   final ClassMemberKind memberKind;
 
-  _SynthesizedFieldClassMember(
-      this._builder, this._member, this._name, this._kind, this.memberKind);
+  @override
+  final UriOffsetLength uriOffset;
+
+  _SynthesizedFieldClassMember(this._builder, this._member, this._name,
+      this._kind, this.memberKind, this.uriOffset);
 
   @override
   Member getMember(ClassMembersBuilder membersBuilder) {
@@ -257,12 +257,6 @@ class _SynthesizedFieldClassMember implements ClassMember {
 
   @override
   String get fullNameForErrors => _builder.fullNameForErrors;
-
-  @override
-  Uri get fileUri => _builder.fileUri;
-
-  @override
-  int get charOffset => _builder.fileOffset;
 
   @override
   bool get isAbstract => _member.isAbstract;

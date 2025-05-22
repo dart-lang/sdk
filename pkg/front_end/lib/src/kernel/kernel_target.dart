@@ -5,7 +5,6 @@
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-import 'package:front_end/src/builder/property_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -44,6 +43,7 @@ import '../base/messages.dart'
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/scope.dart' show AmbiguousBuilder;
 import '../base/ticker.dart' show Ticker;
+import '../base/uri_offset.dart';
 import '../base/uri_translator.dart' show UriTranslator;
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
@@ -52,6 +52,7 @@ import '../builder/member_builder.dart';
 import '../builder/method_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_target.dart' show DillTarget;
 import '../source/class_declaration.dart';
@@ -1238,10 +1239,11 @@ class KernelTarget {
       for (Initializer initializer in constructor.initializers) {
         if (initializer is RedirectingInitializer) {
           if (constructor.isConst && !initializer.target.isConst) {
-            classBuilder.addProblem(
+            classBuilder.libraryBuilder.addProblem(
                 messageConstConstructorRedirectionToNonConst,
                 initializer.fileOffset,
-                initializer.target.name.text.length);
+                initializer.target.name.text.length,
+                constructor.fileUri);
           }
           isRedirecting = true;
           break;
@@ -1256,17 +1258,20 @@ class KernelTarget {
           Initializer initializer;
           if (superTarget == null) {
             int offset = constructor.fileOffset;
+            Uri fileUri = constructor.fileUri;
             if (offset == -1 &&
                 // Coverage-ignore(suite): Not run.
                 constructor.isSynthetic) {
               // Coverage-ignore-block(suite): Not run.
               offset = cls.fileOffset;
+              fileUri = cls.fileUri;
             }
-            classBuilder.addProblem(
+            classBuilder.libraryBuilder.addProblem(
                 templateSuperclassHasNoDefaultConstructor
                     .withArguments(cls.superclass!.name),
                 offset,
-                noLength);
+                noLength,
+                fileUri);
             initializer = new InvalidInitializer();
           } else {
             initializer =
@@ -1337,8 +1342,11 @@ class KernelTarget {
       ConstructorDeclarationBuilder constructor = constructorIterator.current;
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
-        classDeclaration.addProblem(messageConstConstructorNonFinalField,
-            constructor.fileOffset, noLength,
+        classDeclaration.libraryBuilder.addProblem(
+            messageConstConstructorNonFinalField,
+            constructor.fileOffset,
+            noLength,
+            constructor.fileUri,
             context: nonFinalFields
                 .map((field) => messageConstConstructorNonFinalFieldCause
                     .withLocation(field.fileUri, field.fileOffset, noLength))
@@ -1347,10 +1355,8 @@ class KernelTarget {
       }
       if (constructor.isConst && lateFinalFields.isNotEmpty) {
         for (SourcePropertyBuilder field in lateFinalFields) {
-          classDeclaration.addProblem(
-              messageConstConstructorLateFinalFieldError,
-              field.fileOffset,
-              noLength,
+          classDeclaration.libraryBuilder.addProblem2(
+              messageConstConstructorLateFinalFieldError, field.fieldUriOffset!,
               context: [
                 messageConstConstructorLateFinalFieldCause.withLocation(
                     constructor.fileUri, constructor.fileOffset, noLength)

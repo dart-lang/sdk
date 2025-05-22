@@ -12,6 +12,7 @@ import '../../base/messages.dart'
         messageDeclaredMemberConflictsWithOverriddenMembersCause,
         templateCombinedMemberSignatureFailed,
         templateExtensionTypeCombinedMemberSignatureFailed;
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/property_builder.dart';
@@ -256,8 +257,8 @@ abstract class ClassMember {
   /// into the extension type declaration.
   bool get isExtensionTypeMember;
 
-  Uri get fileUri;
-  int get charOffset;
+  /// Returns the source location used for messaging related to this member.
+  UriOffsetLength get uriOffset;
 
   /// Returns `true` if this class member is an interface member.
   bool get isAbstract;
@@ -562,15 +563,15 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
             classBuilder.isAnonymousMixinApplication ? 1 : name.length;
         List<LocatedMessage> context = declarations.map((ClassMember d) {
           return messageDeclaredMemberConflictsWithOverriddenMembersCause
-              .withLocation(
-                  d.fileUri, d.charOffset, d.fullNameForErrors.length);
+              .withLocation2(d.uriOffset);
         }).toList();
 
-        classBuilder.addProblem(
+        classBuilder.libraryBuilder.addProblem(
             templateCombinedMemberSignatureFailed.withArguments(
                 name, declarations.first.fullNameForErrors),
             classBuilder.fileOffset,
             nameLength,
+            classBuilder.fileUri,
             context: context);
         // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
         // cascading errors.
@@ -674,10 +675,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
       _noSuchMethodTarget != null && _shouldModifyKernel;
 
   @override
-  int get charOffset => declarations.first.charOffset;
-
-  @override
-  Uri get fileUri => declarations.first.fileUri;
+  UriOffsetLength get uriOffset => declarations.first.uriOffset;
 
   @override
   bool get isAbstract => _noSuchMethodTarget == null;
@@ -867,10 +865,7 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
   }
 
   @override
-  int get charOffset => inheritedClassMember.charOffset;
-
-  @override
-  Uri get fileUri => inheritedClassMember.fileUri;
+  UriOffsetLength get uriOffset => inheritedClassMember.uriOffset;
 
   @override
   bool get hasDeclarations => false;
@@ -937,14 +932,15 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
       int nameLength = name.length;
       List<LocatedMessage> context = declarations.map((ClassMember d) {
         return messageDeclaredMemberConflictsWithInheritedMembersCause
-            .withLocation(d.fileUri, d.charOffset, d.fullNameForErrors.length);
+            .withLocation2(d.uriOffset);
       }).toList();
 
-      extensionTypeDeclarationBuilder.addProblem(
+      extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
           templateExtensionTypeCombinedMemberSignatureFailed.withArguments(
               name, declarations.first.fullNameForErrors),
           extensionTypeDeclarationBuilder.fileOffset,
           nameLength,
+          extensionTypeDeclarationBuilder.fileUri,
           context: context);
       // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
       // cascading errors.
@@ -1043,11 +1039,7 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
 
   @override
   // Coverage-ignore(suite): Not run.
-  int get charOffset => declarations.first.charOffset;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Uri get fileUri => declarations.first.fileUri;
+  UriOffsetLength get uriOffset => declarations.first.uriOffset;
 
   @override
   // Coverage-ignore(suite): Not run.

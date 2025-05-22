@@ -382,7 +382,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression node, DartType typeContext) {
     UriOffset uriOffset = _computeUriOffset(node);
     problems.unhandled("$node (${node.runtimeType})", "InferenceVisitor",
-        uriOffset.fileOffset, uriOffset.uri);
+        uriOffset.fileOffset, uriOffset.fileUri);
   }
 
   @override
@@ -636,7 +636,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult _unhandledStatement(Statement node) {
     UriOffset uriOffset = _computeUriOffset(node);
     return problems.unhandled("${node.runtimeType}", "InferenceVisitor",
-        uriOffset.fileOffset, uriOffset.uri);
+        uriOffset.fileOffset, uriOffset.fileUri);
   }
 
   @override
@@ -1702,7 +1702,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           "${syntheticAssignment.runtimeType}",
           "handleForInStatementWithoutVariable",
           uriOffset.fileOffset,
-          uriOffset.uri);
+          uriOffset.fileUri);
     }
   }
 

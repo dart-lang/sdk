@@ -168,14 +168,8 @@ abstract class BuilderClassMember implements ClassMember {
   MemberBuilderImpl get memberBuilder;
 
   @override
-  int get charOffset => memberBuilder.fileOffset;
-
-  @override
   DeclarationBuilder get declarationBuilder =>
       memberBuilder.declarationBuilder!;
-
-  @override
-  Uri get fileUri => memberBuilder.fileUri;
 
   @override
   // Coverage-ignore(suite): Not run.

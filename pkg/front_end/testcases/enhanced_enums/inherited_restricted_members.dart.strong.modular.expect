@@ -4,14 +4,14 @@ library;
 //
 // pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:17:6: Error: Can't declare a member that conflicts with an inherited one.
 // enum E2 with A2 { // Error.
-//      ^^^^^^
+//      ^
 // pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:14:11: Context: This is the inherited member.
 //   int get values => 42;
 //           ^^^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:49:6: Error: Can't declare a member that conflicts with an inherited one.
 // enum E6 with M6 { // Error.
-//      ^^^^^^
+//      ^
 // pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:46:11: Context: This is the inherited member.
 //   int get values => 42;
 //           ^^^^^^

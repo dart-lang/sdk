@@ -107,6 +107,9 @@ class GetterFragment implements Fragment, FunctionFragment {
     _declaration = value;
   }
 
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, nameOffset, name.length);
+
   @override
   FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
     return new _GetterBodyBuildingContext(this);

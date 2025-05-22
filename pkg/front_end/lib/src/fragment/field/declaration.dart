@@ -13,6 +13,7 @@ import '../../base/constant_context.dart';
 import '../../base/messages.dart';
 import '../../base/problems.dart';
 import '../../base/scope.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/omitted_type_builder.dart';
@@ -40,6 +41,8 @@ import '../setter/declaration.dart';
 
 /// Common interface for fragments that can declare a field.
 abstract class FieldDeclaration {
+  UriOffsetLength? get uriOffset;
+
   FieldQuality get fieldQuality;
 
   /// The metadata declared on this fragment.
@@ -155,6 +158,9 @@ class RegularFieldDeclaration
   RegularFieldDeclaration(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   SourcePropertyBuilder get builder => _fragment.builder;

@@ -9,6 +9,7 @@ import 'package:kernel/type_environment.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/metadata_builder.dart';
@@ -31,6 +32,8 @@ import 'encoding.dart';
 /// Interface for a getter declaration aspect of a [SourcePropertyBuilder].
 abstract class GetterDeclaration {
   Uri get fileUri;
+
+  UriOffsetLength? get uriOffset;
 
   GetterQuality get getterQuality;
 
@@ -80,14 +83,17 @@ abstract class GetterDeclaration {
   List<ClassMember> get localMembers;
 }
 
-class GetterDeclarationImpl
+class RegularGetterDeclaration
     implements GetterDeclaration, GetterFragmentDeclaration {
   final GetterFragment _fragment;
   late final GetterEncoding _encoding;
 
-  GetterDeclarationImpl(this._fragment) {
+  RegularGetterDeclaration(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   AsyncMarker get asyncModifier => _fragment.asyncModifier;

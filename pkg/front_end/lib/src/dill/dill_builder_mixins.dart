@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -97,16 +98,16 @@ mixin DillFieldBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   List<ClassMember>? _localSetters;
 
   @override
-  List<ClassMember> get localMembers =>
-      _localMembers ??= !member.isInternalImplementation
-          ? [new DillClassMember(this, ClassMemberKind.Getter)]
-          : const [];
+  List<ClassMember> get localMembers => _localMembers ??= !member
+          .isInternalImplementation
+      ? [new DillClassMember(this, ClassMemberKind.Getter, getterUriOffset!)]
+      : const [];
 
   @override
-  List<ClassMember> get localSetters =>
-      _localSetters ??= hasSetter && !member.isInternalImplementation
-          ? [new DillClassMember(this, ClassMemberKind.Setter)]
-          : const [];
+  List<ClassMember> get localSetters => _localSetters ??= hasSetter &&
+          !member.isInternalImplementation
+      ? [new DillClassMember(this, ClassMemberKind.Setter, setterUriOffset!)]
+      : const [];
 }
 
 mixin DillGetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
@@ -135,13 +136,17 @@ mixin DillGetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   @override
   NamedBuilder? get setable => null;
 
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength? get setterUriOffset => null;
+
   List<ClassMember>? _localMembers;
 
   @override
-  List<ClassMember> get localMembers =>
-      _localMembers ??= !member.isInternalImplementation
-          ? [new DillClassMember(this, ClassMemberKind.Getter)]
-          : const [];
+  List<ClassMember> get localMembers => _localMembers ??= !member
+          .isInternalImplementation
+      ? [new DillClassMember(this, ClassMemberKind.Getter, getterUriOffset!)]
+      : const [];
 
   @override
   List<ClassMember> get localSetters => const [];
@@ -177,16 +182,20 @@ mixin DillSetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   @override
   NamedBuilder get setable => this;
 
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength? get getterUriOffset => null;
+
   List<ClassMember>? _localSetters;
 
   @override
   List<ClassMember> get localMembers => const [];
 
   @override
-  List<ClassMember> get localSetters =>
-      _localSetters ??= !member.isInternalImplementation
-          ? [new DillClassMember(this, ClassMemberKind.Setter)]
-          : const [];
+  List<ClassMember> get localSetters => _localSetters ??= !member
+          .isInternalImplementation
+      ? [new DillClassMember(this, ClassMemberKind.Setter, setterUriOffset!)]
+      : const [];
 }
 
 mixin DillMethodBuilderMixin implements DillMemberBuilder, MethodBuilder {
@@ -212,10 +221,12 @@ mixin DillMethodBuilderMixin implements DillMemberBuilder, MethodBuilder {
 
   List<ClassMember>? _localMembers;
 
+  UriOffsetLength get uriOffset;
+
   @override
   List<ClassMember> get localMembers =>
       _localMembers ??= !member.isInternalImplementation
-          ? [new DillClassMember(this, ClassMemberKind.Method)]
+          ? [new DillClassMember(this, ClassMemberKind.Method, uriOffset)]
           : const [];
 
   @override
@@ -252,10 +263,12 @@ mixin DillOperatorBuilderMixin implements DillMemberBuilder, MethodBuilder {
 
   List<ClassMember>? _localMembers;
 
+  UriOffsetLength get uriOffset;
+
   @override
   List<ClassMember> get localMembers =>
       _localMembers ??= !member.isInternalImplementation
-          ? [new DillClassMember(this, ClassMemberKind.Method)]
+          ? [new DillClassMember(this, ClassMemberKind.Method, uriOffset)]
           : const [];
 
   @override

@@ -1703,11 +1703,12 @@ severity: $severity
         extensionsTypes.add(extensionTypeBuilder);
         // TODO(johnniwinther): Update the message for when an extension type
         //  depends on a cycle but does not depend on itself.
-        extensionTypeBuilder.addProblem(
+        extensionTypeBuilder.libraryBuilder.addProblem(
             templateCyclicClassHierarchy
                 .withArguments(extensionTypeBuilder.fullNameForErrors),
             extensionTypeBuilder.fileOffset,
-            noLength);
+            noLength,
+            extensionTypeBuilder.fileUri);
       }
     }
 
@@ -1716,20 +1717,21 @@ severity: $severity
   }
 
   void _checkConstructorsForMixin(
-      SourceClassBuilder cls, ClassBuilder builder) {
-    Iterator<ConstructorBuilder> iterator =
-        builder.filteredConstructorsIterator(includeDuplicates: false);
+      SourceClassBuilder classBuilder, ClassBuilder mixinClassBuilder) {
+    Iterator<ConstructorBuilder> iterator = mixinClassBuilder
+        .filteredConstructorsIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       ConstructorBuilder constructorBuilder = iterator.current;
       if (!constructorBuilder.isSynthetic) {
-        cls.addProblem(
+        classBuilder.libraryBuilder.addProblem(
             templateIllegalMixinDueToConstructors
-                .withArguments(builder.fullNameForErrors),
-            cls.fileOffset,
+                .withArguments(mixinClassBuilder.fullNameForErrors),
+            classBuilder.fileOffset,
             noLength,
+            classBuilder.fileUri,
             context: [
               templateIllegalMixinDueToConstructorsCause
-                  .withArguments(builder.fullNameForErrors)
+                  .withArguments(mixinClassBuilder.fullNameForErrors)
                   .withLocation(constructorBuilder.fileUri!,
                       constructorBuilder.fileOffset, noLength)
             ]);
@@ -1737,13 +1739,15 @@ severity: $severity
     }
   }
 
-  bool checkEnumSupertypeIsDenylisted(SourceClassBuilder cls) {
-    if (!cls.libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
+  bool checkEnumSupertypeIsDenylisted(SourceClassBuilder classBuilder) {
+    if (!classBuilder.libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
       // Coverage-ignore-block(suite): Not run.
-      cls.addProblem(
-          templateEnumSupertypeOfNonAbstractClass.withArguments(cls.name),
-          cls.fileOffset,
-          noLength);
+      classBuilder.libraryBuilder.addProblem(
+          templateEnumSupertypeOfNonAbstractClass
+              .withArguments(classBuilder.name),
+          classBuilder.fileOffset,
+          noLength,
+          classBuilder.fileUri);
       return true;
     }
     return false;
@@ -1761,31 +1765,34 @@ severity: $severity
       TypeDeclarationBuilder? supertype = directSupertypes[i];
       if (supertype is SourceEnumBuilder) {
         // Coverage-ignore-block(suite): Not run.
-        classBuilder.addProblem(
+        classBuilder.libraryBuilder.addProblem(
             templateExtendingEnum.withArguments(supertype.name),
             classBuilder.fileOffset,
-            noLength);
+            noLength,
+            classBuilder.fileUri);
       } else if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
           (denyListedClasses.contains(supertype) ||
               identical(supertype, enumClass) &&
                   checkEnumSupertypeIsDenylisted(classBuilder))) {
         TypeAliasBuilder? aliasBuilder = directSupertypeMap[supertype];
         if (aliasBuilder != null) {
-          classBuilder.addProblem(
+          classBuilder.libraryBuilder.addProblem(
               templateExtendingRestricted
                   .withArguments(supertype!.fullNameForErrors),
               classBuilder.fileOffset,
               noLength,
+              classBuilder.fileUri,
               context: [
                 messageTypedefCause.withLocation(
                     aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
               ]);
         } else {
-          classBuilder.addProblem(
+          classBuilder.libraryBuilder.addProblem(
               templateExtendingRestricted
                   .withArguments(supertype!.fullNameForErrors),
               classBuilder.fileOffset,
-              noLength);
+              noLength,
+              classBuilder.fileUri);
         }
       }
     }
@@ -1800,11 +1807,12 @@ severity: $severity
       if (unaliasedDeclaration is ClassBuilder) {
         if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
             denyListedClasses.contains(unaliasedDeclaration)) {
-          classBuilder.addProblem(
+          classBuilder.libraryBuilder.addProblem(
               templateExtendingRestricted
                   .withArguments(mixedInTypeBuilder.fullNameForErrors),
               classBuilder.fileOffset,
               noLength,
+              classBuilder.fileUri,
               context: declaration is TypeAliasBuilder
                   ? [
                       messageTypedefUnaliasedTypeCause.withLocation(
@@ -1823,11 +1831,12 @@ severity: $severity
       } else {
         // TODO(ahe): Either we need to check this for superclass and
         // interfaces, or this shouldn't be necessary (or handled elsewhere).
-        classBuilder.addProblem(
+        classBuilder.libraryBuilder.addProblem(
             templateIllegalMixin
                 .withArguments(mixedInTypeBuilder.fullNameForErrors),
             classBuilder.fileOffset,
             noLength,
+            classBuilder.fileUri,
             context: declaration is TypeAliasBuilder
                 ? [
                     messageTypedefCause.withLocation(
@@ -2024,21 +2033,23 @@ severity: $severity
               cls.isMixinDeclaration
                   ? templateMixinSubtypeOfFinalIsNotBase
                   : templateSubtypeOfFinalIsNotBaseFinalOrSealed;
-          cls.addProblem(
+          cls.libraryBuilder.addProblem(
               template.withArguments(cls.fullNameForErrors,
                   baseOrFinalSuperClass.fullNameForErrors),
               cls.fileOffset,
-              noLength);
+              noLength,
+              cls.fileUri);
         } else if (baseOrFinalSuperClass.isBase) {
           final Template<Message Function(String, String)> template =
               cls.isMixinDeclaration
                   ? templateMixinSubtypeOfBaseIsNotBase
                   : templateSubtypeOfBaseIsNotBaseFinalOrSealed;
-          cls.addProblem(
+          cls.libraryBuilder.addProblem(
               template.withArguments(cls.fullNameForErrors,
                   baseOrFinalSuperClass.fullNameForErrors),
               cls.fileOffset,
-              noLength);
+              noLength,
+              cls.fileUri);
         }
       }
     }
@@ -2054,24 +2065,33 @@ severity: $severity
           if (cls.libraryBuilder != supertypeDeclaration.libraryBuilder &&
               !mayIgnoreClassModifiers(supertypeDeclaration)) {
             if (supertypeDeclaration.isInterface && !cls.isMixinDeclaration) {
-              cls.addProblem(
+              cls.libraryBuilder.addProblem(
                   templateInterfaceClassExtendedOutsideOfLibrary
                       .withArguments(supertypeDeclaration.fullNameForErrors),
                   supertypeBuilder.charOffset ?? TreeNode.noOffset,
-                  noLength);
+                  noLength,
+                  supertypeBuilder
+                          .fileUri ?? // Coverage-ignore(suite): Not run.
+                      cls.fileUri);
             } else if (supertypeDeclaration.isFinal) {
               if (cls.isMixinDeclaration) {
-                cls.addProblem(
+                cls.libraryBuilder.addProblem(
                     templateFinalClassUsedAsMixinConstraintOutsideOfLibrary
                         .withArguments(supertypeDeclaration.fullNameForErrors),
                     supertypeBuilder.charOffset ?? TreeNode.noOffset,
-                    noLength);
+                    noLength,
+                    supertypeBuilder
+                            .fileUri ?? // Coverage-ignore(suite): Not run.
+                        cls.fileUri);
               } else {
-                cls.addProblem(
+                cls.libraryBuilder.addProblem(
                     templateFinalClassExtendedOutsideOfLibrary
                         .withArguments(supertypeDeclaration.fullNameForErrors),
                     supertypeBuilder.charOffset ?? TreeNode.noOffset,
-                    noLength);
+                    noLength,
+                    supertypeBuilder
+                            .fileUri ?? // Coverage-ignore(suite): Not run.
+                        cls.fileUri);
               }
             }
           }
@@ -2081,11 +2101,13 @@ severity: $severity
         if (isSealedClassEnabled(supertypeDeclaration) &&
             supertypeDeclaration.isSealed &&
             cls.libraryBuilder != supertypeDeclaration.libraryBuilder) {
-          cls.addProblem(
+          cls.libraryBuilder.addProblem(
               templateSealedClassSubtypeOutsideOfLibrary
                   .withArguments(supertypeDeclaration.fullNameForErrors),
               supertypeBuilder.charOffset ?? TreeNode.noOffset,
-              noLength);
+              noLength,
+              supertypeBuilder.fileUri ?? // Coverage-ignore(suite): Not run.
+                  cls.fileUri);
         }
       }
     }
@@ -2104,11 +2126,14 @@ severity: $severity
               !mixedInTypeDeclaration.isMixinDeclaration &&
               !mixedInTypeDeclaration.isMixinClass &&
               !mayIgnoreClassModifiers(mixedInTypeDeclaration)) {
-            cls.addProblem(
+            cls.libraryBuilder.addProblem(
                 templateCantUseClassAsMixin
                     .withArguments(mixedInTypeDeclaration.fullNameForErrors),
                 mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
-                noLength);
+                noLength,
+                mixedInTypeBuilder
+                        .fileUri ?? // Coverage-ignore(suite): Not run.
+                    cls.fileUri);
           }
         }
 
@@ -2116,11 +2141,13 @@ severity: $severity
         if (isSealedClassEnabled(mixedInTypeDeclaration) &&
             mixedInTypeDeclaration.isSealed &&
             cls.libraryBuilder != mixedInTypeDeclaration.libraryBuilder) {
-          cls.addProblem(
+          cls.libraryBuilder.addProblem(
               templateSealedClassSubtypeOutsideOfLibrary
                   .withArguments(mixedInTypeDeclaration.fullNameForErrors),
               mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
-              noLength);
+              noLength,
+              mixedInTypeBuilder.fileUri ?? // Coverage-ignore(suite): Not run.
+                  cls.fileUri);
         }
       }
     }
@@ -2154,10 +2181,13 @@ severity: $severity
                     checkedClass.isMixinDeclaration
                         ? templateBaseMixinImplementedOutsideOfLibrary
                         : templateBaseClassImplementedOutsideOfLibrary;
-                cls.addProblem(
+                cls.libraryBuilder.addProblem(
                     template.withArguments(checkedClass.fullNameForErrors),
                     interfaceBuilder.charOffset ?? TreeNode.noOffset,
                     noLength,
+                    interfaceBuilder
+                            .fileUri ?? // Coverage-ignore(suite): Not run.
+                        cls.fileUri,
                     context: context);
                 // Break to only report one error.
                 break;
@@ -2169,10 +2199,13 @@ severity: $severity
                         checkedClass == interfaceDeclaration
                     ? templateFinalClassUsedAsMixinConstraintOutsideOfLibrary
                     : templateFinalClassImplementedOutsideOfLibrary;
-                cls.addProblem(
+                cls.libraryBuilder.addProblem(
                     template.withArguments(checkedClass.fullNameForErrors),
                     interfaceBuilder.charOffset ?? TreeNode.noOffset,
                     noLength,
+                    interfaceBuilder
+                            .fileUri ?? // Coverage-ignore(suite): Not run.
+                        cls.fileUri,
                     context: context);
                 // Break to only report one error.
                 break;
@@ -2186,11 +2219,13 @@ severity: $severity
           if (isSealedClassEnabled(interfaceDeclaration) &&
               interfaceDeclaration.isSealed &&
               cls.libraryBuilder != interfaceDeclaration.libraryBuilder) {
-            cls.addProblem(
+            cls.libraryBuilder.addProblem(
                 templateSealedClassSubtypeOutsideOfLibrary
                     .withArguments(interfaceDeclaration.fullNameForErrors),
                 interfaceBuilder.charOffset ?? TreeNode.noOffset,
-                noLength);
+                noLength,
+                interfaceBuilder.fileUri ?? // Coverage-ignore(suite): Not run.
+                    cls.fileUri);
           }
         }
       }
@@ -2352,10 +2387,8 @@ severity: $severity
                   classBuilder.name.length,
                   classBuilder.fileUri,
                   context: <LocatedMessage>[
-                    messageEnumInheritsRestrictedMember.withLocation(
-                        classMember.fileUri,
-                        classMember.charOffset,
-                        member.name.text.length)
+                    messageEnumInheritsRestrictedMember
+                        .withLocation2(classMember.uriOffset)
                   ]);
             }
           }

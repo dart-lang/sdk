@@ -146,6 +146,6 @@ Future<T> withCrashReporting<T>(
       rethrow;
     }
     UriOffset? uriOffset = currentUriOffset();
-    return reportCrash(e, s, uriOffset?.uri, uriOffset?.fileOffset);
+    return reportCrash(e, s, uriOffset?.fileUri, uriOffset?.fileOffset);
   }
 }
