@@ -552,41 +552,39 @@ class CollectReportPage extends DiagnosticPage {
     return await super.generatePage(params);
   }
 
+  /// Returns a json encoding of a map containing the data to be collected.
   Future<String> _collectAllData() async {
     Map<String, Object?> collectedData = {};
     var server = this.server;
 
-    // General data.
-    collectedData['currentTime'] = DateTime.now().millisecondsSinceEpoch;
-    collectedData['operatingSystem'] = Platform.operatingSystem;
-    collectedData['version'] = Platform.version;
-    collectedData['clientId'] = server.options.clientId;
-    collectedData['clientVersion'] = server.options.clientVersion;
-    collectedData['protocolVersion'] = PROTOCOL_VERSION;
-    collectedData['serverType'] = server.runtimeType.toString();
-    collectedData['uptime'] = server.uptime.toString();
-    if (server is LegacyAnalysisServer) {
-      collectedData['serverServices'] =
-          server.serverServices.map((e) => e.toString()).toList();
-    } else if (server is LspAnalysisServer) {
-      collectedData['clientDiagnosticInformation'] =
-          server.clientDiagnosticInformation;
-    }
+    _collectGeneralData(collectedData, server);
+    _collectMessageSchedulerData(collectedData);
+    await _collectProcessData(collectedData);
+    _collectCommunicationData(collectedData, server);
+    _collectContextData(collectedData, server);
+    _collectAnalysisDriverData(collectedData, server);
+    _collectFileByteStoreTimingData(collectedData, server);
+    _collectPerformanceData(collectedData, server);
+    _collectExceptionsData(collectedData, server);
+    await _collectObservatoryData(collectedData);
 
-    collectedData['allowOverlappingHandlers'] =
-        MessageScheduler.allowOverlappingHandlers;
+    const JsonEncoder encoder = JsonEncoder.withIndent('  ');
+    return encoder.convert(collectedData);
+  }
 
-    var profiler = ProcessProfiler.getProfilerForPlatform();
-    UsageInfo? usage;
-    if (profiler != null) {
-      usage = await profiler.getProcessUsage(pid);
-    }
-    collectedData['memoryKB'] = usage?.memoryKB;
-    collectedData['cpuPercentage'] = usage?.cpuPercentage;
-    collectedData['currentRss'] = ProcessInfo.currentRss;
-    collectedData['maxRss'] = ProcessInfo.maxRss;
+  void _collectAnalysisDriverData(
+    Map<String, Object?> collectedData,
+    AnalysisServer server,
+  ) {
+    var buffer = StringBuffer();
+    server.analysisDriverScheduler.accumulatedPerformance.write(buffer: buffer);
+    collectedData['accumulatedPerformance'] = buffer.toString();
+  }
 
-    // Communication.
+  void _collectCommunicationData(
+    Map<String, Object?> collectedData,
+    AnalysisServer server,
+  ) {
     for (var data
         in {
           'startup': server.performanceDuringStartup,
@@ -610,8 +608,12 @@ class CollectReportPage extends DiagnosticPage {
       perfData['MaximumLatency'] = maximumLatency;
       perfData['SlowRequestCount'] = slowRequestCount;
     }
+  }
 
-    // Contexts.
+  void _collectContextData(
+    Map<String, Object?> collectedData,
+    AnalysisServer server,
+  ) {
     var driverMapValues = server.driverMap.values.toList();
     var contexts = [];
     collectedData['contexts'] = contexts;
@@ -619,7 +621,8 @@ class CollectReportPage extends DiagnosticPage {
     for (var data in driverMapValues) {
       var contextData = {};
       contexts.add(contextData);
-      // We don't include the name as some might see that as "secret".
+      // We don't include the name because the name might include confidential
+      // information.
       var knownFiles = data.knownFiles.map((f) => f.path).toSet();
       contextData['priorityFiles'] = data.priorityFiles.length;
       contextData['addedFiles'] = data.addedFiles.length;
@@ -631,85 +634,12 @@ class CollectReportPage extends DiagnosticPage {
       contextData['plugins'] = collectedOptionsData.plugins.toList();
     }
     collectedData['uniqueKnownFiles'] = uniqueKnownFiles.length;
+  }
 
-    // Data from the 'Analysis Driver Timings' page.
-    var buffer = StringBuffer();
-    server.analysisDriverScheduler.accumulatedPerformance.write(buffer: buffer);
-    collectedData['accumulatedPerformance'] = buffer.toString();
-
-    // FileByteStore timings
-    {
-      var byteStoreTimings =
-          server.byteStoreTimings
-              ?.where(
-                (timing) =>
-                    timing.readCount != 0 || timing.readTime != Duration.zero,
-              )
-              .toList();
-      if (byteStoreTimings != null && byteStoreTimings.isNotEmpty) {
-        var performance = [];
-        collectedData['byteStoreTimings'] = performance;
-        for (var i = 0; i < byteStoreTimings.length; i++) {
-          var timing = byteStoreTimings[i];
-          if (timing.readCount == 0) {
-            continue;
-          }
-
-          var nextTiming =
-              i + 1 < byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
-          var duration = (nextTiming?.time ?? DateTime.now()).difference(
-            timing.time,
-          );
-          var description =
-              'Between ${timing.reason} and ${nextTiming?.reason ?? 'now'} '
-              '(${printMilliseconds(duration.inMilliseconds)}).';
-
-          var itemData = {};
-          performance.add(itemData);
-          itemData['file_reads'] = timing.readCount;
-          itemData['time'] = timing.readTime.inMilliseconds;
-          itemData['description'] = description;
-        }
-      }
-    }
-
-    // Recorded performance data (timing and code completion).
-    void collectPerformance(List<RequestPerformance> items, String type) {
-      var performance = [];
-      collectedData['performance$type'] = performance;
-      for (var item in items) {
-        var itemData = {};
-        performance.add(itemData);
-        itemData['id'] = item.id;
-        itemData['operation'] = item.operation;
-        itemData['requestLatency'] = item.requestLatency;
-        itemData['elapsed'] = item.performance.elapsed.inMilliseconds;
-        itemData['startTime'] = item.startTime?.toIso8601String();
-
-        var buffer = StringBuffer();
-        item.performance.write(buffer: buffer);
-        itemData['performance'] = buffer.toString();
-      }
-    }
-
-    collectPerformance(
-      server.recentPerformance.completion.items.toList(),
-      'Completion',
-    );
-    collectPerformance(
-      server.recentPerformance.getFixes.items.toList(),
-      'GetFixes',
-    );
-    collectPerformance(
-      server.recentPerformance.requests.items.toList(),
-      'Requests',
-    );
-    collectPerformance(
-      server.recentPerformance.slowRequests.items.toList(),
-      'SlowRequests',
-    );
-
-    // Exceptions.
+  void _collectExceptionsData(
+    Map<String, Object?> collectedData,
+    AnalysisServer server,
+  ) {
     var exceptions = [];
     collectedData['exceptions'] = exceptions;
     for (var exception in server.exceptions.items) {
@@ -720,8 +650,75 @@ class CollectReportPage extends DiagnosticPage {
         'stackTrace': exception.stackTrace.toString(),
       });
     }
+  }
 
-    // Data from the observatory protocol.
+  void _collectFileByteStoreTimingData(
+    Map<String, Object?> collectedData,
+    AnalysisServer server,
+  ) {
+    var byteStoreTimings =
+        server.byteStoreTimings
+            ?.where(
+              (timing) =>
+                  timing.readCount != 0 || timing.readTime != Duration.zero,
+            )
+            .toList();
+    if (byteStoreTimings != null && byteStoreTimings.isNotEmpty) {
+      var performance = [];
+      collectedData['byteStoreTimings'] = performance;
+      for (var i = 0; i < byteStoreTimings.length; i++) {
+        var timing = byteStoreTimings[i];
+        if (timing.readCount == 0) {
+          continue;
+        }
+
+        var nextTiming =
+            i + 1 < byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
+        var duration = (nextTiming?.time ?? DateTime.now()).difference(
+          timing.time,
+        );
+        var description =
+            'Between ${timing.reason} and ${nextTiming?.reason ?? 'now'} '
+            '(${printMilliseconds(duration.inMilliseconds)}).';
+
+        var itemData = {};
+        performance.add(itemData);
+        itemData['file_reads'] = timing.readCount;
+        itemData['time'] = timing.readTime.inMilliseconds;
+        itemData['description'] = description;
+      }
+    }
+  }
+
+  void _collectGeneralData(
+    Map<String, Object?> collectedData,
+    AnalysisServer server,
+  ) {
+    collectedData['currentTime'] = DateTime.now().millisecondsSinceEpoch;
+    collectedData['operatingSystem'] = Platform.operatingSystem;
+    collectedData['version'] = Platform.version;
+    collectedData['clientId'] = server.options.clientId;
+    collectedData['clientVersion'] = server.options.clientVersion;
+    collectedData['protocolVersion'] = PROTOCOL_VERSION;
+    collectedData['serverType'] = server.runtimeType.toString();
+    collectedData['uptime'] = server.uptime.toString();
+    if (server is LegacyAnalysisServer) {
+      collectedData['serverServices'] =
+          server.serverServices.map((e) => e.toString()).toList();
+    } else if (server is LspAnalysisServer) {
+      collectedData['clientDiagnosticInformation'] =
+          server.clientDiagnosticInformation;
+    }
+  }
+
+  void _collectMessageSchedulerData(Map<String, Object?> collectedData) {
+    collectedData['allowOverlappingHandlers'] =
+        MessageScheduler.allowOverlappingHandlers;
+  }
+
+  Future<void> _collectObservatoryData(
+    Map<String, Object?> collectedData,
+  ) async {
     var serviceProtocolInfo = await developer.Service.getInfo();
     var startedServiceProtocol = false;
     if (serviceProtocolInfo.serverUri == null) {
@@ -790,9 +787,57 @@ class CollectReportPage extends DiagnosticPage {
     if (startedServiceProtocol) {
       await developer.Service.controlWebServer(silenceOutput: true);
     }
+  }
 
-    const JsonEncoder encoder = JsonEncoder.withIndent('  ');
-    return encoder.convert(collectedData);
+  void _collectPerformanceData(
+    Map<String, Object?> collectedData,
+    AnalysisServer server,
+  ) {
+    collectedData['performanceCompletion'] = _convertPerformance(
+      server.recentPerformance.completion.items.toList(),
+    );
+    collectedData['performanceGetFixes'] = _convertPerformance(
+      server.recentPerformance.getFixes.items.toList(),
+    );
+    collectedData['performanceRequests'] = _convertPerformance(
+      server.recentPerformance.requests.items.toList(),
+    );
+    collectedData['performanceSlowRequests'] = _convertPerformance(
+      server.recentPerformance.slowRequests.items.toList(),
+    );
+  }
+
+  Future<void> _collectProcessData(Map<String, Object?> collectedData) async {
+    var profiler = ProcessProfiler.getProfilerForPlatform();
+    UsageInfo? usage;
+    if (profiler != null) {
+      usage = await profiler.getProcessUsage(pid);
+    }
+    collectedData['memoryKB'] = usage?.memoryKB;
+    collectedData['cpuPercentage'] = usage?.cpuPercentage;
+    collectedData['currentRss'] = ProcessInfo.currentRss;
+    collectedData['maxRss'] = ProcessInfo.maxRss;
+  }
+
+  // Recorded performance data (timing and code completion).
+  List<Object> _convertPerformance(List<RequestPerformance> items) {
+    var performance = <Object>[];
+
+    for (var item in items) {
+      var itemData = {};
+      performance.add(itemData);
+
+      itemData['id'] = item.id;
+      itemData['operation'] = item.operation;
+      itemData['requestLatency'] = item.requestLatency;
+      itemData['elapsed'] = item.performance.elapsed.inMilliseconds;
+      itemData['startTime'] = item.startTime?.toIso8601String();
+
+      var buffer = StringBuffer();
+      item.performance.write(buffer: buffer);
+      itemData['performance'] = buffer.toString();
+    }
+    return performance;
   }
 }
 
