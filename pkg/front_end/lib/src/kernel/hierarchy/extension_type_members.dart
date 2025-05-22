@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 
 import '../../base/messages.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
@@ -977,33 +978,33 @@ class _SanitizedMember {
           context.add((extensionTypeMemberDeclarations.length > 1
                   ? messageExtensionTypeMemberOneOfContext
                   : messageExtensionTypeMemberContext)
-              .withLocation(classMember.fileUri, classMember.charOffset,
-                  name.text.length));
+              .withLocation2(classMember.uriOffset));
         }
         for (ClassMember classMember in nonExtensionTypeMemberDeclarations) {
           context.add((nonExtensionTypeMemberDeclarations.length > 1
                   ? messageNonExtensionTypeMemberOneOfContext
                   : messageNonExtensionTypeMemberContext)
-              .withLocation(classMember.fileUri, classMember.charOffset,
-                  name.text.length));
+              .withLocation2(classMember.uriOffset));
         }
-        extensionTypeDeclarationBuilder.addProblem(
+        extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
             templateImplementNonExtensionTypeAndExtensionTypeMember
                 .withArguments(extensionTypeDeclarationBuilder.name, name.text),
             extensionTypeDeclarationBuilder.fileOffset,
             extensionTypeDeclarationBuilder.name.length,
+            extensionTypeDeclarationBuilder.fileUri,
             context: context);
       } else if (extensionTypeMemberDeclarations.length > 1) {
         List<LocatedMessage> context = [];
         for (ClassMember classMember in extensionTypeMemberDeclarations) {
-          context.add(messageExtensionTypeMemberOneOfContext.withLocation(
-              classMember.fileUri, classMember.charOffset, name.text.length));
+          context.add(messageExtensionTypeMemberOneOfContext
+              .withLocation2(classMember.uriOffset));
         }
-        extensionTypeDeclarationBuilder.addProblem(
+        extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
             templateImplementMultipleExtensionTypeMembers.withArguments(
                 extensionTypeDeclarationBuilder.name, name.text),
             extensionTypeDeclarationBuilder.fileOffset,
             extensionTypeDeclarationBuilder.name.length,
+            extensionTypeDeclarationBuilder.fileUri,
             context: context);
       }
       return extensionTypeMemberMap[name] =

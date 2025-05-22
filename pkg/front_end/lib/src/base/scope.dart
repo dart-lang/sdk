@@ -371,8 +371,10 @@ NamedBuilder computeAmbiguousDeclarationForImport(
   // We report the error lazily (setting suppressMessage to false) because the
   // spec 18.1 states that 'It is not an error if N is introduced by two or
   // more imports but never referred to.'
-  return new InvalidTypeDeclarationBuilder(name,
-      message.withLocation(uriOffset.uri, uriOffset.fileOffset, name.length),
+  return new InvalidTypeDeclarationBuilder(
+      name,
+      message.withLocation(
+          uriOffset.fileUri, uriOffset.fileOffset, name.length),
       suppressMessage: false);
 }
 

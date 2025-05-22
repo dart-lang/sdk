@@ -9,6 +9,7 @@ import 'package:kernel/type_environment.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/metadata_builder.dart';
@@ -31,6 +32,8 @@ import 'encoding.dart';
 /// Interface for a setter declaration aspect of a [SourcePropertyBuilder].
 abstract class SetterDeclaration {
   Uri get fileUri;
+
+  UriOffsetLength? get uriOffset;
 
   List<MetadataBuilder>? get metadata;
 
@@ -80,14 +83,17 @@ abstract class SetterDeclaration {
   List<ClassMember> get localSetters;
 }
 
-class SetterDeclarationImpl
+class RegularSetterDeclaration
     implements SetterDeclaration, SetterFragmentDeclaration {
   final SetterFragment _fragment;
   late final SetterEncoding _encoding;
 
-  SetterDeclarationImpl(this._fragment) {
+  RegularSetterDeclaration(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   AsyncMarker get asyncModifier => _fragment.asyncModifier;

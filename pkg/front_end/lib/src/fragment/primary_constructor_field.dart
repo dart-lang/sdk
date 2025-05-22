@@ -58,6 +58,9 @@ class PrimaryConstructorFieldFragment implements Fragment {
         "Declaration has already been computed for $this.");
     _declaration = value;
   }
+
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, nameOffset, name.length);
 }
 
 class PrimaryConstructorFieldDeclaration
@@ -81,6 +84,10 @@ class PrimaryConstructorFieldDeclaration
   PrimaryConstructorFieldDeclaration(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   SourcePropertyBuilder get builder => _fragment.builder;

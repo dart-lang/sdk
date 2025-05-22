@@ -11,6 +11,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/metadata_builder.dart';
@@ -611,6 +612,14 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   @override
   SetterQuality get setterQuality =>
       _lastSetable?.setterQuality ?? SetterQuality.Absent;
+
+  UriOffsetLength? get fieldUriOffset => _introductoryField?.uriOffset;
+
+  @override
+  UriOffsetLength? get getterUriOffset => _introductoryGetable?.uriOffset;
+
+  @override
+  UriOffsetLength? get setterUriOffset => _introductorySetable?.uriOffset;
 }
 
 class GetterClassMember implements ClassMember {
@@ -619,7 +628,7 @@ class GetterClassMember implements ClassMember {
   GetterClassMember(this._builder);
 
   @override
-  int get charOffset => _builder.fileOffset;
+  UriOffsetLength get uriOffset => _builder.getterUriOffset!;
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -628,9 +637,6 @@ class GetterClassMember implements ClassMember {
   // Coverage-ignore(suite): Not run.
   List<ClassMember> get declarations =>
       throw new UnsupportedError('$runtimeType.declarations');
-
-  @override
-  Uri get fileUri => _builder.fileUri;
 
   @override
   bool get forSetter => false;
@@ -753,7 +759,7 @@ class SetterClassMember implements ClassMember {
   SetterClassMember(this._builder);
 
   @override
-  int get charOffset => _builder.fileOffset;
+  UriOffsetLength get uriOffset => _builder.setterUriOffset!;
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -762,9 +768,6 @@ class SetterClassMember implements ClassMember {
   // Coverage-ignore(suite): Not run.
   List<ClassMember> get declarations =>
       throw new UnsupportedError('$runtimeType.declarations');
-
-  @override
-  Uri get fileUri => _builder.fileUri;
 
   @override
   bool get forSetter => true;

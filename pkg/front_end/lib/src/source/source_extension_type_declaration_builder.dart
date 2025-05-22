@@ -636,11 +636,12 @@ class SourceExtensionTypeDeclarationBuilder
       if (duplicationProblems != null) {
         for (var MapEntry(key: typeDeclaration, value: (:count, :offset))
             in duplicationProblems.entries) {
-          addProblem(
+          libraryBuilder.addProblem(
               templateImplementsRepeated.withArguments(
                   typeDeclaration.name, count),
               offset,
-              noLength);
+              noLength,
+              fileUri);
         }
       }
     }

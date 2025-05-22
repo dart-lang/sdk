@@ -24,9 +24,6 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   MemberBuilder? findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
 
-  void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled = false, List<LocatedMessage>? context});
-
   /// Returns the type of `this` in an instance of this declaration.
   ///
   /// This is non-null for class and mixin declarations and `null` for
@@ -91,12 +88,5 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
     }
 
     return declaration;
-  }
-
-  @override
-  void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled = false, List<LocatedMessage>? context}) {
-    libraryBuilder.addProblem(message, charOffset, length, fileUri,
-        wasHandled: wasHandled, context: context);
   }
 }

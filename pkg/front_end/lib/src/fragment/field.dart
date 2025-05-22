@@ -85,6 +85,9 @@ class FieldFragment implements Fragment {
     _declaration = value;
   }
 
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, nameOffset, name.length);
+
   bool get hasSetter {
     if (modifiers.isConst) {
       return false;

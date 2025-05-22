@@ -13,7 +13,9 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         ProcedureStubKind;
 import 'package:kernel/canonical_name.dart';
+import 'package:kernel/names.dart';
 
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -116,6 +118,15 @@ class DillFieldBuilder extends DillMemberBuilder
   @override
   SetterQuality get setterQuality =>
       field.hasSetter ? SetterQuality.Implicit : SetterQuality.Absent;
+
+  @override
+  UriOffsetLength get getterUriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, field.name.text.length);
+
+  @override
+  UriOffsetLength? get setterUriOffset => hasSetter
+      ? new UriOffsetLength(fileUri, fileOffset, field.name.text.length)
+      : null;
 }
 
 abstract class _DillProcedureBuilder extends DillMemberBuilder {
@@ -166,6 +177,10 @@ class DillGetterBuilder extends _DillProcedureBuilder
 
   @override
   SetterQuality get setterQuality => SetterQuality.Absent;
+
+  @override
+  UriOffsetLength get getterUriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _procedure.name.text.length);
 }
 
 class DillSetterBuilder extends _DillProcedureBuilder
@@ -197,6 +212,10 @@ class DillSetterBuilder extends _DillProcedureBuilder
       : _procedure.isAbstract
           ? SetterQuality.Abstract
           : SetterQuality.Concrete;
+
+  @override
+  UriOffsetLength get setterUriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _procedure.name.text.length);
 }
 
 class DillMethodBuilder extends _DillProcedureBuilder
@@ -224,6 +243,10 @@ class DillMethodBuilder extends _DillProcedureBuilder
 
   @override
   Reference get invokeTargetReference => _procedure.reference;
+
+  @override
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _procedure.name.text.length);
 }
 
 class DillOperatorBuilder extends _DillProcedureBuilder
@@ -246,6 +269,10 @@ class DillOperatorBuilder extends _DillProcedureBuilder
   @override
   // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => _procedure.reference;
+
+  @override
+  UriOffsetLength get uriOffset => new UriOffsetLength(fileUri, fileOffset,
+      _procedure.name == unaryMinusName ? 1 : _procedure.name.text.length);
 }
 
 class DillFactoryBuilder extends _DillProcedureBuilder
@@ -325,12 +352,15 @@ class DillClassMember extends BuilderClassMember {
   @override
   final DillMemberBuilder memberBuilder;
 
+  @override
+  final UriOffsetLength uriOffset;
+
   Covariance? _covariance;
 
   @override
   final ClassMemberKind memberKind;
 
-  DillClassMember(this.memberBuilder, this.memberKind)
+  DillClassMember(this.memberBuilder, this.memberKind, this.uriOffset)
       : assert(
             !memberBuilder.member.isInternalImplementation,
             "ClassMember should not be created for internal implementation "

@@ -61,6 +61,9 @@ class EnumElementFragment implements Fragment {
     _declaration = value;
   }
 
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, nameOffset, name.length);
+
   /// Returns the token for begin of the constructor arguments of this enum
   /// element, if any.
   ///
@@ -88,7 +91,7 @@ class _EnumElementClassMember implements ClassMember {
   bool get forSetter => false;
 
   @override
-  int get charOffset => _fragment.nameOffset;
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -99,9 +102,6 @@ class _EnumElementClassMember implements ClassMember {
       throw new UnsupportedError('$runtimeType.declarations');
 
   @override
-  Uri get fileUri => _fragment.fileUri;
-
-  @override
   // Coverage-ignore(suite): Not run.
   String get fullName {
     String className = declarationBuilder.fullNameForErrors;
@@ -109,6 +109,7 @@ class _EnumElementClassMember implements ClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullNameForErrors => _builder.fullNameForErrors;
 
   @override
@@ -279,6 +280,10 @@ class EnumElementDeclaration
     type.registerInferable(this);
     type.registerInferredTypeListener(this);
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   DartType _computeType(ClassHierarchyBase hierarchy, Token? token) {
     SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;

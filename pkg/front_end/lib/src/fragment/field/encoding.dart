@@ -630,7 +630,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
             _lateGetter!,
             _fragment.builder.memberName,
             _SynthesizedFieldMemberKind.LateGetterSetter,
-            ClassMemberKind.Getter)
+            ClassMemberKind.Getter,
+            _fragment.uriOffset)
       ];
 
   @override
@@ -641,7 +642,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
               _lateSetter!,
               _fragment.builder.memberName,
               _SynthesizedFieldMemberKind.LateGetterSetter,
-              ClassMemberKind.Setter)
+              ClassMemberKind.Setter,
+              _fragment.uriOffset)
         ]
       : const [];
 
@@ -1113,7 +1115,8 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
             _getter!,
             _fragment.builder.memberName,
             _SynthesizedFieldMemberKind.AbstractExternalGetterSetter,
-            ClassMemberKind.Getter)
+            ClassMemberKind.Getter,
+            _fragment.uriOffset)
       ];
 
   @override
@@ -1124,7 +1127,8 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
               _setter!,
               _fragment.builder.memberName,
               _SynthesizedFieldMemberKind.AbstractExternalGetterSetter,
-              ClassMemberKind.Setter)
+              ClassMemberKind.Setter,
+              _fragment.uriOffset)
         ]
       : const <ClassMember>[];
 
@@ -1269,7 +1273,8 @@ class RepresentationFieldEncoding implements FieldEncoding {
             _getter,
             _fragment.builder.memberName,
             _SynthesizedFieldMemberKind.RepresentationField,
-            ClassMemberKind.Getter)
+            ClassMemberKind.Getter,
+            _fragment.uriOffset)
       ];
 
   @override

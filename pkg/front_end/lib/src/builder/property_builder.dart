@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../base/uri_offset.dart';
 import 'builder.dart';
 import 'member_builder.dart';
 
@@ -23,6 +24,14 @@ abstract class PropertyBuilder implements MemberBuilder {
   /// Returns a [SetterQuality] enum value that describes what kind of setter
   /// this property has, if any.
   SetterQuality get setterQuality;
+
+  /// Returns the [UriOffsetLength]  for the introductory declaration of the
+  /// getter aspect, if any.
+  UriOffsetLength? get getterUriOffset;
+
+  /// Returns the [UriOffsetLength] for the introductory declaration of the
+  /// setter aspect, if any.
+  UriOffsetLength? get setterUriOffset;
 }
 
 /// Enum for the different ways a property can have a field aspect.

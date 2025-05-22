@@ -338,8 +338,11 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     // TODO(johnniwinther): Update the message for when a class depends on
     // a cycle but does not depend on itself.
-    addProblem(templateCyclicClassHierarchy.withArguments(fullNameForErrors),
-        fileOffset, noLength);
+    libraryBuilder.addProblem(
+        templateCyclicClassHierarchy.withArguments(fullNameForErrors),
+        fileOffset,
+        noLength,
+        fileUri);
   }
 
   // Coverage-ignore(suite): Not run.
@@ -348,14 +351,17 @@ class SourceClassBuilder extends ClassBuilderImpl
   void checkObjectSupertypes() {
     if (_supertypeBuilder != null) {
       _supertypeBuilder = null;
-      addProblem(messageObjectExtends, fileOffset, noLength);
+      libraryBuilder.addProblem(
+          messageObjectExtends, fileOffset, noLength, fileUri);
     }
     if (_interfaceBuilders != null) {
-      addProblem(messageObjectImplements, fileOffset, noLength);
+      libraryBuilder.addProblem(
+          messageObjectImplements, fileOffset, noLength, fileUri);
       _interfaceBuilders = null;
     }
     if (_mixedInTypeBuilder != null) {
-      addProblem(messageObjectMixesIn, fileOffset, noLength);
+      libraryBuilder.addProblem(
+          messageObjectMixesIn, fileOffset, noLength, fileUri);
       _mixedInTypeBuilder = null;
     }
   }
@@ -754,8 +760,11 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       }
       if (!cls.isAbstract && !cls.isEnum && hasEnumSuperinterface) {
-        addProblem(templateEnumSupertypeOfNonAbstractClass.withArguments(name),
-            fileOffset, noLength);
+        libraryBuilder.addProblem(
+            templateEnumSupertypeOfNonAbstractClass.withArguments(name),
+            fileOffset,
+            noLength,
+            fileUri);
       }
 
       if (hasEnumSuperinterface && cls != underscoreEnumClass) {
@@ -838,12 +847,15 @@ class SourceClassBuilder extends ClassBuilderImpl
       int nameLength = target.typeName!.nameLength;
       if (aliasBuilder is TypeAliasBuilder) {
         // Coverage-ignore-block(suite): Not run.
-        addProblem(message, nameOffset, nameLength, context: [
-          messageTypedefCause.withLocation(
-              aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
-        ]);
+        libraryBuilder.addProblem(
+            message, nameOffset, nameLength, target.fileUri,
+            context: [
+              messageTypedefCause.withLocation(
+                  aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
+            ]);
       } else {
-        addProblem(message, nameOffset, nameLength);
+        libraryBuilder.addProblem(
+            message, nameOffset, nameLength, target.fileUri);
       }
     }
 
@@ -876,11 +888,12 @@ class SourceClassBuilder extends ClassBuilderImpl
           if (constructor.isRedirecting ||
               constructor.hasParameters ||
               constructor.isExternal) {
-            addProblem(
+            libraryBuilder.addProblem(
                 templateIllegalMixinDueToConstructors
                     .withArguments(fullNameForErrors),
                 constructor.fileOffset,
-                noLength);
+                noLength,
+                constructor.fileUri);
           }
         }
       }
@@ -888,8 +901,12 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (superClass != null &&
           superClassType != null &&
           superClass.cls != objectClass) {
-        addProblem(templateMixinInheritsFromNotObject.withArguments(name),
-            superClassType.charOffset ?? TreeNode.noOffset, noLength);
+        libraryBuilder.addProblem(
+            templateMixinInheritsFromNotObject.withArguments(name),
+            superClassType.charOffset ?? TreeNode.noOffset,
+            noLength,
+            superClassType.fileUri ?? // Coverage-ignore(suite): Not run.
+                fileUri);
       }
     }
     if (classHierarchyNode.isMixinApplication) {
@@ -901,11 +918,14 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (mixinSuperClassNode != null &&
           mixinSuperClassNode.classBuilder.cls != objectClass &&
           !mixedInNode.classBuilder.cls.isMixinDeclaration) {
-        addProblem(
-            templateMixinInheritsFromNotObject
-                .withArguments(mixedInNode.classBuilder.name),
-            _mixedInTypeBuilder!.charOffset ?? TreeNode.noOffset,
-            noLength);
+        libraryBuilder.addProblem(
+          templateMixinInheritsFromNotObject
+              .withArguments(mixedInNode.classBuilder.name),
+          _mixedInTypeBuilder!.charOffset ?? TreeNode.noOffset,
+          noLength,
+          _mixedInTypeBuilder!.fileUri ?? // Coverage-ignore(suite): Not run.
+              fileUri,
+        );
       }
     }
 
@@ -922,15 +942,19 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (unaliasedDeclaration is ClassBuilder) {
         ClassBuilder interface = unaliasedDeclaration;
         if (superClass == interface) {
-          addProblem(templateImplementsSuperClass.withArguments(interface.name),
-              this.fileOffset, noLength);
+          libraryBuilder.addProblem(
+              templateImplementsSuperClass.withArguments(interface.name),
+              this.fileOffset,
+              noLength,
+              this.fileUri);
         } else if (interface.cls.name == "FutureOr" &&
             // Coverage-ignore(suite): Not run.
             interface.cls.enclosingLibrary.importUri.isScheme("dart") &&
             // Coverage-ignore(suite): Not run.
             interface.cls.enclosingLibrary.importUri.path == "async") {
           // Coverage-ignore-block(suite): Not run.
-          addProblem(messageImplementsFutureOr, this.fileOffset, noLength);
+          libraryBuilder.addProblem(messageImplementsFutureOr, this.fileOffset,
+              noLength, this.fileUri);
         } else if (implemented.contains(interface)) {
           // Aggregate repetitions.
           problems ??= <ClassBuilder, int>{};
@@ -951,11 +975,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     if (problems != null) {
       problems.forEach((ClassBuilder interface, int repetitions) {
-        addProblem(
+        libraryBuilder.addProblem(
             templateImplementsRepeated.withArguments(
                 interface.name, repetitions),
             problemsOffsets![interface]!,
-            noLength);
+            noLength,
+            fileUri);
       });
     }
   }

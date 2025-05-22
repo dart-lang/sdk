@@ -17,6 +17,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../base/modifiers.dart' show Modifiers;
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -480,6 +481,9 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
         _fileOffset = fileOffset;
 
   @override
+  UriOffsetLength get uriOffset => new UriOffset(_fileUri, _fileOffset);
+
+  @override
   void buildOutlineExpressions(
       {required ClassHierarchy classHierarchy,
       required SourceLibraryBuilder libraryBuilder,
@@ -609,6 +613,10 @@ class _EnumValuesFieldDeclaration
   final TypeBuilder _typeBuilder;
 
   _EnumValuesFieldDeclaration(this._sourceEnumBuilder, this._typeBuilder);
+
+  @override
+  UriOffsetLength get uriOffset =>
+      new UriOffset(_sourceEnumBuilder.fileUri, _sourceEnumBuilder.fileOffset);
 
   SourcePropertyBuilder get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
@@ -741,7 +749,8 @@ class _EnumValuesFieldDeclaration
   bool get isLate => false;
 
   @override
-  List<ClassMember> get localMembers => [new _EnumValuesClassMember(builder)];
+  List<ClassMember> get localMembers =>
+      [new _EnumValuesClassMember(builder, uriOffset)];
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -837,15 +846,15 @@ class _EnumValuesFieldDeclaration
 class _EnumValuesClassMember implements ClassMember {
   final SourcePropertyBuilder _builder;
 
+  @override
+  final UriOffsetLength uriOffset;
+
   Covariance? _covariance;
 
-  _EnumValuesClassMember(this._builder);
+  _EnumValuesClassMember(this._builder, this.uriOffset);
 
   @override
   bool get forSetter => false;
-
-  @override
-  int get charOffset => _builder.fileOffset;
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -857,16 +866,13 @@ class _EnumValuesClassMember implements ClassMember {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Uri get fileUri => _builder.fileUri;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   String get fullName {
     String className = declarationBuilder.fullNameForErrors;
     return "${className}.${fullNameForErrors}";
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullNameForErrors => _builder.fullNameForErrors;
 
   @override

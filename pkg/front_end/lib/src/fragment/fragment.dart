@@ -18,6 +18,7 @@ import '../base/local_scope.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';

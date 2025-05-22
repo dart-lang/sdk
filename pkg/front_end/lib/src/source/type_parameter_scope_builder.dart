@@ -2648,14 +2648,14 @@ _AddBuilder _createGetterBuilder(
       name, nameScheme, indexedContainer,
       fieldIsLateWithLowering: false);
 
-  GetterDeclaration declaration = new GetterDeclarationImpl(fragment);
+  GetterDeclaration declaration = new RegularGetterDeclaration(fragment);
   List<GetterDeclaration> augmentationDeclarations = [];
   if (augmentations != null) {
     for (Fragment augmentation in augmentations) {
       // Promote [augmentation] to [GetterFragment].
       augmentation as GetterFragment;
 
-      augmentationDeclarations.add(new GetterDeclarationImpl(augmentation));
+      augmentationDeclarations.add(new RegularGetterDeclaration(augmentation));
       if (!(augmentation.modifiers.isAbstract ||
           augmentation.modifiers.isExternal)) {
         modifiers -= Modifiers.Abstract;
@@ -2741,14 +2741,14 @@ _AddBuilder _createSetterBuilder(
       name, nameScheme, indexedContainer,
       fieldIsLateWithLowering: false);
 
-  SetterDeclaration declaration = new SetterDeclarationImpl(fragment);
+  SetterDeclaration declaration = new RegularSetterDeclaration(fragment);
   List<SetterDeclaration> augmentationDeclarations = [];
   if (augmentations != null) {
     for (Fragment augmentation in augmentations) {
       // Promote [augmentation] to [SetterFragment].
       augmentation as SetterFragment;
 
-      augmentationDeclarations.add(new SetterDeclarationImpl(augmentation));
+      augmentationDeclarations.add(new RegularSetterDeclaration(augmentation));
 
       createNominalParameterBuilders(
           augmentation.declaredTypeParameters, unboundNominalParameters);
