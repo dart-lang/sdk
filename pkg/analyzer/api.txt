@@ -4436,7 +4436,7 @@ package:analyzer/error/error.dart:
     compareTo (method: int Function(DiagnosticType))
     toString (method: String Function())
   LintCode (class extends DiagnosticCode):
-    new (constructor: LintCode Function(String, String, {String? correctionMessage, bool hasPublishedDocs, String? uniqueName}))
+    new (constructor: LintCode Function(String, String, {String? correctionMessage, bool hasPublishedDocs, DiagnosticSeverity severity, String? uniqueName}))
     errorSeverity (getter: DiagnosticSeverity)
     hashCode (getter: int)
     type (getter: DiagnosticType)

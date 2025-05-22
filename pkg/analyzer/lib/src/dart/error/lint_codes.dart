@@ -8,28 +8,28 @@ library;
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/error/error.dart';
 
-/// Defines style and best practice recommendations.
+/// Diagnostic codes which are not reported by default.
 ///
-/// Unlike [WarningCode]s, which are akin to traditional static warnings from a
-/// compiler, lint recommendations focus on matters of avoiding errors,
-/// unintended code, maintainability, style and other best practices that might
-/// be aggregated to define a project's style guide.
+/// Lint codes are only reported when a lint rule (either a first-party lint
+/// rule, or one declared in an analyzer plugin) is enabled.
 @AnalyzerPublicApi(message: 'exported by lib/error/error.dart')
 class LintCode extends DiagnosticCode {
+  @override
+  final DiagnosticSeverity errorSeverity;
+
   const LintCode(
     String name,
     String problemMessage, {
     super.correctionMessage,
     super.hasPublishedDocs,
     String? uniqueName,
-  }) : super(
+    DiagnosticSeverity severity = DiagnosticSeverity.INFO,
+  }) : errorSeverity = severity,
+       super(
          problemMessage: problemMessage,
          name: name,
          uniqueName: uniqueName ?? 'LintCode.$name',
        );
-
-  @override
-  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.INFO;
 
   @override
   int get hashCode => uniqueName.hashCode;
