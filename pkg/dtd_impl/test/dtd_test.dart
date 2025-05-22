@@ -457,7 +457,9 @@ void main() {
           );
 
           // Expect we had a service registered event.
-          final event = await serviceStream.stream.first;
+          final event = await serviceStream.stream.firstWhere(
+            (event) => (event['eventData'] as Map?)?['service'] == 'foo1',
+          );
           expect(event['streamId'], DTDStreamManager.servicesStreamId);
           expect(event['eventKind'], DTDStreamManager.serviceRegisteredId);
           expect(
@@ -535,9 +537,12 @@ void main() {
 
           // Expect we had a service unregistered event (after the registered
           // event).
-          final event = await serviceStream.stream.skip(1).first;
+          final event = await serviceStream.stream.skip(1).firstWhere((event) {
+            return event['eventKind'] ==
+                    DTDStreamManager.serviceUnregisteredId &&
+                (event['eventData'] as Map?)?['service'] == 'foo1';
+          });
           expect(event['streamId'], DTDStreamManager.servicesStreamId);
-          expect(event['eventKind'], DTDStreamManager.serviceUnregisteredId);
           expect(
             event['eventData'],
             {

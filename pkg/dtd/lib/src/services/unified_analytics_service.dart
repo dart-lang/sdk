@@ -4,9 +4,9 @@
 
 import 'package:unified_analytics/unified_analytics.dart';
 
-import 'constants.dart';
-import 'dart_tooling_daemon.dart';
-import 'response_types.dart';
+import '../constants.dart';
+import '../dart_tooling_daemon.dart';
+import '../response_types/response_types.dart';
 
 /// Extension methods on the [DartToolingDaemon] that call the UnifiedAnalytics
 /// service.

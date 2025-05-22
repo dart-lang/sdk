@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dart_service_protocol_shared/dart_service_protocol_shared.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
-import 'dart_tooling_daemon.dart';
+import '../dart_tooling_daemon.dart';
+
+part '_file_system.dart';
 
 /// A DTD response that indicates success.
 class Success extends _SuccessResponse<Null> {
@@ -106,4 +109,81 @@ abstract class _SuccessResponse<T> {
 
   @override
   String toString() => '[$type value: $value]';
+}
+
+/// A DTD response that contains information about all the registered services
+/// available on the Dart Tooling Daemon, including services provided by DTD
+/// itself as well as services registered by DTD clients.
+class RegisteredServicesResponse {
+  const RegisteredServicesResponse({
+    required this.dtdServices,
+    required this.clientServices,
+  });
+
+  factory RegisteredServicesResponse.fromDTDResponse(DTDResponse response) {
+    if (response.result[_kType] != type) {
+      throw json_rpc.RpcException.invalidParams(
+        'Expected $_kType param to be $type, got: ${response.result[_kType]}',
+      );
+    }
+    return RegisteredServicesResponse._fromDTDResponse(response);
+  }
+
+  RegisteredServicesResponse._fromDTDResponse(DTDResponse response)
+      : dtdServices = List<String>.from(
+          (response.result[_kDtdServices] as List).cast<String>(),
+        ),
+        clientServices = List<Map<String, Object?>>.from(
+          (response.result[_kClientServices] as List)
+              .cast<Map<String, Object?>>(),
+        ).map(ClientServiceInfo.fromJson).toList();
+
+  /// The key for the type parameter.
+  static const String _kType = 'type';
+
+  /// The key for the DTD services parameter.
+  static const String _kDtdServices = 'dtdServices';
+
+  /// The key for the client services parameter.
+  static const String _kClientServices = 'clientServices';
+
+  /// A list of DTD services.
+  final List<String> dtdServices;
+
+  /// A list of DTD client services.
+  final List<ClientServiceInfo> clientServices;
+
+  static String get type => 'RegisteredServicesResponse';
+
+  Map<String, Object?> toJson() => <String, Object?>{
+        _kType: type,
+        _kDtdServices: dtdServices,
+        _kClientServices:
+            clientServices.map((service) => service.toJson()).toList(),
+      };
+
+  @override
+  String toString() => '['
+      '$type '
+      'dtdServices: ${dtdServices.toString()}, '
+      'clientServices: '
+      '${clientServices.map((service) => service.display).toList().toString()}'
+      ']';
+}
+
+extension on ClientServiceInfo {
+  String get display {
+    final sb = StringBuffer()
+      ..write('$name (')
+      ..write(
+        methods.values.map((method) {
+          final capabilities = method.capabilities != null
+              ? ' ${method.capabilities.toString()}'
+              : '';
+          return '${method.name}$capabilities';
+        }).join(', '),
+      )
+      ..write(')');
+    return sb.toString();
+  }
 }

@@ -179,7 +179,7 @@ class DtdServices {
     var message = IncomingMessage(
       jsonrpc: jsonRpcVersion,
       method: method,
-      params: params.asMap,
+      params: params.value,
     );
     var scheduler = _server.messageScheduler;
     var completer = Completer<Map<String, Object?>>();

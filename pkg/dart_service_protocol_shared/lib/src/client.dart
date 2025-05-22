@@ -48,6 +48,26 @@ class ClientServiceInfo {
   ClientServiceInfo(this.name, [Map<String, ClientServiceMethodInfo>? methods])
       : methods = methods ?? {};
 
+  /// Deserializes a [json] object to create a [ClientServiceInfo] object.
+  static ClientServiceInfo fromJson(Map<String, Object?> json) {
+    if (json case {_kName: final String name, _kMethods: final List methods}) {
+      return ClientServiceInfo(
+        name,
+        <String, ClientServiceMethodInfo>{
+          for (final method in methods
+              .cast<Map<String, Object?>>()
+              .map(ClientServiceMethodInfo.fromJson))
+            method.name: method
+        },
+      );
+    }
+    throw ArgumentError('Unexpected JSON format: $json');
+  }
+
+  static const _kName = 'name';
+
+  static const _kMethods = 'methods';
+
   /// The name of the service.
   ///
   /// A client can register multiple services each with multiple methods.
@@ -58,12 +78,34 @@ class ClientServiceInfo {
 
   /// The service methods registered for this service.
   final Map<String, ClientServiceMethodInfo> methods;
+
+  /// Serializes this [ClientServiceInfo] object to JSON.
+  Map<String, Object?> toJson() => {
+        _kName: name,
+        _kMethods: methods.values.map((m) => m.toJson()).toList(),
+      };
 }
 
 /// Information about an individual method of a service provided by a
 /// client.
 class ClientServiceMethodInfo {
   ClientServiceMethodInfo(this.name, [this.capabilities]);
+
+  /// Deserializes a [json] object to create a [ClientServiceMethodInfo] object.
+  static ClientServiceMethodInfo fromJson(Map<String, Object?> json) {
+    try {
+      return ClientServiceMethodInfo(
+        json[_kName] as String,
+        json[_kCapabilities] as Map<String, Object?>?,
+      );
+    } catch (e) {
+      throw ArgumentError('Unexpected JSON format: $json');
+    }
+  }
+
+  static const _kName = 'name';
+
+  static const _kCapabilities = 'capabilities';
 
   /// The name of the method.
   ///
@@ -74,6 +116,12 @@ class ClientServiceMethodInfo {
 
   /// Optional capabilities of this service method provided by the client.
   final Map<String, Object?>? capabilities;
+
+  /// Serializes this [ClientServiceMethodInfo] object to JSON.
+  Map<String, Object?> toJson() => {
+        _kName: name,
+        if (capabilities != null) _kCapabilities: capabilities,
+      };
 }
 
 /// Used for keeping track and managing clients that are connected to a given

@@ -88,7 +88,10 @@ mixin SharedDtdTests
 
   /// A list of service/methods that the test client has seen registered (and
   /// not yet unregistered) over the DTD connection.
-  final availableMethods = <(String, Method)>[];
+  ///
+  /// The service name is a nullable String because DTD-internal methods and
+  /// services do not have a service name.
+  final availableMethods = <(String?, Method)>[];
 
   /// An invalid DTD URI used for testing connection failures.
   final invalidUri = Uri.parse('ws://invalid:345/invalid');
@@ -207,12 +210,12 @@ mixin SharedDtdTests
       switch (e.kind) {
         case 'ServiceRegistered':
           availableMethods.add((
-            e.data['service'] as String,
+            e.data['service'] as String?,
             Method(e.data['method'] as String),
           ));
         case 'ServiceUnregistered':
           availableMethods.remove((
-            e.data['service'] as String,
+            e.data['service'] as String?,
             Method(e.data['method'] as String),
           ));
       }
@@ -470,7 +473,24 @@ FutureOr<void>? a;
     expect(result, equals({'a': 'b'}));
   }
 
-  Future<void> test_service_success_echo_nullResponse() async {
+  Future<void>
+  test_service_success_echo_nullResponse_with_empty_params() async {
+    await initializeServer();
+    await sendConnectToDtdRequest(registerExperimentalHandlers: true);
+
+    var response = await dtd.connection.call(
+      lspServiceName,
+      CustomMethods.experimentalEcho.toString(),
+      params: const <String, Object?>{},
+    );
+
+    var result = response.result['result'] as Map<String, Object?>?;
+
+    expect(response.type, 'Null');
+    expect(result, isNull);
+  }
+
+  Future<void> test_service_success_echo_nullResponse_with_null_params() async {
     await initializeServer();
     await sendConnectToDtdRequest(registerExperimentalHandlers: true);
 
@@ -512,7 +532,10 @@ void [!myFun^ction!]() {}
     await initializeServer();
     await sendConnectToDtdRequest();
 
-    expect(availableMethods, isNotEmpty);
+    var lspMethods = availableMethods.where(
+      (serviceMethod) => serviceMethod.$1 == 'Lsp',
+    );
+    expect(lspMethods, isNotEmpty);
 
     // Send a request to the server to connect to DTD. This will only complete
     // once all services are registered, however there's no guarantee about the
@@ -521,9 +544,9 @@ void [!myFun^ction!]() {}
     await shutdownServer();
 
     // Wait for the services to be unregistered.
-    while (availableMethods.isNotEmpty) {
+    while (lspMethods.isNotEmpty) {
       await pumpEventQueue(times: 5000);
     }
-    expect(availableMethods, isEmpty);
+    expect(lspMethods, isEmpty);
   }
 }

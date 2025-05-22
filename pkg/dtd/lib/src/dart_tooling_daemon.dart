@@ -117,6 +117,17 @@ class DartToolingDaemon {
     );
   }
 
+  /// Returns a structured response with all the currently registered services
+  /// available on this DTD instance.
+  Future<RegisteredServicesResponse> getRegisteredServices() async {
+    final json = await _clientPeer.sendRequest(
+      'getRegisteredServices',
+    ) as Map<String, Object?>;
+
+    final dtdResponse = _dtdResponseFromJson(json);
+    return RegisteredServicesResponse.fromDTDResponse(dtdResponse);
+  }
+
   /// Subscribes this client to events posted on [streamId].
   ///
   /// Once called, the Dart Tooling Daemon will then send any events on the
@@ -185,26 +196,35 @@ class DartToolingDaemon {
   }
 
   /// Invokes the service method registered with the name
-  /// `[serviceName].[methodName]`.
+  /// `[serviceName].[methodName]`, or with `[methodName]` when [serviceName] is
+  /// null.
+  ///
+  /// [serviceName] may be null if the service method is a first party service
+  /// method registered by DTD or by an internal service.
   ///
   /// If provided, [params] will be sent as the set of parameters used when
   /// invoking the service.
   ///
-  /// If `[serviceName].[methodName]` is not a registered service method, an
-  /// [RpcException] will be thrown with [RpcErrorCodes.kMethodNotFound].
+  /// If `[serviceName].[methodName]`, or `[methodName]` when [serviceName] is
+  /// null, is not a registered service method, an [RpcException] will be thrown
+  /// with [RpcErrorCodes.kMethodNotFound].
   ///
   /// If the parameters included in [params] are invalid, an [RpcException] will
   /// be thrown with [RpcErrorCodes.kInvalidParams].
   Future<DTDResponse> call(
-    String serviceName,
+    String? serviceName,
     String methodName, {
     Map<String, Object?>? params,
   }) async {
+    final combinedName = [serviceName, methodName].nonNulls.join('.');
     final json = await _clientPeer.sendRequest(
-      '$serviceName.$methodName',
-      params ?? <String, Object?>{},
+      combinedName,
+      params,
     ) as Map<String, Object?>;
+    return _dtdResponseFromJson(json);
+  }
 
+  DTDResponse _dtdResponseFromJson(Map<String, Object?> json) {
     final type = json['type'] as String?;
     if (type == null) {
       throw DartToolingDaemonConnectionException.callResponseMissingType(json);
