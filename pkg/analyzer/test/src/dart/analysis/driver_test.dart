@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
@@ -43487,7 +43488,7 @@ class _AlwaysReportedLint extends LintRule {
 
   @override
   void registerNodeProcessors(
-    NodeLintRegistry registry,
+    RuleVisitorRegistry registry,
     LinterContext context,
   ) {
     var visitor = _AlwaysReportedLintVisitor(this);

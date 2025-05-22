@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -100,7 +101,7 @@ class _AvoidIntRule extends LintRule {
 
   @override
   void registerNodeProcessors(
-    NodeLintRegistry registry,
+    RuleVisitorRegistry registry,
     LinterContext context,
   ) {
     var visitor = _AvoidIntVisitor(this);

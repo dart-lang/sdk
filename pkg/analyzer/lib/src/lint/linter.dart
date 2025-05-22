@@ -13,7 +13,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
+import 'package:analyzer/src/lint/linter_visitor.dart' show RuleVisitorRegistry;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/workspace/workspace.dart';
@@ -75,7 +75,7 @@ sealed class AbstractAnalysisRule {
   /// The node processors may use the provided [context] to access information
   /// that is not available from the AST nodes or their associated elements.
   void registerNodeProcessors(
-    NodeLintRegistry registry,
+    RuleVisitorRegistry registry,
     LinterContext context,
   ) {}
 
