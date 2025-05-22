@@ -421,10 +421,11 @@ class _RecordClassGenerator {
       statements.add(IfStatement(
         Not(InstanceInvocation(
           InstanceAccessKind.Instance,
-          (InstanceInvocation(InstanceAccessKind.Instance, ThisExpression(),
-              getRti.name, Arguments([]),
+          (InstanceGet(
+              InstanceAccessKind.Instance, ThisExpression(), getRti.name,
               interfaceTarget: getRti,
-              functionType: getRti.computeSignatureOrFunctionType())),
+              resultType: InterfaceType(
+                  recordRuntimeTypeClass, Nullability.nonNullable))),
           checkInstance.name,
           Arguments([VariableGet(parameter)]),
           interfaceTarget: checkInstance,

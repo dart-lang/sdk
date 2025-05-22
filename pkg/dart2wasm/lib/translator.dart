@@ -1007,8 +1007,10 @@ class Translator with KernelNodes {
         .getClosureRepresentation(typeCount, positionalCount, names)!;
     assert(representation.vtableStruct.fields.length ==
         representation.vtableBaseIndex +
-            (1 + positionalCount) +
-            representation.nameCombinations.length);
+            (dynamicModuleSupportEnabled
+                ? 0
+                : (1 + positionalCount) +
+                    representation.nameCombinations.length));
 
     List<w.BaseFunction> functions = [];
 
@@ -1336,6 +1338,7 @@ class Translator with KernelNodes {
   }
 
   DispatchTable dispatchTableForTarget(Reference target) {
+    assert(target.asMember.isInstanceMember);
     if (!isDynamicSubmodule) return dispatchTable;
     if (moduleForReference(target) == dynamicSubmodule) return dispatchTable;
     assert(target.asMember.isDynamicSubmoduleCallable(coreTypes));
@@ -1348,18 +1351,28 @@ class Translator with KernelNodes {
   }
 
   w.FunctionType signatureForDirectCall(Reference target) {
-    return _signatureFromDispatchTable(target, dispatchTableForTarget(target));
+    return _signatureForModule(
+        target,
+        target.asMember.isInstanceMember
+            ? dispatchTableForTarget(target)
+            : null);
   }
 
   w.FunctionType signatureForMainModule(Reference target) {
-    return _signatureFromDispatchTable(target, dynamicMainModuleDispatchTable!);
+    return _signatureForModule(
+        target,
+        target.asMember.isInstanceMember
+            ? dynamicMainModuleDispatchTable!
+            : null);
   }
 
-  w.FunctionType _signatureFromDispatchTable(
-      Reference target, DispatchTable table) {
-    if (target.asMember.isInstanceMember && !target.isBodyReference) {
+  w.FunctionType _signatureForModule(Reference target, DispatchTable? table) {
+    if (table != null &&
+        !target.isBodyReference &&
+        !target.isTypeCheckerReference) {
       final selector = table.selectorForTarget(target);
-      if (selector.containsTarget(target)) {
+      if (selector.containsTarget(target) ||
+          selector.isDynamicSubmoduleOverridable) {
         return selector.signature;
       }
     }

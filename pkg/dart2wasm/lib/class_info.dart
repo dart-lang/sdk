@@ -572,7 +572,6 @@ class ClassInfoCollector {
         if (translator.isDynamicSubmodule && mainModuleConcreteRange.isEmpty) {
           final submoduleConcreteRange =
               classIdNumbering.getConcreteClassIdRangeForDynamicSubmodule(cls);
-          assert(submoduleConcreteRange.isNotEmpty);
           addRanges(submoduleConcreteRange);
         } else {
           assert(classIdNumbering

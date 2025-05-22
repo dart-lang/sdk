@@ -54,7 +54,7 @@ class _DynamicForwarderCallTarget extends CallTarget {
   _DynamicForwarderCallTarget(
       this.translator, this._kind, this.memberName, this.callingModule)
       : assert(!translator.isDynamicSubmodule ||
-            (memberName == 'call' && _kind == _ForwarderKind.Getter)),
+            (memberName == 'call' && _kind == _ForwarderKind.Method)),
         super(_kind.functionType(translator));
 
   @override
