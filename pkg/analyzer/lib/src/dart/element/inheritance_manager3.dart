@@ -353,7 +353,7 @@ class InheritanceManager3 {
     }
 
     var result = interface.map[name];
-    globalResultRequirements?.notifyInterfaceRequest(
+    globalResultRequirements?.record_interface_getMember(
       element: element.asElement2,
       nameObj: name,
       methodElement: result?.asElement2,

@@ -5083,7 +5083,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   @override
   ConstructorElementImpl2? getNamedConstructor2(String name) {
-    globalResultRequirements?.notify_interfaceElement_getNamedConstructor(
+    globalResultRequirements?.record_interfaceElement_getNamedConstructor(
       element: this,
       name: name,
     );
