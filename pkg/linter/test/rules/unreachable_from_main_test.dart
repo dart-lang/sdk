@@ -668,8 +668,7 @@ void main() {}
   }
 
   test_constructor_named_onEnum() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 void main() {
   E.one;
   E.two;
@@ -681,12 +680,7 @@ enum E {
   const E();
   const E.named();
 }
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_ELEMENT, 84, 5),
-      ],
-    );
+''');
   }
 
   test_constructor_named_reachableViaDirectCall() async {
@@ -1743,12 +1737,9 @@ void _f6() {}
       [
         lint(168, 1),
         error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 175, 7),
-        error(WarningCode.UNUSED_ELEMENT, 197, 4),
         error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 218, 7),
         error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 241, 7),
-        error(WarningCode.UNUSED_ELEMENT, 267, 4),
         error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 291, 7),
-        error(WarningCode.UNUSED_ELEMENT, 306, 3),
       ],
     );
   }

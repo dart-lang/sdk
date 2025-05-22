@@ -123,7 +123,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_FIELD, 57, 13), lint(57, 13)],
+      [lint(57, 13)],
     );
   }
 }
