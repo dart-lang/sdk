@@ -213,6 +213,7 @@ class Trimmer extends RecursiveVisitor {
   void visitField(Field node) {
     // Constant initializers are necessary for constant evaluation
     if (node.isConst) return;
+    if (!node.isStatic && node.enclosingClass!.hasConstConstructor) return;
 
     // Unfortunately a `null` initializer may be misinterpreted by the CFE or
     // the compiler. Ideally the kernel representation should have a sentinel
