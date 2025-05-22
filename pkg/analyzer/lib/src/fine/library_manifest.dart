@@ -26,6 +26,7 @@ class LibraryManifest {
 
   final Map<LookupName, ClassItem> declaredClasses;
   final Map<LookupName, EnumItem> declaredEnums;
+  final Map<LookupName, ExtensionItem> declaredExtensions;
   final Map<LookupName, ExtensionTypeItem> declaredExtensionTypes;
   final Map<LookupName, MixinItem> declaredMixins;
   final Map<LookupName, TopLevelGetterItem> declaredGetters;
@@ -37,6 +38,7 @@ class LibraryManifest {
     required this.reExportMap,
     required this.declaredClasses,
     required this.declaredEnums,
+    required this.declaredExtensions,
     required this.declaredExtensionTypes,
     required this.declaredMixins,
     required this.declaredGetters,
@@ -53,6 +55,9 @@ class LibraryManifest {
       ),
       declaredEnums: reader.readLookupNameMap(
         readValue: () => EnumItem.read(reader),
+      ),
+      declaredExtensions: reader.readLookupNameMap(
+        readValue: () => ExtensionItem.read(reader),
       ),
       declaredExtensionTypes: reader.readLookupNameMap(
         readValue: () => ExtensionTypeItem.read(reader),
@@ -81,6 +86,7 @@ class LibraryManifest {
       ...<Map<LookupName, TopLevelItem>>[
             declaredClasses,
             declaredEnums,
+            declaredExtensions,
             declaredExtensionTypes,
             declaredMixins,
             declaredGetters,
@@ -98,6 +104,7 @@ class LibraryManifest {
   ManifestItemId? getExportedId(LookupName name) {
     return declaredClasses[name]?.id ??
         declaredEnums[name]?.id ??
+        declaredExtensions[name]?.id ??
         declaredExtensionTypes[name]?.id ??
         declaredMixins[name]?.id ??
         declaredGetters[name]?.id ??
@@ -110,6 +117,7 @@ class LibraryManifest {
     reExportMap.write(sink);
     declaredClasses.write(sink);
     declaredEnums.write(sink);
+    declaredExtensions.write(sink);
     declaredExtensionTypes.write(sink);
     declaredMixins.write(sink);
     declaredGetters.write(sink);
@@ -283,6 +291,33 @@ class LibraryManifestBuilder {
         encodingContext: encodingContext,
         instanceElement: element,
         interfaceItem: enumItem,
+      );
+    });
+  }
+
+  void _addExtension({
+    required EncodeContext encodingContext,
+    required Map<LookupName, ExtensionItem> newItems,
+    required ExtensionElementImpl2 element,
+    required LookupName lookupName,
+  }) {
+    var extensionItem = _getOrBuildElementItem(element, () {
+      return ExtensionItem.fromElement(
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+    });
+    newItems[lookupName] = extensionItem;
+
+    encodingContext.withTypeParameters(element.typeParameters2, (
+      typeParameters,
+    ) {
+      extensionItem.beforeUpdatingMembers();
+      _addInstanceElementMembers(
+        encodingContext: encodingContext,
+        instanceElement: element,
+        instanceItem: extensionItem,
       );
     });
   }
@@ -652,6 +687,7 @@ class LibraryManifestBuilder {
       var libraryUri = libraryElement.uri;
       var newClassItems = <LookupName, ClassItem>{};
       var newEnumItems = <LookupName, EnumItem>{};
+      var newExtensionItems = <LookupName, ExtensionItem>{};
       var newExtensionTypeItems = <LookupName, ExtensionTypeItem>{};
       var newMixinItems = <LookupName, MixinItem>{};
       var newTopLevelGetters = <LookupName, TopLevelGetterItem>{};
@@ -677,6 +713,13 @@ class LibraryManifestBuilder {
             _addEnum(
               encodingContext: encodingContext,
               newItems: newEnumItems,
+              element: element,
+              lookupName: lookupName,
+            );
+          case ExtensionElementImpl2():
+            _addExtension(
+              encodingContext: encodingContext,
+              newItems: newExtensionItems,
               element: element,
               lookupName: lookupName,
             );
@@ -731,6 +774,7 @@ class LibraryManifestBuilder {
         reExportMap: {},
         declaredClasses: newClassItems,
         declaredEnums: newEnumItems,
+        declaredExtensions: newExtensionItems,
         declaredExtensionTypes: newExtensionTypeItems,
         declaredMixins: newMixinItems,
         declaredGetters: newTopLevelGetters,
@@ -909,6 +953,7 @@ class LibraryManifestBuilder {
           reExportMap: {},
           declaredClasses: {},
           declaredEnums: {},
+          declaredExtensions: {},
           declaredExtensionTypes: {},
           declaredMixins: {},
           declaredGetters: {},
@@ -1041,6 +1086,10 @@ class _LibraryMatch {
           if (!_matchEnum(name: name, element: element)) {
             structureMismatched.add(element);
           }
+        case ExtensionElementImpl2():
+          if (!_matchExtension(name: name, element: element)) {
+            structureMismatched.add(element);
+          }
         case ExtensionTypeElementImpl2():
           if (!_matchExtensionType(name: name, element: element)) {
             structureMismatched.add(element);
@@ -1134,6 +1183,31 @@ class _LibraryMatch {
       interfaceElement: element,
       item: item,
     );
+
+    _matchInstanceElementExecutables(
+      matchContext: matchContext,
+      element: element,
+      item: item,
+    );
+
+    return true;
+  }
+
+  bool _matchExtension({
+    required LookupName? name,
+    required ExtensionElementImpl2 element,
+  }) {
+    var item = manifest.declaredExtensions[name];
+    if (item == null) {
+      return false;
+    }
+
+    var matchContext = MatchContext(parent: null);
+    if (!item.match(matchContext, element)) {
+      return false;
+    }
+
+    _addMatchingElementItem(element, item, matchContext);
 
     _matchInstanceElementExecutables(
       matchContext: matchContext,

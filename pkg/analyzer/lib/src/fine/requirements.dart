@@ -423,6 +423,7 @@ class RequirementsManifest {
         var instanceItem =
             libraryManifest.declaredClasses[instanceName] ??
             libraryManifest.declaredEnums[instanceName] ??
+            libraryManifest.declaredExtensions[instanceName] ??
             libraryManifest.declaredExtensionTypes[instanceName] ??
             libraryManifest.declaredMixins[instanceName];
         if (instanceItem is! InstanceItem) {
@@ -889,6 +890,7 @@ class RequirementsManifest {
     var instanceItem =
         manifest.declaredClasses[instanceName] ??
         manifest.declaredEnums[instanceName] ??
+        manifest.declaredExtensions[instanceName] ??
         manifest.declaredExtensionTypes[instanceName] ??
         manifest.declaredMixins[instanceName];
 

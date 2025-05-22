@@ -144,6 +144,78 @@ class EnumItem extends InterfaceItem<EnumElementImpl2> {
   }
 }
 
+/// The item for [ExtensionElementImpl2].
+class ExtensionItem<E extends ExtensionElementImpl2> extends InstanceItem<E> {
+  final ManifestType extendedType;
+
+  ExtensionItem({
+    required super.id,
+    required super.metadata,
+    required super.typeParameters,
+    required super.declaredConflicts,
+    required super.declaredFields,
+    required super.declaredGetters,
+    required super.declaredSetters,
+    required super.declaredMethods,
+    required super.declaredConstructors,
+    required super.inheritedConstructors,
+    required this.extendedType,
+  });
+
+  factory ExtensionItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required ExtensionElementImpl2 element,
+  }) {
+    return context.withTypeParameters(element.typeParameters2, (
+      typeParameters,
+    ) {
+      return ExtensionItem(
+        id: id,
+        metadata: ManifestMetadata.encode(context, element.metadata2),
+        typeParameters: typeParameters,
+        declaredConflicts: {},
+        declaredFields: {},
+        declaredGetters: {},
+        declaredSetters: {},
+        declaredMethods: {},
+        declaredConstructors: {},
+        inheritedConstructors: {},
+        extendedType: element.extendedType.encode(context),
+      );
+    });
+  }
+
+  factory ExtensionItem.read(SummaryDataReader reader) {
+    return ExtensionItem(
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      typeParameters: ManifestTypeParameter.readList(reader),
+      declaredConflicts: reader.readLookupNameToIdMap(),
+      declaredFields: InstanceItemFieldItem.readMap(reader),
+      declaredGetters: InstanceItemGetterItem.readMap(reader),
+      declaredSetters: InstanceItemSetterItem.readMap(reader),
+      declaredMethods: InstanceItemMethodItem.readMap(reader),
+      declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
+      inheritedConstructors: reader.readLookupNameToIdMap(),
+      extendedType: ManifestType.read(reader),
+    );
+  }
+
+  @override
+  bool match(MatchContext context, E element) {
+    context.addTypeParameters(element.typeParameters2);
+    return super.match(context, element) &&
+        extendedType.match(context, element.extendedType);
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    extendedType.write(sink);
+  }
+}
+
 class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl2> {
   ExtensionTypeItem({
     required super.id,
