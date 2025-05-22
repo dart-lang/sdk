@@ -16,88 +16,57 @@ final Version dart3_3 = Version(3, 3, 0);
 @Deprecated("Prefer to use 'RuleState'")
 typedef State = RuleState;
 
-/// A state that marks an analysis rule as deprecated.
-final class DeprecatedRuleState extends RuleState {
+/// Describes the state of an analysis rule.
+final class RuleState {
+  /// An Optional Dart language version that identifies the start of this state.
+  final Version? since;
+
+  final _RuleStateType _type;
+
   /// The optional name of an analysis rule which replaces the rule with this
   /// state.
   final String? replacedBy;
 
-  const DeprecatedRuleState._({super.since, this.replacedBy});
+  /// Initializes a state that marks an analysis rule as deprecated.
+  const RuleState.deprecated({this.since, this.replacedBy})
+    : _type = _RuleStateType.deprecated;
 
-  @override
-  String get label => 'deprecated';
-}
+  /// Initializes a state that marks an analysis rule as experimental.
+  const RuleState.experimental({this.since})
+    : _type = _RuleStateType.experimental,
+      replacedBy = null;
 
-/// A state that marks an analysis rule as experimental.
-final class ExperimentalRuleState extends RuleState {
-  const ExperimentalRuleState._({super.since});
+  /// Initializes a state that marks an analysis rule as for internal (Dart SDK)
+  /// use only.
+  const RuleState.internal({this.since})
+    : _type = _RuleStateType.internal,
+      replacedBy = null;
 
-  @override
-  String get label => 'experimental';
-}
+  /// Initializes a state that identifies an analysis rule as having been removed.
+  const RuleState.removed({this.since, this.replacedBy})
+    : _type = _RuleStateType.removed;
 
-/// A state that marks an analysis rule as for internal (Dart SDK) use only.
-final class InternalRuleState extends RuleState {
-  const InternalRuleState._({super.since});
+  /// Initializes a state that marks an analysis rule as stable.
+  const RuleState.stable({this.since})
+    : _type = _RuleStateType.stable,
+      replacedBy = null;
 
-  @override
-  String get label => 'internal';
-}
+  /// Whether this state marks an analysis rule as deprecated.
+  bool get isDeprecated => _type == _RuleStateType.deprecated;
 
-/// A state that identifies an analysis rule as having been removed.
-final class RemovedRuleState extends RuleState {
-  /// An optional lint name that replaces the rule with this state.
-  final String? replacedBy;
+  /// Whether this state marks an analysis rule as experimental.
+  bool get isExperimental => _type == _RuleStateType.experimental;
 
-  const RemovedRuleState._({super.since, this.replacedBy});
+  /// Whether this state marks an analysis rule as internal.
+  bool get isInternal => _type == _RuleStateType.internal;
 
-  @override
-  String get label => 'removed';
-}
-
-/// Describes the state of a lint.
-sealed class RuleState {
-  /// An Optional Dart language version that identifies the start of this state.
-  final Version? since;
-
-  /// Initialize a newly created State object.
-  const RuleState({this.since});
-
-  /// Initialize a newly created deprecated state with given values.
-  const factory RuleState.deprecated({Version? since, String? replacedBy}) =
-      DeprecatedRuleState._;
-
-  /// Initialize a newly created experimental state with given values.
-  const factory RuleState.experimental({Version? since}) =
-      ExperimentalRuleState._;
-
-  /// Initialize a newly created internal state with given values.
-  const factory RuleState.internal({Version? since}) = InternalRuleState._;
-
-  /// Initialize a newly created removed state with given values.
-  const factory RuleState.removed({Version? since, String? replacedBy}) =
-      RemovedRuleState._;
-
-  /// Initialize a newly created stable state with given values.
-  const factory RuleState.stable({Version? since}) = StableRuleState._;
+  /// Whether this state marks an analysis rule as removed.
+  bool get isRemoved => _type == _RuleStateType.removed;
 
   /// A short description, suitable for displaying in documentation or a
   /// diagnostic message.
-  String get label;
+  String get label => _type.name;
 }
 
-/// A state that marks an analysis rule as stable.
-final class StableRuleState extends RuleState {
-  const StableRuleState._({super.since});
-
-  @override
-  String get label => 'stable';
-}
-
-extension StateExtension on RuleState {
-  bool get isDeprecated => this is DeprecatedRuleState;
-  bool get isExperimental => this is ExperimentalRuleState;
-  bool get isInternal => this is InternalRuleState;
-  bool get isRemoved => this is RemovedRuleState;
-  bool get isStable => this is StableRuleState;
-}
+/// The type of a rule state.
+enum _RuleStateType { deprecated, experimental, internal, removed, stable }

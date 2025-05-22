@@ -9,7 +9,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/state.dart';
 
 /// Used to validate the ignore comments in a single file.
 class IgnoreValidator {
@@ -207,9 +206,9 @@ class IgnoreValidator {
         } else {
           var state = rule.state;
           var since = state.since.toString();
-          if (state is DeprecatedRuleState) {
-            // `todo`(pq): implement
-          } else if (state is RemovedRuleState) {
+          if (state.isDeprecated) {
+            // TODO(pq): implement.
+          } else if (state.isRemoved) {
             var replacedBy = state.replacedBy;
             if (replacedBy != null) {
               _errorReporter.atOffset(

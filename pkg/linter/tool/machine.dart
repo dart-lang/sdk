@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/state.dart';
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 import 'package:linter/src/analyzer.dart';
