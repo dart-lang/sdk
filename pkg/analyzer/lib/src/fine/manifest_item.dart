@@ -144,6 +144,71 @@ class EnumItem extends InterfaceItem<EnumElementImpl2> {
   }
 }
 
+class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl2> {
+  ExtensionTypeItem({
+    required super.id,
+    required super.metadata,
+    required super.typeParameters,
+    required super.declaredConflicts,
+    required super.declaredFields,
+    required super.declaredGetters,
+    required super.declaredSetters,
+    required super.declaredMethods,
+    required super.declaredConstructors,
+    required super.inheritedConstructors,
+    required super.interface,
+    required super.supertype,
+    required super.mixins,
+    required super.interfaces,
+  });
+
+  factory ExtensionTypeItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required ExtensionTypeElementImpl2 element,
+  }) {
+    return context.withTypeParameters(element.typeParameters2, (
+      typeParameters,
+    ) {
+      return ExtensionTypeItem(
+        id: id,
+        metadata: ManifestMetadata.encode(context, element.metadata2),
+        typeParameters: typeParameters,
+        declaredConflicts: {},
+        declaredFields: {},
+        declaredGetters: {},
+        declaredSetters: {},
+        declaredMethods: {},
+        declaredConstructors: {},
+        inheritedConstructors: {},
+        interface: ManifestInterface.empty(),
+        supertype: element.supertype?.encode(context),
+        mixins: element.mixins.encode(context),
+        interfaces: element.interfaces.encode(context),
+      );
+    });
+  }
+
+  factory ExtensionTypeItem.read(SummaryDataReader reader) {
+    return ExtensionTypeItem(
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      typeParameters: ManifestTypeParameter.readList(reader),
+      declaredConflicts: reader.readLookupNameToIdMap(),
+      declaredFields: InstanceItemFieldItem.readMap(reader),
+      declaredGetters: InstanceItemGetterItem.readMap(reader),
+      declaredSetters: InstanceItemSetterItem.readMap(reader),
+      declaredMethods: InstanceItemMethodItem.readMap(reader),
+      declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
+      inheritedConstructors: reader.readLookupNameToIdMap(),
+      supertype: ManifestType.readOptional(reader),
+      mixins: ManifestType.readList(reader),
+      interfaces: ManifestType.readList(reader),
+      interface: ManifestInterface.read(reader),
+    );
+  }
+}
+
 /// The item for [InstanceElementImpl2].
 sealed class InstanceItem<E extends InstanceElementImpl2>
     extends TopLevelItem<E> {

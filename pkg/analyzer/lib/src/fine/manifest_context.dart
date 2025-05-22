@@ -207,6 +207,7 @@ final class ManifestElement {
 enum ManifestElementKind {
   class_,
   enum_,
+  extensionType,
   mixin_,
   topLevelVariable,
   topLevelGetter,
@@ -224,6 +225,8 @@ enum ManifestElementKind {
         return ManifestElementKind.class_;
       case EnumElement():
         return ManifestElementKind.enum_;
+      case ExtensionTypeElement():
+        return ManifestElementKind.extensionType;
       case MixinElement():
         return ManifestElementKind.mixin_;
       case TopLevelVariableElement():

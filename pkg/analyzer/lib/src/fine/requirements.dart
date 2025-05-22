@@ -423,6 +423,7 @@ class RequirementsManifest {
         var instanceItem =
             libraryManifest.declaredClasses[instanceName] ??
             libraryManifest.declaredEnums[instanceName] ??
+            libraryManifest.declaredExtensionTypes[instanceName] ??
             libraryManifest.declaredMixins[instanceName];
         if (instanceItem is! InstanceItem) {
           return TopLevelNotInterface(
@@ -507,6 +508,7 @@ class RequirementsManifest {
         var interfaceItem =
             libraryManifest.declaredClasses[interfaceName] ??
             libraryManifest.declaredEnums[interfaceName] ??
+            libraryManifest.declaredExtensionTypes[interfaceName] ??
             libraryManifest.declaredMixins[interfaceName];
         if (interfaceItem is! InterfaceItem) {
           return TopLevelNotInterface(
@@ -887,6 +889,7 @@ class RequirementsManifest {
     var instanceItem =
         manifest.declaredClasses[instanceName] ??
         manifest.declaredEnums[instanceName] ??
+        manifest.declaredExtensionTypes[instanceName] ??
         manifest.declaredMixins[instanceName];
 
     // SAFETY: every instance element must be in the manifest.
@@ -919,6 +922,7 @@ class RequirementsManifest {
     var interfaceItem =
         manifest.declaredClasses[interfaceName] ??
         manifest.declaredEnums[interfaceName] ??
+        manifest.declaredExtensionTypes[interfaceName] ??
         manifest.declaredMixins[interfaceName];
 
     // SAFETY: every interface element must be in the manifest.

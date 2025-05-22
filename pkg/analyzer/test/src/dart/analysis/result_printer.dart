@@ -829,6 +829,13 @@ class LibraryManifestPrinter {
       _writeEnumItem(item);
     });
 
+    var extensionTypeEntries = manifest.declaredExtensionTypes.sorted;
+    sink.writeElements('declaredExtensionTypes', extensionTypeEntries, (entry) {
+      var item = entry.value;
+      _writeNamedId(entry.key, item.id);
+      _writeExtensionTypeItem(item);
+    });
+
     var mixinEntries = manifest.declaredMixins.sorted;
     sink.writeElements('declaredMixins', mixinEntries, (entry) {
       var item = entry.value;
@@ -898,6 +905,21 @@ class LibraryManifestPrinter {
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeTypeList('mixins', item.mixins);
+        _writeTypeList('interfaces', item.interfaces);
+      });
+    }
+
+    sink.withIndent(() {
+      _writeInstanceItemMembers(item);
+      _writeInterfaceItemInterface(item);
+    });
+  }
+
+  void _writeExtensionTypeItem(ExtensionTypeItem item) {
+    if (configuration.withElementManifests) {
+      sink.withIndent(() {
+        _writeMetadata(item);
+        _writeTypeParameters(item.typeParameters);
         _writeTypeList('interfaces', item.interfaces);
       });
     }

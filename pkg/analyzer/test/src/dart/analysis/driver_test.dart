@@ -14662,6 +14662,265 @@ final a = 1.2;
     );
   }
 
+  test_dependency_extensionType_method_returnType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          foo: #M3
+        interface
+          map
+            foo: #M3
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M5
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M3
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          foo: #M6
+        interface
+          map
+            foo: #M6
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M7
+        int: #M4
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M3
+    actualId: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M6
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_method_returnType_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  int foo() {}
+  int bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          bar: #M3
+          foo: #M4
+        interface
+          map
+            bar: #M3
+            foo: #M4
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M6
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M4
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  int foo() {}
+  double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          bar: #M7
+          foo: #M4
+        interface
+          map
+            bar: #M7
+            foo: #M4
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M8
+        int: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_mixin_getter_inherited_fromGeneric_on_changeTypeArgument() async {
     configuration.withStreamResolvedUnitResults = false;
     await _runChangeScenarioTA(
@@ -37143,6 +37402,459 @@ mixin M {
         interface
           map
             foo: #M5
+''',
+    );
+  }
+
+  test_manifest_extensionType_getter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A(int it) {
+  int get foo {}
+  int get bar {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          it: #M3
+        declaredGetters
+          bar: #M4
+          foo: #M5
+          it: #M6
+        interface
+          map
+            bar: #M4
+            foo: #M5
+            it: #M6
+''',
+      updatedCode: r'''
+extension type A(int it) {
+  int get foo {}
+  double get bar {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          bar: #M7
+          foo: #M2
+          it: #M3
+        declaredGetters
+          bar: #M8
+          foo: #M5
+          it: #M6
+        interface
+          map
+            bar: #M8
+            foo: #M5
+            it: #M6
+''',
+    );
+  }
+
+  test_manifest_extensionType_implements_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A(int it) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface
+          map
+            it: #M2
+''',
+      updatedCode: r'''
+extension type A(int it) implements Object {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M3
+        declaredFields
+          it: #M4
+        declaredGetters
+          it: #M5
+        interface
+          map
+            it: #M5
+''',
+    );
+  }
+
+  test_manifest_extensionType_implements_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A(int it) implements Object {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface
+          map
+            it: #M2
+''',
+      updatedCode: r'''
+extension type A(int it) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M3
+        declaredFields
+          it: #M4
+        declaredGetters
+          it: #M5
+        interface
+          map
+            it: #M5
+''',
+    );
+  }
+
+  test_manifest_extensionType_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprecated('0')
+extension type A(int it) {}
+
+@Deprecated('0')
+extension type B(int it) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface
+          map
+            it: #M2
+      B: #M3
+        declaredFields
+          it: #M4
+        declaredGetters
+          it: #M5
+        interface
+          map
+            it: #M5
+''',
+      updatedCode: r'''
+@Deprecated('0')
+extension type A(int it) {}
+
+@Deprecated('1')
+extension type B(int it) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface
+          map
+            it: #M2
+      B: #M6
+        declaredFields
+          it: #M7
+        declaredGetters
+          it: #M8
+        interface
+          map
+            it: #M8
+''',
+    );
+  }
+
+  test_manifest_extensionType_method() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A(int it) {
+  int foo() {}
+  int bar() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          bar: #M3
+          foo: #M4
+        interface
+          map
+            bar: #M3
+            foo: #M4
+            it: #M2
+''',
+      updatedCode: r'''
+extension type A(int it) {
+  int foo() {}
+  double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          bar: #M5
+          foo: #M4
+        interface
+          map
+            bar: #M5
+            foo: #M4
+            it: #M2
+''',
+    );
+  }
+
+  test_manifest_extensionType_representation_constructorName() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A.foo(int it) {
+  void baz() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          baz: #M3
+        declaredConstructors
+          foo: #M4
+        interface
+          map
+            baz: #M3
+            it: #M2
+''',
+      updatedCode: r'''
+extension type A.bar(int it) {
+  void baz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          baz: #M3
+        declaredConstructors
+          bar: #M5
+        interface
+          map
+            baz: #M3
+            it: #M2
+''',
+    );
+  }
+
+  test_manifest_extensionType_representation_field_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A(int it) {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          foo: #M3
+        interface
+          map
+            foo: #M3
+            it: #M2
+''',
+      updatedCode: r'''
+extension type A(int _it) {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          _it: #M4
+        declaredGetters
+          _it: #M5
+        declaredMethods
+          foo: #M3
+        interface
+          map
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_extensionType_representation_field_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A(int it) {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          foo: #M3
+        interface
+          map
+            foo: #M3
+            it: #M2
+''',
+      updatedCode: r'''
+extension type A(double it) {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M4
+        declaredGetters
+          it: #M5
+        declaredMethods
+          foo: #M3
+        interface
+          map
+            foo: #M3
+            it: #M5
+''',
+    );
+  }
+
+  test_manifest_extensionType_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A(int it) {
+  set foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          it: #M3
+        declaredGetters
+          it: #M4
+        declaredSetters
+          bar=: #M5
+          foo=: #M6
+        interface
+          map
+            bar=: #M5
+            foo=: #M6
+            it: #M4
+''',
+      updatedCode: r'''
+extension type A(int it) {
+  set foo(int _) {}
+  set bar(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          bar: #M7
+          foo: #M2
+          it: #M3
+        declaredGetters
+          it: #M4
+        declaredSetters
+          bar=: #M8
+          foo=: #M6
+        interface
+          map
+            bar=: #M8
+            foo=: #M6
+            it: #M4
 ''',
     );
   }
