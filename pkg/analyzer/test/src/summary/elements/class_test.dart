@@ -13104,7 +13104,7 @@ library
               element: <testLibraryFragment>::@class::0::@constructor::new#element
               typeName: null
   classes
-    class 
+    class <null-name>
       reference: <testLibrary>::@class::0
       firstFragment: <testLibraryFragment>::@class::0
       constructors

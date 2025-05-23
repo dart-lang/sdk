@@ -4544,7 +4544,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   List<MethodElementImpl2> get methods2 => methods;
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name3 => firstFragment.name2;
 
   @override
   Element get nonSynthetic2 => isSynthetic ? enclosingElement : this as Element;

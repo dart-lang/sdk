@@ -1433,7 +1433,7 @@ library
           reference: <testLibraryFragment>::@mixin::0
           element: <testLibrary>::@mixin::0
   mixins
-    mixin 
+    mixin <null-name>
       reference: <testLibrary>::@mixin::0
       firstFragment: <testLibraryFragment>::@mixin::0
       superclassConstraints

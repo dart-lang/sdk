@@ -155,6 +155,7 @@ mixin ElementsTypesMixin {
     List<MethodElementImpl2> methods = const [],
   }) {
     var fragment = ClassFragmentImpl(name, 0);
+    fragment.name2 = name;
     fragment.isAbstract = isAbstract;
     fragment.isAugmentation = isAugmentation;
     fragment.isSealed = isSealed;
@@ -479,6 +480,7 @@ mixin ElementsTypesMixin {
     List<InterfaceTypeImpl> interfaces = const [],
   }) {
     var fragment = MixinFragmentImpl(name, 0);
+    fragment.name2 = name;
     fragment.isAugmentation = isAugmentation;
     fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
@@ -500,6 +502,7 @@ mixin ElementsTypesMixin {
     List<InterfaceTypeImpl> interfaces = const [],
   }) {
     var fragment = MixinFragmentImpl(name, 0);
+    fragment.name2 = name;
     fragment.isAugmentation = isAugmentation;
     fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();

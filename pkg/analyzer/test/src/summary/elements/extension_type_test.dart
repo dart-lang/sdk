@@ -1621,7 +1621,7 @@ library
               reference: <testLibraryFragment>::@extensionType::0::@getter::it
               element: <testLibraryFragment>::@extensionType::0::@getter::it#element
   extensionTypes
-    extension type 
+    extension type <null-name>
       reference: <testLibrary>::@extensionType::0
       firstFragment: <testLibraryFragment>::@extensionType::0
       representation: <testLibraryFragment>::@extensionType::0::@field::it#element

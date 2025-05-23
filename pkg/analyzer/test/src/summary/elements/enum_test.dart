@@ -3096,13 +3096,13 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: <empty> @-1 <synthetic>
-                      element2: <testLibrary>::@enum::0
-                      type: 
-                    element: <testLibraryFragment>::@enum::0::@constructor::new#element
+                      element2: <null>
+                      type: InvalidType
+                    element: <null>
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  staticType: 
+                  staticType: InvalidType
               getter2: <testLibraryFragment>::@enum::0::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::0::@field::values
@@ -3114,9 +3114,9 @@ library
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibraryFragment>::@enum::0::@getter::v#element
-                      staticType: 
+                      staticType: InvalidType
                   rightBracket: ] @0
-                  staticType: List<>
+                  staticType: List<<null>>
               getter2: <testLibraryFragment>::@enum::0::@getter::values
           constructors
             synthetic const new
@@ -3131,21 +3131,21 @@ library
               reference: <testLibraryFragment>::@enum::0::@getter::values
               element: <testLibraryFragment>::@enum::0::@getter::values#element
   enums
-    enum 
+    enum <null-name>
       reference: <testLibrary>::@enum::0
       firstFragment: <testLibraryFragment>::@enum::0
       supertype: Enum
       fields
         static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::0::@field::v
-          type: 
+          type: InvalidType
           constantInitializer
             fragment: <testLibraryFragment>::@enum::0::@field::v
             expression: expression_0
           getter: <testLibraryFragment>::@enum::0::@getter::v#element
         synthetic static const values
           firstFragment: <testLibraryFragment>::@enum::0::@field::values
-          type: List<>
+          type: List<<null>>
           constantInitializer
             fragment: <testLibraryFragment>::@enum::0::@field::values
             expression: expression_1
@@ -3156,10 +3156,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::0::@getter::v
-          returnType: 
+          returnType: InvalidType
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::0::@getter::values
-          returnType: List<>
+          returnType: List<<null>>
 ''');
   }
 
