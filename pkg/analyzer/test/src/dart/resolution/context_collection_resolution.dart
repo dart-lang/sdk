@@ -344,7 +344,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
     String directoryPath,
     PackageConfigFileBuilder config,
   ) {
-    var content = config.toContent(toUriStr: toUriStr);
+    var content = config.toContent(pathContext: pathContext);
     newPackageConfigJsonFile(directoryPath, content);
   }
 

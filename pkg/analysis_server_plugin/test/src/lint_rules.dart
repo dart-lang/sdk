@@ -41,6 +41,27 @@ class NoDoublesRule extends AnalysisRule {
   }
 }
 
+class NoDoublesWarningRule extends AnalysisRule {
+  static const LintCode code = LintCode(
+    'no_doubles_warning',
+    'No doubles message',
+    severity: DiagnosticSeverity.WARNING,
+  );
+
+  NoDoublesWarningRule()
+      : super(name: 'no_doubles_warning', description: 'No doubles message');
+
+  @override
+  DiagnosticCode get diagnosticCode => code;
+
+  @override
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
+    var visitor = _NoDoublesVisitor(this);
+    registry.addDoubleLiteral(this, visitor);
+  }
+}
+
 class _NoBoolsVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 

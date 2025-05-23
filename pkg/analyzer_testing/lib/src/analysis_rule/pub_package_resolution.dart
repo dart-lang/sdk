@@ -413,7 +413,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, config.toContent(toUriStr: toUriStr));
+    newFile(path, config.toContent(pathContext: pathContext));
   }
 
   void writeTestPackageConfig(PackageConfigFileBuilder config) {

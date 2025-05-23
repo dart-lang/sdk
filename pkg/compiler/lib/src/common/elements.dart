@@ -483,18 +483,6 @@ abstract class CommonElements {
   )!;
   late final ConstructorEntity mapLiteralConstructorEmpty = _env
       .lookupConstructor(mapLiteralClass, '_empty')!;
-  late final FunctionEntity mapLiteralUntypedMaker =
-      _env.lookupLocalClassMember(
-            mapLiteralClass,
-            PrivateName('_makeLiteral', mapLiteralClass.library.canonicalUri),
-          )
-          as FunctionEntity;
-  late final FunctionEntity mapLiteralUntypedEmptyMaker =
-      _env.lookupLocalClassMember(
-            mapLiteralClass,
-            PrivateName('_makeEmpty', mapLiteralClass.library.canonicalUri),
-          )
-          as FunctionEntity;
 
   late final ClassEntity setLiteralClass = _findClass(
     collectionLibrary,
@@ -507,18 +495,6 @@ abstract class CommonElements {
   )!;
   late final ConstructorEntity setLiteralConstructorEmpty = _env
       .lookupConstructor(setLiteralClass, '_empty')!;
-  late final FunctionEntity setLiteralUntypedMaker =
-      _env.lookupLocalClassMember(
-            setLiteralClass,
-            PrivateName('_makeLiteral', setLiteralClass.library.canonicalUri),
-          )
-          as FunctionEntity;
-  late final FunctionEntity setLiteralUntypedEmptyMaker =
-      _env.lookupLocalClassMember(
-            setLiteralClass,
-            PrivateName('_makeEmpty', setLiteralClass.library.canonicalUri),
-          )
-          as FunctionEntity;
 
   late final FunctionEntity? objectNoSuchMethod =
       _env.lookupLocalClassMember(

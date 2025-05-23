@@ -4436,7 +4436,7 @@ package:analyzer/error/error.dart:
     compareTo (method: int Function(DiagnosticType))
     toString (method: String Function())
   LintCode (class extends DiagnosticCode):
-    new (constructor: LintCode Function(String, String, {String? correctionMessage, bool hasPublishedDocs, String? uniqueName}))
+    new (constructor: LintCode Function(String, String, {String? correctionMessage, bool hasPublishedDocs, DiagnosticSeverity severity, String? uniqueName}))
     errorSeverity (getter: DiagnosticSeverity)
     hashCode (getter: int)
     type (getter: DiagnosticType)
@@ -4862,7 +4862,7 @@ package:analyzer/utilities/package_config_file_builder.dart:
     new (constructor: PackageConfigFileBuilder Function())
     add (method: void Function({String? languageVersion, required String name, String packageUri, required String rootPath}))
     copy (method: PackageConfigFileBuilder Function())
-    toContent (method: String Function({required String Function(String) toUriStr}))
+    toContent (method: String Function({required Context pathContext}))
 package:analyzer/workspace/workspace.dart:
   WorkspacePackage (class extends Object):
     new (constructor: WorkspacePackage Function())

@@ -48,7 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         nodeToAnnotate.offset,
         nodeToAnnotate.length,
-        errorCode: LinterLintCode.deprecated_consistency_constructor,
+        diagnosticCode: LinterLintCode.deprecated_consistency_constructor,
       );
     }
   }
@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {
       rule.reportAtNode(
         node,
-        errorCode: LinterLintCode.deprecated_consistency_field,
+        diagnosticCode: LinterLintCode.deprecated_consistency_field,
       );
     }
     if (!field.hasDeprecated && declaredElement.hasDeprecated) {
@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         nameOffset,
         nameLength,
-        errorCode: LinterLintCode.deprecated_consistency_parameter,
+        diagnosticCode: LinterLintCode.deprecated_consistency_parameter,
       );
     }
   }

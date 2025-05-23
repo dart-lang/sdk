@@ -175,7 +175,7 @@ analyzer:
     // Add the generated project into package_config.json.
     var config = PackageConfigFileBuilder();
     config.add(name: 'foo', rootPath: generatedProject);
-    newFile(configPath, config.toContent(toUriStr: toUriStr));
+    newFile(configPath, config.toContent(pathContext: pathContext));
 
     // Set up project that references the class prior to initial analysis.
     var generatedFile = newFile(generatedFilePath, 'class A {}');

@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (literal.typeArguments == null) {
       rule.reportAtToken(
         literal.beginToken,
-        errorCode: LinterLintCode.always_specify_types_add_type,
+        diagnosticCode: LinterLintCode.always_specify_types_add_type,
       );
     }
   }
@@ -73,13 +73,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (keyword.keyword == Keyword.VAR) {
           rule.reportAtToken(
             keyword,
-            errorCode: LinterLintCode.always_specify_types_replace_keyword,
+            diagnosticCode: LinterLintCode.always_specify_types_replace_keyword,
             arguments: [keyword.lexeme, element!.type],
           );
         } else {
           rule.reportAtToken(
             keyword,
-            errorCode: LinterLintCode.always_specify_types_specify_type,
+            diagnosticCode: LinterLintCode.always_specify_types_specify_type,
             arguments: [element!.type],
           );
         }
@@ -97,13 +97,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportAtToken(
           tokenToLint,
           arguments: [keyword.lexeme, type],
-          errorCode: LinterLintCode.always_specify_types_replace_keyword,
+          diagnosticCode: LinterLintCode.always_specify_types_replace_keyword,
         );
       } else {
         rule.reportAtToken(
           tokenToLint,
           arguments: [type],
-          errorCode: LinterLintCode.always_specify_types_specify_type,
+          diagnosticCode: LinterLintCode.always_specify_types_specify_type,
         );
       }
     }
@@ -126,7 +126,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           !element.metadata2.hasOptionalTypeArgs) {
         rule.reportAtNode(
           namedType,
-          errorCode: LinterLintCode.always_specify_types_add_type,
+          diagnosticCode: LinterLintCode.always_specify_types_add_type,
         );
       }
     }
@@ -150,25 +150,25 @@ class _Visitor extends SimpleAstVisitor<void> {
           rule.reportAtToken(
             keyword,
             arguments: [keyword.lexeme, type],
-            errorCode: LinterLintCode.always_specify_types_replace_keyword,
+            diagnosticCode: LinterLintCode.always_specify_types_replace_keyword,
           );
         } else {
           rule.reportAtToken(
             keyword,
-            errorCode: LinterLintCode.always_specify_types_add_type,
+            diagnosticCode: LinterLintCode.always_specify_types_add_type,
           );
         }
       } else if (type != null) {
         if (type is DynamicType) {
           rule.reportAtNode(
             param,
-            errorCode: LinterLintCode.always_specify_types_add_type,
+            diagnosticCode: LinterLintCode.always_specify_types_add_type,
           );
         } else {
           rule.reportAtNode(
             param,
             arguments: [type],
-            errorCode: LinterLintCode.always_specify_types_specify_type,
+            diagnosticCode: LinterLintCode.always_specify_types_specify_type,
           );
         }
       }
@@ -217,7 +217,11 @@ class _Visitor extends SimpleAstVisitor<void> {
           lintCode = LinterLintCode.always_specify_types_add_type;
         }
       }
-      rule.reportAtToken(keyword, arguments: arguments, errorCode: lintCode);
+      rule.reportAtToken(
+        keyword,
+        arguments: arguments,
+        diagnosticCode: lintCode,
+      );
     }
   }
 

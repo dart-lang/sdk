@@ -767,7 +767,7 @@ class IsCheckerCallTarget extends CallTarget {
     // Always inline single class-id range checks (no branching, simply loads,
     // arithmetic and unsigned compare).
     final ranges = translator.classIdNumbering
-        .getConcreteClassIdRangeForCurrentModule(interfaceClass);
+        .getConcreteClassIdRangeForClass(interfaceClass);
     return ranges.length <= 1;
   }
 
@@ -883,10 +883,37 @@ class IsCheckerCodeGenerator implements CodeGenerator {
         b.ref_test(translator.closureInfo.nonNullableType);
       } else {
         final ranges = translator.classIdNumbering
-            .getConcreteClassIdRangeForCurrentModule(interfaceClass);
+            .getConcreteClassIdRangeForClass(interfaceClass);
         b.local_get(operand);
         b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-        b.emitClassIdRangeCheck(ranges);
+        if (translator.isDynamicSubmodule) {
+          // Only types that are not dynamic module extendable can get here.
+          final classIdLocal = b.addLocal(w.NumType.i32);
+          b.local_tee(classIdLocal);
+          translator.callReference(translator.classIdToModuleId.reference, b);
+          b.i32_wrap_i64();
+          // Check if the class ID belongs to this module or the main module.
+          b.global_get(translator.dynamicModuleInfo!.moduleIdGlobal);
+          b.i32_wrap_i64();
+          b.i32_eq();
+          b.local_get(classIdLocal);
+          b.i32_const(translator.classIdNumbering.firstDynamicSubmoduleClassId);
+          b.i32_lt_u();
+          b.i32_or();
+          b.if_(const [], const [w.NumType.i32]);
+          // If it is in a known range, then localize the class ID to this
+          // module. If the class is from the main module this will do nothing.
+          b.local_get(classIdLocal);
+          translator.callReference(translator.localizeClassId.reference, b);
+          b.emitClassIdRangeCheck(ranges);
+          b.else_();
+          // If it's not in the main module or this submodule then the type is
+          // unknown to this module so the test fails.
+          b.i32_const(0);
+          b.end();
+        } else {
+          b.emitClassIdRangeCheck(ranges);
+        }
       }
       b.br(resultLabel);
     }
@@ -922,7 +949,9 @@ class AsCheckerCallTarget extends CallTarget {
       this.testedAgainstType,
       this.operandIsNullable,
       this.checkArguments,
-      this.argumentCount);
+      this.argumentCount)
+      : assert(!testedAgainstType.classNode
+            .isDynamicSubmoduleExtendable(translator.coreTypes));
 
   @override
   String get name {

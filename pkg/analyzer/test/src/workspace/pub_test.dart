@@ -76,7 +76,7 @@ class PackageBuildFileUriResolverTest with ResourceProviderMixin {
     config.add(name: 'test', rootPath: convertPath(testPackageRootPath));
     newPackageConfigJsonFile(
       testPackageRootPath,
-      config.toContent(toUriStr: toUriStr),
+      config.toContent(pathContext: pathContext),
     );
 
     workspace =
@@ -230,7 +230,7 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
     config.add(name: 'project', rootPath: '/workspace');
     newPackageConfigJsonFile(
       workspacePath,
-      config.toContent(toUriStr: toUriStr),
+      config.toContent(pathContext: pathContext),
     );
     workspace =
         PackageConfigWorkspace.find(
@@ -570,7 +570,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     for (var name in packageNames) {
       config.add(name: name, rootPath: convertPath('/packages/$name'));
     }
-    newPackageConfigJsonFile(root, config.toContent(toUriStr: toUriStr));
+    newPackageConfigJsonFile(root, config.toContent(pathContext: pathContext));
     return PackageConfigWorkspace.find(
       resourceProvider,
       Packages.empty,
@@ -610,7 +610,7 @@ class PubPackageTest extends WorkspacePackageTest {
     config.add(name: 'workspace', rootPath: '/workspace');
     newPackageConfigJsonFile(
       '/workspace',
-      config.toContent(toUriStr: toUriStr),
+      config.toContent(pathContext: pathContext),
     );
     workspace =
         PackageConfigWorkspace.find(
@@ -627,7 +627,7 @@ class PubPackageTest extends WorkspacePackageTest {
     config.add(name: 'foo', rootPath: fooPackageRootPath);
     newPackageConfigJsonFile(
       myPackageRootPath,
-      config.toContent(toUriStr: toUriStr),
+      config.toContent(pathContext: pathContext),
     );
     newFolder(myPackageGeneratedPath);
     myWorkspace =

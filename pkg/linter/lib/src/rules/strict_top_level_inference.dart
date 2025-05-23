@@ -120,7 +120,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (overriddenMember == null) {
           rule.reportAtToken(
             variable.name,
-            errorCode: LinterLintCode.strict_top_level_inference_split_to_types,
+            diagnosticCode:
+                LinterLintCode.strict_top_level_inference_split_to_types,
           );
         }
       }
@@ -180,7 +181,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isOverride(node, element)) {
       rule.reportAtToken(
         node.name,
-        errorCode: LinterLintCode.strict_top_level_inference_add_type,
+        diagnosticCode: LinterLintCode.strict_top_level_inference_add_type,
       );
     }
   }
@@ -202,7 +203,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (node.returnType == null) {
         rule.reportAtToken(
           node.name,
-          errorCode: LinterLintCode.strict_top_level_inference_add_type,
+          diagnosticCode: LinterLintCode.strict_top_level_inference_add_type,
         );
       }
       if (node.parameters case var parameters?) {
@@ -235,7 +236,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isOverride(node, element)) {
       rule.reportAtToken(
         node.name,
-        errorCode: LinterLintCode.strict_top_level_inference_add_type,
+        diagnosticCode: LinterLintCode.strict_top_level_inference_add_type,
       );
     }
   }
@@ -253,13 +254,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (keyword == null || keyword.type == Keyword.FINAL) {
       rule.reportAtToken(
         errorToken,
-        errorCode: LinterLintCode.strict_top_level_inference_add_type,
+        diagnosticCode: LinterLintCode.strict_top_level_inference_add_type,
       );
     } else if (keyword.type == Keyword.VAR) {
       rule.reportAtToken(
         errorToken,
         arguments: [keyword.lexeme],
-        errorCode: LinterLintCode.strict_top_level_inference_replace_keyword,
+        diagnosticCode:
+            LinterLintCode.strict_top_level_inference_replace_keyword,
       );
     }
   }

@@ -377,7 +377,7 @@ class PluginServer {
         AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true));
 
     var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
-    var errors = listener.errors.where((e) {
+    var diagnostics = listener.errors.where((e) {
       var pluginName = pluginCodeMapping[e.errorCode.name];
       if (pluginName == null) {
         // If [e] is somehow not mapped, something is wrong; but don't mark it
@@ -389,17 +389,17 @@ class PluginServer {
 
     // The list of the `AnalysisError`s and their associated
     // `protocol.AnalysisError`s.
-    var errorsAndProtocolErrors = [
-      for (var e in errors)
+    var diagnosticsAndProtocolErrors = [
+      for (var diagnostic in diagnostics)
         (
-          diagnostic: e,
+          diagnostic: diagnostic,
           protocolError: protocol.AnalysisError(
-            protocol.AnalysisErrorSeverity.INFO,
+            _severityOf(diagnostic),
             protocol.AnalysisErrorType.STATIC_WARNING,
-            _locationFor(currentUnit.unit, path, e),
-            e.message,
-            e.errorCode.name,
-            correction: e.correctionMessage,
+            _locationFor(currentUnit.unit, path, diagnostic),
+            diagnostic.message,
+            diagnostic.errorCode.name,
+            correction: diagnostic.correctionMessage,
             // TODO(srawlins): Use a valid value here.
             hasFix: true,
           )
@@ -407,9 +407,22 @@ class PluginServer {
     ];
     _recentState[path] = (
       analysisContext: analysisContext,
-      errors: [...errorsAndProtocolErrors],
+      errors: [...diagnosticsAndProtocolErrors],
     );
-    return errorsAndProtocolErrors.map((e) => e.protocolError).toList();
+    return diagnosticsAndProtocolErrors.map((e) => e.protocolError).toList();
+  }
+
+  /// Converts the severity of [diagnostic] into a
+  /// [protocol.AnalysisErrorSeverity].
+  protocol.AnalysisErrorSeverity _severityOf(Diagnostic diagnostic) {
+    try {
+      return protocol.AnalysisErrorSeverity.values
+          .byName(diagnostic.severity.name.toUpperCase());
+    } catch (_) {
+      assert(false, 'Invalid severity: ${diagnostic.severity}');
+      // Return the default severity of `LintCode`.
+      return protocol.AnalysisErrorSeverity.INFO;
+    }
   }
 
   /// Invokes [fn] first for priority analysis contexts, then for the rest.

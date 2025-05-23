@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
@@ -423,6 +422,8 @@ class RequirementsManifest {
         var instanceItem =
             libraryManifest.declaredClasses[instanceName] ??
             libraryManifest.declaredEnums[instanceName] ??
+            libraryManifest.declaredExtensions[instanceName] ??
+            libraryManifest.declaredExtensionTypes[instanceName] ??
             libraryManifest.declaredMixins[instanceName];
         if (instanceItem is! InstanceItem) {
           return TopLevelNotInterface(
@@ -507,6 +508,7 @@ class RequirementsManifest {
         var interfaceItem =
             libraryManifest.declaredClasses[interfaceName] ??
             libraryManifest.declaredEnums[interfaceName] ??
+            libraryManifest.declaredExtensionTypes[interfaceName] ??
             libraryManifest.declaredMixins[interfaceName];
         if (interfaceItem is! InterfaceItem) {
           return TopLevelNotInterface(
@@ -561,77 +563,6 @@ class RequirementsManifest {
     return null;
   }
 
-  void notify_interfaceElement_getNamedConstructor({
-    required InterfaceElementImpl2 element,
-    required String name,
-  }) {
-    var itemRequirements = _getInterfaceItem(element);
-    if (itemRequirements == null) {
-      return;
-    }
-
-    var item = itemRequirements.item;
-    var requirements = itemRequirements.requirements;
-
-    var constructorName = name.asLookupName;
-    var constructorId = item.getConstructorId(constructorName);
-    requirements.constructors[constructorName] = constructorId;
-  }
-
-  /// This method is invoked by [InheritanceManager3] to notify the collector
-  /// that a member with [nameObj] was requested from the [element].
-  void notifyInterfaceRequest({
-    required InterfaceElementImpl2 element,
-    required Name nameObj,
-    required ExecutableElement? methodElement,
-  }) {
-    // Skip private names, cannot be used outside this library.
-    if (!nameObj.isPublic) {
-      return;
-    }
-
-    var itemRequirements = _getInterfaceItem(element);
-    if (itemRequirements == null) {
-      return;
-    }
-
-    var item = itemRequirements.item;
-    var requirements = itemRequirements.requirements;
-
-    var methodName = nameObj.name.asLookupName;
-    var methodId = item.getInterfaceMethodId(methodName);
-    requirements.methods[methodName] = methodId;
-
-    // Check for consistency between the actual interface and manifest.
-    if (methodElement != null) {
-      if (methodId == null) {
-        var qName = _qualifiedMethodName(element, methodName);
-        throw StateError('Expected ID for $qName');
-      }
-    } else {
-      if (methodId != null) {
-        var qName = _qualifiedMethodName(element, methodName);
-        throw StateError('Expected no ID for $qName');
-      }
-    }
-
-    requirements.methods[methodName] = methodId;
-  }
-
-  /// This method is invoked by an import scope to notify the collector that
-  /// the name [nameStr] was requested from [importedLibrary].
-  void notifyRequest({
-    required LibraryElementImpl importedLibrary,
-    required String nameStr,
-  }) {
-    if (importedLibrary.manifest case var manifest?) {
-      var uri = importedLibrary.uri;
-      var nameToId = topLevels[uri] ??= {};
-      var name = nameStr.asLookupName;
-      nameToId[name] = manifest.getExportedId(name);
-    }
-  }
-
   void record_classElement_allSubtypes({required ClassElementImpl2 element}) {
     // TODO(scheglov): implement.
   }
@@ -648,6 +579,22 @@ class RequirementsManifest {
 
   void record_disable(Object target, String method) {
     // TODO(scheglov): implement.
+  }
+
+  /// Record that [id] was looked up in the import prefix scope that
+  /// imports [importedLibraries].
+  void record_importPrefixScope_lookup({
+    required List<LibraryElementImpl> importedLibraries,
+    required String id,
+  }) {
+    var lookupName = id.asLookupName;
+    for (var importedLibrary in importedLibraries) {
+      if (importedLibrary.manifest case var manifest?) {
+        var uri = importedLibrary.uri;
+        var nameToId = topLevels[uri] ??= {};
+        nameToId[lookupName] = manifest.getExportedId(lookupName);
+      }
+    }
   }
 
   void record_instanceElement_getField({
@@ -717,6 +664,61 @@ class RequirementsManifest {
     var methodName = '$name='.asLookupName;
     var methodId = item.getDeclaredSetterId(methodName);
     requirements.requestedSetters[methodName] = methodId;
+  }
+
+  /// Record that a member with [nameObj] was requested from the interface
+  /// of [element]. The [methodElement] is used for consistency checking.
+  void record_interface_getMember({
+    required InterfaceElementImpl2 element,
+    required Name nameObj,
+    required ExecutableElement? methodElement,
+  }) {
+    // Skip private names, cannot be used outside this library.
+    if (!nameObj.isPublic) {
+      return;
+    }
+
+    var itemRequirements = _getInterfaceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    var methodName = nameObj.name.asLookupName;
+    var methodId = item.getInterfaceMethodId(methodName);
+    requirements.methods[methodName] = methodId;
+
+    // Check for consistency between the actual interface and manifest.
+    if (methodElement != null) {
+      if (methodId == null) {
+        var qName = _qualifiedMethodName(element, methodName);
+        throw StateError('Expected ID for $qName');
+      }
+    } else {
+      if (methodId != null) {
+        var qName = _qualifiedMethodName(element, methodName);
+        throw StateError('Expected no ID for $qName');
+      }
+    }
+  }
+
+  void record_interfaceElement_getNamedConstructor({
+    required InterfaceElementImpl2 element,
+    required String name,
+  }) {
+    var itemRequirements = _getInterfaceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    var constructorName = name.asLookupName;
+    var constructorId = item.getConstructorId(constructorName);
+    requirements.constructors[constructorName] = constructorId;
   }
 
   void record_propertyAccessorElement_variable({
@@ -887,6 +889,8 @@ class RequirementsManifest {
     var instanceItem =
         manifest.declaredClasses[instanceName] ??
         manifest.declaredEnums[instanceName] ??
+        manifest.declaredExtensions[instanceName] ??
+        manifest.declaredExtensionTypes[instanceName] ??
         manifest.declaredMixins[instanceName];
 
     // SAFETY: every instance element must be in the manifest.
@@ -919,6 +923,7 @@ class RequirementsManifest {
     var interfaceItem =
         manifest.declaredClasses[interfaceName] ??
         manifest.declaredEnums[interfaceName] ??
+        manifest.declaredExtensionTypes[interfaceName] ??
         manifest.declaredMixins[interfaceName];
 
     // SAFETY: every interface element must be in the manifest.

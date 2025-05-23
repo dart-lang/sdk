@@ -116,7 +116,7 @@ class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, config.toContent(toUriStr: toUriStr));
+    newFile(path, config.toContent(pathContext: pathContext));
   }
 
   /// Write an analysis options file based on the given arguments.

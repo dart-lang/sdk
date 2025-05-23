@@ -4,10 +4,10 @@
 
 import 'package:json_rpc_2/json_rpc_2.dart';
 
-import 'constants.dart';
-import 'dart_tooling_daemon.dart';
-import 'response_types.dart';
-import 'rpc_error_codes.dart';
+import '../constants.dart';
+import '../dart_tooling_daemon.dart';
+import '../response_types/response_types.dart';
+import '../rpc_error_codes.dart';
 
 /// Extension methods on the [DartToolingDaemon] that call the ConnectedApps
 /// service.

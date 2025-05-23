@@ -835,7 +835,7 @@ class DynamicModuleInfo {
           // Check if the invocation is checked or unchecked and use the
           // appropriate offset.
           ib.local_get(ib.locals[function.type.inputs.length - 1]);
-          ib.if_(const [], localSignature.outputs);
+          ib.if_(localSignature.inputs, localSignature.outputs);
           ib.invoke(translator.directCallTarget(uncheckedTarget));
           ib.else_();
           ib.invoke(translator.directCallTarget(checkedTarget));

@@ -5454,8 +5454,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitDynamicGet(DynamicGet node) {
     var jsReceiver = _visitExpression(node.receiver);
     var jsMemberName = _emitMemberName(node.name.text);
-    return _runtimeCall('dload$_replSuffix(#, #)', [jsReceiver, jsMemberName]);
+    return _emitDynamicGet(jsReceiver, jsMemberName);
   }
+
+  js_ast.Expression _emitDynamicGet(
+          js_ast.Expression receiver, js_ast.Expression memberName) =>
+      _runtimeCall('dload$_replSuffix(#, #)', [receiver, memberName]);
 
   @override
   js_ast.Expression visitInstanceGet(InstanceGet node) {
@@ -5485,6 +5489,17 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var jsMemberName =
         _emitMemberName(memberName, member: node.interfaceTarget);
     var instanceGet = js_ast.PropertyAccess(jsReceiver, jsMemberName);
+    if (_shouldRewriteInvocationWithHotReloadChecks(node.interfaceTarget)) {
+      instanceGet.sourceInformation = _nodeStart(node);
+      // Since there are no arguments (unlike methods) the dynamic get path can
+      // be reused for the hot reload checks on a getter.
+      var checkedGet = _emitCast(
+          _emitDynamicGet(
+              _visitExpression(receiver), _emitMemberName(memberName)),
+          node.resultType)
+        ..sourceInformation = _nodeStart(node);
+      return _emitHotReloadSafeInvocation(instanceGet, checkedGet);
+    }
     return _isNullCheckableJsInterop(node.interfaceTarget)
         ? _wrapWithJsInteropNullCheck(instanceGet)
         : instanceGet;
@@ -6802,10 +6817,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var staticCall = js_ast.Call(fn, args)
       ..sourceInformation = _nodeStart(node);
     if (_shouldRewriteInvocationWithHotReloadChecks(target)) {
-      var generationCheck = js.call('# === #', [
-        js.number(_hotReloadGeneration),
-        _runtimeCall('global.dartDevEmbedder.hotReloadGeneration')
-      ]);
       var checkedCall = _rewriteInvocationWithHotReloadChecks(
           target,
           node.arguments,
@@ -6813,9 +6824,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           _nodeStart(node));
       // As an optimization, avoid extra checks when the invocation code was
       // compiled in the same generation that it is running.
-      return js_ast.InvocationWithHotReloadChecks(
-          generationCheck, staticCall, checkedCall)
-        ..sourceInformation = continueSourceMap;
+      return _emitHotReloadSafeInvocation(staticCall, checkedCall);
     }
     return _isNullCheckableJsInterop(target)
         ? _wrapWithJsInteropNullCheck(staticCall)
@@ -6830,6 +6839,17 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       !_isBuildingSdk &&
       !usesJSInterop(target) &&
       target != _assertInteropMethod;
+
+  js_ast.Expression _emitHotReloadSafeInvocation(
+      js_ast.Expression uncheckedCall, js_ast.Expression checkedCall) {
+    var generationCheck = js.call('# === #', [
+      js.number(_hotReloadGeneration),
+      _runtimeCall('global.dartDevEmbedder.hotReloadGeneration')
+    ]);
+    return js_ast.InvocationWithHotReloadChecks(
+        generationCheck, uncheckedCall, checkedCall)
+      ..sourceInformation = continueSourceMap;
+  }
 
   /// Rewrites an invocation of [target] that is statically sound at compile
   /// time to include checks to preserve soundness in the presence of hot

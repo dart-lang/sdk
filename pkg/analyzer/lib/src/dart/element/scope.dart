@@ -563,12 +563,10 @@ class PrefixScope implements Scope {
     }
 
     if (globalResultRequirements case var resultRequirements?) {
-      for (var importedLibrary in _importedLibraries) {
-        resultRequirements.notifyRequest(
-          importedLibrary: importedLibrary,
-          nameStr: id,
-        );
-      }
+      resultRequirements.record_importPrefixScope_lookup(
+        importedLibraries: _importedLibraries,
+        id: id,
+      );
     }
 
     var getter = _getters[id];

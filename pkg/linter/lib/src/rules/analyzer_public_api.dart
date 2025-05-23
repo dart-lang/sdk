@@ -169,7 +169,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (badNames != null) {
       rule.reportAtNode(
         node,
-        errorCode: AnalyzerPublicApi.exportsNonPublicName,
+        diagnosticCode: AnalyzerPublicApi.exportsNonPublicName,
         arguments: [badNames.join(', ')],
       );
     }
@@ -184,7 +184,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (!partElement.includedFragment!.source.uri.isInAnalyzerPublicLib) {
-      rule.reportAtNode(node, errorCode: AnalyzerPublicApi.badPartDirective);
+      rule.reportAtNode(
+        node,
+        diagnosticCode: AnalyzerPublicApi.badPartDirective,
+      );
     }
   }
 
@@ -213,7 +216,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         fragment.nameOffset2!,
         name.length,
-        errorCode: AnalyzerPublicApi.implInPublicApi,
+        diagnosticCode: AnalyzerPublicApi.implInPublicApi,
       );
     }
     switch (fragment) {
@@ -299,7 +302,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     rule.reportAtOffset(
       offset,
       length,
-      errorCode: AnalyzerPublicApi.badType,
+      diagnosticCode: AnalyzerPublicApi.badType,
       arguments: [problems.join(', ')],
     );
   }

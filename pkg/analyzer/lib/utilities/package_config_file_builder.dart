@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:path/path.dart' as path;
+
 /// Helper for building `.dart_tool/package_config.json` files.
 ///
 /// See accepted/future-releases/language-versioning/package-config-file-v2.md
@@ -41,7 +43,7 @@ class PackageConfigFileBuilder {
   }
 
   /// Returns the contents of the built package config file.
-  String toContent({required String Function(String) toUriStr}) {
+  String toContent({required path.Context pathContext}) {
     var buffer = StringBuffer();
 
     buffer.writeln('{');
@@ -59,7 +61,7 @@ class PackageConfigFileBuilder {
       prefix = ' ' * 6;
       buffer.writeln('$prefix"name": "${package.name}",');
 
-      var rootUri = toUriStr(package.rootPath);
+      var rootUri = pathContext.toUri(package.rootPath).toString();
       buffer.write('$prefix"rootUri": "$rootUri"');
 
       buffer.writeln(',');

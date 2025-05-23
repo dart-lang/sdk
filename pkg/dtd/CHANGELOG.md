@@ -1,8 +1,15 @@
-## 2.6.0
+## 3.0.0
 
-- Add `ConnectedAppService` to store the connections to Dart and Flutter
+- Added `ConnectedAppService` to store the connections to Dart and Flutter
 applications that DTD is aware of.
 - Log exceptions from invalid `streamNotify` events.
+- Added `getRegisteredServices` API.
+- Added a new response type `RegisteredServicesResponse`.
+- **Breaking Change**: Changed the `serviceName` parameter for the
+`DartToolingDaemon.call` method to have type `String?` instead of `String.`
+- **Breaking Change**: When the `params` parameter for the
+`DartToolingDaemon.call` method is null, pass the null value along to the client
+peer request instead of sending an empty Map value.
 
 ## 2.5.1
 

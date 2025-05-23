@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dtd/dtd.dart';
-import 'package:dtd/src/unified_analytics_service.dart';
+import 'package:dtd/src/services/unified_analytics_service.dart';
 import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 

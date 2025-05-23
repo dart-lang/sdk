@@ -71,7 +71,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
         errorEntity.offset,
         errorEntity.length,
         arguments: [displayName],
-        errorCode:
+        diagnosticCode:
             LinterLintCode
                 .deprecated_member_use_from_same_package_without_message,
       );
@@ -85,7 +85,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
         errorEntity.offset,
         errorEntity.length,
         arguments: [displayName, normalizedMessage],
-        errorCode:
+        diagnosticCode:
             LinterLintCode.deprecated_member_use_from_same_package_with_message,
       );
     }

@@ -144,7 +144,22 @@ bool b = false;
     expect(result.fixes.first.fixes, hasLength(4));
   }
 
-  Future<void> test_lintDiagnosticsAreDisabledByDefault() async {
+  Future<void> test_lintCodesCanHaveCustomSeverity() async {
+    writeAnalysisOptionsWithPlugin({'no_doubles_warning': true});
+    newFile(filePath, 'double x = 3.14;');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(
+      params.errors.single,
+      message: 'No doubles message',
+      severity: protocol.AnalysisErrorSeverity.WARNING,
+    );
+  }
+
+  Future<void> test_lintRulesAreDisabledByDefault() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'double x = 3.14;');
     await channel
@@ -154,7 +169,7 @@ bool b = false;
     expect(params.errors, isEmpty);
   }
 
-  Future<void> test_lintDiagnosticsCanBeEnabled() async {
+  Future<void> test_lintRulesCanBeEnabled() async {
     writeAnalysisOptionsWithPlugin({'no_doubles': true});
     newFile(filePath, 'double x = 3.14;');
     await channel
@@ -234,7 +249,7 @@ bool b = false;
     _expectAnalysisError(params.errors.single, message: 'No bools message');
   }
 
-  Future<void> test_warningDiagnosticsAreEnabledByDefault() async {
+  Future<void> test_warningRulesAreEnabledByDefault() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
     await channel
@@ -245,7 +260,7 @@ bool b = false;
     _expectAnalysisError(params.errors.single, message: 'No bools message');
   }
 
-  Future<void> test_warningDiagnosticsCanBeDisabled() async {
+  Future<void> test_warningRulesCanBeDisabled() async {
     writeAnalysisOptionsWithPlugin({'no_bools': false});
     newFile(filePath, 'bool b = false;');
     await channel
@@ -270,13 +285,16 @@ plugins:
     newAnalysisOptionsYamlFile(packagePath, buffer.toString());
   }
 
-  void _expectAnalysisError(protocol.AnalysisError error,
-      {required String message}) {
+  void _expectAnalysisError(
+    protocol.AnalysisError error, {
+    required String message,
+    protocol.AnalysisErrorSeverity severity =
+        protocol.AnalysisErrorSeverity.INFO,
+  }) {
     expect(
       error,
       isA<protocol.AnalysisError>()
-          .having((e) => e.severity, 'severity',
-              protocol.AnalysisErrorSeverity.INFO)
+          .having((e) => e.severity, 'severity', severity)
           .having(
               (e) => e.type, 'type', protocol.AnalysisErrorType.STATIC_WARNING)
           .having((e) => e.message, 'message', message),
@@ -313,6 +331,7 @@ class _NoLiteralsPlugin extends Plugin {
   void register(PluginRegistry registry) {
     registry.registerWarningRule(NoBoolsRule());
     registry.registerLintRule(NoDoublesRule());
+    registry.registerLintRule(NoDoublesWarningRule());
     registry.registerFixForRule(NoBoolsRule.code, _WrapInQuotes.new);
     registry.registerAssist(_InvertBoolean.new);
   }

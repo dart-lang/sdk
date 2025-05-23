@@ -5083,7 +5083,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   @override
   ConstructorElementImpl2? getNamedConstructor2(String name) {
-    globalResultRequirements?.notify_interfaceElement_getNamedConstructor(
+    globalResultRequirements?.record_interfaceElement_getNamedConstructor(
       element: this,
       name: name,
     );
@@ -9675,7 +9675,7 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
         FragmentedAnnotatableElementMixin<TypeAliasFragment>,
         FragmentedElementMixin<TypeAliasFragment>,
         _HasSinceSdkVersionMixin
-    implements TypeAliasElement {
+    implements AnnotatableElementImpl, TypeAliasElement {
   @override
   final Reference reference;
 

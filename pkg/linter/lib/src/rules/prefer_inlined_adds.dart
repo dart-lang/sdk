@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     rule.reportAtNode(
       invocation.methodName,
-      errorCode:
+      diagnosticCode:
           addAll
               ? LinterLintCode.prefer_inlined_adds_multiple
               : LinterLintCode.prefer_inlined_adds_single,

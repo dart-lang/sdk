@@ -91,10 +91,7 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
       config.add(name: 'vector_math', rootPath: libFolder.parent.path);
     }
 
-    var content = config.toContent(
-      toUriStr:
-          (p) => pathContext.toUri(resourceProvider.convertPath(p)).toString(),
-    );
+    var content = config.toContent(pathContext: pathContext);
 
     var projectFolder = resourceProvider.getFolder(projectFolderPath);
     var dartToolFolder = projectFolder.getChildAssumingFolder(

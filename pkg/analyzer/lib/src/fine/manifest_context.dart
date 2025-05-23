@@ -207,7 +207,9 @@ final class ManifestElement {
 enum ManifestElementKind {
   class_,
   enum_,
+  extensionType,
   mixin_,
+  typeAlias,
   topLevelVariable,
   topLevelGetter,
   topLevelSetter,
@@ -224,6 +226,8 @@ enum ManifestElementKind {
         return ManifestElementKind.class_;
       case EnumElement():
         return ManifestElementKind.enum_;
+      case ExtensionTypeElement():
+        return ManifestElementKind.extensionType;
       case MixinElement():
         return ManifestElementKind.mixin_;
       case TopLevelVariableElement():
@@ -246,6 +250,8 @@ enum ManifestElementKind {
         return ManifestElementKind.instanceMethod;
       case ConstructorElement():
         return ManifestElementKind.interfaceConstructor;
+      case TypeAliasElement():
+        return ManifestElementKind.typeAlias;
       default:
         throw StateError('Unexpected (${element.runtimeType}) $element');
     }

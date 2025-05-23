@@ -144,6 +144,143 @@ class EnumItem extends InterfaceItem<EnumElementImpl2> {
   }
 }
 
+/// The item for [ExtensionElementImpl2].
+class ExtensionItem<E extends ExtensionElementImpl2> extends InstanceItem<E> {
+  final ManifestType extendedType;
+
+  ExtensionItem({
+    required super.id,
+    required super.metadata,
+    required super.typeParameters,
+    required super.declaredConflicts,
+    required super.declaredFields,
+    required super.declaredGetters,
+    required super.declaredSetters,
+    required super.declaredMethods,
+    required super.declaredConstructors,
+    required super.inheritedConstructors,
+    required this.extendedType,
+  });
+
+  factory ExtensionItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required ExtensionElementImpl2 element,
+  }) {
+    return context.withTypeParameters(element.typeParameters2, (
+      typeParameters,
+    ) {
+      return ExtensionItem(
+        id: id,
+        metadata: ManifestMetadata.encode(context, element.metadata2),
+        typeParameters: typeParameters,
+        declaredConflicts: {},
+        declaredFields: {},
+        declaredGetters: {},
+        declaredSetters: {},
+        declaredMethods: {},
+        declaredConstructors: {},
+        inheritedConstructors: {},
+        extendedType: element.extendedType.encode(context),
+      );
+    });
+  }
+
+  factory ExtensionItem.read(SummaryDataReader reader) {
+    return ExtensionItem(
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      typeParameters: ManifestTypeParameter.readList(reader),
+      declaredConflicts: reader.readLookupNameToIdMap(),
+      declaredFields: InstanceItemFieldItem.readMap(reader),
+      declaredGetters: InstanceItemGetterItem.readMap(reader),
+      declaredSetters: InstanceItemSetterItem.readMap(reader),
+      declaredMethods: InstanceItemMethodItem.readMap(reader),
+      declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
+      inheritedConstructors: reader.readLookupNameToIdMap(),
+      extendedType: ManifestType.read(reader),
+    );
+  }
+
+  @override
+  bool match(MatchContext context, E element) {
+    context.addTypeParameters(element.typeParameters2);
+    return super.match(context, element) &&
+        extendedType.match(context, element.extendedType);
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    extendedType.write(sink);
+  }
+}
+
+class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl2> {
+  ExtensionTypeItem({
+    required super.id,
+    required super.metadata,
+    required super.typeParameters,
+    required super.declaredConflicts,
+    required super.declaredFields,
+    required super.declaredGetters,
+    required super.declaredSetters,
+    required super.declaredMethods,
+    required super.declaredConstructors,
+    required super.inheritedConstructors,
+    required super.interface,
+    required super.supertype,
+    required super.mixins,
+    required super.interfaces,
+  });
+
+  factory ExtensionTypeItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required ExtensionTypeElementImpl2 element,
+  }) {
+    return context.withTypeParameters(element.typeParameters2, (
+      typeParameters,
+    ) {
+      return ExtensionTypeItem(
+        id: id,
+        metadata: ManifestMetadata.encode(context, element.metadata2),
+        typeParameters: typeParameters,
+        declaredConflicts: {},
+        declaredFields: {},
+        declaredGetters: {},
+        declaredSetters: {},
+        declaredMethods: {},
+        declaredConstructors: {},
+        inheritedConstructors: {},
+        interface: ManifestInterface.empty(),
+        supertype: element.supertype?.encode(context),
+        mixins: element.mixins.encode(context),
+        interfaces: element.interfaces.encode(context),
+      );
+    });
+  }
+
+  factory ExtensionTypeItem.read(SummaryDataReader reader) {
+    return ExtensionTypeItem(
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      typeParameters: ManifestTypeParameter.readList(reader),
+      declaredConflicts: reader.readLookupNameToIdMap(),
+      declaredFields: InstanceItemFieldItem.readMap(reader),
+      declaredGetters: InstanceItemGetterItem.readMap(reader),
+      declaredSetters: InstanceItemSetterItem.readMap(reader),
+      declaredMethods: InstanceItemMethodItem.readMap(reader),
+      declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
+      inheritedConstructors: reader.readLookupNameToIdMap(),
+      supertype: ManifestType.readOptional(reader),
+      mixins: ManifestType.readList(reader),
+      interfaces: ManifestType.readList(reader),
+      interface: ManifestInterface.read(reader),
+    );
+  }
+}
+
 /// The item for [InstanceElementImpl2].
 sealed class InstanceItem<E extends InstanceElementImpl2>
     extends TopLevelItem<E> {
@@ -1228,6 +1365,58 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl2> {
     super.write(sink);
     type.write(sink);
     constInitializer.writeOptional(sink);
+  }
+}
+
+class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl2> {
+  final List<ManifestTypeParameter> typeParameters;
+  final ManifestType aliasedType;
+
+  TypeAliasItem({
+    required super.id,
+    required super.metadata,
+    required this.typeParameters,
+    required this.aliasedType,
+  });
+
+  factory TypeAliasItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required TypeAliasElementImpl2 element,
+  }) {
+    return context.withTypeParameters(element.typeParameters2, (
+      typeParameters,
+    ) {
+      return TypeAliasItem(
+        id: id,
+        metadata: ManifestMetadata.encode(context, element.metadata2),
+        typeParameters: typeParameters,
+        aliasedType: element.aliasedType.encode(context),
+      );
+    });
+  }
+
+  factory TypeAliasItem.read(SummaryDataReader reader) {
+    return TypeAliasItem(
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      typeParameters: ManifestTypeParameter.readList(reader),
+      aliasedType: ManifestType.read(reader),
+    );
+  }
+
+  @override
+  bool match(MatchContext context, TypeAliasElementImpl2 element) {
+    context.addTypeParameters(element.typeParameters2);
+    return super.match(context, element) &&
+        aliasedType.match(context, element.aliasedType);
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    typeParameters.writeList(sink);
+    aliasedType.write(sink);
   }
 }
 

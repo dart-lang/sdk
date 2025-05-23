@@ -258,14 +258,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         target.offset,
         target.length,
-        errorCode: LinterLintCode.use_super_parameters_multiple,
+        diagnosticCode: LinterLintCode.use_super_parameters_multiple,
         arguments: [msg],
       );
     } else {
       rule.reportAtOffset(
         target.offset,
         target.length,
-        errorCode: LinterLintCode.use_super_parameters_single,
+        diagnosticCode: LinterLintCode.use_super_parameters_single,
         arguments: [identifiers.first],
       );
     }

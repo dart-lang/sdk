@@ -829,11 +829,32 @@ class LibraryManifestPrinter {
       _writeEnumItem(item);
     });
 
+    var extensionEntries = manifest.declaredExtensions.sorted;
+    sink.writeElements('declaredExtensions', extensionEntries, (entry) {
+      var item = entry.value;
+      _writeNamedId(entry.key, item.id);
+      _writeExtensionItem(item);
+    });
+
+    var extensionTypeEntries = manifest.declaredExtensionTypes.sorted;
+    sink.writeElements('declaredExtensionTypes', extensionTypeEntries, (entry) {
+      var item = entry.value;
+      _writeNamedId(entry.key, item.id);
+      _writeExtensionTypeItem(item);
+    });
+
     var mixinEntries = manifest.declaredMixins.sorted;
     sink.writeElements('declaredMixins', mixinEntries, (entry) {
       var item = entry.value;
       _writeNamedId(entry.key, item.id);
       _writeMixinItem(item);
+    });
+
+    var typeAliasEntries = manifest.declaredTypeAliases.sorted;
+    sink.writeElements('declaredTypeAliases', typeAliasEntries, (entry) {
+      var item = entry.value;
+      _writeNamedId(entry.key, item.id);
+      _writeTypeAliasItem(item);
     });
 
     var getterEntries = manifest.declaredGetters.sorted;
@@ -898,6 +919,35 @@ class LibraryManifestPrinter {
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeTypeList('mixins', item.mixins);
+        _writeTypeList('interfaces', item.interfaces);
+      });
+    }
+
+    sink.withIndent(() {
+      _writeInstanceItemMembers(item);
+      _writeInterfaceItemInterface(item);
+    });
+  }
+
+  void _writeExtensionItem(ExtensionItem item) {
+    if (configuration.withElementManifests) {
+      sink.withIndent(() {
+        _writeMetadata(item);
+        _writeTypeParameters(item.typeParameters);
+        _writeNamedType('extendedType', item.extendedType);
+      });
+    }
+
+    sink.withIndent(() {
+      _writeInstanceItemMembers(item);
+    });
+  }
+
+  void _writeExtensionTypeItem(ExtensionTypeItem item) {
+    if (configuration.withElementManifests) {
+      sink.withIndent(() {
+        _writeMetadata(item);
+        _writeTypeParameters(item.typeParameters);
         _writeTypeList('interfaces', item.interfaces);
       });
     }
@@ -1320,6 +1370,16 @@ class LibraryManifestPrinter {
         sink.writeln();
       case ManifestVoidType():
         sink.writeln('void');
+    }
+  }
+
+  void _writeTypeAliasItem(TypeAliasItem item) {
+    if (configuration.withElementManifests) {
+      sink.withIndent(() {
+        _writeMetadata(item);
+        _writeTypeParameters(item.typeParameters);
+        _writeNamedType('aliasedType', item.aliasedType);
+      });
     }
   }
 
