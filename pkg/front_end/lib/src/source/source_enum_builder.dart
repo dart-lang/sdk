@@ -253,7 +253,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     _enumValuesFieldDeclaration =
         new _EnumValuesFieldDeclaration(this, listType);
 
-    SourcePropertyBuilder valuesBuilder = new SourcePropertyBuilder.forField(
+    SourcePropertyBuilder valuesBuilder = new SourcePropertyBuilder(
         fileUri: fileUri,
         fileOffset: fileOffset,
         name: "values",
@@ -262,10 +262,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
         nameScheme: staticFieldNameScheme,
         fieldDeclaration: _enumValuesFieldDeclaration,
         getterDeclaration: _enumValuesFieldDeclaration,
+        getterAugmentations: const [],
         setterDeclaration: null,
-        modifiers:
-            Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
-        references: valuesReferences);
+        setterAugmentations: const [],
+        references: valuesReferences,
+        isStatic: true);
     _enumValuesFieldDeclaration.builder = valuesBuilder;
 
     if (customValuesDeclaration != null) {
@@ -629,6 +630,10 @@ class _EnumValuesFieldDeclaration
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void createFieldEncoding(SourcePropertyBuilder builder) {}
+
+  @override
   Initializer buildErroneousInitializer(Expression effect, Expression value,
       {required int fileOffset}) {
     throw new UnsupportedError('${runtimeType}.buildErroneousInitializer');
@@ -747,6 +752,10 @@ class _EnumValuesFieldDeclaration
   @override
   // Coverage-ignore(suite): Not run.
   bool get isLate => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => true;
 
   @override
   List<ClassMember> get localMembers =>
