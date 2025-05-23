@@ -72,7 +72,7 @@ class MockErrorCode implements DiagnosticCode {
   DiagnosticType type;
 
   @override
-  DiagnosticSeverity errorSeverity;
+  DiagnosticSeverity severity;
 
   @override
   String name;
@@ -80,7 +80,7 @@ class MockErrorCode implements DiagnosticCode {
   @override
   String? url;
 
-  MockErrorCode(this.type, this.errorSeverity, this.name);
+  MockErrorCode(this.type, this.severity, this.name);
 
   @override
   String get correctionMessage {

@@ -168,7 +168,7 @@ library;
       out.writeln();
       out.writeln('@override');
       out.writeln(
-        'DiagnosticSeverity get errorSeverity => '
+        'DiagnosticSeverity get severity => '
         '${errorClass.severityCode};',
       );
       out.writeln();

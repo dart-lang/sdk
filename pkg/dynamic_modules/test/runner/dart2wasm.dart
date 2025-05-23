@@ -63,6 +63,7 @@ class Dart2wasmExecutor implements TargetExecutor {
   ) async {
     var testDir = _tmp.uri.resolve(testName).toFilePath();
     var args = [
+      '--compiler-asserts',
       '--packages=${repoRoot.toFilePath()}/.dart_tool/package_config.json',
       '--multi-root=${sourceDir.resolve('../../').toFilePath()}',
       '--multi-root-scheme=$rootScheme',

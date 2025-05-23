@@ -6089,8 +6089,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
        );
 
   @override
-  DiagnosticSeverity get errorSeverity =>
-      DiagnosticType.COMPILE_TIME_ERROR.severity;
+  DiagnosticSeverity get severity => DiagnosticType.COMPILE_TIME_ERROR.severity;
 
   @override
   DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
@@ -6219,7 +6218,7 @@ class StaticWarningCode extends DiagnosticCode {
        );
 
   @override
-  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.WARNING;
+  DiagnosticSeverity get severity => DiagnosticSeverity.WARNING;
 
   @override
   DiagnosticType get type => DiagnosticType.STATIC_WARNING;
@@ -7811,7 +7810,7 @@ class WarningCode extends DiagnosticCode {
        );
 
   @override
-  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.WARNING;
+  DiagnosticSeverity get severity => DiagnosticSeverity.WARNING;
 
   @override
   DiagnosticType get type => DiagnosticType.STATIC_WARNING;

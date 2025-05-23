@@ -230,8 +230,10 @@ class SelectorInfo {
 
     List<w.ValueType> typeParameters = List.filled(paramInfo.typeParamCount,
         translator.classInfo[translator.typeClass]!.nonNullableType);
-    List<w.ValueType> inputs = List.generate(inputSets.length,
-        (i) => _upperBound(inputSets[i], ensureBoxed: ensureBoxed[i]));
+    List<w.ValueType> inputs = List.generate(
+        inputSets.length,
+        (i) => _upperBound(inputSets[i],
+            ensureBoxed: ensureBoxed[i], isReceiver: i == 0));
     if (name == '==') {
       // == can't be called with null
       inputs[1] = inputs[1].withNullability(false);
@@ -242,13 +244,18 @@ class SelectorInfo {
         [inputs[0], ...typeParameters, ...inputs.sublist(1)], outputs);
   }
 
-  w.ValueType _upperBound(Set<w.ValueType> types, {required bool ensureBoxed}) {
+  w.ValueType _upperBound(Set<w.ValueType> types,
+      {required bool ensureBoxed, bool isReceiver = false}) {
     if (types.isEmpty) {
       // This happens if the selector doesn't have any targets. Any call site of
       // such a selector is unreachable. Though such call sites still have to
       // evaluate receiver and arguments. Doing so requires the signature. So we
-      // create a dummy signature with top types.
-      return translator.topInfo.nullableType;
+      // create a dummy signature with top types. Receivers specifically should
+      // be non-nullable since we must be invoking a selector on some object.
+      assert(!isReceiver || isDynamicSubmoduleOverridable);
+      return isReceiver
+          ? translator.topInfo.nonNullableType
+          : translator.topInfo.nullableType;
     }
     if (!ensureBoxed && types.length == 1 && types.single.isPrimitive) {
       // Unboxed primitive.

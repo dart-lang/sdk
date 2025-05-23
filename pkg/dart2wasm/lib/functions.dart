@@ -346,8 +346,11 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
       return _makeFunctionType(translator, target, null);
     }
     assert(!translator.dispatchTable
-        .selectorForTarget(target)
-        .containsTarget(target));
+            .selectorForTarget(target)
+            .containsTarget(target) &&
+        !translator.dispatchTable
+            .selectorForTarget(target)
+            .containsTarget(target));
 
     final receiverType = target.asMember.enclosingClass!
         .getThisType(translator.coreTypes, Nullability.nonNullable);
@@ -365,8 +368,11 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     }
 
     assert(!translator.dispatchTable
-        .selectorForTarget(target)
-        .containsTarget(target));
+            .selectorForTarget(target)
+            .containsTarget(target) &&
+        !translator.dispatchTable
+            .selectorForTarget(target)
+            .containsTarget(target));
 
     final receiverType = target.asMember.enclosingClass!
         .getThisType(translator.coreTypes, Nullability.nonNullable);

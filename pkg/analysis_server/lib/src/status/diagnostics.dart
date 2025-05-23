@@ -617,21 +617,41 @@ class CollectReportPage extends DiagnosticPage {
     var driverMapValues = server.driverMap.values.toList();
     var contexts = [];
     collectedData['contexts'] = contexts;
+
     Set<String> uniqueKnownFiles = {};
-    for (var data in driverMapValues) {
+    for (var driver in driverMapValues) {
       var contextData = {};
       contexts.add(contextData);
       // We don't include the name because the name might include confidential
       // information.
-      var knownFiles = data.knownFiles.map((f) => f.path).toSet();
-      contextData['priorityFiles'] = data.priorityFiles.length;
-      contextData['addedFiles'] = data.addedFiles.length;
+      var knownFiles = driver.knownFiles.map((f) => f.path).toSet();
+      contextData['priorityFiles'] = driver.priorityFiles.length;
+      contextData['addedFiles'] = driver.addedFiles.length;
       contextData['knownFiles'] = knownFiles.length;
       uniqueKnownFiles.addAll(knownFiles);
 
-      var collectedOptionsData = _collectOptionsData(data);
+      var collectedOptionsData = _collectOptionsData(driver);
       contextData['lints'] = collectedOptionsData.lints.sorted();
       contextData['plugins'] = collectedOptionsData.plugins.toList();
+
+      Set<LibraryCycle> cycles = {};
+      var contextRoot = driver.analysisContext!.contextRoot;
+      for (var filePath in contextRoot.analyzedFiles()) {
+        var fileState = driver.fsState.getFileForPath(filePath);
+        var kind = fileState.kind;
+        if (kind is LibraryFileKind) {
+          cycles.add(kind.libraryCycle);
+        }
+      }
+      var cycleData = <int, int>{};
+      for (var cycle in cycles) {
+        cycleData[cycle.size] = (cycleData[cycle.size] ?? 0) + 1;
+      }
+      var sortedCycleData = <int, int>{};
+      for (var size in cycleData.keys.toList()..sort()) {
+        sortedCycleData[size] = cycleData[size]!;
+      }
+      contextData['libraryCycleData'] = sortedCycleData;
     }
     collectedData['uniqueKnownFiles'] = uniqueKnownFiles.length;
   }

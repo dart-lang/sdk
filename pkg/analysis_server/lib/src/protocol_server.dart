@@ -173,7 +173,7 @@ AnalysisError newAnalysisError_fromEngine(
   }
 
   // Default to the error's severity if none is specified.
-  diagnosticSeverity ??= errorCode.errorSeverity;
+  diagnosticSeverity ??= errorCode.severity;
 
   // done
   var severity = AnalysisErrorSeverity.values.byName(diagnosticSeverity.name);

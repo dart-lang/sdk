@@ -1071,6 +1071,9 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         node.element = method;
       }
 
+      node.sideEffects.restrictTo(
+        _globalInferenceResults.inferredData.getSideEffectsOfElement(element),
+      );
       if (_closedWorld.annotationsData.allowCSE(element)) {
         node.allowCSE = true;
       }
@@ -2035,6 +2038,9 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         if (_nativeData.isNativeMember(member)) {
           return tryInlineNativeGetter(node, member) ?? node;
         }
+        node.sideEffects.restrictTo(
+          _globalInferenceResults.inferredData.getSideEffectsOfElement(member),
+        );
         if (_closedWorld.annotationsData.allowCSE(member)) {
           node.allowCSE = true;
         }
