@@ -605,7 +605,9 @@ class DynamicModuleInfo {
         // These types do not have directly invokable constructors.
         translator.classInfo[member.enclosingClass]!.struct
             .isSubtypeOf(translator.objectInfo.struct)) {
-      passReference(member.reference);
+      if (!member.enclosingClass.isAnonymousMixin) {
+        passReference(member.reference);
+      }
       passReference(member.initializerReference);
       passReference(member.constructorBodyReference);
     }
