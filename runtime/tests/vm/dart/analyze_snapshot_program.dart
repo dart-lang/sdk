@@ -40,7 +40,8 @@ main() {
 }
 
 class FieldTestBase {
-  static int baseS = int.parse('1');
+  static int baseS0 = int.parse('1');
+  static int baseS1 = int.parse('2');
   int base0;
   double base1;
   Object? base2;
@@ -48,10 +49,12 @@ class FieldTestBase {
   Float64x2 base4;
 
   FieldTestBase(this.base0, this.base1, this.base2, this.base3, this.base4) {
-    baseS++;
+    baseS0++;
+    baseS1++;
   }
 
-  String foo() => 'Base.foo: [$baseS, $base0, $base1, $base2, $base3, $base4]';
+  String foo() =>
+      'Base.foo: [$baseS0, $baseS1, $base0, $base1, $base2, $base3, $base4]';
 }
 
 class FieldTestSub<T> extends FieldTestBase {
