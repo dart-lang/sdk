@@ -9,8 +9,7 @@
 
 namespace dart {
 
-#if (defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)) ||     \
-    (defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT))
+#if defined(NEED_WINDOWS_UNWINDING_RECORDS)
 
 #if defined(TARGET_ARCH_X64)
 const intptr_t kReservedUnwindingRecordsSizeBytes = 64;
@@ -24,12 +23,11 @@ intptr_t UnwindingRecordsPlatform::SizeInBytes() {
   return kReservedUnwindingRecordsSizeBytes;
 }
 
-#endif  // defined(DART_TARGET_OS_WINDOWS) ...
+#endif  // defined(NEED_WINDOWS_UNWINDING_RECORDS)
 
 // Only use these definitions when the ELF loader may be used on 64-bit Windows,
 // as it is the only client of these methods (e.g., _not_ in gen_snapshot).
-#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT) &&                \
-    (!defined(DART_PRECOMPILER) || defined(TESTING))
+#if defined(UNWINDING_RECORDS_WINDOWS_HOST)
 
 void UnwindingRecordsPlatform::RegisterExecutableMemory(
     void* start,
@@ -44,7 +42,8 @@ void UnwindingRecordsPlatform::RegisterExecutableMemory(
   uword end_num = start_num + size;
   DWORD status = RtlAddGrowableFunctionTable(
       pp_dynamic_table,
-      /*FunctionTable=*/record->runtime_function,
+      /*FunctionTable=*/
+      reinterpret_cast<PRUNTIME_FUNCTION>(record->runtime_function),
       /*EntryCount=*/record->runtime_function_count,
       /*MaximumEntryCount=*/record->runtime_function_count,
       /*RangeBase=*/start_num,
@@ -58,6 +57,6 @@ void UnwindingRecordsPlatform::UnregisterDynamicTable(void* p_dynamic_table) {
   RtlDeleteGrowableFunctionTable(p_dynamic_table);
 }
 
-#endif  // defined(DART_HOST_OS_WINDOWS) ...
+#endif  // defined(UNWINDING_RECORDS_WINDOWS_HOST)
 
 }  // namespace dart
