@@ -152,7 +152,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   List<String> get experiments => experimentsForTests;
 
   /// Error codes that by default should be ignored in test expectations.
-  List<DiagnosticCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredDiagnosticCodes => [
     WarningCode.UNUSED_ELEMENT,
     WarningCode.UNUSED_FIELD,
     WarningCode.UNUSED_LOCAL_VARIABLE,
@@ -184,7 +184,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// The diagnostics that were computed during analysis.
   List<Diagnostic> get _diagnostics =>
       result.errors
-          .where((e) => !ignoredErrorCodes.any((c) => e.errorCode == c))
+          .where((e) => !ignoredDiagnosticCodes.any((c) => e.errorCode == c))
           .toList();
 
   Folder get _sdkRoot => newFolder('/sdk');
