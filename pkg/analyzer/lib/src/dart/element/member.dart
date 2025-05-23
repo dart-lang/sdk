@@ -943,7 +943,7 @@ class ParameterMember extends VariableMember
   });
 
   @override
-  FormalParameterElement get baseElement => _element2;
+  FormalParameterElementImpl get baseElement => _element2;
 
   @override
   List<Element> get children2 {
@@ -1031,7 +1031,7 @@ class ParameterMember extends VariableMember
   List<ParameterElementMixin> get parameters {
     var type = this.type;
     if (type is FunctionTypeImpl) {
-      return type.parameters;
+      return type.parameters.map((element) => element.asElement).toList();
     }
     return const <ParameterElementMixin>[];
   }
@@ -1112,6 +1112,35 @@ class ParameterMember extends VariableMember
     }
 
     return ParameterMember(declaration: declaration, substitution: combined);
+  }
+
+  static FormalParameterElementMixin from2(
+    FormalParameterElementMixin element,
+    MapSubstitution substitution,
+  ) {
+    FormalParameterElementImpl baseElement;
+    var combined = substitution;
+    if (element is ParameterMember) {
+      var member = element;
+      baseElement = member.baseElement;
+
+      var map = <TypeParameterElement, DartType>{
+        for (var MapEntry(:key, :value) in member.substitution.map.entries)
+          key: substitution.substituteType(value),
+      };
+      combined = Substitution.fromMap2(map);
+    } else {
+      baseElement = element as FormalParameterElementImpl;
+    }
+
+    if (combined.map.isEmpty) {
+      return element;
+    }
+
+    return ParameterMember(
+      declaration: baseElement.asElement,
+      substitution: combined,
+    );
   }
 }
 

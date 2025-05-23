@@ -1154,7 +1154,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
     // TODO(scheglov): Remove "element" in the breaking changes branch.
     return _type ??= FunctionTypeImpl(
       typeFormals: typeParameters,
-      parameters: parameters,
+      parameters: parameters.map((f) => f.asElement2).toList(),
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -2670,7 +2670,7 @@ abstract class ExecutableFragmentImpl extends _ExistingElementImpl
 
     return _type = FunctionTypeImpl(
       typeFormals: typeParameters,
-      parameters: parameters,
+      parameters: parameters.map((f) => f.asElement2).toList(),
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -4294,7 +4294,7 @@ class GenericFunctionTypeFragmentImpl extends _ExistingElementImpl
 
     return _type = FunctionTypeImpl(
       typeFormals: typeParameters,
-      parameters: parameters,
+      parameters: parameters.map((f) => f.asElement2).toList(),
       returnType: returnType,
       nullabilitySuffix:
           isNullable ? NullabilitySuffix.question : NullabilitySuffix.none,
@@ -8679,7 +8679,7 @@ class PropertyAccessorElementImpl_ImplicitGetter extends GetterFragmentImpl {
   FunctionTypeImpl get type {
     return _type ??= FunctionTypeImpl(
       typeFormals: const <TypeParameterFragmentImpl>[],
-      parameters: const <FormalParameterFragmentImpl>[],
+      parameters: const <FormalParameterElementImpl>[],
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -8751,7 +8751,7 @@ class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
   FunctionTypeImpl get type {
     return _type ??= FunctionTypeImpl(
       typeFormals: const <TypeParameterFragmentImpl>[],
-      parameters: parameters,
+      parameters: parameters.map((f) => f.asElement2).toList(),
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );

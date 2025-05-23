@@ -51,10 +51,10 @@ class InstanceMemberInferrer {
   /// Given a method, return the parameter in the method that corresponds to the
   /// given [parameter]. If the parameter is positional, then it appears at the
   /// given [index] in its enclosing element's list of parameters.
-  ParameterElementMixin? _getCorrespondingParameter(
+  FormalParameterElementMixin? _getCorrespondingParameter(
     ParameterElementMixin parameter,
     int index,
-    List<ParameterElementMixin> methodParameters,
+    List<FormalParameterElementMixin> methodParameters,
   ) {
     //
     // Find the corresponding parameter.
@@ -66,7 +66,7 @@ class InstanceMemberInferrer {
       //
       return methodParameters.lastWhereOrNull(
         (methodParameter) =>
-            methodParameter.isNamed && methodParameter.name == parameter.name,
+            methodParameter.isNamed && methodParameter.name3 == parameter.name,
       );
     }
     //
@@ -540,7 +540,11 @@ class InstanceMemberInferrer {
     Iterable<ExecutableElementOrMember> overridden,
   ) {
     parameter.inheritsCovariant = overridden.any((f) {
-      var param = _getCorrespondingParameter(parameter, index, f.parameters);
+      var param = _getCorrespondingParameter(
+        parameter,
+        index,
+        f.parameters.map((f) => f.asElement2).toList(),
+      );
       return param != null && param.isCovariant;
     });
   }
