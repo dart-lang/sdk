@@ -57,8 +57,8 @@ SubtypesBenchmark parseBenchMark(String source) {
   // in 'dart:core'.
   List<String> coreClassesForSubtyping = [
     "class Object;",
-    "class Function extends Object*;",
-    "class Record extends Object*;",
+    "class Function extends Object;",
+    "class Record extends Object;",
   ];
   for (dynamic classEntry in classes) {
     coreClassesForSubtyping.remove(classEntry);
@@ -98,7 +98,7 @@ void performKernelChecks(
   for (int i = 0; i < checks.length; i++) {
     SubtypeCheck check = checks[i];
     bool isSubtype = environment.isSubtypeOf(
-        check.s, check.t, SubtypeCheckMode.ignoringNullabilities);
+        check.s, check.t, SubtypeCheckMode.withNullabilities);
     if (isSubtype != check.isSubtype) {
       throw "Check failed: $check";
     }
@@ -110,7 +110,7 @@ void performBuilderChecks(
   for (int i = 0; i < checks.length; i++) {
     SubtypeCheck check = checks[i];
     bool isSubtype = hierarchy.types
-        .isSubtypeOf(check.s, check.t, SubtypeCheckMode.ignoringNullabilities);
+        .isSubtypeOf(check.s, check.t, SubtypeCheckMode.withNullabilities);
     if (isSubtype != check.isSubtype) {
       throw "Check failed: $check";
     }
