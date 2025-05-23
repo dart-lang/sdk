@@ -52,6 +52,19 @@ class SubtypeCheck {
 SubtypesBenchmark parseBenchMark(String source) {
   Map<dynamic, dynamic> data = json.decode(source);
   List<dynamic> classes = data["classes"];
+
+  // Ensure the classes required by the subtyping algorithm implementation are
+  // in 'dart:core'.
+  List<String> coreClassesForSubtyping = [
+    "class Object;",
+    "class Function extends Object*;",
+    "class Record extends Object*;",
+  ];
+  for (dynamic classEntry in classes) {
+    coreClassesForSubtyping.remove(classEntry);
+  }
+  classes.addAll(coreClassesForSubtyping);
+
   Uri uri = Uri.parse("dart:core");
   TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
   Library library =
