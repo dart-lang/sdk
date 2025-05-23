@@ -1172,7 +1172,7 @@ abstract class HInstruction implements SpannableWithEntity {
   /// Type of the instruction.
   late AbstractValue instructionType;
 
-  SideEffects sideEffects = SideEffects.empty();
+  final SideEffects sideEffects = SideEffects.empty();
   bool _useGvn = false;
 
   // TODO(sra): Consider whether to reduce instruction size by collecting all
@@ -3516,7 +3516,8 @@ class HThrowExpression extends HInstruction {
 
 class HAwait extends HInstruction {
   HAwait(super.value, super.type) : super._oneInput() {
-    sideEffects = SideEffects();
+    sideEffects.setAllSideEffects();
+    sideEffects.setDependsOnSomething();
   }
   @override
   String toString() => 'await';
@@ -3535,7 +3536,8 @@ class HYield extends HInstruction {
     SourceInformation? sourceInformation,
   ) : super._oneInput() {
     this.sourceInformation = sourceInformation;
-    sideEffects = SideEffects();
+    sideEffects.setAllSideEffects();
+    sideEffects.setDependsOnSomething();
   }
   bool hasStar;
   @override

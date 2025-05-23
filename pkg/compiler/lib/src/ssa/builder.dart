@@ -6775,7 +6775,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         _currentImplicitInstantiations,
       );
     }
-    instruction.sideEffects = _inferredData.getSideEffectsOfElement(target);
+    instruction.sideEffects.setTo(
+      _inferredData.getSideEffectsOfElement(target),
+    );
     instruction.allowCSE = closedWorld.annotationsData.allowCSE(target);
     instruction.allowDCE = closedWorld.annotationsData.allowDCE(target);
     push(instruction);
@@ -7391,9 +7393,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       isSetter: selector.isSetter || selector.isIndexSet,
     );
     // TODO(natebiggs): Pass typeMask below and make non-nullable.
-    instruction.sideEffects = _inferredData.getSideEffectsOfSelector(
-      selector,
-      null,
+    instruction.sideEffects.setTo(
+      _inferredData.getSideEffectsOfSelector(selector, null),
     );
     push(instruction);
     return instruction;
