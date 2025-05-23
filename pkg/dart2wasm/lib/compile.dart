@@ -147,6 +147,7 @@ Future<CompilationResult> compileToModule(
     ..packagesFileUri = options.packagesPath
     ..environmentDefines = {
       'dart.tool.dart2wasm': 'true',
+      'dart.tool.dart2wasm.minify': '${options.translatorOptions.minify}',
       ...options.environment,
     }
     ..explicitExperimentalFlags = options.feExperimentalFlags
