@@ -112,7 +112,7 @@ List<T> mapEngineErrors<T>(
   T Function(
     engine.AnalysisResultWithErrors result,
     engine.Diagnostic diagnostic, [
-    engine.DiagnosticSeverity errorSeverity,
+    engine.DiagnosticSeverity severity,
   ])
   constructor,
 ) {
