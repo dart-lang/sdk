@@ -70,25 +70,29 @@ abstract class DiagnosticCode {
        _problemMessage = problemMessage;
 
   /**
-   * The template used to create the correction to be displayed for this error,
-   * or `null` if there is no correction information for this error. The
-   * correction should indicate how the user can fix the error.
+   * The template used to create the correction to be displayed for this
+   * diagnostic, or `null` if there is no correction information for this
+   * diagnostic. The correction should indicate how the user can fix the
+   * diagnostic.
    */
   String? get correctionMessage =>
       customizedCorrections[uniqueName] ?? _correctionMessage;
 
   /**
-   * The severity of the error.
+   * The severity of the diagnostic.
    */
-  DiagnosticSeverity get errorSeverity;
+  DiagnosticSeverity get severity;
 
-  /// Whether a finding of this error is ignorable via comments such as
+  @Deprecated("Use 'diagnosticSeverity' instead")
+  DiagnosticSeverity get errorSeverity => severity;
+
+  /// Whether a finding of this diagnostic is ignorable via comments such as
   /// `// ignore:` or `// ignore_for_file:`.
-  bool get isIgnorable => errorSeverity != DiagnosticSeverity.ERROR;
+  bool get isIgnorable => severity != DiagnosticSeverity.ERROR;
 
   /**
    * The template used to create the problem message to be displayed for this
-   * error. The problem message should indicate what is wrong and why it is
+   * diagnostic. The problem message should indicate what is wrong and why it is
    * wrong.
    */
   String get problemMessage =>

@@ -393,7 +393,7 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
   engine.DiagnosticType type;
 
   @override
-  engine.DiagnosticSeverity errorSeverity;
+  engine.DiagnosticSeverity severity;
 
   @override
   String name;
@@ -403,7 +403,7 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
 
   MockDiagnosticCode({
     this.type = engine.DiagnosticType.COMPILE_TIME_ERROR,
-    this.errorSeverity = engine.DiagnosticSeverity.ERROR,
+    this.severity = engine.DiagnosticSeverity.ERROR,
     this.name = 'TEST_ERROR',
     this.url,
   });

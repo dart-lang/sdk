@@ -238,7 +238,7 @@ class ScannerErrorCode extends DiagnosticCode {
        );
 
   @override
-  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.ERROR;
+  DiagnosticSeverity get severity => DiagnosticSeverity.ERROR;
 
   @override
   DiagnosticType get type => DiagnosticType.SYNTACTIC_ERROR;

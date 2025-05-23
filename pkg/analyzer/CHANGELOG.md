@@ -11,7 +11,11 @@
   `AnalysisError.correctionMessage` instead.
 * Deprecate `AnalysisError`; use `Diagnostic` instead.
 * Deprecate `ErrorCode`; use `DiagnosticCode` instead.
+* Deprecate `ErrorReporter.atOffset`'s `errorCode` parameter; use
+  `diagnosticCode` instead.
 * Deprecate `ErrorSeverity`; use `DiagnosticSeverity` instead.
+* Deprecate `DiagnosticCode.errorSeverity`; use
+  `DiagnosticCode.diagnosticSeverity` instead.
 * Deprecate `ErrorType`; use `DiagnosticType` instead.
 * Change `ElementDirective` from `sealed` to `abstract`.
   This allows the analyzer to have an internal implementation
@@ -32,8 +36,6 @@
 * Deprecate `InterfaceElement.constructors2`, use `constructors` instead.
 * Deprecate `InterfaceFragment.constructors2`, use `constructors` instead.
 * Deprecate `JoinPatternVariableElement.variables2`, use `variables` instead.
-* Deprecate `ErrorReporter.atOffset`'s `errorCode` parameter; use
-  `diagnosticCode` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

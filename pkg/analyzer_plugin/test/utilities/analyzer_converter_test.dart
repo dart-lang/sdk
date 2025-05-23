@@ -46,7 +46,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     expect(location.startLine, startLine);
     expect(pluginError.message, errorCode.problemMessage);
     expect(pluginError.severity,
-        converter.convertErrorSeverity(severity ?? errorCode.errorSeverity));
+        converter.convertErrorSeverity(severity ?? errorCode.severity));
     expect(pluginError.type, converter.convertErrorType(errorCode.type));
   }
 

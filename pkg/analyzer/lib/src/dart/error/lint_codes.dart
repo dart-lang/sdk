@@ -15,7 +15,7 @@ import 'package:analyzer/error/error.dart';
 @AnalyzerPublicApi(message: 'exported by lib/error/error.dart')
 class LintCode extends DiagnosticCode {
   @override
-  final DiagnosticSeverity errorSeverity;
+  final DiagnosticSeverity severity;
 
   const LintCode(
     String name,
@@ -23,9 +23,8 @@ class LintCode extends DiagnosticCode {
     super.correctionMessage,
     super.hasPublishedDocs,
     String? uniqueName,
-    DiagnosticSeverity severity = DiagnosticSeverity.INFO,
-  }) : errorSeverity = severity,
-       super(
+    this.severity = DiagnosticSeverity.INFO,
+  }) : super(
          problemMessage: problemMessage,
          name: name,
          uniqueName: uniqueName ?? 'LintCode.$name',

@@ -23,7 +23,7 @@ DiagnosticSeverity? computeSeverity(
     return processor.severity;
   }
 
-  return diagnostic.errorCode.errorSeverity;
+  return diagnostic.errorCode.severity;
 }
 
 /// Check various configuration options to get a desired severity for this

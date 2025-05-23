@@ -31,7 +31,7 @@ class AnalyzerConverter {
     analyzer.DiagnosticSeverity? severity,
   }) {
     var errorCode = diagnostic.errorCode;
-    severity ??= errorCode.errorSeverity;
+    severity ??= errorCode.severity;
     var offset = diagnostic.offset;
     var startLine = -1;
     var startColumn = -1;

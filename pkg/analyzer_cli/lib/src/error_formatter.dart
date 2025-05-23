@@ -31,7 +31,7 @@ String _relative(String file) {
 
 /// Returns the given diagnostic's severity.
 DiagnosticSeverity _severityIdentity(Diagnostic diagnostic) =>
-    diagnostic.errorCode.errorSeverity;
+    diagnostic.errorCode.severity;
 
 /// Returns desired severity for the given [diagnostic] (or `null` if it's to be
 /// suppressed).

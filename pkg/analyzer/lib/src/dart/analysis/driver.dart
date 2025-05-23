@@ -2350,7 +2350,7 @@ class AnalysisDriver {
     List<Diagnostic> diagnostics,
   ) {
     for (var diagnostic in diagnostics) {
-      var severity = diagnostic.errorCode.errorSeverity;
+      var severity = diagnostic.errorCode.severity;
       if (severity == DiagnosticSeverity.ERROR) {
         file.hasErrorOrWarning = true;
         return;

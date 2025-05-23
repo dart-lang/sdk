@@ -319,7 +319,7 @@ final class AnalysisOptionsBuilder {
             continue;
           }
           // Otherwise, add [error] if its default severity is [severity].
-          if (e.errorSeverity.displayName == severity) {
+          if (e.severity.displayName == severity) {
             unignorableNames.add(e.name);
           }
         }
