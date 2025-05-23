@@ -20,9 +20,6 @@ typedef ErrorCode = DiagnosticCode;
 ///
 /// Generally, messages should follow the [Guide for Writing
 /// Diagnostics](https://github.com/dart-lang/sdk/blob/main/pkg/front_end/lib/src/base/diagnostics.md).
-///
-/// Note that this class name, `ErrorCode`, is soft-deprecated in favor of the
-/// type alias, `DiagnosticCode`.
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
 abstract class DiagnosticCode {
   /// Regular expression for identifying positional arguments in error messages.
@@ -139,9 +136,6 @@ typedef ErrorSeverity = DiagnosticSeverity;
 
 /**
  * The severity of an [DiagnosticCode].
- *
- * Note that this class name, `ErrorSeverity`, is soft-deprecated in favor of
- * the type alias, [DiagnosticSeverity].
  */
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
 class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
