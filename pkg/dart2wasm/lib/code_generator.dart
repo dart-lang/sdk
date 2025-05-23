@@ -2497,10 +2497,7 @@ abstract class AstCodeGenerator
       if (paramInfo.takesContextOrReceiver) {
         translateExpression(node.receiver, closureStructRef);
         b.struct_get(closureStruct, FieldIndex.closureContext);
-        translator.convertType(
-            b,
-            closureStruct.fields[FieldIndex.closureContext].type.unpacked,
-            signature.inputs[0]);
+        translator.convertType(b, closureContextFieldType, signature.inputs[0]);
         _visitArguments(node.arguments, signature, paramInfo, 1);
       } else {
         _visitArguments(node.arguments, signature, paramInfo, 0);
@@ -2511,6 +2508,7 @@ abstract class AstCodeGenerator
       assert(paramInfo.takesContextOrReceiver);
       translateExpression(node.receiver, closureStructRef);
       b.struct_get(closureStruct, FieldIndex.closureContext);
+      translator.convertType(b, closureContextFieldType, signature.inputs[0]);
       _visitArguments(node.arguments, signature, paramInfo, 1);
       return translator
           .outputOrVoid(translator.callFunction(lambdaFunction, b));

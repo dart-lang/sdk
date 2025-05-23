@@ -2058,14 +2058,14 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
       final closureBaseType = w.RefType.def(
           translator.closureLayouter.closureBaseStruct,
           nullable: false);
-      final closureContextType = w.RefType.struct(nullable: false);
 
       // Get context, downcast it to expected type
       b.local_get(closureLocal);
       translator.convertType(b, closureLocal.type, closureBaseType);
       b.struct_get(translator.closureLayouter.closureBaseStruct,
           FieldIndex.closureContext);
-      translator.convertType(b, closureContextType, targetInputs[inputIdx]);
+      translator.convertType(
+          b, closureContextFieldType, targetInputs[inputIdx]);
       inputIdx += 1;
     }
 
