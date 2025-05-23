@@ -689,17 +689,7 @@ abstract class AstCodeGenerator
   }
 
   List<w.ValueType> call(Reference target) {
-    final targetModule = translator.moduleForReference(target);
-    final isLocalModuleCall = targetModule == b.module;
-    final name = translator.functions.getFunctionName(target);
-
-    if (isLocalModuleCall) {
-      b.comment('Direct call to $name');
-      return b.invoke(translator.directCallTarget(target));
-    } else {
-      b.comment('Direct call to $name (across modules)');
-      return translator.callReference(target, b);
-    }
+    return translator.callReference(target, b);
   }
 
   @override

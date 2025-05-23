@@ -553,16 +553,19 @@ class Translator with KernelNodes {
     }
   }
 
-  /// Gets the function associated with [reference] and calls its using
-  /// [callFunction].
+  /// Calls the function referred to in [reference] either directly or via a
+  /// cross-module call.
+  ///
+  /// When performing a direct call it may inline the target if allowed and
+  /// beneficial.
   List<w.ValueType> callReference(
       Reference reference, w.InstructionsBuilder b) {
-    final function = functions.getFunction(reference);
-    final targetModule = function.enclosingModule;
-    if (targetModule == b.module) {
+    final targetModule = moduleForReference(reference);
+    final isLocalModuleCall = targetModule == b.module;
+    if (isLocalModuleCall) {
       return b.invoke(directCallTarget(reference));
     }
-    return callFunction(function, b);
+    return callFunction(functions.getFunction(reference), b);
   }
 
   late final WasmFunctionImporter _importedFunctions =
