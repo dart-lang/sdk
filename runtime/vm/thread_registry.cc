@@ -49,9 +49,10 @@ void ThreadRegistry::VisitObjectPointers(
   Thread* thread = active_list_;
   while (thread != nullptr) {
     if (thread->isolate_group() == isolate_group_of_interest) {
-      // The mutator thread is visited by the isolate itself (see
+      // The mutator thread with isolate is visited by the isolate itself (see
       // [IsolateGroup::VisitStackPointers]).
-      if (!thread->HasDartMutatorStack()) {
+      // All other threads are visited here.
+      if (thread->scheduled_dart_mutator_isolate() == nullptr) {
         thread->VisitObjectPointers(visitor, validate_frames);
       }
     }
