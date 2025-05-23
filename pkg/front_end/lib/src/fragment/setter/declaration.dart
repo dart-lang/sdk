@@ -25,6 +25,7 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../source/type_parameter_scope_builder.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
@@ -219,6 +220,9 @@ class RegularSetterDeclaration
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
       List<NominalParameterBuilder> unboundNominalParameters) {
+    _fragment.builder = builder;
+    createNominalParameterBuilders(
+        _fragment.declaredTypeParameters, unboundNominalParameters);
     _encoding = encodingStrategy.createSetterEncoding(
         builder, _fragment, unboundNominalParameters);
     _fragment.typeParameterNameSpace.addTypeParameters(

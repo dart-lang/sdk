@@ -9,7 +9,6 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/uri_offset.dart';
 import '../builder/builder.dart';
@@ -47,6 +46,9 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   @override
   final DeclarationBuilder? declarationBuilder;
 
+  @override
+  final bool isStatic;
+
   final NameScheme _nameScheme;
 
   /// The declarations that introduces this property. Subsequent property of the
@@ -62,88 +64,45 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   List<SetterDeclaration>? _augmentedSetables;
   SetterDeclaration? _lastSetable;
 
-  Modifiers _modifiers;
-
   final PropertyReferences _references;
 
   final MemberName _memberName;
 
-  SourcePropertyBuilder.forGetter(
+  SourcePropertyBuilder(
       {required this.fileUri,
       required this.fileOffset,
       required this.name,
       required this.libraryBuilder,
       required this.declarationBuilder,
       required NameScheme nameScheme,
-      required GetterDeclaration declaration,
-      required List<GetterDeclaration> augmentations,
-      required Modifiers modifiers,
-      required PropertyReferences references})
-      : _nameScheme = nameScheme,
-        _introductoryGetable = declaration,
-        _getterAugmentations = augmentations,
-        _modifiers = modifiers,
-        _references = references,
-        _memberName = nameScheme.getDeclaredName(name) {
-    if (augmentations.isEmpty) {
-      _augmentedGetables = augmentations;
-      _lastGetable = declaration;
-    } else {
-      _augmentedGetables = [declaration, ...augmentations];
-      _lastGetable = _augmentedGetables!.removeLast();
-    }
-  }
-
-  SourcePropertyBuilder.forSetter(
-      {required this.fileUri,
-      required this.fileOffset,
-      required this.name,
-      required this.libraryBuilder,
-      required this.declarationBuilder,
-      required NameScheme nameScheme,
-      required SetterDeclaration declaration,
-      required List<SetterDeclaration> augmentations,
-      required Modifiers modifiers,
-      required PropertyReferences references})
-      : _nameScheme = nameScheme,
-        _introductorySetable = declaration,
-        _setterAugmentations = augmentations,
-        _modifiers = modifiers,
-        _references = references,
-        _memberName = nameScheme.getDeclaredName(name) {
-    if (augmentations.isEmpty) {
-      _augmentedSetables = augmentations;
-      _lastSetable = declaration;
-    } else {
-      _augmentedSetables = [declaration, ...augmentations];
-      _lastSetable = _augmentedSetables!.removeLast();
-    }
-  }
-
-  SourcePropertyBuilder.forField(
-      {required this.fileUri,
-      required this.fileOffset,
-      required this.name,
-      required this.libraryBuilder,
-      required this.declarationBuilder,
-      required NameScheme nameScheme,
-      required FieldDeclaration fieldDeclaration,
-      required GetterDeclaration getterDeclaration,
+      required FieldDeclaration? fieldDeclaration,
+      required GetterDeclaration? getterDeclaration,
+      required List<GetterDeclaration> getterAugmentations,
       required SetterDeclaration? setterDeclaration,
-      required Modifiers modifiers,
+      required List<SetterDeclaration> setterAugmentations,
+      required this.isStatic,
       required PropertyReferences references})
       : _nameScheme = nameScheme,
         _introductoryField = fieldDeclaration,
         _introductoryGetable = getterDeclaration,
+        _getterAugmentations = getterAugmentations,
         _introductorySetable = setterDeclaration,
-        _modifiers = modifiers,
+        _setterAugmentations = setterAugmentations,
         _references = references,
         _memberName = nameScheme.getDeclaredName(name) {
-    _lastGetable = getterDeclaration;
-    _augmentedGetables = const [];
-    _lastSetable = setterDeclaration;
-    if (setterDeclaration != null) {
-      _augmentedSetables = const [];
+    if (getterAugmentations.isEmpty) {
+      _augmentedGetables = getterAugmentations;
+      _lastGetable = getterDeclaration;
+    } else if (getterDeclaration != null) {
+      _augmentedGetables = [getterDeclaration, ...getterAugmentations];
+      _lastGetable = _augmentedGetables!.removeLast();
+    }
+    if (setterAugmentations.isEmpty) {
+      _augmentedSetables = setterAugmentations;
+      _lastSetable = setterDeclaration;
+    } else if (setterDeclaration != null) {
+      _augmentedSetables = [setterDeclaration, ...setterAugmentations];
+      _lastSetable = _augmentedSetables!.removeLast();
     }
   }
 
@@ -151,10 +110,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   Builder get parent => declarationBuilder ?? libraryBuilder;
 
   @override
-  bool get isStatic => _modifiers.isStatic;
-
-  @override
-  bool get hasConstField => _modifiers.isConst;
+  bool get hasConstField => _introductoryField?.isConst ?? false;
 
   @override
   bool get isSynthesized => false;

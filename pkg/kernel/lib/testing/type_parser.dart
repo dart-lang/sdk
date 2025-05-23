@@ -15,6 +15,16 @@ enum ParsedNullability {
   // Used when the type is declared with the '*' suffix.
   legacy,
 
+  // Used when the type isn't known to be nullable or non-nullable.
+  //
+  // For example, the type `A` is such a type, given the declaration:
+  //
+  //     extension type A(int it);
+  //
+  // Since `A` doesn't implement `Object`, it's not non-nullable. At the same
+  // time, it's not nullable either, since it doesn't end with a `?`.
+  undetermined,
+
   // Used when the nullability suffix is omitted after the type declaration.
   omitted,
 }
@@ -26,6 +36,8 @@ Nullability interpretParsedNullability(ParsedNullability parsedNullability,
       return Nullability.nullable;
     case ParsedNullability.legacy:
       return Nullability.legacy;
+    case ParsedNullability.undetermined:
+      return Nullability.undetermined;
     case ParsedNullability.omitted:
       return ifOmitted;
   }
@@ -37,19 +49,21 @@ String parsedNullabilityToString(ParsedNullability parsedNullability) {
       return '?';
     case ParsedNullability.legacy:
       return '*';
+    case ParsedNullability.undetermined:
+      return '%';
     case ParsedNullability.omitted:
       return '';
   }
 }
 
-class ParsedInterfaceType extends ParsedType {
+class ParsedNamedType extends ParsedType {
   final String name;
 
   final List<ParsedType> arguments;
 
   final ParsedNullability parsedNullability;
 
-  ParsedInterfaceType(this.name, this.arguments, this.parsedNullability);
+  ParsedNamedType(this.name, this.arguments, this.parsedNullability);
 
   @override
   String toString() {
@@ -66,7 +80,7 @@ class ParsedInterfaceType extends ParsedType {
 
   @override
   R accept<R, A>(Visitor<R, A> visitor, A a) {
-    return visitor.visitInterfaceType(this, a);
+    return visitor.visitNamedType(this, a);
   }
 }
 
@@ -78,8 +92,8 @@ abstract class ParsedDeclaration extends ParsedType {
 
 class ParsedClass extends ParsedDeclaration {
   final List<ParsedTypeVariable> typeVariables;
-  final ParsedInterfaceType? supertype;
-  final ParsedInterfaceType? mixedInType;
+  final ParsedNamedType? supertype;
+  final ParsedNamedType? mixedInType;
   final List<ParsedType> interfaces;
   final ParsedFunctionType? callableType;
 
@@ -123,7 +137,7 @@ class ParsedClass extends ParsedDeclaration {
 
 class ParsedExtension extends ParsedDeclaration {
   final List<ParsedTypeVariable> typeVariables;
-  final ParsedInterfaceType onType;
+  final ParsedNamedType onType;
 
   ParsedExtension(String name, this.typeVariables, this.onType) : super(name);
 
@@ -447,6 +461,8 @@ class Parser {
     ParsedNullability result = ParsedNullability.omitted;
     if (optionalAdvance("?")) {
       result = ParsedNullability.nullable;
+    } else if (optionalAdvance("%")) {
+      result = ParsedNullability.undetermined;
     } else if (optionalAdvance("*")) {
       result = ParsedNullability.legacy;
     }
@@ -469,11 +485,11 @@ class Parser {
       if (optional("(") || optional("<")) {
         type = parseFunctionOrRecordType();
       } else if (optionalAdvance("void")) {
-        type = new ParsedInterfaceType(
+        type = new ParsedNamedType(
             "void", <ParsedType>[], ParsedNullability.nullable);
         optionalAdvance("?");
       } else if (optionalAdvance("invalid")) {
-        type = new ParsedInterfaceType(
+        type = new ParsedNamedType(
             "invalid", <ParsedType>[], ParsedNullability.nullable);
       } else {
         String name = parseName();
@@ -488,7 +504,7 @@ class Parser {
           expect(">");
         }
         ParsedNullability parsedNullability = parseNullability();
-        type = new ParsedInterfaceType(name, arguments, parsedNullability);
+        type = new ParsedNamedType(name, arguments, parsedNullability);
       }
       results.add(type);
     } while (optionalAdvance("&"));
@@ -600,12 +616,12 @@ class Parser {
     expect("class");
     String name = parseName();
     List<ParsedTypeVariable> typeVariables = parseTypeVariablesOpt();
-    ParsedInterfaceType? supertype;
-    ParsedInterfaceType? mixedInType;
+    ParsedNamedType? supertype;
+    ParsedNamedType? mixedInType;
     if (optionalAdvance("extends")) {
-      supertype = parseType() as ParsedInterfaceType;
+      supertype = parseType() as ParsedNamedType;
       if (optionalAdvance("with")) {
-        mixedInType = parseType() as ParsedInterfaceType;
+        mixedInType = parseType() as ParsedNamedType;
       }
     }
     List<ParsedType> interfaces = <ParsedType>[];
@@ -629,7 +645,7 @@ class Parser {
     String name = parseName();
     List<ParsedTypeVariable> typeVariables = parseTypeVariablesOpt();
     expect("on");
-    ParsedInterfaceType onType = parseType() as ParsedInterfaceType;
+    ParsedNamedType onType = parseType() as ParsedNamedType;
     expect(";");
     return new ParsedExtension(name, typeVariables, onType);
   }
@@ -766,7 +782,7 @@ List<ParsedTypeVariable> parseTypeVariables(String text) {
 }
 
 abstract class Visitor<R, A> {
-  R visitInterfaceType(ParsedInterfaceType node, A a);
+  R visitNamedType(ParsedNamedType node, A a);
 
   R visitClass(ParsedClass node, A a);
 

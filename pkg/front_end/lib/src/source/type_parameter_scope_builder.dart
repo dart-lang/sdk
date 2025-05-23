@@ -2495,19 +2495,194 @@ _AddBuilder _createFieldBuilder(FieldFragment fragment,
     required ContainerType containerType,
     required IndexedContainer? indexedContainer,
     required ContainerName? containerName}) {
-  String name = fragment.name;
+  RegularFieldDeclaration declaration = new RegularFieldDeclaration(fragment);
+  return _createPropertyBuilder(
+      problemReporting: problemReporting,
+      loader: loader,
+      name: fragment.name,
+      nameOffset: fragment.nameOffset,
+      fileUri: fragment.fileUri,
+      enclosingLibraryBuilder: enclosingLibraryBuilder,
+      declarationBuilder: declarationBuilder,
+      unboundNominalParameters: unboundNominalParameters,
+      indexedLibrary: indexedLibrary,
+      indexedContainer: indexedContainer,
+      containerType: containerType,
+      containerName: containerName,
+      fieldDeclaration: declaration,
+      getterDeclaration: declaration,
+      getterAugmentations: const [],
+      setterDeclaration: fragment.hasSetter ? declaration : null,
+      setterAugmentations: const [],
+      isStatic: fragment.modifiers.isStatic,
+      conflictingSetter: false,
+      inPatch: fragment.enclosingDeclaration?.isPatch ??
+          fragment.enclosingCompilationUnit.isPatch);
+}
 
-  final bool fieldIsLateWithLowering = fragment.modifiers.isLate &&
-      (loader.target.backendTarget.isLateFieldLoweringEnabled(
-              hasInitializer: fragment.modifiers.hasInitializer,
-              isFinal: fragment.modifiers.isFinal,
-              isStatic: fragment.isTopLevel || fragment.modifiers.isStatic) ||
-          (loader.target.backendTarget.useStaticFieldLowering &&
-              // Coverage-ignore(suite): Not run.
-              (fragment.modifiers.isStatic || fragment.isTopLevel)));
+_AddBuilder _createPrimaryConstructorFieldBuilder(
+    PrimaryConstructorFieldFragment fragment,
+    {required ProblemReporting problemReporting,
+    required SourceLoader loader,
+    required SourceLibraryBuilder enclosingLibraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required List<NominalParameterBuilder> unboundNominalParameters,
+    required IndexedLibrary? indexedLibrary,
+    required ContainerType containerType,
+    required IndexedContainer? indexedContainer,
+    required ContainerName? containerName}) {
+  PrimaryConstructorFieldDeclaration declaration =
+      new PrimaryConstructorFieldDeclaration(fragment);
+  return _createPropertyBuilder(
+      problemReporting: problemReporting,
+      loader: loader,
+      name: fragment.name,
+      nameOffset: fragment.nameOffset,
+      fileUri: fragment.fileUri,
+      enclosingLibraryBuilder: enclosingLibraryBuilder,
+      declarationBuilder: declarationBuilder,
+      unboundNominalParameters: unboundNominalParameters,
+      indexedLibrary: indexedLibrary,
+      indexedContainer: indexedContainer,
+      containerType: containerType,
+      containerName: containerName,
+      fieldDeclaration: declaration,
+      getterDeclaration: declaration,
+      getterAugmentations: const [],
+      setterDeclaration: null,
+      setterAugmentations: const [],
+      isStatic: false,
+      conflictingSetter: false,
+      inPatch: fragment.enclosingDeclaration.isPatch);
+}
 
-  final bool isInstanceMember =
-      containerType != ContainerType.Library && !fragment.modifiers.isStatic;
+_AddBuilder _createGetterBuilder(
+    GetterFragment fragment, List<Fragment>? augmentations,
+    {required ProblemReporting problemReporting,
+    required SourceLoader loader,
+    required SourceLibraryBuilder enclosingLibraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required List<NominalParameterBuilder> unboundNominalParameters,
+    required IndexedLibrary? indexedLibrary,
+    required ContainerType containerType,
+    required IndexedContainer? indexedContainer,
+    required ContainerName? containerName}) {
+  GetterDeclaration declaration = new RegularGetterDeclaration(fragment);
+  List<GetterDeclaration> augmentationDeclarations = [];
+  if (augmentations != null) {
+    for (Fragment augmentation in augmentations) {
+      // Promote [augmentation] to [GetterFragment].
+      augmentation as GetterFragment;
+
+      augmentationDeclarations.add(new RegularGetterDeclaration(augmentation));
+    }
+    augmentations.clear();
+  }
+  return _createPropertyBuilder(
+      problemReporting: problemReporting,
+      loader: loader,
+      name: fragment.name,
+      nameOffset: fragment.nameOffset,
+      fileUri: fragment.fileUri,
+      enclosingLibraryBuilder: enclosingLibraryBuilder,
+      declarationBuilder: declarationBuilder,
+      unboundNominalParameters: unboundNominalParameters,
+      indexedLibrary: indexedLibrary,
+      indexedContainer: indexedContainer,
+      containerType: containerType,
+      containerName: containerName,
+      fieldDeclaration: null,
+      getterDeclaration: declaration,
+      getterAugmentations: augmentationDeclarations,
+      setterDeclaration: null,
+      setterAugmentations: const [],
+      isStatic: fragment.modifiers.isStatic,
+      conflictingSetter: false,
+      inPatch: fragment.enclosingDeclaration?.isPatch ??
+          fragment.enclosingCompilationUnit.isPatch);
+}
+
+_AddBuilder _createSetterBuilder(
+    SetterFragment fragment, List<Fragment>? augmentations,
+    {required ProblemReporting problemReporting,
+    required SourceLoader loader,
+    required SourceLibraryBuilder enclosingLibraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required List<NominalParameterBuilder> unboundNominalParameters,
+    required IndexedLibrary? indexedLibrary,
+    required ContainerType containerType,
+    required IndexedContainer? indexedContainer,
+    required ContainerName? containerName,
+    required bool conflictingSetter}) {
+  SetterDeclaration declaration = new RegularSetterDeclaration(fragment);
+  List<SetterDeclaration> augmentationDeclarations = [];
+  if (augmentations != null) {
+    for (Fragment augmentation in augmentations) {
+      // Promote [augmentation] to [SetterFragment].
+      augmentation as SetterFragment;
+
+      augmentationDeclarations.add(new RegularSetterDeclaration(augmentation));
+    }
+    augmentations.clear();
+  }
+  return _createPropertyBuilder(
+      problemReporting: problemReporting,
+      loader: loader,
+      name: fragment.name,
+      nameOffset: fragment.nameOffset,
+      fileUri: fragment.fileUri,
+      enclosingLibraryBuilder: enclosingLibraryBuilder,
+      declarationBuilder: declarationBuilder,
+      unboundNominalParameters: unboundNominalParameters,
+      indexedLibrary: indexedLibrary,
+      indexedContainer: indexedContainer,
+      containerType: containerType,
+      containerName: containerName,
+      fieldDeclaration: null,
+      getterDeclaration: null,
+      getterAugmentations: const [],
+      setterDeclaration: declaration,
+      setterAugmentations: augmentationDeclarations,
+      isStatic: fragment.modifiers.isStatic,
+      conflictingSetter: conflictingSetter,
+      inPatch: fragment.enclosingDeclaration?.isPatch ??
+          fragment.enclosingCompilationUnit.isPatch);
+}
+
+_AddBuilder _createPropertyBuilder({
+  required ProblemReporting problemReporting,
+  required SourceLoader loader,
+  required String name,
+  required int nameOffset,
+  required Uri fileUri,
+  required SourceLibraryBuilder enclosingLibraryBuilder,
+  required DeclarationBuilder? declarationBuilder,
+  required List<NominalParameterBuilder> unboundNominalParameters,
+  required FieldDeclaration? fieldDeclaration,
+  required GetterDeclaration? getterDeclaration,
+  required List<GetterDeclaration> getterAugmentations,
+  required SetterDeclaration? setterDeclaration,
+  required List<SetterDeclaration> setterAugmentations,
+  required ContainerName? containerName,
+  required ContainerType containerType,
+  required IndexedLibrary? indexedLibrary,
+  required IndexedContainer? indexedContainer,
+  required bool isStatic,
+  required bool conflictingSetter,
+  required bool inPatch,
+}) {
+  bool isInstanceMember = containerType != ContainerType.Library && !isStatic;
+
+  bool fieldIsLateWithLowering = false;
+  if (fieldDeclaration != null) {
+    fieldIsLateWithLowering = fieldDeclaration.isLate &&
+        (loader.target.backendTarget.isLateFieldLoweringEnabled(
+                hasInitializer: fieldDeclaration.hasInitializer,
+                isFinal: fieldDeclaration.isFinal,
+                isStatic: !isInstanceMember) ||
+            (loader.target.backendTarget.useStaticFieldLowering &&
+                !isInstanceMember));
+  }
 
   PropertyEncodingStrategy propertyEncodingStrategy =
       new PropertyEncodingStrategy(declarationBuilder,
@@ -2526,266 +2701,33 @@ _AddBuilder _createFieldBuilder(FieldFragment fragment,
       name, nameScheme, indexedContainer,
       fieldIsLateWithLowering: fieldIsLateWithLowering);
 
-  RegularFieldDeclaration declaration = new RegularFieldDeclaration(fragment);
-  SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder.forField(
-      fileUri: fragment.fileUri,
-      fileOffset: fragment.nameOffset,
+  SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder(
+      fileUri: fileUri,
+      fileOffset: nameOffset,
       name: name,
       libraryBuilder: enclosingLibraryBuilder,
       declarationBuilder: declarationBuilder,
-      nameScheme: nameScheme,
-      fieldDeclaration: declaration,
-      getterDeclaration: declaration,
-      setterDeclaration: fragment.hasSetter ? declaration : null,
-      modifiers: fragment.modifiers,
-      references: references);
-  fragment.builder = propertyBuilder;
-  declaration.createEncoding(propertyBuilder);
-  declaration.createGetterEncoding(problemReporting, propertyBuilder,
-      propertyEncodingStrategy, unboundNominalParameters);
-  if (fragment.hasSetter) {
-    declaration.createSetterEncoding(problemReporting, propertyBuilder,
-        propertyEncodingStrategy, unboundNominalParameters);
-  }
-  references.registerReference(loader, propertyBuilder);
-  return new _AddBuilder(
-      fragment.name, propertyBuilder, fragment.fileUri, fragment.nameOffset,
-      inPatch: fragment.enclosingDeclaration?.isPatch ??
-          fragment.enclosingCompilationUnit.isPatch);
-}
-
-_AddBuilder _createPrimaryConstructorFieldBuilder(
-    PrimaryConstructorFieldFragment fragment,
-    {required ProblemReporting problemReporting,
-    required SourceLoader loader,
-    required SourceLibraryBuilder enclosingLibraryBuilder,
-    required DeclarationBuilder declarationBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
-    required IndexedLibrary? indexedLibrary,
-    required ContainerType containerType,
-    required IndexedContainer? indexedContainer,
-    required ContainerName? containerName}) {
-  String name = fragment.name;
-
-  final bool isInstanceMember = true;
-
-  PropertyEncodingStrategy propertyEncodingStrategy =
-      new PropertyEncodingStrategy(declarationBuilder,
-          isInstanceMember: isInstanceMember);
-
-  NameScheme nameScheme = new NameScheme(
-      isInstanceMember: isInstanceMember,
-      containerName: containerName,
-      containerType: containerType,
-      libraryName: indexedLibrary != null
-          ? new LibraryName(indexedLibrary.reference)
-          : enclosingLibraryBuilder.libraryName);
-  indexedContainer ??= indexedLibrary;
-
-  PropertyReferences references = new PropertyReferences(
-      name, nameScheme, indexedContainer,
-      fieldIsLateWithLowering: false);
-
-  PrimaryConstructorFieldDeclaration declaration =
-      new PrimaryConstructorFieldDeclaration(fragment);
-  SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder.forField(
-      fileUri: fragment.fileUri,
-      fileOffset: fragment.nameOffset,
-      name: name,
-      libraryBuilder: enclosingLibraryBuilder,
-      declarationBuilder: declarationBuilder,
-      nameScheme: nameScheme,
-      fieldDeclaration: declaration,
-      getterDeclaration: declaration,
-      setterDeclaration: null,
-      modifiers: Modifiers.Final,
-      references: references);
-  fragment.builder = propertyBuilder;
-  declaration.createEncoding(propertyBuilder);
-  declaration.createGetterEncoding(problemReporting, propertyBuilder,
-      propertyEncodingStrategy, unboundNominalParameters);
-  references.registerReference(loader, propertyBuilder);
-  return new _AddBuilder(
-      fragment.name, propertyBuilder, fragment.fileUri, fragment.nameOffset,
-      inPatch: fragment.enclosingDeclaration.isPatch);
-}
-
-_AddBuilder _createGetterBuilder(
-    GetterFragment fragment, List<Fragment>? augmentations,
-    {required ProblemReporting problemReporting,
-    required SourceLoader loader,
-    required SourceLibraryBuilder enclosingLibraryBuilder,
-    required DeclarationBuilder? declarationBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
-    required IndexedLibrary? indexedLibrary,
-    required ContainerType containerType,
-    required IndexedContainer? indexedContainer,
-    required ContainerName? containerName}) {
-  String name = fragment.name;
-  final bool isInstanceMember =
-      containerType != ContainerType.Library && !fragment.modifiers.isStatic;
-
-  Modifiers modifiers = fragment.modifiers;
-
-  createNominalParameterBuilders(
-      fragment.declaredTypeParameters, unboundNominalParameters);
-
-  PropertyEncodingStrategy propertyEncodingStrategy =
-      new PropertyEncodingStrategy(declarationBuilder,
-          isInstanceMember: isInstanceMember);
-
-  NameScheme nameScheme = new NameScheme(
-      containerName: containerName,
-      containerType: containerType,
-      isInstanceMember: isInstanceMember,
-      libraryName: indexedLibrary != null
-          ? new LibraryName(indexedLibrary.library.reference)
-          : enclosingLibraryBuilder.libraryName);
-
-  indexedContainer ??= indexedLibrary;
-
-  PropertyReferences references = new PropertyReferences(
-      name, nameScheme, indexedContainer,
-      fieldIsLateWithLowering: false);
-
-  GetterDeclaration declaration = new RegularGetterDeclaration(fragment);
-  List<GetterDeclaration> augmentationDeclarations = [];
-  if (augmentations != null) {
-    for (Fragment augmentation in augmentations) {
-      // Promote [augmentation] to [GetterFragment].
-      augmentation as GetterFragment;
-
-      augmentationDeclarations.add(new RegularGetterDeclaration(augmentation));
-      if (!(augmentation.modifiers.isAbstract ||
-          augmentation.modifiers.isExternal)) {
-        modifiers -= Modifiers.Abstract;
-        modifiers -= Modifiers.External;
-      }
-    }
-  }
-
-  SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder.forGetter(
-      fileUri: fragment.fileUri,
-      fileOffset: fragment.nameOffset,
-      name: name,
-      libraryBuilder: enclosingLibraryBuilder,
-      declarationBuilder: declarationBuilder,
-      declaration: declaration,
-      augmentations: augmentationDeclarations,
-      modifiers: modifiers,
+      fieldDeclaration: fieldDeclaration,
+      getterDeclaration: getterDeclaration,
+      getterAugmentations: getterAugmentations,
+      setterDeclaration: setterDeclaration,
+      setterAugmentations: setterAugmentations,
+      isStatic: isStatic,
       nameScheme: nameScheme,
       references: references);
-  fragment.builder = propertyBuilder;
-  if (augmentations != null) {
-    for (Fragment augmentation in augmentations) {
-      // Promote [augmentation] to [GetterFragment].
-      augmentation as GetterFragment;
 
-      augmentation.builder = propertyBuilder;
+  fieldDeclaration?.createFieldEncoding(propertyBuilder);
 
-      createNominalParameterBuilders(
-          augmentation.declaredTypeParameters, unboundNominalParameters);
-    }
-    augmentations.clear();
-  }
-
-  declaration.createGetterEncoding(problemReporting, propertyBuilder,
+  getterDeclaration?.createGetterEncoding(problemReporting, propertyBuilder,
       propertyEncodingStrategy, unboundNominalParameters);
-  for (GetterDeclaration augmentation in augmentationDeclarations) {
+  for (GetterDeclaration augmentation in getterAugmentations) {
     augmentation.createGetterEncoding(problemReporting, propertyBuilder,
         propertyEncodingStrategy, unboundNominalParameters);
   }
 
-  references.registerReference(loader, propertyBuilder);
-  return new _AddBuilder(
-      fragment.name, propertyBuilder, fragment.fileUri, fragment.nameOffset,
-      inPatch: fragment.enclosingDeclaration?.isPatch ??
-          fragment.enclosingCompilationUnit.isPatch);
-}
-
-_AddBuilder _createSetterBuilder(
-    SetterFragment fragment, List<Fragment>? augmentations,
-    {required ProblemReporting problemReporting,
-    required SourceLoader loader,
-    required SourceLibraryBuilder enclosingLibraryBuilder,
-    required DeclarationBuilder? declarationBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
-    required IndexedLibrary? indexedLibrary,
-    required ContainerType containerType,
-    required IndexedContainer? indexedContainer,
-    required ContainerName? containerName,
-    required bool conflictingSetter}) {
-  String name = fragment.name;
-  final bool isInstanceMember =
-      containerType != ContainerType.Library && !fragment.modifiers.isStatic;
-
-  Modifiers modifiers = fragment.modifiers;
-  createNominalParameterBuilders(
-      fragment.declaredTypeParameters, unboundNominalParameters);
-
-  PropertyEncodingStrategy propertyEncodingStrategy =
-      new PropertyEncodingStrategy(declarationBuilder,
-          isInstanceMember: isInstanceMember);
-
-  NameScheme nameScheme = new NameScheme(
-      containerName: containerName,
-      containerType: containerType,
-      isInstanceMember: isInstanceMember,
-      libraryName: indexedLibrary != null
-          ? new LibraryName(indexedLibrary.library.reference)
-          : enclosingLibraryBuilder.libraryName);
-
-  indexedContainer ??= indexedLibrary;
-
-  PropertyReferences references = new PropertyReferences(
-      name, nameScheme, indexedContainer,
-      fieldIsLateWithLowering: false);
-
-  SetterDeclaration declaration = new RegularSetterDeclaration(fragment);
-  List<SetterDeclaration> augmentationDeclarations = [];
-  if (augmentations != null) {
-    for (Fragment augmentation in augmentations) {
-      // Promote [augmentation] to [SetterFragment].
-      augmentation as SetterFragment;
-
-      augmentationDeclarations.add(new RegularSetterDeclaration(augmentation));
-
-      createNominalParameterBuilders(
-          augmentation.declaredTypeParameters, unboundNominalParameters);
-
-      if (!(augmentation.modifiers.isAbstract ||
-          augmentation.modifiers.isExternal)) {
-        modifiers -= Modifiers.Abstract;
-        modifiers -= Modifiers.External;
-      }
-    }
-  }
-
-  SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder.forSetter(
-      fileUri: fragment.fileUri,
-      fileOffset: fragment.nameOffset,
-      name: name,
-      libraryBuilder: enclosingLibraryBuilder,
-      declarationBuilder: declarationBuilder,
-      declaration: declaration,
-      augmentations: augmentationDeclarations,
-      modifiers: modifiers,
-      nameScheme: nameScheme,
-      references: references);
-  fragment.builder = propertyBuilder;
-  if (augmentations != null) {
-    for (Fragment augmentation in augmentations) {
-      // Promote [augmentation] to [SetterFragment].
-      augmentation as SetterFragment;
-
-      augmentation.builder = propertyBuilder;
-    }
-    augmentations.clear();
-  }
-
-  declaration.createSetterEncoding(problemReporting, propertyBuilder,
+  setterDeclaration?.createSetterEncoding(problemReporting, propertyBuilder,
       propertyEncodingStrategy, unboundNominalParameters);
-  for (SetterDeclaration augmentation in augmentationDeclarations) {
+  for (SetterDeclaration augmentation in setterAugmentations) {
     augmentation.createSetterEncoding(problemReporting, propertyBuilder,
         propertyEncodingStrategy, unboundNominalParameters);
   }
@@ -2794,10 +2736,9 @@ _AddBuilder _createSetterBuilder(
   if (conflictingSetter) {
     propertyBuilder.isConflictingSetter = true;
   }
-  return new _AddBuilder(
-      fragment.name, propertyBuilder, fragment.fileUri, fragment.nameOffset,
-      inPatch: fragment.enclosingDeclaration?.isPatch ??
-          fragment.enclosingCompilationUnit.isPatch);
+
+  return new _AddBuilder(name, propertyBuilder, fileUri, nameOffset,
+      inPatch: inPatch);
 }
 
 _AddBuilder _createMethodBuilder(
@@ -3338,32 +3279,27 @@ _AddBuilder _createEnumElementBuilder(EnumElementFragment fragment,
     required ContainerType containerType,
     required IndexedContainer? indexedContainer,
     required ContainerName? containerName}) {
-  NameScheme nameScheme = new NameScheme(
-      containerName: containerName,
-      containerType: containerType,
-      isInstanceMember: false,
-      libraryName: indexedLibrary != null
-          ? new LibraryName(indexedLibrary.library.reference)
-          : enclosingLibraryBuilder.libraryName);
-  PropertyReferences references = new PropertyReferences(
-      fragment.name, nameScheme, indexedContainer,
-      fieldIsLateWithLowering: false);
   EnumElementDeclaration enumElementDeclaration =
       new EnumElementDeclaration(fragment);
-  SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder.forField(
-      fileUri: fragment.fileUri,
-      fileOffset: fragment.nameOffset,
+  return _createPropertyBuilder(
+      problemReporting: problemReporting,
+      loader: loader,
       name: fragment.name,
-      libraryBuilder: enclosingLibraryBuilder,
+      nameOffset: fragment.nameOffset,
+      fileUri: fragment.fileUri,
+      enclosingLibraryBuilder: enclosingLibraryBuilder,
       declarationBuilder: declarationBuilder,
-      nameScheme: nameScheme,
+      unboundNominalParameters: unboundNominalParameters,
+      indexedLibrary: indexedLibrary,
+      indexedContainer: indexedContainer,
+      containerType: containerType,
+      containerName: containerName,
       fieldDeclaration: enumElementDeclaration,
       getterDeclaration: enumElementDeclaration,
+      getterAugmentations: const [],
       setterDeclaration: null,
-      modifiers: Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
-      references: references);
-  fragment.builder = propertyBuilder;
-  return new _AddBuilder(
-      fragment.name, propertyBuilder, fragment.fileUri, fragment.nameOffset,
+      setterAugmentations: const [],
+      isStatic: true,
+      conflictingSetter: false,
       inPatch: fragment.enclosingDeclaration.isPatch);
 }

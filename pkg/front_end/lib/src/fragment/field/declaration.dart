@@ -67,6 +67,8 @@ abstract class FieldDeclaration {
 
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context);
 
+  void createFieldEncoding(SourcePropertyBuilder builder);
+
   void checkFieldTypes(SourceLibraryBuilder libraryBuilder,
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder);
 
@@ -93,6 +95,9 @@ abstract class FieldDeclaration {
 
   /// Returns `true` if this field is declared by an enum element.
   bool get isEnumElement;
+
+  /// Returns `true` if the declaration is const.
+  bool get isConst;
 
   /// The [DartType] of this field declaration.
   abstract DartType fieldType;
@@ -424,7 +429,10 @@ class RegularFieldDeclaration
         isConst: _fragment.modifiers.isConst);
   }
 
-  void createEncoding(SourcePropertyBuilder builder) {
+  @override
+  void createFieldEncoding(SourcePropertyBuilder builder) {
+    _fragment.builder = builder;
+
     SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
 
     bool isAbstract = _fragment.modifiers.isAbstract;
@@ -703,6 +711,7 @@ mixin FieldDeclarationMixin
 
   SourcePropertyBuilder get builder;
 
+  @override
   bool get isConst;
 
   /// The [TypeBuilder] for the declared type of this field declaration.

@@ -84,7 +84,13 @@ const bool jsNumbers = identical(1, 1.0);
 /// expectations. Typically this is not the case in production configurations
 /// that enable minification, like `dart compile js -O2` and `dart compile exe`.
 bool get readableTypeStrings =>
-    !const bool.fromEnvironment('dart.tool.dart2js.minify');
+    !const bool.fromEnvironment('dart.tool.dart2js.minify') &&
+    !const bool.fromEnvironment('dart.tool.dart2wasm.minify');
+
+/// Whether specific subtypes of [Error] with details are thrown or generic
+/// [Error]s.
+bool get preciseErrorsWithDetails =>
+    !const bool.fromEnvironment('dart.tool.dart2wasm.minify');
 
 /// Whether runtime parameter type checks are enforced.
 ///

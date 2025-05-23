@@ -282,6 +282,11 @@ class EnumElementDeclaration
   }
 
   @override
+  void createFieldEncoding(SourcePropertyBuilder builder) {
+    _fragment.builder = builder;
+  }
+
+  @override
   // Coverage-ignore(suite): Not run.
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
@@ -553,7 +558,6 @@ class EnumElementDeclaration
   bool get isFinal => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isLate => false;
 
   @override
@@ -639,7 +643,6 @@ class EnumElementDeclaration
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void createGetterEncoding(
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,

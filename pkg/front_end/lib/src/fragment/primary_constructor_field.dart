@@ -292,7 +292,10 @@ class PrimaryConstructorFieldDeclaration
         isConst: false);
   }
 
-  void createEncoding(SourcePropertyBuilder builder) {
+  @override
+  void createFieldEncoding(SourcePropertyBuilder builder) {
+    _fragment.builder = builder;
+
     SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
 
     bool isInstanceMember = builder.isDeclarationInstanceMember;

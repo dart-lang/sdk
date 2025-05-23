@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 class A {
   static late int sf1;
@@ -33,7 +34,9 @@ class A {
 }
 
 bool isValidError(error, String message) =>
-    (error is Error && 'LateInitializationError: $message' == error.toString());
+    (error is Error &&
+    (!preciseErrorsWithDetails ||
+        'LateInitializationError: $message' == error.toString()));
 
 main() {
   // Static fields.
