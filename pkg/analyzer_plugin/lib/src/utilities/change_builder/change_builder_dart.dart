@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -2684,8 +2683,13 @@ class _EnclosingElementFinder {
 
   _EnclosingElementFinder();
 
-  void find(AstNode? target, int offset) {
-    var node = NodeLocator2(offset).searchWithin(target);
+  void find(CompilationUnit target, int offset) {
+    var node = target.nodeCovering(offset: offset);
+    if (node != null && offset == node.end) {
+      // If the offset is just outside the node, then the element declared by
+      // the node isn't actually enclosing the offset.
+      node = node.parent;
+    }
     while (node != null) {
       if (node is ClassDeclaration) {
         enclosingClass = node.declaredFragment?.element;
