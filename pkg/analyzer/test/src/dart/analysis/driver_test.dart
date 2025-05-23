@@ -44373,6 +44373,64 @@ int get b => 0;
     );
   }
 
+  test_req_classElement_noName() async {
+    newFile(testFile.path, r'''
+class {}
+''');
+
+    _ManualRequirements.install((state) {
+      var e = state.singleUnit.libraryElement.classes.single;
+      e.getNamedConstructor2('foo');
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+[status] idle
+''',
+    );
+  }
+
+  test_req_extensionElement_noName() async {
+    newFile(testFile.path, r'''
+extension on int {
+  void foo() {}
+}
+''');
+
+    _ManualRequirements.install((state) {
+      var e = state.singleUnit.libraryElement.extensions.single;
+      e.getMethod('foo');
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        int: #M0
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        int: #M0
+[status] idle
+''',
+    );
+  }
+
   test_req_instanceElement_getField() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -45196,6 +45254,10 @@ class _ManualRequirementsUnit {
   final CompilationUnitImpl unit;
 
   _ManualRequirementsUnit(this.unit);
+
+  LibraryElementImpl get libraryElement {
+    return libraryFragment.element;
+  }
 
   LibraryFragmentImpl get libraryFragment {
     return unit.declaredFragment!;
