@@ -1,3 +1,11 @@
+## 3.8.1
+
+This is a patch release that:
+
+- Fixes an issue in DDC with late variables being incorrectly captured within async function bodies (issue [#430800])
+
+[#430800]: https://dart-review.googlesource.com/c/sdk/+/430800
+
 ## 3.8.0
 
 **Released on:** 2025-05-20
