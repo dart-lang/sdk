@@ -141,6 +141,29 @@ f() {new N();}''',
     );
   }
 
+  test_instanceCreation_dotShorthand() async {
+    newFile("$testPackageLibPath/lib1.dart", '''
+library lib1;
+class N {}''');
+    newFile("$testPackageLibPath/lib2.dart", '''
+library lib2;
+class N {}''');
+    await assertErrorsInCode(
+      '''
+library L;
+import 'lib1.dart';
+import 'lib2.dart';
+f() {
+  N n = .new();
+  print(n);
+}''',
+      [
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 59, 1),
+        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 66, 3),
+      ],
+    );
+  }
+
   test_is() async {
     newFile("$testPackageLibPath/lib1.dart", '''
 library lib1;
