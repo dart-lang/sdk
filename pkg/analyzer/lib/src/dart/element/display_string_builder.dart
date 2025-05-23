@@ -192,7 +192,10 @@ class ElementDisplayStringBuilder {
     _writeType(type.returnType);
     _write(' Function');
     _writeTypeParameters2(type.typeParameters);
-    _writeFormalParameters(type.parameters, forElement: false);
+    _writeFormalParameters(
+      type.parameters.map((e) => e.asElement).toList(),
+      forElement: false,
+    );
     _writeNullability(type.nullabilitySuffix);
   }
 

@@ -269,9 +269,11 @@ class TypesBuilder {
     }
   }
 
-  List<ParameterElementMixin> _formalParameters(FormalParameterList node) {
+  List<FormalParameterElementMixin> _formalParameters(
+    FormalParameterList node,
+  ) {
     return node.parameters.asImpl.map((parameter) {
-      return parameter.declaredFragment!;
+      return parameter.declaredFragment!.element;
     }).toFixedList();
   }
 

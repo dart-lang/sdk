@@ -689,17 +689,7 @@ abstract class AstCodeGenerator
   }
 
   List<w.ValueType> call(Reference target) {
-    final targetModule = translator.moduleForReference(target);
-    final isLocalModuleCall = targetModule == b.module;
-    final name = translator.functions.getFunctionName(target);
-
-    if (isLocalModuleCall) {
-      b.comment('Direct call to $name');
-      return b.invoke(translator.directCallTarget(target));
-    } else {
-      b.comment('Direct call to $name (across modules)');
-      return translator.callReference(target, b);
-    }
+    return translator.callReference(target, b);
   }
 
   @override
@@ -2507,10 +2497,7 @@ abstract class AstCodeGenerator
       if (paramInfo.takesContextOrReceiver) {
         translateExpression(node.receiver, closureStructRef);
         b.struct_get(closureStruct, FieldIndex.closureContext);
-        translator.convertType(
-            b,
-            closureStruct.fields[FieldIndex.closureContext].type.unpacked,
-            signature.inputs[0]);
+        translator.convertType(b, closureContextFieldType, signature.inputs[0]);
         _visitArguments(node.arguments, signature, paramInfo, 1);
       } else {
         _visitArguments(node.arguments, signature, paramInfo, 0);
@@ -2521,6 +2508,7 @@ abstract class AstCodeGenerator
       assert(paramInfo.takesContextOrReceiver);
       translateExpression(node.receiver, closureStructRef);
       b.struct_get(closureStruct, FieldIndex.closureContext);
+      translator.convertType(b, closureContextFieldType, signature.inputs[0]);
       _visitArguments(node.arguments, signature, paramInfo, 1);
       return translator
           .outputOrVoid(translator.callFunction(lambdaFunction, b));

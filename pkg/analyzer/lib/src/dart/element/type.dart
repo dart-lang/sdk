@@ -96,7 +96,7 @@ class FunctionTypeImpl extends TypeImpl
   ///
   /// The parameter types are not necessarily in the same order as they appear
   /// in the declaration of the function.
-  final List<ParameterElementMixin> parameters;
+  final List<FormalParameterElementMixin> parameters;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -119,11 +119,11 @@ class FunctionTypeImpl extends TypeImpl
   /// implementation, and was exposed by accident (see
   /// https://github.com/dart-lang/sdk/issues/59763). Please use [parameters]
   /// instead.
-  final List<ParameterElementMixin> sortedNamedParameters;
+  final List<FormalParameterElementMixin> sortedNamedParameters;
 
   factory FunctionTypeImpl({
     required List<TypeParameterFragmentImpl> typeFormals,
-    required List<ParameterElementMixin> parameters,
+    required List<FormalParameterElementMixin> parameters,
     required TypeImpl returnType,
     required NullabilitySuffix nullabilitySuffix,
     InstantiatedTypeAliasElementImpl? alias,
@@ -131,7 +131,7 @@ class FunctionTypeImpl extends TypeImpl
     int? firstNamedParameterIndex;
     var requiredPositionalParameterCount = 0;
     var positionalParameterTypes = <TypeImpl>[];
-    List<ParameterElementMixin> sortedNamedParameters;
+    List<FormalParameterElementMixin> sortedNamedParameters;
 
     // Check if already sorted.
     var namedParametersAlreadySorted = true;
@@ -140,7 +140,7 @@ class FunctionTypeImpl extends TypeImpl
       var parameter = parameters[i];
       if (parameter.isNamed) {
         firstNamedParameterIndex ??= i;
-        var name = parameter.name;
+        var name = parameter.name3 ?? '';
         if (lastNamedParameterName.compareTo(name) > 0) {
           namedParametersAlreadySorted = false;
           break;
@@ -159,7 +159,9 @@ class FunctionTypeImpl extends TypeImpl
             : parameters.sublist(firstNamedParameterIndex, parameters.length);
     if (!namedParametersAlreadySorted) {
       // Sort named parameters.
-      sortedNamedParameters.sort((a, b) => a.name.compareTo(b.name));
+      sortedNamedParameters.sort(
+        (a, b) => (a.name3 ?? '').compareTo(b.name3 ?? ''),
+      );
 
       // Combine into a new list, with sorted named parameters.
       parameters = parameters.toList();
@@ -190,7 +192,7 @@ class FunctionTypeImpl extends TypeImpl
   }) {
     return FunctionTypeImpl(
       typeFormals: typeParameters.map((e) => e.asElement).toList(),
-      parameters: formalParameters.map((e) => e.asElement).toList(),
+      parameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
       alias: alias,
@@ -213,7 +215,7 @@ class FunctionTypeImpl extends TypeImpl
 
   @override
   List<FormalParameterElementMixin> get formalParameters {
-    return parameters.map((p) => p.asElement2).toList(growable: false);
+    return parameters;
   }
 
   @Deprecated('Check element, or use getDisplayString()')
@@ -222,7 +224,8 @@ class FunctionTypeImpl extends TypeImpl
 
   @override
   Map<String, TypeImpl> get namedParameterTypes => {
-    for (var parameter in sortedNamedParameters) parameter.name: parameter.type,
+    for (var parameter in sortedNamedParameters)
+      parameter.name3 ?? '': parameter.type,
   };
 
   @override
@@ -240,11 +243,8 @@ class FunctionTypeImpl extends TypeImpl
   TypeImpl get returnTypeShared => returnType;
 
   @override
-  // TODO(paulberry): see if this type can be changed to
-  // `List<FormalParameterElementImpl>`. See
-  // https://dart-review.googlesource.com/c/sdk/+/402341/comment/b1669e20_15938fcd/.
   List<FormalParameterElementMixin> get sortedNamedParametersShared =>
-      sortedNamedParameters.map((p) => p.asElement2).toList();
+      sortedNamedParameters;
 
   @override
   List<TypeParameterElementImpl2> get typeParameters =>
@@ -325,7 +325,7 @@ class FunctionTypeImpl extends TypeImpl
       typeFormals: const [],
       parameters:
           parameters
-              .map((p) => ParameterMember.from(p, substitution))
+              .map((p) => ParameterMember.from2(p, substitution))
               .toFixedList(),
       nullabilitySuffix: nullabilitySuffix,
     );
@@ -423,7 +423,7 @@ class FunctionTypeImpl extends TypeImpl
       namedParameterInfo = [];
       for (var namedParameter in sortedNamedParameters) {
         namedParameterInfo.add(namedParameter.isRequired);
-        namedParameterInfo.add(namedParameter.name);
+        namedParameterInfo.add(namedParameter.name3 ?? '');
       }
     }
 

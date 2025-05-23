@@ -1204,7 +1204,10 @@ class InheritanceManager3 {
       result.typeParameters = resultType.typeFormals;
       result.returnType = resultType.returnType;
       // TODO(scheglov): check if can type cast instead
-      result.parameters = resultType.parameters.cast();
+      result.parameters =
+          resultType.parameters
+              .map((e) => e.firstFragment as FormalParameterFragmentImpl)
+              .toList();
       return result;
     } else {
       var firstAccessor = first as PropertyAccessorElementOrMember;
@@ -1222,7 +1225,10 @@ class InheritanceManager3 {
       result.name2 = fragmentName;
       result.returnType = resultType.returnType;
       // TODO(scheglov): check if can type cast instead
-      result.parameters = resultType.parameters.cast();
+      result.parameters =
+          resultType.parameters
+              .map((e) => e.firstFragment as FormalParameterFragmentImpl)
+              .toList();
 
       field.enclosingElement3 = targetClass;
       field.name2 = fragmentName;

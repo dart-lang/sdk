@@ -49,7 +49,7 @@ class ConstructorElementToInfer {
         ? element.type
         : FunctionTypeImpl(
           typeFormals: typeParameters,
-          parameters: element.parameters,
+          parameters: element.parameters.map((f) => f.asElement2).toList(),
           returnType: element.returnType,
           nullabilitySuffix: NullabilitySuffix.none,
         );

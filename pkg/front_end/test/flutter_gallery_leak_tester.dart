@@ -61,27 +61,16 @@ Future<void> main(List<String> args) async {
 
   Directory gallery = new Directory("$rootPath/gallery");
   if (!gallery.existsSync()) {
-    print("Gallery not found... Attempting to clone via git.");
-    // git clone https://github.com/flutter/gallery.git
-    Process process = await Process.start("git", [
-      "clone",
-      "https://github.com/flutter/gallery.git",
-      "$rootPath/gallery"
-    ]);
-    process.stdout
-        .transform(utf8.decoder)
-        .transform(new LineSplitter())
-        .listen((line) {
-      print("git stdout> $line");
-    });
-    process.stderr
-        .transform(utf8.decoder)
-        .transform(new LineSplitter())
-        .listen((line) {
-      print("git stderr> $line");
-    });
+    print("Gallery not found... Copying from flutter dir.");
+
+    Directory galleryFlutterDev =
+        new Directory("$rootPath/flutter/dev/integration_tests/new_gallery");
+
+    // Copy it.
+    Process process = await Process.start(
+        "cp", ["-r", galleryFlutterDev.path, "$rootPath/gallery"]);
     int processExitCode = await process.exitCode;
-    print("Exit code from git: $processExitCode");
+    print("Exit code from cp: $processExitCode");
 
     process = await Process.start("../flutter/bin/flutter", ["pub", "get"],
         workingDirectory: "$rootPath/gallery/");

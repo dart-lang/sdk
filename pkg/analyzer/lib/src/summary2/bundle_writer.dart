@@ -924,7 +924,10 @@ class ResolutionSink extends _SummaryDataWriter {
 
     _writeTypeParameters(type.typeFormals, () {
       writeType(type.returnType);
-      _writeFormalParameters(type.parameters, withAnnotations: false);
+      _writeFormalParameters(
+        type.parameters.map((e) => e.asElement).toList(),
+        withAnnotations: false,
+      );
     }, withAnnotations: false);
     _writeNullabilitySuffix(type.nullabilitySuffix);
   }
