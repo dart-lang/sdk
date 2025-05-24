@@ -758,6 +758,19 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _inFunctionExpression = false;
 
+  /// Returns whether or not [uri] can be hot reloaded.
+  ///
+  /// These packages are not updated during the runtime of a standard program,
+  /// allowing us to make the following optimizations:
+  ///  - methods, getters, and setters are emitted without additional levels
+  ///    of indirection
+  ///  - fields are emitted without additional lazy initialization checks.
+  bool _isNonHotReloadableResource(Uri uri) {
+    return (uri.isScheme('dart')) ||
+        (uri.isScheme('package') &&
+            _options.nonHotReloadablePackages.contains(uri.pathSegments[0]));
+  }
+
   /// Module can be emitted only once, and the compiler can be reused after
   /// only in incremental mode, for expression compilation only.
   js_ast.Program emitLibrary(Library library) {
@@ -2761,11 +2774,13 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var virtualFieldSymbol = _emitFieldValueAccessor(field);
     var name = _declareMemberName(field);
     var initializer = _visitInitializer(field.initializer, field.annotations);
-    var getter = _emitLazyInitializingFunction(
-      js.call('this.#', virtualFieldSymbol),
-      initializer,
-      field,
-    );
+    var getter = _isNonHotReloadableResource(_currentLibrary!.importUri)
+        ? js.fun('function() { return this[#]; }', [virtualFieldSymbol])
+        : _emitLazyInitializingFunction(
+            js.call('this.#', virtualFieldSymbol),
+            initializer,
+            field,
+          );
     var jsGetter = js_ast.Method(name, getter, isGetter: true)
       ..sourceInformation = _nodeStart(field);
 
@@ -3124,8 +3139,21 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       var initializer =
           _visitInitializer(member.initializer, member.annotations);
-      var getter = _emitLazyInitializingFunction(
-          js.call('this.#', memberValueStore), initializer, member);
+
+      js_ast.Fun getter;
+      if (_isNonHotReloadableResource(_currentLibrary!.importUri)) {
+        getter = js.fun(
+            'function() { return this[#] === void 0 ? this[#] = # : this[#]; }',
+            [
+              memberValueStore,
+              memberValueStore,
+              initializer,
+              memberValueStore
+            ]);
+      } else {
+        getter = _emitLazyInitializingFunction(
+            js.call('this.#', memberValueStore), initializer, member);
+      }
       properties.add(js_ast.Method(access, getter,
           isGetter: true,
           isStatic: member.isStatic && member.enclosingClass != null)
@@ -3134,7 +3162,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           member.fileOffset,
           member.name.text.length,
         ));
-
       if (!member.isFinal && !member.isConst) {
         var body = <js_ast.Statement>[];
         var param = _emitIdentifier('v');
