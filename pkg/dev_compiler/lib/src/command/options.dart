@@ -63,6 +63,10 @@ class Options {
 
   final Map<String, String> summaryModules;
 
+  /// Packages that should not be hot reloaded. DDC can perform special
+  /// optimizations on these packages and will throw if they are hot reloaded.
+  final Set<String> nonHotReloadablePackages;
+
   final List<ModuleFormat> moduleFormats;
 
   /// The name of the module.
@@ -117,6 +121,7 @@ class Options {
       this.reloadLastAcceptedKernel,
       this.reloadDeltaKernel,
       this.summaryModules = const {},
+      this.nonHotReloadablePackages = const {},
       this.moduleFormats = const [],
       required this.moduleName,
       this.multiRootScheme = 'org-dartlang-app',
