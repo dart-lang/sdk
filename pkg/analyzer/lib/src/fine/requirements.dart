@@ -882,8 +882,10 @@ class RequirementsManifest {
       return null;
     }
 
-    // SAFETY: we don't export elements without name.
-    var instanceName = element.lookupName!.asLookupName;
+    var instanceName = element.lookupName?.asLookupName;
+    if (instanceName == null) {
+      return null;
+    }
 
     var instancesMap = instances[libraryElement.uri] ??= {};
     var instanceItem =
@@ -916,8 +918,10 @@ class RequirementsManifest {
       return null;
     }
 
-    // SAFETY: we don't export elements without name.
-    var interfaceName = element.lookupName!.asLookupName;
+    var interfaceName = element.lookupName?.asLookupName;
+    if (interfaceName == null) {
+      return null;
+    }
 
     var interfacesMap = interfaces[libraryElement.uri] ??= {};
     var interfaceItem =

@@ -116,7 +116,7 @@ class AnalyzerImpl {
   }
 
   /// Returns the maximal [DiagnosticSeverity] of the recorded diagnostics.
-  DiagnosticSeverity computeMaxErrorSeverity() {
+  DiagnosticSeverity computeMaxSeverity() {
     var status = DiagnosticSeverity.NONE;
     for (var result in errorsResults) {
       for (var error in result.errors) {
@@ -180,7 +180,7 @@ class AnalyzerImpl {
     }
 
     // Compute and return max severity.
-    return computeMaxErrorSeverity();
+    return computeMaxSeverity();
   }
 
   DiagnosticSeverity? _defaultSeverityProcessor(Diagnostic diagnostic) =>

@@ -969,6 +969,7 @@ class _MockSdkElementsBuilder {
     required LibraryFragmentImpl unit,
   }) {
     var fragment = ClassFragmentImpl(name, 0);
+    fragment.name2 = name;
     ClassElementImpl2(Reference.root(), fragment);
     fragment.typeParameters =
         typeParameters.map((tp) => tp.firstFragment).toList();

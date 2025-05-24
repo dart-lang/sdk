@@ -293,6 +293,8 @@ void SnapshotAnalyzer::DumpField(const Field& field) {
   js_.PrintProperty64("type_class", GetObjectId(field.type()));
   if (field.is_static()) {
     js_.PrintProperty("instance", GetObjectId(field.StaticValue()));
+    js_.PrintProperty64("static_field_offset",
+                        FieldTable::FieldOffsetFor(field.field_id()));
   }
   if (field.HasInitializerFunction()) {
     js_.PrintProperty("initializer_function",

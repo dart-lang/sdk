@@ -109,3 +109,6 @@ callback_unwind_error_test: Crash # https://github.com/dart-lang/sdk/issues/3948
 
 [ $sanitizer == asan || $sanitizer == msan || $sanitizer == tsan ]
 data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
+
+[ $hot_reload || $hot_reload_rollback ]
+isolate_group_shared_callback_test: SkipSlow # shared_slow_path_triggers_gc in combination with reload makes this test very slow

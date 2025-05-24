@@ -15,7 +15,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DartUriResolverTest);
-    defineReflectiveTests(ErrorSeverityTest);
+    defineReflectiveTests(DiagnosticSeverityTest);
     defineReflectiveTests(ResolveRelativeUriTest);
   });
 }
@@ -74,7 +74,7 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
 }
 
 @reflectiveTest
-class ErrorSeverityTest {
+class DiagnosticSeverityTest {
   test_max_error_error() async {
     expect(
       DiagnosticSeverity.ERROR.max(DiagnosticSeverity.ERROR),
