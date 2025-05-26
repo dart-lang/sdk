@@ -406,6 +406,7 @@ analysisOptions
       enhanced-enums
       extension-methods
       generic-metadata
+      getter-setter-error
       inference-update-1
       inference-update-2
       inference-update-3
@@ -486,6 +487,7 @@ analysisOptions
       enhanced-enums
       extension-methods
       generic-metadata
+      getter-setter-error
       inference-update-1
       inference-update-2
       inference-update-3

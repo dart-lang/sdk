@@ -149,9 +149,6 @@ features:
   dot-shorthands:
     help: "Shorter dot syntax for static accesses."
 
-  getter-setter-error:
-    help: "Stop reporting errors about mismatching types in a getter/setter pair."
-
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
@@ -164,6 +161,21 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+
+
+  getter-setter-error:
+    enabledIn: '3.9.0'
+    validation: |
+      class A {
+        String get foo => 'feature enabled';
+        void set foo(int value) {}
+      }
+      main() {
+        A a = new A();
+        a.foo = 0;
+        print(a.foo);
+      }
+    help: "Stop reporting errors about mismatching types in a getter/setter pair."
 
   sound-flow-analysis:
     enabledIn: '3.9.0'

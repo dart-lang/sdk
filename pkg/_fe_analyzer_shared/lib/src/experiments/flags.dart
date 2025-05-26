@@ -96,10 +96,10 @@ enum ExperimentalFlag {
 
   getterSetterError(
       name: 'getter-setter-error',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentEnabledVersion: const Version(3, 9),
+      experimentReleasedVersion: const Version(3, 9)),
 
   inferenceUpdate1(
       name: 'inference-update-1',
