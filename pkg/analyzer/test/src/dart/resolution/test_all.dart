@@ -46,6 +46,7 @@ import 'function_declaration_statement_test.dart'
 import 'function_declaration_test.dart' as function_declaration;
 import 'function_expression_invocation_test.dart'
     as function_expression_invocation;
+import 'function_expression_test.dart' as function_expression;
 import 'function_reference_test.dart' as function_reference;
 import 'function_type_alias_test.dart' as function_type_alias;
 import 'function_typed_formal_parameter_test.dart'
@@ -159,6 +160,7 @@ main() {
     function_body.main();
     function_declaration_statement.main();
     function_declaration.main();
+    function_expression.main();
     function_expression_invocation.main();
     function_reference.main();
     function_type_alias.main();

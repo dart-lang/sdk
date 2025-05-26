@@ -1771,6 +1771,11 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.withIndent(() {
           _writeType('type', fragment.type);
         });
+      } else if (fragment is TypeParameterFragmentImpl) {
+        _writeFragment('declaredElement', fragment);
+        _sink.withIndent(() {
+          _writeType('defaultType', fragment.defaultType);
+        });
       } else {
         _writeFragment('declaredElement', fragment);
         if (fragment is ExecutableFragmentImpl) {

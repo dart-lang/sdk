@@ -4103,6 +4103,7 @@ FunctionReference
           TypeParameter
             name: T
             declaredElement: T@89
+              defaultType: null
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
@@ -4322,6 +4323,7 @@ FunctionReference
         TypeParameter
           name: T
           declaredElement: T@37
+            defaultType: null
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (

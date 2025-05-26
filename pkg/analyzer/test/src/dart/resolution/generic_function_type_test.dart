@@ -80,6 +80,7 @@ TypeParameter
       element2: <testLibraryFragment>::@getter::a#element
   name: T
   declaredElement: T@27
+    defaultType: null
 ''');
   }
 
