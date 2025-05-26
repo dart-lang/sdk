@@ -16,6 +16,10 @@
 #include <tuple>
 #include <utility>
 
+#if defined(DART_HOST_OS_MACOS)
+#include <os/signpost.h>
+#endif
+
 #include "platform/atomic.h"
 #include "platform/hashmap.h"
 #include "vm/isolate.h"

@@ -1,3 +1,6 @@
+## 0.6.1
+- Add handling for Mach-O UUID load commands.
+
 ## 0.6.1-wip
 - Update SDK constraint to `^3.5.0`.
 

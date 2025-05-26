@@ -46,9 +46,8 @@ class Snapshot {
   static void GenerateAppJIT(const char* snapshot_filename);
   static void GenerateAppAOTAsAssembly(const char* snapshot_filename);
 
-#if defined(DART_TARGET_OS_MACOS)
-  static bool IsMachOFormattedBinary(const char* container_path);
-#endif
+  static bool IsMachOFormattedBinary(const char* container_path,
+                                     DartUtils::MagicNumber* out = nullptr);
 #if defined(DART_TARGET_OS_WINDOWS)
   static bool IsPEFormattedBinary(const char* container_path);
 #endif
