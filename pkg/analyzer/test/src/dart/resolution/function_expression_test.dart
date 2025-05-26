@@ -43,7 +43,7 @@ FunctionExpression
           element2: dart:core::@class::List
           type: List<T>
         declaredElement: T@14
-          defaultType: null
+          defaultType: List<dynamic>
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
@@ -79,7 +79,7 @@ FunctionExpression
           element2: dart:core::@class::num
           type: num
         declaredElement: T@14
-          defaultType: null
+          defaultType: num
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (

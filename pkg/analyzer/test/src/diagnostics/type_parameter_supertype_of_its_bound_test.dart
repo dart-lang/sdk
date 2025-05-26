@@ -25,6 +25,44 @@ class A<T extends T> {
     );
   }
 
+  test_1of1_local() async {
+    await assertErrorsInCode(
+      r'''
+void m() {
+  void local<T extends T>() {}
+  local;
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          24,
+          1,
+        ),
+      ],
+    );
+  }
+
+  test_1of1_local_viaExtensionType() async {
+    await assertErrorsInCode(
+      r'''
+extension type A<T>(T it) {}
+
+void m() {
+  void local<U extends A<U>>() {}
+  local;
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          54,
+          1,
+        ),
+      ],
+    );
+  }
+
   test_1of1_used() async {
     await assertErrorsInCode(
       '''
@@ -50,6 +88,31 @@ class B<U extends A<U>> {}
           CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
           38,
           1,
+        ),
+      ],
+    );
+  }
+
+  test_2of2_local_viaExtensionType() async {
+    await assertErrorsInCode(
+      r'''
+extension type A<T>(T it) {}
+
+void m() {
+  void local<T1 extends A<T2>, T2 extends T1>() {}
+  local;
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          54,
+          2,
+        ),
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          72,
+          2,
         ),
       ],
     );
@@ -88,6 +151,29 @@ class A<T1 extends T3, T2, T3 extends T1> {
         error(
           CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
           27,
+          2,
+        ),
+      ],
+    );
+  }
+
+  test_local_2of3() async {
+    await assertErrorsInCode(
+      r'''
+void m() {
+  void local<T1 extends T3, T2, T3 extends T1>() {}
+  local;
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          24,
+          2,
+        ),
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          43,
           2,
         ),
       ],

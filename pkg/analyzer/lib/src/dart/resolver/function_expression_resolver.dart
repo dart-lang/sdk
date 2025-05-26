@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -9,7 +10,9 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/summary2/default_types_builder.dart';
 
 class FunctionExpressionResolver {
   final ResolverVisitor _resolver;
@@ -65,6 +68,25 @@ class FunctionExpressionResolver {
       _resolver.checkForBodyMayCompleteNormally(body: body, errorNode: body);
       _resolver.flowAnalysis.flow?.functionExpression_end();
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
+    }
+
+    var typeParameterList = node.typeParameters;
+    if (typeParameterList != null) {
+      // Computing the default types for type parameters will normalize the
+      // recursive bounds, so we need to check for recursion first.
+      //
+      // This is only needed for local functions because top-level and
+      checkForTypeParameterBoundRecursion(
+        _resolver.errorReporter,
+        typeParameterList.typeParameters,
+      );
+      var map = <Fragment, TypeParameter>{};
+      for (var typeParameter in typeParameterList.typeParameters) {
+        map[typeParameter.declaredFragment!] = typeParameter;
+      }
+      DefaultTypesBuilder(
+        getTypeParameterNode: (fragment) => map[fragment],
+      ).build([node]);
     }
   }
 

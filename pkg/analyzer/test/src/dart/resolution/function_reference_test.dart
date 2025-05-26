@@ -4323,7 +4323,7 @@ FunctionReference
         TypeParameter
           name: T
           declaredElement: T@37
-            defaultType: null
+            defaultType: dynamic
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
