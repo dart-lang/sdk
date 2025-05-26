@@ -2,27 +2,27 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/crashes/crash_06/main.dart:1:12: Error: Type 'C' not found.
+// pkg/front_end/testcases/general/crashes/crash_06/main.dart:5:12: Error: Type 'C' not found.
 // mixin A on C, D {}
 //            ^
 //
-// pkg/front_end/testcases/general/crashes/crash_06/main.dart:1:15: Error: Type 'D' not found.
+// pkg/front_end/testcases/general/crashes/crash_06/main.dart:5:15: Error: Type 'D' not found.
 // mixin A on C, D {}
 //               ^
 //
-// pkg/front_end/testcases/general/crashes/crash_06/main.dart:2:17: Error: Type 'C' not found.
+// pkg/front_end/testcases/general/crashes/crash_06/main.dart:6:17: Error: Type 'C' not found.
 // class B extends C with D, A {}
 //                 ^
 //
-// pkg/front_end/testcases/general/crashes/crash_06/main.dart:2:24: Error: Type 'D' not found.
+// pkg/front_end/testcases/general/crashes/crash_06/main.dart:6:24: Error: Type 'D' not found.
 // class B extends C with D, A {}
 //                        ^
 //
-// pkg/front_end/testcases/general/crashes/crash_06/main.dart:2:7: Error: The type 'D' can't be mixed in.
+// pkg/front_end/testcases/general/crashes/crash_06/main.dart:6:7: Error: The type 'D' can't be mixed in.
 // class B extends C with D, A {}
 //       ^
 //
-// pkg/front_end/testcases/general/crashes/crash_06/main.dart:2:7: Error: '_B&C&D' doesn't implement '_A&C&D' so it can't be used with 'A'.
+// pkg/front_end/testcases/general/crashes/crash_06/main.dart:6:7: Error: '_B&C&D' doesn't implement '_A&C&D' so it can't be used with 'A'.
 //  - 'C with D' is from 'pkg/front_end/testcases/general/crashes/crash_06/main.dart'.
 //  - 'C with D' is from 'pkg/front_end/testcases/general/crashes/crash_06/main.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/general/crashes/crash_06/main.dart'.
