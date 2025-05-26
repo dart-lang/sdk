@@ -134,6 +134,7 @@ vm_service/test/deferred_import_reload_test: SkipByDesign # Hot reload is disabl
 vm_service/test/developer_extension_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/developer_service_get_isolate_id_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/developer_service_get_object_id_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/dot_shorthands_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/enhanced_enum_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/eval_*test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/evaluate_*test: SkipByDesign # Debugger is disabled in AOT mode.
