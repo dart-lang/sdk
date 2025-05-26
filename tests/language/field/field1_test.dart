@@ -11,7 +11,6 @@ class C {
   get a {
     //^
     // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-    // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
     // [cfe] 'a' is already declared in this scope.
     return 1;
   }

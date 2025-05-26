@@ -424,6 +424,13 @@ typedef Dart_Handle (*Dart_CreateAppAOTSnapshotAsElfsType)(
     bool,
     Dart_StreamingWriteCallback,
     Dart_StreamingCloseCallback);
+typedef Dart_Handle (*Dart_CreateAppAOTSnapshotAsBinaryType)(
+    Dart_AotBinaryFormat,
+    Dart_StreamingWriteCallback,
+    void*,
+    bool,
+    void*,
+    const char*);
 typedef Dart_Handle (*Dart_CreateVMAOTSnapshotAsAssemblyType)(
     Dart_StreamingWriteCallback,
     void*);
@@ -724,6 +731,8 @@ static Dart_CreateAppAOTSnapshotAsElfType Dart_CreateAppAOTSnapshotAsElfFn =
     NULL;
 static Dart_CreateAppAOTSnapshotAsElfsType Dart_CreateAppAOTSnapshotAsElfsFn =
     NULL;
+static Dart_CreateAppAOTSnapshotAsBinaryType
+    Dart_CreateAppAOTSnapshotAsBinaryFn = NULL;
 static Dart_CreateVMAOTSnapshotAsAssemblyType
     Dart_CreateVMAOTSnapshotAsAssemblyFn = NULL;
 static Dart_SortClassesType Dart_SortClassesFn = NULL;
@@ -1293,6 +1302,9 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     Dart_CreateAppAOTSnapshotAsElfsFn =
         (Dart_CreateAppAOTSnapshotAsElfsType)GetProcAddress(
             process, "Dart_CreateAppAOTSnapshotAsElfs");
+    Dart_CreateAppAOTSnapshotAsBinaryFn =
+        (Dart_CreateAppAOTSnapshotAsBinaryType)GetProcAddress(
+            process, "Dart_CreateAppAOTSnapshotAsBinary");
     Dart_CreateVMAOTSnapshotAsAssemblyFn =
         (Dart_CreateVMAOTSnapshotAsAssemblyType)GetProcAddress(
             process, "Dart_CreateVMAOTSnapshotAsAssembly");
@@ -2549,6 +2561,18 @@ Dart_Handle Dart_CreateAppAOTSnapshotAsElfs(
   return Dart_CreateAppAOTSnapshotAsElfsFn(next_callback, next_callback_data,
                                            stripped, write_callback,
                                            close_callback);
+}
+
+Dart_Handle Dart_CreateAppAOTSnapshotAsBinary(
+    Dart_AotBinaryFormat format,
+    Dart_StreamingWriteCallback callback,
+    void* callback_data,
+    bool stripped,
+    void* debug_callback_data,
+    const char* identifier) {
+  return Dart_CreateAppAOTSnapshotAsBinaryFn(format, callback, callback_data,
+                                             stripped, debug_callback_data,
+                                             identifier);
 }
 
 Dart_Handle Dart_CreateVMAOTSnapshotAsAssembly(

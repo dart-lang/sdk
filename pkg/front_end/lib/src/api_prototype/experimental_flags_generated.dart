@@ -157,11 +157,11 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag getterSetterError = const ExperimentalFlag(
       name: 'getter-setter-error',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      enabledVersion: const Version(3, 9),
+      experimentEnabledVersion: const Version(3, 9),
+      experimentReleasedVersion: const Version(3, 9));
 
   static const ExperimentalFlag inferenceUpdate1 = const ExperimentalFlag(
       name: 'inference-update-1',

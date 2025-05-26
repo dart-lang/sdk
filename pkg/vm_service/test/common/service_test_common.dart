@@ -212,6 +212,29 @@ IsolateTest setBreakpointAtLineColumn(int line, int column) {
   };
 }
 
+extension BreakpointLocation on Breakpoint {
+  Future<(String uri, (int line, int column))> getLocation(
+    VmService service,
+    IsolateRef isolateRef,
+  ) async {
+    if (location?.tokenPos == null) {
+      return ('<unknown>', (-1, -1));
+    }
+
+    final script = (await service.getObject(
+      isolateRef.id!,
+      location!.script!.id!,
+    )) as Script;
+    return (
+      script.uri!,
+      (
+        script.getLineNumberFromTokenPos(location!.tokenPos!) ?? -1,
+        script.getColumnNumberFromTokenPos(location!.tokenPos!) ?? -1
+      )
+    );
+  }
+}
+
 extension FrameLocation on Frame {
   Future<(String uri, (int line, int column))> getLocation(
     VmService service,

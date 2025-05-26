@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <memory>
-
 #include "bin/snapshot_utils.h"
+
+#include <cerrno>
+#include <memory>
 
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
@@ -22,6 +23,13 @@
 #include "platform/utils.h"
 
 #define LOG_SECTION_BOUNDARIES false
+
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID) ||            \
+    defined(DART_HOST_OS_FUCHSIA)
+#define NATIVE_SHARED_OBJECT_FORMAT_ELF 1
+#elif defined(DART_HOST_OS_MACOS)
+#define NATIVE_SHARED_OBJECT_FORMAT_MACHO 1
+#endif
 
 namespace dart {
 namespace bin {
@@ -145,6 +153,105 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
+class DylibAppSnapshot : public AppSnapshot {
+ public:
+  DylibAppSnapshot(DartUtils::MagicNumber magic_number,
+                   void* library,
+                   const uint8_t* vm_snapshot_data,
+                   const uint8_t* vm_snapshot_instructions,
+                   const uint8_t* isolate_snapshot_data,
+                   const uint8_t* isolate_snapshot_instructions)
+      : AppSnapshot(magic_number),
+        library_(library),
+        vm_snapshot_data_(vm_snapshot_data),
+        vm_snapshot_instructions_(vm_snapshot_instructions),
+        isolate_snapshot_data_(isolate_snapshot_data),
+        isolate_snapshot_instructions_(isolate_snapshot_instructions) {}
+
+  ~DylibAppSnapshot() { Utils::UnloadDynamicLibrary(library_); }
+
+  void SetBuffers(const uint8_t** vm_data_buffer,
+                  const uint8_t** vm_instructions_buffer,
+                  const uint8_t** isolate_data_buffer,
+                  const uint8_t** isolate_instructions_buffer) {
+    *vm_data_buffer = vm_snapshot_data_;
+    *vm_instructions_buffer = vm_snapshot_instructions_;
+    *isolate_data_buffer = isolate_snapshot_data_;
+    *isolate_instructions_buffer = isolate_snapshot_instructions_;
+  }
+
+ private:
+  void* library_;
+  const uint8_t* vm_snapshot_data_;
+  const uint8_t* vm_snapshot_instructions_;
+  const uint8_t* isolate_snapshot_data_;
+  const uint8_t* isolate_snapshot_instructions_;
+};
+
+static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
+    DartUtils::MagicNumber magic_number,
+    const char* script_name,
+    const char** error) {
+#if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_MACOS)
+  // On Linux and OSX, resolve the script path before passing into dlopen()
+  // since dlopen will not search the filesystem for paths like 'libtest.so'.
+  CStringUniquePtr absolute_path(realpath(script_name, nullptr));
+  script_name = absolute_path.get();
+  if (script_name == nullptr) {
+    const intptr_t err = errno;
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    Utils::StrError(err, error_buf, kBufferSize);
+    *error = Utils::SCreate("could not resolve path: %s", error_buf);
+    return nullptr;
+  }
+#endif
+  void* library = Utils::LoadDynamicLibrary(script_name, error);
+  if (library == nullptr) {
+#if defined(NATIVE_SHARED_OBJECT_FORMAT_ELF)
+    if (*error == nullptr && magic_number != DartUtils::kAotELFMagicNumber) {
+      *error = "not an ELF shared object";
+    }
+#elif defined(NATIVE_SHARED_OBJECT_FORMAT_MACHO)
+    if (*error == nullptr &&
+        magic_number != DartUtils::kAotMachO32MagicNumber &&
+        magic_number != DartUtils::kAotMachO64MagicNumber) {
+      *error = "not a Mach-O shared object";
+    }
+#endif
+    if (*error == nullptr) {
+      *error = "unknown failure loading dynamic library (wrong format?)";
+    }
+    return nullptr;
+  }
+
+  const uint8_t* vm_data_buffer = reinterpret_cast<const uint8_t*>(
+      Utils::ResolveSymbolInDynamicLibrary(library, kVmSnapshotDataCSymbol));
+
+  const uint8_t* vm_instructions_buffer =
+      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
+          library, kVmSnapshotInstructionsCSymbol));
+
+  const uint8_t* isolate_data_buffer =
+      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
+          library, kIsolateSnapshotDataCSymbol));
+  if (isolate_data_buffer == nullptr) {
+    FATAL("Failed to resolve symbol '%s'\n", kIsolateSnapshotDataCSymbol);
+  }
+
+  const uint8_t* isolate_instructions_buffer =
+      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
+          library, kIsolateSnapshotInstructionsCSymbol));
+  if (isolate_instructions_buffer == nullptr) {
+    FATAL("Failed to resolve symbol '%s'\n",
+          kIsolateSnapshotInstructionsCSymbol);
+  }
+
+  return new DylibAppSnapshot(magic_number, library, vm_data_buffer,
+                              vm_instructions_buffer, isolate_data_buffer,
+                              isolate_instructions_buffer);
+}
+
 class ElfAppSnapshot : public AppSnapshot {
  public:
   ElfAppSnapshot(Dart_LoadedElf* elf,
@@ -184,6 +291,18 @@ static AppSnapshot* TryReadAppSnapshotElf(
     uint64_t file_offset,
     bool force_load_elf_from_memory = false) {
   const char* error = nullptr;
+#if defined(NATIVE_SHARED_OBJECT_FORMAT_ELF)
+  if (file_offset == 0 && !force_load_elf_from_memory) {
+    // The load as a dynamic library should succeed, since this is a platform
+    // that natively understands ELF.
+    if (auto* const snapshot = TryReadAppSnapshotDynamicLibrary(
+            DartUtils::kAotELFMagicNumber, script_name, &error)) {
+      return snapshot;
+    }
+    Syslog::PrintErr("Loading dynamic library failed: %s\n", error);
+    return nullptr;
+  }
+#endif
   const uint8_t *vm_data_buffer = nullptr, *vm_instructions_buffer = nullptr,
                 *isolate_data_buffer = nullptr,
                 *isolate_instructions_buffer = nullptr;
@@ -220,7 +339,8 @@ static AppSnapshot* TryReadAppSnapshotElf(
 AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElfFromMachO(
     const char* container_path) {
   // Ensure file is actually MachO-formatted.
-  if (!IsMachOFormattedBinary(container_path)) {
+  DartUtils::MagicNumber magic_number;
+  if (!IsMachOFormattedBinary(container_path, &magic_number)) {
     Syslog::PrintErr("Expected a Mach-O binary.\n");
     return nullptr;
   }
@@ -235,17 +355,19 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElfFromMachO(
   // as the 32-bit header, just with an extra field for alignment, so we can
   // safely load a 32-bit header to get all the information we need.
   mach_o::mach_header header;
-  file->ReadFully(&header, sizeof(header));
-
-  if (header.magic == mach_o::MH_CIGAM || header.magic == mach_o::MH_CIGAM_64) {
-    Syslog::PrintErr(
-        "Expected a host endian header but found a byte-swapped header.\n");
+  if (!file->ReadFully(&header, sizeof(header))) {
+    Syslog::PrintErr("Could not read a complete Mach-O header.\n");
     return nullptr;
   }
 
-  if (header.magic == mach_o::MH_MAGIC_64) {
-    // Set the file position as if we had read a 64-bit header.
-    file->SetPosition(sizeof(mach_o::mach_header_64));
+  auto const bitsize = DartUtils::MagicNumberBitSize(magic_number);
+  if (bitsize == 64) {
+    // The load commands start immediately after the full header.
+    if (!file->SetPosition(sizeof(mach_o::mach_header_64))) {
+      Syslog::PrintErr("Could not read a complete Mach-O 64-bit header.\n");
+    }
+  } else {
+    ASSERT_EQUAL(bitsize, 32);
   }
 
   // Now we search through the load commands to find our snapshot note, which
@@ -400,108 +522,29 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElf(
 
   return TryReadAppSnapshotElf(container_path, appended_offset);
 }
-
-class DylibAppSnapshot : public AppSnapshot {
- public:
-  DylibAppSnapshot(void* library,
-                   const uint8_t* vm_snapshot_data,
-                   const uint8_t* vm_snapshot_instructions,
-                   const uint8_t* isolate_snapshot_data,
-                   const uint8_t* isolate_snapshot_instructions)
-      : AppSnapshot(DartUtils::kAotELFMagicNumber),
-        library_(library),
-        vm_snapshot_data_(vm_snapshot_data),
-        vm_snapshot_instructions_(vm_snapshot_instructions),
-        isolate_snapshot_data_(isolate_snapshot_data),
-        isolate_snapshot_instructions_(isolate_snapshot_instructions) {}
-
-  ~DylibAppSnapshot() { Utils::UnloadDynamicLibrary(library_); }
-
-  void SetBuffers(const uint8_t** vm_data_buffer,
-                  const uint8_t** vm_instructions_buffer,
-                  const uint8_t** isolate_data_buffer,
-                  const uint8_t** isolate_instructions_buffer) {
-    *vm_data_buffer = vm_snapshot_data_;
-    *vm_instructions_buffer = vm_snapshot_instructions_;
-    *isolate_data_buffer = isolate_snapshot_data_;
-    *isolate_instructions_buffer = isolate_snapshot_instructions_;
-  }
-
- private:
-  void* library_;
-  const uint8_t* vm_snapshot_data_;
-  const uint8_t* vm_snapshot_instructions_;
-  const uint8_t* isolate_snapshot_data_;
-  const uint8_t* isolate_snapshot_instructions_;
-};
-
-static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
-  void* library = Utils::LoadDynamicLibrary(script_name);
-  if (library == nullptr) {
-    return nullptr;
-  }
-
-  const uint8_t* vm_data_buffer = reinterpret_cast<const uint8_t*>(
-      Utils::ResolveSymbolInDynamicLibrary(library, kVmSnapshotDataCSymbol));
-
-  const uint8_t* vm_instructions_buffer =
-      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
-          library, kVmSnapshotInstructionsCSymbol));
-
-  const uint8_t* isolate_data_buffer =
-      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
-          library, kIsolateSnapshotDataCSymbol));
-  if (isolate_data_buffer == nullptr) {
-    FATAL("Failed to resolve symbol '%s'\n", kIsolateSnapshotDataCSymbol);
-  }
-
-  const uint8_t* isolate_instructions_buffer =
-      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
-          library, kIsolateSnapshotInstructionsCSymbol));
-  if (isolate_instructions_buffer == nullptr) {
-    FATAL("Failed to resolve symbol '%s'\n",
-          kIsolateSnapshotInstructionsCSymbol);
-  }
-
-  return new DylibAppSnapshot(library, vm_data_buffer, vm_instructions_buffer,
-                              isolate_data_buffer, isolate_instructions_buffer);
-}
-
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(DART_TARGET_OS_MACOS)
-bool Snapshot::IsMachOFormattedBinary(const char* filename) {
+bool Snapshot::IsMachOFormattedBinary(const char* filename,
+                                      DartUtils::MagicNumber* out) {
   File* file = File::Open(nullptr, filename, File::kRead);
   if (file == nullptr) {
     return false;
   }
   RefCntReleaseScope<File> rs(file);
 
-  const uint64_t size = file->Length();
-  // Parse the first 4 bytes and check the magic numbers.
-  uint32_t magic;
-  if (size < sizeof(magic)) {
+  uint8_t header[DartUtils::kMaxMagicNumberSize];
+  if (!file->ReadFully(&header, DartUtils::kMaxMagicNumberSize)) {
     // The file isn't long enough to contain the magic bytes.
     return false;
   }
-  file->SetPosition(0);
-  file->ReadFully(&magic, sizeof(magic));
-
-  // Depending on the magic numbers, check that the size of the file is
-  // large enough for either a 32-bit or 64-bit header.
-  switch (magic) {
-    case mach_o::MH_MAGIC:
-    case mach_o::MH_CIGAM:
-      return size >= sizeof(mach_o::mach_header);
-    case mach_o::MH_MAGIC_64:
-    case mach_o::MH_CIGAM_64:
-      return size >= sizeof(mach_o::mach_header_64);
-    default:
-      // Not a Mach-O formatted file.
-      return false;
+  DartUtils::MagicNumber magic_number =
+      DartUtils::SniffForMagicNumber(header, sizeof(header));
+  if (out != nullptr) {
+    *out = magic_number;
   }
+  return magic_number == DartUtils::kAotMachO32MagicNumber ||
+         magic_number == DartUtils::kAotMachO64MagicNumber;
 }
-#endif  // defined(DART_TARGET_OS_MACOS)
 
 #if defined(DART_TARGET_OS_WINDOWS)
 bool Snapshot::IsPEFormattedBinary(const char* filename) {
@@ -597,23 +640,20 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
 
   // For testing AOT with the standalone embedder, we also support loading
   // from a dynamic library to simulate what happens on iOS.
-
-#if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_MACOS)
-  // On Linux and OSX, resolve the script path before passing into dlopen()
-  // since dlopen will not search the filesystem for paths like 'libtest.so'.
-  CStringUniquePtr absolute_path(realpath(script_name, nullptr));
-  script_name = absolute_path.get();
-#endif
-
-  AppSnapshot* snapshot = nullptr;
-  if (!force_load_elf_from_memory) {
-    snapshot = TryReadAppSnapshotDynamicLibrary(script_name);
-    if (snapshot != nullptr) {
+  const intptr_t file_offset = 0;
+  if (magic_number == DartUtils::kAotELFMagicNumber) {
+    return TryReadAppSnapshotElf(script_name, file_offset,
+                                 force_load_elf_from_memory);
+  } else {
+    // This is not a format for which we have a non-native loader, so
+    // attempt to load it as a native dynamic library.
+    const char* error = nullptr;
+    if (auto* const snapshot = TryReadAppSnapshotDynamicLibrary(
+            magic_number, script_name, &error)) {
       return snapshot;
     }
+    Syslog::PrintErr("Loading dynamic library failed: %s\n", error);
   }
-  return TryReadAppSnapshotElf(script_name, /*file_offset=*/0,
-                               force_load_elf_from_memory);
 #else
   if (magic_number == DartUtils::kAppJITMagicNumber) {
     // Return the JIT snapshot.

@@ -884,7 +884,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
           tempDir, arguments, environmentOverrides));
     }
 
-    if (!_configuration.useElf) {
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.assembly) {
       commands.add(
           computeAssembleCommand(tempDir, arguments, environmentOverrides));
       if (!_configuration.keepGeneratedFiles) {
@@ -893,7 +893,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       }
     }
 
-    if (_configuration.useElf && _isAndroid) {
+    if (_isAndroid &&
+        _configuration.genSnapshotFormat == GenSnapshotFormat.elf) {
       // On Android, run the NDK's "strip" tool with "--strip-unneeded" to copy
       // Flutter's workflow. Skip this step on tests for DWARF (which may get
       // stripped).
@@ -970,17 +971,16 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       }
     }
 
+    var format = _configuration.genSnapshotFormat!;
+    var basename = (format == GenSnapshotFormat.assembly) ? 'out.S' : 'out.aotsnapshot';
+    // Whether or not loading units are used. Mach-O doesn't currently support
+    // this, and this isn't done for assembly output to avoid having to handle
+    // the assembly of multiple assembly output files.
+    var split = format == GenSnapshotFormat.elf;
     var args = [
-      if (_configuration.useElf) ...[
-        "--snapshot-kind=app-aot-elf",
-        "--elf=$tempDir/out.aotsnapshot",
-        // Only splitting with a ELF to avoid having to setup compilation of
-        // multiple assembly files in the test harness.
-        "--loading-unit-manifest=$tempDir/ignored.json",
-      ] else ...[
-        "--snapshot-kind=app-aot-assembly",
-        "--assembly=$tempDir/out.S",
-      ],
+      "--snapshot-kind=${format.snapshotType}",
+      "--${format.fileOption}=$tempDir/$basename",
+      if (split) "--loading-unit-manifest=$tempDir/ignored.json",
       if (_isAndroid && (_isArm || _isArmX64)) ...[
         '--no-sim-use-hardfp',
       ],

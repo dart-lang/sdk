@@ -116,6 +116,11 @@ riscv32, riscv64, simriscv32, simriscv64''')
         defaultsTo: Platform.operatingSystem,
         hide: true,
         help: 'The operating system to run tests on.')
+    ..addMultiOption('gen-snapshot-format',
+        allowed: ['all', ...GenSnapshotFormat.names],
+        defaultsTo: [GenSnapshotFormat.assembly.name],
+        hide: true,
+        help: 'The output format used by gen_snapshot.')
     ..addMultiOption('sanitizer',
         allowed: ['all', ...Sanitizer.names],
         defaultsTo: [Sanitizer.none.name],
@@ -165,12 +170,6 @@ test options, specifying how tests should be run.''')
         aliases: ['use_blobs'],
         hide: true,
         help: 'Use mmap instead of shared libraries for precompilation.')
-    ..addFlag(
-      'use-elf',
-      aliases: ['use_elf'],
-      hide: true,
-      help: 'Directly generate an ELF shared libraries for precompilation.',
-    )
     ..addFlag('use-qemu',
         aliases: ['use_qemu'],
         hide: true,
@@ -417,7 +416,7 @@ has been specified on the command line.''')
     'enable-asserts',
     'use-cfe',
     'analyzer-use-fasta-parser',
-    'use-elf',
+    'gen-snapshot-format',
     'use-sdk',
     'hot-reload',
     'hot-reload-rollback',
@@ -612,6 +611,10 @@ has been specified on the command line.''')
     var system = System.find(systemName);
     var runtimes = [...(data["runtime"] as List<String>).map(Runtime.find)];
     var compilers = [...(data["compiler"] as List<String>).map(Compiler.find)];
+    var formats = [
+      ...(data["gen-snapshot-format"] as List<String>)
+          .map(GenSnapshotFormat.find)
+    ];
 
     // Pick default compilers or runtimes if only one or the other is provided.
     if (runtimes.isEmpty) {
@@ -772,37 +775,40 @@ has been specified on the command line.''')
             }
             for (var sanitizerName in sanitizers) {
               var sanitizer = Sanitizer.find(sanitizerName);
-              var timeout = data["timeout"] != null
-                  ? int.parse(data["timeout"] as String)
-                  : null;
-              var configuration = Configuration(
-                  "custom-configuration-${configurationNumber++}",
-                  architecture,
-                  compiler,
-                  mode,
-                  runtime,
-                  system,
-                  nnbdMode: nnbdMode,
-                  sanitizer: sanitizer,
-                  timeout: timeout,
-                  enableAsserts: data['enable-asserts'] as bool,
-                  useAnalyzerCfe: data["use-cfe"] as bool,
-                  useAnalyzerFastaParser:
-                      data["analyzer-use-fasta-parser"] as bool,
-                  useElf: data["use-elf"] as bool,
-                  useSdk: data["use-sdk"] as bool,
-                  useHotReload: data["hot-reload"] as bool,
-                  useHotReloadRollback: data["hot-reload-rollback"] as bool,
-                  enableHostAsserts: data["host-asserts"] as bool,
-                  isCsp: data["csp"] as bool,
-                  isMinified: data["minified"] as bool,
-                  vmOptions: vmOptions,
-                  dart2jsOptions: dart2jsOptions,
-                  ddcOptions: ddcOptions,
-                  experiments: experiments,
-                  builderTag: data["builder-tag"] as String?,
-                  useQemu: data["use-qemu"] as bool);
-              addConfiguration(configuration);
+              // Expand formats.
+              for (final format in formats) {
+                var timeout = data["timeout"] != null
+                    ? int.parse(data["timeout"] as String)
+                    : null;
+                var configuration = Configuration(
+                    "custom-configuration-${configurationNumber++}",
+                    architecture,
+                    compiler,
+                    mode,
+                    runtime,
+                    system,
+                    nnbdMode: nnbdMode,
+                    sanitizer: sanitizer,
+                    timeout: timeout,
+                    enableAsserts: data['enable-asserts'] as bool,
+                    useAnalyzerCfe: data["use-cfe"] as bool,
+                    useAnalyzerFastaParser:
+                        data["analyzer-use-fasta-parser"] as bool,
+                    useSdk: data["use-sdk"] as bool,
+                    useHotReload: data["hot-reload"] as bool,
+                    useHotReloadRollback: data["hot-reload-rollback"] as bool,
+                    enableHostAsserts: data["host-asserts"] as bool,
+                    isCsp: data["csp"] as bool,
+                    isMinified: data["minified"] as bool,
+                    genSnapshotFormat: format,
+                    vmOptions: vmOptions,
+                    dart2jsOptions: dart2jsOptions,
+                    ddcOptions: ddcOptions,
+                    experiments: experiments,
+                    builderTag: data["builder-tag"] as String?,
+                    useQemu: data["use-qemu"] as bool);
+                addConfiguration(configuration);
+              }
             }
           }
         }

@@ -16,8 +16,8 @@ namespace dart {
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature) {
   constexpr bool kFeatureValues[] = {
-      true, true, true, true, true, true, true, true, true,
-      true, true, true, true, true, true, true, true, true,
+      true, true, true, true, true, true, true, true, true, true,
+      true, true, true, true, true, true, true, true, true, true,
       true, true, true, true, true, true, true, true, true,
   };
   ASSERT(static_cast<size_t>(feature) < ARRAY_SIZE(kFeatureValues));
@@ -26,6 +26,8 @@ bool GetExperimentalFeatureDefault(ExperimentalFeature feature) {
 
 const char* GetExperimentalFeatureName(ExperimentalFeature feature) {
   constexpr const char* kFeatureNames[] = {
+      "native-assets",
+      "getter-setter-error",
       "sound-flow-analysis",
       "null-aware-elements",
       "inference-using-bounds",

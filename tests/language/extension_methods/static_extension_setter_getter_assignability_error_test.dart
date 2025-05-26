@@ -7,14 +7,8 @@
 // of the setter.
 extension E1 on int {
   static int get property => 1;
-  //             ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] The type 'int' of the getter 'property' is not a subtype of the type 'String' of the setter 'property'.
   static void set property(String value) {}
   int get property2 => 1;
-  //      ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] The type 'int' of the getter 'property2' is not a subtype of the type 'String' of the setter 'property2'.
   void set property2(String x) {}
 }
 

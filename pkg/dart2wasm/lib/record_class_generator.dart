@@ -395,7 +395,8 @@ class _RecordClassGenerator {
         Procedure(
           Name('toString', library),
           ProcedureKind.Method,
-          FunctionNode(ReturnStatement(stringExpression)),
+          FunctionNode(ReturnStatement(stringExpression),
+              returnType: coreTypes.stringNonNullableRawType),
           fileUri: library.fileUri,
         ),
         coreTypes);

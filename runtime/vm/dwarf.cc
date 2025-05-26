@@ -92,8 +92,20 @@ class InliningNode : public ZoneAllocated {
   InliningNode* children_next;
 };
 
-Dwarf::Dwarf(Zone* zone, const Trie<const char>* deobfuscation_trie)
+static const char* GetRootLibraryName(Zone* zone) {
+  const auto& root_library = Library::Handle(
+      zone, IsolateGroup::Current()->object_store()->root_library());
+  const auto& root_uri = String::Handle(zone, root_library.url());
+  return root_uri.ToCString();
+}
+
+Dwarf::Dwarf(Zone* zone,
+             const Trie<const char>* deobfuscation_trie,
+             const char* compilation_unit_name)
     : zone_(zone),
+      compilation_unit_name_(compilation_unit_name != nullptr
+                                 ? compilation_unit_name
+                                 : GetRootLibraryName(zone)),
       deobfuscation_trie_(deobfuscation_trie),
       codes_(zone, 1024),
       code_to_label_(zone),
@@ -274,10 +286,7 @@ void Dwarf::WriteDebugInfo(DwarfWriteStream* stream) {
     // compilation unit. Note we write attributes in the same order we declared
     // them in our abbreviation above in WriteAbbreviations.
     stream->uleb128(kCompilationUnit);
-    const Library& root_library = Library::Handle(
-        zone_, IsolateGroup::Current()->object_store()->root_library());
-    const String& root_uri = String::Handle(zone_, root_library.url());
-    stream->string(root_uri.ToCString());  // DW_AT_name
+    stream->string(compilation_unit_name_);  // DW_AT_name
     const char* producer = zone_->PrintToString("Dart %s\n", Version::String());
     stream->string(producer);  // DW_AT_producer
     stream->string("");        // DW_AT_comp_dir

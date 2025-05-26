@@ -326,7 +326,7 @@ class ExperimentalFeatures {
     documentation:
         'Stop reporting errors about mismatching types in a getter/setter pair.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.9.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
@@ -663,7 +663,7 @@ class IsEnabledByDefault {
   static const bool generic_metadata = true;
 
   /// Default state of the experiment "getter-setter-error"
-  static const bool getter_setter_error = false;
+  static const bool getter_setter_error = true;
 
   /// Default state of the experiment "inference-update-1"
   static const bool inference_update_1 = true;
