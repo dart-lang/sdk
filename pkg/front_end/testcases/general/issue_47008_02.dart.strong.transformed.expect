@@ -17,5 +17,5 @@ static method a(core::bool x, core::bool y, core::bool z1, core::int z2) → voi
 
 
 Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue_47008_02.dart:8:28 -> IntConstant(0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue_47008_02.dart:12:28 -> IntConstant(0)
 Extra constant evaluation: evaluated: 17, effectively constant: 1

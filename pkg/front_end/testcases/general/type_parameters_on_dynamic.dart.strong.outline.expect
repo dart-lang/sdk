@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/type_parameters_on_dynamic.dart:1:1: Error: Expected 0 type arguments.
+// pkg/front_end/testcases/general/type_parameters_on_dynamic.dart:5:1: Error: Expected 0 type arguments.
 // dynamic<int> f() {}
 // ^^^^^^^
 //

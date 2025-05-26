@@ -1,3 +1,8 @@
+# 5.0.2
+- [DAP] Handle possible race condition when interacting with web applications
+  that can cause an `RPCError` to be thrown if the application's isolate is
+  disposed mid-RPC.
+
 # 5.0.1
 - Widen the dependency on `package:shelf_web_socket`.
 - Require Dart SDK v. 3.5.0 or higher.
