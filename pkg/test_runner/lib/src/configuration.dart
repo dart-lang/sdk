@@ -122,7 +122,7 @@ class TestConfiguration {
   bool get isSimulator => architecture.isSimulator;
   bool get useAnalyzerCfe => configuration.useAnalyzerCfe;
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
-  bool get useElf => configuration.useElf;
+  GenSnapshotFormat? get genSnapshotFormat => configuration.genSnapshotFormat;
   bool get useSdk => configuration.useSdk;
   bool get enableAsserts => configuration.enableAsserts;
   bool get useQemu => configuration.useQemu;
@@ -472,6 +472,11 @@ class TestConfiguration {
             architecture == Architecture.riscv64)) {
       print("Warning: Android only supports the following architectures: "
           "ia32/x64/x64c/arm/arm64/arm64c/arm_x64/riscv64.");
+      isValid = false;
+    }
+
+    if (compiler == Compiler.dartkp && genSnapshotFormat == null) {
+      print("Error: gen_snapshot output format must be specified in AOT mode.");
       isValid = false;
     }
 

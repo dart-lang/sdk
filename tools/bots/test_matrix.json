@@ -318,12 +318,12 @@
     },
     "vm-aot-win-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {
-        "use-elf": true
+        "gen-snapshot-format" : "elf"
       }
     },
     "vm-aot-(linux|mac|win)-(debug|product|release)-(simarm|simarm_x64|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "use-elf": true
+        "gen-snapshot-format" : "elf"
       }
     },
     "vm-asan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
@@ -333,27 +333,27 @@
     "vm-ubsan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-aot-asan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "use-elf": true
+        "gen-snapshot-format": "elf"
       }
     },
     "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "use-elf": true
+        "gen-snapshot-format" : "elf"
       }
     },
     "vm-aot-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
       "options": {
-        "use-elf": true
+        "gen-snapshot-format" : "elf"
       }
     },
     "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
       "options": {
-        "use-elf": true
+        "gen-snapshot-format": "elf"
       }
     },
     "vm-aot-ubsan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "use-elf": true
+        "gen-snapshot-format" : "elf"
       }
     },
     "dart2js-(linux|win)-chrome": {
@@ -489,12 +489,12 @@
     "vm-aot-android-(debug|product|release)-arm_x64": {
       "options": {
         "builder-tag": "crossword",
-        "use-elf": true
+        "gen-snapshot-format" : "elf"
       }
     },
     "vm-aot-android-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|riscv64)": {
       "options": {
-        "use-elf": true
+        "gen-snapshot-format" : "elf"
       }
     },
     "vm-aot-dwarf-linux-(debug|release|product)-x64": {
@@ -503,7 +503,7 @@
         "vm-options": [
           "--dwarf_stack_traces"
         ],
-        "use-elf": true
+        "gen-snapshot-format" : "elf"
       }
     },
     "vm-aot-obfuscate-linux-(debug|release|product)-x64": {

@@ -51,13 +51,13 @@ abstract class RuntimeConfiguration {
       case Runtime.dartPrecompiled:
         if (configuration.system == System.android) {
           return DartPrecompiledAdbRuntimeConfiguration(
-            configuration.useElf,
+            configuration.genSnapshotFormat == GenSnapshotFormat.elf,
           );
         } else if (configuration.system == System.fuchsia) {
           return DartkFuchsiaEmulatorRuntimeConfiguration(true);
         }
         return DartPrecompiledRuntimeConfiguration(
-            configuration.useElf,
+            configuration.genSnapshotFormat == GenSnapshotFormat.elf,
           );
     }
     throw "unreachable";

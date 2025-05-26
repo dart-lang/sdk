@@ -390,7 +390,7 @@ void main() {
         isMinified: true,
         useAnalyzerCfe: true,
         useAnalyzerFastaParser: true,
-        useElf: true,
+        genSnapshotFormat: GenSnapshotFormat.elf,
         useHotReload: true,
         useHotReloadRollback: true,
         useSdk: true,
