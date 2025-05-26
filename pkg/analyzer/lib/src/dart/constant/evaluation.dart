@@ -1214,6 +1214,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           prefixResult,
           node.identifier,
           node,
+          isNullAware: false,
         );
         if (propertyAccessResult != null) {
           return propertyAccessResult;
@@ -1293,6 +1294,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         prefixResult,
         node.propertyName,
         node,
+        isNullAware: node.isNullAware,
       );
       if (propertyAccessResult != null) {
         return propertyAccessResult;
@@ -1854,8 +1856,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant? _evaluatePropertyAccess(
     DartObjectImpl targetResult,
     SimpleIdentifier identifier,
-    AstNode errorNode,
-  ) {
+    AstNode errorNode, {
+    required bool isNullAware,
+  }) {
     var propertyElement = identifier.element;
     if (propertyElement is GetterElement && propertyElement.isStatic) {
       return null;
@@ -1878,10 +1881,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var targetType = targetResult.type;
 
     // Evaluate a constant that reads the length of a `String`.
-    if (identifier.name == 'length' &&
-        targetType is InterfaceType &&
-        targetType.isDartCoreString) {
-      return _dartObjectComputer.stringLength(errorNode, targetResult);
+    if (identifier.name == 'length') {
+      if (targetType is InterfaceType && targetType.isDartCoreString) {
+        return _dartObjectComputer.stringLength(errorNode, targetResult);
+      } else if (targetType.isDartCoreNull && isNullAware) {
+        return ConstantEvaluationEngine._nullObject(_library);
+      }
     }
 
     var element = identifier.element;

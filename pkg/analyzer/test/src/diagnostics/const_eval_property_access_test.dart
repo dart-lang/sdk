@@ -47,6 +47,21 @@ const a = const A();
     );
   }
 
+  test_length_dynamic_notNull() async {
+    await assertNoErrorsInCode(r'''
+const dynamic d = 'foo';
+const int? c = d.length;''');
+  }
+
+  test_length_dynamic_null() async {
+    await assertErrorsInCode(
+      r'''
+const dynamic d = null;
+const int? c = d.length;''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 39, 8)],
+    );
+  }
+
   test_length_invalidTarget() async {
     await assertErrorsInCode(
       '''
@@ -89,5 +104,35 @@ const x = const C().t;
 ''',
       [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 59, 11)],
     );
+  }
+
+  test_nullAware_isEven_null() async {
+    await assertErrorsInCode(
+      r'''
+const int? s = null;
+const bool? c = s?.isEven;''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 37, 9)],
+    );
+  }
+
+  test_nullAware_length_dynamic_null() async {
+    await assertNoErrorsInCode(r'''
+const dynamic d = 'foo';
+const int? c = d?.length;''');
+  }
+
+  test_nullAware_length_list_notNull() async {
+    await assertErrorsInCode(
+      r'''
+const List? l = [];
+const int? c = l?.length;''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 35, 9)],
+    );
+  }
+
+  test_nullAware_length_string_notNull() async {
+    await assertNoErrorsInCode(r'''
+const String? s = '';
+const int? c = s?.length;''');
   }
 }

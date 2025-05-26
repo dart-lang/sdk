@@ -1099,6 +1099,66 @@ void f(Object? x) {
 ''');
   }
 
+  test_propertyAccess_nullAware_dynamic_length_notNull() async {
+    await assertNoErrorsInCode(r'''
+const dynamic d = 'foo';
+const int? c = d?.length;
+''');
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+int 3
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_propertyAccess_nullAware_dynamic_length_null() async {
+    await assertNoErrorsInCode(r'''
+const dynamic d = null;
+const int? c = d?.length;
+''');
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+Null null
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_propertyAccess_nullAware_list_length_null() async {
+    await assertNoErrorsInCode(r'''
+const List? l = null;
+const int? c = l?.length;
+''');
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+Null null
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_propertyAccess_nullAware_string_length_notNull() async {
+    await assertNoErrorsInCode(r'''
+const String? s = 'foo';
+const int? c = s?.length;
+''');
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+int 3
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_propertyAccess_nullAware_string_length_null() async {
+    await assertNoErrorsInCode(r'''
+const String? s = null;
+const int? c = s?.length;
+''');
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+Null null
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
   test_recordTypeAnnotation() async {
     await assertNoErrorsInCode(r'''
 const a = ('',) is (int,);
