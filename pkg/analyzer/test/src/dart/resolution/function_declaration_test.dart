@@ -158,6 +158,200 @@ SimpleIdentifier
 ''');
   }
 
+  test_genericFunction_fBoundedDefaultType() async {
+    await assertNoErrorsInCode('''
+void m<T extends List<T>>() {}
+''');
+
+    var node = findNode.singleFunctionDeclaration;
+    assertResolvedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+    element2: <null>
+    type: void
+  name: m
+  functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: List
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: T
+                  element2: T@7
+                  type: T
+              rightBracket: >
+            element2: dart:core::@class::List
+            type: List<T>
+          declaredElement: T@7
+            defaultType: List<dynamic>
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredElement: <testLibraryFragment>::@function::m
+      type: void Function<T extends List<T>>()
+    staticType: void Function<T extends List<T>>()
+  declaredElement: <testLibraryFragment>::@function::m
+    type: void Function<T extends List<T>>()
+''');
+  }
+
+  test_genericFunction_simpleDefaultType() async {
+    await assertNoErrorsInCode('''
+void m<T extends num>() {}
+''');
+
+    var node = findNode.singleFunctionDeclaration;
+    assertResolvedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+    element2: <null>
+    type: void
+  name: m
+  functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: num
+            element2: dart:core::@class::num
+            type: num
+          declaredElement: T@7
+            defaultType: num
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredElement: <testLibraryFragment>::@function::m
+      type: void Function<T extends num>()
+    staticType: void Function<T extends num>()
+  declaredElement: <testLibraryFragment>::@function::m
+    type: void Function<T extends num>()
+''');
+  }
+
+  test_genericLocalFunction_fBoundedDefaultType() async {
+    await assertErrorsInCode(
+      '''
+void f() {
+  void m<T extends List<T>>() {}
+}
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+    );
+
+    var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
+    assertResolvedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+    element2: <null>
+    type: void
+  name: m
+  functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: List
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: T
+                  element2: T@20
+                  type: T
+              rightBracket: >
+            element2: dart:core::@class::List
+            type: List<T>
+          declaredElement: T@20
+            defaultType: List<dynamic>
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredElement: m@18
+      type: void Function<T extends List<T>>()
+    staticType: void Function<T extends List<T>>()
+  declaredElement: m@18
+    type: void Function<T extends List<T>>()
+''');
+  }
+
+  test_genericLocalFunction_simpleDefaultType() async {
+    await assertErrorsInCode(
+      '''
+void f() {
+  void m<T extends num>() {}
+}
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+    );
+
+    var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
+    assertResolvedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+    element2: <null>
+    type: void
+  name: m
+  functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: num
+            element2: dart:core::@class::num
+            type: num
+          declaredElement: T@20
+            defaultType: num
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredElement: m@18
+      type: void Function<T extends num>()
+    staticType: void Function<T extends num>()
+  declaredElement: m@18
+    type: void Function<T extends num>()
+''');
+  }
+
   test_getter_formalParameters() async {
     await assertErrorsInCode(
       '''
@@ -386,6 +580,7 @@ TypeParameter
         TypeParameter
           name: _
           declaredElement: _@31
+            defaultType: null
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
@@ -416,6 +611,7 @@ TypeParameter
       type: void Function<_>(InvalidType, InvalidType)
     type: void Function<_>(InvalidType, InvalidType)
   declaredElement: _@7
+    defaultType: void Function<_>(InvalidType, InvalidType)
 ''');
   }
 }

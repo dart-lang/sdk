@@ -443,6 +443,7 @@ MethodDeclaration
       TypeParameter
         name: U
         declaredElement: U@27
+          defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (

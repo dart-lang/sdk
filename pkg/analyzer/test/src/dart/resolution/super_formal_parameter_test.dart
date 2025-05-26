@@ -77,6 +77,7 @@ SuperFormalParameter
       TypeParameter
         name: T
         declaredElement: T@62
+          defaultType: null
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (

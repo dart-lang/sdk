@@ -57,6 +57,49 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
+/// Check that none of the type [parameters] references itself in its bound.
+///
+/// See [CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
+void checkForTypeParameterBoundRecursion(
+  ErrorReporter errorReporter,
+  List<TypeParameter> parameters,
+) {
+  Map<TypeParameterElement, TypeParameter>? elementToNode;
+  for (var parameter in parameters) {
+    if (parameter.bound != null) {
+      if (elementToNode == null) {
+        elementToNode = {};
+        for (var parameter in parameters) {
+          elementToNode[parameter.declaredFragment!.element] = parameter;
+        }
+      }
+
+      TypeParameter? current = parameter;
+      for (var step = 0; current != null; step++) {
+        var boundNode = current.bound;
+        if (boundNode is NamedType) {
+          var boundType = boundNode.typeOrThrow;
+          boundType = boundType.extensionTypeErasure;
+          current = elementToNode[boundType.element3];
+        } else {
+          current = null;
+        }
+        if (step == parameters.length) {
+          var element = parameter.declaredFragment!.element;
+          // This error can only occur if there is a bound, so we can safely
+          // assume `element.bound` is non-`null`.
+          errorReporter.atToken(
+            parameter.name,
+            CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+            arguments: [element.displayName, element.bound!],
+          );
+          break;
+        }
+      }
+    }
+  }
+}
+
 class EnclosingExecutableContext {
   final ExecutableElement2OrMember? element;
   final bool isAsynchronous;
@@ -5300,40 +5343,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
   void _checkForTypeParameterBoundRecursion(List<TypeParameter> parameters) {
-    Map<TypeParameterElement, TypeParameter>? elementToNode;
-    for (var parameter in parameters) {
-      if (parameter.bound != null) {
-        if (elementToNode == null) {
-          elementToNode = {};
-          for (var parameter in parameters) {
-            elementToNode[parameter.declaredFragment!.element] = parameter;
-          }
-        }
-
-        TypeParameter? current = parameter;
-        for (var step = 0; current != null; step++) {
-          var boundNode = current.bound;
-          if (boundNode is NamedType) {
-            var boundType = boundNode.typeOrThrow;
-            boundType = boundType.extensionTypeErasure;
-            current = elementToNode[boundType.element3];
-          } else {
-            current = null;
-          }
-          if (step == parameters.length) {
-            var element = parameter.declaredFragment!.element;
-            // This error can only occur if there is a bound, so we can safely
-            // assume `element.bound` is non-`null`.
-            errorReporter.atToken(
-              parameter.name,
-              CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-              arguments: [element.displayName, element.bound!],
-            );
-            break;
-          }
-        }
-      }
-    }
+    checkForTypeParameterBoundRecursion(errorReporter, parameters);
   }
 
   void _checkForTypeParameterReferencedByStatic({

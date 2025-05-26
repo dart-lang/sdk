@@ -34,9 +34,11 @@ FunctionTypedFormalParameter
       TypeParameter
         name: T
         declaredElement: T@14
+          defaultType: null
       TypeParameter
         name: U
         declaredElement: U@17
+          defaultType: null
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (

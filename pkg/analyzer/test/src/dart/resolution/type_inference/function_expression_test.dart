@@ -534,6 +534,7 @@ FunctionExpression
       TypeParameter
         name: T
         declaredElement: T@24
+          defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (

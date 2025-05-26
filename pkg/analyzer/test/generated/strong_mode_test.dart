@@ -3570,6 +3570,7 @@ FunctionDeclaration
         TypeParameter
           name: T
           declaredElement: T@4
+            defaultType: dynamic
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
@@ -3621,6 +3622,7 @@ FunctionDeclaration
             element2: dart:core::@class::num
             type: num
           declaredElement: T@4
+            defaultType: num
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
@@ -3682,6 +3684,7 @@ MethodDeclaration
       TypeParameter
         name: T
         declaredElement: T@26
+          defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
@@ -4576,6 +4579,7 @@ MethodDeclaration
       TypeParameter
         name: T
         declaredElement: T@61
+          defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
