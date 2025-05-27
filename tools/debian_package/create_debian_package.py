@@ -59,7 +59,10 @@ def Main():
     GenerateCopyright(join(versiondir, 'debian', 'copyright'))
     GenerateChangeLog(join(versiondir, 'debian', 'changelog'), version)
 
-    cmd = ['dpkg-buildpackage', '-B', '-a', options.arch, '-us', '-uc']
+    # Explicitly choose xz compression because newer versions dpkg-buildpackage
+    # (on our bots) default to zstd, which is not supported by older versions
+    # of dpkg (on users machines).
+    cmd = ['dpkg-buildpackage', '-B', '-a', options.arch, '-us', '-uc', '-Zxz']
     env = os.environ.copy()
     env["LIB_DIR"] = options.lib_dir
     process = subprocess.check_call(cmd, cwd=versiondir, env=env)
