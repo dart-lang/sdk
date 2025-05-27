@@ -6654,6 +6654,8 @@ class B extends A {
         A: #M0
         named: <null>
     instances
+      package:test/a.dart
+        A
       package:test/test.dart
         B
           requestedMethods
@@ -6734,6 +6736,8 @@ class A {
         A: #M0
         named: <null>
     instances
+      package:test/a.dart
+        A
       package:test/test.dart
         B
           requestedMethods
@@ -7827,6 +7831,131 @@ class A {
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_declared_methods_add() async {
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.methods;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface
+          map
+            foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          allDeclaredMethods: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M2
+          foo: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
+  requirements
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdsMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expectedIds: #M1
+    actualIds: #M1 #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          allDeclaredMethods: #M1 #M2
 [status] idle
 ''',
     );
@@ -10301,6 +10430,7 @@ void f (B b) {
         A
           requestedMethods
             noSuchMethod: <null>
+          allDeclaredMethods: #M1
         B
           requestedMethods
             noSuchMethod: <null>
@@ -10356,6 +10486,7 @@ void f (B b) {
         A
           requestedMethods
             noSuchMethod: <null>
+          allDeclaredMethods: #M5
         B
           requestedMethods
             noSuchMethod: <null>
@@ -10422,6 +10553,7 @@ void f(B b) {
         A
           requestedMethods
             noSuchMethod: <null>
+          allDeclaredMethods: #M1
         B
           requestedMethods
             noSuchMethod: <null>
@@ -10475,6 +10607,7 @@ void f(B b) {
         A
           requestedMethods
             noSuchMethod: <null>
+          allDeclaredMethods: #M5
         B
           requestedMethods
             noSuchMethod: <null>
@@ -10552,6 +10685,7 @@ void f(B b) {
         A
           requestedMethods
             noSuchMethod: <null>
+          allDeclaredMethods: #M2
 [status] idle
 ''',
       updateFiles: () {
@@ -10619,6 +10753,7 @@ void f(B b) {
           requestedMethods
             _foo: <null>
             noSuchMethod: <null>
+          allDeclaredMethods: #M4
 [status] idle
 ''',
     );
@@ -44802,6 +44937,56 @@ import 'a.dart';
             foo: #M1
           requestedGetters
             foo: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_req_instanceElement_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static int foo() {}
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.methods;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          allDeclaredMethods: #M1
 [status] idle
 ''',
     );

@@ -82,6 +82,10 @@ class ManifestItemIdList {
         const ListEquality<ManifestItemId>().equals(other.ids, ids);
   }
 
+  bool equalToIterable(Iterable<ManifestItemId> other) {
+    return const IterableEquality<ManifestItemId>().equals(ids, other);
+  }
+
   @override
   String toString() {
     return '[${ids.join(', ')}]';
@@ -90,12 +94,22 @@ class ManifestItemIdList {
   void write(BufferedSink sink) {
     sink.writeList(ids, (id) => id.write(sink));
   }
+
+  static ManifestItemIdList? readOptional(SummaryDataReader reader) {
+    return reader.readOptionalObject(() => ManifestItemIdList.read(reader));
+  }
 }
 
 extension ManifestItemIdExtension on ManifestItemId? {
   void writeOptional(BufferedSink sink) {
-    sink.writeOptionalObject(this, (id) {
-      id.write(sink);
+    sink.writeOptionalObject(this, (it) {
+      it.write(sink);
     });
+  }
+}
+
+extension ManifestItemIdListOrNullExtension on ManifestItemIdList? {
+  void writeOptional(BufferedSink sink) {
+    sink.writeOptionalObject(this, (it) => it.write(sink));
   }
 }

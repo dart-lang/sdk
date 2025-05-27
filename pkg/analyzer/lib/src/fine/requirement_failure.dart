@@ -76,6 +76,20 @@ class InstanceMethodIdMismatch extends RequirementFailure {
   });
 }
 
+class InstanceMethodIdsMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName interfaceName;
+  final ManifestItemIdList expectedIds;
+  final ManifestItemIdList actualIds;
+
+  InstanceMethodIdsMismatch({
+    required this.libraryUri,
+    required this.interfaceName,
+    required this.expectedIds,
+    required this.actualIds,
+  });
+}
+
 class InterfaceConstructorIdMismatch extends RequirementFailure {
   final Uri libraryUri;
   final LookupName interfaceName;
