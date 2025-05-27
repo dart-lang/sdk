@@ -106,6 +106,20 @@ class InterfaceConstructorIdMismatch extends RequirementFailure {
   });
 }
 
+class InterfaceIdMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName interfaceName;
+  final ManifestItemId expectedId;
+  final ManifestItemId actualId;
+
+  InterfaceIdMismatch({
+    required this.libraryUri,
+    required this.interfaceName,
+    required this.expectedId,
+    required this.actualId,
+  });
+}
+
 class LibraryMissing extends RequirementFailure {
   final Uri uri;
 

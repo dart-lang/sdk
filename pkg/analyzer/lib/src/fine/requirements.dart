@@ -247,28 +247,38 @@ class InstanceItemRequirements {
 /// Includes all requirements from class-like items: classes, enums,
 /// extension types, mixins.
 class InterfaceItemRequirements {
+  /// If the element was asked for its full interface.
+  ManifestItemId? interfaceId;
+
   final Map<LookupName, ManifestItemId?> constructors;
 
   /// These are "methods" in wide meaning: methods, getters, setters.
   final Map<LookupName, ManifestItemId?> methods;
 
   InterfaceItemRequirements({
+    required this.interfaceId,
     required this.constructors,
     required this.methods,
   });
 
   factory InterfaceItemRequirements.empty() {
-    return InterfaceItemRequirements(constructors: {}, methods: {});
+    return InterfaceItemRequirements(
+      interfaceId: null,
+      constructors: {},
+      methods: {},
+    );
   }
 
   factory InterfaceItemRequirements.read(SummaryDataReader reader) {
     return InterfaceItemRequirements(
+      interfaceId: ManifestItemId.readOptional(reader),
       constructors: reader.readNameToIdMap(),
       methods: reader.readNameToIdMap(),
     );
   }
 
   void write(BufferedSink sink) {
+    interfaceId.writeOptional(sink);
     sink.writeNameToIdMap(constructors);
     sink.writeNameToIdMap(methods);
   }
@@ -538,7 +548,20 @@ class RequirementsManifest {
           );
         }
 
-        var constructors = interfaceEntry.value.constructors;
+        var interfaceRequirements = interfaceEntry.value;
+        if (interfaceRequirements.interfaceId case var expectedId?) {
+          var actualId = interfaceItem.interface.id;
+          if (expectedId != actualId) {
+            return InterfaceIdMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              expectedId: expectedId,
+              actualId: actualId,
+            );
+          }
+        }
+
+        var constructors = interfaceRequirements.constructors;
         for (var constructorEntry in constructors.entries) {
           var constructorName = constructorEntry.key;
           var constructorId = interfaceItem.getConstructorId(constructorName);
@@ -554,7 +577,7 @@ class RequirementsManifest {
           }
         }
 
-        var methods = interfaceEntry.value.methods;
+        var methods = interfaceRequirements.methods;
         for (var methodEntry in methods.entries) {
           var methodName = methodEntry.key;
           var methodId = interfaceItem.getInterfaceMethodId(methodName);
@@ -703,6 +726,16 @@ class RequirementsManifest {
     requirements.allDeclaredMethods ??= ManifestItemIdList(
       item.declaredMethods.values.map((item) => item.id).toList(),
     );
+  }
+
+  void record_interface_all({required InterfaceElementImpl2 element}) {
+    var itemRequirements = _getInterfaceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var interface = itemRequirements.item.interface;
+    itemRequirements.requirements.interfaceId = interface.id;
   }
 
   /// Record that a member with [nameObj] was requested from the interface

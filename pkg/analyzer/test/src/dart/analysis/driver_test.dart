@@ -5498,18 +5498,18 @@ void f() {
           foo=: #M3
         declaredConstructors
           foo: #M4
-        interface
+        interface: #M5
           map
             foo: #M2
             foo=: #M3
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -5557,16 +5557,16 @@ class A {
         declaredSetters
           foo=: #M3
         declaredConstructors
-          foo: #M7
-        interface
+          foo: #M8
+        interface: #M5
           map
             foo: #M2
             foo=: #M3
   requirements
     topLevels
       dart:core
-        double: #M8
-        int: #M5
+        double: #M9
+        int: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -5580,7 +5580,7 @@ class A {
     interfaceName: A
     constructorName: foo
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -5601,7 +5601,7 @@ class A {
       package:test/a.dart
         A
           constructors
-            foo: #M7
+            foo: #M8
           methods
             foo: #M2
             foo=: #M3
@@ -5649,18 +5649,18 @@ void f() {
           foo=: #M3
         declaredConstructors
           foo: #M4
-        interface
+        interface: #M5
           map
             foo: #M2
             foo=: #M3
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -5702,22 +5702,22 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M7
-        declaredGetters
           foo: #M8
+        declaredGetters
+          foo: #M9
         declaredSetters
           foo=: #M3
         declaredConstructors
           foo: #M4
-        interface
+        interface: #M10
           map
-            foo: #M8
+            foo: #M9
             foo=: #M3
   requirements
     topLevels
       dart:core
-        double: #M9
-        int: #M5
+        double: #M11
+        int: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -5731,7 +5731,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -5747,14 +5747,14 @@ class A {
       package:test/a.dart
         A
           requestedFields
-            foo: #M7
+            foo: #M8
     interfaces
       package:test/a.dart
         A
           constructors
             foo: #M4
           methods
-            foo: #M8
+            foo: #M9
             foo=: #M3
 [status] idle
 ''',
@@ -5800,18 +5800,18 @@ void f() {
           foo=: #M3
         declaredConstructors
           foo: #M4
-        interface
+        interface: #M5
           map
             foo: #M2
             foo=: #M3
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -5857,18 +5857,18 @@ class A {
         declaredGetters
           foo: #M2
         declaredSetters
-          foo=: #M7
+          foo=: #M8
         declaredConstructors
           foo: #M4
-        interface
+        interface: #M9
           map
             foo: #M2
-            foo=: #M7
+            foo=: #M8
   requirements
     topLevels
       dart:core
-        double: #M8
-        int: #M5
+        double: #M10
+        int: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -5882,7 +5882,7 @@ class A {
     interfaceName: A
     methodName: foo=
     expectedId: #M3
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -5906,7 +5906,7 @@ class A {
             foo: #M4
           methods
             foo: #M2
-            foo=: #M7
+            foo=: #M8
 [status] idle
 ''',
     );
@@ -5944,17 +5944,17 @@ void f() {
           foo: #M1
         declaredConstructors
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -5991,15 +5991,15 @@ class A {
         declaredMethods
           foo: #M1
         declaredConstructors
-          foo: #M5
-        interface
+          foo: #M6
+        interface: #M3
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        double: #M6
-        int: #M3
+        double: #M7
+        int: #M4
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -6013,7 +6013,7 @@ class A {
     interfaceName: A
     constructorName: foo
     expectedId: #M2
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6029,7 +6029,7 @@ class A {
       package:test/a.dart
         A
           constructors
-            foo: #M5
+            foo: #M6
           methods
             foo: #M1
 [status] idle
@@ -6069,17 +6069,17 @@ void f() {
           foo: #M1
         declaredConstructors
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -6114,17 +6114,17 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M5
+          foo: #M6
         declaredConstructors
           foo: #M2
-        interface
+        interface: #M7
           map
-            foo: #M5
+            foo: #M6
   requirements
     topLevels
       dart:core
-        double: #M6
-        int: #M3
+        double: #M8
+        int: #M4
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -6138,7 +6138,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6156,7 +6156,7 @@ class A {
           constructors
             foo: #M2
           methods
-            foo: #M5
+            foo: #M6
 [status] idle
 ''',
     );
@@ -6191,14 +6191,15 @@ void f() {
       A: #M0
         declaredConstructors
           named: #M1
+        interface: #M2
   requirements
     topLevels
       dart:core
-        int: #M2
+        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M3
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -6230,11 +6231,12 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M4
+          named: #M5
+        interface: #M2
   requirements
     topLevels
       dart:core
-        double: #M5
+        double: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -6248,7 +6250,7 @@ class A {
     interfaceName: A
     constructorName: named
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6264,7 +6266,7 @@ class A {
       package:test/a.dart
         A
           constructors
-            named: #M4
+            named: #M5
 [status] idle
 ''',
     );
@@ -6301,11 +6303,12 @@ void f() {
       A: #M0
         declaredConstructors
           c1: #M1
+        interface: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M2
+      f: #M3
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -6346,7 +6349,8 @@ class A {
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M3
+          c2: #M4
+        interface: #M2
   requirements
 [future] getErrors T2
   ErrorsResult #1
@@ -6361,7 +6365,7 @@ class A {
     interfaceName: A
     constructorName: c2
     expectedId: <null>
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6377,7 +6381,7 @@ class A {
       package:test/a.dart
         A
           constructors
-            c2: #M3
+            c2: #M4
 [status] idle
 ''',
     );
@@ -6414,14 +6418,15 @@ void f() {
         declaredConstructors
           c1: #M1
           c2: #M2
+        interface: #M3
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -6455,11 +6460,12 @@ class A {
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M5
+          c2: #M6
+        interface: #M3
   requirements
     topLevels
       dart:core
-        double: #M6
+        double: #M7
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -6506,11 +6512,12 @@ void f() {
         declaredConstructors
           c1: #M1
           c2: #M2
+        interface: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M3
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -6543,6 +6550,7 @@ class A {
       A: #M0
         declaredConstructors
           c1: #M1
+        interface: #M3
   requirements
 [future] getErrors T2
   ErrorsResult #1
@@ -6617,16 +6625,18 @@ class B extends A {
       A: #M0
         declaredConstructors
           named: #M1
+        interface: #M2
   requirements
     topLevels
       dart:core
-        int: #M2
+        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M3
+      B: #M4
         declaredConstructors
-          foo: #M4
+          foo: #M5
+        interface: #M6
   requirements
     topLevels
       dart:core
@@ -6638,6 +6648,7 @@ class B extends A {
     interfaces
       package:test/a.dart
         A
+          interfaceId: #M2
           constructors
             named: #M1
 [operation] analyzeFile
@@ -6675,11 +6686,12 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M5
+          named: #M7
+        interface: #M2
   requirements
     topLevels
       dart:core
-        double: #M6
+        double: #M8
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -6691,13 +6703,14 @@ class A {
     interfaceName: A
     constructorName: named
     expectedId: #M1
-    actualId: #M5
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M3
+      B: #M4
         declaredConstructors
-          foo: #M4
+          foo: #M5
+        interface: #M6
   requirements
     topLevels
       dart:core
@@ -6709,15 +6722,16 @@ class A {
     interfaces
       package:test/a.dart
         A
+          interfaceId: #M2
           constructors
-            named: #M5
+            named: #M7
 [operation] getErrorsCannotReuse
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
     constructorName: named
     expectedId: #M1
-    actualId: #M5
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6738,7 +6752,7 @@ class A {
       package:test/a.dart
         A
           constructors
-            named: #M5
+            named: #M7
 [status] idle
 ''',
     );
@@ -6775,14 +6789,15 @@ void f() {
       A: #M0
         declaredConstructors
           new: #M1
+        interface: #M2
   requirements
     topLevels
       dart:core
-        int: #M2
+        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M3
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -6814,11 +6829,12 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          new: #M4
+          new: #M5
+        interface: #M2
   requirements
     topLevels
       dart:core
-        double: #M5
+        double: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -6832,7 +6848,7 @@ class A {
     interfaceName: A
     constructorName: new
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6848,7 +6864,7 @@ class A {
       package:test/a.dart
         A
           constructors
-            new: #M4
+            new: #M5
 [status] idle
 ''',
     );
@@ -6886,10 +6902,11 @@ import 'a.dart';
       A: #M0
         declaredConstructors
           foo: #M1
+        interface: #M2
   requirements
     topLevels
       dart:core
-        int: #M2
+        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -6930,11 +6947,12 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          foo: #M3
+          foo: #M4
+        interface: #M2
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -6950,7 +6968,7 @@ class A {
     interfaceName: A
     constructorName: foo
     expectedId: #M1
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6973,7 +6991,7 @@ class A {
       package:test/a.dart
         A
           constructors
-            foo: #M3
+            foo: #M4
 [status] idle
 ''',
     );
@@ -7013,10 +7031,11 @@ import 'a.dart';
         declaredConstructors
           bar: #M1
           foo: #M2
+        interface: #M3
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -7058,13 +7077,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          bar: #M4
+          bar: #M5
           foo: #M2
+        interface: #M3
   requirements
     topLevels
       dart:core
-        double: #M5
-        int: #M3
+        double: #M6
+        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -7116,13 +7136,13 @@ import 'a.dart';
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -7163,16 +7183,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        interface
+        declaredGetters
+          foo: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M6
   requirements
     topLevels
       dart:core
-        double: #M6
+        double: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -7188,7 +7208,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7211,7 +7231,7 @@ class A {
       package:test/a.dart
         A
           requestedFields
-            foo: #M4
+            foo: #M5
 [status] idle
 ''',
     );
@@ -7254,14 +7274,14 @@ import 'a.dart';
         declaredGetters
           bar: #M3
           foo: #M4
-        interface
+        interface: #M5
           map
             bar: #M3
             foo: #M4
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -7303,20 +7323,20 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M6
+          bar: #M7
           foo: #M2
         declaredGetters
-          bar: #M7
+          bar: #M8
           foo: #M4
-        interface
+        interface: #M9
           map
-            bar: #M7
+            bar: #M8
             foo: #M4
   requirements
     topLevels
       dart:core
-        double: #M8
-        int: #M5
+        double: #M10
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -7368,13 +7388,13 @@ import 'a.dart';
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -7415,16 +7435,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        interface
+        declaredGetters
+          foo: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M6
   requirements
     topLevels
       dart:core
-        double: #M6
+        double: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -7440,7 +7460,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M2
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7463,7 +7483,7 @@ class A {
       package:test/a.dart
         A
           requestedGetters
-            foo: #M5
+            foo: #M6
 [status] idle
 ''',
     );
@@ -7506,14 +7526,14 @@ import 'a.dart';
         declaredGetters
           bar: #M3
           foo: #M4
-        interface
+        interface: #M5
           map
             bar: #M3
             foo: #M4
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -7555,20 +7575,20 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M6
+          bar: #M7
           foo: #M2
         declaredGetters
-          bar: #M7
+          bar: #M8
           foo: #M4
-        interface
+        interface: #M9
           map
-            bar: #M7
+            bar: #M8
             foo: #M4
   requirements
     topLevels
       dart:core
-        double: #M8
-        int: #M5
+        double: #M10
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -7618,13 +7638,13 @@ import 'a.dart';
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        int: #M2
+        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -7665,14 +7685,14 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -7688,7 +7708,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7711,7 +7731,7 @@ class A {
       package:test/a.dart
         A
           requestedMethods
-            foo: #M3
+            foo: #M4
 [status] idle
 ''',
     );
@@ -7751,14 +7771,14 @@ import 'a.dart';
         declaredMethods
           bar: #M1
           foo: #M2
-        interface
+        interface: #M3
           map
             bar: #M1
             foo: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -7800,17 +7820,17 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M5
           foo: #M2
-        interface
+        interface: #M6
           map
-            bar: #M4
+            bar: #M5
             foo: #M2
   requirements
     topLevels
       dart:core
-        double: #M5
-        int: #M3
+        double: #M7
+        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -7860,7 +7880,7 @@ import 'a.dart';
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
   requirements
@@ -7904,11 +7924,11 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M2
+          bar: #M3
           foo: #M1
-        interface
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
             foo: #M1
   requirements
 [future] getErrors T2
@@ -7925,7 +7945,7 @@ class A {
     libraryUri: package:test/a.dart
     interfaceName: A
     expectedIds: #M1
-    actualIds: #M1 #M2
+    actualIds: #M1 #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7947,7 +7967,7 @@ class A {
     instances
       package:test/a.dart
         A
-          allDeclaredMethods: #M1 #M2
+          allDeclaredMethods: #M1 #M3
 [status] idle
 ''',
     );
@@ -7987,13 +8007,13 @@ import 'a.dart';
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -8034,16 +8054,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
-        interface
+          foo=: #M6
+        interface: #M7
           map
-            foo=: #M5
+            foo=: #M6
   requirements
     topLevels
       dart:core
-        double: #M6
+        double: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -8059,7 +8079,7 @@ class A {
     interfaceName: A
     methodName: foo=
     expectedId: #M2
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8082,7 +8102,7 @@ class A {
       package:test/a.dart
         A
           requestedSetters
-            foo=: #M5
+            foo=: #M6
 [status] idle
 ''',
     );
@@ -8125,14 +8145,14 @@ import 'a.dart';
         declaredSetters
           bar=: #M3
           foo=: #M4
-        interface
+        interface: #M5
           map
             bar=: #M3
             foo=: #M4
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -8174,20 +8194,20 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M6
+          bar: #M7
           foo: #M2
         declaredSetters
-          bar=: #M7
+          bar=: #M8
           foo=: #M4
-        interface
+        interface: #M9
           map
-            bar=: #M7
+            bar=: #M8
             foo=: #M4
   requirements
     topLevels
       dart:core
-        double: #M8
-        int: #M5
+        double: #M10
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -8238,27 +8258,27 @@ void f(B b) {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M7
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8269,7 +8289,7 @@ void f(B b) {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
     instances
       package:test/a.dart
         A
@@ -8299,17 +8319,17 @@ class B extends A<double> {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M6
-        interface
+      B: #M8
+        interface: #M9
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -8319,24 +8339,24 @@ class B extends A<double> {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M11
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8347,7 +8367,7 @@ class B extends A<double> {}
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
     instances
       package:test/a.dart
         A
@@ -8396,27 +8416,27 @@ void f(B b) {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M7
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8427,7 +8447,7 @@ void f(B b) {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
     instances
       package:test/a.dart
         A
@@ -8457,17 +8477,17 @@ class B implements A<double> {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M6
-        interface
+      B: #M8
+        interface: #M9
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -8477,24 +8497,24 @@ class B implements A<double> {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M11
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8505,7 +8525,7 @@ class B implements A<double> {}
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
     instances
       package:test/a.dart
         A
@@ -8554,27 +8574,27 @@ void f(B b) {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M7
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8585,7 +8605,7 @@ void f(B b) {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
     instances
       package:test/a.dart
         A
@@ -8615,17 +8635,17 @@ class B with A<double> {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M6
-        interface
+      B: #M8
+        interface: #M9
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -8635,24 +8655,24 @@ class B with A<double> {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M11
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8663,7 +8683,7 @@ class B with A<double> {}
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
     instances
       package:test/a.dart
         A
@@ -8716,13 +8736,15 @@ void f (B b) {
           _foo: #M1
         declaredGetters
           _foo: #M2
-      B: #M3
+        interface: #M3
+      B: #M4
+        interface: #M5
     declaredFunctions
-      f: #M4
+      f: #M6
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8731,7 +8753,7 @@ void f (B b) {
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M7
 [status] idle
 ''',
       updateFiles: () {
@@ -8755,16 +8777,18 @@ void f (B b) {
     declaredClasses
       A: #M0
         declaredFields
-          _foo: #M6
+          _foo: #M8
         declaredGetters
-          _foo: #M7
-      B: #M3
+          _foo: #M9
+        interface: #M3
+      B: #M4
+        interface: #M5
     declaredFunctions
-      f: #M4
+      f: #M6
   requirements
     topLevels
       dart:core
-        String: #M8
+        String: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -8780,7 +8804,7 @@ void f (B b) {
   requirements
     topLevels
       dart:core
-        String: #M8
+        String: #M10
 [status] idle
 ''',
     );
@@ -8816,17 +8840,17 @@ void f(A a) {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
     topLevels
       dart:core
@@ -8873,16 +8897,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
-        interface
+        declaredGetters
+          foo: #M7
+        interface: #M8
           map
-            foo: #M6
+            foo: #M7
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M9
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -8896,7 +8920,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8917,12 +8941,12 @@ class A {
       package:test/a.dart
         A
           requestedFields
-            foo: #M5
+            foo: #M6
     interfaces
       package:test/a.dart
         A
           methods
-            foo: #M6
+            foo: #M7
 [status] idle
 ''',
     );
@@ -8961,18 +8985,18 @@ void f(A a) {
         declaredGetters
           bar: #M3
           foo: #M4
-        interface
+        interface: #M5
           map
             bar: #M3
             foo: #M4
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
     topLevels
       dart:core
@@ -9022,13 +9046,13 @@ class A {
           foo: #M2
         declaredGetters
           foo: #M4
-        interface
+        interface: #M8
           map
             foo: #M4
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -9039,6 +9063,114 @@ class A {
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_interface_addMethod() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+class B extends A {}
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    classes
+      class B
+        supertype: A
+        constructors
+          synthetic new
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M3
+        interface: #M4
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          interfaceId: #M2
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M5
+          foo: #M1
+        interface: #M6
+          map
+            bar: #M5
+            foo: #M1
+  requirements
+[future] getLibraryByUri T2
+  library
+    classes
+      class B
+        supertype: A
+        constructors
+          synthetic new
+[operation] cannotReuseLinkedBundle
+  interfaceIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expectedId: #M2
+    actualId: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M3
+        interface: #M7
+          map
+            bar: #M5
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          interfaceId: #M6
 [status] idle
 ''',
     );
@@ -9104,6 +9236,7 @@ class A {}
   package:test/a.dart
     declaredClasses
       A: #M1
+        interface: #M2
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -9121,7 +9254,7 @@ class A {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M2
+      foo: #M3
   requirements
     topLevels
       dart:core
@@ -9181,11 +9314,12 @@ A foo() {}
   package:test/a.dart
     declaredClasses
       A: #M0
+        interface: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M1
+      foo: #M2
   requirements
     topLevels
       dart:core
@@ -9222,7 +9356,9 @@ class B {}
   package:test/a.dart
     declaredClasses
       A: #M0
-      B: #M2
+        interface: #M1
+      B: #M3
+        interface: #M4
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -9266,12 +9402,14 @@ A foo() {}
   package:test/a.dart
     declaredClasses
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M2
+      foo: #M4
   requirements
     topLevels
       dart:core
@@ -9307,8 +9445,10 @@ class B {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
-      A: #M3
-      B: #M1
+      A: #M5
+        interface: #M6
+      B: #M2
+        interface: #M3
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -9322,23 +9462,23 @@ class B {}
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M4
+      foo: #M7
   requirements
     topLevels
       dart:core
         A: <null>
       package:test/a.dart
-        A: #M3
+        A: #M5
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9356,7 +9496,7 @@ class B {}
       dart:core
         A: <null>
       package:test/a.dart
-        A: #M3
+        A: #M5
 [status] idle
 ''',
     );
@@ -9388,13 +9528,16 @@ A foo() {}
   package:test/a.dart
     declaredClasses
       A: #M0
-      B: #M1
-      C: #M2
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M3
+      foo: #M6
   requirements
     topLevels
       dart:core
@@ -9432,8 +9575,11 @@ class C {}
   package:test/a.dart
     declaredClasses
       A: #M0
-      B: #M4
-      C: #M2
+        interface: #M1
+      B: #M7
+        interface: #M8
+      C: #M4
+        interface: #M5
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -9474,11 +9620,12 @@ A foo() => throw 0;
   package:test/a.dart
     declaredClasses
       A: #M0
+        interface: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M1
+      foo: #M2
   requirements
     topLevels
       dart:core
@@ -9525,7 +9672,7 @@ A foo() => throw 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M2
+      foo: #M3
   requirements
     topLevels
       dart:core
@@ -9584,12 +9731,14 @@ A foo() => throw 0;
   package:test/a.dart
     declaredClasses
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M2
+      foo: #M4
   requirements
     topLevels
       dart:core
@@ -9623,6 +9772,7 @@ class A {}
   package:test/a.dart
     declaredClasses
       A: #M0
+        interface: #M1
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -9666,11 +9816,12 @@ void f(A a) {
   package:test/a.dart
     declaredClasses
       A: #M0
+        interface: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M1
+      f: #M2
   requirements
     topLevels
       dart:core
@@ -9715,14 +9866,14 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M5
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -9736,7 +9887,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: <null>
-    actualId: #M2
+    actualId: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9752,7 +9903,7 @@ class A {
       package:test/a.dart
         A
           methods
-            foo: #M2
+            foo: #M3
 [status] idle
 ''',
     );
@@ -9791,31 +9942,31 @@ void f(C c) {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
-      C: #M3
-        interface
+      C: #M5
+        interface: #M6
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M8
   requirements
     topLevels
       dart:core
         C: <null>
       package:test/a.dart
-        C: #M3
+        C: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9826,7 +9977,7 @@ void f(C c) {
       dart:core
         C: <null>
       package:test/a.dart
-        C: #M3
+        C: #M5
     interfaces
       package:test/a.dart
         C
@@ -9851,21 +10002,21 @@ class C extends B {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M6
-        interface
+      B: #M9
+        interface: #M10
           map
             foo: #M1
-      C: #M7
-        interface
+      C: #M11
+        interface: #M12
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        double: #M8
+        double: #M13
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -9875,24 +10026,24 @@ class C extends B {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: C
-    expectedId: #M3
-    actualId: #M7
+    expectedId: #M5
+    actualId: #M11
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M14
   requirements
     topLevels
       dart:core
         C: <null>
       package:test/a.dart
-        C: #M7
+        C: #M11
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: C
-    expectedId: #M3
-    actualId: #M7
+    expectedId: #M5
+    actualId: #M11
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9903,7 +10054,7 @@ class C extends B {}
       dart:core
         C: <null>
       package:test/a.dart
-        C: #M7
+        C: #M11
     interfaces
       package:test/a.dart
         C
@@ -9945,27 +10096,27 @@ void f(B b) {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M6
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9976,7 +10127,7 @@ void f(B b) {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
     interfaces
       package:test/a.dart
         B
@@ -9999,17 +10150,17 @@ class B extends A<double> {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M5
-        interface
+      B: #M7
+        interface: #M8
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        double: #M6
+        double: #M9
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -10019,24 +10170,24 @@ class B extends A<double> {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M2
-    actualId: #M5
+    expectedId: #M3
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M10
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M5
+        B: #M7
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M2
-    actualId: #M5
+    expectedId: #M3
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10047,7 +10198,7 @@ class B extends A<double> {}
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M5
+        B: #M7
     interfaces
       package:test/a.dart
         B
@@ -10089,27 +10240,27 @@ void f(B b) {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M6
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10120,7 +10271,7 @@ void f(B b) {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
     interfaces
       package:test/a.dart
         B
@@ -10143,17 +10294,17 @@ class B implements A<double> {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M5
-        interface
+      B: #M7
+        interface: #M8
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        double: #M6
+        double: #M9
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -10163,24 +10314,24 @@ class B implements A<double> {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M2
-    actualId: #M5
+    expectedId: #M3
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M10
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M5
+        B: #M7
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M2
-    actualId: #M5
+    expectedId: #M3
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10191,7 +10342,7 @@ class B implements A<double> {}
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M5
+        B: #M7
     interfaces
       package:test/a.dart
         B
@@ -10233,27 +10384,27 @@ void f(B b) {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M6
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10264,7 +10415,7 @@ void f(B b) {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
     interfaces
       package:test/a.dart
         B
@@ -10287,17 +10438,17 @@ class B with A<double> {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M5
-        interface
+      B: #M7
+        interface: #M8
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        double: #M6
+        double: #M9
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -10307,24 +10458,24 @@ class B with A<double> {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M2
-    actualId: #M5
+    expectedId: #M3
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M10
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M5
+        B: #M7
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M2
-    actualId: #M5
+    expectedId: #M3
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10335,7 +10486,7 @@ class B with A<double> {}
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M5
+        B: #M7
     interfaces
       package:test/a.dart
         B
@@ -10381,13 +10532,15 @@ void f (B b) {
       A: #M0
         declaredMethods
           _foo: #M1
-      B: #M2
+        interface: #M2
+      B: #M3
+        interface: #M4
     declaredFunctions
-      f: #M3
+      f: #M5
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10396,7 +10549,7 @@ void f (B b) {
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [status] idle
 ''',
       updateFiles: () {
@@ -10420,14 +10573,16 @@ void f (B b) {
     declaredClasses
       A: #M0
         declaredMethods
-          _foo: #M5
-      B: #M2
+          _foo: #M7
+        interface: #M2
+      B: #M3
+        interface: #M4
     declaredFunctions
-      f: #M3
+      f: #M5
   requirements
     topLevels
       dart:core
-        String: #M6
+        String: #M8
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -10443,7 +10598,7 @@ void f (B b) {
   requirements
     topLevels
       dart:core
-        String: #M6
+        String: #M8
 [status] idle
 ''',
     );
@@ -10486,13 +10641,15 @@ void f(B b) {
       A: #M0
         declaredMethods
           _foo: #M1
-      B: #M2
+        interface: #M2
+      B: #M3
+        interface: #M4
     declaredFunctions
-      f: #M3
+      f: #M5
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10501,7 +10658,7 @@ void f(B b) {
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [status] idle
 ''',
       updateFiles: () {
@@ -10525,14 +10682,16 @@ void f(B b) {
     declaredClasses
       A: #M0
         declaredMethods
-          _foo: #M5
-      B: #M2
+          _foo: #M7
+        interface: #M2
+      B: #M3
+        interface: #M4
     declaredFunctions
-      f: #M3
+      f: #M5
   requirements
     topLevels
       dart:core
-        double: #M6
+        double: #M8
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -10546,7 +10705,7 @@ void f(B b) {
   requirements
     topLevels
       dart:core
-        double: #M6
+        double: #M8
 [status] idle
 ''',
     );
@@ -10593,13 +10752,15 @@ void f(B b) {
   package:test/a.dart
     declaredClasses
       B: #M0
+        interface: #M1
   package:test/test.dart
     declaredClasses
-      A: #M1
+      A: #M2
         declaredMethods
-          _foo: #M2
+          _foo: #M3
+        interface: #M4
     declaredFunctions
-      f: #M3
+      f: #M5
   requirements
     topLevels
       dart:core
@@ -10638,13 +10799,15 @@ void f(B b) {
   package:test/a.dart
     declaredClasses
       B: #M0
+        interface: #M1
   package:test/test.dart
     declaredClasses
-      A: #M1
+      A: #M2
         declaredMethods
-          _bar: #M4
+          _bar: #M6
+        interface: #M4
     declaredFunctions
-      f: #M3
+      f: #M5
   requirements
     topLevels
       dart:core
@@ -10710,14 +10873,14 @@ void f(A a) {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M2
+      f: #M3
   requirements
     topLevels
       dart:core
@@ -10751,6 +10914,7 @@ class A {}
   package:test/a.dart
     declaredClasses
       A: #M0
+        interface: #M4
   requirements
 [future] getErrors T2
   ErrorsResult #1
@@ -10825,17 +10989,17 @@ void f(A a) {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        int: #M2
+        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M3
+      f: #M4
   requirements
     topLevels
       dart:core
@@ -10877,14 +11041,14 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface
+          foo: #M5
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
   requirements
     topLevels
       dart:core
-        double: #M5
+        double: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -10898,7 +11062,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10919,7 +11083,7 @@ class A {
       package:test/a.dart
         A
           methods
-            foo: #M4
+            foo: #M5
 [status] idle
 ''',
     );
@@ -10955,18 +11119,18 @@ void f(A a) {
         declaredMethods
           bar: #M1
           foo: #M2
-        interface
+        interface: #M3
           map
             bar: #M1
             foo: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
     topLevels
       dart:core
@@ -11009,17 +11173,17 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M5
+          bar: #M6
           foo: #M2
-        interface
+        interface: #M7
           map
-            bar: #M5
+            bar: #M6
             foo: #M2
   requirements
     topLevels
       dart:core
-        double: #M6
-        int: #M3
+        double: #M8
+        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -11061,11 +11225,12 @@ void f(A a) {
   package:test/a.dart
     declaredClasses
       A: #M0
+        interface: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M1
+      f: #M2
   requirements
     topLevels
       dart:core
@@ -11119,16 +11284,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M2
+          foo: #M3
         declaredSetters
-          foo=: #M3
-        interface
+          foo=: #M4
+        interface: #M5
           map
-            foo=: #M3
+            foo=: #M4
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -11142,7 +11307,7 @@ class A {
     interfaceName: A
     methodName: foo=
     expectedId: <null>
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11163,12 +11328,12 @@ class A {
       package:test/a.dart
         A
           requestedFields
-            foo: #M2
+            foo: #M3
     interfaces
       package:test/a.dart
         A
           methods
-            foo=: #M3
+            foo=: #M4
 [status] idle
 ''',
     );
@@ -11207,27 +11372,27 @@ void f(B b) {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M7
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11238,7 +11403,7 @@ void f(B b) {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
     instances
       package:test/a.dart
         A
@@ -11268,17 +11433,17 @@ class B extends A<double> {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M6
-        interface
+      B: #M8
+        interface: #M9
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -11288,24 +11453,24 @@ class B extends A<double> {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M11
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11316,7 +11481,7 @@ class B extends A<double> {}
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
     instances
       package:test/a.dart
         A
@@ -11365,27 +11530,27 @@ void f(B b) {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M7
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11396,7 +11561,7 @@ void f(B b) {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
     instances
       package:test/a.dart
         A
@@ -11426,17 +11591,17 @@ class B implements A<double> {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M6
-        interface
+      B: #M8
+        interface: #M9
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -11446,24 +11611,24 @@ class B implements A<double> {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M11
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11474,7 +11639,7 @@ class B implements A<double> {}
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
     instances
       package:test/a.dart
         A
@@ -11523,27 +11688,27 @@ void f(B b) {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M7
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11554,7 +11719,7 @@ void f(B b) {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
     instances
       package:test/a.dart
         A
@@ -11584,17 +11749,17 @@ class B with A<double> {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M6
-        interface
+      B: #M8
+        interface: #M9
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -11604,24 +11769,24 @@ class B with A<double> {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M11
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11632,7 +11797,7 @@ class B with A<double> {}
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
     instances
       package:test/a.dart
         A
@@ -11685,13 +11850,15 @@ void f (B b) {
           _foo: #M1
         declaredSetters
           _foo=: #M2
-      B: #M3
+        interface: #M3
+      B: #M4
+        interface: #M5
     declaredFunctions
-      f: #M4
+      f: #M6
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11700,7 +11867,7 @@ void f (B b) {
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M7
 [status] idle
 ''',
       updateFiles: () {
@@ -11724,16 +11891,18 @@ void f (B b) {
     declaredClasses
       A: #M0
         declaredFields
-          _foo: #M6
+          _foo: #M8
         declaredSetters
-          _foo=: #M7
-      B: #M3
+          _foo=: #M9
+        interface: #M3
+      B: #M4
+        interface: #M5
     declaredFunctions
-      f: #M4
+      f: #M6
   requirements
     topLevels
       dart:core
-        String: #M8
+        String: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -11749,7 +11918,7 @@ void f (B b) {
   requirements
     topLevels
       dart:core
-        String: #M8
+        String: #M10
 [status] idle
 ''',
     );
@@ -11785,17 +11954,17 @@ void f(A a) {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
     topLevels
       dart:core
@@ -11839,6 +12008,7 @@ class A {}
   package:test/a.dart
     declaredClasses
       A: #M0
+        interface: #M6
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -11924,17 +12094,17 @@ void f(A a) {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
     topLevels
       dart:core
@@ -11981,16 +12151,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M6
         declaredSetters
-          foo=: #M6
-        interface
+          foo=: #M7
+        interface: #M8
           map
-            foo=: #M6
+            foo=: #M7
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M9
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -12004,7 +12174,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12025,12 +12195,12 @@ class A {
       package:test/a.dart
         A
           requestedFields
-            foo: #M5
+            foo: #M6
     interfaces
       package:test/a.dart
         A
           methods
-            foo=: #M6
+            foo=: #M7
 [status] idle
 ''',
     );
@@ -12066,14 +12236,15 @@ void f() {
           foo: #M1
         declaredGetters
           foo: #M2
+        interface: #M3
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -12117,13 +12288,14 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
+        declaredGetters
+          foo: #M7
+        interface: #M3
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -12137,7 +12309,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12158,9 +12330,9 @@ class A {
       package:test/a.dart
         A
           requestedFields
-            foo: #M5
-          requestedGetters
             foo: #M6
+          requestedGetters
+            foo: #M7
     interfaces
       package:test/a.dart
         A
@@ -12204,14 +12376,15 @@ void f() {
         declaredGetters
           bar: #M3
           foo: #M4
+        interface: #M5
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -12256,16 +12429,17 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M8
           foo: #M2
         declaredGetters
-          bar: #M8
+          bar: #M9
           foo: #M4
+        interface: #M5
   requirements
     topLevels
       dart:core
-        double: #M9
-        int: #M5
+        double: #M10
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -12309,14 +12483,15 @@ void f() {
       A: #M0
         declaredMethods
           foo: #M1
+        interface: #M2
   requirements
     topLevels
       dart:core
-        int: #M2
+        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M3
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -12360,11 +12535,12 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
+          foo: #M5
+        interface: #M2
   requirements
     topLevels
       dart:core
-        double: #M5
+        double: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -12378,7 +12554,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12401,7 +12577,7 @@ class A {
           requestedGetters
             foo: <null>
           requestedMethods
-            foo: #M4
+            foo: #M5
     interfaces
       package:test/a.dart
         A
@@ -12442,14 +12618,15 @@ void f() {
         declaredMethods
           bar: #M1
           foo: #M2
+        interface: #M3
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -12494,13 +12671,14 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M5
+          bar: #M6
           foo: #M2
+        interface: #M3
   requirements
     topLevels
       dart:core
-        double: #M6
-        int: #M3
+        double: #M7
+        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -12546,14 +12724,15 @@ void f() {
           foo: #M1
         declaredSetters
           foo=: #M2
+        interface: #M3
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -12592,13 +12771,14 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
+        interface: #M3
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -12612,7 +12792,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12633,9 +12813,9 @@ class A {
       package:test/a.dart
         A
           requestedFields
-            foo: #M5
+            foo: #M6
           requestedSetters
-            foo=: #M6
+            foo=: #M7
 [status] idle
 ''',
     );
@@ -12674,14 +12854,15 @@ void f() {
         declaredSetters
           bar=: #M3
           foo=: #M4
+        interface: #M5
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -12721,16 +12902,17 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M8
           foo: #M2
         declaredSetters
-          bar=: #M8
+          bar=: #M9
           foo=: #M4
+        interface: #M5
   requirements
     topLevels
       dart:core
-        double: #M9
-        int: #M5
+        double: #M10
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -12777,19 +12959,22 @@ void f() {
       A: #M0
         declaredConstructors
           named: #M1
-      B: #M2
+        interface: #M2
+      B: #M3
         inheritedConstructors
           named: #M1
+        interface: #M4
     declaredMixins
-      M: #M3
+      M: #M5
+        interface: #M6
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M8
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -12801,7 +12986,7 @@ void f() {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
     interfaces
       package:test/a.dart
         B
@@ -12823,16 +13008,19 @@ class B = A with M;
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M6
-      B: #M2
+          named: #M9
+        interface: #M2
+      B: #M3
         inheritedConstructors
-          named: #M6
+          named: #M9
+        interface: #M4
     declaredMixins
-      M: #M3
+      M: #M5
+        interface: #M6
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -12846,7 +13034,7 @@ class B = A with M;
     interfaceName: B
     constructorName: named
     expectedId: #M1
-    actualId: #M6
+    actualId: #M9
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12857,12 +13045,12 @@ class B = A with M;
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
     interfaces
       package:test/a.dart
         B
           constructors
-            named: #M6
+            named: #M9
 [status] idle
 ''',
     );
@@ -12901,17 +13089,17 @@ void f() {
         declaredGetters
           foo: #M3
           values: #M4
-        interface
+        interface: #M5
           map
-            index: #M5
+            index: #M6
   requirements
     topLevels
       dart:core
-        int: #M6
+        int: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M8
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -12956,18 +13144,18 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          foo: #M8
-          values: #M9
+          foo: #M9
+          values: #M10
         declaredGetters
           foo: #M3
           values: #M4
-        interface
+        interface: #M5
           map
-            index: #M5
+            index: #M6
   requirements
     topLevels
       dart:core
-        int: #M6
+        int: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -12981,7 +13169,7 @@ enum A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M8
+    actualId: #M9
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13002,7 +13190,7 @@ enum A {
       package:test/a.dart
         A
           requestedFields
-            foo: #M8
+            foo: #M9
           requestedGetters
             foo: #M3
     interfaces
@@ -13050,18 +13238,18 @@ void f(A a) {
           values: #M4
         declaredMethods
           foo: #M5
-        interface
+        interface: #M6
           map
             foo: #M5
-            index: #M6
+            index: #M7
   requirements
     topLevels
       dart:core
-        int: #M7
+        int: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M9
   requirements
     topLevels
       dart:core
@@ -13110,15 +13298,15 @@ enum A {
           v: #M3
           values: #M4
         declaredMethods
-          foo: #M9
-        interface
+          foo: #M10
+        interface: #M11
           map
-            foo: #M9
-            index: #M6
+            foo: #M10
+            index: #M7
   requirements
     topLevels
       dart:core
-        double: #M10
+        double: #M12
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -13132,7 +13320,7 @@ enum A {
     interfaceName: A
     methodName: foo
     expectedId: #M5
-    actualId: #M9
+    actualId: #M10
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13153,7 +13341,7 @@ enum A {
       package:test/a.dart
         A
           methods
-            foo: #M9
+            foo: #M10
 [status] idle
 ''',
     );
@@ -13196,19 +13384,19 @@ void f(A a) {
         declaredMethods
           bar: #M5
           foo: #M6
-        interface
+        interface: #M7
           map
             bar: #M5
             foo: #M6
-            index: #M7
+            index: #M8
   requirements
     topLevels
       dart:core
-        int: #M8
+        int: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M10
   requirements
     topLevels
       dart:core
@@ -13258,18 +13446,18 @@ enum A {
           v: #M3
           values: #M4
         declaredMethods
-          bar: #M10
+          bar: #M11
           foo: #M6
-        interface
+        interface: #M12
           map
-            bar: #M10
+            bar: #M11
             foo: #M6
-            index: #M7
+            index: #M8
   requirements
     topLevels
       dart:core
-        double: #M11
-        int: #M8
+        double: #M13
+        int: #M9
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -13311,7 +13499,9 @@ export 'a.dart';
   package:test/a.dart
     declaredClasses
       A: #M0
-      _B: #M1
+        interface: #M1
+      _B: #M2
+        interface: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13338,7 +13528,9 @@ class _B2 {}
   package:test/a.dart
     declaredClasses
       A: #M0
-      _B2: #M2
+        interface: #M1
+      _B2: #M4
+        interface: #M5
   requirements
 [future] getLibraryByUri T2
   library
@@ -13392,13 +13584,17 @@ class C {}
   package:test/a.dart
     declaredClasses
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M2
-      C: #M3
+      B: #M4
+        interface: #M5
+      C: #M6
+        interface: #M7
     reExportMap
       A: #M0
   requirements
@@ -13424,8 +13620,11 @@ class C {}
   package:test/a.dart
     declaredClasses
       A: #M0
-      B: #M1
-      C: #M4
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
   requirements
 [future] getLibraryByUri T2
   library
@@ -13484,12 +13683,15 @@ class B {}
   package:test/a.dart
     declaredClasses
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M2
+      B: #M4
+        interface: #M5
     reExportMap
       A: #M0
   requirements
@@ -13515,8 +13717,11 @@ class C {}
   package:test/a.dart
     declaredClasses
       A: #M0
-      B: #M1
-      C: #M3
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M6
+        interface: #M7
   requirements
 [future] getLibraryByUri T2
   library
@@ -13538,14 +13743,15 @@ class C {}
     exportedUri: package:test/a.dart
     name: C
     expectedId: <null>
-    actualId: #M3
+    actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M2
+      B: #M4
+        interface: #M5
     reExportMap
       A: #M0
-      C: #M3
+      C: #M6
   requirements
     exportRequirements
       package:test/test.dart
@@ -13553,7 +13759,7 @@ class C {}
         exports
           package:test/a.dart
             A: #M0
-            C: #M3
+            C: #M6
 [status] idle
 ''',
     );
@@ -13591,11 +13797,13 @@ export 'b.dart';
   package:test/a.dart
     declaredClasses
       A: #M0
+        interface: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
     declaredClasses
-      B: #M1
+      B: #M2
+        interface: #M3
     reExportMap
       A: #M0
   requirements
@@ -13611,14 +13819,14 @@ export 'b.dart';
   package:test/test.dart
     reExportMap
       A: #M0
-      B: #M1
+      B: #M2
   requirements
     exportRequirements
       package:test/test.dart
         exports
           package:test/b.dart
             A: #M0
-            B: #M1
+            B: #M2
 [status] idle
 ''',
       updateFiles: () {
@@ -13634,7 +13842,9 @@ class A2 {}
   package:test/a.dart
     declaredClasses
       A: #M0
-      A2: #M2
+        interface: #M1
+      A2: #M4
+        interface: #M5
   requirements
 [future] getLibraryByUri T2
   library
@@ -14952,18 +15162,18 @@ void f(A a) {
           it: #M2
         declaredMethods
           foo: #M3
-        interface
+        interface: #M4
           map
             foo: #M3
             it: #M2
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M6
   requirements
     topLevels
       dart:core
@@ -15009,16 +15219,16 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredMethods
-          foo: #M6
-        interface
+          foo: #M7
+        interface: #M8
           map
-            foo: #M6
+            foo: #M7
             it: #M2
   requirements
     topLevels
       dart:core
-        double: #M7
-        int: #M4
+        double: #M9
+        int: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -15032,7 +15242,7 @@ extension type A(int it) {
     interfaceName: A
     methodName: foo
     expectedId: #M3
-    actualId: #M6
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15053,7 +15263,7 @@ extension type A(int it) {
       package:test/a.dart
         A
           methods
-            foo: #M6
+            foo: #M7
 [status] idle
 ''',
     );
@@ -15093,7 +15303,7 @@ void f(A a) {
         declaredMethods
           bar: #M3
           foo: #M4
-        interface
+        interface: #M5
           map
             bar: #M3
             foo: #M4
@@ -15101,11 +15311,11 @@ void f(A a) {
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
     topLevels
       dart:core
@@ -15152,18 +15362,18 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredMethods
-          bar: #M7
+          bar: #M8
           foo: #M4
-        interface
+        interface: #M9
           map
-            bar: #M7
+            bar: #M8
             foo: #M4
             it: #M2
   requirements
     topLevels
       dart:core
-        double: #M8
-        int: #M5
+        double: #M10
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -15212,27 +15422,27 @@ void f(B b) {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M7
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15243,7 +15453,7 @@ void f(B b) {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
     instances
       package:test/a.dart
         A
@@ -15273,17 +15483,17 @@ mixin B on A<double> {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M6
-        interface
+      B: #M8
+        interface: #M9
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -15293,24 +15503,24 @@ mixin B on A<double> {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M11
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15321,7 +15531,7 @@ mixin B on A<double> {}
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
     instances
       package:test/a.dart
         A
@@ -15367,17 +15577,17 @@ void f(A a) {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
     topLevels
       dart:core
@@ -15424,16 +15634,16 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
-        interface
+        declaredGetters
+          foo: #M7
+        interface: #M8
           map
-            foo: #M6
+            foo: #M7
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M9
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -15447,7 +15657,7 @@ mixin A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15468,12 +15678,12 @@ mixin A {
       package:test/a.dart
         A
           requestedFields
-            foo: #M5
+            foo: #M6
     interfaces
       package:test/a.dart
         A
           methods
-            foo: #M6
+            foo: #M7
 [status] idle
 ''',
     );
@@ -15512,18 +15722,18 @@ void f(A a) {
         declaredGetters
           bar: #M3
           foo: #M4
-        interface
+        interface: #M5
           map
             bar: #M3
             foo: #M4
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
     topLevels
       dart:core
@@ -15573,13 +15783,13 @@ mixin A {
           foo: #M2
         declaredGetters
           foo: #M4
-        interface
+        interface: #M8
           map
             foo: #M4
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -15655,6 +15865,7 @@ mixin A {}
   package:test/a.dart
     declaredMixins
       A: #M1
+        interface: #M2
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -15672,7 +15883,7 @@ mixin A {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M2
+      foo: #M3
   requirements
     topLevels
       dart:core
@@ -15732,11 +15943,12 @@ A foo() {}
   package:test/a.dart
     declaredMixins
       A: #M0
+        interface: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M1
+      foo: #M2
   requirements
     topLevels
       dart:core
@@ -15773,7 +15985,9 @@ mixin B {}
   package:test/a.dart
     declaredMixins
       A: #M0
-      B: #M2
+        interface: #M1
+      B: #M3
+        interface: #M4
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -15817,12 +16031,14 @@ A foo() {}
   package:test/a.dart
     declaredMixins
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M2
+      foo: #M4
   requirements
     topLevels
       dart:core
@@ -15858,8 +16074,10 @@ mixin B {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
-      A: #M3
-      B: #M1
+      A: #M5
+        interface: #M6
+      B: #M2
+        interface: #M3
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -15873,23 +16091,23 @@ mixin B {}
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M4
+      foo: #M7
   requirements
     topLevels
       dart:core
         A: <null>
       package:test/a.dart
-        A: #M3
+        A: #M5
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M3
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15907,7 +16125,7 @@ mixin B {}
       dart:core
         A: <null>
       package:test/a.dart
-        A: #M3
+        A: #M5
 [status] idle
 ''',
     );
@@ -15939,13 +16157,16 @@ A foo() {}
   package:test/a.dart
     declaredMixins
       A: #M0
-      B: #M1
-      C: #M2
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M3
+      foo: #M6
   requirements
     topLevels
       dart:core
@@ -15983,8 +16204,11 @@ mixin C {}
   package:test/a.dart
     declaredMixins
       A: #M0
-      B: #M4
-      C: #M2
+        interface: #M1
+      B: #M7
+        interface: #M8
+      C: #M4
+        interface: #M5
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -16025,11 +16249,12 @@ A foo() => throw 0;
   package:test/a.dart
     declaredMixins
       A: #M0
+        interface: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M1
+      foo: #M2
   requirements
     topLevels
       dart:core
@@ -16076,7 +16301,7 @@ A foo() => throw 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M2
+      foo: #M3
   requirements
     topLevels
       dart:core
@@ -16135,12 +16360,14 @@ A foo() => throw 0;
   package:test/a.dart
     declaredMixins
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M2
+      foo: #M4
   requirements
     topLevels
       dart:core
@@ -16174,6 +16401,7 @@ mixin A {}
   package:test/a.dart
     declaredMixins
       A: #M0
+        interface: #M1
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -16217,11 +16445,12 @@ void f(A a) {
   package:test/a.dart
     declaredMixins
       A: #M0
+        interface: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M1
+      f: #M2
   requirements
     topLevels
       dart:core
@@ -16266,14 +16495,14 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M5
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -16287,7 +16516,7 @@ mixin A {
     interfaceName: A
     methodName: foo
     expectedId: <null>
-    actualId: #M2
+    actualId: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16303,7 +16532,7 @@ mixin A {
       package:test/a.dart
         A
           methods
-            foo: #M2
+            foo: #M3
 [status] idle
 ''',
     );
@@ -16340,27 +16569,27 @@ void f(B b) {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M6
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16371,7 +16600,7 @@ void f(B b) {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
     interfaces
       package:test/a.dart
         B
@@ -16394,17 +16623,17 @@ mixin B implements A<double> {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M5
-        interface
+      B: #M7
+        interface: #M8
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        double: #M6
+        double: #M9
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -16414,24 +16643,24 @@ mixin B implements A<double> {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M2
-    actualId: #M5
+    expectedId: #M3
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M10
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M5
+        B: #M7
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M2
-    actualId: #M5
+    expectedId: #M3
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16442,7 +16671,7 @@ mixin B implements A<double> {}
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M5
+        B: #M7
     interfaces
       package:test/a.dart
         B
@@ -16484,27 +16713,27 @@ void f(B b) {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M6
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16515,7 +16744,7 @@ void f(B b) {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
     interfaces
       package:test/a.dart
         B
@@ -16538,17 +16767,17 @@ mixin B on A<double> {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M5
-        interface
+      B: #M7
+        interface: #M8
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        double: #M6
+        double: #M9
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -16558,24 +16787,24 @@ mixin B on A<double> {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M2
-    actualId: #M5
+    expectedId: #M3
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M10
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M5
+        B: #M7
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M2
-    actualId: #M5
+    expectedId: #M3
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16586,7 +16815,7 @@ mixin B on A<double> {}
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M5
+        B: #M7
     interfaces
       package:test/a.dart
         B
@@ -16626,14 +16855,14 @@ void f(A a) {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M2
+      f: #M3
   requirements
     topLevels
       dart:core
@@ -16667,6 +16896,7 @@ mixin A {}
   package:test/a.dart
     declaredMixins
       A: #M0
+        interface: #M4
   requirements
 [future] getErrors T2
   ErrorsResult #1
@@ -16741,17 +16971,17 @@ void f(A a) {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
   requirements
     topLevels
       dart:core
-        int: #M2
+        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M3
+      f: #M4
   requirements
     topLevels
       dart:core
@@ -16793,14 +17023,14 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M4
-        interface
+          foo: #M5
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
   requirements
     topLevels
       dart:core
-        double: #M5
+        double: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -16814,7 +17044,7 @@ mixin A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16835,7 +17065,7 @@ mixin A {
       package:test/a.dart
         A
           methods
-            foo: #M4
+            foo: #M5
 [status] idle
 ''',
     );
@@ -16871,18 +17101,18 @@ void f(A a) {
         declaredMethods
           bar: #M1
           foo: #M2
-        interface
+        interface: #M3
           map
             bar: #M1
             foo: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
     topLevels
       dart:core
@@ -16925,17 +17155,17 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M5
+          bar: #M6
           foo: #M2
-        interface
+        interface: #M7
           map
-            bar: #M5
+            bar: #M6
             foo: #M2
   requirements
     topLevels
       dart:core
-        double: #M6
-        int: #M3
+        double: #M8
+        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -16977,11 +17207,12 @@ void f(A a) {
   package:test/a.dart
     declaredMixins
       A: #M0
+        interface: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M1
+      f: #M2
   requirements
     topLevels
       dart:core
@@ -17035,16 +17266,16 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M2
+          foo: #M3
         declaredSetters
-          foo=: #M3
-        interface
+          foo=: #M4
+        interface: #M5
           map
-            foo=: #M3
+            foo=: #M4
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -17058,7 +17289,7 @@ mixin A {
     interfaceName: A
     methodName: foo=
     expectedId: <null>
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17079,12 +17310,12 @@ mixin A {
       package:test/a.dart
         A
           requestedFields
-            foo: #M2
+            foo: #M3
     interfaces
       package:test/a.dart
         A
           methods
-            foo=: #M3
+            foo=: #M4
 [status] idle
 ''',
     );
@@ -17123,27 +17354,27 @@ void f(B b) {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M7
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17154,7 +17385,7 @@ void f(B b) {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M3
+        B: #M4
     instances
       package:test/a.dart
         A
@@ -17184,17 +17415,17 @@ mixin B on A<double> {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M6
-        interface
+      B: #M8
+        interface: #M9
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -17204,24 +17435,24 @@ mixin B on A<double> {}
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M11
   requirements
     topLevels
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
-    expectedId: #M3
-    actualId: #M6
+    expectedId: #M4
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17232,7 +17463,7 @@ mixin B on A<double> {}
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M6
+        B: #M8
     instances
       package:test/a.dart
         A
@@ -17278,17 +17509,17 @@ void f(A a) {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
     topLevels
       dart:core
@@ -17332,6 +17563,7 @@ mixin A {}
   package:test/a.dart
     declaredMixins
       A: #M0
+        interface: #M6
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -17417,17 +17649,17 @@ void f(A a) {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M5
   requirements
     topLevels
       dart:core
@@ -17474,16 +17706,16 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M6
         declaredSetters
-          foo=: #M6
-        interface
+          foo=: #M7
+        interface: #M8
           map
-            foo=: #M6
+            foo=: #M7
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M9
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -17497,7 +17729,7 @@ mixin A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17518,12 +17750,12 @@ mixin A {
       package:test/a.dart
         A
           requestedFields
-            foo: #M5
+            foo: #M6
     interfaces
       package:test/a.dart
         A
           methods
-            foo=: #M6
+            foo=: #M7
 [status] idle
 ''',
     );
@@ -18271,16 +18503,17 @@ void foo() {
       A: #M0
         declaredConstructors
           named: #M1
+        interface: #M2
     declaredTypeAliases
-      B: #M2
+      B: #M3
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M4
+      foo: #M5
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -18297,7 +18530,7 @@ void foo() {
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
     interfaces
       package:test/a.dart
         A
@@ -18318,13 +18551,14 @@ typedef B = A;
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M5
+          named: #M6
+        interface: #M2
     declaredTypeAliases
-      B: #M2
+      B: #M3
   requirements
     topLevels
       dart:core
-        double: #M6
+        double: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -18338,7 +18572,7 @@ typedef B = A;
     interfaceName: A
     constructorName: named
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -18354,12 +18588,12 @@ typedef B = A;
       dart:core
         B: <null>
       package:test/a.dart
-        B: #M2
+        B: #M3
     interfaces
       package:test/a.dart
         A
           constructors
-            named: #M5
+            named: #M6
 [status] idle
 ''',
     );
@@ -18578,14 +18812,16 @@ class B extends A {
       A: #M0
         declaredMethods
           _foo: #M1
+        interface: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M2
+      B: #M3
         declaredFields
-          _foo: #M3
-        declaredGetters
           _foo: #M4
+        declaredGetters
+          _foo: #M5
+        interface: #M6
 ''',
       updatedCode: r'''
 import 'a.dart';
@@ -18599,16 +18835,16 @@ class B extends A {
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M2
+      B: #M3
         declaredFields
-          _foo: #M3
-        declaredGetters
           _foo: #M4
+        declaredGetters
+          _foo: #M5
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
-            zzz: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -18642,18 +18878,21 @@ class C extends B {
       B: #M0
         declaredMethods
           _foo: #M1
+        interface: #M2
   package:test/test.dart
     declaredClasses
-      A: #M2
+      A: #M3
         declaredFields
-          _foo: #M3
-        declaredGetters
           _foo: #M4
-      C: #M5
+        declaredGetters
+          _foo: #M5
+        interface: #M6
+      C: #M7
         declaredFields
-          _foo: #M6
+          _foo: #M8
         declaredSetters
-          _foo=: #M7
+          _foo=: #M9
+        interface: #M10
 ''',
       updatedCode: r'''
 import 'a.dart';
@@ -18674,23 +18913,25 @@ class C extends B {
       B: #M0
         declaredMethods
           _foo: #M1
+        interface: #M2
   package:test/test.dart
     declaredClasses
-      A: #M2
+      A: #M3
         declaredFields
-          _foo: #M3
-        declaredGetters
           _foo: #M4
-      C: #M5
+        declaredGetters
+          _foo: #M5
+        interface: #M6
+      C: #M7
         declaredFields
-          _foo: #M6
+          _foo: #M8
         declaredSetters
-          _foo=: #M7
+          _foo=: #M9
         declaredMethods
-          zzz: #M8
-        interface
+          zzz: #M11
+        interface: #M12
           map
-            zzz: #M8
+            zzz: #M11
 ''',
     );
   }
@@ -18710,6 +18951,7 @@ class A {
       A: #M0
         declaredConstructors
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -18723,12 +18965,12 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          zzz: #M2
+          zzz: #M3
         declaredConstructors
           foo: #M1
-        interface
+        interface: #M4
           map
-            zzz: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -18750,6 +18992,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -18764,13 +19007,13 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            zzz: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -18795,7 +19038,7 @@ class A {
           foo: #M2
         declaredConstructors
           foo: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
 ''',
@@ -18816,13 +19059,13 @@ class A {
         declaredGetters
           foo: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M5
         declaredConstructors
           foo: #M3
-        interface
+        interface: #M6
           map
             foo: #M2
-            zzz: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -18845,7 +19088,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -18863,14 +19106,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            zzz: #M3
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -18898,7 +19141,7 @@ class A {
           foo=: #M3
         declaredConstructors
           foo: #M4
-        interface
+        interface: #M5
           map
             foo: #M2
             foo=: #M3
@@ -18923,14 +19166,14 @@ class A {
         declaredSetters
           foo=: #M3
         declaredMethods
-          zzz: #M5
+          zzz: #M6
         declaredConstructors
           foo: #M4
-        interface
+        interface: #M7
           map
             foo: #M2
             foo=: #M3
-            zzz: #M5
+            zzz: #M6
 ''',
     );
   }
@@ -18954,7 +19197,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
             foo=: #M1
@@ -18974,15 +19217,15 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            foo=: #M2
-            zzz: #M3
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -19010,22 +19253,22 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         declaredConstructors
-          foo: #M7
-        interface
+          foo: #M8
+        interface: #M9
           map
-            foo: #M5
-            foo=: #M6
+            foo: #M6
+            foo=: #M7
 ''',
       updatedCode: r'''
 class A {
@@ -19048,25 +19291,25 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         declaredMethods
-          zzz: #M8
+          zzz: #M10
         declaredConstructors
-          foo: #M7
-        interface
+          foo: #M8
+        interface: #M11
           map
-            foo: #M5
-            foo=: #M6
-            zzz: #M8
+            foo: #M6
+            foo=: #M7
+            zzz: #M10
 ''',
     );
   }
@@ -19097,23 +19340,23 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
+        declaredGetters
+          foo: #M7
         declaredSetters
-          foo=: #M7
+          foo=: #M8
         declaredConstructors
-          foo: #M8
-        interface
+          foo: #M9
+        interface: #M10
           map
-            foo: #M6
-            foo=: #M7
+            foo: #M7
+            foo=: #M8
 ''',
       updatedCode: r'''
 class A {
@@ -19139,26 +19382,26 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
+        declaredGetters
+          foo: #M7
         declaredSetters
-          foo=: #M7
+          foo=: #M8
         declaredMethods
-          zzz: #M9
+          zzz: #M11
         declaredConstructors
-          foo: #M8
-        interface
+          foo: #M9
+        interface: #M12
           map
-            foo: #M6
-            foo=: #M7
-            zzz: #M9
+            foo: #M7
+            foo=: #M8
+            zzz: #M11
 ''',
     );
   }
@@ -19184,22 +19427,22 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
+        declaredGetters
+          foo: #M5
         declaredSetters
-          foo=: #M5
+          foo=: #M6
         declaredConstructors
-          foo: #M6
-        interface
+          foo: #M7
+        interface: #M8
           map
-            foo: #M4
-            foo=: #M5
+            foo: #M5
+            foo=: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -19220,25 +19463,25 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
+        declaredGetters
+          foo: #M5
         declaredSetters
-          foo=: #M5
+          foo=: #M6
         declaredMethods
-          zzz: #M7
+          zzz: #M9
         declaredConstructors
-          foo: #M6
-        interface
+          foo: #M7
+        interface: #M10
           map
-            foo: #M4
-            foo=: #M5
-            zzz: #M7
+            foo: #M5
+            foo=: #M6
+            zzz: #M9
 ''',
     );
   }
@@ -19266,22 +19509,22 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         declaredConstructors
-          foo: #M7
-        interface
+          foo: #M8
+        interface: #M9
           map
-            foo: #M5
-            foo=: #M6
+            foo: #M6
+            foo=: #M7
 ''',
       updatedCode: r'''
 class A {
@@ -19304,25 +19547,25 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         declaredMethods
-          zzz: #M8
+          zzz: #M10
         declaredConstructors
-          foo: #M7
-        interface
+          foo: #M8
+        interface: #M11
           map
-            foo: #M5
-            foo=: #M6
-            zzz: #M8
+            foo: #M6
+            foo=: #M7
+            zzz: #M10
 ''',
     );
   }
@@ -19345,7 +19588,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -19363,14 +19606,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            zzz: #M3
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -19398,16 +19641,16 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -19430,19 +19673,19 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
-            foo: #M5
-            zzz: #M6
+            foo: #M7
+            zzz: #M8
 ''',
     );
   }
@@ -19473,17 +19716,17 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface
+          foo: #M6
+          foo=: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M6
             foo=: #M3
 ''',
       updatedCode: r'''
@@ -19510,21 +19753,21 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M8
+          foo=: #M8
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
-            foo: #M6
+            foo: #M8
             foo=: #M3
-            zzz: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -19550,16 +19793,16 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -19580,19 +19823,19 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M6
+          foo=: #M6
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M6
+            zzz: #M7
 ''',
     );
   }
@@ -19620,16 +19863,16 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
             foo=: #M2
 ''',
       updatedCode: r'''
@@ -19653,20 +19896,20 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
-            foo: #M5
+            foo: #M7
             foo=: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -19693,19 +19936,19 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        declaredConstructors
+        declaredGetters
           foo: #M6
-        interface
+        declaredConstructors
+          foo: #M7
+        interface: #M8
           map
-            foo: #M5
+            foo: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -19727,22 +19970,22 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        declaredMethods
-          zzz: #M7
-        declaredConstructors
+        declaredGetters
           foo: #M6
-        interface
+        declaredMethods
+          zzz: #M9
+        declaredConstructors
+          foo: #M7
+        interface: #M10
           map
-            foo: #M5
-            zzz: #M7
+            foo: #M6
+            zzz: #M9
 ''',
     );
   }
@@ -19772,20 +20015,20 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
-        declaredConstructors
+        declaredGetters
           foo: #M7
-        interface
+        declaredConstructors
+          foo: #M8
+        interface: #M9
           map
-            foo: #M6
+            foo: #M7
             foo=: #M3
 ''',
       updatedCode: r'''
@@ -19811,24 +20054,24 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
-        declaredMethods
-          zzz: #M8
-        declaredConstructors
+        declaredGetters
           foo: #M7
-        interface
+        declaredMethods
+          zzz: #M10
+        declaredConstructors
+          foo: #M8
+        interface: #M11
           map
-            foo: #M6
+            foo: #M7
             foo=: #M3
-            zzz: #M8
+            zzz: #M10
 ''',
     );
   }
@@ -19853,19 +20096,19 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
-        declaredConstructors
+        declaredGetters
           foo: #M5
-        interface
+        declaredConstructors
+          foo: #M6
+        interface: #M7
           map
-            foo: #M4
+            foo: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -19885,22 +20128,22 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
-        declaredMethods
-          zzz: #M6
-        declaredConstructors
+        declaredGetters
           foo: #M5
-        interface
+        declaredMethods
+          zzz: #M8
+        declaredConstructors
+          foo: #M6
+        interface: #M9
           map
-            foo: #M4
-            zzz: #M6
+            foo: #M5
+            zzz: #M8
 ''',
     );
   }
@@ -19927,19 +20170,19 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        declaredConstructors
+        declaredGetters
           foo: #M6
-        interface
+        declaredConstructors
+          foo: #M7
+        interface: #M8
           map
-            foo: #M5
+            foo: #M6
             foo=: #M2
 ''',
       updatedCode: r'''
@@ -19962,23 +20205,23 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        declaredMethods
-          zzz: #M7
-        declaredConstructors
+        declaredGetters
           foo: #M6
-        interface
+        declaredMethods
+          zzz: #M9
+        declaredConstructors
+          foo: #M7
+        interface: #M10
           map
-            foo: #M5
+            foo: #M6
             foo=: #M2
-            zzz: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -20001,7 +20244,7 @@ class A {
           foo: #M1
         declaredConstructors
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M1
 ''',
@@ -20019,13 +20262,13 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-          zzz: #M3
+          zzz: #M4
         declaredConstructors
           foo: #M2
-        interface
+        interface: #M5
           map
             foo: #M1
-            zzz: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -20048,7 +20291,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -20066,14 +20309,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            zzz: #M3
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -20097,7 +20340,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -20116,14 +20359,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            zzz: #M3
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -20147,7 +20390,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
             foo=: #M1
@@ -20167,15 +20410,15 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            foo=: #M2
-            zzz: #M3
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -20198,7 +20441,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -20216,14 +20459,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            zzz: #M3
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -20246,7 +20489,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
             foo=: #M1
@@ -20265,15 +20508,15 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            foo=: #M2
-            zzz: #M3
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -20297,7 +20540,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
             foo=: #M1
@@ -20317,15 +20560,15 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            foo=: #M2
-            zzz: #M3
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -20352,17 +20595,17 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          foo: #M4
-        declaredConstructors
           foo: #M5
-        interface
+        declaredConstructors
+          foo: #M6
+        interface: #M7
           map
-            foo: #M4
+            foo: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -20384,19 +20627,19 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          foo: #M4
-          zzz: #M6
-        declaredConstructors
           foo: #M5
-        interface
+          zzz: #M8
+        declaredConstructors
+          foo: #M6
+        interface: #M9
           map
-            foo: #M4
-            zzz: #M6
+            foo: #M5
+            zzz: #M8
 ''',
     );
   }
@@ -20426,18 +20669,18 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredMethods
-          foo: #M5
-        declaredConstructors
           foo: #M6
-        interface
+        declaredConstructors
+          foo: #M7
+        interface: #M8
           map
-            foo: #M5
+            foo: #M6
             foo=: #M3
 ''',
       updatedCode: r'''
@@ -20463,21 +20706,21 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredMethods
-          foo: #M5
-          zzz: #M7
-        declaredConstructors
           foo: #M6
-        interface
+          zzz: #M9
+        declaredConstructors
+          foo: #M7
+        interface: #M10
           map
-            foo: #M5
+            foo: #M6
             foo=: #M3
-            zzz: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -20502,17 +20745,17 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-        declaredConstructors
           foo: #M4
-        interface
+        declaredConstructors
+          foo: #M5
+        interface: #M6
           map
-            foo: #M3
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -20532,19 +20775,19 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-          zzz: #M5
-        declaredConstructors
           foo: #M4
-        interface
+          zzz: #M7
+        declaredConstructors
+          foo: #M5
+        interface: #M8
           map
-            foo: #M3
-            zzz: #M5
+            foo: #M4
+            zzz: #M7
 ''',
     );
   }
@@ -20571,17 +20814,17 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          foo: #M4
-        declaredConstructors
           foo: #M5
-        interface
+        declaredConstructors
+          foo: #M6
+        interface: #M7
           map
-            foo: #M4
+            foo: #M5
             foo=: #M2
 ''',
       updatedCode: r'''
@@ -20604,20 +20847,20 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          foo: #M4
-          zzz: #M6
-        declaredConstructors
           foo: #M5
-        interface
+          zzz: #M8
+        declaredConstructors
+          foo: #M6
+        interface: #M9
           map
-            foo: #M4
+            foo: #M5
             foo=: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -20642,7 +20885,7 @@ class A {
           foo=: #M2
         declaredConstructors
           foo: #M3
-        interface
+        interface: #M4
           map
             foo=: #M2
 ''',
@@ -20663,13 +20906,13 @@ class A {
         declaredSetters
           foo=: #M2
         declaredMethods
-          zzz: #M4
+          zzz: #M5
         declaredConstructors
           foo: #M3
-        interface
+        interface: #M6
           map
             foo=: #M2
-            zzz: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -20692,7 +20935,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo=: #M1
 ''',
@@ -20710,14 +20953,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo=: #M2
-            zzz: #M3
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -20744,20 +20987,20 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
+          foo=: #M6
         declaredConstructors
-          foo: #M6
-        interface
+          foo: #M7
+        interface: #M8
           map
             foo: #M2
-            foo=: #M5
+            foo=: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -20779,23 +21022,23 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
+          foo=: #M6
         declaredMethods
-          zzz: #M7
+          zzz: #M9
         declaredConstructors
-          foo: #M6
-        interface
+          foo: #M7
+        interface: #M10
           map
             foo: #M2
-            foo=: #M5
-            zzz: #M7
+            foo=: #M6
+            zzz: #M9
 ''',
     );
   }
@@ -20825,21 +21068,21 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         declaredConstructors
-          foo: #M7
-        interface
+          foo: #M8
+        interface: #M9
           map
             foo: #M2
-            foo=: #M6
+            foo=: #M7
 ''',
       updatedCode: r'''
 class A {
@@ -20864,24 +21107,24 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         declaredMethods
-          zzz: #M8
+          zzz: #M10
         declaredConstructors
-          foo: #M7
-        interface
+          foo: #M8
+        interface: #M11
           map
             foo: #M2
-            foo=: #M6
-            zzz: #M8
+            foo=: #M7
+            zzz: #M10
 ''',
     );
   }
@@ -20906,20 +21149,20 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
+          foo=: #M5
         declaredConstructors
-          foo: #M5
-        interface
+          foo: #M6
+        interface: #M7
           map
             foo: #M1
-            foo=: #M4
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -20939,23 +21182,23 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
+          foo=: #M5
         declaredMethods
-          zzz: #M6
+          zzz: #M8
         declaredConstructors
-          foo: #M5
-        interface
+          foo: #M6
+        interface: #M9
           map
             foo: #M1
-            foo=: #M4
-            zzz: #M6
+            foo=: #M5
+            zzz: #M8
 ''',
     );
   }
@@ -20982,19 +21225,19 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
+          foo=: #M6
         declaredConstructors
-          foo: #M6
-        interface
+          foo: #M7
+        interface: #M8
           map
-            foo=: #M5
+            foo=: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -21016,22 +21259,22 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
+          foo=: #M6
         declaredMethods
-          zzz: #M7
+          zzz: #M9
         declaredConstructors
-          foo: #M6
-        interface
+          foo: #M7
+        interface: #M10
           map
-            foo=: #M5
-            zzz: #M7
+            foo=: #M6
+            zzz: #M9
 ''',
     );
   }
@@ -21053,6 +21296,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -21067,13 +21311,13 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            zzz: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -21096,7 +21340,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo=: #M1
 ''',
@@ -21114,14 +21358,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo=: #M2
-            zzz: #M3
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -21149,17 +21393,17 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
             foo: #M2
-            foo=: #M4
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -21182,20 +21426,20 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo: #M2
-            foo=: #M5
-            zzz: #M6
+            foo=: #M7
+            zzz: #M8
 ''',
     );
   }
@@ -21226,18 +21470,18 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface
+          foo: #M6
+          foo=: #M6
+        interface: #M7
           map
             foo: #M2
-            foo=: #M5
+            foo=: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -21263,21 +21507,21 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M8
+          foo=: #M8
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
             foo: #M2
-            foo=: #M6
-            zzz: #M7
+            foo=: #M8
+            zzz: #M9
 ''',
     );
   }
@@ -21303,17 +21547,17 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
             foo: #M1
-            foo=: #M3
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -21334,20 +21578,20 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M6
+          foo=: #M6
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
             foo: #M1
-            foo=: #M4
-            zzz: #M5
+            foo=: #M6
+            zzz: #M7
 ''',
     );
   }
@@ -21375,16 +21619,16 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
-            foo=: #M4
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -21407,19 +21651,19 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
-            foo=: #M5
-            zzz: #M6
+            foo=: #M7
+            zzz: #M8
 ''',
     );
   }
@@ -21442,6 +21686,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -21457,13 +21702,13 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            zzz: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -21491,14 +21736,14 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
             foo: #M2
 ''',
@@ -21523,19 +21768,19 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -21566,15 +21811,15 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface
+          foo: #M6
+          foo=: #M6
+        interface: #M7
           map
             foo: #M2
             foo=: #M3
@@ -21603,21 +21848,21 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M8
+          foo=: #M8
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
             foo: #M2
             foo=: #M3
-            zzz: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -21643,14 +21888,14 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
             foo: #M1
 ''',
@@ -21673,19 +21918,19 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M6
+          foo=: #M6
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
             foo: #M1
-            zzz: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -21713,14 +21958,14 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
             foo=: #M2
 ''',
@@ -21745,19 +21990,19 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo=: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -21784,14 +22029,14 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
             foo: #M2
 ''',
@@ -21815,19 +22060,19 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -21857,15 +22102,15 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface
+          foo: #M6
+          foo=: #M6
+        interface: #M7
           map
             foo: #M2
             foo=: #M3
@@ -21893,21 +22138,21 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M8
+          foo=: #M8
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
             foo: #M2
             foo=: #M3
-            zzz: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -21932,14 +22177,14 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
             foo: #M1
 ''',
@@ -21961,19 +22206,19 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M6
+          foo=: #M6
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
             foo: #M1
-            zzz: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -22000,14 +22245,14 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
             foo=: #M2
 ''',
@@ -22031,19 +22276,19 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo=: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -22065,6 +22310,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -22079,13 +22325,13 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            zzz: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -22112,14 +22358,14 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
             foo: #M2
 ''',
@@ -22143,19 +22389,19 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -22185,15 +22431,15 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface
+          foo: #M6
+          foo=: #M6
+        interface: #M7
           map
             foo: #M2
             foo=: #M3
@@ -22221,21 +22467,21 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M8
+          foo=: #M8
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
             foo: #M2
             foo=: #M3
-            zzz: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -22260,14 +22506,14 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
             foo: #M1
 ''',
@@ -22289,19 +22535,19 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M6
+          foo=: #M6
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
             foo: #M1
-            zzz: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -22328,14 +22574,14 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
             foo=: #M2
 ''',
@@ -22359,19 +22605,19 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo=: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -22393,6 +22639,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -22407,13 +22654,13 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            zzz: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -22440,14 +22687,14 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
             foo: #M2
 ''',
@@ -22471,19 +22718,19 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -22513,15 +22760,15 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface
+          foo: #M6
+          foo=: #M6
+        interface: #M7
           map
             foo: #M2
             foo=: #M3
@@ -22549,21 +22796,21 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M8
+          foo=: #M8
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
             foo: #M2
             foo=: #M3
-            zzz: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -22588,14 +22835,14 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
             foo: #M1
 ''',
@@ -22617,19 +22864,19 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M6
+          foo=: #M6
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
             foo: #M1
-            zzz: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -22656,14 +22903,14 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
             foo=: #M2
 ''',
@@ -22687,19 +22934,19 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo=: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -22725,13 +22972,13 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConstructors
-          foo: #M4
-        interface
+          foo: #M5
+        interface: #M6
           map
             foo: #M2
 ''',
@@ -22754,18 +23001,18 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          zzz: #M5
+          zzz: #M7
         declaredConstructors
-          foo: #M4
-        interface
+          foo: #M5
+        interface: #M8
           map
             foo: #M2
-            zzz: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -22794,14 +23041,14 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConstructors
-          foo: #M5
-        interface
+          foo: #M6
+        interface: #M7
           map
             foo: #M2
             foo=: #M3
@@ -22828,20 +23075,20 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredMethods
-          zzz: #M6
+          zzz: #M8
         declaredConstructors
-          foo: #M5
-        interface
+          foo: #M6
+        interface: #M9
           map
             foo: #M2
             foo=: #M3
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -22865,13 +23112,13 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConstructors
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
             foo: #M1
 ''',
@@ -22892,18 +23139,18 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          zzz: #M4
+          zzz: #M6
         declaredConstructors
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M7
           map
             foo: #M1
-            zzz: #M4
+            zzz: #M6
 ''',
     );
   }
@@ -22929,13 +23176,13 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConstructors
-          foo: #M4
-        interface
+          foo: #M5
+        interface: #M6
           map
             foo=: #M2
 ''',
@@ -22958,18 +23205,18 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          zzz: #M5
+          zzz: #M7
         declaredConstructors
-          foo: #M4
-        interface
+          foo: #M5
+        interface: #M8
           map
             foo=: #M2
-            zzz: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -22989,7 +23236,7 @@ class A {
       A: #M0
         declaredMethods
           []: #M1
-        interface
+        interface: #M2
           map
             []: #M1
 ''',
@@ -23006,11 +23253,11 @@ class A {
       A: #M0
         declaredMethods
           []: #M1
-          zzz: #M2
-        interface
+          zzz: #M3
+        interface: #M4
           map
             []: #M1
-            zzz: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -23032,7 +23279,7 @@ class A {
         declaredConflicts
           []: #M1
           []=: #M1
-        interface
+        interface: #M2
           map
             []: #M1
 ''',
@@ -23049,14 +23296,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          []: #M2
-          []=: #M2
+          []: #M3
+          []=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            []: #M2
-            zzz: #M3
+            []: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -23078,7 +23325,7 @@ class A {
         declaredMethods
           []: #M1
           []=: #M2
-        interface
+        interface: #M3
           map
             []: #M1
             []=: #M2
@@ -23098,12 +23345,12 @@ class A {
         declaredMethods
           []: #M1
           []=: #M2
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
             []: #M1
             []=: #M2
-            zzz: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -23126,7 +23373,7 @@ class A {
         declaredConflicts
           []: #M1
           []=: #M1
-        interface
+        interface: #M2
           map
             []: #M1
             []=: #M1
@@ -23145,15 +23392,15 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          []: #M2
-          []=: #M2
+          []: #M3
+          []=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            []: #M2
-            []=: #M2
-            zzz: #M3
+            []: #M3
+            []=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -23178,17 +23425,17 @@ class B extends A {
       A: #M0
         declaredMethods
           []: #M1
-        interface
+        interface: #M2
           map
             []: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          []: #M3
-          []=: #M4
-        interface
+          []: #M4
+          []=: #M5
+        interface: #M6
           map
-            []: #M3
-            []=: #M4
+            []: #M4
+            []=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -23208,19 +23455,19 @@ class B extends A {
       A: #M0
         declaredMethods
           []: #M1
-        interface
+        interface: #M2
           map
             []: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          []: #M3
-          []=: #M4
-          zzz: #M5
-        interface
+          []: #M4
+          []=: #M5
+          zzz: #M7
+        interface: #M8
           map
-            []: #M3
-            []=: #M4
-            zzz: #M5
+            []: #M4
+            []=: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -23245,17 +23492,17 @@ class B extends A {
       A: #M0
         declaredMethods
           []=: #M1
-        interface
+        interface: #M2
           map
             []=: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          []: #M3
-          []=: #M4
-        interface
+          []: #M4
+          []=: #M5
+        interface: #M6
           map
-            []: #M3
-            []=: #M4
+            []: #M4
+            []=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -23275,19 +23522,19 @@ class B extends A {
       A: #M0
         declaredMethods
           []=: #M1
-        interface
+        interface: #M2
           map
             []=: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          []: #M3
-          []=: #M4
-          zzz: #M5
-        interface
+          []: #M4
+          []=: #M5
+          zzz: #M7
+        interface: #M8
           map
-            []: #M3
-            []=: #M4
-            zzz: #M5
+            []: #M4
+            []=: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -23311,15 +23558,15 @@ class B extends A {
       A: #M0
         declaredMethods
           []: #M1
-        interface
+        interface: #M2
           map
             []: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          []: #M3
-        interface
+          []: #M4
+        interface: #M5
           map
-            []: #M3
+            []: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -23338,17 +23585,17 @@ class B extends A {
       A: #M0
         declaredMethods
           []: #M1
-        interface
+        interface: #M2
           map
             []: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          []: #M3
-          zzz: #M4
-        interface
+          []: #M4
+          zzz: #M6
+        interface: #M7
           map
-            []: #M3
-            zzz: #M4
+            []: #M4
+            zzz: #M6
 ''',
     );
   }
@@ -23372,15 +23619,15 @@ class B extends A {
       A: #M0
         declaredMethods
           []=: #M1
-        interface
+        interface: #M2
           map
             []=: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          []: #M3
-        interface
+          []: #M4
+        interface: #M5
           map
-            []: #M3
+            []: #M4
             []=: #M1
 ''',
       updatedCode: r'''
@@ -23400,18 +23647,18 @@ class B extends A {
       A: #M0
         declaredMethods
           []=: #M1
-        interface
+        interface: #M2
           map
             []=: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          []: #M3
-          zzz: #M4
-        interface
+          []: #M4
+          zzz: #M6
+        interface: #M7
           map
-            []: #M3
+            []: #M4
             []=: #M1
-            zzz: #M4
+            zzz: #M6
 ''',
     );
   }
@@ -23431,7 +23678,7 @@ class A {
       A: #M0
         declaredMethods
           []=: #M1
-        interface
+        interface: #M2
           map
             []=: #M1
 ''',
@@ -23448,11 +23695,11 @@ class A {
       A: #M0
         declaredMethods
           []=: #M1
-          zzz: #M2
-        interface
+          zzz: #M3
+        interface: #M4
           map
             []=: #M1
-            zzz: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -23474,14 +23721,15 @@ class B extends A {
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
         declaredMethods
-          []: #M2
-          []=: #M3
-        interface
+          []: #M3
+          []=: #M4
+        interface: #M5
           map
-            []: #M2
-            []=: #M3
+            []: #M3
+            []=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -23498,16 +23746,17 @@ class B extends A {
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
         declaredMethods
-          []: #M2
-          []=: #M3
-          zzz: #M4
-        interface
+          []: #M3
+          []=: #M4
+          zzz: #M6
+        interface: #M7
           map
-            []: #M2
-            []=: #M3
-            zzz: #M4
+            []: #M3
+            []=: #M4
+            zzz: #M6
 ''',
     );
   }
@@ -23529,7 +23778,7 @@ class A {
         declaredConflicts
           []: #M1
           []=: #M1
-        interface
+        interface: #M2
           map
             []=: #M1
 ''',
@@ -23546,14 +23795,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          []: #M2
-          []=: #M2
+          []: #M3
+          []=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            []=: #M2
-            zzz: #M3
+            []=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -23577,16 +23826,16 @@ class B extends A {
       A: #M0
         declaredMethods
           []: #M1
-        interface
+        interface: #M2
           map
             []: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          []=: #M3
-        interface
+          []=: #M4
+        interface: #M5
           map
             []: #M1
-            []=: #M3
+            []=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -23605,18 +23854,18 @@ class B extends A {
       A: #M0
         declaredMethods
           []: #M1
-        interface
+        interface: #M2
           map
             []: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          []=: #M3
-          zzz: #M4
-        interface
+          []=: #M4
+          zzz: #M6
+        interface: #M7
           map
             []: #M1
-            []=: #M3
-            zzz: #M4
+            []=: #M4
+            zzz: #M6
 ''',
     );
   }
@@ -23640,15 +23889,15 @@ class B extends A {
       A: #M0
         declaredMethods
           []=: #M1
-        interface
+        interface: #M2
           map
             []=: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          []=: #M3
-        interface
+          []=: #M4
+        interface: #M5
           map
-            []=: #M3
+            []=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -23667,17 +23916,17 @@ class B extends A {
       A: #M0
         declaredMethods
           []=: #M1
-        interface
+        interface: #M2
           map
             []=: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          []=: #M3
-          zzz: #M4
-        interface
+          []=: #M4
+          zzz: #M6
+        interface: #M7
           map
-            []=: #M3
-            zzz: #M4
+            []=: #M4
+            zzz: #M6
 ''',
     );
   }
@@ -23699,7 +23948,7 @@ class A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
 ''',
@@ -23719,11 +23968,11 @@ class A {
         declaredGetters
           foo: #M2
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
             foo: #M2
-            zzz: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -23745,7 +23994,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -23762,14 +24011,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            zzz: #M3
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -23794,7 +24043,7 @@ class A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
@@ -23818,12 +24067,12 @@ class A {
         declaredSetters
           foo=: #M3
         declaredMethods
-          zzz: #M4
-        interface
+          zzz: #M5
+        interface: #M6
           map
             foo: #M2
             foo=: #M3
-            zzz: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -23846,7 +24095,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
             foo=: #M1
@@ -23865,15 +24114,15 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            foo=: #M2
-            zzz: #M3
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -23900,20 +24149,20 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
-        interface
+          foo=: #M7
+        interface: #M8
           map
-            foo: #M5
-            foo=: #M6
+            foo: #M6
+            foo=: #M7
 ''',
       updatedCode: r'''
 class A {
@@ -23935,23 +24184,23 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
-            foo: #M5
-            foo=: #M6
-            zzz: #M7
+            foo: #M6
+            foo=: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -23981,21 +24230,21 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
+        declaredGetters
+          foo: #M7
         declaredSetters
-          foo=: #M7
-        interface
+          foo=: #M8
+        interface: #M9
           map
-            foo: #M6
-            foo=: #M7
+            foo: #M7
+            foo=: #M8
 ''',
       updatedCode: r'''
 class A {
@@ -24020,24 +24269,24 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
+        declaredGetters
+          foo: #M7
         declaredSetters
-          foo=: #M7
+          foo=: #M8
         declaredMethods
-          zzz: #M8
-        interface
+          zzz: #M10
+        interface: #M11
           map
-            foo: #M6
-            foo=: #M7
-            zzz: #M8
+            foo: #M7
+            foo=: #M8
+            zzz: #M10
 ''',
     );
   }
@@ -24062,20 +24311,20 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
+        declaredGetters
+          foo: #M5
         declaredSetters
-          foo=: #M5
-        interface
+          foo=: #M6
+        interface: #M7
           map
-            foo: #M4
-            foo=: #M5
+            foo: #M5
+            foo=: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -24095,23 +24344,23 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
+        declaredGetters
+          foo: #M5
         declaredSetters
-          foo=: #M5
+          foo=: #M6
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
-            foo: #M4
-            foo=: #M5
-            zzz: #M6
+            foo: #M5
+            foo=: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -24138,20 +24387,20 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
-        interface
+          foo=: #M7
+        interface: #M8
           map
-            foo: #M5
-            foo=: #M6
+            foo: #M6
+            foo=: #M7
 ''',
       updatedCode: r'''
 class A {
@@ -24173,23 +24422,23 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
-            foo: #M5
-            foo=: #M6
-            zzz: #M7
+            foo: #M6
+            foo=: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -24211,7 +24460,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -24228,14 +24477,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            zzz: #M3
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -24262,16 +24511,16 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -24293,19 +24542,19 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
-            foo: #M5
-            zzz: #M6
+            foo: #M7
+            zzz: #M8
 ''',
     );
   }
@@ -24335,17 +24584,17 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface
+          foo: #M6
+          foo=: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M6
             foo=: #M3
 ''',
       updatedCode: r'''
@@ -24371,21 +24620,21 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M8
+          foo=: #M8
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
-            foo: #M6
+            foo: #M8
             foo=: #M3
-            zzz: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -24410,16 +24659,16 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -24439,19 +24688,19 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M6
+          foo=: #M6
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M6
+            zzz: #M7
 ''',
     );
   }
@@ -24478,16 +24727,16 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
             foo=: #M2
 ''',
       updatedCode: r'''
@@ -24510,20 +24759,20 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
-            foo: #M5
+            foo: #M7
             foo=: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -24549,17 +24798,17 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        interface
+        declaredGetters
+          foo: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -24580,20 +24829,20 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
-            foo: #M5
-            zzz: #M6
+            foo: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -24622,18 +24871,18 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
-        interface
+        declaredGetters
+          foo: #M7
+        interface: #M8
           map
-            foo: #M6
+            foo: #M7
             foo=: #M3
 ''',
       updatedCode: r'''
@@ -24658,22 +24907,22 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
+        declaredGetters
+          foo: #M7
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
-            foo: #M6
+            foo: #M7
             foo=: #M3
-            zzz: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -24697,17 +24946,17 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
-        interface
+        declaredGetters
+          foo: #M5
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -24726,20 +24975,20 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
+        declaredGetters
+          foo: #M5
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -24765,17 +25014,17 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        interface
+        declaredGetters
+          foo: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M6
             foo=: #M2
 ''',
       updatedCode: r'''
@@ -24797,21 +25046,21 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
-            foo: #M5
+            foo: #M6
             foo=: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -24831,7 +25080,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -24848,11 +25097,11 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-          zzz: #M2
-        interface
+          zzz: #M3
+        interface: #M4
           map
             foo: #M1
-            zzz: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -24874,7 +25123,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -24891,14 +25140,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            zzz: #M3
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -24921,7 +25170,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -24939,14 +25188,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            zzz: #M3
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -24969,7 +25218,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
             foo=: #M1
@@ -24988,15 +25237,15 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            foo=: #M2
-            zzz: #M3
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -25020,7 +25269,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
             foo=: #M1
@@ -25040,15 +25289,15 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            foo=: #M2
-            zzz: #M3
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -25070,7 +25319,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -25087,14 +25336,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            zzz: #M3
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -25116,7 +25365,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
             foo=: #M1
@@ -25134,15 +25383,15 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            foo=: #M2
-            zzz: #M3
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -25165,7 +25414,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
             foo=: #M1
@@ -25184,15 +25433,15 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo: #M2
-            foo=: #M2
-            zzz: #M3
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -25218,15 +25467,15 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          foo: #M4
-        interface
+          foo: #M5
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -25247,17 +25496,17 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          foo: #M4
-          zzz: #M5
-        interface
+          foo: #M5
+          zzz: #M7
+        interface: #M8
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -25286,16 +25535,16 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredMethods
-          foo: #M5
-        interface
+          foo: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M6
             foo=: #M3
 ''',
       updatedCode: r'''
@@ -25320,19 +25569,19 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredMethods
-          foo: #M5
-          zzz: #M6
-        interface
+          foo: #M6
+          zzz: #M8
+        interface: #M9
           map
-            foo: #M5
+            foo: #M6
             foo=: #M3
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -25356,15 +25605,15 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -25383,17 +25632,17 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-          zzz: #M4
-        interface
+          foo: #M4
+          zzz: #M6
+        interface: #M7
           map
-            foo: #M3
-            zzz: #M4
+            foo: #M4
+            zzz: #M6
 ''',
     );
   }
@@ -25419,15 +25668,15 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          foo: #M4
-        interface
+          foo: #M5
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
             foo=: #M2
 ''',
       updatedCode: r'''
@@ -25449,18 +25698,18 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          foo: #M4
-          zzz: #M5
-        interface
+          foo: #M5
+          zzz: #M7
+        interface: #M8
           map
-            foo: #M4
+            foo: #M5
             foo=: #M2
-            zzz: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -25482,7 +25731,7 @@ class A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
 ''',
@@ -25502,11 +25751,11 @@ class A {
         declaredSetters
           foo=: #M2
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
             foo=: #M2
-            zzz: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -25528,7 +25777,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo=: #M1
 ''',
@@ -25545,14 +25794,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo=: #M2
-            zzz: #M3
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -25578,18 +25827,18 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
-        interface
+          foo=: #M6
+        interface: #M7
           map
             foo: #M2
-            foo=: #M5
+            foo=: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -25610,21 +25859,21 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
+          foo=: #M6
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo: #M2
-            foo=: #M5
-            zzz: #M6
+            foo=: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -25653,19 +25902,19 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
+          foo: #M6
         declaredSetters
-          foo=: #M6
-        interface
+          foo=: #M7
+        interface: #M8
           map
             foo: #M2
-            foo=: #M6
+            foo=: #M7
 ''',
       updatedCode: r'''
 class A {
@@ -25689,22 +25938,22 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
             foo: #M2
-            foo=: #M6
-            zzz: #M7
+            foo=: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -25728,18 +25977,18 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
-        interface
+          foo=: #M5
+        interface: #M6
           map
             foo: #M1
-            foo=: #M4
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -25758,21 +26007,21 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
+          foo=: #M5
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
             foo: #M1
-            foo=: #M4
-            zzz: #M5
+            foo=: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -25798,17 +26047,17 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
-        interface
+          foo=: #M6
+        interface: #M7
           map
-            foo=: #M5
+            foo=: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -25829,20 +26078,20 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
+          foo=: #M6
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
-            foo=: #M5
-            zzz: #M6
+            foo=: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -25864,6 +26113,7 @@ class A {
           foo: #M1
         declaredGetters
           foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -25881,10 +26131,10 @@ class A {
         declaredGetters
           foo: #M2
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            zzz: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -25906,7 +26156,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo=: #M1
 ''',
@@ -25923,14 +26173,14 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            foo=: #M2
-            zzz: #M3
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -25957,17 +26207,17 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
             foo: #M2
-            foo=: #M4
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -25989,20 +26239,20 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo: #M2
-            foo=: #M5
-            zzz: #M6
+            foo=: #M7
+            zzz: #M8
 ''',
     );
   }
@@ -26032,18 +26282,18 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface
+          foo: #M6
+          foo=: #M6
+        interface: #M7
           map
             foo: #M2
-            foo=: #M5
+            foo=: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -26068,21 +26318,21 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredConflicts
-          foo: #M6
-          foo=: #M6
+          foo: #M8
+          foo=: #M8
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
             foo: #M2
-            foo=: #M6
-            zzz: #M7
+            foo=: #M8
+            zzz: #M9
 ''',
     );
   }
@@ -26107,17 +26357,17 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
             foo: #M1
-            foo=: #M3
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -26137,20 +26387,20 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M6
+          foo=: #M6
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
             foo: #M1
-            foo=: #M4
-            zzz: #M5
+            foo=: #M6
+            zzz: #M7
 ''',
     );
   }
@@ -26177,16 +26427,16 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface
+          foo: #M5
+          foo=: #M5
+        interface: #M6
           map
-            foo=: #M4
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -26208,19 +26458,19 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M7
+          foo=: #M7
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
-            foo=: #M5
-            zzz: #M6
+            foo=: #M7
+            zzz: #M8
 ''',
     );
   }
@@ -26245,6 +26495,7 @@ class A {
           foo: #M2
         declaredSetters
           foo=: #M3
+        interface: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -26265,10 +26516,10 @@ class A {
         declaredSetters
           foo=: #M3
         declaredMethods
-          zzz: #M4
-        interface
+          zzz: #M5
+        interface: #M6
           map
-            zzz: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -26295,17 +26546,17 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
-        interface
+          foo=: #M7
+        interface: #M8
           map
             foo: #M2
 ''',
@@ -26329,22 +26580,22 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
             foo: #M2
-            zzz: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -26374,18 +26625,18 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
+        declaredGetters
+          foo: #M7
         declaredSetters
-          foo=: #M7
-        interface
+          foo=: #M8
+        interface: #M9
           map
             foo: #M2
             foo=: #M3
@@ -26413,24 +26664,24 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
+        declaredGetters
+          foo: #M7
         declaredSetters
-          foo=: #M7
+          foo=: #M8
         declaredMethods
-          zzz: #M8
-        interface
+          zzz: #M10
+        interface: #M11
           map
             foo: #M2
             foo=: #M3
-            zzz: #M8
+            zzz: #M10
 ''',
     );
   }
@@ -26455,17 +26706,17 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
+        declaredGetters
+          foo: #M5
         declaredSetters
-          foo=: #M5
-        interface
+          foo=: #M6
+        interface: #M7
           map
             foo: #M1
 ''',
@@ -26487,22 +26738,22 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
+        declaredGetters
+          foo: #M5
         declaredSetters
-          foo=: #M5
+          foo=: #M6
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo: #M1
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -26529,17 +26780,17 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
-        interface
+          foo=: #M7
+        interface: #M8
           map
             foo=: #M2
 ''',
@@ -26563,22 +26814,22 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
             foo=: #M2
-            zzz: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -26604,15 +26855,15 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        interface
+        declaredGetters
+          foo: #M6
+        interface: #M7
           map
             foo: #M2
 ''',
@@ -26635,20 +26886,20 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -26677,16 +26928,16 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
-        interface
+        declaredGetters
+          foo: #M7
+        interface: #M8
           map
             foo: #M2
             foo=: #M3
@@ -26713,22 +26964,22 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
+        declaredGetters
+          foo: #M7
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
             foo: #M2
             foo=: #M3
-            zzz: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -26752,15 +27003,15 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
-        interface
+        declaredGetters
+          foo: #M5
+        interface: #M6
           map
             foo: #M1
 ''',
@@ -26781,20 +27032,20 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
+        declaredGetters
+          foo: #M5
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
             foo: #M1
-            zzz: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -26820,15 +27071,15 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        interface
+        declaredGetters
+          foo: #M6
+        interface: #M7
           map
             foo=: #M2
 ''',
@@ -26851,20 +27102,20 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo=: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -26884,6 +27135,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -26898,10 +27150,10 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-          zzz: #M2
-        interface
+          zzz: #M3
+        interface: #M4
           map
-            zzz: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -26927,13 +27179,13 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          foo: #M4
-        interface
+          foo: #M5
+        interface: #M6
           map
             foo: #M2
 ''',
@@ -26956,17 +27208,17 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          foo: #M4
-          zzz: #M5
-        interface
+          foo: #M5
+          zzz: #M7
+        interface: #M8
           map
             foo: #M2
-            zzz: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -26995,14 +27247,14 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredMethods
-          foo: #M5
-        interface
+          foo: #M6
+        interface: #M7
           map
             foo: #M2
             foo=: #M3
@@ -27029,19 +27281,19 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredMethods
-          foo: #M5
-          zzz: #M6
-        interface
+          foo: #M6
+          zzz: #M8
+        interface: #M9
           map
             foo: #M2
             foo=: #M3
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -27065,13 +27317,13 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
             foo: #M1
 ''',
@@ -27092,17 +27344,17 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-          zzz: #M4
-        interface
+          foo: #M4
+          zzz: #M6
+        interface: #M7
           map
             foo: #M1
-            zzz: #M4
+            zzz: #M6
 ''',
     );
   }
@@ -27128,13 +27380,13 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          foo: #M4
-        interface
+          foo: #M5
+        interface: #M6
           map
             foo=: #M2
 ''',
@@ -27157,17 +27409,17 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          foo: #M4
-          zzz: #M5
-        interface
+          foo: #M5
+          zzz: #M7
+        interface: #M8
           map
             foo=: #M2
-            zzz: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -27189,6 +27441,7 @@ class A {
           foo: #M1
         declaredSetters
           foo=: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -27206,10 +27459,10 @@ class A {
         declaredSetters
           foo=: #M2
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M4
+        interface: #M5
           map
-            zzz: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -27235,15 +27488,15 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
-        interface
+          foo=: #M6
+        interface: #M7
           map
             foo: #M2
 ''',
@@ -27266,20 +27519,20 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
+          foo=: #M6
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -27308,16 +27561,16 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
+          foo: #M6
         declaredSetters
-          foo=: #M6
-        interface
+          foo=: #M7
+        interface: #M8
           map
             foo: #M2
             foo=: #M3
@@ -27344,22 +27597,22 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredFields
-          foo: #M5
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         declaredMethods
-          zzz: #M7
-        interface
+          zzz: #M9
+        interface: #M10
           map
             foo: #M2
             foo=: #M3
-            zzz: #M7
+            zzz: #M9
 ''',
     );
   }
@@ -27383,15 +27636,15 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
-        interface
+          foo=: #M5
+        interface: #M6
           map
             foo: #M1
 ''',
@@ -27412,20 +27665,20 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
+          foo=: #M5
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
             foo: #M1
-            zzz: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -27451,15 +27704,15 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
-        interface
+          foo=: #M6
+        interface: #M7
           map
             foo=: #M2
 ''',
@@ -27482,20 +27735,20 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
+          foo=: #M6
         declaredMethods
-          zzz: #M6
-        interface
+          zzz: #M8
+        interface: #M9
           map
             foo=: #M2
-            zzz: #M6
+            zzz: #M8
 ''',
     );
   }
@@ -27519,11 +27772,14 @@ class B = A with M;
       A: #M0
         declaredConstructors
           foo: #M1
-      B: #M2
+        interface: #M2
+      B: #M3
         inheritedConstructors
           foo: #M1
+        interface: #M4
     declaredMixins
-      M: #M3
+      M: #M5
+        interface: #M6
 ''',
       updatedCode: r'''
 mixin M {}
@@ -27542,12 +27798,16 @@ class Z {}
       A: #M0
         declaredConstructors
           foo: #M1
-      B: #M2
+        interface: #M2
+      B: #M3
         inheritedConstructors
           foo: #M1
-      Z: #M4
+        interface: #M4
+      Z: #M7
+        interface: #M8
     declaredMixins
-      M: #M3
+      M: #M5
+        interface: #M6
 ''',
     );
   }
@@ -27573,11 +27833,14 @@ class B = A with M;
         declaredConflicts
           foo: #M1
           foo=: #M1
-      B: #M2
+        interface: #M2
+      B: #M3
         inheritedConstructors
           foo: #M1
+        interface: #M4
     declaredMixins
-      M: #M3
+      M: #M5
+        interface: #M6
 ''',
       updatedCode: r'''
 mixin M {}
@@ -27596,14 +27859,18 @@ class Z {}
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-      B: #M2
+          foo: #M7
+          foo=: #M7
+        interface: #M2
+      B: #M3
         inheritedConstructors
-          foo: #M4
-      Z: #M5
+          foo: #M7
+        interface: #M4
+      Z: #M8
+        interface: #M9
     declaredMixins
-      M: #M3
+      M: #M5
+        interface: #M6
 ''',
     );
   }
@@ -27632,17 +27899,18 @@ class B = A with M;
           foo: #M2
         declaredConstructors
           foo: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
-      B: #M4
+      B: #M5
         inheritedConstructors
           foo: #M3
-        interface
+        interface: #M6
           map
             foo: #M2
     declaredMixins
-      M: #M5
+      M: #M7
+        interface: #M8
 ''',
       updatedCode: r'''
 mixin M {}
@@ -27666,18 +27934,20 @@ class Z {}
           foo: #M2
         declaredConstructors
           foo: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
-      B: #M4
+      B: #M5
         inheritedConstructors
           foo: #M3
-        interface
+        interface: #M6
           map
             foo: #M2
-      Z: #M6
+      Z: #M9
+        interface: #M10
     declaredMixins
-      M: #M5
+      M: #M7
+        interface: #M8
 ''',
     );
   }
@@ -27709,19 +27979,20 @@ class B = A with M;
           foo=: #M3
         declaredConstructors
           foo: #M4
-        interface
+        interface: #M5
           map
             foo: #M2
             foo=: #M3
-      B: #M5
+      B: #M6
         inheritedConstructors
           foo: #M4
-        interface
+        interface: #M7
           map
             foo: #M2
             foo=: #M3
     declaredMixins
-      M: #M6
+      M: #M8
+        interface: #M9
 ''',
       updatedCode: r'''
 mixin M {}
@@ -27748,20 +28019,22 @@ class Z {}
           foo=: #M3
         declaredConstructors
           foo: #M4
-        interface
+        interface: #M5
           map
             foo: #M2
             foo=: #M3
-      B: #M5
+      B: #M6
         inheritedConstructors
           foo: #M4
-        interface
+        interface: #M7
           map
             foo: #M2
             foo=: #M3
-      Z: #M7
+      Z: #M10
+        interface: #M11
     declaredMixins
-      M: #M6
+      M: #M8
+        interface: #M9
 ''',
     );
   }
@@ -27788,17 +28061,18 @@ class B = A with M;
           foo: #M1
         declaredConstructors
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M1
-      B: #M3
+      B: #M4
         inheritedConstructors
           foo: #M2
-        interface
+        interface: #M5
           map
             foo: #M1
     declaredMixins
-      M: #M4
+      M: #M6
+        interface: #M7
 ''',
       updatedCode: r'''
 mixin M {}
@@ -27820,18 +28094,20 @@ class Z {}
           foo: #M1
         declaredConstructors
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M1
-      B: #M3
+      B: #M4
         inheritedConstructors
           foo: #M2
-        interface
+        interface: #M5
           map
             foo: #M1
-      Z: #M5
+      Z: #M8
+        interface: #M9
     declaredMixins
-      M: #M4
+      M: #M6
+        interface: #M7
 ''',
     );
   }
@@ -27860,17 +28136,18 @@ class B = A with M;
           foo=: #M2
         declaredConstructors
           foo: #M3
-        interface
+        interface: #M4
           map
             foo=: #M2
-      B: #M4
+      B: #M5
         inheritedConstructors
           foo: #M3
-        interface
+        interface: #M6
           map
             foo=: #M2
     declaredMixins
-      M: #M5
+      M: #M7
+        interface: #M8
 ''',
       updatedCode: r'''
 mixin M {}
@@ -27894,18 +28171,20 @@ class Z {}
           foo=: #M2
         declaredConstructors
           foo: #M3
-        interface
+        interface: #M4
           map
             foo=: #M2
-      B: #M4
+      B: #M5
         inheritedConstructors
           foo: #M3
-        interface
+        interface: #M6
           map
             foo=: #M2
-      Z: #M6
+      Z: #M9
+        interface: #M10
     declaredMixins
-      M: #M5
+      M: #M7
+        interface: #M8
 ''',
     );
   }
@@ -27928,11 +28207,11 @@ class B extends A {
       A: #M0
         declaredMethods
           []: #M1
-        interface
+        interface: #M2
           map
             []: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             []: #M1
 ''',
@@ -27952,16 +28231,16 @@ class B extends A {
       A: #M0
         declaredMethods
           []: #M1
-        interface
+        interface: #M2
           map
             []: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M5
+        interface: #M6
           map
             []: #M1
-            zzz: #M3
+            zzz: #M5
 ''',
     );
   }
@@ -27986,12 +28265,12 @@ class B extends A {
         declaredMethods
           []: #M1
           []=: #M2
-        interface
+        interface: #M3
           map
             []: #M1
             []=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             []: #M1
             []=: #M2
@@ -28014,18 +28293,18 @@ class B extends A {
         declaredMethods
           []: #M1
           []=: #M2
-        interface
+        interface: #M3
           map
             []: #M1
             []=: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          zzz: #M4
-        interface
+          zzz: #M6
+        interface: #M7
           map
             []: #M1
             []=: #M2
-            zzz: #M4
+            zzz: #M6
 ''',
     );
   }
@@ -28048,11 +28327,11 @@ class B extends A {
       A: #M0
         declaredMethods
           []=: #M1
-        interface
+        interface: #M2
           map
             []=: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             []=: #M1
 ''',
@@ -28072,16 +28351,16 @@ class B extends A {
       A: #M0
         declaredMethods
           []=: #M1
-        interface
+        interface: #M2
           map
             []=: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M5
+        interface: #M6
           map
             []=: #M1
-            zzz: #M3
+            zzz: #M5
 ''',
     );
   }
@@ -28106,12 +28385,12 @@ class B extends A {
         declaredMethods
           []: #M1
           []=: #M2
-        interface
+        interface: #M3
           map
             []: #M1
             []=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             []: #M1
             []=: #M2
@@ -28134,18 +28413,18 @@ class B extends A {
         declaredMethods
           []: #M1
           []=: #M2
-        interface
+        interface: #M3
           map
             []: #M1
             []=: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          zzz: #M4
-        interface
+          zzz: #M6
+        interface: #M7
           map
             []: #M1
             []=: #M2
-            zzz: #M4
+            zzz: #M6
 ''',
     );
   }
@@ -28170,11 +28449,11 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
 ''',
@@ -28196,16 +28475,16 @@ class B extends A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          zzz: #M4
-        interface
+          zzz: #M6
+        interface: #M7
           map
             foo: #M2
-            zzz: #M4
+            zzz: #M6
 ''',
     );
   }
@@ -28233,12 +28512,12 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
-        interface
+      B: #M5
+        interface: #M6
           map
             foo: #M2
             foo=: #M3
@@ -28264,18 +28543,18 @@ class B extends A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
-      B: #M4
+      B: #M5
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M7
+        interface: #M8
           map
             foo: #M2
             foo=: #M3
-            zzz: #M5
+            zzz: #M7
 ''',
     );
   }
@@ -28298,11 +28577,11 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
 ''',
@@ -28322,16 +28601,16 @@ class B extends A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          zzz: #M3
-        interface
+          zzz: #M5
+        interface: #M6
           map
             foo: #M1
-            zzz: #M3
+            zzz: #M5
 ''',
     );
   }
@@ -28356,11 +28635,11 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
 ''',
@@ -28382,16 +28661,16 @@ class B extends A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredMethods
-          zzz: #M4
-        interface
+          zzz: #M6
+        interface: #M7
           map
             foo=: #M2
-            zzz: #M4
+            zzz: #M6
 ''',
     );
   }
@@ -28407,6 +28686,7 @@ class A {}
   package:test/test.dart
     declaredClasses
       A: #M0
+        interface: #M1
 ''',
       updatedCode: r'''
 class A {}
@@ -28417,7 +28697,9 @@ class B {}
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
 ''',
     );
   }
@@ -28437,6 +28719,7 @@ class A {
       A: #M0
         declaredConstructors
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -28450,8 +28733,9 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          bar: #M2
+          bar: #M3
           foo: #M1
+        interface: #M2
 ''',
     );
   }
@@ -28472,6 +28756,7 @@ class A {
       A: #M0
         declaredConstructors
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -28485,8 +28770,9 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          bar: #M2
+          bar: #M3
           foo: #M1
+        interface: #M2
 ''',
     );
   }
@@ -28507,6 +28793,7 @@ class A {
       A: #M0
         declaredConstructors
           new: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -28519,7 +28806,8 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          new: #M2
+          new: #M3
+        interface: #M2
 ''',
     );
   }
@@ -28539,6 +28827,7 @@ class A {
       A: #M0
         declaredConstructors
           named: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -28551,7 +28840,8 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M2
+          named: #M3
+        interface: #M2
 ''',
     );
   }
@@ -28573,6 +28863,7 @@ class A {
         declaredConstructors
           c1: #M1
           c2: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -28587,7 +28878,8 @@ class A {
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M3
+          c2: #M4
+        interface: #M3
 ''',
     );
   }
@@ -28612,7 +28904,7 @@ class A {
           foo: #M2
         declaredConstructors
           named: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
 ''',
@@ -28632,8 +28924,8 @@ class A {
         declaredGetters
           foo: #M2
         declaredConstructors
-          named: #M4
-        interface
+          named: #M5
+        interface: #M4
           map
             foo: #M2
 ''',
@@ -28660,7 +28952,7 @@ class A {
           foo: #M2
         declaredConstructors
           named: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
 ''',
@@ -28680,8 +28972,8 @@ class A {
         declaredGetters
           foo: #M2
         declaredConstructors
-          named: #M4
-        interface
+          named: #M5
+        interface: #M4
           map
             foo: #M2
 ''',
@@ -28703,6 +28995,7 @@ class A {
       A: #M0
         declaredConstructors
           named: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -28715,7 +29008,8 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M2
+          named: #M3
+        interface: #M2
 ''',
     );
   }
@@ -28742,7 +29036,7 @@ class A {
         declaredConstructors
           c1: #M3
           c2: #M4
-        interface
+        interface: #M5
           map
             f: #M2
 ''',
@@ -28764,8 +29058,8 @@ class A {
           f: #M2
         declaredConstructors
           c1: #M3
-          c2: #M5
-        interface
+          c2: #M6
+        interface: #M5
           map
             f: #M2
 ''',
@@ -28796,7 +29090,7 @@ class A {
           c1: #M3
           c2: #M4
           c3: #M5
-        interface
+        interface: #M6
           map
             f: #M2
 ''',
@@ -28820,8 +29114,8 @@ class A {
         declaredConstructors
           c1: #M3
           c2: #M4
-          c3: #M6
-        interface
+          c3: #M7
+        interface: #M6
           map
             f: #M2
 ''',
@@ -28843,6 +29137,7 @@ class A {
       A: #M0
         declaredConstructors
           named: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -28855,7 +29150,8 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M2
+          named: #M3
+        interface: #M2
 ''',
     );
   }
@@ -28879,9 +29175,11 @@ class B extends A {
       A: #M0
         declaredConstructors
           named: #M1
-      B: #M2
+        interface: #M2
+      B: #M3
         declaredConstructors
-          named: #M3
+          named: #M4
+        interface: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -28899,9 +29197,11 @@ class B extends A {
       A: #M0
         declaredConstructors
           named: #M1
-      B: #M2
+        interface: #M2
+      B: #M3
         declaredConstructors
-          named: #M4
+          named: #M6
+        interface: #M5
 ''',
     );
   }
@@ -28932,13 +29232,13 @@ class B extends A {
         declaredConstructors
           c1: #M3
           c2: #M4
-        interface
+        interface: #M5
           map
             f: #M2
-      B: #M5
+      B: #M6
         declaredConstructors
-          named: #M6
-        interface
+          named: #M7
+        interface: #M8
           map
             f: #M2
 ''',
@@ -28965,13 +29265,13 @@ class B extends A {
         declaredConstructors
           c1: #M3
           c2: #M4
-        interface
+        interface: #M5
           map
             f: #M2
-      B: #M5
+      B: #M6
         declaredConstructors
-          named: #M7
-        interface
+          named: #M9
+        interface: #M8
           map
             f: #M2
 ''',
@@ -29002,13 +29302,13 @@ class B extends A {
           f: #M2
         declaredConstructors
           named: #M3
-        interface
+        interface: #M4
           map
             f: #M2
-      B: #M4
+      B: #M5
         declaredConstructors
-          named: #M5
-        interface
+          named: #M6
+        interface: #M7
           map
             f: #M2
 ''',
@@ -29032,14 +29332,14 @@ class B extends A {
         declaredGetters
           f: #M2
         declaredConstructors
-          named: #M6
-        interface
+          named: #M8
+        interface: #M4
           map
             f: #M2
-      B: #M4
+      B: #M5
         declaredConstructors
-          named: #M7
-        interface
+          named: #M9
+        interface: #M7
           map
             f: #M2
 ''',
@@ -29061,6 +29361,7 @@ class A {
       A: #M0
         declaredConstructors
           named: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -29074,6 +29375,7 @@ class A {
       A: #M0
         declaredConstructors
           named: #M1
+        interface: #M2
 ''',
     );
   }
@@ -29098,7 +29400,7 @@ class A {
           foo: #M2
         declaredConstructors
           named: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
 ''',
@@ -29119,7 +29421,7 @@ class A {
           foo: #M2
         declaredConstructors
           named: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
 ''',
@@ -29148,7 +29450,7 @@ class A {
         declaredConstructors
           c1: #M3
           c2: #M4
-        interface
+        interface: #M5
           map
             f: #M2
 ''',
@@ -29171,7 +29473,7 @@ class A {
         declaredConstructors
           c1: #M3
           c2: #M4
-        interface
+        interface: #M5
           map
             f: #M2
 ''',
@@ -29197,9 +29499,11 @@ class B extends A {
       A: #M0
         declaredConstructors
           named: #M1
-      B: #M2
+        interface: #M2
+      B: #M3
         declaredConstructors
-          named: #M3
+          named: #M4
+        interface: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -29217,9 +29521,11 @@ class B extends A {
       A: #M0
         declaredConstructors
           named: #M1
-      B: #M2
+        interface: #M2
+      B: #M3
         declaredConstructors
-          named: #M3
+          named: #M4
+        interface: #M5
 ''',
     );
   }
@@ -29239,6 +29545,7 @@ class A {
       A: #M0
         declaredConstructors
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -29251,7 +29558,8 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          foo: #M2
+          foo: #M3
+        interface: #M2
 ''',
     );
   }
@@ -29271,6 +29579,7 @@ class A {
       A: #M0
         declaredConstructors
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -29283,7 +29592,8 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          foo: #M2
+          foo: #M3
+        interface: #M2
 ''',
     );
   }
@@ -29303,6 +29613,7 @@ class A {
       A: #M0
         declaredConstructors
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -29315,7 +29626,8 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          foo: #M2
+          foo: #M3
+        interface: #M2
 ''',
     );
   }
@@ -29335,6 +29647,7 @@ class A {
       A: #M0
         declaredConstructors
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -29347,7 +29660,8 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          foo: #M2
+          foo: #M3
+        interface: #M2
 ''',
     );
   }
@@ -29371,6 +29685,7 @@ class A {
         declaredConstructors
           bar: #M1
           foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -29387,7 +29702,8 @@ class A {
       A: #M0
         declaredConstructors
           bar: #M1
-          foo: #M3
+          foo: #M4
+        interface: #M3
 ''',
     );
   }
@@ -29407,6 +29723,7 @@ class A {
       A: #M0
         declaredConstructors
           _foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -29421,7 +29738,8 @@ class A {
       A: #M0
         declaredConstructors
           _foo: #M1
-          bar: #M2
+          bar: #M3
+        interface: #M2
 ''',
     );
   }
@@ -29441,6 +29759,7 @@ class A {
       A: #M0
         declaredConstructors
           _foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -29455,7 +29774,8 @@ class A {
       A: #M0
         declaredConstructors
           _foo: #M1
-          bar: #M2
+          bar: #M3
+        interface: #M2
 ''',
     );
   }
@@ -29472,7 +29792,9 @@ class B {}
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A extends B {}
@@ -29482,8 +29804,10 @@ class B {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      A: #M2
-      B: #M1
+      A: #M4
+        interface: #M5
+      B: #M2
+        interface: #M3
 ''',
     );
   }
@@ -29501,8 +29825,11 @@ class C {}
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M1
-      C: #M2
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
 ''',
       updatedCode: r'''
 class A extends B {}
@@ -29513,9 +29840,12 @@ class C {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      A: #M3
-      B: #M4
-      C: #M2
+      A: #M6
+        interface: #M7
+      B: #M8
+        interface: #M9
+      C: #M4
+        interface: #M5
 ''',
     );
   }
@@ -29533,8 +29863,11 @@ class C {}
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M1
-      C: #M2
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
 ''',
       updatedCode: r'''
 class A extends C {}
@@ -29545,9 +29878,12 @@ class C {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      A: #M3
-      B: #M1
-      C: #M2
+      A: #M6
+        interface: #M7
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
 ''',
     );
   }
@@ -29569,7 +29905,7 @@ class A {
           a: #M1
         declaredGetters
           a: #M2
-        interface
+        interface: #M3
           map
             a: #M2
 ''',
@@ -29586,14 +29922,14 @@ class A {
       A: #M0
         declaredFields
           a: #M1
-          b: #M3
+          b: #M4
         declaredGetters
           a: #M2
-          b: #M4
-        interface
+          b: #M5
+        interface: #M6
           map
             a: #M2
-            b: #M4
+            b: #M5
 ''',
     );
   }
@@ -29618,6 +29954,7 @@ class A {
         declaredGetters
           a: #M3
           b: #M4
+        interface: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -29631,11 +29968,12 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          a: #M5
+          a: #M6
           b: #M2
         declaredGetters
           a: #M3
           b: #M4
+        interface: #M5
 ''',
     );
   }
@@ -29657,7 +29995,7 @@ class A {
           a: #M1
         declaredGetters
           a: #M2
-        interface
+        interface: #M3
           map
             a: #M2
 ''',
@@ -29672,12 +30010,12 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          a: #M3
-        declaredGetters
           a: #M4
-        interface
+        declaredGetters
+          a: #M5
+        interface: #M6
           map
-            a: #M4
+            a: #M5
 ''',
     );
   }
@@ -29699,7 +30037,7 @@ class A {
           a: #M1
         declaredGetters
           a: #M2
-        interface
+        interface: #M3
           map
             a: #M2
 ''',
@@ -29717,7 +30055,7 @@ class A {
           a: #M1
         declaredGetters
           a: #M2
-        interface
+        interface: #M3
           map
             a: #M2
 ''',
@@ -29741,6 +30079,7 @@ class A {
           a: #M1
         declaredGetters
           a: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -29753,9 +30092,10 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          a: #M3
+          a: #M4
         declaredGetters
           a: #M2
+        interface: #M3
 ''',
     );
   }
@@ -29777,6 +30117,7 @@ class A {
           a: #M1
         declaredGetters
           a: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -29792,6 +30133,7 @@ class A {
           a: #M1
         declaredGetters
           a: #M2
+        interface: #M3
 ''',
     );
   }
@@ -29821,7 +30163,7 @@ class A {
         declaredSetters
           a=: #M5
           b=: #M6
-        interface
+        interface: #M7
           map
             a: #M3
             a=: #M5
@@ -29842,18 +30184,18 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          a: #M7
+          a: #M8
           b: #M2
         declaredGetters
-          a: #M8
+          a: #M9
           b: #M4
         declaredSetters
-          a=: #M9
+          a=: #M10
           b=: #M6
-        interface
+        interface: #M11
           map
-            a: #M8
-            a=: #M9
+            a: #M9
+            a=: #M10
             b: #M4
             b=: #M6
 ''',
@@ -29877,6 +30219,7 @@ class A {
           _a: #M1
         declaredGetters
           _a: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -29891,13 +30234,13 @@ class A {
       A: #M0
         declaredFields
           _a: #M1
-          b: #M3
+          b: #M4
         declaredGetters
           _a: #M2
-          b: #M4
-        interface
+          b: #M5
+        interface: #M6
           map
-            b: #M4
+            b: #M5
 ''',
     );
   }
@@ -29919,6 +30262,7 @@ class A {
           _a: #M1
         declaredGetters
           _a: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -29933,10 +30277,11 @@ class A {
       A: #M0
         declaredFields
           _a: #M1
-          b: #M3
+          b: #M4
         declaredGetters
           _a: #M2
-          b: #M4
+          b: #M5
+        interface: #M3
 ''',
     );
   }
@@ -29960,6 +30305,7 @@ class A {
           _a: #M2
         declaredSetters
           _a=: #M3
+        interface: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -29974,17 +30320,17 @@ class A {
       A: #M0
         declaredFields
           _a: #M1
-          b: #M4
+          b: #M5
         declaredGetters
           _a: #M2
-          b: #M5
+          b: #M6
         declaredSetters
           _a=: #M3
-          b=: #M6
-        interface
+          b=: #M7
+        interface: #M8
           map
-            b: #M5
-            b=: #M6
+            b: #M6
+            b=: #M7
 ''',
     );
   }
@@ -30008,7 +30354,7 @@ class A {
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
@@ -30024,11 +30370,12 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
+        interface: #M8
 ''',
     );
   }
@@ -30052,6 +30399,7 @@ class A {
           foo: #M2
         declaredSetters
           foo=: #M3
+        interface: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -30064,15 +30412,15 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
         declaredSetters
-          foo=: #M6
-        interface
+          foo=: #M7
+        interface: #M8
           map
-            foo: #M5
-            foo=: #M6
+            foo: #M6
+            foo=: #M7
 ''',
     );
   }
@@ -30096,7 +30444,7 @@ class A {
           a: #M2
         declaredSetters
           a=: #M3
-        interface
+        interface: #M4
           map
             a: #M2
             a=: #M3
@@ -30112,15 +30460,15 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          a: #M4
-        declaredGetters
           a: #M5
+        declaredGetters
+          a: #M6
         declaredSetters
-          a=: #M6
-        interface
+          a=: #M7
+        interface: #M8
           map
-            a: #M5
-            a=: #M6
+            a: #M6
+            a=: #M7
 ''',
     );
   }
@@ -30144,11 +30492,11 @@ class B extends A {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
 ''',
@@ -30166,19 +30514,19 @@ class B extends A {}
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredGetters
-          bar: #M5
+          bar: #M7
           foo: #M2
-        interface
+        interface: #M8
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
 ''',
     );
@@ -30203,11 +30551,11 @@ class B extends A<int> {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
 ''',
@@ -30225,19 +30573,19 @@ class B extends A<int> {}
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredGetters
-          bar: #M5
+          bar: #M7
           foo: #M2
-        interface
+        interface: #M8
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
 ''',
     );
@@ -30262,11 +30610,11 @@ class B implements A {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
 ''',
@@ -30284,19 +30632,19 @@ class B implements A {}
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredGetters
-          bar: #M5
+          bar: #M7
           foo: #M2
-        interface
+        interface: #M8
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
 ''',
     );
@@ -30321,11 +30669,11 @@ class B implements A<int> {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
 ''',
@@ -30343,19 +30691,19 @@ class B implements A<int> {}
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredGetters
-          bar: #M5
+          bar: #M7
           foo: #M2
-        interface
+        interface: #M8
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
 ''',
     );
@@ -30380,11 +30728,11 @@ class B with A {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
 ''',
@@ -30402,19 +30750,19 @@ class B with A {}
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredGetters
-          bar: #M5
+          bar: #M7
           foo: #M2
-        interface
+        interface: #M8
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
 ''',
     );
@@ -30439,11 +30787,11 @@ class B with A<int> {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
 ''',
@@ -30461,19 +30809,19 @@ class B with A<int> {}
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredGetters
-          bar: #M5
+          bar: #M7
           foo: #M2
-        interface
+        interface: #M8
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
 ''',
     );
@@ -30502,23 +30850,23 @@ abstract class C implements A, B {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        interface
+        declaredGetters
+          foo: #M6
+        interface: #M7
           map
-            foo: #M5
-      C: #M6
-        interface
+            foo: #M6
+      C: #M8
+        interface: #M9
           map
-            foo: #M7
+            foo: #M10
           combinedIds
-            [#M2, #M5]: #M7
+            [#M2, #M6]: #M10
 ''',
       updatedCode: r'''
 abstract class A {
@@ -30542,26 +30890,26 @@ abstract class C implements A, B {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        interface
+        declaredGetters
+          foo: #M6
+        interface: #M7
           map
-            foo: #M5
-      C: #M6
+            foo: #M6
+      C: #M8
         declaredMethods
-          zzz: #M8
-        interface
+          zzz: #M11
+        interface: #M12
           map
-            foo: #M7
-            zzz: #M8
+            foo: #M10
+            zzz: #M11
           combinedIds
-            [#M2, #M5]: #M7
+            [#M2, #M6]: #M10
 ''',
     );
   }
@@ -30591,27 +30939,27 @@ abstract class D implements C {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        interface
+        declaredGetters
+          foo: #M6
+        interface: #M7
           map
-            foo: #M5
-      C: #M6
-        interface
+            foo: #M6
+      C: #M8
+        interface: #M9
           map
-            foo: #M7
+            foo: #M10
           combinedIds
-            [#M2, #M5]: #M7
-      D: #M8
-        interface
+            [#M2, #M6]: #M10
+      D: #M11
+        interface: #M12
           map
-            foo: #M7
+            foo: #M10
 ''',
       updatedCode: r'''
 class A {
@@ -30637,31 +30985,31 @@ abstract class D implements C {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        interface
+        declaredGetters
+          foo: #M6
+        interface: #M7
           map
-            foo: #M5
-      C: #M6
+            foo: #M6
+      C: #M8
         declaredMethods
-          xxx: #M9
-        interface
+          xxx: #M13
+        interface: #M14
           map
-            foo: #M7
-            xxx: #M9
+            foo: #M10
+            xxx: #M13
           combinedIds
-            [#M2, #M5]: #M7
-      D: #M8
-        interface
+            [#M2, #M6]: #M10
+      D: #M11
+        interface: #M15
           map
-            foo: #M7
-            xxx: #M9
+            foo: #M10
+            xxx: #M13
 ''',
     );
   }
@@ -30688,7 +31036,7 @@ class A {
         declaredGetters
           bar: #M3
           foo: #M4
-        interface
+        interface: #M5
           map
             bar: #M3
             foo: #M4
@@ -30711,11 +31059,11 @@ class A {
           foo: #M2
         declaredGetters
           bar: #M3
-          foo: #M5
-        interface
+          foo: #M6
+        interface: #M7
           map
             bar: #M3
-            foo: #M5
+            foo: #M6
 ''',
     );
   }
@@ -30737,6 +31085,7 @@ class A {
           _foo: #M1
         declaredGetters
           _foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -30751,13 +31100,13 @@ class A {
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M3
+          bar: #M4
         declaredGetters
           _foo: #M2
-          bar: #M4
-        interface
+          bar: #M5
+        interface: #M6
           map
-            bar: #M4
+            bar: #M5
 ''',
     );
   }
@@ -30779,6 +31128,7 @@ class A {
           _foo: #M1
         declaredGetters
           _foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -30793,13 +31143,13 @@ class A {
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M3
+          bar: #M4
         declaredGetters
           _foo: #M2
-          bar: #M4
-        interface
+          bar: #M5
+        interface: #M6
           map
-            bar: #M4
+            bar: #M5
 ''',
     );
   }
@@ -30825,7 +31175,7 @@ class A {
         declaredGetters
           foo: #M2
             returnType: int @ dart:core
-        interface
+        interface: #M3
           map
             foo: #M2
 ''',
@@ -30841,14 +31191,14 @@ class A {
       A: #M0
         supertype: Object @ dart:core
         declaredFields
-          foo: #M3
+          foo: #M4
             type: double @ dart:core
         declaredGetters
-          foo: #M4
+          foo: #M5
             returnType: double @ dart:core
-        interface
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
 ''',
     );
   }
@@ -30870,6 +31220,7 @@ class A {
           foo: #M1
         declaredGetters
           foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -30883,11 +31234,12 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M3
+          bar: #M4
           foo: #M1
         declaredGetters
-          bar: #M4
+          bar: #M5
           foo: #M2
+        interface: #M3
 ''',
     );
   }
@@ -30909,7 +31261,7 @@ class A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
 ''',
@@ -30924,9 +31276,10 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
+        declaredGetters
+          foo: #M5
+        interface: #M6
 ''',
     );
   }
@@ -30948,6 +31301,7 @@ class A {
           foo: #M1
         declaredGetters
           foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -30960,9 +31314,10 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
+        declaredGetters
+          foo: #M5
+        interface: #M3
 ''',
     );
   }
@@ -30984,6 +31339,7 @@ class A {
           foo: #M1
         declaredGetters
           foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -30996,12 +31352,12 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
-        interface
+        declaredGetters
+          foo: #M5
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
 ''',
     );
   }
@@ -31023,7 +31379,7 @@ class A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
 ''',
@@ -31039,11 +31395,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
 ''',
     );
   }
@@ -31065,7 +31421,7 @@ class A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
 ''',
@@ -31081,11 +31437,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
 ''',
     );
   }
@@ -31107,7 +31463,7 @@ class A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
 ''',
@@ -31123,11 +31479,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
 ''',
     );
   }
@@ -31149,7 +31505,7 @@ class A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
 ''',
@@ -31165,11 +31521,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
 ''',
     );
   }
@@ -31191,6 +31547,7 @@ class A {
           foo: #M1
         declaredGetters
           foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -31204,8 +31561,9 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M4
+          foo=: #M4
+        interface: #M3
 ''',
     );
   }
@@ -31227,6 +31585,7 @@ class A {
           foo: #M1
         declaredGetters
           foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -31240,8 +31599,9 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M4
+          foo=: #M4
+        interface: #M3
 ''',
     );
   }
@@ -31258,7 +31618,9 @@ class B {}
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A implements B {}
@@ -31268,8 +31630,10 @@ class B {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      A: #M2
-      B: #M1
+      A: #M4
+        interface: #M5
+      B: #M2
+        interface: #M3
 ''',
     );
   }
@@ -31286,7 +31650,9 @@ class B {}
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {}
@@ -31296,8 +31662,10 @@ class B {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      A: #M2
-      B: #M1
+      A: #M4
+        interface: #M5
+      B: #M2
+        interface: #M3
 ''',
     );
   }
@@ -31315,8 +31683,11 @@ class C {}
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M1
-      C: #M2
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
 ''',
       updatedCode: r'''
 class A implements C {}
@@ -31327,9 +31698,12 @@ class C {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      A: #M3
-      B: #M1
-      C: #M2
+      A: #M6
+        interface: #M7
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
 ''',
     );
   }
@@ -31348,7 +31722,9 @@ class B {}
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 @Deprecated('0')
@@ -31361,7 +31737,9 @@ class B {}
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M2
+        interface: #M1
+      B: #M4
+        interface: #M5
 ''',
     );
   }
@@ -31381,7 +31759,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -31397,11 +31775,11 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M2
+          bar: #M3
           foo: #M1
-        interface
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
             foo: #M1
 ''',
     );
@@ -31424,11 +31802,11 @@ class B extends A {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
 ''',
@@ -31446,16 +31824,16 @@ class B extends A {}
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M5
           foo: #M1
-        interface
+        interface: #M6
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M7
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
 ''',
     );
@@ -31478,11 +31856,11 @@ class B extends A<int> {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
 ''',
@@ -31500,16 +31878,16 @@ class B extends A<int> {}
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M5
           foo: #M1
-        interface
+        interface: #M6
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M7
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
 ''',
     );
@@ -31534,15 +31912,15 @@ class C extends B {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
-      C: #M3
-        interface
+      C: #M5
+        interface: #M6
           map
             foo: #M1
 ''',
@@ -31562,21 +31940,21 @@ class C extends B {}
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M7
           foo: #M1
-        interface
+        interface: #M8
           map
-            bar: #M4
+            bar: #M7
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M9
           map
-            bar: #M4
+            bar: #M7
             foo: #M1
-      C: #M3
-        interface
+      C: #M5
+        interface: #M10
           map
-            bar: #M4
+            bar: #M7
             foo: #M1
 ''',
     );
@@ -31599,11 +31977,11 @@ class B implements A {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
 ''',
@@ -31621,16 +31999,16 @@ class B implements A {}
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M5
           foo: #M1
-        interface
+        interface: #M6
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M7
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
 ''',
     );
@@ -31653,11 +32031,11 @@ class B implements A<int> {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
 ''',
@@ -31675,16 +32053,16 @@ class B implements A<int> {}
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M5
           foo: #M1
-        interface
+        interface: #M6
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M7
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
 ''',
     );
@@ -31707,11 +32085,11 @@ class B with A {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
 ''',
@@ -31729,16 +32107,16 @@ class B with A {}
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M5
           foo: #M1
-        interface
+        interface: #M6
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M7
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
 ''',
     );
@@ -31761,11 +32139,11 @@ class B with A<int> {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
 ''',
@@ -31783,16 +32161,16 @@ class B with A<int> {}
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M5
           foo: #M1
-        interface
+        interface: #M6
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M7
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
 ''',
     );
@@ -31819,16 +32197,17 @@ abstract class C implements A, B {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
-      C: #M4
+            foo: #M4
+      C: #M6
+        interface: #M7
 ''',
       updatedCode: r'''
 abstract class A {
@@ -31846,12 +32225,13 @@ abstract class C implements A, B {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-      C: #M4
-        interface
+      B: #M3
+        interface: #M8
+      C: #M6
+        interface: #M9
           map
             foo: #M1
 ''',
@@ -31879,21 +32259,21 @@ abstract class C implements A, B {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
-      C: #M4
-        interface
+            foo: #M4
+      C: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M8
           combinedIds
-            [#M1, #M3]: #M5
+            [#M1, #M4]: #M8
 ''',
       updatedCode: r'''
 abstract class A {
@@ -31914,24 +32294,24 @@ abstract class C implements A, B {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-          zzz: #M6
-        interface
+          foo: #M4
+          zzz: #M9
+        interface: #M10
           map
-            foo: #M3
-            zzz: #M6
-      C: #M4
-        interface
+            foo: #M4
+            zzz: #M9
+      C: #M6
+        interface: #M11
           map
-            foo: #M5
-            zzz: #M6
+            foo: #M8
+            zzz: #M9
           combinedIds
-            [#M1, #M3]: #M5
+            [#M1, #M4]: #M8
 ''',
     );
   }
@@ -31959,25 +32339,25 @@ abstract class D implements A, B {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
-      C: #M4
-        interface
+            foo: #M4
+      C: #M6
+        interface: #M7
           map
-            foo: #M5
-      D: #M6
-        interface
+            foo: #M8
+      D: #M9
+        interface: #M10
           map
-            foo: #M5
+            foo: #M8
           combinedIds
-            [#M1, #M3]: #M5
+            [#M1, #M4]: #M8
 ''',
       updatedCode: r'''
 class A {
@@ -32001,29 +32381,29 @@ abstract class D implements A, B {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
-      C: #M4
-        interface
+            foo: #M4
+      C: #M6
+        interface: #M11
           map
-            foo: #M5
-            xxx: #M7
-      D: #M6
+            foo: #M8
+            xxx: #M12
+      D: #M9
         declaredMethods
-          xxx: #M7
-        interface
+          xxx: #M12
+        interface: #M13
           map
-            foo: #M5
-            xxx: #M7
+            foo: #M8
+            xxx: #M12
           combinedIds
-            [#M1, #M3]: #M5
+            [#M1, #M4]: #M8
 ''',
     );
   }
@@ -32051,25 +32431,25 @@ abstract class D implements C {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
-      C: #M4
-        interface
+            foo: #M4
+      C: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M8
           combinedIds
-            [#M1, #M3]: #M5
-      D: #M6
-        interface
+            [#M1, #M4]: #M8
+      D: #M9
+        interface: #M10
           map
-            foo: #M5
+            foo: #M8
 ''',
       updatedCode: r'''
 class A {
@@ -32093,29 +32473,29 @@ abstract class D implements C {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
-      C: #M4
+            foo: #M4
+      C: #M6
         declaredMethods
-          xxx: #M7
-        interface
+          xxx: #M11
+        interface: #M12
           map
-            foo: #M5
-            xxx: #M7
+            foo: #M8
+            xxx: #M11
           combinedIds
-            [#M1, #M3]: #M5
-      D: #M6
-        interface
+            [#M1, #M4]: #M8
+      D: #M9
+        interface: #M13
           map
-            foo: #M5
-            xxx: #M7
+            foo: #M8
+            xxx: #M11
 ''',
     );
   }
@@ -32141,21 +32521,21 @@ abstract class C implements A, B {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
-      C: #M4
-        interface
+            foo: #M4
+      C: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M8
           combinedIds
-            [#M1, #M3]: #M5
+            [#M1, #M4]: #M8
 ''',
       updatedCode: r'''
 abstract class A {}
@@ -32171,16 +32551,17 @@ abstract class C implements A, B {}
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M2
+        interface: #M9
+      B: #M3
         declaredMethods
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
-      C: #M4
-        interface
+            foo: #M4
+      C: #M6
+        interface: #M10
           map
-            foo: #M3
+            foo: #M4
 ''',
     );
   }
@@ -32206,19 +32587,19 @@ abstract class D implements B, C {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
-      C: #M3
-        interface
+      C: #M5
+        interface: #M6
           map
             foo: #M1
-      D: #M4
-        interface
+      D: #M7
+        interface: #M8
           map
             foo: #M1
 ''',
@@ -32242,24 +32623,24 @@ abstract class D implements B, C {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
-      C: #M3
-        interface
+      C: #M5
+        interface: #M6
           map
             foo: #M1
-      D: #M4
+      D: #M7
         declaredMethods
-          zzz: #M5
-        interface
+          zzz: #M9
+        interface: #M10
           map
             foo: #M1
-            zzz: #M5
+            zzz: #M9
 ''',
     );
   }
@@ -32285,21 +32666,21 @@ abstract class C implements A, B {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
-      C: #M4
-        interface
+            foo: #M4
+      C: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M8
           combinedIds
-            [#M1, #M3]: #M5
+            [#M1, #M4]: #M8
 ''',
       updatedCode: r'''
 abstract class A {
@@ -32319,21 +32700,21 @@ abstract class C implements A, B {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
+      B: #M3
         declaredMethods
-          foo: #M6
-        interface
+          foo: #M9
+        interface: #M10
           map
-            foo: #M6
-      C: #M4
-        interface
+            foo: #M9
+      C: #M6
+        interface: #M11
           map
-            foo: #M7
+            foo: #M12
           combinedIds
-            [#M1, #M6]: #M7
+            [#M1, #M9]: #M12
 ''',
     );
   }
@@ -32353,7 +32734,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32369,11 +32750,11 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M2
+          bar: #M3
           foo: #M1
-        interface
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
             foo: #M1
 ''',
     );
@@ -32394,7 +32775,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32410,11 +32791,11 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M2
+          bar: #M3
           foo: #M1
-        interface
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
             foo: #M1
 ''',
     );
@@ -32435,7 +32816,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32451,11 +32832,11 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M2
+          bar: #M3
           foo: #M1
-        interface
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
             foo: #M1
 ''',
     );
@@ -32476,7 +32857,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32491,10 +32872,10 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -32520,7 +32901,7 @@ class A {
               named
                 a: required int @ dart:core
               returnType: void
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32536,14 +32917,14 @@ class A {
       A: #M0
         supertype: Object @ dart:core
         declaredMethods
-          foo: #M2
+          foo: #M3
             functionType: FunctionType
               named
                 a: required double @ dart:core
               returnType: void
-        interface
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -32563,7 +32944,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32579,11 +32960,11 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M2
+          bar: #M3
           foo: #M1
-        interface
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
             foo: #M1
 ''',
     );
@@ -32604,7 +32985,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32620,7 +33001,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32642,7 +33023,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32657,10 +33038,10 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -32682,7 +33063,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32697,10 +33078,10 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -32722,7 +33103,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32737,10 +33118,10 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -32762,7 +33143,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32777,7 +33158,8 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
+          foo: #M3
+        interface: #M4
 ''',
     );
   }
@@ -32799,7 +33181,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32814,10 +33196,10 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -32839,7 +33221,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32854,10 +33236,10 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -32879,7 +33261,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -32894,7 +33276,8 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
+          foo: #M3
+        interface: #M4
 ''',
     );
   }
@@ -32916,6 +33299,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -32928,7 +33312,8 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
+          foo: #M3
+        interface: #M2
 ''',
     );
   }
@@ -32950,6 +33335,7 @@ class A {
         declaredConflicts
           foo: #M1
           foo=: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -32962,7 +33348,8 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
+          foo: #M3
+        interface: #M2
 ''',
     );
   }
@@ -32986,7 +33373,7 @@ class A {
         declaredMethods
           bar: #M1
           foo: #M2
-        interface
+        interface: #M3
           map
             bar: #M1
             foo: #M2
@@ -33006,11 +33393,11 @@ class A {
       A: #M0
         declaredMethods
           bar: #M1
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
             bar: #M1
-            foo: #M3
+            foo: #M4
 ''',
     );
   }
@@ -33030,6 +33417,7 @@ class A {
       A: #M0
         declaredMethods
           _foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33044,10 +33432,10 @@ class A {
       A: #M0
         declaredMethods
           _foo: #M1
-          bar: #M2
-        interface
+          bar: #M3
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
 ''',
     );
   }
@@ -33067,6 +33455,7 @@ class A {
       A: #M0
         declaredMethods
           _foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33081,10 +33470,10 @@ class A {
       A: #M0
         declaredMethods
           _foo: #M1
-          bar: #M2
-        interface
+          bar: #M3
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
 ''',
     );
   }
@@ -33106,7 +33495,7 @@ class A {
         declaredMethods
           bar: #M1
           foo: #M2
-        interface
+        interface: #M3
           map
             bar: #M1
             foo: #M2
@@ -33123,7 +33512,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M2
-        interface
+        interface: #M4
           map
             foo: #M2
 ''',
@@ -33149,7 +33538,7 @@ class A {
           foo: #M1
             functionType: FunctionType
               returnType: int @ dart:core
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -33165,12 +33554,12 @@ class A {
       A: #M0
         supertype: Object @ dart:core
         declaredMethods
-          foo: #M2
+          foo: #M3
             functionType: FunctionType
               returnType: double @ dart:core
-        interface
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -33190,7 +33579,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -33205,7 +33594,8 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
+          foo: #M3
+        interface: #M4
 ''',
     );
   }
@@ -33225,6 +33615,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33237,7 +33628,8 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
+          foo: #M3
+        interface: #M2
 ''',
     );
   }
@@ -33257,6 +33649,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33269,10 +33662,10 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -33292,7 +33685,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -33308,11 +33701,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
-        interface
+          foo: #M3
+          foo=: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -33332,7 +33725,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -33348,11 +33741,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
-        interface
+          foo: #M3
+          foo=: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -33372,7 +33765,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -33388,11 +33781,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
-        interface
+          foo: #M3
+          foo=: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -33412,7 +33805,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -33428,11 +33821,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
-        interface
+          foo: #M3
+          foo=: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -33452,6 +33845,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33465,11 +33859,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
-        interface
+          foo: #M3
+          foo=: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -33489,6 +33883,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33502,11 +33897,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
-        interface
+          foo: #M3
+          foo=: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -33526,6 +33921,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33539,8 +33935,9 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
+        interface: #M2
 ''',
     );
   }
@@ -33560,6 +33957,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33573,8 +33971,9 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M2
-          foo=: #M2
+          foo: #M3
+          foo=: #M3
+        interface: #M2
 ''',
     );
   }
@@ -33604,7 +34003,7 @@ class A<T> {
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -33623,7 +34022,7 @@ class A<T> {
           bound: <null>
         supertype: Object @ dart:core
         declaredMethods
-          bar: #M2
+          bar: #M3
             functionType: FunctionType
               returnType: void
           foo: #M1
@@ -33633,9 +34032,9 @@ class A<T> {
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
-        interface
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
             foo: #M1
 ''',
     );
@@ -33656,7 +34055,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -33671,10 +34070,10 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -33694,7 +34093,7 @@ class A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -33709,10 +34108,10 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -33728,6 +34127,7 @@ class _A {}
   package:test/test.dart
     declaredClasses
       _A: #M0
+        interface: #M1
 ''',
       updatedCode: r'''
 class _A {}
@@ -33737,8 +34137,10 @@ class B {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M1
+      B: #M2
+        interface: #M3
       _A: #M0
+        interface: #M1
 ''',
     );
   }
@@ -33754,6 +34156,7 @@ class A {}
   package:test/test.dart
     declaredClasses
       A: #M0
+        interface: #M1
 ''',
       updatedCode: '',
       expectedUpdatedEvents: r'''
@@ -33782,11 +34185,11 @@ class B extends A {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
 ''',
@@ -33804,19 +34207,19 @@ class B extends A {}
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredSetters
-          bar=: #M5
+          bar=: #M7
           foo=: #M2
-        interface
+        interface: #M8
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
 ''',
     );
@@ -33841,11 +34244,11 @@ class B extends A<int> {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
 ''',
@@ -33863,19 +34266,19 @@ class B extends A<int> {}
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredSetters
-          bar=: #M5
+          bar=: #M7
           foo=: #M2
-        interface
+        interface: #M8
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
 ''',
     );
@@ -33900,11 +34303,11 @@ class B implements A {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
 ''',
@@ -33922,19 +34325,19 @@ class B implements A {}
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredSetters
-          bar=: #M5
+          bar=: #M7
           foo=: #M2
-        interface
+        interface: #M8
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
 ''',
     );
@@ -33959,11 +34362,11 @@ class B implements A<int> {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
 ''',
@@ -33981,19 +34384,19 @@ class B implements A<int> {}
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredSetters
-          bar=: #M5
+          bar=: #M7
           foo=: #M2
-        interface
+        interface: #M8
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
 ''',
     );
@@ -34018,11 +34421,11 @@ class B with A {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
 ''',
@@ -34040,19 +34443,19 @@ class B with A {}
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredSetters
-          bar=: #M5
+          bar=: #M7
           foo=: #M2
-        interface
+        interface: #M8
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
 ''',
     );
@@ -34077,11 +34480,11 @@ class B with A<int> {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
 ''',
@@ -34099,19 +34502,19 @@ class B with A<int> {}
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredSetters
-          bar=: #M5
+          bar=: #M7
           foo=: #M2
-        interface
+        interface: #M8
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
 ''',
     );
@@ -34140,23 +34543,23 @@ abstract class C implements A, B {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
-        interface
+          foo=: #M6
+        interface: #M7
           map
-            foo=: #M5
-      C: #M6
-        interface
+            foo=: #M6
+      C: #M8
+        interface: #M9
           map
-            foo=: #M7
+            foo=: #M10
           combinedIds
-            [#M2, #M5]: #M7
+            [#M2, #M6]: #M10
 ''',
       updatedCode: r'''
 abstract class A {
@@ -34180,26 +34583,26 @@ abstract class C implements A, B {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
-        interface
+          foo=: #M6
+        interface: #M7
           map
-            foo=: #M5
-      C: #M6
+            foo=: #M6
+      C: #M8
         declaredMethods
-          zzz: #M8
-        interface
+          zzz: #M11
+        interface: #M12
           map
-            foo=: #M7
-            zzz: #M8
+            foo=: #M10
+            zzz: #M11
           combinedIds
-            [#M2, #M5]: #M7
+            [#M2, #M6]: #M10
 ''',
     );
   }
@@ -34229,27 +34632,27 @@ abstract class D implements C {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
-        interface
+          foo=: #M6
+        interface: #M7
           map
-            foo=: #M5
-      C: #M6
-        interface
+            foo=: #M6
+      C: #M8
+        interface: #M9
           map
-            foo=: #M7
+            foo=: #M10
           combinedIds
-            [#M2, #M5]: #M7
-      D: #M8
-        interface
+            [#M2, #M6]: #M10
+      D: #M11
+        interface: #M12
           map
-            foo=: #M7
+            foo=: #M10
 ''',
       updatedCode: r'''
 abstract class A {
@@ -34275,31 +34678,31 @@ abstract class D implements C {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
-        interface
+          foo=: #M6
+        interface: #M7
           map
-            foo=: #M5
-      C: #M6
+            foo=: #M6
+      C: #M8
         declaredMethods
-          xxx: #M9
-        interface
+          xxx: #M13
+        interface: #M14
           map
-            foo=: #M7
-            xxx: #M9
+            foo=: #M10
+            xxx: #M13
           combinedIds
-            [#M2, #M5]: #M7
-      D: #M8
-        interface
+            [#M2, #M6]: #M10
+      D: #M11
+        interface: #M15
           map
-            foo=: #M7
-            xxx: #M9
+            foo=: #M10
+            xxx: #M13
 ''',
     );
   }
@@ -34326,7 +34729,7 @@ class A {
         declaredSetters
           bar=: #M3
           foo=: #M4
-        interface
+        interface: #M5
           map
             bar=: #M3
             foo=: #M4
@@ -34349,11 +34752,11 @@ class A {
           foo: #M2
         declaredSetters
           bar=: #M3
-          foo=: #M5
-        interface
+          foo=: #M6
+        interface: #M7
           map
             bar=: #M3
-            foo=: #M5
+            foo=: #M6
 ''',
     );
   }
@@ -34375,6 +34778,7 @@ class A {
           _foo: #M1
         declaredSetters
           _foo=: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34389,13 +34793,13 @@ class A {
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M3
+          bar: #M4
         declaredSetters
           _foo=: #M2
-          bar=: #M4
-        interface
+          bar=: #M5
+        interface: #M6
           map
-            bar=: #M4
+            bar=: #M5
 ''',
     );
   }
@@ -34417,6 +34821,7 @@ class A {
           _foo: #M1
         declaredSetters
           _foo=: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34431,13 +34836,13 @@ class A {
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M3
+          bar: #M4
         declaredSetters
           _foo=: #M2
-          bar=: #M4
-        interface
+          bar=: #M5
+        interface: #M6
           map
-            bar=: #M4
+            bar=: #M5
 ''',
     );
   }
@@ -34459,6 +34864,7 @@ class A {
           foo: #M1
         declaredSetters
           foo=: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34472,11 +34878,12 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M3
+          bar: #M4
           foo: #M1
         declaredSetters
-          bar=: #M4
+          bar=: #M5
           foo=: #M2
+        interface: #M3
 ''',
     );
   }
@@ -34498,7 +34905,7 @@ class A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
 ''',
@@ -34513,9 +34920,10 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
+          foo=: #M5
+        interface: #M6
 ''',
     );
   }
@@ -34537,6 +34945,7 @@ class A {
           foo: #M1
         declaredSetters
           foo=: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34549,12 +34958,12 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
-        interface
+          foo=: #M5
+        interface: #M6
           map
-            foo=: #M4
+            foo=: #M5
 ''',
     );
   }
@@ -34576,6 +34985,7 @@ class A {
           foo: #M1
         declaredSetters
           foo=: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34588,9 +34998,10 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
+          foo=: #M5
+        interface: #M3
 ''',
     );
   }
@@ -34612,7 +35023,7 @@ class A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
 ''',
@@ -34628,11 +35039,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
-            foo=: #M3
+            foo=: #M4
 ''',
     );
   }
@@ -34654,7 +35065,7 @@ class A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
 ''',
@@ -34670,11 +35081,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
-            foo=: #M3
+            foo=: #M4
 ''',
     );
   }
@@ -34696,7 +35107,7 @@ class A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
 ''',
@@ -34712,11 +35123,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
-            foo=: #M3
+            foo=: #M4
 ''',
     );
   }
@@ -34738,7 +35149,7 @@ class A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
 ''',
@@ -34754,11 +35165,11 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
-        interface
+          foo: #M4
+          foo=: #M4
+        interface: #M5
           map
-            foo=: #M3
+            foo=: #M4
 ''',
     );
   }
@@ -34780,6 +35191,7 @@ class A {
           foo: #M1
         declaredSetters
           foo=: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34793,8 +35205,9 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M4
+          foo=: #M4
+        interface: #M3
 ''',
     );
   }
@@ -34816,6 +35229,7 @@ class A {
           foo: #M1
         declaredSetters
           foo=: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34829,8 +35243,9 @@ class A {
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M3
-          foo=: #M3
+          foo: #M4
+          foo=: #M4
+        interface: #M3
 ''',
     );
   }
@@ -34864,32 +35279,32 @@ abstract class C implements A, B {}
           foo=: #M2
             valueType: List @ dart:core
               dynamic
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         supertype: Object @ dart:core
         declaredFields
-          foo: #M4
+          foo: #M5
             type: List @ dart:core
               void
         declaredSetters
-          foo=: #M5
+          foo=: #M6
             valueType: List @ dart:core
               void
-        interface
+        interface: #M7
           map
-            foo=: #M5
-      C: #M6
+            foo=: #M6
+      C: #M8
         supertype: Object @ dart:core
         interfaces
           A @ package:test/test.dart
           B @ package:test/test.dart
-        interface
+        interface: #M9
           map
-            foo=: #M7
+            foo=: #M10
           combinedIds
-            [#M2, #M5]: #M7
+            [#M2, #M6]: #M10
 ''',
       updatedCode: r'''
 abstract class A {
@@ -34916,32 +35331,32 @@ abstract class C implements A, B {}
           foo=: #M2
             valueType: List @ dart:core
               dynamic
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
+      B: #M4
         supertype: Object @ dart:core
         declaredFields
-          foo: #M8
+          foo: #M11
             type: List @ dart:core
               int @ dart:core
         declaredSetters
-          foo=: #M9
+          foo=: #M12
             valueType: List @ dart:core
               int @ dart:core
-        interface
+        interface: #M13
           map
-            foo=: #M9
-      C: #M6
+            foo=: #M12
+      C: #M8
         supertype: Object @ dart:core
         interfaces
           A @ package:test/test.dart
           B @ package:test/test.dart
-        interface
+        interface: #M14
           map
-            foo=: #M10
+            foo=: #M15
           combinedIds
-            [#M2, #M9]: #M10
+            [#M2, #M12]: #M15
 ''',
     );
   }
@@ -34967,7 +35382,7 @@ class A {
         declaredSetters
           foo=: #M2
             valueType: int @ dart:core
-        interface
+        interface: #M3
           map
             foo=: #M2
 ''',
@@ -34983,14 +35398,14 @@ class A {
       A: #M0
         supertype: Object @ dart:core
         declaredFields
-          foo: #M3
+          foo: #M4
             type: double @ dart:core
         declaredSetters
-          foo=: #M4
+          foo=: #M5
             valueType: double @ dart:core
-        interface
+        interface: #M6
           map
-            foo=: #M4
+            foo=: #M5
 ''',
     );
   }
@@ -35010,7 +35425,7 @@ class A<T> {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -35026,11 +35441,11 @@ class A<T> {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M2
+          bar: #M3
           foo: #M1
-        interface
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
             foo: #M1
 ''',
     );
@@ -35047,6 +35462,7 @@ class A<T> {}
   package:test/test.dart
     declaredClasses
       A: #M0
+        interface: #M1
 ''',
       updatedCode: r'''
 class A<T, U> {}
@@ -35055,7 +35471,8 @@ class A<T, U> {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      A: #M1
+      A: #M2
+        interface: #M3
 ''',
     );
   }
@@ -35071,6 +35488,7 @@ class A<T extends num> {}
   package:test/test.dart
     declaredClasses
       A: #M0
+        interface: #M1
 ''',
       updatedCode: r'''
 class A<T extends int> {}
@@ -35079,7 +35497,8 @@ class A<T extends int> {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      A: #M1
+      A: #M2
+        interface: #M3
 ''',
     );
   }
@@ -35095,6 +35514,7 @@ class A<T, U> {}
   package:test/test.dart
     declaredClasses
       A: #M0
+        interface: #M1
 ''',
       updatedCode: r'''
 class A<T> {}
@@ -35103,7 +35523,8 @@ class A<T> {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      A: #M1
+      A: #M2
+        interface: #M3
 ''',
     );
   }
@@ -35125,11 +35546,14 @@ class X = A with M;
       A: #M0
         declaredConstructors
           c1: #M1
-      X: #M2
+        interface: #M2
+      X: #M3
         inheritedConstructors
           c1: #M1
+        interface: #M4
     declaredMixins
-      M: #M3
+      M: #M5
+        interface: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -35146,13 +35570,16 @@ class X = A with M;
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M4
-      X: #M2
+          c2: #M7
+        interface: #M2
+      X: #M3
         inheritedConstructors
           c1: #M1
-          c2: #M4
+          c2: #M7
+        interface: #M4
     declaredMixins
-      M: #M3
+      M: #M5
+        interface: #M6
 ''',
     );
   }
@@ -35175,14 +35602,18 @@ class X2 = A with M;
       A: #M0
         declaredConstructors
           c1: #M1
-      X1: #M2
+        interface: #M2
+      X1: #M3
         inheritedConstructors
           c1: #M1
-      X2: #M3
+        interface: #M4
+      X2: #M5
         inheritedConstructors
           c1: #M1
+        interface: #M6
     declaredMixins
-      M: #M4
+      M: #M7
+        interface: #M8
 ''',
       updatedCode: r'''
 class A {
@@ -35200,17 +35631,21 @@ class X2 = A with M;
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M5
-      X1: #M2
+          c2: #M9
+        interface: #M2
+      X1: #M3
         inheritedConstructors
           c1: #M1
-          c2: #M5
-      X2: #M3
+          c2: #M9
+        interface: #M4
+      X2: #M5
         inheritedConstructors
           c1: #M1
-          c2: #M5
+          c2: #M9
+        interface: #M6
     declaredMixins
-      M: #M4
+      M: #M7
+        interface: #M8
 ''',
     );
   }
@@ -35233,14 +35668,18 @@ class X2 = X1 with M;
       A: #M0
         declaredConstructors
           c1: #M1
-      X1: #M2
+        interface: #M2
+      X1: #M3
         inheritedConstructors
           c1: #M1
-      X2: #M3
+        interface: #M4
+      X2: #M5
         inheritedConstructors
           c1: #M1
+        interface: #M6
     declaredMixins
-      M: #M4
+      M: #M7
+        interface: #M8
 ''',
       updatedCode: r'''
 class A {
@@ -35258,17 +35697,21 @@ class X2 = X1 with M;
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M5
-      X1: #M2
+          c2: #M9
+        interface: #M2
+      X1: #M3
         inheritedConstructors
           c1: #M1
-          c2: #M5
-      X2: #M3
+          c2: #M9
+        interface: #M4
+      X2: #M5
         inheritedConstructors
           c1: #M1
-          c2: #M5
+          c2: #M9
+        interface: #M6
     declaredMixins
-      M: #M4
+      M: #M7
+        interface: #M8
 ''',
     );
   }
@@ -35292,12 +35735,15 @@ class X = A with M;
         declaredConstructors
           c1: #M1
           c2: #M2
-      X: #M3
+        interface: #M3
+      X: #M4
         inheritedConstructors
           c1: #M1
           c2: #M2
+        interface: #M5
     declaredMixins
-      M: #M4
+      M: #M6
+        interface: #M7
 ''',
       updatedCode: r'''
 class A {
@@ -35314,13 +35760,16 @@ class X = A with M;
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M5
-      X: #M3
+          c2: #M8
+        interface: #M3
+      X: #M4
         inheritedConstructors
           c1: #M1
-          c2: #M5
+          c2: #M8
+        interface: #M5
     declaredMixins
-      M: #M4
+      M: #M6
+        interface: #M7
 ''',
     );
   }
@@ -35344,12 +35793,15 @@ class X = A with M;
         declaredConstructors
           c1: #M1
           c2: #M2
-      X: #M3
+        interface: #M3
+      X: #M4
         inheritedConstructors
           c1: #M1
           c2: #M2
+        interface: #M5
     declaredMixins
-      M: #M4
+      M: #M6
+        interface: #M7
 ''',
       updatedCode: r'''
 class A {
@@ -35365,11 +35817,14 @@ class X = A with M;
       A: #M0
         declaredConstructors
           c1: #M1
-      X: #M3
+        interface: #M3
+      X: #M4
         inheritedConstructors
           c1: #M1
+        interface: #M5
     declaredMixins
-      M: #M4
+      M: #M6
+        interface: #M7
 ''',
     );
   }
@@ -35389,11 +35844,16 @@ class Y = A with M;
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M1
-      X: #M2
-      Y: #M3
+        interface: #M1
+      B: #M2
+        interface: #M3
+      X: #M4
+        interface: #M5
+      Y: #M6
+        interface: #M7
     declaredMixins
-      M: #M4
+      M: #M8
+        interface: #M9
 ''',
       updatedCode: r'''
 class A {}
@@ -35407,11 +35867,16 @@ class Y = B with M;
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M1
-      X: #M2
-      Y: #M5
+        interface: #M1
+      B: #M2
+        interface: #M3
+      X: #M4
+        interface: #M5
+      Y: #M10
+        interface: #M11
     declaredMixins
-      M: #M4
+      M: #M8
+        interface: #M9
 ''',
     );
   }
@@ -35443,29 +35908,29 @@ class X = A with M;
         declaredGetters
           foo1: #M3
           foo2: #M4
-        interface
+        interface: #M5
           map
             foo1: #M3
             foo2: #M4
-      X: #M5
-        interface
+      X: #M6
+        interface: #M7
           map
             foo1: #M3
             foo2: #M4
-            foo3: #M6
-            foo4: #M7
+            foo3: #M8
+            foo4: #M9
     declaredMixins
-      M: #M8
+      M: #M10
         declaredFields
-          foo3: #M9
-          foo4: #M10
+          foo3: #M11
+          foo4: #M12
         declaredGetters
-          foo3: #M6
-          foo4: #M7
-        interface
+          foo3: #M8
+          foo4: #M9
+        interface: #M13
           map
-            foo3: #M6
-            foo4: #M7
+            foo3: #M8
+            foo4: #M9
 ''',
       updatedCode: r'''
 class A {
@@ -35487,33 +35952,33 @@ class X = A with M;
       A: #M0
         declaredFields
           foo1: #M1
-          foo2: #M11
+          foo2: #M14
         declaredGetters
           foo1: #M3
-          foo2: #M12
-        interface
+          foo2: #M15
+        interface: #M16
           map
             foo1: #M3
-            foo2: #M12
-      X: #M5
-        interface
+            foo2: #M15
+      X: #M6
+        interface: #M17
           map
             foo1: #M3
-            foo2: #M12
-            foo3: #M6
-            foo4: #M13
+            foo2: #M15
+            foo3: #M8
+            foo4: #M18
     declaredMixins
-      M: #M8
+      M: #M10
         declaredFields
-          foo3: #M9
-          foo4: #M14
+          foo3: #M11
+          foo4: #M19
         declaredGetters
-          foo3: #M6
-          foo4: #M13
-        interface
+          foo3: #M8
+          foo4: #M18
+        interface: #M20
           map
-            foo3: #M6
-            foo4: #M13
+            foo3: #M8
+            foo4: #M18
 ''',
     );
   }
@@ -35534,12 +35999,18 @@ class X4 = Object with M implements A;
   package:test/test.dart
     declaredClasses
       A: #M0
-      X1: #M1
-      X2: #M2
-      X3: #M3
-      X4: #M4
+        interface: #M1
+      X1: #M2
+        interface: #M3
+      X2: #M4
+        interface: #M5
+      X3: #M6
+        interface: #M7
+      X4: #M8
+        interface: #M9
     declaredMixins
-      M: #M5
+      M: #M10
+        interface: #M11
 ''',
       updatedCode: r'''
 class A {}
@@ -35554,12 +36025,18 @@ class X4 = Object with M;
   package:test/test.dart
     declaredClasses
       A: #M0
-      X1: #M1
-      X2: #M2
-      X3: #M6
-      X4: #M7
+        interface: #M1
+      X1: #M2
+        interface: #M3
+      X2: #M4
+        interface: #M5
+      X3: #M12
+        interface: #M13
+      X4: #M14
+        interface: #M15
     declaredMixins
-      M: #M5
+      M: #M10
+        interface: #M11
 ''',
     );
   }
@@ -35579,9 +36056,12 @@ class Y = Object with M;
   package:test/test.dart
     declaredClasses
       X: #M0
-      Y: #M1
+        interface: #M1
+      Y: #M2
+        interface: #M3
     declaredMixins
-      M: #M2
+      M: #M4
+        interface: #M5
 ''',
       updatedCode: r'''
 mixin M {}
@@ -35595,9 +36075,12 @@ class Y = Object with M;
   package:test/test.dart
     declaredClasses
       X: #M0
-      Y: #M3
+        interface: #M1
+      Y: #M6
+        interface: #M7
     declaredMixins
-      M: #M2
+      M: #M4
+        interface: #M5
 ''',
     );
   }
@@ -35626,26 +36109,26 @@ class X = A with M;
         declaredMethods
           foo1: #M1
           foo2: #M2
-        interface
+        interface: #M3
           map
             foo1: #M1
             foo2: #M2
-      X: #M3
-        interface
+      X: #M4
+        interface: #M5
           map
             foo1: #M1
             foo2: #M2
-            foo3: #M4
-            foo4: #M5
+            foo3: #M6
+            foo4: #M7
     declaredMixins
-      M: #M6
+      M: #M8
         declaredMethods
-          foo3: #M4
-          foo4: #M5
-        interface
+          foo3: #M6
+          foo4: #M7
+        interface: #M9
           map
-            foo3: #M4
-            foo4: #M5
+            foo3: #M6
+            foo4: #M7
 ''',
       updatedCode: r'''
 class A {
@@ -35667,27 +36150,27 @@ class X = A with M;
       A: #M0
         declaredMethods
           foo1: #M1
-          foo2: #M7
-        interface
+          foo2: #M10
+        interface: #M11
           map
             foo1: #M1
-            foo2: #M7
-      X: #M3
-        interface
+            foo2: #M10
+      X: #M4
+        interface: #M12
           map
             foo1: #M1
-            foo2: #M7
-            foo3: #M4
-            foo4: #M8
+            foo2: #M10
+            foo3: #M6
+            foo4: #M13
     declaredMixins
-      M: #M6
+      M: #M8
         declaredMethods
-          foo3: #M4
-          foo4: #M8
-        interface
+          foo3: #M6
+          foo4: #M13
+        interface: #M14
           map
-            foo3: #M4
-            foo4: #M8
+            foo3: #M6
+            foo4: #M13
 ''',
     );
   }
@@ -35719,29 +36202,29 @@ class X = A with M;
         declaredSetters
           foo1=: #M3
           foo2=: #M4
-        interface
+        interface: #M5
           map
             foo1=: #M3
             foo2=: #M4
-      X: #M5
-        interface
+      X: #M6
+        interface: #M7
           map
             foo1=: #M3
             foo2=: #M4
-            foo3=: #M6
-            foo4=: #M7
+            foo3=: #M8
+            foo4=: #M9
     declaredMixins
-      M: #M8
+      M: #M10
         declaredFields
-          foo3: #M9
-          foo4: #M10
+          foo3: #M11
+          foo4: #M12
         declaredSetters
-          foo3=: #M6
-          foo4=: #M7
-        interface
+          foo3=: #M8
+          foo4=: #M9
+        interface: #M13
           map
-            foo3=: #M6
-            foo4=: #M7
+            foo3=: #M8
+            foo4=: #M9
 ''',
       updatedCode: r'''
 class A {
@@ -35763,33 +36246,33 @@ class X = A with M;
       A: #M0
         declaredFields
           foo1: #M1
-          foo2: #M11
+          foo2: #M14
         declaredSetters
           foo1=: #M3
-          foo2=: #M12
-        interface
+          foo2=: #M15
+        interface: #M16
           map
             foo1=: #M3
-            foo2=: #M12
-      X: #M5
-        interface
+            foo2=: #M15
+      X: #M6
+        interface: #M17
           map
             foo1=: #M3
-            foo2=: #M12
-            foo3=: #M6
-            foo4=: #M13
+            foo2=: #M15
+            foo3=: #M8
+            foo4=: #M18
     declaredMixins
-      M: #M8
+      M: #M10
         declaredFields
-          foo3: #M9
-          foo4: #M14
+          foo3: #M11
+          foo4: #M19
         declaredSetters
-          foo3=: #M6
-          foo4=: #M13
-        interface
+          foo3=: #M8
+          foo4=: #M18
+        interface: #M20
           map
-            foo3=: #M6
-            foo4=: #M13
+            foo3=: #M8
+            foo4=: #M18
 ''',
     );
   }
@@ -36003,15 +36486,15 @@ const x = a + 1;
       A: #M0
         declaredMethods
           +: #M1
-        interface
+        interface: #M2
           map
             +: #M1
     declaredGetters
-      a: #M2
-      x: #M3
+      a: #M3
+      x: #M4
     declaredVariables
-      a: #M4
-      x: #M5
+      a: #M5
+      x: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -36027,16 +36510,16 @@ const x = a + 1;
     declaredClasses
       A: #M0
         declaredMethods
-          +: #M6
-        interface
+          +: #M7
+        interface: #M8
           map
-            +: #M6
+            +: #M7
     declaredGetters
-      a: #M2
-      x: #M7
+      a: #M3
+      x: #M9
     declaredVariables
-      a: #M4
-      x: #M8
+      a: #M5
+      x: #M10
 ''',
     );
   }
@@ -36316,10 +36799,11 @@ const a = A.named();
       A: #M0
         declaredConstructors
           named: #M1
+        interface: #M2
     declaredGetters
-      a: #M2
-    declaredVariables
       a: #M3
+    declaredVariables
+      a: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -36333,11 +36817,12 @@ const a = A.named();
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M4
+          named: #M5
+        interface: #M2
     declaredGetters
-      a: #M2
+      a: #M3
     declaredVariables
-      a: #M5
+      a: #M6
 ''',
     );
   }
@@ -36359,10 +36844,11 @@ const a = A();
       A: #M0
         declaredConstructors
           new: #M1
+        interface: #M2
     declaredGetters
-      a: #M2
-    declaredVariables
       a: #M3
+    declaredVariables
+      a: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -36376,11 +36862,12 @@ const a = A();
     declaredClasses
       A: #M0
         declaredConstructors
-          new: #M4
+          new: #M5
+        interface: #M2
     declaredGetters
-      a: #M2
+      a: #M3
     declaredVariables
-      a: #M5
+      a: #M6
 ''',
     );
   }
@@ -36402,10 +36889,11 @@ const a = A();
       A: #M0
         declaredConstructors
           new: #M1
+        interface: #M2
     declaredGetters
-      a: #M2
-    declaredVariables
       a: #M3
+    declaredVariables
+      a: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -36420,16 +36908,16 @@ const a = A();
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
+          foo: #M5
         declaredConstructors
           new: #M1
-        interface
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
     declaredGetters
-      a: #M2
-    declaredVariables
       a: #M3
+    declaredVariables
+      a: #M4
 ''',
     );
   }
@@ -36485,16 +36973,17 @@ const d = A(b);
   package:test/test.dart
     declaredClasses
       A: #M0
+        interface: #M1
     declaredGetters
-      a: #M1
-      b: #M2
-      c: #M3
-      d: #M4
+      a: #M2
+      b: #M3
+      c: #M4
+      d: #M5
     declaredVariables
-      a: #M5
-      b: #M6
-      c: #M7
-      d: #M8
+      a: #M6
+      b: #M7
+      c: #M8
+      d: #M9
 ''',
       updatedCode: r'''
 class A {
@@ -36510,16 +36999,17 @@ const d = A(b);
   package:test/test.dart
     declaredClasses
       A: #M0
+        interface: #M1
     declaredGetters
-      a: #M1
-      b: #M2
-      c: #M3
-      d: #M4
+      a: #M2
+      b: #M3
+      c: #M4
+      d: #M5
     declaredVariables
-      a: #M9
-      b: #M6
-      c: #M10
-      d: #M8
+      a: #M10
+      b: #M7
+      c: #M11
+      d: #M9
 ''',
     );
   }
@@ -36735,13 +37225,15 @@ const b = B;
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
     declaredGetters
-      a: #M2
-      b: #M3
-    declaredVariables
       a: #M4
       b: #M5
+    declaredVariables
+      a: #M6
+      b: #M7
 ''',
       updatedCode: r'''
 class A {}
@@ -36754,13 +37246,15 @@ const b = B;
   package:test/test.dart
     declaredClasses
       A: #M0
-      B: #M6
+        interface: #M1
+      B: #M8
+        interface: #M9
     declaredGetters
-      a: #M2
-      b: #M3
-    declaredVariables
       a: #M4
-      b: #M7
+      b: #M5
+    declaredVariables
+      a: #M6
+      b: #M10
 ''',
     );
   }
@@ -36788,12 +37282,13 @@ const d = A.b;
         declaredGetters
           a: #M3
           b: #M4
+        interface: #M5
     declaredGetters
-      c: #M5
-      d: #M6
+      c: #M6
+      d: #M7
     declaredVariables
-      c: #M7
-      d: #M8
+      c: #M8
+      d: #M9
 ''',
       updatedCode: r'''
 class A {
@@ -36811,16 +37306,17 @@ const d = A.b;
       A: #M0
         declaredFields
           a: #M1
-          b: #M9
+          b: #M10
         declaredGetters
           a: #M3
           b: #M4
+        interface: #M5
     declaredGetters
-      c: #M5
-      d: #M6
+      c: #M6
+      d: #M7
     declaredVariables
-      c: #M7
-      d: #M10
+      c: #M8
+      d: #M11
 ''',
     );
   }
@@ -36850,12 +37346,13 @@ const d = self.A.b;
         declaredGetters
           a: #M3
           b: #M4
+        interface: #M5
     declaredGetters
-      c: #M5
-      d: #M6
+      c: #M6
+      d: #M7
     declaredVariables
-      c: #M7
-      d: #M8
+      c: #M8
+      d: #M9
 ''',
       updatedCode: r'''
 import '' as self;
@@ -36875,16 +37372,17 @@ const d = self.A.b;
       A: #M0
         declaredFields
           a: #M1
-          b: #M9
+          b: #M10
         declaredGetters
           a: #M3
           b: #M4
+        interface: #M5
     declaredGetters
-      c: #M5
-      d: #M6
+      c: #M6
+      d: #M7
     declaredVariables
-      c: #M7
-      d: #M10
+      c: #M8
+      d: #M11
 ''',
     );
   }
@@ -37038,15 +37536,15 @@ const b = -a;
       A: #M0
         declaredMethods
           unary-: #M1
-        interface
+        interface: #M2
           map
             unary-: #M1
     declaredGetters
-      a: #M2
-      b: #M3
+      a: #M3
+      b: #M4
     declaredVariables
-      a: #M4
-      b: #M5
+      a: #M5
+      b: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -37061,16 +37559,16 @@ const b = -a;
     declaredClasses
       A: #M0
         declaredMethods
-          unary-: #M6
-        interface
+          unary-: #M7
+        interface: #M8
           map
-            unary-: #M6
+            unary-: #M7
     declaredGetters
-      a: #M2
-      b: #M7
+      a: #M3
+      b: #M9
     declaredVariables
-      a: #M4
-      b: #M8
+      a: #M5
+      b: #M10
 ''',
     );
   }
@@ -37092,15 +37590,15 @@ const b = -a;
       A: #M0
         declaredMethods
           unary-: #M1
-        interface
+        interface: #M2
           map
             unary-: #M1
     declaredGetters
-      a: #M2
-      b: #M3
+      a: #M3
+      b: #M4
     declaredVariables
-      a: #M4
-      b: #M5
+      a: #M5
+      b: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -37116,18 +37614,18 @@ const b = -a;
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M6
+          foo: #M7
           unary-: #M1
-        interface
+        interface: #M8
           map
-            foo: #M6
+            foo: #M7
             unary-: #M1
     declaredGetters
-      a: #M2
-      b: #M3
+      a: #M3
+      b: #M4
     declaredVariables
-      a: #M4
-      b: #M5
+      a: #M5
+      b: #M6
 ''',
     );
   }
@@ -37232,6 +37730,7 @@ class A {
           b: #M6
           c: #M7
           d: #M8
+        interface: #M9
 ''',
       updatedCode: r'''
 class A {
@@ -37248,14 +37747,15 @@ class A {
       A: #M0
         declaredFields
           a: #M1
-          b: #M9
+          b: #M10
           c: #M3
-          d: #M10
+          d: #M11
         declaredGetters
           a: #M5
           b: #M6
           c: #M7
           d: #M8
+        interface: #M9
 ''',
     );
   }
@@ -37373,9 +37873,9 @@ enum A {
           c1: #M4
           c2: #M5
           values: #M6
-        interface
+        interface: #M7
           map
-            index: #M7
+            index: #M8
 ''',
       updatedCode: r'''
 enum A {
@@ -37389,15 +37889,15 @@ enum A {
       A: #M0
         declaredFields
           c1: #M1
-          c3: #M8
-          values: #M9
+          c3: #M9
+          values: #M10
         declaredGetters
           c1: #M4
-          c3: #M10
+          c3: #M11
           values: #M6
-        interface
+        interface: #M7
           map
-            index: #M7
+            index: #M8
 ''',
     );
   }
@@ -37428,9 +37928,9 @@ enum A {
           c2: #M6
           c3: #M7
           values: #M8
-        interface
+        interface: #M9
           map
-            index: #M9
+            index: #M10
 ''',
       updatedCode: r'''
 enum A {
@@ -37447,17 +37947,17 @@ enum A {
       A: #M0
         declaredFields
           c1: #M1
-          c2: #M10
+          c2: #M11
           c3: #M3
-          values: #M11
+          values: #M12
         declaredGetters
           c1: #M5
           c2: #M6
           c3: #M7
           values: #M8
-        interface
+        interface: #M9
           map
-            index: #M9
+            index: #M10
 ''',
     );
   }
@@ -37488,9 +37988,9 @@ enum A<T> {
           c2: #M6
           c3: #M7
           values: #M8
-        interface
+        interface: #M9
           map
-            index: #M9
+            index: #M10
 ''',
       updatedCode: r'''
 enum A<T> {
@@ -37507,17 +38007,17 @@ enum A<T> {
       A: #M0
         declaredFields
           c1: #M1
-          c2: #M10
+          c2: #M11
           c3: #M3
-          values: #M11
+          values: #M12
         declaredGetters
           c1: #M5
-          c2: #M12
+          c2: #M13
           c3: #M7
           values: #M8
-        interface
+        interface: #M9
           map
-            index: #M9
+            index: #M10
 ''',
     );
   }
@@ -37547,11 +38047,11 @@ enum A {
           foo: #M6
           v: #M7
           values: #M8
-        interface
+        interface: #M9
           map
             bar: #M5
             foo: #M6
-            index: #M9
+            index: #M10
 ''',
       updatedCode: r'''
 enum A {
@@ -37566,20 +38066,20 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M10
+          bar: #M11
           foo: #M2
           v: #M3
           values: #M4
         declaredGetters
-          bar: #M11
+          bar: #M12
           foo: #M6
           v: #M7
           values: #M8
-        interface
+        interface: #M13
           map
-            bar: #M11
+            bar: #M12
             foo: #M6
-            index: #M9
+            index: #M10
 ''',
     );
   }
@@ -37609,11 +38109,11 @@ enum A {
           foo: #M6
           v: #M7
           values: #M8
-        interface
+        interface: #M9
           map
             bar: #M5
             foo: #M6
-            index: #M9
+            index: #M10
 ''',
       updatedCode: r'''
 enum A {
@@ -37628,20 +38128,20 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M10
+          bar: #M11
           foo: #M2
           v: #M3
           values: #M4
         declaredGetters
-          bar: #M11
+          bar: #M12
           foo: #M6
           v: #M7
           values: #M8
-        interface
+        interface: #M13
           map
-            bar: #M11
+            bar: #M12
             foo: #M6
-            index: #M9
+            index: #M10
 ''',
     );
   }
@@ -37658,17 +38158,18 @@ class B {}
   package:test/test.dart
     declaredClasses
       B: #M0
+        interface: #M1
     declaredEnums
-      A: #M1
+      A: #M2
         declaredFields
-          v: #M2
-          values: #M3
+          v: #M3
+          values: #M4
         declaredGetters
-          v: #M4
-          values: #M5
-        interface
+          v: #M5
+          values: #M6
+        interface: #M7
           map
-            index: #M6
+            index: #M8
 ''',
       updatedCode: r'''
 enum A implements B { v }
@@ -37679,17 +38180,18 @@ class B {}
   package:test/test.dart
     declaredClasses
       B: #M0
+        interface: #M1
     declaredEnums
-      A: #M7
+      A: #M9
         declaredFields
-          v: #M8
-          values: #M9
-        declaredGetters
           v: #M10
           values: #M11
-        interface
+        declaredGetters
+          v: #M12
+          values: #M13
+        interface: #M14
           map
-            index: #M6
+            index: #M8
 ''',
     );
   }
@@ -37706,17 +38208,18 @@ class B {}
   package:test/test.dart
     declaredClasses
       B: #M0
+        interface: #M1
     declaredEnums
-      A: #M1
+      A: #M2
         declaredFields
-          v: #M2
-          values: #M3
+          v: #M3
+          values: #M4
         declaredGetters
-          v: #M4
-          values: #M5
-        interface
+          v: #M5
+          values: #M6
+        interface: #M7
           map
-            index: #M6
+            index: #M8
 ''',
       updatedCode: r'''
 enum A { v }
@@ -37727,17 +38230,18 @@ class B {}
   package:test/test.dart
     declaredClasses
       B: #M0
+        interface: #M1
     declaredEnums
-      A: #M7
+      A: #M9
         declaredFields
-          v: #M8
-          values: #M9
-        declaredGetters
           v: #M10
           values: #M11
-        interface
+        declaredGetters
+          v: #M12
+          values: #M13
+        interface: #M14
           map
-            index: #M6
+            index: #M8
 ''',
     );
   }
@@ -37759,9 +38263,9 @@ enum A { v }
         declaredGetters
           v: #M3
           values: #M4
-        interface
+        interface: #M5
           map
-            index: #M5
+            index: #M6
 ''',
       updatedCode: r'''
 enum A { v }
@@ -37778,19 +38282,19 @@ enum B { v }
         declaredGetters
           v: #M3
           values: #M4
-        interface
+        interface: #M5
           map
-            index: #M5
-      B: #M6
+            index: #M6
+      B: #M7
         declaredFields
-          v: #M7
-          values: #M8
+          v: #M8
+          values: #M9
         declaredGetters
-          v: #M9
-          values: #M10
-        interface
+          v: #M10
+          values: #M11
+        interface: #M12
           map
-            index: #M5
+            index: #M6
 ''',
     );
   }
@@ -37813,19 +38317,19 @@ enum B { v }
         declaredGetters
           v: #M3
           values: #M4
-        interface
+        interface: #M5
           map
-            index: #M5
-      B: #M6
+            index: #M6
+      B: #M7
         declaredFields
-          v: #M7
-          values: #M8
+          v: #M8
+          values: #M9
         declaredGetters
-          v: #M9
-          values: #M10
-        interface
+          v: #M10
+          values: #M11
+        interface: #M12
           map
-            index: #M5
+            index: #M6
 ''',
       updatedCode: r'''
 enum A { v }
@@ -37841,9 +38345,9 @@ enum A { v }
         declaredGetters
           v: #M3
           values: #M4
-        interface
+        interface: #M5
           map
-            index: #M5
+            index: #M6
 ''',
     );
   }
@@ -37872,11 +38376,11 @@ enum A {
         declaredMethods
           bar: #M5
           foo: #M6
-        interface
+        interface: #M7
           map
             bar: #M5
             foo: #M6
-            index: #M7
+            index: #M8
 ''',
       updatedCode: r'''
 enum A {
@@ -37897,13 +38401,13 @@ enum A {
           v: #M3
           values: #M4
         declaredMethods
-          bar: #M8
+          bar: #M9
           foo: #M6
-        interface
+        interface: #M10
           map
-            bar: #M8
+            bar: #M9
             foo: #M6
-            index: #M7
+            index: #M8
 ''',
     );
   }
@@ -37934,11 +38438,11 @@ enum A {
         declaredSetters
           bar=: #M7
           foo=: #M8
-        interface
+        interface: #M9
           map
             bar=: #M7
             foo=: #M8
-            index: #M9
+            index: #M10
 ''',
       updatedCode: r'''
 enum A {
@@ -37953,7 +38457,7 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M10
+          bar: #M11
           foo: #M2
           v: #M3
           values: #M4
@@ -37961,13 +38465,13 @@ enum A {
           v: #M5
           values: #M6
         declaredSetters
-          bar=: #M11
+          bar=: #M12
           foo=: #M8
-        interface
+        interface: #M13
           map
-            bar=: #M11
+            bar=: #M12
             foo=: #M8
-            index: #M9
+            index: #M10
 ''',
     );
   }
@@ -37994,10 +38498,10 @@ enum A<T> {
           values: #M4
         declaredMethods
           foo: #M5
-        interface
+        interface: #M6
           map
             foo: #M5
-            index: #M6
+            index: #M7
 ''',
       updatedCode: r'''
 enum A<T> {
@@ -38018,13 +38522,13 @@ enum A<T> {
           v: #M3
           values: #M4
         declaredMethods
-          bar: #M7
+          bar: #M8
           foo: #M5
-        interface
+        interface: #M9
           map
-            bar: #M7
+            bar: #M8
             foo: #M5
-            index: #M6
+            index: #M7
 ''',
     );
   }
@@ -38046,9 +38550,9 @@ enum A<T> { v }
         declaredGetters
           v: #M3
           values: #M4
-        interface
+        interface: #M5
           map
-            index: #M5
+            index: #M6
 ''',
       updatedCode: r'''
 enum A<T, U> { v }
@@ -38057,16 +38561,16 @@ enum A<T, U> { v }
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredEnums
-      A: #M6
+      A: #M7
         declaredFields
-          v: #M7
-          values: #M8
+          v: #M8
+          values: #M9
         declaredGetters
-          v: #M9
-          values: #M10
-        interface
+          v: #M10
+          values: #M11
+        interface: #M12
           map
-            index: #M5
+            index: #M6
 ''',
     );
   }
@@ -38092,16 +38596,16 @@ mixin M {
         declaredGetters
           v: #M3
           values: #M4
-        interface
+        interface: #M5
           map
-            index: #M5
+            index: #M6
     declaredMixins
-      M: #M6
+      M: #M7
         declaredMethods
-          foo: #M7
-        interface
+          foo: #M8
+        interface: #M9
           map
-            foo: #M7
+            foo: #M8
 ''',
       updatedCode: r'''
 enum A with M { v }
@@ -38114,24 +38618,24 @@ mixin M {
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredEnums
-      A: #M8
+      A: #M10
         declaredFields
-          v: #M9
-          values: #M10
-        declaredGetters
           v: #M11
           values: #M12
-        interface
+        declaredGetters
+          v: #M13
+          values: #M14
+        interface: #M15
           map
-            foo: #M7
-            index: #M5
+            foo: #M8
+            index: #M6
     declaredMixins
-      M: #M6
+      M: #M7
         declaredMethods
-          foo: #M7
-        interface
+          foo: #M8
+        interface: #M9
           map
-            foo: #M7
+            foo: #M8
 ''',
     );
   }
@@ -38157,17 +38661,17 @@ mixin M {
         declaredGetters
           v: #M3
           values: #M4
-        interface
+        interface: #M5
           map
-            foo: #M5
-            index: #M6
+            foo: #M6
+            index: #M7
     declaredMixins
-      M: #M7
+      M: #M8
         declaredMethods
-          foo: #M5
-        interface
+          foo: #M6
+        interface: #M9
           map
-            foo: #M5
+            foo: #M6
 ''',
       updatedCode: r'''
 enum A { v }
@@ -38180,23 +38684,23 @@ mixin M {
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredEnums
-      A: #M8
+      A: #M10
         declaredFields
-          v: #M9
-          values: #M10
-        declaredGetters
           v: #M11
           values: #M12
-        interface
+        declaredGetters
+          v: #M13
+          values: #M14
+        interface: #M15
           map
-            index: #M6
+            index: #M7
     declaredMixins
-      M: #M7
+      M: #M8
         declaredMethods
-          foo: #M5
-        interface
+          foo: #M6
+        interface: #M9
           map
-            foo: #M5
+            foo: #M6
 ''',
     );
   }
@@ -38499,7 +39003,7 @@ extension type A(int it) {
           bar: #M4
           foo: #M5
           it: #M6
-        interface
+        interface: #M7
           map
             bar: #M4
             foo: #M5
@@ -38517,16 +39021,16 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M8
           foo: #M2
           it: #M3
         declaredGetters
-          bar: #M8
+          bar: #M9
           foo: #M5
           it: #M6
-        interface
+        interface: #M10
           map
-            bar: #M8
+            bar: #M9
             foo: #M5
             it: #M6
 ''',
@@ -38548,7 +39052,7 @@ extension type A(int it) {}
           it: #M1
         declaredGetters
           it: #M2
-        interface
+        interface: #M3
           map
             it: #M2
 ''',
@@ -38559,14 +39063,14 @@ extension type A(int it) implements Object {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredExtensionTypes
-      A: #M3
+      A: #M4
         declaredFields
-          it: #M4
-        declaredGetters
           it: #M5
-        interface
+        declaredGetters
+          it: #M6
+        interface: #M7
           map
-            it: #M5
+            it: #M6
 ''',
     );
   }
@@ -38586,7 +39090,7 @@ extension type A(int it) implements Object {}
           it: #M1
         declaredGetters
           it: #M2
-        interface
+        interface: #M3
           map
             it: #M2
 ''',
@@ -38597,14 +39101,14 @@ extension type A(int it) {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredExtensionTypes
-      A: #M3
+      A: #M4
         declaredFields
-          it: #M4
-        declaredGetters
           it: #M5
-        interface
+        declaredGetters
+          it: #M6
+        interface: #M7
           map
-            it: #M5
+            it: #M6
 ''',
     );
   }
@@ -38628,17 +39132,17 @@ extension type B(int it) {}
           it: #M1
         declaredGetters
           it: #M2
-        interface
+        interface: #M3
           map
             it: #M2
-      B: #M3
+      B: #M4
         declaredFields
-          it: #M4
-        declaredGetters
           it: #M5
-        interface
+        declaredGetters
+          it: #M6
+        interface: #M7
           map
-            it: #M5
+            it: #M6
 ''',
       updatedCode: r'''
 @Deprecated('0')
@@ -38656,17 +39160,17 @@ extension type B(int it) {}
           it: #M1
         declaredGetters
           it: #M2
-        interface
+        interface: #M3
           map
             it: #M2
-      B: #M6
+      B: #M8
         declaredFields
-          it: #M7
+          it: #M9
         declaredGetters
-          it: #M8
-        interface
+          it: #M10
+        interface: #M11
           map
-            it: #M8
+            it: #M10
 ''',
     );
   }
@@ -38692,7 +39196,7 @@ extension type A(int it) {
         declaredMethods
           bar: #M3
           foo: #M4
-        interface
+        interface: #M5
           map
             bar: #M3
             foo: #M4
@@ -38714,11 +39218,11 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredMethods
-          bar: #M5
+          bar: #M6
           foo: #M4
-        interface
+        interface: #M7
           map
-            bar: #M5
+            bar: #M6
             foo: #M4
             it: #M2
 ''',
@@ -38746,7 +39250,7 @@ extension type A.foo(int it) {
           baz: #M3
         declaredConstructors
           foo: #M4
-        interface
+        interface: #M5
           map
             baz: #M3
             it: #M2
@@ -38768,8 +39272,8 @@ extension type A.bar(int it) {
         declaredMethods
           baz: #M3
         declaredConstructors
-          bar: #M5
-        interface
+          bar: #M6
+        interface: #M5
           map
             baz: #M3
             it: #M2
@@ -38796,7 +39300,7 @@ extension type A(int it) {
           it: #M2
         declaredMethods
           foo: #M3
-        interface
+        interface: #M4
           map
             foo: #M3
             it: #M2
@@ -38812,12 +39316,12 @@ extension type A(int _it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          _it: #M4
-        declaredGetters
           _it: #M5
+        declaredGetters
+          _it: #M6
         declaredMethods
           foo: #M3
-        interface
+        interface: #M7
           map
             foo: #M3
 ''',
@@ -38843,7 +39347,7 @@ extension type A(int it) {
           it: #M2
         declaredMethods
           foo: #M3
-        interface
+        interface: #M4
           map
             foo: #M3
             it: #M2
@@ -38859,15 +39363,15 @@ extension type A(double it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          it: #M4
-        declaredGetters
           it: #M5
+        declaredGetters
+          it: #M6
         declaredMethods
           foo: #M3
-        interface
+        interface: #M7
           map
             foo: #M3
-            it: #M5
+            it: #M6
 ''',
     );
   }
@@ -38895,7 +39399,7 @@ extension type A(int it) {
         declaredSetters
           bar=: #M5
           foo=: #M6
-        interface
+        interface: #M7
           map
             bar=: #M5
             foo=: #M6
@@ -38913,17 +39417,17 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M8
           foo: #M2
           it: #M3
         declaredGetters
           it: #M4
         declaredSetters
-          bar=: #M8
+          bar=: #M9
           foo=: #M6
-        interface
+        interface: #M10
           map
-            bar=: #M8
+            bar=: #M9
             foo=: #M6
             it: #M4
 ''',
@@ -38949,7 +39453,7 @@ extension type A<T>(int it) {
           it: #M2
         declaredMethods
           foo: #M3
-        interface
+        interface: #M4
           map
             foo: #M3
             it: #M2
@@ -38970,11 +39474,11 @@ extension type A<T>(int it) {
         declaredGetters
           it: #M2
         declaredMethods
-          bar: #M4
+          bar: #M5
           foo: #M3
-        interface
+        interface: #M6
           map
-            bar: #M4
+            bar: #M5
             foo: #M3
             it: #M2
 ''',
@@ -38996,7 +39500,7 @@ extension type A<T>(int it) {}
           it: #M1
         declaredGetters
           it: #M2
-        interface
+        interface: #M3
           map
             it: #M2
 ''',
@@ -39007,14 +39511,14 @@ extension type A<T, U>(int it) {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredExtensionTypes
-      A: #M3
+      A: #M4
         declaredFields
-          it: #M4
-        declaredGetters
           it: #M5
-        interface
+        declaredGetters
+          it: #M6
+        interface: #M7
           map
-            it: #M5
+            it: #M6
 ''',
     );
   }
@@ -39187,6 +39691,7 @@ mixin A {}
   package:test/test.dart
     declaredMixins
       A: #M0
+        interface: #M1
 ''',
       updatedCode: r'''
 mixin A {}
@@ -39197,7 +39702,9 @@ mixin B {}
   package:test/test.dart
     declaredMixins
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
 ''',
     );
   }
@@ -39219,7 +39726,7 @@ mixin A {
           a: #M1
         declaredGetters
           a: #M2
-        interface
+        interface: #M3
           map
             a: #M2
 ''',
@@ -39236,14 +39743,14 @@ mixin A {
       A: #M0
         declaredFields
           a: #M1
-          b: #M3
+          b: #M4
         declaredGetters
           a: #M2
-          b: #M4
-        interface
+          b: #M5
+        interface: #M6
           map
             a: #M2
-            b: #M4
+            b: #M5
 ''',
     );
   }
@@ -39265,7 +39772,7 @@ mixin A {
           a: #M1
         declaredGetters
           a: #M2
-        interface
+        interface: #M3
           map
             a: #M2
 ''',
@@ -39280,12 +39787,12 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          a: #M3
-        declaredGetters
           a: #M4
-        interface
+        declaredGetters
+          a: #M5
+        interface: #M6
           map
-            a: #M4
+            a: #M5
 ''',
     );
   }
@@ -39307,7 +39814,7 @@ mixin A {
           a: #M1
         declaredGetters
           a: #M2
-        interface
+        interface: #M3
           map
             a: #M2
 ''',
@@ -39325,7 +39832,7 @@ mixin A {
           a: #M1
         declaredGetters
           a: #M2
-        interface
+        interface: #M3
           map
             a: #M2
 ''',
@@ -39349,6 +39856,7 @@ mixin A {
           a: #M1
         declaredGetters
           a: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -39361,9 +39869,10 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          a: #M3
+          a: #M4
         declaredGetters
           a: #M2
+        interface: #M3
 ''',
     );
   }
@@ -39385,6 +39894,7 @@ mixin A {
           a: #M1
         declaredGetters
           a: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -39400,6 +39910,7 @@ mixin A {
           a: #M1
         declaredGetters
           a: #M2
+        interface: #M3
 ''',
     );
   }
@@ -39429,7 +39940,7 @@ mixin A {
         declaredSetters
           a=: #M5
           b=: #M6
-        interface
+        interface: #M7
           map
             a: #M3
             a=: #M5
@@ -39451,19 +39962,19 @@ mixin A {
       A: #M0
         declaredFields
           a: #M1
-          b: #M7
+          b: #M8
         declaredGetters
           a: #M3
-          b: #M8
+          b: #M9
         declaredSetters
           a=: #M5
-          b=: #M9
-        interface
+          b=: #M10
+        interface: #M11
           map
             a: #M3
             a=: #M5
-            b: #M8
-            b=: #M9
+            b: #M9
+            b=: #M10
 ''',
     );
   }
@@ -39485,6 +39996,7 @@ mixin A {
           _a: #M1
         declaredGetters
           _a: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -39499,13 +40011,13 @@ mixin A {
       A: #M0
         declaredFields
           _a: #M1
-          b: #M3
+          b: #M4
         declaredGetters
           _a: #M2
-          b: #M4
-        interface
+          b: #M5
+        interface: #M6
           map
-            b: #M4
+            b: #M5
 ''',
     );
   }
@@ -39527,6 +40039,7 @@ mixin A {
           _a: #M1
         declaredGetters
           _a: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -39541,10 +40054,11 @@ mixin A {
       A: #M0
         declaredFields
           _a: #M1
-          b: #M3
+          b: #M4
         declaredGetters
           _a: #M2
-          b: #M4
+          b: #M5
+        interface: #M3
 ''',
     );
   }
@@ -39568,6 +40082,7 @@ mixin A {
           _a: #M2
         declaredSetters
           _a=: #M3
+        interface: #M4
 ''',
       updatedCode: r'''
 mixin A {
@@ -39582,17 +40097,17 @@ mixin A {
       A: #M0
         declaredFields
           _a: #M1
-          b: #M4
+          b: #M5
         declaredGetters
           _a: #M2
-          b: #M5
+          b: #M6
         declaredSetters
           _a=: #M3
-          b=: #M6
-        interface
+          b=: #M7
+        interface: #M8
           map
-            b: #M5
-            b=: #M6
+            b: #M6
+            b=: #M7
 ''',
     );
   }
@@ -39616,7 +40131,7 @@ mixin A {
           a: #M2
         declaredSetters
           a=: #M3
-        interface
+        interface: #M4
           map
             a: #M2
             a=: #M3
@@ -39632,15 +40147,15 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          a: #M4
-        declaredGetters
           a: #M5
+        declaredGetters
+          a: #M6
         declaredSetters
-          a=: #M6
-        interface
+          a=: #M7
+        interface: #M8
           map
-            a: #M5
-            a=: #M6
+            a: #M6
+            a=: #M7
 ''',
     );
   }
@@ -39664,11 +40179,11 @@ mixin B implements A {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
 ''',
@@ -39686,19 +40201,19 @@ mixin B implements A {}
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredGetters
-          bar: #M5
+          bar: #M7
           foo: #M2
-        interface
+        interface: #M8
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
 ''',
     );
@@ -39723,11 +40238,11 @@ mixin B implements A<int> {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
 ''',
@@ -39745,19 +40260,19 @@ mixin B implements A<int> {}
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredGetters
-          bar: #M5
+          bar: #M7
           foo: #M2
-        interface
+        interface: #M8
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
 ''',
     );
@@ -39782,11 +40297,11 @@ mixin B on A {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
 ''',
@@ -39804,19 +40319,19 @@ mixin B on A {}
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredGetters
-          bar: #M5
+          bar: #M7
           foo: #M2
-        interface
+        interface: #M8
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
 ''',
     );
@@ -39841,11 +40356,11 @@ mixin B on A<int> {}
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo: #M2
 ''',
@@ -39863,19 +40378,19 @@ mixin B on A<int> {}
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredGetters
-          bar: #M5
+          bar: #M7
           foo: #M2
-        interface
+        interface: #M8
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar: #M5
+            bar: #M7
             foo: #M2
 ''',
     );
@@ -39903,7 +40418,7 @@ mixin A {
         declaredGetters
           bar: #M3
           foo: #M4
-        interface
+        interface: #M5
           map
             bar: #M3
             foo: #M4
@@ -39926,11 +40441,11 @@ mixin A {
           foo: #M2
         declaredGetters
           bar: #M3
-          foo: #M5
-        interface
+          foo: #M6
+        interface: #M7
           map
             bar: #M3
-            foo: #M5
+            foo: #M6
 ''',
     );
   }
@@ -39952,6 +40467,7 @@ mixin A {
           _foo: #M1
         declaredGetters
           _foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -39966,13 +40482,13 @@ mixin A {
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M3
+          bar: #M4
         declaredGetters
           _foo: #M2
-          bar: #M4
-        interface
+          bar: #M5
+        interface: #M6
           map
-            bar: #M4
+            bar: #M5
 ''',
     );
   }
@@ -39994,6 +40510,7 @@ mixin A {
           _foo: #M1
         declaredGetters
           _foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -40008,13 +40525,13 @@ mixin A {
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M3
+          bar: #M4
         declaredGetters
           _foo: #M2
-          bar: #M4
-        interface
+          bar: #M5
+        interface: #M6
           map
-            bar: #M4
+            bar: #M5
 ''',
     );
   }
@@ -40041,7 +40558,7 @@ mixin A {
         declaredGetters
           foo: #M2
             returnType: int @ dart:core
-        interface
+        interface: #M3
           map
             foo: #M2
 ''',
@@ -40058,14 +40575,14 @@ mixin A {
         superclassConstraints
           Object @ dart:core
         declaredFields
-          foo: #M3
+          foo: #M4
             type: double @ dart:core
         declaredGetters
-          foo: #M4
+          foo: #M5
             returnType: double @ dart:core
-        interface
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
 ''',
     );
   }
@@ -40087,6 +40604,7 @@ mixin A {
           foo: #M1
         declaredGetters
           foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -40100,11 +40618,12 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M3
+          bar: #M4
           foo: #M1
         declaredGetters
-          bar: #M4
+          bar: #M5
           foo: #M2
+        interface: #M3
 ''',
     );
   }
@@ -40126,7 +40645,7 @@ mixin A {
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
 ''',
@@ -40141,9 +40660,10 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
+        declaredGetters
+          foo: #M5
+        interface: #M6
 ''',
     );
   }
@@ -40165,6 +40685,7 @@ mixin A {
           foo: #M1
         declaredGetters
           foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -40177,9 +40698,10 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
+        declaredGetters
+          foo: #M5
+        interface: #M3
 ''',
     );
   }
@@ -40201,6 +40723,7 @@ mixin A {
           foo: #M1
         declaredGetters
           foo: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -40213,12 +40736,12 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M3
-        declaredGetters
           foo: #M4
-        interface
+        declaredGetters
+          foo: #M5
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
 ''',
     );
   }
@@ -40235,7 +40758,9 @@ mixin B {}
   package:test/test.dart
     declaredMixins
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A implements B {}
@@ -40245,8 +40770,10 @@ mixin B {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredMixins
-      A: #M2
-      B: #M1
+      A: #M4
+        interface: #M5
+      B: #M2
+        interface: #M3
 ''',
     );
   }
@@ -40263,7 +40790,9 @@ mixin B {}
   package:test/test.dart
     declaredMixins
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {}
@@ -40273,8 +40802,10 @@ mixin B {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredMixins
-      A: #M2
-      B: #M1
+      A: #M4
+        interface: #M5
+      B: #M2
+        interface: #M3
 ''',
     );
   }
@@ -40292,8 +40823,11 @@ mixin C {}
   package:test/test.dart
     declaredMixins
       A: #M0
-      B: #M1
-      C: #M2
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
 ''',
       updatedCode: r'''
 mixin A implements C {}
@@ -40304,9 +40838,12 @@ mixin C {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredMixins
-      A: #M3
-      B: #M1
-      C: #M2
+      A: #M6
+        interface: #M7
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
 ''',
     );
   }
@@ -40325,7 +40862,9 @@ mixin B {}
   package:test/test.dart
     declaredMixins
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 @Deprecated('0')
@@ -40338,7 +40877,9 @@ mixin B {}
   package:test/test.dart
     declaredMixins
       A: #M0
-      B: #M2
+        interface: #M1
+      B: #M4
+        interface: #M5
 ''',
     );
   }
@@ -40358,7 +40899,7 @@ mixin A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -40374,11 +40915,11 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M2
+          bar: #M3
           foo: #M1
-        interface
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
             foo: #M1
 ''',
     );
@@ -40401,11 +40942,11 @@ mixin B implements A {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
 ''',
@@ -40423,16 +40964,16 @@ mixin B implements A {}
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M5
           foo: #M1
-        interface
+        interface: #M6
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M7
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
 ''',
     );
@@ -40455,11 +40996,11 @@ mixin B implements A<int> {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
 ''',
@@ -40477,16 +41018,16 @@ mixin B implements A<int> {}
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M5
           foo: #M1
-        interface
+        interface: #M6
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M7
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
 ''',
     );
@@ -40509,11 +41050,11 @@ mixin B on A {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
 ''',
@@ -40531,16 +41072,16 @@ mixin B extends A {}
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M5
           foo: #M1
-        interface
+        interface: #M6
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M7
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
 ''',
     );
@@ -40563,11 +41104,11 @@ mixin B extends A<int> {}
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M4
           map
             foo: #M1
 ''',
@@ -40585,16 +41126,16 @@ mixin B extends A<int> {}
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M5
           foo: #M1
-        interface
+        interface: #M6
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
-      B: #M2
-        interface
+      B: #M3
+        interface: #M7
           map
-            bar: #M3
+            bar: #M5
             foo: #M1
 ''',
     );
@@ -40619,7 +41160,7 @@ mixin A {
         declaredMethods
           bar: #M1
           foo: #M2
-        interface
+        interface: #M3
           map
             bar: #M1
             foo: #M2
@@ -40639,11 +41180,11 @@ mixin A {
       A: #M0
         declaredMethods
           bar: #M1
-          foo: #M3
-        interface
+          foo: #M4
+        interface: #M5
           map
             bar: #M1
-            foo: #M3
+            foo: #M4
 ''',
     );
   }
@@ -40663,6 +41204,7 @@ mixin A {
       A: #M0
         declaredMethods
           _foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -40677,10 +41219,10 @@ mixin A {
       A: #M0
         declaredMethods
           _foo: #M1
-          bar: #M2
-        interface
+          bar: #M3
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
 ''',
     );
   }
@@ -40700,6 +41242,7 @@ mixin A {
       A: #M0
         declaredMethods
           _foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -40714,10 +41257,10 @@ mixin A {
       A: #M0
         declaredMethods
           _foo: #M1
-          bar: #M2
-        interface
+          bar: #M3
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
 ''',
     );
   }
@@ -40739,7 +41282,7 @@ mixin A {
         declaredMethods
           bar: #M1
           foo: #M2
-        interface
+        interface: #M3
           map
             bar: #M1
             foo: #M2
@@ -40756,7 +41299,7 @@ mixin A {
       A: #M0
         declaredMethods
           foo: #M2
-        interface
+        interface: #M4
           map
             foo: #M2
 ''',
@@ -40783,7 +41326,7 @@ mixin A {
           foo: #M1
             functionType: FunctionType
               returnType: int @ dart:core
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -40800,12 +41343,12 @@ mixin A {
         superclassConstraints
           Object @ dart:core
         declaredMethods
-          foo: #M2
+          foo: #M3
             functionType: FunctionType
               returnType: double @ dart:core
-        interface
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -40825,7 +41368,7 @@ mixin A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -40840,7 +41383,8 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M2
+          foo: #M3
+        interface: #M4
 ''',
     );
   }
@@ -40860,6 +41404,7 @@ mixin A {
       A: #M0
         declaredMethods
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -40872,7 +41417,8 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M2
+          foo: #M3
+        interface: #M2
 ''',
     );
   }
@@ -40892,6 +41438,7 @@ mixin A {
       A: #M0
         declaredMethods
           foo: #M1
+        interface: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -40904,10 +41451,10 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -40938,7 +41485,7 @@ mixin A<T> {
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -40958,7 +41505,7 @@ mixin A<T> {
         superclassConstraints
           Object @ dart:core
         declaredMethods
-          bar: #M2
+          bar: #M3
             functionType: FunctionType
               returnType: void
           foo: #M1
@@ -40968,9 +41515,9 @@ mixin A<T> {
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
-        interface
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
             foo: #M1
 ''',
     );
@@ -40991,7 +41538,7 @@ mixin A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -41006,10 +41553,10 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -41029,7 +41576,7 @@ mixin A {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -41044,10 +41591,10 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M2
-        interface
+          foo: #M3
+        interface: #M4
           map
-            foo: #M2
+            foo: #M3
 ''',
     );
   }
@@ -41064,7 +41611,9 @@ mixin B {}
   package:test/test.dart
     declaredMixins
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A on B {}
@@ -41074,8 +41623,10 @@ mixin B {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredMixins
-      A: #M2
-      B: #M1
+      A: #M4
+        interface: #M5
+      B: #M2
+        interface: #M3
 ''',
     );
   }
@@ -41093,8 +41644,11 @@ mixin C {}
   package:test/test.dart
     declaredMixins
       A: #M0
-      B: #M1
-      C: #M2
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
 ''',
       updatedCode: r'''
 mixin A on B {}
@@ -41105,9 +41659,12 @@ mixin C {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredMixins
-      A: #M3
-      B: #M4
-      C: #M2
+      A: #M6
+        interface: #M7
+      B: #M8
+        interface: #M9
+      C: #M4
+        interface: #M5
 ''',
     );
   }
@@ -41125,8 +41682,11 @@ mixin C {}
   package:test/test.dart
     declaredMixins
       A: #M0
-      B: #M1
-      C: #M2
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
 ''',
       updatedCode: r'''
 mixin A on C {}
@@ -41137,9 +41697,12 @@ mixin C {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredMixins
-      A: #M3
-      B: #M1
-      C: #M2
+      A: #M6
+        interface: #M7
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
 ''',
     );
   }
@@ -41155,6 +41718,7 @@ mixin _A {}
   package:test/test.dart
     declaredMixins
       _A: #M0
+        interface: #M1
 ''',
       updatedCode: r'''
 mixin _A {}
@@ -41164,8 +41728,10 @@ mixin B {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredMixins
-      B: #M1
+      B: #M2
+        interface: #M3
       _A: #M0
+        interface: #M1
 ''',
     );
   }
@@ -41182,7 +41748,9 @@ mixin B {}
   package:test/test.dart
     declaredMixins
       A: #M0
-      B: #M1
+        interface: #M1
+      B: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin B {}
@@ -41191,7 +41759,8 @@ mixin B {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredMixins
-      B: #M1
+      B: #M2
+        interface: #M3
 ''',
     );
   }
@@ -41215,11 +41784,11 @@ mixin B implements A {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
 ''',
@@ -41237,19 +41806,19 @@ mixin B implements A {}
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredSetters
-          bar=: #M5
+          bar=: #M7
           foo=: #M2
-        interface
+        interface: #M8
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
 ''',
     );
@@ -41274,11 +41843,11 @@ mixin B implements A<int> {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
 ''',
@@ -41296,19 +41865,19 @@ mixin B implements A<int> {}
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredSetters
-          bar=: #M5
+          bar=: #M7
           foo=: #M2
-        interface
+        interface: #M8
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
 ''',
     );
@@ -41333,11 +41902,11 @@ mixin B on A {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
 ''',
@@ -41355,19 +41924,19 @@ mixin B on A {}
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredSetters
-          bar=: #M5
+          bar=: #M7
           foo=: #M2
-        interface
+        interface: #M8
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
 ''',
     );
@@ -41392,11 +41961,11 @@ mixin B on A<int> {}
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M5
           map
             foo=: #M2
 ''',
@@ -41414,19 +41983,19 @@ mixin B on A<int> {}
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M6
           foo: #M1
         declaredSetters
-          bar=: #M5
+          bar=: #M7
           foo=: #M2
-        interface
+        interface: #M8
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
-      B: #M3
-        interface
+      B: #M4
+        interface: #M9
           map
-            bar=: #M5
+            bar=: #M7
             foo=: #M2
 ''',
     );
@@ -41454,7 +42023,7 @@ mixin A {
         declaredSetters
           bar=: #M3
           foo=: #M4
-        interface
+        interface: #M5
           map
             bar=: #M3
             foo=: #M4
@@ -41477,11 +42046,11 @@ mixin A {
           foo: #M2
         declaredSetters
           bar=: #M3
-          foo=: #M5
-        interface
+          foo=: #M6
+        interface: #M7
           map
             bar=: #M3
-            foo=: #M5
+            foo=: #M6
 ''',
     );
   }
@@ -41503,6 +42072,7 @@ mixin A {
           _foo: #M1
         declaredSetters
           _foo=: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -41517,13 +42087,13 @@ mixin A {
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M3
+          bar: #M4
         declaredSetters
           _foo=: #M2
-          bar=: #M4
-        interface
+          bar=: #M5
+        interface: #M6
           map
-            bar=: #M4
+            bar=: #M5
 ''',
     );
   }
@@ -41545,6 +42115,7 @@ mixin A {
           _foo: #M1
         declaredSetters
           _foo=: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -41559,13 +42130,13 @@ mixin A {
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M3
+          bar: #M4
         declaredSetters
           _foo=: #M2
-          bar=: #M4
-        interface
+          bar=: #M5
+        interface: #M6
           map
-            bar=: #M4
+            bar=: #M5
 ''',
     );
   }
@@ -41587,6 +42158,7 @@ mixin A {
           foo: #M1
         declaredSetters
           foo=: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -41600,11 +42172,12 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M3
+          bar: #M4
           foo: #M1
         declaredSetters
-          bar=: #M4
+          bar=: #M5
           foo=: #M2
+        interface: #M3
 ''',
     );
   }
@@ -41626,7 +42199,7 @@ mixin A {
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
 ''',
@@ -41641,9 +42214,10 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
+          foo=: #M5
+        interface: #M6
 ''',
     );
   }
@@ -41665,6 +42239,7 @@ mixin A {
           foo: #M1
         declaredSetters
           foo=: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -41677,12 +42252,12 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
-        interface
+          foo=: #M5
+        interface: #M6
           map
-            foo=: #M4
+            foo=: #M5
 ''',
     );
   }
@@ -41704,6 +42279,7 @@ mixin A {
           foo: #M1
         declaredSetters
           foo=: #M2
+        interface: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -41716,9 +42292,10 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
+          foo=: #M5
+        interface: #M3
 ''',
     );
   }
@@ -41745,7 +42322,7 @@ mixin A {
         declaredSetters
           foo=: #M2
             valueType: int @ dart:core
-        interface
+        interface: #M3
           map
             foo=: #M2
 ''',
@@ -41762,14 +42339,14 @@ mixin A {
         superclassConstraints
           Object @ dart:core
         declaredFields
-          foo: #M3
+          foo: #M4
             type: double @ dart:core
         declaredSetters
-          foo=: #M4
+          foo=: #M5
             valueType: double @ dart:core
-        interface
+        interface: #M6
           map
-            foo=: #M4
+            foo=: #M5
 ''',
     );
   }
@@ -41789,7 +42366,7 @@ mixin A<T> {
       A: #M0
         declaredMethods
           foo: #M1
-        interface
+        interface: #M2
           map
             foo: #M1
 ''',
@@ -41805,11 +42382,11 @@ mixin A<T> {
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M2
+          bar: #M3
           foo: #M1
-        interface
+        interface: #M4
           map
-            bar: #M2
+            bar: #M3
             foo: #M1
 ''',
     );
@@ -41826,6 +42403,7 @@ mixin A<T> {}
   package:test/test.dart
     declaredMixins
       A: #M0
+        interface: #M1
 ''',
       updatedCode: r'''
 mixin A<T, U> {}
@@ -41834,7 +42412,8 @@ mixin A<T, U> {}
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredMixins
-      A: #M1
+      A: #M2
+        interface: #M3
 ''',
     );
   }
@@ -44920,13 +45499,13 @@ import 'a.dart';
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -44976,10 +45555,11 @@ import 'a.dart';
           foo: #M1
         declaredGetters
           foo: #M2
+        interface: #M3
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -45027,10 +45607,11 @@ import 'a.dart';
       A: #M0
         declaredMethods
           foo: #M1
+        interface: #M2
   requirements
     topLevels
       dart:core
-        int: #M2
+        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -45074,6 +45655,7 @@ import 'a.dart';
   package:test/a.dart
     declaredClasses
       A: #M0
+        interface: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -45124,10 +45706,11 @@ import 'a.dart';
           foo: #M1
         declaredSetters
           foo=: #M2
+        interface: #M3
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -45179,14 +45762,14 @@ import 'a.dart';
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -45238,13 +45821,13 @@ import 'a.dart';
           foo: #M1
         declaredGetters
           foo: #M2
-        interface
+        interface: #M3
           map
             foo: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -45294,10 +45877,11 @@ import 'a.dart';
       A: #M0
         declaredMethods
           foo: #M1
+        interface: #M2
   requirements
     topLevels
       dart:core
-        int: #M2
+        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -45348,14 +45932,14 @@ import 'a.dart';
           foo: #M2
         declaredSetters
           foo=: #M3
-        interface
+        interface: #M4
           map
             foo: #M2
             foo=: #M3
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -45407,13 +45991,13 @@ import 'a.dart';
           foo: #M1
         declaredSetters
           foo=: #M2
-        interface
+        interface: #M3
           map
             foo=: #M2
   requirements
     topLevels
       dart:core
-        int: #M3
+        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -45463,6 +46047,7 @@ import 'a.dart';
       A: #M0
         declaredConstructors
           named: #M1
+        interface: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart

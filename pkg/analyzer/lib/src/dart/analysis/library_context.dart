@@ -218,7 +218,6 @@ class LibraryContext {
                 inputLibraryManifests: inputLibraryManifests,
               );
             });
-            globalResultRequirements = null;
             linkedBytes = linkResult.resolutionBytes;
 
             var newLibraryManifests = <Uri, LibraryManifest>{};
@@ -235,6 +234,7 @@ class LibraryContext {
               elementFactory: elementFactory,
               libraryUriSet: cycle.libraryUris,
             );
+            globalResultRequirements = null;
             requirements.removeReqForLibs(cycle.libraryUris);
 
             bundleEntry = LinkedBundleEntry(

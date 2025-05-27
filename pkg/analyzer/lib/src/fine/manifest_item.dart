@@ -12,6 +12,7 @@ import 'package:analyzer/src/fine/manifest_type.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 class ClassItem extends InterfaceItem<ClassElementImpl2> {
@@ -987,8 +988,16 @@ class ManifestAnnotation {
 /// type. So, any such code depends on the header of the class, so includes
 /// the type arguments for the class that declares the inherited member.
 class ManifestInterface {
+  /// The ID of the interface, stays the same if all information in the
+  /// interface is the same.
+  ManifestItemId id;
+
   /// The map of names to their IDs in the interface.
-  final Map<LookupName, ManifestItemId> map;
+  Map<LookupName, ManifestItemId> map;
+
+  /// We move [map] into here during building the manifest, so that we can
+  /// compare after building, and decide if [id] should be updated.
+  Map<LookupName, ManifestItemId> mapPrevious = {};
 
   /// Key: IDs of method declarations.
   /// Value: ID assigned last time.
@@ -999,14 +1008,23 @@ class ManifestInterface {
   /// we can fill [combinedIds] with new entries.
   Map<ManifestItemIdList, ManifestItemId> combinedIdsTemp = {};
 
-  ManifestInterface({required this.map, required this.combinedIds});
+  ManifestInterface({
+    required this.id,
+    required this.map,
+    required this.combinedIds,
+  });
 
   factory ManifestInterface.empty() {
-    return ManifestInterface(map: {}, combinedIds: {});
+    return ManifestInterface(
+      id: ManifestItemId.generate(),
+      map: {},
+      combinedIds: {},
+    );
   }
 
   factory ManifestInterface.read(SummaryDataReader reader) {
     return ManifestInterface(
+      id: ManifestItemId.read(reader),
       map: reader.readLookupNameToIdMap(),
       combinedIds: reader.readMap(
         readKey: () => ManifestItemIdList.read(reader),
@@ -1016,16 +1034,25 @@ class ManifestInterface {
   }
 
   void afterUpdate() {
+    const mapEquality = MapEquality<LookupName, ManifestItemId>();
+    if (!mapEquality.equals(map, mapPrevious)) {
+      id = ManifestItemId.generate();
+    }
+    mapPrevious = {};
+
     combinedIdsTemp = {};
   }
 
   void beforeUpdating() {
-    map.clear();
+    mapPrevious = map;
+    map = {};
+
     combinedIdsTemp = combinedIds;
     combinedIds = {};
   }
 
   void write(BufferedSink sink) {
+    id.write(sink);
     map.write(sink);
     sink.writeMap(
       combinedIds,
