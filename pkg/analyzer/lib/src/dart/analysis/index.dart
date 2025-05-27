@@ -861,6 +861,41 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    var element = _getActualConstructorElement(node.element?.baseElement);
+    recordRelation(
+      element,
+      IndexRelationKind.IS_INVOKED_BY,
+      node.constructorName,
+      true,
+    );
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    var name = node.memberName;
+    var element = name.element;
+    recordRelation(element, IndexRelationKind.IS_INVOKED_BY, name, true);
+    node.typeArguments?.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    IndexRelationKind kind;
+    var element = node.propertyName.element;
+    if (element is ConstructorElementMixin2) {
+      element = _getActualConstructorElement(element);
+      kind = IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF;
+    } else {
+      kind = IndexRelationKind.IS_REFERENCED_BY;
+    }
+    recordRelation(element, kind, node.propertyName, true);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     var constructorElement = node.constructorElement2;
     if (constructorElement != null) {
