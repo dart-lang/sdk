@@ -20,7 +20,7 @@ namespace dart {
 
 // The max page size on all supported architectures. Used to determine
 // the alignment of load segments, so that they are guaranteed page-aligned,
-// and no ELF section or segment should have a larger alignment.
+// and no shared object section or segment should have a larger alignment.
 #if defined(DART_TARGET_OS_LINUX) && defined(TARGET_ARCH_ARM64)
 // Some Linux distributions on ARM64 select 64 KB page size.
 // Follow LLVM (https://reviews.llvm.org/D25079) and set maximum page size

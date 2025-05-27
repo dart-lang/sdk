@@ -71,6 +71,7 @@ main() {
     "Dart_CreateAppAOTSnapshotAsAssembly",
     "Dart_CreateAppAOTSnapshotAsElf",
     "Dart_CreateAppAOTSnapshotAsElfs",
+    "Dart_CreateAppAOTSnapshotAsBinary",
     "Dart_CreateAppJITSnapshotAsBlobs",
     "Dart_CreateIsolateGroup",
     "Dart_CreateIsolateGroupFromKernel",

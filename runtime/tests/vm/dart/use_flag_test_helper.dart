@@ -173,20 +173,23 @@ Future<void> stripSnapshot(
   await run(strip, <String>['-o', strippedPath, snapshotPath]);
 }
 
-Future<ProcessResult> runHelper(String executable, List<String> args) async {
+Future<ProcessResult> runHelper(
+  String executable,
+  List<String> args, {
+  bool printStdout = true,
+  bool printStderr = true,
+}) async {
   print('Running $executable ${args.join(' ')}');
 
   final result = await Process.run(executable, args);
   print('Subcommand terminated with exit code ${result.exitCode}.');
-  if (result.stdout.isNotEmpty) {
+  if (printStdout && result.stdout.isNotEmpty) {
     print('Subcommand stdout:');
     print(result.stdout);
   }
-  if (result.exitCode != 0) {
-    if (result.stderr.isNotEmpty) {
-      print('Subcommand stderr:');
-      print(result.stderr);
-    }
+  if (printStderr && result.stderr.isNotEmpty) {
+    print('Subcommand stderr:');
+    print(result.stderr);
   }
 
   return result;
@@ -204,6 +207,19 @@ Future<bool> testExecutable(String executable) async {
 
 Future<void> run(String executable, List<String> args) async {
   final result = await runHelper(executable, args);
+
+  if (result.exitCode != 0) {
+    throw 'Command failed with unexpected exit code (was ${result.exitCode})';
+  }
+}
+
+Future<void> runSilent(String executable, List<String> args) async {
+  final result = await runHelper(
+    executable,
+    args,
+    printStdout: false,
+    printStderr: false,
+  );
 
   if (result.exitCode != 0) {
     throw 'Command failed with unexpected exit code (was ${result.exitCode})';

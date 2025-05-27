@@ -166,6 +166,8 @@ vm_sources = [
   "log.h",
   "longjump.cc",
   "longjump.h",
+  "mach_o.cc",
+  "mach_o.h",
   "megamorphic_cache_table.cc",
   "megamorphic_cache_table.h",
   "memory_region.cc",

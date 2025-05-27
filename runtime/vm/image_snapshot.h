@@ -91,6 +91,10 @@ class Image : ValueObject {
   // Only valid for instructions images from precompiled snapshots.
   bool compiled_to_elf() const;
 
+  // Returns whether this instructions section was directly compiled to MachO.
+  // Only valid for instructions images from precompiled snapshots.
+  bool compiled_to_macho() const;
+
  private:
   // For snapshots directly compiled to a shared object, returns a pointer to
   // the beginning of the build id container. Otherwise returns nullptr;

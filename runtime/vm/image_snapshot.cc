@@ -7,6 +7,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/elf.h"
+#include "platform/mach_o.h"
 #include "vm/bss_relocs.h"
 #include "vm/class_id.h"
 #include "vm/compiler/runtime_api.h"
@@ -106,6 +107,8 @@ const uint8_t* Image::build_id() const {
   if (compiled_to_elf()) {
     auto* const note = reinterpret_cast<const elf::Note*>(start);
     return note->data + note->name_size;
+  } else if (compiled_to_macho()) {
+    return reinterpret_cast<const mach_o::uuid_command*>(start)->uuid;
   }
 #endif
   return nullptr;
@@ -119,6 +122,8 @@ intptr_t Image::build_id_length() const {
   if (compiled_to_elf()) {
     auto const note = reinterpret_cast<const elf::Note*>(start);
     return note->description_size;
+  } else if (compiled_to_macho()) {
+    return sizeof(mach_o::uuid_command::uuid);
   }
 #endif
   return 0;
@@ -148,12 +153,25 @@ const uint8_t* Image::shared_object_start() const {
 bool Image::compiled_to_elf() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (!compiled_to_shared_object()) return false;
-  constexpr intptr_t len = ARRAY_SIZE(elf::ELFMAG);
-  const uint8_t* so_start = shared_object_start();
-  for (intptr_t i = 0; i < len; ++i) {
-    if (so_start[i] != elf::ELFMAG[i]) return false;
+  auto* const ident =
+      reinterpret_cast<const elf::ElfHeader*>(shared_object_start())->ident;
+  for (size_t i = 0; i < ARRAY_SIZE(elf::ELFMAG); ++i) {
+    if (ident[i] != elf::ELFMAG[i]) return false;
   }
   return true;
+#else
+  return false;
+#endif
+}
+
+bool Image::compiled_to_macho() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (!compiled_to_shared_object()) return false;
+  auto const magic =
+      reinterpret_cast<const mach_o::mach_header*>(shared_object_start())
+          ->magic;
+  return magic == mach_o::MH_MAGIC || magic == mach_o::MH_CIGAM ||
+         magic == mach_o::MH_MAGIC_64 || magic == mach_o::MH_CIGAM_64;
 #else
   return false;
 #endif
