@@ -1215,20 +1215,20 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 }
 
 ObjectPtr Compiler::CompileFunction(Thread* thread, const Function& function) {
-  FATAL("Attempt to compile function %s", function.ToCString());
+  FATAL("Attempt to compile function %s", function.ToFullyQualifiedCString());
   return Error::null();
 }
 
 ErrorPtr Compiler::EnsureUnoptimizedCode(Thread* thread,
                                          const Function& function) {
-  FATAL("Attempt to compile function %s", function.ToCString());
+  FATAL("Attempt to compile function %s", function.ToFullyQualifiedCString());
   return Error::null();
 }
 
 ObjectPtr Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
-  FATAL("Attempt to compile function %s", function.ToCString());
+  FATAL("Attempt to compile function %s", function.ToFullyQualifiedCString());
   return Error::null();
 }
 

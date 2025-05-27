@@ -3569,14 +3569,7 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
 //   Arg0: function object.
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   ASSERT(thread->IsDartMutatorThread());
-  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  FATAL("Precompilation missed function %s (%s, %s)\n",
-        function.ToLibNamePrefixedQualifiedCString(),
-        function.token_pos().ToCString(),
-        Function::KindToCString(function.kind()));
-#else
   {
     // Another isolate's mutator thread may have created [function] and
     // published it via an ICData, MegamorphicCache etc. Entering the lock below
@@ -3586,9 +3579,11 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
     SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   }
 
+  // After the barrier, since this will read the object's header.
+  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+
   // Will throw if compilation failed (e.g. with compile-time error).
   function.EnsureHasCode();
-#endif
 }
 
 // This is called from function that needs to be optimized.
