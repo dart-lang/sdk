@@ -3434,12 +3434,21 @@
           "fileset": "fuzzer"
         },
         {
-          "name": "dartfuzz - flags",
+          "name": "dartfuzz - dart2js",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "runtime/tools/dartfuzz/flag_fuzzer.dart"
+            "runtime/tools/dartfuzz/flag_fuzzer_dart2js.dart"
           ],
-          "shards": 50,
+          "shards": 25,
+          "fileset": "fuzzer"
+        },
+        {
+          "name": "dartfuzz - dart2wasm",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "runtime/tools/dartfuzz/flag_fuzzer_dart2wasm.dart"
+          ],
+          "shards": 25,
           "fileset": "fuzzer"
         }
       ]
