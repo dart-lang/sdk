@@ -260,6 +260,9 @@ class LibraryBuilder {
   }
 
   void declare(String name, Reference reference) {
+    // If the element name is missing, don't attempt adding it.
+    assert(name.isNotEmpty);
+
     _declaredReferences[name] = reference;
   }
 

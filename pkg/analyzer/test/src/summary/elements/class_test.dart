@@ -13085,6 +13085,7 @@ library
   }
 
   test_class_missingName() async {
+    configuration.withExportScope = true;
     var library = await buildLibrary(r'''
 class {}
 ''');
@@ -13110,6 +13111,8 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::0::@constructor::new
+  exportedReferences
+  exportNamespace
 ''');
   }
 
