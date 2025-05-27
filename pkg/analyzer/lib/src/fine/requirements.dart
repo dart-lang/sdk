@@ -791,9 +791,7 @@ class RequirementsManifest {
 
     for (var libUri in bundleLibraryUriList) {
       topLevels.remove(libUri);
-    }
-
-    for (var libUri in bundleLibraryUriList) {
+      instances.remove(libUri);
       interfaces.remove(libUri);
     }
   }

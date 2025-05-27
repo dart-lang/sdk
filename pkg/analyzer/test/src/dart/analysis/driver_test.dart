@@ -6656,10 +6656,6 @@ class B extends A {
     instances
       package:test/a.dart
         A
-      package:test/test.dart
-        B
-          requestedMethods
-            noSuchMethod: <null>
     interfaces
       package:test/a.dart
         A
@@ -6738,10 +6734,6 @@ class A {
     instances
       package:test/a.dart
         A
-      package:test/test.dart
-        B
-          requestedMethods
-            noSuchMethod: <null>
     interfaces
       package:test/a.dart
         A
@@ -8740,16 +8732,6 @@ void f (B b) {
     topLevels
       dart:core
         int: #M5
-    instances
-      package:test/test.dart
-        A
-          requestedFields
-            _foo: #M1
-          requestedMethods
-            noSuchMethod: <null>
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -8799,16 +8781,6 @@ void f (B b) {
     topLevels
       dart:core
         String: #M8
-    instances
-      package:test/test.dart
-        A
-          requestedFields
-            _foo: #M6
-          requestedMethods
-            noSuchMethod: <null>
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
     );
@@ -10425,15 +10397,6 @@ void f (B b) {
     topLevels
       dart:core
         int: #M4
-    instances
-      package:test/test.dart
-        A
-          requestedMethods
-            noSuchMethod: <null>
-          allDeclaredMethods: #M1
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -10481,15 +10444,6 @@ void f (B b) {
     topLevels
       dart:core
         String: #M6
-    instances
-      package:test/test.dart
-        A
-          requestedMethods
-            noSuchMethod: <null>
-          allDeclaredMethods: #M5
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
     );
@@ -10548,15 +10502,6 @@ void f(B b) {
     topLevels
       dart:core
         int: #M4
-    instances
-      package:test/test.dart
-        A
-          requestedMethods
-            noSuchMethod: <null>
-          allDeclaredMethods: #M1
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -10602,15 +10547,6 @@ void f(B b) {
     topLevels
       dart:core
         double: #M6
-    instances
-      package:test/test.dart
-        A
-          requestedMethods
-            noSuchMethod: <null>
-          allDeclaredMethods: #M5
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
     );
@@ -10680,12 +10616,6 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M0
-    instances
-      package:test/test.dart
-        A
-          requestedMethods
-            noSuchMethod: <null>
-          allDeclaredMethods: #M2
 [status] idle
 ''',
       updateFiles: () {
@@ -10746,14 +10676,6 @@ void f(B b) {
             _foo: <null>
           requestedMethods
             _foo: <null>
-      package:test/test.dart
-        A
-          requestedGetters
-            _foo: <null>
-          requestedMethods
-            _foo: <null>
-            noSuchMethod: <null>
-          allDeclaredMethods: #M4
 [status] idle
 ''',
     );
@@ -11779,16 +11701,6 @@ void f (B b) {
     topLevels
       dart:core
         int: #M5
-    instances
-      package:test/test.dart
-        A
-          requestedFields
-            _foo: #M1
-          requestedMethods
-            noSuchMethod: <null>
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -11838,16 +11750,6 @@ void f (B b) {
     topLevels
       dart:core
         String: #M8
-    instances
-      package:test/test.dart
-        A
-          requestedFields
-            _foo: #M6
-          requestedMethods
-            noSuchMethod: <null>
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
     );
