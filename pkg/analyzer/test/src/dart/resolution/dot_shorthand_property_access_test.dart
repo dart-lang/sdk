@@ -652,6 +652,38 @@ Function fn() {
     );
   }
 
+  test_tearOff_constructor_generic() async {
+    await assertNoErrorsInCode(r'''
+class C<T> {
+  T t;
+  C(this.t);
+  C.id(this.t);
+}
+
+void main() {
+  Object? o = C<int>(0);
+  if (o is C<int>) {
+    o = .new;
+    if (o is Function) {
+       o(1).t;
+    }
+  }
+}
+''');
+
+    var dotShorthand = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(dotShorthand, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: new
+    element: <testLibraryFragment>::@class::C::@constructor::new#element
+    staticType: C<T> Function(T)
+  correspondingParameter: <null>
+  staticType: C<T> Function(T)
+''');
+  }
+
   test_tearOff_constructor_new() async {
     await assertNoErrorsInCode('''
 void main() {

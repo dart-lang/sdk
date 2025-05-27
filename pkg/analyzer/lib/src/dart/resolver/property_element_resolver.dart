@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -39,8 +40,9 @@ class PropertyElementResolver with ScopeHelpers {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   PropertyElementResolverResult resolveDotShorthand(
-    DotShorthandPropertyAccessImpl node,
-  ) {
+    DotShorthandPropertyAccessImpl node, {
+    required TypeImpl contextType,
+  }) {
     if (_resolver.isDotShorthandContextEmpty) {
       assert(
         false,
@@ -74,6 +76,35 @@ class PropertyElementResolver with ScopeHelpers {
                   .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
             );
           }
+        }
+
+        // Infer type parameters.
+        var elementToInfer = _resolver.inferenceHelper
+            .constructorElementToInfer(
+              typeElement: context.element3,
+              constructorName: identifier,
+              definingLibrary: _resolver.definingLibrary,
+            );
+        if (elementToInfer != null &&
+            elementToInfer.typeParameters2.isNotEmpty) {
+          var inferred =
+              _resolver.inferenceHelper.inferTearOff(
+                    node,
+                    identifier,
+                    elementToInfer.asType,
+                    contextType: contextType,
+                  )
+                  as FunctionType;
+          var inferredType = inferred.returnType;
+          var constructorElement = ConstructorMember.from2(
+            elementToInfer.element2.baseElement,
+            inferredType as InterfaceType,
+          );
+          node.propertyName.element = constructorElement.baseElement;
+          return PropertyElementResolverResult(
+            readElementRequested2: node.propertyName.element,
+            getType: inferred.returnType,
+          );
         }
 
         return PropertyElementResolverResult(

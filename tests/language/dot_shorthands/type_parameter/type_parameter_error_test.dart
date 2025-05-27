@@ -58,8 +58,10 @@ void main() {
   //                   ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION
   ET e = .new<int>;
-  //     ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION
+  //     ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //      ^
   // [cfe] A dot shorthand constructor invocation can't have type arguments.
+  //         ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION
 }
