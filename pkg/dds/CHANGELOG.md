@@ -1,3 +1,6 @@
+# 5.0.3
+- [DAP] Stack frames with dots in paths will now be parsed and have locations attached to `OutputEvents`s.
+
 # 5.0.2
 - [DAP] Handle possible race condition when interacting with web applications
   that can cause an `RPCError` to be thrown if the application's isolate is
