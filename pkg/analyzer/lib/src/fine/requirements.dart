@@ -202,11 +202,14 @@ class InstanceItemRequirements {
   final Map<LookupName, ManifestItemId?> requestedSetters;
   final Map<LookupName, ManifestItemId?> requestedMethods;
 
+  ManifestItemIdList? allDeclaredMethods;
+
   InstanceItemRequirements({
     required this.requestedFields,
     required this.requestedGetters,
     required this.requestedSetters,
     required this.requestedMethods,
+    required this.allDeclaredMethods,
   });
 
   factory InstanceItemRequirements.empty() {
@@ -215,6 +218,7 @@ class InstanceItemRequirements {
       requestedGetters: {},
       requestedSetters: {},
       requestedMethods: {},
+      allDeclaredMethods: null,
     );
   }
 
@@ -224,6 +228,7 @@ class InstanceItemRequirements {
       requestedGetters: reader.readNameToIdMap(),
       requestedSetters: reader.readNameToIdMap(),
       requestedMethods: reader.readNameToIdMap(),
+      allDeclaredMethods: ManifestItemIdList.readOptional(reader),
     );
   }
 
@@ -232,6 +237,7 @@ class InstanceItemRequirements {
     sink.writeNameToIdMap(requestedGetters);
     sink.writeNameToIdMap(requestedSetters);
     sink.writeNameToIdMap(requestedMethods);
+    allDeclaredMethods.writeOptional(sink);
   }
 }
 
@@ -320,6 +326,8 @@ class RequirementsManifest {
   final Map<Uri, Map<LookupName, InterfaceItemRequirements>> interfaces = {};
 
   final List<LibraryExportRequirements> exportRequirements = [];
+
+  int _recordingLockLevel = 0;
 
   RequirementsManifest();
 
@@ -488,6 +496,19 @@ class RequirementsManifest {
               methodName: name,
               expectedId: expectedId,
               actualId: currentId,
+            );
+          }
+        }
+
+        if (requirements.allDeclaredMethods case var required?) {
+          var actualItems = instanceItem.declaredMethods.values;
+          var actualIds = actualItems.map((item) => item.id);
+          if (!required.equalToIterable(actualIds)) {
+            return InstanceMethodIdsMismatch(
+              libraryUri: libraryUri,
+              interfaceName: instanceName,
+              expectedIds: required,
+              actualIds: ManifestItemIdList(actualIds.toList()),
             );
           }
         }
@@ -666,6 +687,24 @@ class RequirementsManifest {
     requirements.requestedSetters[methodName] = methodId;
   }
 
+  void record_instanceElement_methods({required InstanceElementImpl2 element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var itemRequirements = _getInstanceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    requirements.allDeclaredMethods ??= ManifestItemIdList(
+      item.declaredMethods.values.map((item) => item.id).toList(),
+    );
+  }
+
   /// Record that a member with [nameObj] was requested from the interface
   /// of [element]. The [methodElement] is used for consistency checking.
   void record_interface_getMember({
@@ -752,9 +791,7 @@ class RequirementsManifest {
 
     for (var libUri in bundleLibraryUriList) {
       topLevels.remove(libUri);
-    }
-
-    for (var libUri in bundleLibraryUriList) {
+      instances.remove(libUri);
       interfaces.remove(libUri);
     }
   }
@@ -971,6 +1008,25 @@ class _InterfaceItemWithRequirements {
     required this.item,
     required this.requirements,
   });
+}
+
+extension RequirementsManifestExtension on RequirementsManifest? {
+  T withoutRecording<T>({
+    required String reason,
+    required T Function() operation,
+  }) {
+    var self = this;
+    if (self == null) {
+      return operation();
+    } else {
+      self._recordingLockLevel++;
+      try {
+        return operation();
+      } finally {
+        self._recordingLockLevel--;
+      }
+    }
+  }
 }
 
 extension _BufferedSinkExtension on BufferedSink {

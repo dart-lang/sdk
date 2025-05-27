@@ -561,6 +561,33 @@ package:test/aa.dart
     );
   }
 
+  test_scope_hasPrefix_lookup_ambiguous_missingName() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+class {}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart' as prefix;
+import 'b.dart' as prefix;
+''');
+
+    _assertScopeLookups(
+      library,
+      [Uri.parse('package:test/test.dart')],
+      ['prefix.A'],
+      r'''
+package:test/test.dart
+  prefix.A
+    prefix: <testLibraryFragment>::@prefix2::prefix
+    getter: <null>
+''',
+    );
+  }
+
   test_scope_hasPrefix_lookup_ambiguous_notSdk_both() async {
     newFile('$testPackageLibPath/a.dart', r'''
 var foo = 0;

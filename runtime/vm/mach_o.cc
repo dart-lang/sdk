@@ -550,8 +550,9 @@ class MachOSection : public MachOContents {
         portions_(zone, 0) {
     ASSERT(strlen(name) <= sizeof(SectionType::sectname));
     ASSERT(Utils::IsPowerOfTwo(alignment));
-    ASSERT_EQUAL(type & mach_o::SECTION_TYPE, type);
-    ASSERT_EQUAL(attributes & mach_o::SECTION_ATTRIBUTES, attributes);
+    ASSERT_EQUAL(type & mach_o::SECTION_TYPE, static_cast<uint32_t>(type));
+    ASSERT_EQUAL(attributes & mach_o::SECTION_ATTRIBUTES,
+                 static_cast<uint32_t>(attributes));
     if (type == mach_o::S_ZEROFILL && type == mach_o::S_GB_ZEROFILL) {
       ASSERT(!has_contents);
     }
@@ -673,7 +674,8 @@ class MachOSection : public MachOContents {
 #if defined(TARGET_ARCH_IS_64_BIT)
     stream->Write32(0);  // reserved3
 #endif
-    ASSERT_EQUAL(stream->Position(), start + HeaderInfoSize());
+    ASSERT_EQUAL(stream->Position(),
+                 static_cast<intptr_t>(start + HeaderInfoSize()));
   }
 
   const char* const name_;
@@ -1599,8 +1601,10 @@ class MachOHeader : public MachOContents {
 #elif defined(TARGET_ARCH_ARM)
     return mach_o::CPU_TYPE_ARM;
 #else
-    // No constant currently for this architecture.
-    UNIMPLEMENTED();
+    // This architecture doesn't have specific constants defined in
+    // <mach/machine.h>, so just mark it as ANY since the snapshot
+    // header check also catches architecture mismatches.
+    return mach_o::CPU_TYPE_ANY;
 #endif
   }
 
@@ -1614,8 +1618,10 @@ class MachOHeader : public MachOContents {
 #elif defined(TARGET_ARCH_ARM)
     return mach_o::CPU_SUBTYPE_ARM_ALL;
 #else
-    // No constant currently for this architecture.
-    UNIMPLEMENTED();
+    // This architecture doesn't have specific constants defined in
+    // <mach/machine.h>, so just mark it as ANY since the snapshot
+    // header check also catches architecture mismatches.
+    return mach_o::CPU_SUBTYPE_ANY;
 #endif
   }
 
@@ -1645,7 +1651,8 @@ class MachOHeader : public MachOContents {
       const intptr_t load_start = stream->Position();
       ASSERT_EQUAL(load_start, start + command->header_offset());
       command->WriteLoadCommand(stream);
-      ASSERT_EQUAL(stream->Position() - load_start, command->cmdsize());
+      ASSERT_EQUAL(stream->Position() - load_start,
+                   static_cast<intptr_t>(command->cmdsize()));
     }
   }
 

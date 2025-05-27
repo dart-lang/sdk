@@ -4535,7 +4535,10 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   MetadataImpl get metadata2 => firstFragment.metadata2;
 
   @override
+  @trackedDirectlyExpensive
   List<MethodElementImpl2> get methods {
+    globalResultRequirements?.record_instanceElement_methods(element: this);
+
     return firstFragment.methods.map((e) => e.asElement2).toList();
   }
 
@@ -4613,7 +4616,15 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       name: name,
     );
 
-    return methods.firstWhereOrNull((e) => e.lookupName == name);
+    return globalResultRequirements.withoutRecording(
+      reason: r'''
+The result depends only on the requested method, which we have already
+recorded above.
+''',
+      operation: () {
+        return methods.firstWhereOrNull((e) => e.lookupName == name);
+      },
+    );
   }
 
   @Deprecated('Use getMethod instead')

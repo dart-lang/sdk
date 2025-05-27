@@ -140,6 +140,16 @@ class BundleRequirementsPrinter {
             _writeNamedId,
           );
         });
+
+        sink.withIndent(() {
+          var idList = instanceEntry.value.allDeclaredMethods;
+          if (idList != null) {
+            if (idList.ids.isNotEmpty) {
+              var idListStr = idList.asString(idProvider);
+              sink.writelnWithIndent('allDeclaredMethods: $idListStr');
+            }
+          }
+        });
       });
     });
   }
@@ -485,6 +495,14 @@ class DriverEventsPrinter {
           'methodName': failure.methodName.asString,
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
+        });
+      case InstanceMethodIdsMismatch():
+        sink.writelnWithIndent('instanceMethodIdsMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'interfaceName': failure.interfaceName.asString,
+          'expectedIds': failure.expectedIds.asString(idProvider),
+          'actualIds': failure.actualIds.asString(idProvider),
         });
       case InterfaceConstructorIdMismatch():
         sink.writelnWithIndent('interfaceConstructorIdMismatch');
@@ -1580,6 +1598,12 @@ final class SchedulerStatusEvent extends DriverEvent {
 
 class UnitElementPrinterConfiguration {
   List<Element> Function(LibraryFragment) elementSelector = (_) => [];
+}
+
+extension on ManifestItemIdList {
+  String asString(IdProvider idProvider) {
+    return ids.map((id) => idProvider.manifestId(id)).join(' ');
+  }
 }
 
 extension on LibraryCycle {

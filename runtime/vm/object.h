@@ -259,7 +259,7 @@ class BaseTextBuffer;
   OBJECT_SERVICE_SUPPORT(object)                                               \
   friend class Object;
 
-extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
+extern "C" void DLRT_ExitSafepoint();
 
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
   OBJECT_IMPLEMENTATION(object, super);                                        \
@@ -270,7 +270,7 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
   SNAPSHOT_SUPPORT(object)                                                     \
   friend class StackFrame;                                                     \
   friend class Thread;                                                         \
-  friend void DFLRT_ExitSafepoint(NativeArguments __unusable_);
+  friend void DLRT_ExitSafepoint();
 
 // This macro is used to denote types that do not have a sub-type.
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, rettype, super)        \
@@ -299,7 +299,7 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
   friend class Object;                                                         \
   friend class StackFrame;                                                     \
   friend class Thread;                                                         \
-  friend void DFLRT_ExitSafepoint(NativeArguments __unusable_);
+  friend void DLRT_ExitSafepoint();
 
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION(object, super)                        \
   FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, object, super)

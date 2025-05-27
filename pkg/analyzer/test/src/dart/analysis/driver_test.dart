@@ -6654,10 +6654,8 @@ class B extends A {
         A: #M0
         named: <null>
     instances
-      package:test/test.dart
-        B
-          requestedMethods
-            noSuchMethod: <null>
+      package:test/a.dart
+        A
     interfaces
       package:test/a.dart
         A
@@ -6734,10 +6732,8 @@ class A {
         A: #M0
         named: <null>
     instances
-      package:test/test.dart
-        B
-          requestedMethods
-            noSuchMethod: <null>
+      package:test/a.dart
+        A
     interfaces
       package:test/a.dart
         A
@@ -7832,6 +7828,131 @@ class A {
     );
   }
 
+  test_dependency_class_declared_methods_add() async {
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.methods;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface
+          map
+            foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          allDeclaredMethods: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M2
+          foo: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
+  requirements
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdsMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expectedIds: #M1
+    actualIds: #M1 #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          allDeclaredMethods: #M1 #M2
+[status] idle
+''',
+    );
+  }
+
   test_dependency_class_declared_setter() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
@@ -8611,16 +8732,6 @@ void f (B b) {
     topLevels
       dart:core
         int: #M5
-    instances
-      package:test/test.dart
-        A
-          requestedFields
-            _foo: #M1
-          requestedMethods
-            noSuchMethod: <null>
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -8670,16 +8781,6 @@ void f (B b) {
     topLevels
       dart:core
         String: #M8
-    instances
-      package:test/test.dart
-        A
-          requestedFields
-            _foo: #M6
-          requestedMethods
-            noSuchMethod: <null>
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
     );
@@ -10296,14 +10397,6 @@ void f (B b) {
     topLevels
       dart:core
         int: #M4
-    instances
-      package:test/test.dart
-        A
-          requestedMethods
-            noSuchMethod: <null>
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -10351,14 +10444,6 @@ void f (B b) {
     topLevels
       dart:core
         String: #M6
-    instances
-      package:test/test.dart
-        A
-          requestedMethods
-            noSuchMethod: <null>
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
     );
@@ -10417,14 +10502,6 @@ void f(B b) {
     topLevels
       dart:core
         int: #M4
-    instances
-      package:test/test.dart
-        A
-          requestedMethods
-            noSuchMethod: <null>
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -10470,14 +10547,6 @@ void f(B b) {
     topLevels
       dart:core
         double: #M6
-    instances
-      package:test/test.dart
-        A
-          requestedMethods
-            noSuchMethod: <null>
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
     );
@@ -10547,11 +10616,6 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M0
-    instances
-      package:test/test.dart
-        A
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -10612,13 +10676,6 @@ void f(B b) {
             _foo: <null>
           requestedMethods
             _foo: <null>
-      package:test/test.dart
-        A
-          requestedGetters
-            _foo: <null>
-          requestedMethods
-            _foo: <null>
-            noSuchMethod: <null>
 [status] idle
 ''',
     );
@@ -11644,16 +11701,6 @@ void f (B b) {
     topLevels
       dart:core
         int: #M5
-    instances
-      package:test/test.dart
-        A
-          requestedFields
-            _foo: #M1
-          requestedMethods
-            noSuchMethod: <null>
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -11703,16 +11750,6 @@ void f (B b) {
     topLevels
       dart:core
         String: #M8
-    instances
-      package:test/test.dart
-        A
-          requestedFields
-            _foo: #M6
-          requestedMethods
-            noSuchMethod: <null>
-        B
-          requestedMethods
-            noSuchMethod: <null>
 [status] idle
 ''',
     );
@@ -34958,6 +34995,119 @@ class A {
     );
   }
 
+  test_manifest_class_typeParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  void foo(T _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A<T> {
+  void foo(T _) {}
+  void bar(T _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M2
+          foo: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_typeParameters_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+''',
+      updatedCode: r'''
+class A<T, U> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M1
+''',
+    );
+  }
+
+  test_manifest_class_typeParameters_bound() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T extends num> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+''',
+      updatedCode: r'''
+class A<T extends int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M1
+''',
+    );
+  }
+
+  test_manifest_class_typeParameters_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T, U> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+''',
+      updatedCode: r'''
+class A<T> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M1
+''',
+    );
+  }
+
   test_manifest_classTypeAlias_constructors_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -37822,6 +37972,105 @@ enum A {
     );
   }
 
+  test_manifest_enum_typeParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A<T> {
+  v;
+  void foo(T _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          foo: #M5
+        interface
+          map
+            foo: #M5
+            index: #M6
+''',
+      updatedCode: r'''
+enum A<T> {
+  v;
+  void foo(T _) {}
+  void bar(T _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          bar: #M7
+          foo: #M5
+        interface
+          map
+            bar: #M7
+            foo: #M5
+            index: #M6
+''',
+    );
+  }
+
+  test_manifest_enum_typeParameters_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A<T> { v }
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+''',
+      updatedCode: r'''
+enum A<T, U> { v }
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M6
+        declaredFields
+          v: #M7
+          values: #M8
+        declaredGetters
+          v: #M9
+          values: #M10
+        interface
+          map
+            index: #M5
+''',
+    );
+  }
+
   test_manifest_enum_with_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -38166,6 +38415,64 @@ extension A on int {
         declaredSetters
           bar=: #M6
           foo=: #M4
+''',
+    );
+  }
+
+  test_manifest_extension_typeParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension A<T> on int {
+  void foo(T _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      A: #M0
+        declaredMethods
+          foo: #M1
+''',
+      updatedCode: r'''
+extension A<T> on int {
+  void foo(T _) {}
+  void bar(T _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      A: #M0
+        declaredMethods
+          bar: #M2
+          foo: #M1
+''',
+    );
+  }
+
+  test_manifest_extension_typeParameters_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension A<T> on int {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      A: #M0
+''',
+      updatedCode: r'''
+extension A<T, U> on int {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      A: #M1
 ''',
     );
   }
@@ -38619,6 +38926,95 @@ extension type A(int it) {
             bar=: #M8
             foo=: #M6
             it: #M4
+''',
+    );
+  }
+
+  test_manifest_extensionType_typeParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A<T>(int it) {
+  void foo(T _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          foo: #M3
+        interface
+          map
+            foo: #M3
+            it: #M2
+''',
+      updatedCode: r'''
+extension type A<T>(int it) {
+  void foo(T _) {}
+  void bar(T _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          bar: #M4
+          foo: #M3
+        interface
+          map
+            bar: #M4
+            foo: #M3
+            it: #M2
+''',
+    );
+  }
+
+  test_manifest_extensionType_typeParameters_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A<T>(int it) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface
+          map
+            it: #M2
+''',
+      updatedCode: r'''
+extension type A<T, U>(int it) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M3
+        declaredFields
+          it: #M4
+        declaredGetters
+          it: #M5
+        interface
+          map
+            it: #M5
 ''',
     );
   }
@@ -41374,6 +41770,71 @@ mixin A {
         interface
           map
             foo=: #M4
+''',
+    );
+  }
+
+  test_manifest_mixin_typeParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  void foo(T _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  void foo(T _) {}
+  void bar(T _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        declaredMethods
+          bar: #M2
+          foo: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_typeParameters_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+''',
+      updatedCode: r'''
+mixin A<T, U> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M1
 ''',
     );
   }
@@ -44802,6 +45263,56 @@ import 'a.dart';
             foo: #M1
           requestedGetters
             foo: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_req_instanceElement_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static int foo() {}
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.methods;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          allDeclaredMethods: #M1
 [status] idle
 ''',
     );

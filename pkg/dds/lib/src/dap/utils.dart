@@ -75,6 +75,7 @@ final _stackFrameLocationPattern =
     // Characters we consider part of a path:
     //
     //   - `\w` word characters
+    //   - `.` dots (valid in paths)
     //   - `-` dash (valid in paths and URI schemes)
     //   - `:` colons (scheme or drive letters)
     //   - `/` forward slashes (URIs)
@@ -89,7 +90,7 @@ final _stackFrameLocationPattern =
     // The whole string must end with the line/col sequence, a non-word
     // character or be the end of the line. This avoids matching some strings
     // that contain ".dart" but probably aren't valid paths, like ".dart2".
-    RegExp(r'([\w\-:\/\\%+]+\.dart)(?:(?:(?: +|:)(\d+):(\d+))|\W|$)');
+    RegExp(r'([\w\.\-:\/\\%+]+\.dart)(?:(?:(?: +|:)(\d+):(\d+))|\W|$)');
 
 /// Attempts to parse a line as a stack frame in order to read path/line/col
 /// information.

@@ -1304,6 +1304,22 @@ void f() {
 ''');
   }
 
+  test_searchReferences_ConstructorElement_dotShorthand() async {
+    await resolveTestCode('''
+class A {}
+void main() {
+  A a = .new(); // 1
+  A tearOff = .new; // 2, is also a compile-time error
+}
+''');
+    var element = findElement2.unnamedConstructor('A');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment>::@function::main
+  34 3:10 |new| INVOCATION qualified
+  61 4:16 |new| REFERENCE_BY_CONSTRUCTOR_TEAR_OFF qualified
+''');
+  }
+
   test_searchReferences_ConstructorElement_enum_named() async {
     await resolveTestCode('''
 /// [new E.named] 1
@@ -1493,6 +1509,22 @@ class A {
   123 9:10 |field| READ qualified
   150 11:5 |field| WRITE
   170 12:10 |field| WRITE qualified
+''');
+  }
+
+  test_searchReferences_FieldElement_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+  static A field = A();
+}
+void main() {
+  A a = .field; // 1
+}
+''');
+    var element = findElement2.field('field');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment>::@function::main
+  59 5:10 |field| READ qualified
 ''');
   }
 
@@ -1935,6 +1967,24 @@ class A {
   48 5:10 |m| INVOCATION qualified
   57 6:5 |m| REFERENCE
   69 7:10 |m| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_MethodElement_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+  static A method() => A();
+}
+void main() {
+  A a = .method(); // 1
+  A aa = .method; // 2, is also a compile-time error
+}
+''');
+    var element = findElement2.method('method');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment>::@function::main
+  63 5:10 |method| INVOCATION qualified
+  88 6:11 |method| REFERENCE qualified
 ''');
   }
 

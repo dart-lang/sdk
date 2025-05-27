@@ -31,8 +31,8 @@ class DartUnitFoldingComputer {
     //
     //    class Foo { [...] }
     //
-    // For if statements, they may have else/elseIfs which would result in long
-    // lines like:
+    // For if/try statements, they may have else/elseIfs which would result in
+    // long lines like:
     //
     //     if (cond) { [...] } else { [...] }
     //
@@ -521,6 +521,19 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
       FoldingKind.BLOCK,
     );
     super.visitSwitchStatement(node);
+  }
+
+  @override
+  void visitTryStatement(TryStatement node) {
+    _computer.addRegionForConditionalBlock(node.body);
+    for (var catchNode in node.catchClauses) {
+      _computer.addRegionForConditionalBlock(catchNode.body);
+    }
+    if (node.finallyBlock case var finallyNode?) {
+      _computer.addRegionForConditionalBlock(finallyNode);
+    }
+
+    super.visitTryStatement(node);
   }
 
   @override

@@ -21,6 +21,11 @@ static constexpr cpu_type_t CPU_ARCH_MASK = 0xff000000;
 // CPU with a 64-bit ABI.
 static constexpr cpu_type_t CPU_ARCH_ABI64 = 0x01000000;
 
+// Fallback for architectures without more specific constants (e.g.,
+// architectures like RISCV that MacOS doesn't run on natively).
+static constexpr cpu_type_t CPU_TYPE_ANY = -1;
+static constexpr cpu_subtype_t CPU_SUBTYPE_ANY = -1;
+
 // x86-family CPUs.
 static constexpr cpu_type_t CPU_TYPE_X86 = 7;
 static constexpr cpu_type_t CPU_TYPE_I386 = CPU_TYPE_X86;
@@ -418,7 +423,7 @@ union lc_str {
   // We don't include the in-memory pointer alternative here.
 };
 
-struct dylib {
+struct dylib_info {
   lc_str name;
   // The timestamp the library was built and copied into user.
   uint32_t timestamp;
@@ -430,7 +435,7 @@ struct dylib {
 struct dylib_command {
   uint32_t cmd;  // LC_LOAD_DYLIB and LC_ID_DYLIB among others
   uint32_t cmdsize;
-  dylib dylib;
+  dylib_info dylib;
 };
 
 struct linkedit_data_command {

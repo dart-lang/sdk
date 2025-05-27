@@ -129,6 +129,7 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
+  "ai_rev": "93a9191b6eed79d24fc5d3ec9b514f71c888fc41",
   "core_rev": "635dfa32c261ba078438b74de397f2207904ca78", # https://github.com/dart-lang/core/pull/734
   "dartdoc_rev": "e38f392163a4738a21024acd370d104e0efe72f0",
   "ecosystem_rev": "815d4ba2e7d11f8695a26f6cbe1262e3b8ff8d0d",
@@ -144,7 +145,7 @@ vars = {
   "sync_http_rev": "dc54465f07d9652875deeade643256dafa2fbc6c",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
   "test_rev": "42a6d333d96b4b0964d356b9a29ca47ccdb43691",
-  "tools_rev": "be0bd20c803377063c45904512f272fdda94e8c3",
+  "tools_rev": "a433200cf62b2da0a02602f138ae25d61b63739c",
   "vector_math_rev": "13f185f7e97d559e003f5ac79201da12f9a01049",
   "web_rev": "f1becf07db9faa56559d2844c3c6d430dc9b37de",
   "webdev_rev": "5dbb30ebc695ad2ecc01fa8eae4e0494c199e1bc",
@@ -327,6 +328,8 @@ deps = {
       Var('chromium_git') + '/external/github.com/mdn/browser-compat-data' +
       "@" + Var("browser-compat-data_tag"),
 
+  Var("dart_root") + "/third_party/pkg/ai":
+      Var("dart_git") + "ai.git" + "@" + Var("ai_rev"),
   Var("dart_root") + "/third_party/pkg/core":
       Var("dart_git") + "core.git" + "@" + Var("core_rev"),
   Var("dart_root") + "/third_party/pkg/dart_style":

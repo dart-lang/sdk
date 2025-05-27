@@ -151,6 +151,11 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
       "../utils/dtd:dtd_aot",
       "dart_tooling_daemon_aot",
     ],
+    [
+      "dart_mcp_server_aot_product",
+      "../utils/dart_mcp_server:dart_mcp_server_aot",
+      "dart_mcp_server_aot",
+    ],
   ]
 } else {
   _platform_sdk_snapshots += [

@@ -14,6 +14,7 @@
 #include "vm/compiler/compiler_state.h"
 #endif
 #include "vm/debugger.h"
+#include "vm/heap/safepoint.h"
 #include "vm/instructions.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"

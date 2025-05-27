@@ -14,7 +14,6 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
-#include "vm/runtime_entry.h"  // DartModulo.
 #include "vm/symbols.h"
 
 namespace dart {

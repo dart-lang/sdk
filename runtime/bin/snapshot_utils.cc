@@ -24,12 +24,14 @@
 
 #define LOG_SECTION_BOUNDARIES false
 
+#if !defined(USING_SIMULATOR)
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID) ||            \
     defined(DART_HOST_OS_FUCHSIA)
 #define NATIVE_SHARED_OBJECT_FORMAT_ELF 1
 #elif defined(DART_HOST_OS_MACOS)
 #define NATIVE_SHARED_OBJECT_FORMAT_MACHO 1
 #endif
+#endif  // !defined(USING_SIMULATOR)
 
 namespace dart {
 namespace bin {
@@ -192,6 +194,10 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
     DartUtils::MagicNumber magic_number,
     const char* script_name,
     const char** error) {
+#if defined(USING_SIMULATOR)
+  *error = "running on a simulated architecture";
+  return nullptr;
+#else
 #if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_MACOS)
   // On Linux and OSX, resolve the script path before passing into dlopen()
   // since dlopen will not search the filesystem for paths like 'libtest.so'.
@@ -250,6 +256,7 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
   return new DylibAppSnapshot(magic_number, library, vm_data_buffer,
                               vm_instructions_buffer, isolate_data_buffer,
                               isolate_instructions_buffer);
+#endif  // defined(USING_SIMULATOR)
 }
 
 class ElfAppSnapshot : public AppSnapshot {
