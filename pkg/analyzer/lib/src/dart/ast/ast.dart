@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// This file is partially generated, using [GenerateNodeImpl].
+/// After modifying any these annotations, run
+/// 'dart run pkg/analyzer/tool/generators/ast_generator.dart' to update.
+library;
+
 import 'dart:collection';
 import 'dart:math' as math;
 
@@ -12112,18 +12117,41 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 }
 
 class GenerateNodeImpl {
+  /// The order is important for [AstNodeImpl._childEntities].
   final List<GenerateNodeProperty> childEntitiesOrder;
 
   const GenerateNodeImpl({required this.childEntitiesOrder});
 }
 
+/// Description for a single property in the node implementation.
+///
+/// Most of these description refer to properties of the public interface,
+/// e.g. `Foo` in `class FooImpl extends BarImpl implements Baz, Foo`.
 class GenerateNodeProperty {
   final String name;
+
+  /// If `true`, then `super.name` should be generated in the constructor,
+  /// and no field or getter is generated, unless [superNullAssertOverride].
   final bool isSuper;
+
+  /// Normally [Token] properties are final, but sometimes we mutate nodes.
   final bool isTokenFinal;
+
+  /// When the property is from the public interface, its field or getter
+  /// should have `@override` annotation. But sometimes we want to have
+  /// implementation only property, not in the public interface.
   final bool withOverride;
+
+  /// To generate overrides like `Token get name => super.name!;`.
+  /// Obviously, these are always paired with [isSuper].
   final bool superNullAssertOverride;
+
+  /// Sometimes we use [Token.lexicallyFirst], and want to describe which
+  /// group of tokens to use.
   final int? tokenGroupId;
+
+  /// If the property does not exist in the public interface, we still need
+  /// to know its type.
   final Type? type;
 
   const GenerateNodeProperty(
