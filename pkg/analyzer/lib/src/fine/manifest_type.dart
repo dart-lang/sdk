@@ -219,11 +219,7 @@ final class ManifestFunctionType extends ManifestType {
     }
 
     return context.withTypeParameters(type.typeParameters, () {
-      if (!ManifestTypeParameter.matchList(
-        context,
-        typeParameters,
-        type.typeParameters,
-      )) {
+      if (!typeParameters.match(context, type.typeParameters)) {
         return false;
       }
 
@@ -625,26 +621,6 @@ class ManifestTypeParameter {
     bound.writeOptional(sink);
   }
 
-  static bool matchList(
-    MatchContext context,
-    List<ManifestTypeParameter> manifests,
-    List<TypeParameterElement> elements,
-  ) {
-    if (manifests.length != elements.length) {
-      return false;
-    }
-
-    for (var i = 0; i < manifests.length; i++) {
-      var manifest = manifests[i];
-      var element = elements[i];
-      if (!manifest.match(context, element)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   static List<ManifestTypeParameter> readList(SummaryDataReader reader) {
     return reader.readTypedList(() => ManifestTypeParameter.read(reader));
   }
@@ -793,7 +769,19 @@ extension ListOfManifestTypeExtension on List<ManifestType> {
 }
 
 extension ListOfManifestTypeParameterExtension on List<ManifestTypeParameter> {
-  void writeList(BufferedSink sink) {
+  bool match(MatchContext context, List<TypeParameterElement> elements) {
+    if (elements.length != length) {
+      return false;
+    }
+    for (var i = 0; i < length; i++) {
+      if (!this[i].match(context, elements[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void write(BufferedSink sink) {
     sink.writeList(this, (x) => x.write(sink));
   }
 }

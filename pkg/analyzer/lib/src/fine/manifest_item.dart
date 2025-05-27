@@ -204,7 +204,6 @@ class ExtensionItem<E extends ExtensionElementImpl2> extends InstanceItem<E> {
 
   @override
   bool match(MatchContext context, E element) {
-    context.addTypeParameters(element.typeParameters2);
     return super.match(context, element) &&
         extendedType.match(context, element.extendedType);
   }
@@ -470,9 +469,16 @@ sealed class InstanceItem<E extends InstanceElementImpl2>
   }
 
   @override
+  bool match(MatchContext context, E element) {
+    context.addTypeParameters(element.typeParameters2);
+    return super.match(context, element) &&
+        typeParameters.match(context, element.typeParameters2);
+  }
+
+  @override
   void write(BufferedSink sink) {
     super.write(sink);
-    typeParameters.writeList(sink);
+    typeParameters.write(sink);
     declaredConflicts.write(sink);
     declaredFields.write(sink);
     declaredGetters.write(sink);
@@ -843,7 +849,6 @@ sealed class InterfaceItem<E extends InterfaceElementImpl2>
 
   @override
   bool match(MatchContext context, E element) {
-    context.addTypeParameters(element.typeParameters2);
     return super.match(context, element) &&
         supertype.match(context, element.supertype) &&
         interfaces.match(context, element.interfaces) &&
@@ -1415,7 +1420,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl2> {
   @override
   void write(BufferedSink sink) {
     super.write(sink);
-    typeParameters.writeList(sink);
+    typeParameters.write(sink);
     aliasedType.write(sink);
   }
 }

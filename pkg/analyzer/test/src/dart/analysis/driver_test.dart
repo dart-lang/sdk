@@ -35093,6 +35093,119 @@ class A {
     );
   }
 
+  test_manifest_class_typeParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  void foo(T _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A<T> {
+  void foo(T _) {}
+  void bar(T _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M2
+          foo: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_typeParameters_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+''',
+      updatedCode: r'''
+class A<T, U> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M1
+''',
+    );
+  }
+
+  test_manifest_class_typeParameters_bound() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T extends num> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+''',
+      updatedCode: r'''
+class A<T extends int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M1
+''',
+    );
+  }
+
+  test_manifest_class_typeParameters_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T, U> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+''',
+      updatedCode: r'''
+class A<T> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M1
+''',
+    );
+  }
+
   test_manifest_classTypeAlias_constructors_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -37957,6 +38070,105 @@ enum A {
     );
   }
 
+  test_manifest_enum_typeParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A<T> {
+  v;
+  void foo(T _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          foo: #M5
+        interface
+          map
+            foo: #M5
+            index: #M6
+''',
+      updatedCode: r'''
+enum A<T> {
+  v;
+  void foo(T _) {}
+  void bar(T _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          bar: #M7
+          foo: #M5
+        interface
+          map
+            bar: #M7
+            foo: #M5
+            index: #M6
+''',
+    );
+  }
+
+  test_manifest_enum_typeParameters_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A<T> { v }
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface
+          map
+            index: #M5
+''',
+      updatedCode: r'''
+enum A<T, U> { v }
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M6
+        declaredFields
+          v: #M7
+          values: #M8
+        declaredGetters
+          v: #M9
+          values: #M10
+        interface
+          map
+            index: #M5
+''',
+    );
+  }
+
   test_manifest_enum_with_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -38301,6 +38513,64 @@ extension A on int {
         declaredSetters
           bar=: #M6
           foo=: #M4
+''',
+    );
+  }
+
+  test_manifest_extension_typeParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension A<T> on int {
+  void foo(T _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      A: #M0
+        declaredMethods
+          foo: #M1
+''',
+      updatedCode: r'''
+extension A<T> on int {
+  void foo(T _) {}
+  void bar(T _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      A: #M0
+        declaredMethods
+          bar: #M2
+          foo: #M1
+''',
+    );
+  }
+
+  test_manifest_extension_typeParameters_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension A<T> on int {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      A: #M0
+''',
+      updatedCode: r'''
+extension A<T, U> on int {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      A: #M1
 ''',
     );
   }
@@ -38754,6 +39024,95 @@ extension type A(int it) {
             bar=: #M8
             foo=: #M6
             it: #M4
+''',
+    );
+  }
+
+  test_manifest_extensionType_typeParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A<T>(int it) {
+  void foo(T _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          foo: #M3
+        interface
+          map
+            foo: #M3
+            it: #M2
+''',
+      updatedCode: r'''
+extension type A<T>(int it) {
+  void foo(T _) {}
+  void bar(T _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          bar: #M4
+          foo: #M3
+        interface
+          map
+            bar: #M4
+            foo: #M3
+            it: #M2
+''',
+    );
+  }
+
+  test_manifest_extensionType_typeParameters_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A<T>(int it) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface
+          map
+            it: #M2
+''',
+      updatedCode: r'''
+extension type A<T, U>(int it) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M3
+        declaredFields
+          it: #M4
+        declaredGetters
+          it: #M5
+        interface
+          map
+            it: #M5
 ''',
     );
   }
@@ -41509,6 +41868,71 @@ mixin A {
         interface
           map
             foo=: #M4
+''',
+    );
+  }
+
+  test_manifest_mixin_typeParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  void foo(T _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  void foo(T _) {}
+  void bar(T _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        declaredMethods
+          bar: #M2
+          foo: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_typeParameters_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+''',
+      updatedCode: r'''
+mixin A<T, U> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M1
 ''',
     );
   }
