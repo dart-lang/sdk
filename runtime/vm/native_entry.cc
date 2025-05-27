@@ -6,17 +6,18 @@
 
 #include "include/dart_api.h"
 
+#include "platform/memory_sanitizer.h"
 #include "vm/bootstrap.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
+#include "vm/exceptions.h"
 #include "vm/heap/safepoint.h"
 #include "vm/native_symbol.h"
 #include "vm/object_store.h"
 #include "vm/reusable_handles.h"
+#include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
-#include "vm/symbols.h"
-#include "vm/tags.h"
 
 namespace dart {
 

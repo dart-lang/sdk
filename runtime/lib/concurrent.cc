@@ -4,6 +4,7 @@
 
 #include "include/dart_api.h"
 #include "vm/bootstrap_natives.h"
+#include "vm/heap/safepoint.h"
 #include "vm/os_thread.h"
 
 namespace dart {

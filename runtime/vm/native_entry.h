@@ -5,15 +5,10 @@
 #ifndef RUNTIME_VM_NATIVE_ENTRY_H_
 #define RUNTIME_VM_NATIVE_ENTRY_H_
 
-#include "platform/memory_sanitizer.h"
-
 #include "vm/allocation.h"
-#include "vm/exceptions.h"
-#include "vm/heap/verifier.h"
 #include "vm/log.h"
 #include "vm/native_arguments.h"
 #include "vm/native_function.h"
-#include "vm/runtime_entry.h"
 
 namespace dart {
 

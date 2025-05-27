@@ -22,10 +22,11 @@ void PrintUtf16(uint16_t c) {
   OS::PrintErr(format, c);
 }
 
-uword /*BoolPtr*/ CaseInsensitiveCompareUCS2(uword /*StringPtr*/ str_raw,
-                                             uword /*SmiPtr*/ lhs_index_raw,
-                                             uword /*SmiPtr*/ rhs_index_raw,
-                                             uword /*SmiPtr*/ length_raw) {
+extern "C" uword /*BoolPtr*/ DLRT_CaseInsensitiveCompareUCS2(
+    uword /*StringPtr*/ str_raw,
+    uword /*SmiPtr*/ lhs_index_raw,
+    uword /*SmiPtr*/ rhs_index_raw,
+    uword /*SmiPtr*/ length_raw) {
   const String& str = String::Handle(static_cast<StringPtr>(str_raw));
   const Smi& lhs_index = Smi::Handle(static_cast<SmiPtr>(lhs_index_raw));
   const Smi& rhs_index = Smi::Handle(static_cast<SmiPtr>(rhs_index_raw));
@@ -53,10 +54,11 @@ uword /*BoolPtr*/ CaseInsensitiveCompareUCS2(uword /*StringPtr*/ str_raw,
   return static_cast<uword>(Bool::True().ptr());
 }
 
-uword /*BoolPtr*/ CaseInsensitiveCompareUTF16(uword /*StringPtr*/ str_raw,
-                                              uword /*SmiPtr*/ lhs_index_raw,
-                                              uword /*SmiPtr*/ rhs_index_raw,
-                                              uword /*SmiPtr*/ length_raw) {
+extern "C" uword /*BoolPtr*/ DLRT_CaseInsensitiveCompareUTF16(
+    uword /*StringPtr*/ str_raw,
+    uword /*SmiPtr*/ lhs_index_raw,
+    uword /*SmiPtr*/ rhs_index_raw,
+    uword /*SmiPtr*/ length_raw) {
   const String& str = String::Handle(static_cast<StringPtr>(str_raw));
   const Smi& lhs_index = Smi::Handle(static_cast<SmiPtr>(lhs_index_raw));
   const Smi& rhs_index = Smi::Handle(static_cast<SmiPtr>(rhs_index_raw));
@@ -87,15 +89,13 @@ uword /*BoolPtr*/ CaseInsensitiveCompareUTF16(uword /*StringPtr*/ str_raw,
   return static_cast<uword>(Bool::True().ptr());
 }
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(CaseInsensitiveCompareUCS2,
-                              /*argument_count=*/4,
-                              /*is_float=*/false,
-                              CaseInsensitiveCompareUCS2);
+DEFINE_LEAF_RUNTIME_ENTRY(CaseInsensitiveCompareUCS2,
+                          /*argument_count=*/4,
+                          DLRT_CaseInsensitiveCompareUCS2);
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(CaseInsensitiveCompareUTF16,
-                              /*argument_count=*/4,
-                              /*is_float=*/false,
-                              CaseInsensitiveCompareUTF16);
+DEFINE_LEAF_RUNTIME_ENTRY(CaseInsensitiveCompareUTF16,
+                          /*argument_count=*/4,
+                          DLRT_CaseInsensitiveCompareUTF16);
 
 BlockLabel::BlockLabel() {
 #if !defined(DART_PRECOMPILED_RUNTIME)

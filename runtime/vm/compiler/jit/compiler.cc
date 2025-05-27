@@ -198,25 +198,6 @@ FlowGraph* Compiler::BuildFlowGraph(
   return graph;
 }
 
-// Compile a function. Should call only if the function has not been compiled.
-//   Arg0: function object.
-DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
-  ASSERT(thread->IsDartMutatorThread());
-  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
-
-  {
-    // Another isolate's mutator thread may have created [function] and
-    // published it via an ICData, MegamorphicCache etc. Entering the lock below
-    // is an acquire operation that pairs with the release operation when the
-    // other isolate exited the lock, ensuring the initializing stores for
-    // [function] are visible in the current thread.
-    SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
-  }
-
-  // Will throw if compilation failed (e.g. with compile-time error).
-  function.EnsureHasCode();
-}
-
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 #if !defined(PRODUCT)
   if (thread->isolate_group()->debugger()->IsDebugging(thread, function)) {
@@ -1223,14 +1204,6 @@ void BackgroundCompiler::Disable() {
 }
 
 #else  // DART_PRECOMPILED_RUNTIME
-
-DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
-  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
-  FATAL("Precompilation missed function %s (%s, %s)\n",
-        function.ToLibNamePrefixedQualifiedCString(),
-        function.token_pos().ToCString(),
-        Function::KindToCString(function.kind()));
-}
 
 bool Compiler::IsBackgroundCompilation() {
   return false;
