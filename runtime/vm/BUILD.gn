@@ -180,10 +180,6 @@ library_for_all_configs("libdart_vm") {
     "//third_party/icu:icui18n",
     "//third_party/icu:icuuc",
   ]
-  extra_precompiler_deps = [
-    # The Mach-O writer uses BoringSSL's SHA256 function for code signatures.
-    "//third_party/boringssl",
-  ]
   if (is_fuchsia) {
     extra_deps += [
       "$fuchsia_sdk/fidl/fuchsia.intl",

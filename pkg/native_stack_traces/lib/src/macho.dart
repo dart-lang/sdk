@@ -124,7 +124,6 @@ class LoadCommand {
   static const LC_SEGMENT = 0x1;
   static const LC_SYMTAB = 0x2;
   static const LC_SEGMENT_64 = 0x19;
-  static const LC_UUID = 0x1b;
 
   static LoadCommand fromReader(Reader reader) {
     final start = reader.offset; // cmdsize includes size of cmd and cmdsize.
@@ -139,9 +138,6 @@ class LoadCommand {
         break;
       case LC_SYMTAB:
         command = SymbolTableCommand.fromReader(reader, cmd, cmdsize);
-        break;
-      case LC_UUID:
-        command = UuidCommand.fromReader(reader, cmd, cmdsize);
         break;
       default:
         break;
@@ -325,29 +321,6 @@ class SymbolTableCommand extends LoadCommand {
       ..write(_nsyms)
       ..write(' symbols of size ')
       ..writeln(cmdsize);
-  }
-}
-
-class UuidCommand extends LoadCommand {
-  Uint8List uuid;
-
-  static const kUuidSize = 16;
-
-  UuidCommand._(super.cmd, super.cmdsize, this.uuid) : super._();
-
-  static UuidCommand fromReader(Reader reader, int cmd, int cmdsize) {
-    final uuid = Uint8List.sublistView(
-        reader.bytes, reader.offset, reader.offset + kUuidSize);
-    return UuidCommand._(cmd, cmdsize, uuid);
-  }
-
-  String get uuidString => uuid.map((i) => paddedHex(i, 1)).join();
-
-  @override
-  void writeToStringBuffer(StringBuffer buffer) {
-    buffer
-      ..write('UUID: ')
-      ..write(uuidString);
   }
 }
 
@@ -550,8 +523,7 @@ class MachO extends DwarfContainer {
       _symbolTable[constants.isolateSymbolName]?.value;
 
   @override
-  String? get buildId =>
-      _commands.whereType<UuidCommand>().firstOrNull?.uuidString;
+  String? get buildId => null;
 
   @override
   DwarfContainerStringTable? get debugStringTable => _debugStringTable;

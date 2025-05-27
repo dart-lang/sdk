@@ -203,10 +203,6 @@ template("library_for_all_configs") {
   if (defined(invoker.extra_nonproduct_deps)) {
     extra_nonproduct_deps += invoker.extra_nonproduct_deps
   }
-  extra_precompiler_deps = []
-  if (defined(invoker.extra_precompiler_deps)) {
-    extra_precompiler_deps += invoker.extra_precompiler_deps
-  }
   foreach(conf, _all_configs) {
     target(invoker.target_type, "${target_name}${conf.suffix}") {
       forward_variables_from(invoker,
@@ -245,9 +241,6 @@ template("library_for_all_configs") {
           sources += snapshot_sources
         }
       } else {
-        if (conf.compiler) {
-          deps += extra_precompiler_deps
-        }
         if (defined(snapshot_sources)) {
           not_needed([ "snapshot_sources" ])
         }
@@ -277,10 +270,6 @@ template("library_for_all_configs_with_compiler") {
   extra_nonproduct_deps = []
   if (defined(invoker.extra_nonproduct_deps)) {
     extra_nonproduct_deps += invoker.extra_nonproduct_deps
-  }
-  extra_precompiler_deps = []
-  if (defined(invoker.extra_precompiler_deps)) {
-    extra_precompiler_deps += invoker.extra_precompiler_deps
   }
   foreach(conf, _all_configs) {
     if (conf.compiler) {
@@ -314,7 +303,6 @@ template("library_for_all_configs_with_compiler") {
             sources += snapshot_sources
           }
         } else {
-          deps += extra_precompiler_deps
           if (defined(snapshot_sources)) {
             not_needed([ "snapshot_sources" ])
           }

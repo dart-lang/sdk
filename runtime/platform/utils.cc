@@ -10,7 +10,6 @@
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
     defined(DART_HOST_OS_ANDROID)
 #include <dlfcn.h>
-#include <libgen.h>
 #elif defined(DART_HOST_OS_FUCHSIA)
 #include <dlfcn.h>
 #include <fuchsia/io/cpp/fidl.h>
@@ -397,23 +396,6 @@ void Utils::UnloadDynamicLibrary(void* library_handle, char** error) {
   if (!ok) {
     GetLastErrorAsString(error);
   }
-}
-
-char* Utils::Basename(const char* path) {
-#if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_WINDOWS)
-  // Not handled for these operating systems.
-  return nullptr;
-#else
-  if (path == nullptr) return nullptr;
-  char* const path_copy = Utils::StrDup(path);
-  char* result = basename(path_copy);
-  // The result may be in statically allocated memory, so copy.
-  result = Utils::StrDup(result);
-  // The result may point to a portion of the passed in string, so
-  // only free the copy after duplicating the result.
-  free(path_copy);
-  return result;
-#endif
 }
 
 }  // namespace dart

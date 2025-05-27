@@ -53,7 +53,7 @@ Future<void> main(List<String> args) async {
 
     // Run the AOT compiler with the disassemble flags set.
     final elfFile = path.join(tempDir, 'aot.snapshot');
-    await runSilent(genSnapshot, <String>[
+    await run(genSnapshot, <String>[
       '--disassemble',
       '--disassemble_stubs',
       '--always_generate_trampolines_for_testing',
@@ -63,7 +63,7 @@ Future<void> main(List<String> args) async {
     ]);
 
     // Run the AOT runtime with the disassemble flags set.
-    await runSilent(dartPrecompiledRuntime, <String>[
+    await run(dartPrecompiledRuntime, <String>[
       '--disassemble',
       '--disassemble_stubs',
       elfFile,

@@ -260,10 +260,9 @@ class DartUtils {
     kKernelListMagicNumber,
     kGzipMagicNumber,
     kAotELFMagicNumber,
-    // Only the host-endian magic numbers are recognized, not the reverse-endian
-    // ("cigam") ones, as we can't load a reverse-endian snapshot anyway.
     kAotMachO32MagicNumber,
     kAotMachO64MagicNumber,
+    kAotMachO64Arm64MagicNumber,
     kAotCoffARM32MagicNumber,
     kAotCoffARM64MagicNumber,
     kAotCoffRISCV32MagicNumber,
@@ -279,24 +278,7 @@ class DartUtils {
            (number <= DartUtils::kAotCoffRISCV64MagicNumber);
   }
 
-  // Returns the bitsize corresponding to the magic number if the bitsize
-  // is specified by the magic number, otherwise returns -1.
-  static intptr_t MagicNumberBitSize(MagicNumber number) {
-    if (number == DartUtils::kAotMachO32MagicNumber ||
-        number == DartUtils::kAotCoffARM32MagicNumber ||
-        number == DartUtils::kAotCoffRISCV32MagicNumber) {
-      return 32;
-    }
-    if (number == DartUtils::kAotMachO64MagicNumber ||
-        number == DartUtils::kAotCoffARM64MagicNumber ||
-        number == DartUtils::kAotCoffRISCV64MagicNumber) {
-      return 64;
-    }
-    return -1;
-  }
-
-  // Checks if the file is a script snapshot, kernel file, or gzip file
-  // by reading the first kMaxMagicNumberSize bytes of the file.
+  // Checks if the buffer is a script snapshot, kernel file, or gzip file.
   static MagicNumber SniffForMagicNumber(const char* filename);
 
   // Checks if the buffer is a script snapshot, kernel file, or gzip file.

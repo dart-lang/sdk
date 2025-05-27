@@ -29,16 +29,9 @@
 #if defined(FUCHSIA_SDK) || defined(DART_HOST_OS_FUCHSIA)
 #include <lib/trace-engine/context.h>
 #include <lib/trace-engine/instrumentation.h>
+#elif defined(DART_HOST_OS_MACOS)
+#include <os/signpost.h>
 #endif  // defined(FUCHSIA_SDK) || defined(DART_HOST_OS_FUCHSIA)
-
-#if defined(DART_HOST_OS_MACOS)
-// Including <os/signpost.h> in this header leads to an include of
-// <mach-o/loader.h>, which causes files that use this header and the
-// definitions in "platform/mach_o.h" to fail to build. To avoid this,
-// duplicate the typedef that <os/log.h> creates here and only include
-// <os/signpost.h> in timeline.cc and timeline_macos.cc.
-typedef struct os_log_s* os_log_t;
-#endif
 
 namespace dart {
 

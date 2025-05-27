@@ -5,8 +5,6 @@
 #include "vm/globals.h"
 #if defined(DART_HOST_OS_MACOS) && defined(SUPPORT_TIMELINE)
 
-#include <os/signpost.h>
-
 #include "vm/log.h"
 #include "vm/timeline.h"
 

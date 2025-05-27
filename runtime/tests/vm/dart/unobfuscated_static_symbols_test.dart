@@ -57,7 +57,6 @@ Future<void> main(List<String> args) async {
     ]);
 
     await checkElf(tempDir, scriptDill);
-    await checkMachO(tempDir, scriptDill);
     await checkAssembly(tempDir, scriptDill);
   });
 }
@@ -68,157 +67,82 @@ const commonGenSnapshotArgs = <String>[
   '--deterministic',
 ];
 
-enum SnapshotType {
-  elf,
-  machoDylib,
-  assembly;
-
-  String get kindString {
-    switch (this) {
-      case elf:
-        return 'app-aot-elf';
-      case machoDylib:
-        return 'app-aot-macho-dylib';
-      case assembly:
-        return 'app-aot-assembly';
-    }
-  }
-
-  String get fileArgumentName {
-    switch (this) {
-      case elf:
-        return 'elf';
-      case machoDylib:
-        return 'macho';
-      case assembly:
-        return 'assembly';
-    }
-  }
-
-  DwarfContainer? fromFile(String filename) {
-    switch (this) {
-      case elf:
-        return Elf.fromFile(filename);
-      case machoDylib:
-        return MachO.fromFile(filename);
-      case assembly:
-        return Elf.fromFile(filename) ?? MachO.fromFile(filename);
-    }
-  }
-
-  @override
-  String toString() => name;
-}
-
-Future<void> createSnapshot(
-  String scriptDill,
-  SnapshotType snapshotType,
-  String finalPath, [
-  List<String> extraArgs = const [],
-]) async {
-  String output = finalPath;
-  if (snapshotType == SnapshotType.assembly) {
-    output = path.withoutExtension(finalPath) + '.S';
-  }
-  await run(genSnapshot, <String>[
-    ...commonGenSnapshotArgs,
-    ...extraArgs,
-    '--snapshot-kind=${snapshotType.kindString}',
-    '--${snapshotType.fileArgumentName}=$output',
-    scriptDill,
-  ]);
-  if (snapshotType == SnapshotType.assembly) {
-    await assembleSnapshot(output, finalPath);
-  }
-}
-
-Future<void> checkSnapshotType(
-  String tempDir,
-  String scriptDill,
-  SnapshotType snapshotType,
-) async {
+Future<void> checkElf(String tempDir, String scriptDill) async {
   // Run the AOT compiler without Dwarf stack trace, once without obfuscation,
   // once with obfuscation, and once with obfuscation and saving debugging
   // information.
-  final scriptUnobfuscatedSnapshot = path.join(
-    tempDir,
-    'unobfuscated-$snapshotType.so',
-  );
-  await createSnapshot(scriptDill, snapshotType, scriptUnobfuscatedSnapshot);
+  final scriptUnobfuscatedSnapshot = path.join(tempDir, 'unobfuscated-elf.so');
+  await run(genSnapshot, <String>[
+    ...commonGenSnapshotArgs,
+    '--snapshot-kind=app-aot-elf',
+    '--elf=$scriptUnobfuscatedSnapshot',
+    scriptDill,
+  ]);
   final unobfuscatedCase = TestCase(
     scriptUnobfuscatedSnapshot,
-    snapshotType.fromFile(scriptUnobfuscatedSnapshot)!,
+    Elf.fromFile(scriptUnobfuscatedSnapshot)!,
   );
 
   final scriptObfuscatedOnlySnapshot = path.join(
     tempDir,
-    'obfuscated-only-$snapshotType.so',
+    'obfuscated-only-elf.so',
   );
-  await createSnapshot(scriptDill, snapshotType, scriptObfuscatedOnlySnapshot, [
+  await run(genSnapshot, <String>[
+    ...commonGenSnapshotArgs,
     '--obfuscate',
+    '--snapshot-kind=app-aot-elf',
+    '--elf=$scriptObfuscatedOnlySnapshot',
+    scriptDill,
   ]);
   final obfuscatedOnlyCase = TestCase(
     scriptObfuscatedOnlySnapshot,
-    snapshotType.fromFile(scriptObfuscatedOnlySnapshot)!,
+    Elf.fromFile(scriptObfuscatedOnlySnapshot)!,
   );
 
-  // Don't compare to separate debugging information for assembled snapshots
-  // because the assembled code introduces a lot of local static symbols for
-  // relocations and so the two won't contain similar amounts of static symbols.
-  TestCase? obfuscatedCase;
-  TestCase? strippedCase;
-  if (snapshotType != SnapshotType.assembly) {
-    final scriptObfuscatedSnapshot = path.join(
-      tempDir,
-      'obfuscated-$snapshotType.so',
-    );
-    final scriptDebuggingInfo = path.join(
-      tempDir,
-      'obfuscated-debug-$snapshotType.so',
-    );
-    await createSnapshot(scriptDill, snapshotType, scriptObfuscatedSnapshot, [
-      '--obfuscate',
-      '--save-debugging-info=$scriptDebuggingInfo',
-    ]);
-    obfuscatedCase = TestCase(
-      scriptObfuscatedSnapshot,
-      snapshotType.fromFile(scriptObfuscatedSnapshot)!,
-      snapshotType.fromFile(scriptDebuggingInfo)!,
-    );
+  final scriptObfuscatedSnapshot = path.join(tempDir, 'obfuscated-elf.so');
+  final scriptDebuggingInfo = path.join(tempDir, 'obfuscated-debug-elf.so');
+  await run(genSnapshot, <String>[
+    ...commonGenSnapshotArgs,
+    '--obfuscate',
+    '--snapshot-kind=app-aot-elf',
+    '--elf=$scriptObfuscatedSnapshot',
+    '--save-debugging-info=$scriptDebuggingInfo',
+    scriptDill,
+  ]);
+  final obfuscatedCase = TestCase(
+    scriptObfuscatedSnapshot,
+    Elf.fromFile(scriptObfuscatedSnapshot)!,
+    Elf.fromFile(scriptDebuggingInfo)!,
+  );
 
-    final scriptStrippedSnapshot = path.join(
-      tempDir,
-      'obfuscated-stripped-$snapshotType.so',
-    );
-    final scriptSeparateDebuggingInfo = path.join(
-      tempDir,
-      'obfuscated-separate-debug-$snapshotType.so',
-    );
-    await createSnapshot(scriptDill, snapshotType, scriptStrippedSnapshot, [
-      '--strip',
-      '--obfuscate',
-      '--save-debugging-info=$scriptSeparateDebuggingInfo',
-    ]);
-    strippedCase = TestCase(
-      scriptStrippedSnapshot,
-      /*container=*/ null, // No static symbols in stripped snapshot.
-      snapshotType.fromFile(scriptSeparateDebuggingInfo)!,
-    );
-  }
+  final scriptStrippedSnapshot = path.join(
+    tempDir,
+    'obfuscated-stripped-elf.so',
+  );
+  final scriptSeparateDebuggingInfo = path.join(
+    tempDir,
+    'obfuscated-separate-debug-elf.so',
+  );
+  await run(genSnapshot, <String>[
+    ...commonGenSnapshotArgs,
+    '--strip',
+    '--obfuscate',
+    '--snapshot-kind=app-aot-elf',
+    '--elf=$scriptStrippedSnapshot',
+    '--save-debugging-info=$scriptSeparateDebuggingInfo',
+    scriptDill,
+  ]);
+  final strippedCase = TestCase(
+    scriptStrippedSnapshot,
+    /*container=*/ null, // No static symbols in stripped snapshot.
+    Elf.fromFile(scriptSeparateDebuggingInfo)!,
+  );
 
   await checkCases(unobfuscatedCase, <TestCase>[
     obfuscatedOnlyCase,
-    if (obfuscatedCase != null) obfuscatedCase,
-    if (strippedCase != null) strippedCase,
+    obfuscatedCase,
+    strippedCase,
   ]);
-}
-
-Future<void> checkElf(String tempDir, String scriptDill) async {
-  await checkSnapshotType(tempDir, scriptDill, SnapshotType.elf);
-}
-
-Future<void> checkMachO(String tempDir, String scriptDill) async {
-  await checkSnapshotType(tempDir, scriptDill, SnapshotType.machoDylib);
 }
 
 Future<void> checkAssembly(String tempDir, String scriptDill) async {
@@ -226,7 +150,62 @@ Future<void> checkAssembly(String tempDir, String scriptDill) async {
   // normally they compile to ELF and don't need them for compiling assembly
   // snapshots.
   if (isSimulator || (!Platform.isLinux && !Platform.isMacOS)) return;
-  await checkSnapshotType(tempDir, scriptDill, SnapshotType.assembly);
+
+  // Run the AOT compiler without Dwarf stack trace, once without obfuscation,
+  // once with obfuscation, and once with obfuscation and saving debugging
+  // information.
+  final scriptUnobfuscatedAssembly = path.join(
+    tempDir,
+    'unobfuscated-assembly.S',
+  );
+  final scriptUnobfuscatedSnapshot = path.join(
+    tempDir,
+    'unobfuscated-assembly.so',
+  );
+  await run(genSnapshot, <String>[
+    ...commonGenSnapshotArgs,
+    '--snapshot-kind=app-aot-assembly',
+    '--assembly=$scriptUnobfuscatedAssembly',
+    scriptDill,
+  ]);
+  await assembleSnapshot(
+    scriptUnobfuscatedAssembly,
+    scriptUnobfuscatedSnapshot,
+  );
+  final unobfuscatedCase = TestCase(
+    scriptUnobfuscatedSnapshot,
+    Platform.isMacOS
+        ? MachO.fromFile(scriptUnobfuscatedSnapshot)!
+        : Elf.fromFile(scriptUnobfuscatedSnapshot)!,
+  );
+
+  final scriptObfuscatedOnlyAssembly = path.join(
+    tempDir,
+    'obfuscated-only-assembly.S',
+  );
+  final scriptObfuscatedOnlySnapshot = path.join(
+    tempDir,
+    'obfuscated-only-assembly.so',
+  );
+  await run(genSnapshot, <String>[
+    ...commonGenSnapshotArgs,
+    '--obfuscate',
+    '--snapshot-kind=app-aot-assembly',
+    '--assembly=$scriptObfuscatedOnlyAssembly',
+    scriptDill,
+  ]);
+  await assembleSnapshot(
+    scriptObfuscatedOnlyAssembly,
+    scriptObfuscatedOnlySnapshot,
+  );
+  final obfuscatedOnlyCase = TestCase(
+    scriptObfuscatedOnlySnapshot,
+    Platform.isMacOS
+        ? MachO.fromFile(scriptObfuscatedOnlySnapshot)!
+        : Elf.fromFile(scriptObfuscatedOnlySnapshot)!,
+  );
+
+  await checkCases(unobfuscatedCase, <TestCase>[obfuscatedOnlyCase]);
 }
 
 class TestCase {
@@ -242,12 +221,6 @@ Future<void> checkCases(
   List<TestCase> obfuscateds,
 ) async {
   checkStaticSymbolTables(unobfuscated, obfuscateds);
-  if (!Platform.isMacOS && unobfuscated.container is! Elf) {
-    assert(unobfuscated.container is MachO);
-    // Don't try and run Mach-O snapshots on systems where it is not the native
-    // format because there is no MachOLoader in the runtime.
-    return;
-  }
   await checkTraces(unobfuscated, obfuscateds);
 }
 

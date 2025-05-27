@@ -84,7 +84,7 @@ Future<void> testAOT(
     if (useAsm) {
       final assemblyPath = path.join(tempDir, 'test.S');
 
-      await (disassemble ? runSilent : run)(genSnapshot, <String>[
+      await run(genSnapshot, <String>[
         '--snapshot-kind=app-aot-assembly',
         '--assembly=$assemblyPath',
         ...commonSnapshotArgs,
@@ -92,7 +92,7 @@ Future<void> testAOT(
 
       await assembleSnapshot(assemblyPath, snapshotPath);
     } else {
-      await (disassemble ? runSilent : run)(genSnapshot, <String>[
+      await run(genSnapshot, <String>[
         '--snapshot-kind=app-aot-elf',
         '--elf=$snapshotPath',
         ...commonSnapshotArgs,

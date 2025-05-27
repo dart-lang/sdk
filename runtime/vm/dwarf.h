@@ -155,12 +155,7 @@ class DwarfWriteStream : public ValueObject {
 
 class Dwarf : public ZoneAllocated {
  public:
-  // The compilation unit name is used as the DW_AT_name for the
-  // Dart program's compilation unit. If nullptr, then the name of
-  // the root library is used instead.
-  Dwarf(Zone* zone,
-        const Trie<const char>* deobfuscation_trie,
-        const char* compilation_unit_name = nullptr);
+  explicit Dwarf(Zone* zone, const Trie<const char>* deobfuscation_trie);
 
   const ZoneGrowableArray<const Code*>& codes() const { return codes_; }
 
@@ -250,7 +245,6 @@ class Dwarf : public ZoneAllocated {
       LineNumberProgramWriter* writer);
 
   Zone* const zone_;
-  const char* const compilation_unit_name_;
   const Trie<const char>* const deobfuscation_trie_;
   ZoneGrowableArray<const Code*> codes_;
   DwarfCodeMap<intptr_t> code_to_label_;

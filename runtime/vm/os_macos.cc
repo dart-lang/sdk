@@ -304,9 +304,7 @@ OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
   const uint8_t* dso_base = GetAppDSOBase(snapshot_instructions);
   const auto& macho_header =
       *reinterpret_cast<const struct mach_header*>(dso_base);
-  // If the Mach-O file is not host endian, then we'd need to adjust the code
-  // below (and also the snapshot loading code) to load multibyte integers
-  // as reverse endian.
+  // We assume host endianness in the Mach-O file.
   if (macho_header.magic != MH_MAGIC && macho_header.magic != MH_MAGIC_64) {
     return {0, nullptr};
   }

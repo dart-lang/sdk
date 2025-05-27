@@ -46,128 +46,67 @@ class DwarfTestOutput {
   DwarfTestOutput(this.trace, this.allocateObjectStart, this.allocateObjectEnd);
 }
 
-abstract class State {
+class NonDwarfState {
   final DwarfTestOutput output;
   final DwarfTestOutput outputWithOppositeFlag;
 
-  State(this.output, this.outputWithOppositeFlag);
-}
-
-class NonDwarfState extends State {
-  NonDwarfState(super.output, super.outputWithOppositeFlag);
+  NonDwarfState(this.output, this.outputWithOppositeFlag);
 
   void check() => expect(outputWithOppositeFlag.trace, equals(output.trace));
 }
 
-abstract class DwarfState<T> extends State {
+abstract class ElfState<T> {
   final T snapshot;
   final T debugInfo;
-  DwarfState(
-    super.output,
-    super.outputWithOppositeFlag,
+  final DwarfTestOutput output;
+  final DwarfTestOutput outputWithOppositeFlag;
+
+  ElfState(
     this.snapshot,
     this.debugInfo,
+    this.output,
+    this.outputWithOppositeFlag,
   );
-
-  String get description;
 
   Future<void> check(Trace trace, T t);
-
-  Future<void> makeTests(Trace nonDwarfTrace) async {
-    test(
-      'Testing $description traces with separate debugging info',
-      () async => await check(nonDwarfTrace, debugInfo),
-    );
-
-    test(
-      'Testing $description traces with original snapshot',
-      () async => await check(nonDwarfTrace, snapshot),
-    );
-  }
 }
 
-abstract class ElfState<T> extends DwarfState<T> {
-  ElfState(
-    super.output,
-    super.outputWithOppositeFlag,
-    super.snapshot,
-    super.debugInfo,
-  );
-
-  @override
-  String get description => 'ELF';
-}
-
-abstract class MultiArchDwarfState<T> extends DwarfState<T> {
+abstract class AssemblyState<T> {
+  final T snapshot;
+  final T debugInfo;
+  final DwarfTestOutput output;
+  final DwarfTestOutput outputWithOppositeFlag;
   final T? singleArch;
   final T? multiArch;
 
-  MultiArchDwarfState(
-    super.output,
-    super.outputWithOppositeFlag,
-    super.snapshot,
-    super.debugInfo, [
+  AssemblyState(
+    this.snapshot,
+    this.debugInfo,
+    this.output,
+    this.outputWithOppositeFlag, [
     this.singleArch,
     this.multiArch,
   ]);
 
-  @override
-  Future<void> makeTests(Trace nonDwarfTrace) async {
-    await super.makeTests(nonDwarfTrace);
-
-    test(
-      'Testing $description single-architecture universal binary',
-      () async {
-        expect(singleArch, isNotNull);
-        await check(nonDwarfTrace, singleArch!);
-      },
-      skip: skipUniversalBinary,
-    );
-
-    test(
-      'Testing $description multi-architecture universal binary',
-      () async {
-        expect(multiArch, isNotNull);
-        await check(nonDwarfTrace, multiArch!);
-      },
-      skip: skipUniversalBinary,
-    );
-  }
+  Future<void> check(Trace trace, T t);
 }
 
-abstract class AssemblyState<T> extends MultiArchDwarfState<T> {
-  AssemblyState(
-    super.output,
-    super.outputWithOppositeFlag,
-    super.snapshot,
-    super.debugInfo, [
-    super.singleArch,
-    super.multiArch,
-  ]);
+abstract class UniversalBinaryState<T> {
+  final T singleArch;
+  final T multiArch;
 
-  @override
-  String get description => 'assembly';
-}
+  UniversalBinaryState(this.singleArch, this.multiArch);
 
-abstract class MachOState<T> extends MultiArchDwarfState<T> {
-  MachOState(
-    super.output,
-    super.outputWithOppositeFlag,
-    super.snapshot,
-    super.debugInfo, [
-    super.singleArch,
-    super.multiArch,
-  ]);
-
-  @override
-  String get description => 'Mach-O';
+  Future<void> checkSingleArch(Trace trace, AssemblyState assemblyState);
+  Future<void> checkMultiArch(Trace trace, AssemblyState assemblyState);
 }
 
 Future<void> runTests<T>(
   String tempPrefix,
   String scriptPath,
   Future<NonDwarfState> Function(String, String) runNonDwarf,
-  Iterable<Future<DwarfState?> Function(String, String)> runDwarfs,
+  Future<ElfState<T>> Function(String, String) runElf,
+  Future<AssemblyState<T>?> Function(String, String) runAssembly,
 ) async {
   if (!isAOTRuntime) {
     return; // Running in JIT: AOT binaries not available.
@@ -204,17 +143,44 @@ Future<void> runTests<T>(
     ]);
 
     final nonDwarfState = await runNonDwarf(tempDir, scriptDill);
-    final dwarfStates = [
-      for (final f in runDwarfs) await f(tempDir, scriptDill),
-    ];
+    final elfState = await runElf(tempDir, scriptDill);
+    final assemblyState = await runAssembly(tempDir, scriptDill);
 
     test('Testing symbolic traces', nonDwarfState.check);
 
     final nonDwarfTrace = nonDwarfState.output.trace;
 
-    for (final dwarfState in dwarfStates.whereType<DwarfState>()) {
-      dwarfState.makeTests(nonDwarfTrace);
-    }
+    test(
+      'Testing ELF traces with separate debugging info',
+      () async => await elfState.check(nonDwarfTrace, elfState.debugInfo),
+    );
+
+    test(
+      'Testing ELF traces with original snapshot',
+      () async => await elfState.check(nonDwarfTrace, elfState.snapshot),
+    );
+
+    test('Testing assembly traces with separate debugging info', () async {
+      expect(assemblyState, isNotNull);
+      await assemblyState!.check(nonDwarfTrace, assemblyState.debugInfo);
+    }, skip: skipAssembly);
+
+    test('Testing assembly traces with debug snapshot ', () async {
+      expect(assemblyState, isNotNull);
+      await assemblyState!.check(nonDwarfTrace, assemblyState.snapshot);
+    }, skip: skipAssembly);
+
+    test('Testing single-architecture universal binary', () async {
+      expect(assemblyState, isNotNull);
+      expect(assemblyState!.singleArch, isNotNull);
+      await assemblyState.check(nonDwarfTrace, assemblyState.singleArch!);
+    }, skip: skipUniversalBinary);
+
+    test('Testing multi-architecture universal binary', () async {
+      expect(assemblyState, isNotNull);
+      expect(assemblyState!.multiArch, isNotNull);
+      await assemblyState.check(nonDwarfTrace, assemblyState.multiArch!);
+    }, skip: skipUniversalBinary);
   });
 }
 
