@@ -1109,7 +1109,7 @@ class Translator with KernelNodes {
       compilationQueue.add(CompilationTask(
           function,
           _ClosureDynamicEntryGenerator(
-              this, functionNode, target, paramInfo, name, function)));
+              this, target, paramInfo, name, function)));
       return function;
     }
 
@@ -2047,14 +2047,13 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
 /// entries.
 class _ClosureDynamicEntryGenerator implements CodeGenerator {
   final Translator translator;
-  final FunctionNode functionNode;
   final w.BaseFunction target;
   final ParameterInfo paramInfo;
   final String name;
   final w.FunctionBuilder function;
 
-  _ClosureDynamicEntryGenerator(this.translator, this.functionNode, this.target,
-      this.paramInfo, this.name, this.function);
+  _ClosureDynamicEntryGenerator(
+      this.translator, this.target, this.paramInfo, this.name, this.function);
 
   @override
   void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
@@ -2062,8 +2061,6 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     assert(returnLabel == null);
 
     final b = function.body;
-
-    final int typeCount = functionNode.typeParameters.length;
 
     final closureLocal = function.locals[0];
     final typeArgsListLocal = function.locals[1];
@@ -2098,7 +2095,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     }
 
     // Push type arguments
-    for (int typeIdx = 0; typeIdx < typeCount; typeIdx += 1) {
+    for (int typeIdx = 0; typeIdx < paramInfo.typeParamCount; typeIdx += 1) {
       b.local_get(typeArgsListLocal);
       b.i32_const(typeIdx);
       b.array_get(translator.typeArrayType);
@@ -2134,22 +2131,11 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
 
     // Push named arguments
 
-    Expression? initializerForNamedParamInMember(String paramName) {
-      for (int i = 0; i < functionNode.namedParameters.length; i += 1) {
-        if (functionNode.namedParameters[i].name == paramName) {
-          return functionNode.namedParameters[i].initializer;
-        }
-      }
-      return null;
-    }
-
     final namedArgValueIndexLocal = b
         .addLocal(translator.classInfo[translator.boxedIntClass]!.nullableType);
 
     for (String paramName in paramInfo.names) {
       final Constant? paramInfoDefaultValue = paramInfo.named[paramName];
-      final Expression? functionNodeDefaultValue =
-          initializerForNamedParamInMember(paramName);
 
       // Get passed value
       b.local_get(namedArgsListLocal);
@@ -2160,7 +2146,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
       translator.callReference(translator.getNamedParameterIndex.reference, b);
       b.local_set(namedArgValueIndexLocal);
 
-      if (functionNodeDefaultValue == null && paramInfoDefaultValue == null) {
+      if (paramInfoDefaultValue == null) {
         // Shape check passed, parameter must be passed
         b.local_get(namedArgsListLocal);
         b.local_get(namedArgValueIndexLocal);
@@ -2176,20 +2162,8 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
         b.local_get(namedArgValueIndexLocal);
         b.ref_is_null();
         b.if_([], [translator.topType]);
-        if (functionNodeDefaultValue != null) {
-          // Used by the member, has a default value
-          translator.constants.instantiateConstant(
-              b,
-              (functionNodeDefaultValue as ConstantExpression).constant,
-              translator.topType);
-        } else {
-          // Not used by the member
-          translator.constants.instantiateConstant(
-            b,
-            paramInfoDefaultValue!,
-            translator.topType,
-          );
-        }
+        translator.constants.instantiateConstant(
+            b, paramInfoDefaultValue, translator.topType);
         b.else_(); // value index not null
         b.local_get(namedArgsListLocal);
         b.local_get(namedArgValueIndexLocal);
