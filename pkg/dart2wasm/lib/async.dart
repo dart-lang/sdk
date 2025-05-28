@@ -55,9 +55,9 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
     // here.
 
     b.local_get(asyncStateLocal);
-    b.ref_null(translator.topInfo.struct); // await value
-    b.ref_null(translator.topInfo.struct); // error value
-    b.ref_null(translator.stackTraceInfo.repr.struct); // stack trace
+    b.ref_null(translator.topType.heapType); // await value
+    b.ref_null(translator.topType.heapType); // error value
+    b.ref_null(translator.stackTraceType.heapType); // stack trace
     translator.callFunction(resumeFun, b);
     b.drop(); // drop null
 
@@ -79,15 +79,14 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
       b.module.functions.define(
           translator.typesBuilder.defineFunction([
             asyncSuspendStateInfo.nonNullableType, // _AsyncSuspendState
-            translator.topInfo.nullableType, // Object?, await value
-            translator.topInfo.nullableType, // Object?, error value
-            translator.stackTraceInfo.repr
-                .nullableType // StackTrace?, error stack trace
+            translator.topType, // Object?, await value
+            translator.topType, // Object?, error value
+            translator.stackTraceTypeNullable // StackTrace?, error stack trace
           ], [
             // Inner function does not return a value, but it's Dart type is
             // `void Function(...)` and all Dart functions return a value, so we
             // add a return type.
-            translator.topInfo.nullableType
+            translator.topType
           ]),
           "${function.functionName} inner");
 }
@@ -254,17 +253,15 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     // Final state: return.
     emitTargetLabel(targets.last);
     b.local_get(_suspendStateLocal);
-    b.ref_null(translator.topInfo.struct);
+    b.ref_null(translator.topType.heapType);
     call(translator.getFunctionEntry(
         translator.asyncSuspendStateComplete.reference,
         uncheckedEntry: true));
     b.return_();
     b.end(); // masterLoop
 
-    final stackTraceLocal =
-        addLocal(translator.stackTraceInfo.repr.nonNullableType);
-
-    final exceptionLocal = addLocal(translator.topInfo.nonNullableType);
+    final stackTraceLocal = addLocal(translator.stackTraceType);
+    final exceptionLocal = addLocal(translator.topTypeNonNullable);
 
     void callCompleteError() {
       b.local_get(_suspendStateLocal);

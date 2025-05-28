@@ -356,7 +356,7 @@ class ClosureLayouter extends RecursiveVisitor {
         superType: superType);
   }
 
-  w.ValueType get topType => translator.topInfo.nullableType;
+  w.ValueType get topType => translator.topType;
 
   ClosureLayouter(this.translator)
       : procedureAttributeMetadata =

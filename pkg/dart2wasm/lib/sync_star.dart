@@ -50,9 +50,8 @@ mixin SyncStarCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
       translator.moduleForReference(enclosingMember.reference).functions.define(
           translator.typesBuilder.defineFunction([
             suspendStateInfo.nonNullableType, // _SuspendState
-            translator.topInfo.nullableType, // Object?, error value
-            translator.stackTraceInfo.repr
-                .nullableType // StackTrace?, error stack trace
+            translator.topType, // Object?, error value
+            translator.stackTraceTypeNullable // StackTrace?, error stack trace
           ], const [
             // bool for whether the generator has more to do
             w.NumType.i32
@@ -235,7 +234,7 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
     // `_yieldStarIterable` for `yield*`.
     b.local_get(_suspendStateLocal);
     b.struct_get(suspendStateInfo.struct, FieldIndex.suspendStateIterator);
-    translateExpression(node.expression, translator.topInfo.nullableType);
+    translateExpression(node.expression, translator.topType);
     if (node.isYieldStar) {
       b.ref_cast(translator.objectInfo.nonNullableType);
       b.struct_set(syncStarIteratorInfo.struct,

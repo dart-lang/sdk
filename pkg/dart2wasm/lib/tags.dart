@@ -25,10 +25,8 @@ class ExceptionTag {
   /// [stackTraceInfo.nonNullableType] to hold a stack trace. This single
   /// exception tag is used to throw and catch all Dart exceptions.
   w.Tag _defineExceptionTag() {
-    final w.FunctionType tagType = translator.typesBuilder.defineFunction([
-      translator.topInfo.nonNullableType,
-      translator.stackTraceInfo.repr.nonNullableType
-    ], const []);
+    final w.FunctionType tagType = translator.typesBuilder.defineFunction(
+        [translator.topTypeNonNullable, translator.stackTraceType], const []);
     return translator.mainModule.tags.define(tagType);
   }
 }

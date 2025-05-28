@@ -136,7 +136,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
 
     final b = function.body;
     b.local_get(receiverLocal);
-    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+    b.loadClassId(translator, receiverLocal.type);
     b.classIdSearch(ranges, outputs, (Reference target) {
       final targetMember = target.asMember;
       final Reference targetReference;
@@ -184,7 +184,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
 
     final b = function.body;
     b.local_get(receiverLocal);
-    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+    b.loadClassId(translator, receiverLocal.type);
     b.classIdSearch(ranges, [positionalArgLocal.type], (Reference target) {
       final Member targetMember = target.asMember;
       b.local_get(receiverLocal);
@@ -237,7 +237,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
         final targetMemberParamInfo = translator.paramInfoForDirectCall(target);
 
         b.local_get(receiverLocal);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.loadClassId(translator, receiverLocal.type);
         b.local_set(classIdLocal);
 
         final classIdNoMatch = b.block();
@@ -350,7 +350,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
             b.local_get(adjustedPositionalArgsLocal);
             b.i32_const(optionalParamIdx);
             translator.constants
-                .instantiateConstant(b, param, translator.topInfo.nullableType);
+                .instantiateConstant(b, param, translator.topType);
             b.array_set(translator.nullableObjectArrayType);
             b.end();
           }
@@ -458,13 +458,13 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
                 translator.constants.instantiateConstant(
                     b,
                     (functionNodeDefaultValue as ConstantExpression).constant,
-                    translator.topInfo.nullableType);
+                    translator.topType);
               } else {
                 // Not used by the member
                 translator.constants.instantiateConstant(
                   b,
                   paramInfoDefaultValue!,
-                  translator.topInfo.nullableType,
+                  translator.topType,
                 );
               }
               b.array_set(translator.nullableObjectArrayType);
@@ -503,7 +503,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
       }
     }
 
-    final getterValueLocal = b.addLocal(translator.topInfo.nullableType);
+    final getterValueLocal = b.addLocal(translator.topType);
     void handleGetterSelector(SelectorInfo selector) {
       for (final (:range, :target)
           in selector.targets(unchecked: false).targetRanges) {
@@ -516,7 +516,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
           }
 
           b.local_get(receiverLocal);
-          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+          b.loadClassId(translator, receiverLocal.type);
           b.i32_const(classId);
           b.i32_eq();
           b.if_();
@@ -539,8 +539,8 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
           translator.convertType(
               b, receiverLocal.type, targetFunction.type.inputs.first);
           translator.callFunction(targetFunction, b);
-          translator.convertType(b, targetFunction.type.outputs.single,
-              translator.topInfo.nullableType);
+          translator.convertType(
+              b, targetFunction.type.outputs.single, translator.topType);
           b.local_tee(getterValueLocal);
 
           // Throw `NoSuchMethodError` if the value is null
@@ -550,7 +550,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
           b.local_tee(receiverLocal);
 
           // Invoke "call" if the value is not a closure
-          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+          b.loadClassId(translator, receiverLocal.type);
           b.i32_const(
               (translator.closureInfo.classId as AbsoluteClassId).value);
           b.i32_ne();
@@ -799,7 +799,7 @@ void generateNoSuchMethodCall(
 
   pushReceiver();
   if (callPolymorphicDispatcher) {
-    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+    b.loadClassId(translator, translator.topTypeNonNullable);
     pushReceiver();
   }
   pushInvocationObject();

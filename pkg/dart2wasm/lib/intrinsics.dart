@@ -416,7 +416,7 @@ class Intrinsifier {
     if (cls == translator.wasmAnyRefClass) {
       if (name == "isObject") {
         codeGen.translateExpression(receiver, w.RefType.any(nullable: false));
-        b.ref_test(translator.topInfo.nonNullableType);
+        b.ref_test(translator.topTypeNonNullable);
         return w.NumType.i32;
       } else if (name == "isI31") {
         codeGen.translateExpression(receiver, w.RefType.any(nullable: false));
@@ -475,14 +475,14 @@ class Intrinsifier {
 
     // WasmAnyRef.toObject
     if (cls == translator.wasmAnyRefClass && name == "toObject") {
-      w.Label succeed = b.block(const [], [translator.topInfo.nonNullableType]);
+      w.Label succeed = b.block(const [], [translator.topTypeNonNullable]);
       codeGen.translateExpression(
           receiver, const w.RefType.any(nullable: false));
       b.br_on_cast(succeed, const w.RefType.any(nullable: false),
-          translator.topInfo.nonNullableType);
+          translator.topTypeNonNullable);
       codeGen.throwWasmRefError("a Dart object");
       b.end(); // succeed
-      return translator.topInfo.nonNullableType;
+      return translator.topTypeNonNullable;
     }
 
     // Wasm(I32|I64|F32|F64) conversions
@@ -1203,14 +1203,13 @@ class Intrinsifier {
         // Ensure we compile the target function & export it.
         translator.functions.getFunction(target.reference);
 
-        final topType = translator.topInfo.nullableType;
+        final topType = translator.topType;
         codeGen.translateExpression(NullLiteral(), topType);
         return topType;
       case StaticIntrinsic.getID:
-        ClassInfo info = translator.topInfo;
-        codeGen.translateExpression(
-            node.arguments.positional.single, info.nonNullableType);
-        b.struct_get(info.struct, FieldIndex.classId);
+        final type = translator.topTypeNonNullable;
+        codeGen.translateExpression(node.arguments.positional.single, type);
+        b.loadClassId(translator, type);
         return w.NumType.i32;
 
       // dart:ffi static functions
@@ -1504,8 +1503,8 @@ class Intrinsifier {
             translator.classIdNumbering.getConcreteSubclassRanges(baseClass);
 
         final object = node.arguments.positional.single;
-        codeGen.translateExpression(object, w.RefType.any(nullable: false));
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        codeGen.translateExpression(object, translator.topTypeNonNullable);
+        b.loadClassId(translator, translator.topTypeNonNullable);
         b.emitClassIdRangeCheck(ranges);
         return w.NumType.i32;
 
@@ -1679,11 +1678,11 @@ class Intrinsifier {
         // If either is `null`, or their class IDs are different, return false.
         b.local_get(first);
         b.br_on_null(fail);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.loadClassId(translator, translator.topTypeNonNullable);
         b.local_tee(cid);
         b.local_get(second);
         b.br_on_null(fail);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.loadClassId(translator, translator.topTypeNonNullable);
         b.i32_ne();
         b.br_if(fail);
 
@@ -1737,8 +1736,7 @@ class Intrinsifier {
 
       case MemberIntrinsic.identityHashCode:
         final w.Local arg = paramLocals[0];
-        final w.Local nonNullArg =
-            b.addLocal(translator.topInfo.nonNullableType);
+        final w.Local nonNullArg = b.addLocal(translator.topTypeNonNullable);
         final List<int> classIds = translator.valueClasses.keys
             .map((cls) =>
                 (translator.classInfo[cls]!.classId as AbsoluteClassId).value)
@@ -1747,7 +1745,7 @@ class Intrinsifier {
 
         // If the argument is `null`, return the hash code of `null`.
         final w.Label notNull =
-            b.block(const [], [translator.topInfo.nonNullableType]);
+            b.block(const [], [translator.topTypeNonNullable]);
         b.local_get(arg);
         b.br_on_non_null(notNull);
         b.i64_const(null.hashCode);
@@ -1760,7 +1758,7 @@ class Intrinsifier {
         final List<w.Label> labels =
             List.generate(classIds.length, (_) => b.block());
         b.local_get(nonNullArg);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.loadClassId(translator, translator.topTypeNonNullable);
         int labelIndex = 0;
         final List<w.Label> targets = List.generate(classIds.last + 1, (id) {
           return id == classIds[labelIndex]

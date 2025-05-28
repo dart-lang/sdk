@@ -894,7 +894,7 @@ class DynamicModuleInfo {
     // If any input is not a RefType (i.e. it's an unboxed value) then wrap it
     // so the updated signature works.
     if (localSignature.inputs.any((i) => i is! w.RefType)) {
-      final receiverLocal = b.addLocal(translator.topInfo.nullableType);
+      final receiverLocal = b.addLocal(translator.topTypeNonNullable);
       b.local_set(receiverLocal);
       final locals = <w.Local>[];
       for (final input in localSignature.inputs.reversed) {
@@ -910,7 +910,7 @@ class DynamicModuleInfo {
     }
 
     final idLocal = b.addLocal(w.NumType.i32);
-    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+    b.loadClassId(translator, translator.topTypeNonNullable);
     b.local_tee(idLocal);
     b.i32_const(useUncheckedEntry ? 1 : 0);
     b.local_get(idLocal);
@@ -967,8 +967,8 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
   ConstantCanonicalizer(this.translator, this.b, this.valueLocal);
 
   late final _checkerType = translator.typesBuilder.defineFunction([
-    translator.topInfo.nonNullableType,
-    translator.topInfo.nonNullableType,
+    translator.topTypeNonNullable,
+    translator.topTypeNonNullable,
   ], const [
     w.NumType.i32
   ]);
@@ -1188,7 +1188,6 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
   /// values are already canonicalized.
   void _defaultChecker(w.InstructionsBuilder b, ClassInfo classInfo,
       {Set<int>? fieldsToInclude}) {
-    classInfo = classInfo.repr;
     final structType = classInfo.struct;
     final structRefType = classInfo.nonNullableType;
     final castedLocal1 = b.addLocal(structRefType);

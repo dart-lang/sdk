@@ -7,7 +7,7 @@ part of "internal_patch.dart";
 @pragma("wasm:entry-point")
 class ClassID {
   @pragma("wasm:intrinsic")
-  external static WasmI32 getID(Object? value);
+  external static WasmI32 getID(Object value);
 
   @pragma("wasm:class-id", "dart.typed_data#_ExternalUint8Array")
   external static WasmI32 get cidExternalUint8Array;
