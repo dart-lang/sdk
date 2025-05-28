@@ -32,6 +32,10 @@ class FactoryFragment implements Fragment, FunctionFragment {
 
   FactoryFragmentDeclaration? _declaration;
 
+  @override
+  late final UriOffsetLength uriOffset = new UriOffsetLength(
+      fileUri, constructorName.fullNameOffset, constructorName.fullNameLength);
+
   FactoryFragment({
     required this.constructorName,
     required this.fileUri,
@@ -50,11 +54,6 @@ class FactoryFragment implements Fragment, FunctionFragment {
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
   });
-
-  @override
-  String get name => constructorName.name;
-
-  int get fullNameOffset => constructorName.fullNameOffset;
 
   @override
   SourceFactoryBuilder get builder {
@@ -79,6 +78,11 @@ class FactoryFragment implements Fragment, FunctionFragment {
     _declaration = value;
   }
 
+  int get fullNameOffset => constructorName.fullNameOffset;
+
+  @override
+  String get name => constructorName.name;
+
   @override
   FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
     return new _FactoryBodyBuildingContext(this);
@@ -94,11 +98,29 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
   _FactoryBodyBuildingContext(this._fragment);
 
   @override
+  InferenceDataForTesting? get inferenceDataForTesting => _fragment
+      .builder
+      .dataForTesting
+      // Coverage-ignore(suite): Not run.
+      ?.inferenceData;
+
+  @override
   // Coverage-ignore(suite): Not run.
   MemberKind get memberKind => MemberKind.Factory;
 
   @override
   bool get shouldBuild => true;
+
+  @override
+  List<TypeParameter>? get thisTypeParameters => null;
+
+  @override
+  VariableDeclaration? get thisVariable => null;
+
+  @override
+  LookupScope get typeParameterScope {
+    return _fragment.typeParameterScope;
+  }
 
   @override
   LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
@@ -116,25 +138,7 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
   }
 
   @override
-  LookupScope get typeParameterScope {
-    return _fragment.typeParameterScope;
-  }
-
-  @override
   BodyBuilderContext createBodyBuilderContext() {
     return _fragment.declaration.createBodyBuilderContext(_fragment.builder);
   }
-
-  @override
-  InferenceDataForTesting? get inferenceDataForTesting => _fragment
-      .builder
-      .dataForTesting
-      // Coverage-ignore(suite): Not run.
-      ?.inferenceData;
-
-  @override
-  List<TypeParameter>? get thisTypeParameters => null;
-
-  @override
-  VariableDeclaration? get thisVariable => null;
 }

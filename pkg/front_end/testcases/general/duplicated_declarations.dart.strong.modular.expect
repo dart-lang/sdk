@@ -245,7 +245,7 @@ library;
 // pkg/front_end/testcases/general/duplicated_declarations.dart:79:3: Error: A class member can't have the same name as the enclosing class.
 // Try renaming the member.
 //   Enum,
-//   ^
+//   ^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations.dart:81:3: Error: 'a' is already declared in this scope.
 //   a,
@@ -257,7 +257,7 @@ library;
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:76:3: Error: A class member can't have the same name as the enclosing class.
 // Try renaming the member.
 //   Enum,
-//   ^
+//   ^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:78:3: Error: 'a' is already declared in this scope.
 //   a,

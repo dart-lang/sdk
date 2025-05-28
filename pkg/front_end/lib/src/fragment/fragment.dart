@@ -107,6 +107,10 @@ sealed class Fragment {
   /// and to group getters, setters, and fields as properties.
   String get name;
 
+  /// Returns a [UriOffsetLength] object that can be used to point to the
+  /// declaration of this fragment.
+  UriOffsetLength get uriOffset;
+
   /// The [Builder] created for this fragment.
   ///
   // TODO(johnniwinther): Implement this:

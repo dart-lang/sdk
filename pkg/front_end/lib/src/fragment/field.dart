@@ -32,6 +32,10 @@ class FieldFragment implements Fragment {
   SourcePropertyBuilder? _builder;
   FieldFragmentDeclaration? _declaration;
 
+  @override
+  late final UriOffsetLength uriOffset =
+      new UriOffsetLength(fileUri, nameOffset, name.length);
+
   FieldFragment({
     required this.name,
     required this.fileUri,
@@ -84,9 +88,6 @@ class FieldFragment implements Fragment {
         "Declaration has already been computed for $this.");
     _declaration = value;
   }
-
-  UriOffsetLength get uriOffset =>
-      new UriOffsetLength(fileUri, nameOffset, name.length);
 
   bool get hasSetter {
     if (modifiers.isConst) {
