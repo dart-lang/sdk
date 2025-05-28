@@ -143,7 +143,8 @@ class LibraryBuilder {
       if (classFragment.isMixinApplication) continue;
       if (classFragment.constructors.isNotEmpty) continue;
 
-      var constructor = ConstructorFragmentImpl('', -1)..isSynthetic = true;
+      var constructor = ConstructorFragmentImpl(name: '', nameOffset: -1)
+        ..isSynthetic = true;
       var containerRef = classFragment.reference!.getChild('@constructor');
       var reference = containerRef.getChild('new');
       reference.element = constructor;
@@ -209,7 +210,7 @@ class LibraryBuilder {
       if (hasConstructor(enumFragment)) continue;
 
       var constructor =
-          ConstructorFragmentImpl('', -1)
+          ConstructorFragmentImpl(name: '', nameOffset: -1)
             ..isConst = true
             ..isSynthetic = true;
       var containerRef = enumFragment.reference!.getChild('@constructor');

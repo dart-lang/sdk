@@ -1126,7 +1126,7 @@ class InheritanceManager3 {
     }
 
     if (executable is MethodElementOrMember) {
-      var result = MethodFragmentImpl(executable.name, -1);
+      var result = MethodFragmentImpl(name: executable.name, nameOffset: -1);
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
@@ -1136,14 +1136,14 @@ class InheritanceManager3 {
     }
 
     if (executable is SetterFragmentImpl) {
-      var result = SetterFragmentImpl(executable.name, -1);
+      var result = SetterFragmentImpl(name: executable.name, nameOffset: -1);
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.returnType = executable.returnType;
 
       var field = executable.variable2!;
-      var resultField = FieldFragmentImpl(field.name, -1);
+      var resultField = FieldFragmentImpl(name: field.name, nameOffset: -1);
       resultField.enclosingElement3 = class_;
       resultField.getter = field.getter;
       resultField.setter = executable;
@@ -1199,7 +1199,7 @@ class InheritanceManager3 {
     if (first is MethodElementOrMember) {
       var firstMethod = first;
       var fragmentName = first.asElement2.firstFragment.name2;
-      var result = MethodFragmentImpl(firstMethod.name, -1);
+      var result = MethodFragmentImpl(name: firstMethod.name, nameOffset: -1);
       result.enclosingElement3 = targetClass;
       result.name2 = fragmentName;
       result.typeParameters = resultType.typeFormals;
@@ -1214,13 +1214,15 @@ class InheritanceManager3 {
       var firstAccessor = first as PropertyAccessorElementOrMember;
       var fragmentName = first.asElement2.firstFragment.name2;
       var variableName = firstAccessor.displayName;
-      var field = FieldFragmentImpl(variableName, -1);
+      var field = FieldFragmentImpl(name: variableName, nameOffset: -1);
 
       PropertyAccessorFragmentImpl result;
       if (firstAccessor.isGetter) {
-        field.getter = result = GetterFragmentImpl(variableName, -1);
+        field.getter =
+            result = GetterFragmentImpl(name: variableName, nameOffset: -1);
       } else {
-        field.setter = result = SetterFragmentImpl(variableName, -1);
+        field.setter =
+            result = SetterFragmentImpl(name: variableName, nameOffset: -1);
       }
       result.enclosingElement3 = targetClass;
       result.name2 = fragmentName;

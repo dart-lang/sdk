@@ -233,8 +233,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       var exceptionNode = node.exceptionParameter;
       if (exceptionNode != null) {
         var fragment = LocalVariableFragmentImpl(
-          exceptionNode.name.lexeme,
-          exceptionNode.name.offset,
+          name: exceptionNode.name.lexeme,
+          nameOffset: exceptionNode.name.offset,
         );
         _elementHolder.enclose(fragment);
         _define(fragment.element);
@@ -258,8 +258,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       var stackTraceNode = node.stackTraceParameter;
       if (stackTraceNode != null) {
         var fragment = LocalVariableFragmentImpl(
-          stackTraceNode.name.lexeme,
-          stackTraceNode.name.offset,
+          name: stackTraceNode.name.lexeme,
+          nameOffset: stackTraceNode.name.offset,
         );
         _elementHolder.enclose(fragment);
         _define(fragment.element);
@@ -380,8 +380,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitDeclaredIdentifier(covariant DeclaredIdentifierImpl node) {
     var nameToken = node.name;
     var fragment = LocalVariableFragmentImpl(
-      nameToken.lexeme,
-      nameToken.offset,
+      name: nameToken.lexeme,
+      nameOffset: nameToken.offset,
     );
     _elementHolder.enclose(fragment);
     node.declaredFragment = fragment;
@@ -410,9 +410,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var name = node.name.lexeme;
     var fragment = BindPatternVariableFragmentImpl(
-      node,
-      name,
-      node.name.offset,
+      node: node,
+      name: name,
+      nameOffset: node.name.offset,
     );
     _patternVariables.add(name, fragment.element);
     _elementHolder.enclose(fragment);
@@ -1477,9 +1477,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       label as LabelImpl;
       var labelName = label.label;
       var element = LabelFragmentImpl(
-        labelName.name,
-        labelName.offset,
-        onSwitchMember,
+        name: labelName.name,
+        nameOffset: labelName.offset,
+        onSwitchMember: onSwitchMember,
       );
       labelName.element = element.asElement2;
       _elementHolder.enclose(element);
@@ -1503,8 +1503,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var nameToken = node.name;
 
     var fragment = LocalFunctionFragmentImpl(
-      nameToken.lexeme,
-      nameToken.offset,
+      name: nameToken.lexeme,
+      nameOffset: nameToken.offset,
     );
     fragment.name2 = nameToken.nameIfNotEmpty;
     fragment.nameOffset2 = nameToken.offsetIfNotEmpty;
@@ -1531,13 +1531,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       LocalVariableFragmentImpl fragment;
       if (isConst && variable.initializer != null) {
         fragment = ConstLocalVariableFragmentImpl(
-          nameToken.lexeme,
-          nameToken.offset,
+          name: nameToken.lexeme,
+          nameOffset: nameToken.offset,
         );
       } else {
         fragment = LocalVariableFragmentImpl(
-          nameToken.lexeme,
-          nameToken.offset,
+          name: nameToken.lexeme,
+          nameOffset: nameToken.offset,
         );
       }
       variable.declaredFragment = fragment;
@@ -1564,7 +1564,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (_elementWalker != null) {
         fragment = _elementWalker!.getTypeParameter();
       } else {
-        fragment = TypeParameterFragmentImpl(name.lexeme, name.offset);
+        fragment = TypeParameterFragmentImpl(
+          name: name.lexeme,
+          nameOffset: name.offset,
+        );
         fragment.name2 = name.lexeme;
         fragment.nameOffset2 = name.offset;
         _elementHolder.addTypeParameter(fragment);
@@ -1989,10 +1992,10 @@ class _VariableBinder
     }
 
     var resultFragment = JoinPatternVariableFragmentImpl(
-      first.name3!,
-      -1,
-      expandedVariables.map((e) => e.asElement).toList(),
-      inconsistency.maxWithAll(
+      name: first.name3!,
+      nameOffset: -1,
+      variables: expandedVariables.map((e) => e.asElement).toList(),
+      inconsistency: inconsistency.maxWithAll(
         components.whereType<JoinPatternVariableElementImpl2>().map(
           (e) => e.inconsistency,
         ),

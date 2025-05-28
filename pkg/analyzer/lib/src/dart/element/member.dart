@@ -1467,7 +1467,7 @@ class _SubstitutedTypeParameters {
     var newTypes = <TypeParameterType>[];
     for (int i = 0; i < elements.length; i++) {
       var element = elements[i];
-      var newElement = TypeParameterFragmentImpl.synthetic(element.name);
+      var newElement = TypeParameterFragmentImpl.synthetic(name: element.name);
       newElements.add(newElement);
       newTypes.add(
         newElement.instantiate(nullabilitySuffix: NullabilitySuffix.none),
