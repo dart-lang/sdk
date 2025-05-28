@@ -317,10 +317,10 @@ class BlazeFileWatcherService {
       _toIsolatePort.send(BlazeWatcherShutdownIsolate());
     }
     if (_isolateIsStarting) {
-      _fromIsolateSubscription.cancel();
+      unawaited(_fromIsolateSubscription.cancel());
       _fromIsolatePort.close();
     }
-    _events.close();
+    unawaited(_events.close());
   }
 
   void startWatching(String workspace, BlazeSearchInfo info) {
@@ -363,11 +363,13 @@ class BlazeFileWatcherService {
   void _startIsolateIfNeeded() {
     if (_isolateIsStarting) return;
     _isolateIsStarting = true;
-    _startIsolateImpl();
-    _isolateHasStarted.future.then((_) {
-      _buffer.forEach(_toIsolatePort.send);
-      _buffer.clear();
-    });
+    unawaited(_startIsolateImpl());
+    unawaited(
+      _isolateHasStarted.future.then((_) {
+        _buffer.forEach(_toIsolatePort.send);
+        _buffer.clear();
+      }),
+    );
   }
 
   Future<void> _startIsolateImpl() async {

@@ -2559,7 +2559,7 @@ class AnalysisDriverScheduler {
       throw StateError('The scheduler has already been started.');
     }
     _started = true;
-    _run();
+    unawaited(_run());
   }
 
   /// Return a future that will be completed the next time the status is idle.

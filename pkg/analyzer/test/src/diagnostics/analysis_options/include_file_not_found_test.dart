@@ -15,8 +15,8 @@ main() {
 
 @reflectiveTest
 class IncludeFileNotFoundTest extends AbstractAnalysisOptionsTest {
-  void test_notFound_existent_doubleQuoted() {
-    assertErrorsInCode(
+  Future<void> test_notFound_existent_doubleQuoted() async {
+    await assertErrorsInCode(
       '''
 include: "./analysis_options.yaml"
 ''',
@@ -24,8 +24,8 @@ include: "./analysis_options.yaml"
     );
   }
 
-  void test_notFound_existent_notQuoted() {
-    assertErrorsInCode(
+  Future<void> test_notFound_existent_notQuoted() async {
+    await assertErrorsInCode(
       '''
 include: ./analysis_options.yaml
 ''',
@@ -33,8 +33,8 @@ include: ./analysis_options.yaml
     );
   }
 
-  void test_notFound_existent_singleQuoted() {
-    assertErrorsInCode(
+  Future<void> test_notFound_existent_singleQuoted() async {
+    await assertErrorsInCode(
       '''
 include: './analysis_options.yaml'
 ''',
@@ -42,8 +42,8 @@ include: './analysis_options.yaml'
     );
   }
 
-  void test_notFound_nonexistent_doubleQuoted() {
-    assertErrorsInCode(
+  Future<void> test_notFound_nonexistent_doubleQuoted() async {
+    await assertErrorsInCode(
       '''
 # We don't depend on pedantic, but we should consider adding it.
 include: "package:pedantic/analysis_options.yaml"
@@ -61,8 +61,8 @@ include: "package:pedantic/analysis_options.yaml"
     );
   }
 
-  void test_notFound_nonexistent_notQuoted() {
-    assertErrorsInCode(
+  Future<void> test_notFound_nonexistent_notQuoted() async {
+    await assertErrorsInCode(
       '''
 # We don't depend on pedantic, but we should consider adding it.
 include: package:pedantic/analysis_options.yaml
@@ -80,8 +80,8 @@ include: package:pedantic/analysis_options.yaml
     );
   }
 
-  void test_notFound_nonexistent_singleQuoted() {
-    assertErrorsInCode(
+  Future<void> test_notFound_nonexistent_singleQuoted() async {
+    await assertErrorsInCode(
       '''
 # We don't depend on pedantic, but we should consider adding it.
 include: 'package:pedantic/analysis_options.yaml'

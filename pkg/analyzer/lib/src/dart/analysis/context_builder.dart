@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -179,7 +181,7 @@ class ContextBuilderImpl {
     // AnalysisDriver reports results into streams.
     // We need to drain these streams to avoid memory leak.
     if (drainStreams) {
-      driver.exceptions.drain<void>();
+      unawaited(driver.exceptions.drain<void>());
     }
 
     return analysisContext;

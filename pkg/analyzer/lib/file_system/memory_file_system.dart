@@ -631,12 +631,14 @@ abstract class _MemoryResource implements Resource {
     void setupWatcher() {
       var watchers = provider._pathToWatchers[path] ??= [];
       watchers.add(streamController);
-      streamController.done.then((_) {
-        watchers.remove(streamController);
-        if (watchers.isEmpty) {
-          provider._pathToWatchers.remove(path);
-        }
-      });
+      unawaited(
+        streamController.done.then((_) {
+          watchers.remove(streamController);
+          if (watchers.isEmpty) {
+            provider._pathToWatchers.remove(path);
+          }
+        }),
+      );
       ready.complete();
       if (provider.emitPathNotFoundExceptionsForPaths.contains(path)) {
         streamController.addError(

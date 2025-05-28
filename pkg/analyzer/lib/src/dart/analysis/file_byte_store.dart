@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -37,7 +38,7 @@ class EvictingFileByteStore implements ByteStore {
 
   EvictingFileByteStore(this._cachePath, this._maxSizeBytes)
     : _fileByteStore = FileByteStore(_cachePath) {
-    _requestCacheCleanUp();
+    unawaited(_requestCacheCleanUp());
   }
 
   @override
@@ -49,7 +50,7 @@ class EvictingFileByteStore implements ByteStore {
     // Update the current size.
     _bytesWrittenSinceCleanup += bytes.length;
     if (_bytesWrittenSinceCleanup > _maxSizeBytes ~/ 8) {
-      _requestCacheCleanUp();
+      unawaited(_requestCacheCleanUp());
     }
     return bytes;
   }
@@ -300,12 +301,14 @@ class FuturePool {
   void _run(Future Function() fn) {
     _available--;
 
-    fn().whenComplete(() {
-      _available++;
+    unawaited(
+      fn().whenComplete(() {
+        _available++;
 
-      if (waiting.isNotEmpty) {
-        _run(waiting.removeAt(0));
-      }
-    });
+        if (waiting.isNotEmpty) {
+          _run(waiting.removeAt(0));
+        }
+      }),
+    );
   }
 }

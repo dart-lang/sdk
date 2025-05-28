@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -70,7 +72,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
       if (drainStreams) {
-        scheduler.events.drain<void>();
+        unawaited(scheduler.events.drain<void>());
       }
       scheduler.start();
     }
