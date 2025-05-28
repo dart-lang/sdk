@@ -12125,7 +12125,7 @@ class GenerateNodeImpl {
 
 /// Description for a single property in the node implementation.
 ///
-/// Most of these description refer to properties of the public interface,
+/// Most of these descriptions refer to properties of the public interface,
 /// e.g. `Foo` in `class FooImpl extends BarImpl implements Baz, Foo`.
 class GenerateNodeProperty {
   final String name;
@@ -12146,12 +12146,23 @@ class GenerateNodeProperty {
   /// Obviously, these are always paired with [isSuper].
   final bool superNullAssertOverride;
 
-  /// Sometimes we use [Token.lexicallyFirst], and want to describe which
-  /// group of tokens to use.
+  /// If the parser can recover from tokens in a group of keyword tokens
+  /// being in wrong order, each keyword's property in the group should be
+  /// marked with the same non-null value for this field. The generated code
+  /// for [AstNode.beginToken] or
+  /// [AnnotatedNode.firstTokenAfterCommentAndMetadata] will use
+  /// [Token.lexicallyFirst] to identify which keyword in the group appears
+  /// first.
+  ///
+  /// Only meaningful when applied to token properties; all properties with
+  /// the same [tokenGroupId] should appear consecutively in the
+  /// `childEntitiesOrder` list.
   final int? tokenGroupId;
 
-  /// If the property does not exist in the public interface, we still need
-  /// to know its type.
+  /// The type of the property.
+  ///
+  /// If the property is declared in the public API, this doesn't need to be
+  /// specified (because it can be inferred from the public API declaration).
   final Type? type;
 
   const GenerateNodeProperty(
