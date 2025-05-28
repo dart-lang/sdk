@@ -228,7 +228,6 @@ class Translator with KernelNodes {
       closureImplementations = {};
 
   // Some convenience accessors for commonly used values.
-  late final ClassInfo topInfo = classes[0];
   late final ClassInfo objectInfo = classInfo[coreTypes.objectClass]!;
   late final ClassInfo closureInfo = classInfo[closureClass]!;
   late final ClassInfo stackTraceInfo = classInfo[stackTraceClass]!;
@@ -253,6 +252,37 @@ class Translator with KernelNodes {
       boxedIntClass.getThisType(coreTypes, Nullability.nonNullable);
   late final boxedDoubleType =
       boxedDoubleClass.getThisType(coreTypes, Nullability.nonNullable);
+
+  // The wasm type used to hold values of Dart top types
+  // (e.g. `Object?`, `dynamic`)
+  late final w.RefType topType = classes[0].nullableType;
+
+  // The wasm type used to hold values of Dart top types excluding null
+  // (e.g. `Object`)
+  late final w.RefType topTypeNonNullable = topType.withNullability(false);
+
+  // The wasm type used to hold values of `StackTrace`
+  late final w.RefType stackTraceType =
+      translateType(coreTypes.stackTraceNonNullableRawType) as w.RefType;
+
+  // The wasm type used to hold values of `StackTrace?`
+  late final w.RefType stackTraceTypeNullable =
+      stackTraceType.withNullability(true);
+
+  // The wasm type used to hold values of `Type`
+  late final w.RefType runtimeTypeType =
+      translateType(coreTypes.typeNonNullableRawType) as w.RefType;
+
+  // The wasm type used to hold values of `Type?`
+  late final w.RefType runtimeTypeTypeNullable =
+      runtimeTypeType.withNullability(true);
+
+  // The wasm type used to hold values of `String`
+  late final w.RefType stringType =
+      translateType(coreTypes.stringNonNullableRawType) as w.RefType;
+
+  // The wasm type used to hold values of `String?`
+  late final w.RefType stringTypeNullable = stringType.withNullability(true);
 
   final Map<w.ModuleBuilder, PartialInstantiator> _partialInstantiators = {};
   PartialInstantiator getPartialInstantiatorForModule(w.ModuleBuilder module) {
@@ -340,14 +370,14 @@ class Translator with KernelNodes {
     // Named arguments, represented as array of symbol and object pairs
     nullableObjectArrayTypeRef,
   ], [
-    topInfo.nullableType
+    topType,
   ]);
 
   /// Type of a dynamic invocation forwarder function.
   late final w.FunctionType dynamicInvocationForwarderFunctionType =
       typesBuilder.defineFunction([
     // Receiver
-    topInfo.nonNullableType,
+    topTypeNonNullable,
 
     // Type arguments
     typeArrayTypeRef,
@@ -358,28 +388,28 @@ class Translator with KernelNodes {
     // Named arguments, represented as array of symbol and object pairs
     nullableObjectArrayTypeRef,
   ], [
-    topInfo.nullableType
+    topType,
   ]);
 
   /// Type of a dynamic get forwarder function.
   late final w.FunctionType dynamicGetForwarderFunctionType =
       typesBuilder.defineFunction([
     // Receiver
-    topInfo.nonNullableType,
+    topTypeNonNullable,
   ], [
-    topInfo.nullableType
+    topType,
   ]);
 
   /// Type of a dynamic set forwarder function.
   late final w.FunctionType dynamicSetForwarderFunctionType =
       typesBuilder.defineFunction([
     // Receiver
-    topInfo.nonNullableType,
+    topTypeNonNullable,
 
     // Positional argument
-    topInfo.nullableType,
+    topType,
   ], [
-    topInfo.nullableType
+    topType,
   ]);
 
   // Module predicates and helpers
@@ -604,13 +634,14 @@ class Translator with KernelNodes {
       dynamicModuleInfo!.callOverridableDispatch(b, selector, interfaceTarget!,
           useUncheckedEntry: useUncheckedEntry);
     } else {
-      b.struct_get(topInfo.struct, FieldIndex.classId);
       final offset = selector.targets(unchecked: useUncheckedEntry).offset;
       if (offset == null) {
         b.unreachable();
         return;
       }
 
+      final receiverType = selector.signature.inputs.first;
+      b.loadClassId(this, receiverType);
       if (offset != 0) {
         b.i32_const(offset);
         b.i32_add();
@@ -804,10 +835,10 @@ class Translator with KernelNodes {
       }
 
       // Regular class.
-      return classInfo[cls]!.repr.typeWithNullability(nullable);
+      return classInfo[cls]!.repr.withNullability(nullable);
     }
     if (type is DynamicType || type is VoidType) {
-      return topInfo.nullableType;
+      return topType;
     }
     if (type is NullType) {
       return const w.RefType.none(nullable: true);
@@ -836,7 +867,7 @@ class Translator with KernelNodes {
       return translateStorageType(type.left);
     }
     if (type is FutureOrType) {
-      return topInfo.typeWithNullability(nullable);
+      return topType.withNullability(nullable);
     }
     if (type is FunctionType) {
       if (dynamicModuleSupportEnabled) {
@@ -1078,7 +1109,7 @@ class Translator with KernelNodes {
       compilationQueue.add(CompilationTask(
           function,
           _ClosureDynamicEntryGenerator(
-              this, functionNode, target, paramInfo, name, function)));
+              this, target, paramInfo, name, function)));
       return function;
     }
 
@@ -1406,10 +1437,7 @@ class Translator with KernelNodes {
       // Otherwise we use [boxClass] to represent `this`.
       cls = boxClass;
     }
-    final representationClassInfo = classInfo[cls]!.repr;
-    return nullable
-        ? representationClassInfo.nullableType
-        : representationClassInfo.nonNullableType;
+    return classInfo[cls]!.repr.withNullability(nullable);
   }
 
   /// Get the Wasm table declared by [field], or `null` if [field] is not a
@@ -2019,14 +2047,13 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
 /// entries.
 class _ClosureDynamicEntryGenerator implements CodeGenerator {
   final Translator translator;
-  final FunctionNode functionNode;
   final w.BaseFunction target;
   final ParameterInfo paramInfo;
   final String name;
   final w.FunctionBuilder function;
 
-  _ClosureDynamicEntryGenerator(this.translator, this.functionNode, this.target,
-      this.paramInfo, this.name, this.function);
+  _ClosureDynamicEntryGenerator(
+      this.translator, this.target, this.paramInfo, this.name, this.function);
 
   @override
   void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
@@ -2034,8 +2061,6 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     assert(returnLabel == null);
 
     final b = function.body;
-
-    final int typeCount = functionNode.typeParameters.length;
 
     final closureLocal = function.locals[0];
     final typeArgsListLocal = function.locals[1];
@@ -2070,12 +2095,11 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     }
 
     // Push type arguments
-    for (int typeIdx = 0; typeIdx < typeCount; typeIdx += 1) {
+    for (int typeIdx = 0; typeIdx < paramInfo.typeParamCount; typeIdx += 1) {
       b.local_get(typeArgsListLocal);
       b.i32_const(typeIdx);
       b.array_get(translator.typeArrayType);
-      translator.convertType(
-          b, translator.topInfo.nullableType, targetInputs[inputIdx]);
+      translator.convertType(b, translator.topType, targetInputs[inputIdx]);
       inputIdx += 1;
     }
 
@@ -2092,38 +2116,26 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
         b.local_get(posArgsListLocal);
         b.array_len();
         b.i32_lt_u();
-        b.if_([], [translator.topInfo.nullableType]);
+        b.if_([], [translator.topType]);
         b.local_get(posArgsListLocal);
         b.i32_const(posIdx);
         b.array_get(translator.nullableObjectArrayType);
         b.else_();
         translator.constants.instantiateConstant(
-            b, paramInfo.positional[posIdx]!, translator.topInfo.nullableType);
+            b, paramInfo.positional[posIdx]!, translator.topType);
         b.end();
       }
-      translator.convertType(
-          b, translator.topInfo.nullableType, targetInputs[inputIdx]);
+      translator.convertType(b, translator.topType, targetInputs[inputIdx]);
       inputIdx += 1;
     }
 
     // Push named arguments
-
-    Expression? initializerForNamedParamInMember(String paramName) {
-      for (int i = 0; i < functionNode.namedParameters.length; i += 1) {
-        if (functionNode.namedParameters[i].name == paramName) {
-          return functionNode.namedParameters[i].initializer;
-        }
-      }
-      return null;
-    }
 
     final namedArgValueIndexLocal = b
         .addLocal(translator.classInfo[translator.boxedIntClass]!.nullableType);
 
     for (String paramName in paramInfo.names) {
       final Constant? paramInfoDefaultValue = paramInfo.named[paramName];
-      final Expression? functionNodeDefaultValue =
-          initializerForNamedParamInMember(paramName);
 
       // Get passed value
       b.local_get(namedArgsListLocal);
@@ -2134,7 +2146,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
       translator.callReference(translator.getNamedParameterIndex.reference, b);
       b.local_set(namedArgValueIndexLocal);
 
-      if (functionNodeDefaultValue == null && paramInfoDefaultValue == null) {
+      if (paramInfoDefaultValue == null) {
         // Shape check passed, parameter must be passed
         b.local_get(namedArgsListLocal);
         b.local_get(namedArgValueIndexLocal);
@@ -2149,21 +2161,9 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
         // Parameter may not be passed.
         b.local_get(namedArgValueIndexLocal);
         b.ref_is_null();
-        b.if_([], [translator.topInfo.nullableType]);
-        if (functionNodeDefaultValue != null) {
-          // Used by the member, has a default value
-          translator.constants.instantiateConstant(
-              b,
-              (functionNodeDefaultValue as ConstantExpression).constant,
-              translator.topInfo.nullableType);
-        } else {
-          // Not used by the member
-          translator.constants.instantiateConstant(
-            b,
-            paramInfoDefaultValue!,
-            translator.topInfo.nullableType,
-          );
-        }
+        b.if_([], [translator.topType]);
+        translator.constants.instantiateConstant(
+            b, paramInfoDefaultValue, translator.topType);
         b.else_(); // value index not null
         b.local_get(namedArgsListLocal);
         b.local_get(namedArgValueIndexLocal);
@@ -2171,8 +2171,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
         b.i32_wrap_i64();
         b.array_get(translator.nullableObjectArrayType);
         b.end();
-        translator.convertType(
-            b, translator.topInfo.nullableType, targetInputs[inputIdx]);
+        translator.convertType(b, translator.topType, targetInputs[inputIdx]);
       }
       inputIdx += 1;
     }

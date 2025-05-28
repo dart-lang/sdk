@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../builder/builder.dart';
-import '../builder/member_builder.dart';
 import 'scope.dart';
 
 abstract class LookupResult {
@@ -37,20 +36,10 @@ abstract class LookupResult {
     }
     if (setable != null) {
       if (setable.next != null) {
-        AmbiguousBuilder ambiguousBuilder =
-            setable = new AmbiguousBuilder(name, setable, fileOffset, fileUri);
-        Builder firstSetable = ambiguousBuilder.getFirstDeclaration();
-        if (firstSetable is MemberBuilder && firstSetable.isConflictingSetter) {
-          setable = null;
-        }
-        changed = true;
-      } else if (setable is MemberBuilder && setable.isConflictingSetter) {
-        setable = null;
+        setable = new AmbiguousBuilder(name, setable, fileOffset, fileUri);
         changed = true;
       }
-      if (setable != null &&
-          staticOnly &&
-          setable.isDeclarationInstanceMember) {
+      if (staticOnly && setable.isDeclarationInstanceMember) {
         setable = null;
         changed = true;
       }
@@ -80,12 +69,15 @@ abstract class LookupResult {
         assert(getable != setable,
             "Unexpected getable $getable and setable $setable.");
         assert(
-            !assertNoGetterSetterConflict || lookupResult.setable == null,
+            !assertNoGetterSetterConflict ||
+                // Coverage-ignore(suite): Not run.
+                lookupResult.setable == null,
             "Unexpected setable ${lookupResult.setable} from "
             "getable $getable and setable $setable.");
         return new GetableSetableResult(getable!, setable);
       }
     } else if (setable is LookupResult) {
+      // Coverage-ignore-block(suite): Not run.
       LookupResult lookupResult = setable as LookupResult;
       if (getable == null) {
         return lookupResult;

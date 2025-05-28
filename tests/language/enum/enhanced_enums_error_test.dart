@@ -76,7 +76,6 @@ enum ConflictStaticSetterInstanceMembers {
   static void set foo(int _) {}
   //              ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] This static member conflicts with an instance member.
   int foo() => 37;
   //  ^
   // [cfe] The declaration conflicts with setter 'foo'.
@@ -89,7 +88,6 @@ enum ConflictStaticInstanceProperty2 {
   //              ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
   // [cfe] Static property 'foo' conflicts with instance property of the same name.
-  // [cfe] This static member conflicts with an instance member.
 }
 
 // "It is an error if you have a static getter $v$
@@ -99,7 +97,6 @@ enum ConflictStaticInstanceProperty {
   static int get foo => 42;
   //             ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] This static member conflicts with an instance member.
   void set foo(int _) {}
   //       ^
   // [cfe] Instance property 'foo' conflicts with static property of the same name.

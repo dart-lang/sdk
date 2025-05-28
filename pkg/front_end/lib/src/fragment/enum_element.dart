@@ -196,6 +196,7 @@ class _EnumElementClassMember implements ClassMember {
   bool get isStatic => true;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
 
   @override
@@ -543,6 +544,7 @@ class EnumElementDeclaration
   bool get hasInitializer => true;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasSetter => false;
 
   @override

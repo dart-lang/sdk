@@ -383,12 +383,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (existing == member) {
       return false;
     } else {
-      if (member is MemberBuilder && member.isConflictingSetter) {
-        // TODO(johnniwinther): Remove this case when getables and setables are
-        //  contained in the same map in the name space.
-        _exportNameSpace.addLocalMember(name, member, setter: isSetter);
-        return true;
-      } else if (existing != null) {
+      if (existing != null) {
         NamedBuilder result = _computeAmbiguousDeclarationForExport(
             name, existing, member,
             uriOffset: uriOffset);
@@ -1055,7 +1050,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     } else if (member is Procedure) {
       member.isStatic = true;
-      if (!declaration.isDuplicate && !declaration.isConflictingSetter) {
+      if (!declaration.isDuplicate) {
         library.addProcedure(member);
       }
     } else {

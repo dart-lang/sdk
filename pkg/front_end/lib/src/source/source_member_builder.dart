@@ -93,19 +93,6 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
             new MemberDataForTesting()
             : null;
 
-  bool? _isConflictingSetter;
-
-  @override
-  bool get isConflictingSetter {
-    return _isConflictingSetter ??= false;
-  }
-
-  void set isConflictingSetter(bool value) {
-    assert(_isConflictingSetter == null,
-        '$this.isConflictingSetter has already been fixed.');
-    _isConflictingSetter = value;
-  }
-
   @override
   // Coverage-ignore(suite): Not run.
   void buildOutlineExpressions(ClassHierarchy classHierarchy,

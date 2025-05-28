@@ -400,7 +400,7 @@ class Types {
     b.comment("type check against $testedAgainstType");
     w.Local? operandTemp;
     if (translator.options.verifyTypeChecks) {
-      operandTemp = b.addLocal(translator.topInfo.nullableType);
+      operandTemp = b.addLocal(translator.topType);
       b.local_tee(operandTemp);
     }
     final checkOnlyNullAssignability =
@@ -658,8 +658,8 @@ class IsCheckers extends _TypeCheckers {
     return cache.putIfAbsent(testedAgainstType, () {
       final typeType = translator.translateType(translator.typeType);
       final argumentType = operandIsNullable
-          ? translator.topInfo.nullableType
-          : translator.topInfo.nonNullableType;
+          ? translator.topType
+          : translator.topTypeNonNullable;
       final signature = w.FunctionType(
           [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
           [w.NumType.i32]);
@@ -701,8 +701,8 @@ class AsCheckers extends _TypeCheckers {
     return cache.putIfAbsent(testedAgainstType, () {
       final returnType = translator.translateType(testedAgainstType);
       final argumentType = operandIsNullable
-          ? translator.topInfo.nullableType
-          : translator.topInfo.nonNullableType;
+          ? translator.topType
+          : translator.topTypeNonNullable;
       final typeType = translator.translateType(translator.typeType);
       final signature = w.FunctionType(
           [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
@@ -812,7 +812,7 @@ class IsCheckerCodeGenerator implements CodeGenerator {
       w.Label nullLabel = b.block(const [], const []);
       b.local_get(operand);
       b.br_on_null(nullLabel);
-      final nonNullableOperand = b.addLocal(translator.topInfo.nonNullableType);
+      final nonNullableOperand = b.addLocal(translator.topTypeNonNullable);
       b.local_get(operand);
       b.ref_cast(nonNullableOperand.type as w.RefType);
       b.local_set(nonNullableOperand);
@@ -885,7 +885,7 @@ class IsCheckerCodeGenerator implements CodeGenerator {
         final ranges = translator.classIdNumbering
             .getConcreteClassIdRangeForClass(interfaceClass);
         b.local_get(operand);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.loadClassId(translator, operand.type);
         if (translator.isDynamicSubmodule) {
           // Only types that are not dynamic module extendable can get here.
           final classIdLocal = b.addLocal(w.NumType.i32);
@@ -1054,7 +1054,7 @@ class AsCheckerCodeGenerator implements CodeGenerator {
     }
     b.unreachable();
 
-    b.end();
+    b.end(); // asCheckBlock
 
     b.local_get(b.locals[0]);
     translator.convertType(b, signature.inputs.first, signature.outputs.single);

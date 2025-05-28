@@ -23,7 +23,6 @@ import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
-import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/constructor/declaration.dart';
 import '../fragment/factory/declaration.dart';
@@ -95,6 +94,21 @@ class _FragmentName {
       this.isStatic = true});
 }
 
+typedef _CreateBuilderFunction = void Function(Fragment,
+    {List<Fragment>? augmentations});
+
+typedef _CreatePropertyFunction = void Function(
+    {required String name,
+    required int nameOffset,
+    required Uri fileUri,
+    FieldDeclaration? fieldDeclaration,
+    GetterDeclaration? getterDeclaration,
+    List<GetterDeclaration>? getterAugmentationDeclarations,
+    SetterDeclaration? setterDeclaration,
+    List<SetterDeclaration>? setterAugmentationDeclarations,
+    required bool isStatic,
+    required bool inPatch});
+
 /// A [_PreBuilder] is a precursor to a [Builder] with subclasses for
 /// properties, constructors, and other declarations.
 sealed class _PreBuilder {
@@ -122,31 +136,44 @@ sealed class _PreBuilder {
   /// non-duplicate declarations, but because setters are store in a separate
   /// map the [NameSpace], they are not directly marked as duplicate if they
   /// do not conflict with other setters.
-  void createBuilders(
-      void Function(Fragment,
-              {bool conflictingSetter, List<Fragment>? augmentations})
-          createBuilder);
+  void createBuilders(_CreateBuilderFunction createBuilder,
+      _CreatePropertyFunction createProperty);
 }
 
 /// [_PreBuilder] for properties, i.e. fields, getters and setters.
 class _PropertyPreBuilder extends _PreBuilder {
+  final bool inPatch;
+  final String name;
+  final Uri fileUri;
+  final int nameOffset;
   final bool isStatic;
   _FragmentName? getter;
   _FragmentName? setter;
   List<_FragmentName> augmentations = [];
-  List<_FragmentName> conflictingSetters = [];
 
   // TODO(johnniwinther): Report error if [getter] is augmenting.
   _PropertyPreBuilder.forGetter(_FragmentName this.getter)
-      : isStatic = getter.isStatic;
+      : isStatic = getter.isStatic,
+        inPatch = getter.inPatch,
+        name = getter.name,
+        nameOffset = getter.nameOffset,
+        fileUri = getter.fileUri;
 
   // TODO(johnniwinther): Report error if [setter] is augmenting.
   _PropertyPreBuilder.forSetter(_FragmentName this.setter)
-      : isStatic = setter.isStatic;
+      : isStatic = setter.isStatic,
+        inPatch = setter.inPatch,
+        name = setter.name,
+        nameOffset = setter.nameOffset,
+        fileUri = setter.fileUri;
 
   // TODO(johnniwinther): Report error if [getter] is augmenting.
   _PropertyPreBuilder.forField(_FragmentName this.getter)
-      : isStatic = getter.isStatic {
+      : isStatic = getter.isStatic,
+        inPatch = getter.inPatch,
+        name = getter.name,
+        nameOffset = getter.nameOffset,
+        fileUri = getter.fileUri {
     if (getter!.propertyKind == _PropertyKind.Field) {
       setter = getter;
     }
@@ -345,13 +372,7 @@ class _PropertyPreBuilder extends _PreBuilder {
                           .withLocation(setter!.fileUri, setter!.nameOffset,
                               setter!.nameLength)
                     ]);
-
-                // Even though we have a conflict we absorb the conflicting
-                // setter in order to ensure that the created [Builder] is
-                // marked as a conflicting setter.
-                // TODO(johnniwinther): Avoid the need for this.
-                conflictingSetters.add(fragmentName);
-                return true;
+                return false;
               } else {
                 // Example:
                 //
@@ -394,15 +415,7 @@ class _PropertyPreBuilder extends _PreBuilder {
                       .withLocation(setter!.fileUri, setter!.nameOffset,
                           setter!.nameLength)
                 ]);
-
-            // Even though we have a conflict we absorb the setter and replace
-            // it with the field in order to ensure that the created setter
-            // [Builder] is marked as a conflicting setter.
-            // TODO(johnniwinther): Avoid the need for this.
-            getter = fragmentName;
-            conflictingSetters.add(setter!);
-            setter = fragmentName;
-            return true;
+            return false;
           } else if (setter != null) {
             // Examples:
             //
@@ -748,14 +761,75 @@ class _PropertyPreBuilder extends _PreBuilder {
     }
   }
 
+  _Declarations _createDeclarations(Fragment fragment) {
+    switch (fragment) {
+      case FieldFragment():
+        RegularFieldDeclaration declaration =
+            new RegularFieldDeclaration(fragment);
+        return new _Declarations(
+            field: declaration,
+            getter: declaration,
+            setter: fragment.hasSetter ? declaration : null);
+      case PrimaryConstructorFieldFragment():
+        PrimaryConstructorFieldDeclaration declaration =
+            new PrimaryConstructorFieldDeclaration(fragment);
+        return new _Declarations(field: declaration, getter: declaration);
+      case EnumElementFragment():
+        EnumElementDeclaration declaration =
+            new EnumElementDeclaration(fragment);
+        return new _Declarations(field: declaration, getter: declaration);
+      case GetterFragment():
+        return new _Declarations(
+            getter: new RegularGetterDeclaration(fragment));
+      case SetterFragment():
+        return new _Declarations(
+            setter: new RegularSetterDeclaration(fragment));
+      // Coverage-ignore(suite): Not run.
+      default:
+        throw new UnsupportedError("Unexpected property fragment $fragment");
+    }
+  }
+
   @override
-  void createBuilders(
-      void Function(Fragment,
-              {bool conflictingSetter, List<Fragment>? augmentations})
-          createBuilder) {
+  void createBuilders(_CreateBuilderFunction createBuilder,
+      _CreatePropertyFunction createProperty) {
+    FieldDeclaration? fieldDeclaration;
+    GetterDeclaration? getterDeclaration;
+    SetterDeclaration? setterDeclaration;
+    if (getter != null) {
+      _Declarations declarations = _createDeclarations(getter!.fragment);
+      fieldDeclaration = declarations.field;
+      getterDeclaration = declarations.getter;
+      setterDeclaration = declarations.setter;
+    }
+    if (setter != null && setter!.propertyKind != _PropertyKind.Field) {
+      _Declarations declarations = _createDeclarations(setter!.fragment);
+      assert(declarations.field == null,
+          "Unexpected field declaration from setter $setter");
+      assert(declarations.getter == null,
+          "Unexpected getter declaration from setter $setter");
+      assert(setterDeclaration == null,
+          "Unexpected setter declaration from getter $getter");
+      setterDeclaration = declarations.setter;
+    }
+
+    List<GetterDeclaration>? getterAugmentationDeclarations;
+    List<SetterDeclaration>? setterAugmentationDeclarations;
+
     List<Fragment>? getterAugmentations;
     List<Fragment>? setterAugmentations;
     for (_FragmentName fragmentName in augmentations) {
+      _Declarations declarations = _createDeclarations(fragmentName.fragment);
+      // TODO(johnniwinther): Support field augmentations.
+      assert(declarations.field == null,
+          "Unexpected field declaration from augmentation $fragmentName");
+      if (declarations.getter != null) {
+        (getterAugmentationDeclarations ??= []).add(declarations.getter!);
+      }
+      if (declarations.setter != null) {
+        (setterAugmentationDeclarations ??= []).add(declarations.setter!);
+      }
+
       if (fragmentName.fragment is GetterFragment) {
         (getterAugmentations ??= []).add(fragmentName.fragment);
       } else if (fragmentName.fragment is SetterFragment) {
@@ -765,19 +839,17 @@ class _PropertyPreBuilder extends _PreBuilder {
       }
     }
     augmentations.clear();
-    if (getter != null) {
-      createBuilder(getter!.fragment, augmentations: getterAugmentations);
-    }
-    if (setter != null && setter!.propertyKind == _PropertyKind.Setter) {
-      createBuilder(setter!.fragment, augmentations: setterAugmentations);
-    }
-    for (_FragmentName fragmentName in conflictingSetters) {
-      createBuilder(fragmentName.fragment, conflictingSetter: true);
-    }
-    for (_FragmentName fragmentName in augmentations) {
-      // Coverage-ignore-block(suite): Not run.
-      createBuilder(fragmentName.fragment);
-    }
+    createProperty(
+        name: name,
+        inPatch: inPatch,
+        isStatic: isStatic,
+        nameOffset: nameOffset,
+        fileUri: fileUri,
+        fieldDeclaration: fieldDeclaration,
+        getterDeclaration: getterDeclaration,
+        getterAugmentationDeclarations: getterAugmentationDeclarations,
+        setterDeclaration: setterDeclaration,
+        setterAugmentationDeclarations: setterAugmentationDeclarations);
   }
 }
 
@@ -888,10 +960,8 @@ class _ConstructorPreBuilder extends _PreBuilder {
   }
 
   @override
-  void createBuilders(
-      void Function(Fragment,
-              {bool conflictingSetter, List<Fragment>? augmentations})
-          createBuilder) {
+  void createBuilders(_CreateBuilderFunction createBuilder,
+      _CreatePropertyFunction createProperty) {
     createBuilder(fragment.fragment,
         augmentations: augmentations.map((f) => f.fragment).toList());
   }
@@ -1016,10 +1086,8 @@ class _DeclarationPreBuilder extends _PreBuilder {
   }
 
   @override
-  void createBuilders(
-      void Function(Fragment,
-              {bool conflictingSetter, List<Fragment>? augmentations})
-          createBuilder) {
+  void createBuilders(_CreateBuilderFunction createBuilder,
+      _CreatePropertyFunction createProperty) {
     createBuilder(fragment.fragment,
         augmentations: augmentations.map((f) => f.fragment).toList());
   }
@@ -1450,51 +1518,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             unboundNominalParameters: unboundNominalParameters,
             indexedLibrary: indexedLibrary));
-      case FieldFragment():
-        builders.add(_createFieldBuilder(fragment,
-            problemReporting: problemReporting,
-            loader: loader,
-            enclosingLibraryBuilder: enclosingLibraryBuilder,
-            declarationBuilder: declarationBuilder,
-            unboundNominalParameters: unboundNominalParameters,
-            indexedLibrary: indexedLibrary,
-            containerType: containerType,
-            indexedContainer: indexedContainer,
-            containerName: containerName));
-      case PrimaryConstructorFieldFragment():
-        builders.add(_createPrimaryConstructorFieldBuilder(fragment,
-            problemReporting: problemReporting,
-            loader: loader,
-            enclosingLibraryBuilder: enclosingLibraryBuilder,
-            declarationBuilder: declarationBuilder!,
-            unboundNominalParameters: unboundNominalParameters,
-            indexedLibrary: indexedLibrary,
-            containerType: containerType,
-            indexedContainer: indexedContainer,
-            containerName: containerName));
-      case GetterFragment():
-        builders.add(_createGetterBuilder(fragment, augmentations,
-            problemReporting: problemReporting,
-            loader: loader,
-            enclosingLibraryBuilder: enclosingLibraryBuilder,
-            declarationBuilder: declarationBuilder,
-            unboundNominalParameters: unboundNominalParameters,
-            indexedLibrary: indexedLibrary,
-            containerType: containerType,
-            indexedContainer: indexedContainer,
-            containerName: containerName));
-      case SetterFragment():
-        builders.add(_createSetterBuilder(fragment, augmentations,
-            problemReporting: problemReporting,
-            loader: loader,
-            enclosingLibraryBuilder: enclosingLibraryBuilder,
-            declarationBuilder: declarationBuilder,
-            unboundNominalParameters: unboundNominalParameters,
-            indexedLibrary: indexedLibrary,
-            containerType: containerType,
-            indexedContainer: indexedContainer,
-            containerName: containerName,
-            conflictingSetter: conflictingSetter));
       case MethodFragment():
         builders.add(_createMethodBuilder(fragment, augmentations,
             problemReporting: problemReporting,
@@ -1539,17 +1562,13 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             containerType: containerType,
             indexedContainer: indexedContainer,
             containerName: containerName));
+      // Coverage-ignore(suite): Not run.
+      case FieldFragment():
+      case PrimaryConstructorFieldFragment():
+      case GetterFragment():
+      case SetterFragment():
       case EnumElementFragment():
-        builders.add(_createEnumElementBuilder(fragment,
-            problemReporting: problemReporting,
-            loader: loader,
-            enclosingLibraryBuilder: enclosingLibraryBuilder,
-            declarationBuilder: declarationBuilder,
-            unboundNominalParameters: unboundNominalParameters,
-            indexedLibrary: indexedLibrary,
-            containerType: containerType,
-            indexedContainer: indexedContainer,
-            containerName: containerName));
+        throw new UnsupportedError('Unexpected fragment $fragment.');
     }
     if (augmentations != null) {
       for (Fragment augmentation in augmentations) {
@@ -1559,11 +1578,44 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
     }
   }
 
+  void createProperty(
+      {required String name,
+      required int nameOffset,
+      required Uri fileUri,
+      FieldDeclaration? fieldDeclaration,
+      GetterDeclaration? getterDeclaration,
+      List<GetterDeclaration>? getterAugmentationDeclarations,
+      SetterDeclaration? setterDeclaration,
+      List<SetterDeclaration>? setterAugmentationDeclarations,
+      required bool isStatic,
+      required bool inPatch}) {
+    builders.add(_createPropertyBuilder(
+        problemReporting: problemReporting,
+        loader: loader,
+        name: name,
+        nameOffset: nameOffset,
+        fileUri: fileUri,
+        enclosingLibraryBuilder: enclosingLibraryBuilder,
+        declarationBuilder: declarationBuilder,
+        unboundNominalParameters: unboundNominalParameters,
+        fieldDeclaration: fieldDeclaration,
+        getterDeclaration: getterDeclaration,
+        getterAugmentations: getterAugmentationDeclarations ?? const [],
+        setterDeclaration: setterDeclaration,
+        setterAugmentations: setterAugmentationDeclarations ?? const [],
+        containerName: containerName,
+        containerType: containerType,
+        indexedLibrary: indexedLibrary,
+        indexedContainer: indexedContainer,
+        isStatic: isStatic,
+        inPatch: inPatch));
+  }
+
   for (_PreBuilder preBuilder in nonConstructorPreBuilders) {
-    preBuilder.createBuilders(createBuilder);
+    preBuilder.createBuilders(createBuilder, createProperty);
   }
   for (_PreBuilder preBuilder in constructorPreBuilders) {
-    preBuilder.createBuilders(createBuilder);
+    preBuilder.createBuilders(createBuilder, createProperty);
   }
   for (Fragment fragment in unnamedFragments) {
     createBuilder(fragment);
@@ -1596,10 +1648,6 @@ class LibraryNameSpaceBuilder {
     required List<NamedBuilder> memberBuilders,
   }) {
     Map<String, LookupResult> content = {};
-    Map<String, NamedBuilder> getables = {};
-
-    Map<String, NamedBuilder> setables = {};
-
     Set<ExtensionBuilder> extensions = {};
 
     void _addBuilder(_AddBuilder addBuilder) {
@@ -1607,6 +1655,9 @@ class LibraryNameSpaceBuilder {
       NamedBuilder declaration = addBuilder.declaration;
       Uri fileUri = addBuilder.fileUri;
       int charOffset = addBuilder.charOffset;
+
+      assert(declaration.next == null,
+          "Unexpected declaration.next ${declaration.next} on $declaration");
 
       memberBuilders.add(declaration);
 
@@ -1635,14 +1686,6 @@ class LibraryNameSpaceBuilder {
                   declaration is FactoryBuilder)),
           "Unexpected constructor in library: $declaration.");
 
-      bool isSetter = isMappedAsSetter(declaration);
-
-      Map<String, NamedBuilder> members = isSetter ? setables : getables;
-
-      NamedBuilder? existing = members[name];
-
-      if (existing == declaration) return;
-
       if (addBuilder.inPatch &&
           !name.startsWith('_') &&
           !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
@@ -1653,6 +1696,13 @@ class LibraryNameSpaceBuilder {
             noLength,
             fileUri);
       }
+
+      LookupResult? existingResult = content[name];
+      NamedBuilder? existing =
+          existingResult?.getable ?? existingResult?.setable;
+
+      assert(
+          existing != declaration, "Unexpected existing declaration $existing");
 
       if (declaration.next != null &&
           // Coverage-ignore(suite): Not run.
@@ -1671,7 +1721,7 @@ class LibraryNameSpaceBuilder {
         // output.
         extensions.add(declaration);
       }
-      members[name] = declaration;
+      content[name] = declaration as LookupResult;
     }
 
     Map<String, List<Fragment>> fragmentsByName = {};
@@ -1693,15 +1743,6 @@ class LibraryNameSpaceBuilder {
       for (_AddBuilder addBuilder in addBuilders) {
         _addBuilder(addBuilder);
       }
-    }
-
-    for (MapEntry<String, NamedBuilder> entry in getables.entries) {
-      LookupResult.addNamedBuilder(content, entry.key, entry.value,
-          setter: false);
-    }
-    for (MapEntry<String, NamedBuilder> entry in setables.entries) {
-      LookupResult.addNamedBuilder(content, entry.key, entry.value,
-          setter: true);
     }
     return new SourceLibraryNameSpace(content: content, extensions: extensions);
   }
@@ -1903,8 +1944,6 @@ class DeclarationNameSpaceBuilder {
       required List<SourceMemberBuilder> memberBuilders}) {
     List<NominalParameterBuilder> unboundNominalParameters = [];
     Map<String, LookupResult> content = {};
-    Map<String, NamedBuilder> getables = {};
-    Map<String, NamedBuilder> setables = {};
     Map<String, MemberBuilder> constructors = {};
 
     Map<String, List<Fragment>> fragmentsByName = {};
@@ -1917,6 +1956,9 @@ class DeclarationNameSpaceBuilder {
       NamedBuilder declaration = addBuilder.declaration;
       Uri fileUri = addBuilder.fileUri;
       int charOffset = addBuilder.charOffset;
+
+      assert(declaration.next == null,
+          "Unexpected declaration.next ${declaration.next} on $declaration");
 
       bool isConstructor =
           declaration is ConstructorBuilder || declaration is FactoryBuilder;
@@ -1932,20 +1974,11 @@ class DeclarationNameSpaceBuilder {
         memberBuilders.add(declaration as SourceMemberBuilder);
       }
 
-      bool isSetter = isMappedAsSetter(declaration);
-
-      Map<String, NamedBuilder> members =
-          isConstructor ? constructors : (isSetter ? setables : getables);
-
-      NamedBuilder? existing = members[name];
-
-      if (existing == declaration) return;
-
       if (addBuilder.inPatch &&
           !name.startsWith('_') &&
           !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
-        // TODO(johnniwinther): Test adding a no-name constructor in the patch,
-        // either as an injected or duplicated constructor.
+        // TODO(johnniwinther): Test adding a no-name constructor in the
+        //  patch, either as an injected or duplicated constructor.
         problemReporting.addProblem(
             templatePatchInjectionFailed.withArguments(
                 name, enclosingLibraryBuilder.importUri),
@@ -1954,17 +1987,43 @@ class DeclarationNameSpaceBuilder {
             fileUri);
       }
 
-      if (declaration.next != null &&
-          // Coverage-ignore(suite): Not run.
-          declaration.next != existing) {
-        unexpected(
-            "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
-            "${existing?.fileUri}@${existing?.fileOffset}",
-            declaration.fileOffset,
-            declaration.fileUri);
+      if (isConstructor) {
+        NamedBuilder? existing = constructors[name];
+
+        assert(existing != declaration,
+            "Unexpected existing declaration $existing");
+
+        if (declaration.next != null &&
+            // Coverage-ignore(suite): Not run.
+            declaration.next != existing) {
+          unexpected(
+              "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
+              "${existing?.fileUri}@${existing?.fileOffset}",
+              declaration.fileOffset,
+              declaration.fileUri);
+        }
+        declaration.next = existing;
+        constructors[name] = declaration as MemberBuilder;
+      } else {
+        LookupResult? existingResult = content[name];
+        NamedBuilder? existing =
+            existingResult?.getable ?? existingResult?.setable;
+
+        assert(existing != declaration,
+            "Unexpected existing declaration $existing");
+
+        if (declaration.next != null &&
+            // Coverage-ignore(suite): Not run.
+            declaration.next != existing) {
+          unexpected(
+              "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
+              "${existing?.fileUri}@${existing?.fileOffset}",
+              declaration.fileOffset,
+              declaration.fileUri);
+        }
+        declaration.next = existing;
+        content[name] = declaration as LookupResult;
       }
-      declaration.next = existing;
-      members[name] = declaration;
     }
 
     for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
@@ -1992,21 +2051,15 @@ class DeclarationNameSpaceBuilder {
           problemReporting, name, member, member.fileUri!);
     }
 
-    getables.forEach(checkConflicts);
-    setables.forEach(checkConflicts);
+    content.forEach((String name, LookupResult lookupResult) {
+      NamedBuilder member = (lookupResult.getable ?? lookupResult.setable)!;
+      checkTypeParameterConflict(
+          problemReporting, name, member, member.fileUri!);
+    });
     constructors.forEach(checkConflicts);
 
     enclosingLibraryBuilder
         .registerUnboundNominalParameters(unboundNominalParameters);
-
-    for (MapEntry<String, NamedBuilder> entry in getables.entries) {
-      LookupResult.addNamedBuilder(content, entry.key, entry.value,
-          setter: false);
-    }
-    for (MapEntry<String, NamedBuilder> entry in setables.entries) {
-      LookupResult.addNamedBuilder(content, entry.key, entry.value,
-          setter: true);
-    }
 
     return new SourceDeclarationNameSpace(
         content: content,
@@ -2485,170 +2538,6 @@ _AddBuilder _createExtensionTypeBuilder(ExtensionTypeFragment fragment,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
-_AddBuilder _createFieldBuilder(FieldFragment fragment,
-    {required ProblemReporting problemReporting,
-    required SourceLoader loader,
-    required SourceLibraryBuilder enclosingLibraryBuilder,
-    required DeclarationBuilder? declarationBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
-    required IndexedLibrary? indexedLibrary,
-    required ContainerType containerType,
-    required IndexedContainer? indexedContainer,
-    required ContainerName? containerName}) {
-  RegularFieldDeclaration declaration = new RegularFieldDeclaration(fragment);
-  return _createPropertyBuilder(
-      problemReporting: problemReporting,
-      loader: loader,
-      name: fragment.name,
-      nameOffset: fragment.nameOffset,
-      fileUri: fragment.fileUri,
-      enclosingLibraryBuilder: enclosingLibraryBuilder,
-      declarationBuilder: declarationBuilder,
-      unboundNominalParameters: unboundNominalParameters,
-      indexedLibrary: indexedLibrary,
-      indexedContainer: indexedContainer,
-      containerType: containerType,
-      containerName: containerName,
-      fieldDeclaration: declaration,
-      getterDeclaration: declaration,
-      getterAugmentations: const [],
-      setterDeclaration: fragment.hasSetter ? declaration : null,
-      setterAugmentations: const [],
-      isStatic: fragment.modifiers.isStatic,
-      conflictingSetter: false,
-      inPatch: fragment.enclosingDeclaration?.isPatch ??
-          fragment.enclosingCompilationUnit.isPatch);
-}
-
-_AddBuilder _createPrimaryConstructorFieldBuilder(
-    PrimaryConstructorFieldFragment fragment,
-    {required ProblemReporting problemReporting,
-    required SourceLoader loader,
-    required SourceLibraryBuilder enclosingLibraryBuilder,
-    required DeclarationBuilder declarationBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
-    required IndexedLibrary? indexedLibrary,
-    required ContainerType containerType,
-    required IndexedContainer? indexedContainer,
-    required ContainerName? containerName}) {
-  PrimaryConstructorFieldDeclaration declaration =
-      new PrimaryConstructorFieldDeclaration(fragment);
-  return _createPropertyBuilder(
-      problemReporting: problemReporting,
-      loader: loader,
-      name: fragment.name,
-      nameOffset: fragment.nameOffset,
-      fileUri: fragment.fileUri,
-      enclosingLibraryBuilder: enclosingLibraryBuilder,
-      declarationBuilder: declarationBuilder,
-      unboundNominalParameters: unboundNominalParameters,
-      indexedLibrary: indexedLibrary,
-      indexedContainer: indexedContainer,
-      containerType: containerType,
-      containerName: containerName,
-      fieldDeclaration: declaration,
-      getterDeclaration: declaration,
-      getterAugmentations: const [],
-      setterDeclaration: null,
-      setterAugmentations: const [],
-      isStatic: false,
-      conflictingSetter: false,
-      inPatch: fragment.enclosingDeclaration.isPatch);
-}
-
-_AddBuilder _createGetterBuilder(
-    GetterFragment fragment, List<Fragment>? augmentations,
-    {required ProblemReporting problemReporting,
-    required SourceLoader loader,
-    required SourceLibraryBuilder enclosingLibraryBuilder,
-    required DeclarationBuilder? declarationBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
-    required IndexedLibrary? indexedLibrary,
-    required ContainerType containerType,
-    required IndexedContainer? indexedContainer,
-    required ContainerName? containerName}) {
-  GetterDeclaration declaration = new RegularGetterDeclaration(fragment);
-  List<GetterDeclaration> augmentationDeclarations = [];
-  if (augmentations != null) {
-    for (Fragment augmentation in augmentations) {
-      // Promote [augmentation] to [GetterFragment].
-      augmentation as GetterFragment;
-
-      augmentationDeclarations.add(new RegularGetterDeclaration(augmentation));
-    }
-    augmentations.clear();
-  }
-  return _createPropertyBuilder(
-      problemReporting: problemReporting,
-      loader: loader,
-      name: fragment.name,
-      nameOffset: fragment.nameOffset,
-      fileUri: fragment.fileUri,
-      enclosingLibraryBuilder: enclosingLibraryBuilder,
-      declarationBuilder: declarationBuilder,
-      unboundNominalParameters: unboundNominalParameters,
-      indexedLibrary: indexedLibrary,
-      indexedContainer: indexedContainer,
-      containerType: containerType,
-      containerName: containerName,
-      fieldDeclaration: null,
-      getterDeclaration: declaration,
-      getterAugmentations: augmentationDeclarations,
-      setterDeclaration: null,
-      setterAugmentations: const [],
-      isStatic: fragment.modifiers.isStatic,
-      conflictingSetter: false,
-      inPatch: fragment.enclosingDeclaration?.isPatch ??
-          fragment.enclosingCompilationUnit.isPatch);
-}
-
-_AddBuilder _createSetterBuilder(
-    SetterFragment fragment, List<Fragment>? augmentations,
-    {required ProblemReporting problemReporting,
-    required SourceLoader loader,
-    required SourceLibraryBuilder enclosingLibraryBuilder,
-    required DeclarationBuilder? declarationBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
-    required IndexedLibrary? indexedLibrary,
-    required ContainerType containerType,
-    required IndexedContainer? indexedContainer,
-    required ContainerName? containerName,
-    required bool conflictingSetter}) {
-  SetterDeclaration declaration = new RegularSetterDeclaration(fragment);
-  List<SetterDeclaration> augmentationDeclarations = [];
-  if (augmentations != null) {
-    for (Fragment augmentation in augmentations) {
-      // Promote [augmentation] to [SetterFragment].
-      augmentation as SetterFragment;
-
-      augmentationDeclarations.add(new RegularSetterDeclaration(augmentation));
-    }
-    augmentations.clear();
-  }
-  return _createPropertyBuilder(
-      problemReporting: problemReporting,
-      loader: loader,
-      name: fragment.name,
-      nameOffset: fragment.nameOffset,
-      fileUri: fragment.fileUri,
-      enclosingLibraryBuilder: enclosingLibraryBuilder,
-      declarationBuilder: declarationBuilder,
-      unboundNominalParameters: unboundNominalParameters,
-      indexedLibrary: indexedLibrary,
-      indexedContainer: indexedContainer,
-      containerType: containerType,
-      containerName: containerName,
-      fieldDeclaration: null,
-      getterDeclaration: null,
-      getterAugmentations: const [],
-      setterDeclaration: declaration,
-      setterAugmentations: augmentationDeclarations,
-      isStatic: fragment.modifiers.isStatic,
-      conflictingSetter: conflictingSetter,
-      inPatch: fragment.enclosingDeclaration?.isPatch ??
-          fragment.enclosingCompilationUnit.isPatch);
-}
-
 _AddBuilder _createPropertyBuilder({
   required ProblemReporting problemReporting,
   required SourceLoader loader,
@@ -2668,7 +2557,6 @@ _AddBuilder _createPropertyBuilder({
   required IndexedLibrary? indexedLibrary,
   required IndexedContainer? indexedContainer,
   required bool isStatic,
-  required bool conflictingSetter,
   required bool inPatch,
 }) {
   bool isInstanceMember = containerType != ContainerType.Library && !isStatic;
@@ -2733,9 +2621,6 @@ _AddBuilder _createPropertyBuilder({
   }
 
   references.registerReference(loader, propertyBuilder);
-  if (conflictingSetter) {
-    propertyBuilder.isConflictingSetter = true;
-  }
 
   return new _AddBuilder(name, propertyBuilder, fileUri, nameOffset,
       inPatch: inPatch);
@@ -3269,37 +3154,10 @@ _AddBuilder _createFactoryBuilder(
       inPatch: fragment.enclosingDeclaration.isPatch);
 }
 
-_AddBuilder _createEnumElementBuilder(EnumElementFragment fragment,
-    {required ProblemReporting problemReporting,
-    required SourceLoader loader,
-    required SourceLibraryBuilder enclosingLibraryBuilder,
-    required DeclarationBuilder? declarationBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
-    required IndexedLibrary? indexedLibrary,
-    required ContainerType containerType,
-    required IndexedContainer? indexedContainer,
-    required ContainerName? containerName}) {
-  EnumElementDeclaration enumElementDeclaration =
-      new EnumElementDeclaration(fragment);
-  return _createPropertyBuilder(
-      problemReporting: problemReporting,
-      loader: loader,
-      name: fragment.name,
-      nameOffset: fragment.nameOffset,
-      fileUri: fragment.fileUri,
-      enclosingLibraryBuilder: enclosingLibraryBuilder,
-      declarationBuilder: declarationBuilder,
-      unboundNominalParameters: unboundNominalParameters,
-      indexedLibrary: indexedLibrary,
-      indexedContainer: indexedContainer,
-      containerType: containerType,
-      containerName: containerName,
-      fieldDeclaration: enumElementDeclaration,
-      getterDeclaration: enumElementDeclaration,
-      getterAugmentations: const [],
-      setterDeclaration: null,
-      setterAugmentations: const [],
-      isStatic: true,
-      conflictingSetter: false,
-      inPatch: fragment.enclosingDeclaration.isPatch);
+class _Declarations {
+  final FieldDeclaration? field;
+  final GetterDeclaration? getter;
+  final SetterDeclaration? setter;
+
+  _Declarations({this.field, this.getter, this.setter});
 }

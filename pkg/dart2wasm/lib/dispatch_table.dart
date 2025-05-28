@@ -203,7 +203,7 @@ class SelectorInfo {
       }
       assert(returns.length <= outputSets.length);
       inputSets[0].add(isDynamicSubmoduleOverridable
-          ? translator.topInfo.nonNullableType
+          ? translator.topTypeNonNullable
           : translator.translateType(receiver));
       for (int i = 0; i < positional.length; i++) {
         DartType type = positional[i];
@@ -223,7 +223,7 @@ class SelectorInfo {
           DartType type = returns[i];
           outputSets[i].add(translator.translateReturnType(type));
         } else {
-          outputSets[i].add(translator.topInfo.nullableType);
+          outputSets[i].add(translator.topType);
         }
       }
     }
@@ -253,9 +253,7 @@ class SelectorInfo {
       // create a dummy signature with top types. Receivers specifically should
       // be non-nullable since we must be invoking a selector on some object.
       assert(!isReceiver || isDynamicSubmoduleOverridable);
-      return isReceiver
-          ? translator.topInfo.nonNullableType
-          : translator.topInfo.nullableType;
+      return isReceiver ? translator.topTypeNonNullable : translator.topType;
     }
     if (!ensureBoxed && types.length == 1 && types.single.isPrimitive) {
       // Unboxed primitive.

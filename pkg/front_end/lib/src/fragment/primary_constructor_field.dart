@@ -108,6 +108,7 @@ class PrimaryConstructorFieldDeclaration
   bool get hasInitializer => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasSetter => false;
 
   @override

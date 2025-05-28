@@ -183,11 +183,11 @@ class ClassInfo {
   /// the superclass.
   final Map<TypeParameter, TypeParameter> typeParameterMatch;
 
-  /// The class whose struct is used as the type for variables of this type.
-  /// This is a type which is a superclass of all subtypes of this type.
-  ClassInfo get repr => _repr!;
+  /// The wasm type used to represent values of a dart interface type of this
+  /// class.
+  w.RefType get repr => _repr!;
 
-  ClassInfo? _repr;
+  w.RefType? _repr;
 
   /// Nullabe Wasm ref type for this class.
   final w.RefType nullableType;
@@ -478,7 +478,7 @@ class ClassInfoCollector {
       }
 
       for (Field field in info.cls!.fields) {
-        info._addField(w.FieldType(topInfo.nullableType),
+        info._addField(w.FieldType(translator.topType),
             fieldName: field.name.text);
       }
     }
@@ -548,7 +548,7 @@ class ClassInfoCollector {
         // class maps to topInfo because boxed values are a subtype of Object in
         // Dart but not of the object struct.
         representation = cls == translator.coreTypes.objectClass
-            ? translator.topInfo
+            ? topInfo
             : translator.objectInfo;
       } else {
         void addRanges(List<Range> ranges) {
@@ -581,7 +581,13 @@ class ClassInfoCollector {
         }
       }
       final info = translator.classInfo[cls]!;
-      info._repr = representation ?? info;
+      representation ??= info;
+
+      if (representation == topInfo) {
+        info._repr = translator.topTypeNonNullable;
+      } else {
+        info._repr = representation!.nonNullableType;
+      }
     }
 
     // Now that the representation types for all classes have been computed,

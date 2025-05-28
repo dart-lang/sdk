@@ -731,6 +731,7 @@ class _EnumValuesFieldDeclaration
   bool get hasInitializer => true;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasSetter => false;
 
   @override
@@ -789,7 +790,6 @@ class _EnumValuesFieldDeclaration
   FieldQuality get fieldQuality => FieldQuality.Concrete;
 
   @override
-  // Coverage-ignore(suite): Not run.
   GetterQuality get getterQuality => GetterQuality.Implicit;
 
   @override

@@ -263,9 +263,8 @@ class RegularSetterDeclaration
   }
 
   @override
-  List<ClassMember> get localSetters => _fragment.builder.isConflictingSetter
-      ? const []
-      : [new SetterClassMember(_fragment.builder)];
+  List<ClassMember> get localSetters =>
+      [new SetterClassMember(_fragment.builder)];
 }
 
 /// Interface for using a [SetterFragment] to create a [BodyBuilderContext].

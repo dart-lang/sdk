@@ -2799,7 +2799,6 @@ ExtensionTypeDeclaresInstanceField:
 StaticConflictsWithInstance:
   problemMessage: "Static property '#name' conflicts with instance property of the same name."
   analyzerCode: CONFLICTS_WITH_MEMBER
-  exampleAllowMoreCodes: true # TODO(johnniwinther): Avoid this
   script: |
     class A {
       void set foo(_) {}
@@ -2813,7 +2812,6 @@ StaticConflictsWithInstanceCause:
 InstanceConflictsWithStatic:
   problemMessage: "Instance property '#name' conflicts with static property of the same name."
   analyzerCode: CONFLICTS_WITH_MEMBER
-  exampleAllowMoreCodes: true # TODO(johnniwinther): Avoid this
   script: |
     class A {
       static void set foo(_) {}
@@ -4847,26 +4845,6 @@ ObjectMixesIn:
   problemMessage: "The class 'Object' can't use mixins."
   frontendInternal: true
   external: test/object_supertype_test.dart
-
-StaticAndInstanceConflict:
-  problemMessage: "This static member conflicts with an instance member."
-  exampleAllowMoreCodes: true # TODO(johnniwinther): Avoid this
-  script:
-    - |
-      class C {
-        set foo(value) {}
-        static get foo => 42;
-      }
-    - |
-      class C {
-        static set foo(value) {}
-        get foo => 42;
-      }
-  analyzerCode: CONFLICTING_STATIC_AND_INSTANCE
-
-StaticAndInstanceConflictCause:
-  problemMessage: "This is the instance member."
-  severity: CONTEXT
 
 InstanceAndSynthesizedStaticConflict:
   problemMessage: "This instance member conflicts with the synthesized static member called '#name'."

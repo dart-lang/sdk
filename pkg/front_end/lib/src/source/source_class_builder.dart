@@ -26,6 +26,7 @@ import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled, unimplemented;
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/augmentation_iterator.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
@@ -778,11 +779,21 @@ class SourceClassBuilder extends ClassBuilderImpl
             // Coverage-ignore-block(suite): Not run.
             customValuesDeclaration = customValuesDeclaration?.next;
           }
+          Uri fileUri = customValuesDeclaration!.fileUri!;
+          int fileOffset = customValuesDeclaration.fileOffset;
+          int length = customValuesDeclaration.fullNameForErrors.length;
+          if (customValuesDeclaration is PropertyBuilder) {
+            UriOffsetLength uriOffset =
+                customValuesDeclaration.getterUriOffset!;
+            fileUri = uriOffset.fileUri;
+            fileOffset = uriOffset.fileOffset;
+            length = uriOffset.length;
+          }
           libraryBuilder.addProblem(
               templateEnumImplementerContainsValuesDeclaration
                   .withArguments(this.name),
-              customValuesDeclaration!.fileOffset,
-              customValuesDeclaration.fullNameForErrors.length,
+              fileOffset,
+              length,
               fileUri);
         }
         customValuesDeclaration = result?.setable;
@@ -793,11 +804,21 @@ class SourceClassBuilder extends ClassBuilderImpl
             // Coverage-ignore-block(suite): Not run.
             customValuesDeclaration = customValuesDeclaration?.next;
           }
+          Uri fileUri = customValuesDeclaration!.fileUri!;
+          int fileOffset = customValuesDeclaration.fileOffset;
+          int length = customValuesDeclaration.fullNameForErrors.length;
+          if (customValuesDeclaration is PropertyBuilder) {
+            UriOffsetLength uriOffset =
+                customValuesDeclaration.setterUriOffset!;
+            fileUri = uriOffset.fileUri;
+            fileOffset = uriOffset.fileOffset;
+            length = uriOffset.length;
+          }
           libraryBuilder.addProblem(
               templateEnumImplementerContainsValuesDeclaration
                   .withArguments(this.name),
-              customValuesDeclaration!.fileOffset,
-              customValuesDeclaration.fullNameForErrors.length,
+              fileOffset,
+              length,
               fileUri);
         }
         if (superclassDeclaringConcreteValues != null) {
@@ -1303,7 +1324,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void _addMemberToClass(SourceMemberBuilder memberBuilder, Member member) {
     member.parent = cls;
-    if (!memberBuilder.isDuplicate && !memberBuilder.isConflictingSetter) {
+    if (!memberBuilder.isDuplicate) {
       if (member is Procedure) {
         cls.addProcedure(member);
       } else if (member is Field) {

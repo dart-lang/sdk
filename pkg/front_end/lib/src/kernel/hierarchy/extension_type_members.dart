@@ -46,6 +46,7 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
             memberMap[name] =
                 new _Tuple.declareExtensionTypeGetable(classMember);
           } else {
+            // Coverage-ignore-block(suite): Not run.
             tuple.declaredExtensionTypeGetable = classMember;
           }
         } else {
@@ -354,6 +355,7 @@ class _Tuple {
   ClassMember? get declaredExtensionTypeGetable =>
       _declaredExtensionTypeGetable;
 
+  // Coverage-ignore(suite): Not run.
   void set declaredExtensionTypeGetable(ClassMember? value) {
     assert(!value!.forSetter);
     assert(

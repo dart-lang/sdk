@@ -160,9 +160,7 @@ extension Extension<T extends core::Object? = dynamic> on core::int {
   static get duplicateStaticGetterAndSetter = get self::Extension|duplicateStaticGetterAndSetter;
   static set duplicateStaticGetterAndSetter = set self::Extension|duplicateStaticGetterAndSetter;
   get instanceGetterAndStaticSetter = self::Extension|get#instanceGetterAndStaticSetter;
-  static set instanceGetterAndStaticSetter = set self::Extension|instanceGetterAndStaticSetter;
   static get instanceSetterAndStaticGetter = get self::Extension|instanceSetterAndStaticGetter;
-  set instanceSetterAndStaticGetter = self::Extension|set#instanceSetterAndStaticGetter;
   get instanceGetterAndStaticField = self::Extension|get#instanceGetterAndStaticField;
   set instanceSetterAndStaticField = self::Extension|set#instanceSetterAndStaticField;
 }
@@ -197,10 +195,8 @@ static extension-member get Extension|duplicateStaticGetterAndSetter() → core:
 static extension-member set Extension|duplicateStaticGetterAndSetter(core::int value) → void {}
 static extension-member method Extension|get#instanceGetterAndStaticSetter<T extends core::Object? = dynamic>(lowered final core::int #this) → core::int
   return 0;
-static extension-member set Extension|instanceGetterAndStaticSetter(core::int value) → void {}
 static extension-member get Extension|instanceSetterAndStaticGetter() → core::int
   return 0;
-static extension-member method Extension|set#instanceSetterAndStaticGetter<T extends core::Object? = dynamic>(lowered final core::int #this, core::int value) → void {}
 static extension-member method Extension|get#instanceGetterAndStaticField<T extends core::Object? = dynamic>(lowered final core::int #this) → core::int
   return 0;
 static extension-member method Extension|set#instanceSetterAndStaticField<T extends core::Object? = dynamic>(lowered final core::int #this, core::int value) → void {}

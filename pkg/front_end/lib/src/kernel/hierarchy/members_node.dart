@@ -18,8 +18,6 @@ import '../../base/messages.dart'
         messageInheritedMembersConflict,
         messageInheritedMembersConflictCause1,
         messageInheritedMembersConflictCause2,
-        messageStaticAndInstanceConflict,
-        messageStaticAndInstanceConflictCause,
         templateCantInferReturnTypeDueToNoCombinedSignature,
         templateCantInferTypeDueToNoCombinedSignature,
         templateCantInferTypesDueToNoCombinedSignature,
@@ -106,14 +104,9 @@ abstract class MembersNodeBuilder {
         staticMember = b;
         instanceMember = a;
       }
-      if (!staticMember.isSynthesized) {
-        declarationBuilder.libraryBuilder.addProblem2(
-            messageStaticAndInstanceConflict, staticMember.uriOffset,
-            context: <LocatedMessage>[
-              messageStaticAndInstanceConflictCause
-                  .withLocation2(instanceMember.uriOffset)
-            ]);
-      } else {
+      if (staticMember.isSynthesized) {
+        // TODO(johnniwinther): Move this to the creation of the shared
+        // property builder.
         declarationBuilder.libraryBuilder.addProblem2(
             templateInstanceAndSynthesizedStaticConflict
                 .withArguments(staticMember.name.text),
