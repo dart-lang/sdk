@@ -126,7 +126,7 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
   ({Expression target, DartType fromType, DartType toType})?
   _computeTargetAndTypes() {
     var target = coveringNode;
-    if (target is! Expression) {
+    if (target is! Expression || target.endToken.isSynthetic) {
       return null;
     }
 
