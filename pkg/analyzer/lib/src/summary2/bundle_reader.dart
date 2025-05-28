@@ -2076,24 +2076,23 @@ class ResolutionReader {
       var type = _readFunctionType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType) {
-      var element = readElement() as InterfaceFragmentImpl;
+      var element = readElement2() as InterfaceElementImpl2;
       var typeArguments = _readTypeList();
       var nullability = _readNullability();
-      var type = InterfaceTypeImpl(
-        element: element.asElement2,
+      var type = element.instantiateImpl(
         typeArguments: typeArguments,
         nullabilitySuffix: nullability,
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
-      var element = readElement() as InterfaceFragmentImpl;
+      var element = readElement2() as InterfaceElementImpl2;
       var type = element.instantiateImpl(
         typeArguments: const [],
         nullabilitySuffix: NullabilitySuffix.none,
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
-      var element = readElement() as InterfaceFragmentImpl;
+      var element = readElement2() as InterfaceElementImpl2;
       var type = element.instantiateImpl(
         typeArguments: const [],
         nullabilitySuffix: NullabilitySuffix.question,
@@ -2110,12 +2109,9 @@ class ResolutionReader {
       var type = _readRecordType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.TypeParameterType) {
-      var element = readElement() as TypeParameterFragmentImpl;
+      var element = readElement2() as TypeParameterElementImpl2;
       var nullability = _readNullability();
-      var type = TypeParameterTypeImpl(
-        element3: element.asElement2,
-        nullabilitySuffix: nullability,
-      );
+      var type = element.instantiate(nullabilitySuffix: nullability);
       return _readAliasElementArguments(type);
     } else if (tag == Tag.VoidType) {
       var type = VoidTypeImpl.instance;

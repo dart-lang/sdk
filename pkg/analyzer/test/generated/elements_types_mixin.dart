@@ -27,7 +27,7 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get boolQuestion {
     var element = typeProvider.boolElement2;
-    return interfaceTypeQuestion2(element);
+    return interfaceTypeQuestion(element);
   }
 
   InterfaceTypeImpl get doubleNone {
@@ -37,7 +37,7 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get doubleQuestion {
     var element = typeProvider.doubleElement2;
-    return interfaceTypeQuestion2(element);
+    return interfaceTypeQuestion(element);
   }
 
   TypeImpl get dynamicType => DynamicTypeImpl.instance;
@@ -49,7 +49,7 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get functionQuestion {
     var element = typeProvider.functionElement2;
-    return interfaceTypeQuestion2(element);
+    return interfaceTypeQuestion(element);
   }
 
   InterfaceTypeImpl get intNone {
@@ -59,7 +59,7 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get intQuestion {
     var element = typeProvider.intElement2;
-    return interfaceTypeQuestion2(element);
+    return interfaceTypeQuestion(element);
   }
 
   TypeImpl get invalidType => InvalidTypeImpl.instance;
@@ -80,7 +80,7 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get numQuestion {
     var element = typeProvider.numElement2;
-    return interfaceTypeQuestion2(element);
+    return interfaceTypeQuestion(element);
   }
 
   InterfaceTypeImpl get objectNone {
@@ -90,7 +90,7 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get objectQuestion {
     var element = typeProvider.objectElement2;
-    return interfaceTypeQuestion2(element);
+    return interfaceTypeQuestion(element);
   }
 
   InterfaceTypeImpl get recordNone {
@@ -105,7 +105,7 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get stringQuestion {
     var element = typeProvider.stringElement2;
-    return interfaceTypeQuestion2(element);
+    return interfaceTypeQuestion(element);
   }
 
   LibraryElementImpl get testLibrary => throw UnimplementedError();
@@ -345,17 +345,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  InterfaceTypeImpl interfaceType(
-    InterfaceFragmentImpl element, {
-    List<TypeImpl> typeArguments = const [],
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return element.instantiateImpl(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   InterfaceTypeImpl interfaceTypeNone(
     InterfaceElementImpl2 element, {
     List<TypeImpl> typeArguments = const [],
@@ -367,16 +356,6 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl interfaceTypeQuestion(
-    InterfaceFragmentImpl element, {
-    List<TypeImpl> typeArguments = const [],
-  }) {
-    return element.instantiateImpl(
-      typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceTypeImpl interfaceTypeQuestion2(
     InterfaceElementImpl2 element, {
     List<TypeImpl> typeArguments = const [],
   }) {

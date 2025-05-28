@@ -5108,7 +5108,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
       } else {
         typeArguments = const [];
       }
-      return _thisType = firstFragment.instantiateImpl(
+      return _thisType = instantiateImpl(
         typeArguments: typeArguments,
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -5475,16 +5475,6 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     // TODO(paulberry): eliminate this cast by changing the type of the `value`
     // parameter.
     _supertype = value as InterfaceTypeImpl?;
-  }
-
-  InterfaceTypeImpl instantiateImpl({
-    required List<TypeImpl> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return element.instantiateImpl(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
   }
 
   /// Builds constructors for this mixin application.
