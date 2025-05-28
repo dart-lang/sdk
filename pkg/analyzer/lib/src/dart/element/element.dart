@@ -8471,55 +8471,6 @@ class PatternVariableFragmentImpl extends LocalVariableFragmentImpl
   }
 }
 
-/// Currently we write [Element] using the first fragment.
-/// Usually this works (as good as a hack can), but [PrefixElementImpl2]
-/// does not have [FragmentImpl] fragments. So, we use this fake element.
-// TODO(scheglov): reconsider how we write Element2.
-// TODO(scheglov): remove this class
-class PrefixElementImpl extends FragmentImpl {
-  final PrefixElementImpl2 element2;
-
-  PrefixElementImpl(this.element2)
-    : super(
-        name: element2.name3 ?? '',
-        nameOffset: -1,
-        reference: element2.reference,
-      );
-
-  @override
-  List<Fragment> get children3 => throw UnimplementedError();
-
-  @override
-  Element get element => throw UnimplementedError();
-
-  @override
-  Fragment? get enclosingFragment => throw UnimplementedError();
-
-  @override
-  ElementKind get kind => ElementKind.PREFIX;
-
-  @override
-  Null get library => null;
-
-  @override
-  LibraryFragment? get libraryFragment => throw UnimplementedError();
-
-  @override
-  String? get name2 => throw UnimplementedError();
-
-  @override
-  int? get nameOffset2 => throw UnimplementedError();
-
-  @override
-  Fragment? get nextFragment => throw UnimplementedError();
-
-  @override
-  int get offset => throw UnimplementedError();
-
-  @override
-  Fragment? get previousFragment => throw UnimplementedError();
-}
-
 class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement {
   @override
   final Reference reference;
@@ -8535,12 +8486,6 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement {
   PrefixElementImpl2({required this.reference, required this.firstFragment})
     : lastFragment = firstFragment {
     reference.element2 = this;
-    asElement;
-  }
-
-  PrefixElementImpl get asElement {
-    return PrefixElementImpl(this);
-    // return imports.first.prefix!.element;
   }
 
   @override

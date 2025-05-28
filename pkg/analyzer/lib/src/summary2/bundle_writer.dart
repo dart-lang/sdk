@@ -701,20 +701,30 @@ class ResolutionSink extends _SummaryDataWriter {
   // TODO(scheglov): Triage places where we write elements.
   // Some of then cannot be members, e.g. type names.
   void writeElement(Element? element) {
-    if (element case Member element) {
-      var baseElement = element.baseElement;
+    switch (element) {
+      case PrefixElementImpl2():
+        writeEnum(ElementKind2.importPrefix);
+        var reference = element.reference;
+        var referenceIndex = _references._indexOfReference(reference);
+        writeUInt30(referenceIndex);
+      default:
+        // TODO(scheglov): eventually stop using fragments here.
+        writeEnum(ElementKind2.other);
+        if (element case Member element) {
+          var baseElement = element.baseElement;
 
-      var typeArguments = _enclosingClassTypeArguments(
-        baseElement,
-        element.substitution.map,
-      );
+          var typeArguments = _enclosingClassTypeArguments(
+            baseElement,
+            element.substitution.map,
+          );
 
-      writeByte(Tag.MemberWithTypeArguments);
-      _writeElement(baseElement);
-      _writeTypeList(typeArguments);
-    } else {
-      writeByte(Tag.RawElement);
-      _writeElement(element);
+          writeByte(Tag.MemberWithTypeArguments);
+          _writeElement(baseElement);
+          _writeTypeList(typeArguments);
+        } else {
+          writeByte(Tag.RawElement);
+          _writeElement(element);
+        }
     }
   }
 
@@ -864,8 +874,6 @@ class ResolutionSink extends _SummaryDataWriter {
         _writeFragmentImpl(element.asElement);
       case NeverElementImpl2():
         _writeFragmentImpl(NeverFragmentImpl.instance);
-      case PrefixElementImpl2 element:
-        _writeFragmentImpl(element.asElement);
       case TopLevelVariableElementImpl2 element:
         _writeFragmentImpl(element.asElement);
       case TypeAliasElementImpl2 element:
