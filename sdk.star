@@ -67,15 +67,11 @@ dart.try_builder(
     "dart-sdk-linux-arm64",
     dimensions = [jammy, arm64],
     properties = {
-        "$dart/build": {
-            "timeout": 70 * 60,  # 70 minutes, non-RBE-build
-        },
         "archs": ["arm", "arm64"],
         "disable_bcid": True,
     },
     location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
-    rbe = False,
 )
 
 dart.try_builder(

@@ -108,6 +108,7 @@ _PKG_PATHS = _VM_PATHS + [
 _RELEASE_PATHS = [
     # Paths that trigger release tryjobs
     "tools/VERSION",
+    "tools/debian_package/.+",
 ]
 
 def _to_location_filters(paths):
