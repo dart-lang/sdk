@@ -363,6 +363,90 @@ class [!A!] {
     );
   }
 
+  Future<void> test_dotShorthand_constructor_named() async {
+    var contents = '''
+f() {
+  A a = .nam^ed();
+}
+
+class A {
+  A.[!named!]();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed() async {
+    var contents = '''
+f() {
+  A a = .ne^w();
+}
+
+class A {
+  [!A!]();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_dotShorthand_enum() async {
+    var contents = '''
+enum A {
+  [!one!],
+}
+
+f() {
+  A a = .on^e;
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_dotShorthand_extensionType() async {
+    var contents = '''
+f() {
+  A a = .fie^ld;
+}
+
+extension type A(int x) {
+  static A get [!field!] => A(1);
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_dotShorthand_field() async {
+    var contents = '''
+f() {
+  A a = .fie^ld;
+}
+
+class A {
+  static A [!field!] = A();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_dotShorthand_method() async {
+    var contents = '''
+f() {
+  A a = .meth^od();
+}
+
+class A {
+  static A [!method!]() => A();
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_field_underscore() async {
     var contents = '''
 class A {
