@@ -1697,6 +1697,7 @@ class DeclarationHelper {
           element.constructors,
           importData,
           allowNonFactory: !element.isAbstract,
+          checkVisibilty: false,
         );
       }
     }
@@ -1708,6 +1709,7 @@ class DeclarationHelper {
     required ImportData? importData,
     required bool hasClassName,
     required bool isConstructorRedirect,
+    bool checkVisibilty = true,
   }) {
     if (mustBeAssignable) {
       return;
@@ -1717,10 +1719,11 @@ class DeclarationHelper {
       return;
     }
     if (importData?.isNotImported ?? false) {
-      if (!visibilityTracker.isVisible(
-        element: element.enclosingElement,
-        importData: importData,
-      )) {
+      if (checkVisibilty &&
+          !visibilityTracker.isVisible(
+            element: element.enclosingElement,
+            importData: importData,
+          )) {
         // If the constructor is on a class from a not-yet-imported library and
         // the class isn't visible, then we shouldn't suggest it.
         //
@@ -1763,6 +1766,7 @@ class DeclarationHelper {
     List<ConstructorElement> constructors,
     ImportData? importData, {
     bool allowNonFactory = true,
+    bool checkVisibilty = true,
   }) {
     if (mustBeAssignable) {
       return;
@@ -1775,6 +1779,7 @@ class DeclarationHelper {
           hasClassName: false,
           importData: importData,
           isConstructorRedirect: false,
+          checkVisibilty: checkVisibilty,
         );
       }
     }
@@ -1852,7 +1857,11 @@ class DeclarationHelper {
       }
       if (!mustBeType) {
         _suggestStaticFields(element.fields, importData);
-        _suggestConstructors(element.constructors, importData);
+        _suggestConstructors(
+          element.constructors,
+          importData,
+          checkVisibilty: false,
+        );
       }
     }
   }
