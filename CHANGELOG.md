@@ -65,6 +65,16 @@ constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
       version: ^2.0.1
   ```
 
+## 3.8.1
+
+**Released on:** 2025-05-28
+
+This is a patch release that:
+
+- Fixes an issue in DDC with late variables being incorrectly captured within async function bodies (issue [#430800])
+
+[#430800]: https://dart-review.googlesource.com/c/sdk/+/430800
+
 ## 3.8.0
 
 **Released on:** 2025-05-20
