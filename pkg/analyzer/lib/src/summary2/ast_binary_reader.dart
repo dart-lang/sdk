@@ -224,7 +224,7 @@ class AstBinaryReader {
       constructorName: constructorName,
       arguments: arguments,
     );
-    node.element2 = _reader.readElement2();
+    node.element2 = _reader.readElement();
     return node;
   }
 
@@ -272,10 +272,10 @@ class AstBinaryReader {
       operator: Tokens.fromType(operatorType),
       rightHandSide: rightHandSide,
     );
-    node.element = _reader.readElement2() as MethodElement2OrMember?;
-    node.readElement2 = _reader.readElement2();
+    node.element = _reader.readElement() as MethodElement2OrMember?;
+    node.readElement2 = _reader.readElement();
     node.readType = _reader.readType();
-    node.writeElement2 = _reader.readElement2();
+    node.writeElement2 = _reader.readElement();
     node.writeType = _reader.readType();
     _readExpressionResolution(node);
     return node;
@@ -283,7 +283,7 @@ class AstBinaryReader {
 
   AugmentedExpression _readAugmentedExpression() {
     var node = AugmentedExpressionImpl(augmentedKeyword: Tokens.augmented());
-    node.fragment = _reader.readElement() as Fragment?;
+    node.fragment = _reader.readFragmentOrMember() as Fragment?;
     _readExpressionResolution(node);
     return node;
   }
@@ -297,7 +297,7 @@ class AstBinaryReader {
       typeArguments: typeArguments,
       arguments: arguments,
     );
-    node.fragment = _reader.readElement() as ExecutableFragmentImpl?;
+    node.fragment = _reader.readFragmentOrMember() as ExecutableFragmentImpl?;
     _readExpressionResolution(node);
     return node;
   }
@@ -319,7 +319,7 @@ class AstBinaryReader {
       operator: Tokens.fromType(operatorType),
       rightOperand: rightOperand,
     );
-    node.element = _reader.readElement2() as MethodElement?;
+    node.element = _reader.readElement() as MethodElement?;
     node.staticInvokeType = _reader.readOptionalFunctionType();
     _readExpressionResolution(node);
     return node;
@@ -385,7 +385,7 @@ class AstBinaryReader {
       period: name != null ? Tokens.period() : null,
       name: name,
     );
-    node.element = _reader.readElement2() as ConstructorElementMixin2?;
+    node.element = _reader.readElement() as ConstructorElementMixin2?;
     return node;
   }
 
@@ -517,7 +517,7 @@ class AstBinaryReader {
   ExtensionOverride _readExtensionOverride() {
     var importPrefix = _readOptionalNode() as ImportPrefixReferenceImpl?;
     var extensionName = _readStringReference();
-    var element = _reader.readElement2() as ExtensionElementImpl2;
+    var element = _reader.readElement() as ExtensionElementImpl2;
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
     var argumentList = readNode() as ArgumentListImpl;
     var node = ExtensionOverrideImpl(
@@ -734,7 +734,7 @@ class AstBinaryReader {
     var expression = readNode() as ExpressionImpl;
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
     var typeArgumentTypes = _reader.readOptionalTypeList()!;
-    var staticElement = _reader.readElement2() as MethodElementImpl2;
+    var staticElement = _reader.readElement() as MethodElementImpl2;
 
     var node = ImplicitCallReferenceImpl(
       expression: expression,
@@ -753,7 +753,7 @@ class AstBinaryReader {
       name: StringToken(TokenType.STRING, name, -1),
       period: Tokens.period(),
     );
-    node.element2 = _reader.readElement2();
+    node.element2 = _reader.readElement();
     return node;
   }
 
@@ -769,7 +769,7 @@ class AstBinaryReader {
       index: index,
       rightBracket: Tokens.closeSquareBracket(),
     );
-    node.element = _reader.readElement2() as MethodElement?;
+    node.element = _reader.readElement() as MethodElement?;
     _readExpressionResolution(node);
     return node;
   }
@@ -961,7 +961,7 @@ class AstBinaryReader {
       typeArguments: typeArguments,
       question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
     );
-    node.element2 = _reader.readElement2();
+    node.element2 = _reader.readElement();
     node.type = _reader.readType();
     return node;
   }
@@ -1019,11 +1019,11 @@ class AstBinaryReader {
       operand: operand,
       operator: Tokens.fromType(operatorType),
     );
-    node.element = _reader.readElement2() as MethodElement?;
+    node.element = _reader.readElement() as MethodElement?;
     if (node.operator.type.isIncrementOperator) {
-      node.readElement2 = _reader.readElement2();
+      node.readElement2 = _reader.readElement();
       node.readType = _reader.readType();
-      node.writeElement2 = _reader.readElement2();
+      node.writeElement2 = _reader.readElement();
       node.writeType = _reader.readType();
     }
     _readExpressionResolution(node);
@@ -1049,11 +1049,11 @@ class AstBinaryReader {
       operator: Tokens.fromType(operatorType),
       operand: operand,
     );
-    node.element = _reader.readElement2() as MethodElement?;
+    node.element = _reader.readElement() as MethodElement?;
     if (node.operator.type.isIncrementOperator) {
-      node.readElement2 = _reader.readElement2();
+      node.readElement2 = _reader.readElement();
       node.readType = _reader.readType();
-      node.writeElement2 = _reader.readElement2();
+      node.writeElement2 = _reader.readElement();
       node.writeType = _reader.readType();
     }
     _readExpressionResolution(node);
@@ -1167,7 +1167,7 @@ class AstBinaryReader {
       constructorName: constructorName,
       argumentList: argumentList,
     );
-    node.element = _reader.readElement2() as ConstructorElementImpl2?;
+    node.element = _reader.readElement() as ConstructorElementImpl2?;
     _resolveNamedExpressions(node.element, node.argumentList);
     return node;
   }
@@ -1242,7 +1242,7 @@ class AstBinaryReader {
     var node = SimpleIdentifierImpl(
       token: StringToken(TokenType.STRING, name, -1),
     );
-    node.element = _reader.readElement2();
+    node.element = _reader.readElement();
     node.tearOffTypeArgumentTypes = _reader.readOptionalTypeList();
     _readExpressionResolution(node);
     return node;
@@ -1292,7 +1292,7 @@ class AstBinaryReader {
       constructorName: constructorName,
       argumentList: argumentList,
     );
-    node.element = _reader.readElement2() as ConstructorElementMixin2?;
+    node.element = _reader.readElement() as ConstructorElementMixin2?;
     _resolveNamedExpressions(node.element, node.argumentList);
     return node;
   }

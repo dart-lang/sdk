@@ -220,9 +220,10 @@ class ConstructorElementLinkedData
     element.metadata = reader._readAnnotationList(unitElement: unitElement);
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
-    element.superConstructor = reader.readElement() as ConstructorElementMixin?;
+    element.superConstructor =
+        reader.readFragmentOrMember() as ConstructorElementMixin?;
     element.redirectedConstructor =
-        reader.readElement() as ConstructorElementMixin?;
+        reader.readFragmentOrMember() as ConstructorElementMixin?;
     element.constantInitializers = reader._readNodeList();
     applyConstantOffsets?.perform();
   }
@@ -313,7 +314,7 @@ abstract class ElementLinkedData<E> {
         }
       }
       if (parameter is FieldFormalParameterFragmentImpl) {
-        parameter.field = reader.readElement() as FieldFragmentImpl?;
+        parameter.field = reader.readFragmentOrMember() as FieldFragmentImpl?;
       }
     }
   }
@@ -528,7 +529,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
   void _read(element, reader) {
     element.annotations = reader._readAnnotationList(unitElement: unitElement);
 
-    element.entryPoint2 = reader.readElement2() as TopLevelFunctionElementImpl?;
+    element.entryPoint2 = reader.readElement() as TopLevelFunctionElementImpl?;
 
     element.fieldNameNonPromotabilityInfo = _readFieldNameNonPromotabilityInfo(
       reader,
@@ -549,9 +550,9 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
         readKey: () => reader.readStringReference(),
         readValue: () {
           return FieldNameNonPromotabilityInfo(
-            conflictingFields: reader.readElementList2(),
-            conflictingGetters: reader.readElementList2(),
-            conflictingNsmClasses: reader.readElementList2(),
+            conflictingFields: reader.readElementList(),
+            conflictingGetters: reader.readElementList(),
+            conflictingNsmClasses: reader.readElementList(),
           );
         },
       );
@@ -1936,7 +1937,7 @@ class ResolutionReader {
   final SummaryDataReader _reader;
 
   /// The stack of [TypeParameterFragmentImpl]s and [FormalParameterFragmentImpl] that are
-  /// available in the scope of [readElement] and [readType].
+  /// available in the scope of [readFragmentOrMember] and [readType].
   ///
   /// This stack is shared with the client of the reader, and update mostly
   /// by the client. However it is also updated during [_readFunctionType].
@@ -1960,20 +1961,44 @@ class ResolutionReader {
     return _reader.readDouble();
   }
 
-  ElementOrMember? readElement() {
-    var memberFlags = _reader.readByte();
-    var element = _readRawElement();
+  Element? readElement() {
+    var fragment = readFragmentOrMember();
+    switch (fragment) {
+      case null:
+        return null;
+      case PrefixElementImpl():
+        return fragment.element2;
+      case FragmentImpl():
+        return fragment.asElement2;
+      case ExecutableMember():
+        return fragment;
+      default:
+        throw UnimplementedError('${fragment.runtimeType}');
+    }
+  }
 
-    if (element == null) {
+  List<T> readElementList<T extends Element>() {
+    return _reader.readTypedListCast<T>(readElement);
+  }
+
+  T readEnum<T extends Enum>(List<T> values) {
+    return _reader.readEnum(values);
+  }
+
+  FragmentOrMember? readFragmentOrMember() {
+    var memberFlags = _reader.readByte();
+    var fragment = _readFragmentImpl();
+
+    if (fragment == null) {
       return null;
     }
 
     if (memberFlags == Tag.RawElement) {
-      return element;
+      return fragment;
     }
 
     if (memberFlags == Tag.MemberWithTypeArguments) {
-      var enclosing = element.enclosingElement3 as InstanceFragmentImpl;
+      var enclosing = fragment.enclosingElement3 as InstanceFragmentImpl;
 
       var firstFragment = enclosing.element.firstFragment;
       var declarationTypeParameters =
@@ -1988,39 +2013,15 @@ class ResolutionReader {
         );
       }
 
-      if (element is ExecutableFragmentImpl) {
-        return ExecutableMember.from2(element, substitution);
+      if (fragment is ExecutableFragmentImpl) {
+        return ExecutableMember.from2(fragment, substitution);
       } else {
-        element as FieldFragmentImpl;
-        return FieldMember.from2(element, substitution);
+        fragment as FieldFragmentImpl;
+        return FieldMember.from2(fragment, substitution);
       }
     }
 
     throw UnimplementedError('memberFlags: $memberFlags');
-  }
-
-  Element? readElement2() {
-    var element = readElement();
-    switch (element) {
-      case null:
-        return null;
-      case PrefixElementImpl():
-        return element.element2;
-      case FragmentImpl():
-        return element.asElement2;
-      case ExecutableMember():
-        return element;
-      default:
-        throw UnimplementedError('${element.runtimeType}');
-    }
-  }
-
-  List<T> readElementList2<T extends Element>() {
-    return _reader.readTypedListCast<T>(readElement2);
-  }
-
-  T readEnum<T extends Enum>(List<T> values) {
-    return _reader.readEnum(values);
   }
 
   Map<K, V> readMap<K, V>({
@@ -2076,7 +2077,7 @@ class ResolutionReader {
       var type = _readFunctionType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType) {
-      var element = readElement2() as InterfaceElementImpl2;
+      var element = readElement() as InterfaceElementImpl2;
       var typeArguments = _readTypeList();
       var nullability = _readNullability();
       var type = element.instantiateImpl(
@@ -2085,14 +2086,14 @@ class ResolutionReader {
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
-      var element = readElement2() as InterfaceElementImpl2;
+      var element = readElement() as InterfaceElementImpl2;
       var type = element.instantiateImpl(
         typeArguments: const [],
         nullabilitySuffix: NullabilitySuffix.none,
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
-      var element = readElement2() as InterfaceElementImpl2;
+      var element = readElement() as InterfaceElementImpl2;
       var type = element.instantiateImpl(
         typeArguments: const [],
         nullabilitySuffix: NullabilitySuffix.question,
@@ -2109,7 +2110,7 @@ class ResolutionReader {
       var type = _readRecordType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.TypeParameterType) {
-      var element = readElement2() as TypeParameterElementImpl2;
+      var element = readElement() as TypeParameterElementImpl2;
       var nullability = _readNullability();
       var type = element.instantiate(nullabilitySuffix: nullability);
       return _readAliasElementArguments(type);
@@ -2170,8 +2171,8 @@ class ResolutionReader {
   }
 
   TypeImpl _readAliasElementArguments(TypeImpl type) {
-    var aliasElement = _readRawElement();
-    if (aliasElement is TypeAliasFragmentImpl) {
+    var aliasFragment = _readFragmentImpl();
+    if (aliasFragment is TypeAliasFragmentImpl) {
       var aliasArguments = _readTypeList();
       if (type is DynamicTypeImpl) {
         // TODO(scheglov): add support for `dynamic` aliasing
@@ -2183,7 +2184,7 @@ class ResolutionReader {
           returnType: type.returnType,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
-            element2: aliasElement.asElement2,
+            element2: aliasFragment.asElement2,
             typeArguments: aliasArguments,
           ),
         );
@@ -2193,7 +2194,7 @@ class ResolutionReader {
           typeArguments: type.typeArguments,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
-            element2: aliasElement.asElement2,
+            element2: aliasFragment.asElement2,
             typeArguments: aliasArguments,
           ),
         );
@@ -2203,7 +2204,7 @@ class ResolutionReader {
           namedFields: type.namedFields,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
-            element2: aliasElement.asElement2,
+            element2: aliasFragment.asElement2,
             typeArguments: aliasArguments,
           ),
         );
@@ -2212,7 +2213,7 @@ class ResolutionReader {
           element3: type.element3,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
-            element2: aliasElement.asElement2,
+            element2: aliasFragment.asElement2,
             typeArguments: aliasArguments,
           ),
         );
@@ -2298,6 +2299,19 @@ class ResolutionReader {
     });
   }
 
+  FragmentImpl? _readFragmentImpl() {
+    var index = _reader.readUInt30();
+
+    if ((index & 0x1) == 0x1) {
+      return _localElements[index >> 1];
+    }
+
+    var referenceIndex = index >> 1;
+    var reference = _referenceReader.referenceOfIndex(referenceIndex);
+
+    return _elementFactory.elementOfReference(reference);
+  }
+
   // TODO(scheglov): Optimize for write/read of types without type parameters.
   FunctionTypeImpl _readFunctionType() {
     // TODO(scheglov): reuse for formal parameters
@@ -2346,19 +2360,6 @@ class ResolutionReader {
 
   InterfaceType? _readOptionalInterfaceType() {
     return readType() as InterfaceType?;
-  }
-
-  FragmentImpl? _readRawElement() {
-    var index = _reader.readUInt30();
-
-    if ((index & 0x1) == 0x1) {
-      return _localElements[index >> 1];
-    }
-
-    var referenceIndex = index >> 1;
-    var reference = _referenceReader.referenceOfIndex(referenceIndex);
-
-    return _elementFactory.elementOfReference(reference);
   }
 
   RecordTypeImpl _readRecordType() {

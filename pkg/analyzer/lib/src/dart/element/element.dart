@@ -2156,127 +2156,6 @@ abstract class ElementImpl2 implements Element {
   }
 }
 
-/// A shared internal interface of `Element` and [Member].
-/// Used during migration to avoid referencing `Element`.
-abstract class ElementOrMember {
-  /// The analysis context in which this element is defined.
-  AnalysisContext get context;
-
-  /// The declaration of this element.
-  ///
-  /// If the element is a view on an element, e.g. a method from an interface
-  /// type, with substituted type parameters, return the corresponding element
-  /// from the class, without any substitutions. If this element is already a
-  /// declaration (or a synthetic element, e.g. a synthetic property accessor),
-  /// return itself.
-  ElementOrMember? get declaration;
-
-  /// The display name of this element, possibly the empty string if the
-  /// element does not have a name.
-  ///
-  /// In most cases the name and the display name are the same. Differences
-  /// though are cases such as setters where the name of some setter `set f(x)`
-  /// is `f=`, instead of `f`.
-  String get displayName;
-
-  /// The content of the documentation comment (including delimiters) for this
-  /// element, or `null` if this element does not or cannot have documentation.
-  String? get documentationComment;
-
-  /// The unique integer identifier of this element.
-  int get id;
-
-  /// Whether the element is private.
-  ///
-  /// Private elements are visible only within the library in which they are
-  /// declared.
-  bool get isPrivate;
-
-  /// Whether the element is public.
-  ///
-  /// Public elements are visible within any library that imports the library
-  /// in which they are declared.
-  bool get isPublic;
-
-  /// Whether the element is synthetic.
-  ///
-  /// A synthetic element is an element that is not represented in the source
-  /// code explicitly, but is implied by the source code, such as the default
-  /// constructor for a class that does not explicitly define any constructors.
-  bool get isSynthetic;
-
-  /// The kind of element that this is.
-  ElementKind get kind;
-
-  /// If this target is associated with a library, return the source of the
-  /// library's defining compilation unit; otherwise return `null`.
-  Source? get librarySource;
-
-  /// All of the metadata associated with this element.
-  ///
-  /// The array will be empty if the element does not have any metadata or if
-  /// the library containing this element has not yet been resolved.
-  List<ElementAnnotation> get metadata;
-
-  /// The name of this element, or `null` if this element does not have a name.
-  String? get name;
-
-  /// The length of the name of this element in the file that contains the
-  /// declaration of this element, or `0` if this element does not have a name.
-  int get nameLength;
-
-  /// The offset of the name of this element in the file that contains the
-  /// declaration of this element, or `-1` if this element is synthetic, does
-  /// not have a name, or otherwise does not have an offset.
-  int get nameOffset;
-
-  /// The analysis session in which this element is defined.
-  AnalysisSession? get session;
-
-  /// The version where this SDK API was added.
-  ///
-  /// A `@Since()` annotation can be applied to a library declaration,
-  /// any public declaration in a library, or in a class, or to an optional
-  /// parameter, etc.
-  ///
-  /// The returned version is "effective", so that if a library is annotated
-  /// then all elements of the library inherit it; or if a class is annotated
-  /// then all members and constructors of the class inherit it.
-  ///
-  /// If multiple `@Since()` annotations apply to the same element, the latest
-  /// version takes precedence.
-  ///
-  /// Returns `null` if the element is not declared in SDK, or does not have
-  /// a `@Since()` annotation applicable to it.
-  Version? get sinceSdkVersion;
-
-  /// Return the source associated with this target, or `null` if this target is
-  /// not associated with a source.
-  Source? get source;
-
-  /// Returns the presentation of this element as it should appear when
-  /// presented to users.
-  ///
-  /// If [withNullability] is `true`, then [NullabilitySuffix.question] and
-  /// [NullabilitySuffix.star] in types will be represented as `?` and `*`.
-  /// [NullabilitySuffix.none] does not have any explicit presentation.
-  ///
-  /// If [withNullability] is `false`, nullability suffixes will not be
-  /// included into the presentation.
-  ///
-  /// If [multiline] is `true`, the string may be wrapped over multiple lines
-  /// with newlines to improve formatting. For example function signatures may
-  /// be formatted as if they had trailing commas.
-  ///
-  /// Clients should not depend on the content of the returned value as it will
-  /// be changed if doing so would improve the UX.
-  String getDisplayString({
-    @Deprecated('Only non-nullable by default mode is supported')
-    bool withNullability = true,
-    bool multiline = false,
-  });
-}
-
 class EnumElementImpl2 extends InterfaceElementImpl2 implements EnumElement {
   @override
   final Reference reference;
@@ -2428,7 +2307,7 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
 
 /// Common base class for all analyzer-internal classes that implement
 /// `ExecutableElement`.
-abstract class ExecutableElementOrMember implements ElementOrMember {
+abstract class ExecutableElementOrMember implements FragmentOrMember {
   @override
   ExecutableElementOrMember get declaration;
 
@@ -3824,7 +3703,7 @@ mixin FragmentedTypeParameterizedElementMixin<
   }
 }
 
-abstract class FragmentImpl implements ElementOrMember {
+abstract class FragmentImpl implements FragmentOrMember {
   static int _NEXT_ID = 0;
 
   @override
@@ -4066,6 +3945,127 @@ abstract class FragmentImpl implements ElementOrMember {
   String toString() {
     return getDisplayString();
   }
+}
+
+/// A shared internal interface of `Element` and [Member].
+/// Used during migration to avoid referencing `Element`.
+abstract class FragmentOrMember {
+  /// The analysis context in which this element is defined.
+  AnalysisContext get context;
+
+  /// The declaration of this element.
+  ///
+  /// If the element is a view on an element, e.g. a method from an interface
+  /// type, with substituted type parameters, return the corresponding element
+  /// from the class, without any substitutions. If this element is already a
+  /// declaration (or a synthetic element, e.g. a synthetic property accessor),
+  /// return itself.
+  FragmentOrMember? get declaration;
+
+  /// The display name of this element, possibly the empty string if the
+  /// element does not have a name.
+  ///
+  /// In most cases the name and the display name are the same. Differences
+  /// though are cases such as setters where the name of some setter `set f(x)`
+  /// is `f=`, instead of `f`.
+  String get displayName;
+
+  /// The content of the documentation comment (including delimiters) for this
+  /// element, or `null` if this element does not or cannot have documentation.
+  String? get documentationComment;
+
+  /// The unique integer identifier of this element.
+  int get id;
+
+  /// Whether the element is private.
+  ///
+  /// Private elements are visible only within the library in which they are
+  /// declared.
+  bool get isPrivate;
+
+  /// Whether the element is public.
+  ///
+  /// Public elements are visible within any library that imports the library
+  /// in which they are declared.
+  bool get isPublic;
+
+  /// Whether the element is synthetic.
+  ///
+  /// A synthetic element is an element that is not represented in the source
+  /// code explicitly, but is implied by the source code, such as the default
+  /// constructor for a class that does not explicitly define any constructors.
+  bool get isSynthetic;
+
+  /// The kind of element that this is.
+  ElementKind get kind;
+
+  /// If this target is associated with a library, return the source of the
+  /// library's defining compilation unit; otherwise return `null`.
+  Source? get librarySource;
+
+  /// All of the metadata associated with this element.
+  ///
+  /// The array will be empty if the element does not have any metadata or if
+  /// the library containing this element has not yet been resolved.
+  List<ElementAnnotation> get metadata;
+
+  /// The name of this element, or `null` if this element does not have a name.
+  String? get name;
+
+  /// The length of the name of this element in the file that contains the
+  /// declaration of this element, or `0` if this element does not have a name.
+  int get nameLength;
+
+  /// The offset of the name of this element in the file that contains the
+  /// declaration of this element, or `-1` if this element is synthetic, does
+  /// not have a name, or otherwise does not have an offset.
+  int get nameOffset;
+
+  /// The analysis session in which this element is defined.
+  AnalysisSession? get session;
+
+  /// The version where this SDK API was added.
+  ///
+  /// A `@Since()` annotation can be applied to a library declaration,
+  /// any public declaration in a library, or in a class, or to an optional
+  /// parameter, etc.
+  ///
+  /// The returned version is "effective", so that if a library is annotated
+  /// then all elements of the library inherit it; or if a class is annotated
+  /// then all members and constructors of the class inherit it.
+  ///
+  /// If multiple `@Since()` annotations apply to the same element, the latest
+  /// version takes precedence.
+  ///
+  /// Returns `null` if the element is not declared in SDK, or does not have
+  /// a `@Since()` annotation applicable to it.
+  Version? get sinceSdkVersion;
+
+  /// Return the source associated with this target, or `null` if this target is
+  /// not associated with a source.
+  Source? get source;
+
+  /// Returns the presentation of this element as it should appear when
+  /// presented to users.
+  ///
+  /// If [withNullability] is `true`, then [NullabilitySuffix.question] and
+  /// [NullabilitySuffix.star] in types will be represented as `?` and `*`.
+  /// [NullabilitySuffix.none] does not have any explicit presentation.
+  ///
+  /// If [withNullability] is `false`, nullability suffixes will not be
+  /// included into the presentation.
+  ///
+  /// If [multiline] is `true`, the string may be wrapped over multiple lines
+  /// with newlines to improve formatting. For example function signatures may
+  /// be formatted as if they had trailing commas.
+  ///
+  /// Clients should not depend on the content of the returned value as it will
+  /// be changed if doing so would improve the UX.
+  String getDisplayString({
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
+    bool multiline = false,
+  });
 }
 
 sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
@@ -10463,7 +10463,7 @@ abstract class VariableElementImpl2 extends ElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `VariableElement`.
 abstract class VariableElementOrMember
-    implements ElementOrMember, ConstantEvaluationTarget {
+    implements FragmentOrMember, ConstantEvaluationTarget {
   @override
   VariableFragmentImpl get declaration;
 
