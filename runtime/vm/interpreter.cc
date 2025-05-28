@@ -23,6 +23,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os_thread.h"
+#include "vm/runtime_entry.h"
 #include "vm/stack_frame_kbc.h"
 #include "vm/symbols.h"
 
