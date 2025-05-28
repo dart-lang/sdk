@@ -20,7 +20,6 @@ import '../base/messages.dart'
         templateCantInferTypeDueToCircularity;
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
-import '../base/problems.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -703,14 +702,10 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   void markAsErroneous() {
-    switch (invokeTarget) {
-      case Constructor constructorTarget:
-        constructorTarget.isErroneous = true;
-      case Procedure procedureTarget:
-        procedureTarget.isErroneous = true;
-      // Coverage-ignore(suite): Not run.
-      case Field():
-        unexpected("Procedure|Constructor", "Field", fileOffset, fileUri);
+    _introductory.markAsErroneous();
+    for (ConstructorDeclaration augmentation in _augmentations) {
+      // Coverage-ignore-block(suite): Not run.
+      augmentation.markAsErroneous();
     }
   }
 }

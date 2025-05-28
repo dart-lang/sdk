@@ -298,6 +298,15 @@ class RegularConstructorEncoding {
     return new ConstructorBodyBuilderContext(
         constructorBuilder, constructorDeclaration, _constructor);
   }
+
+  /// Mark the constructor as erroneous.
+  ///
+  /// This is used during the compilation phase to set the appropriate flag on
+  /// the input AST node. The flag helps the verifier to skip apriori erroneous
+  /// members and to avoid reporting cascading errors.
+  void markAsErroneous() {
+    _constructor.isErroneous = true;
+  }
 }
 
 class ExtensionTypeConstructorEncoding {
@@ -596,5 +605,14 @@ class ExtensionTypeConstructorEncoding {
       ConstructorFragmentDeclaration constructorDeclaration) {
     return new ConstructorBodyBuilderContext(
         constructorBuilder, constructorDeclaration, _constructor);
+  }
+
+  /// Mark the constructor as erroneous.
+  ///
+  /// This is used during the compilation phase to set the appropriate flag on
+  /// the input AST node. The flag helps the verifier to skip apriori erroneous
+  /// members and to avoid reporting cascading errors.
+  void markAsErroneous() {
+    _constructor.isErroneous = true;
   }
 }
