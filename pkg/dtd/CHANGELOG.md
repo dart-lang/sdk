@@ -4,7 +4,8 @@
 applications that DTD is aware of.
 - Log exceptions from invalid `streamNotify` events.
 - Added `getRegisteredServices` API.
-- Added a new response type `RegisteredServicesResponse`.
+- Added new response types `RegisteredServicesResponse` and
+`VmServicesResponse`.
 - **Breaking Change**: Changed the `serviceName` parameter for the
 `DartToolingDaemon.call` method to have type `String?` instead of `String.`
 - **Breaking Change**: When the `params` parameter for the

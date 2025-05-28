@@ -7,6 +7,7 @@ import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
 import '../dart_tooling_daemon.dart';
 
+part '_connected_app.dart';
 part '_file_system.dart';
 
 /// A DTD response that indicates success.
