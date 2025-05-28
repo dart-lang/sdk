@@ -7,6 +7,7 @@ extendable:
     class: 'A'
 
 callable:
+  - library: 'dart:core'
   - library: 'modules/common.dart'
     class: 'A'
     member: 'getString'

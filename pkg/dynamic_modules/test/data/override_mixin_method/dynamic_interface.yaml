@@ -5,6 +5,7 @@ extendable:
   - library: 'shared/shared.dart'
 
 callable:
+  - library: 'dart:core'
   - library: 'shared/shared.dart'
 
 can-be-overridden:

@@ -61,13 +61,6 @@ class DynamicInterfaceSpecification {
     final YamlNode spec = loadYamlNode(dynamicInterfaceSpecification);
     final LibraryIndex libraryIndex = new LibraryIndex.all(component);
 
-    // Included by default to the dynamic interface:
-    //
-    // callable:
-    //   - library: 'dart:core'
-    //
-    callable.add(libraryIndex.getLibrary('dart:core'));
-
     // If the spec is empty, the result is a scalar and not a map.
     if (spec is! YamlMap) return;
     _verifyKeys(spec, const {'extendable', 'can-be-overridden', 'callable'});
