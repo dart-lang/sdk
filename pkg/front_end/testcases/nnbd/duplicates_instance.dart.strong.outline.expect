@@ -106,9 +106,7 @@ import "dart:core" as core;
 class Class extends core::Object {
   field core::int instanceField;
   field core::int instanceFieldAndSetter1;
-  field core::int instanceFieldAndSetter2;
   late final [setter] field core::int instanceLateFinalFieldAndSetter1;
-  late final [setter] field core::int instanceLateFinalFieldAndSetter2;
   final field core::int instanceDuplicateFieldAndSetter;
   final field core::int instanceFieldAndDuplicateSetter;
   final field core::int instanceDuplicateFieldAndDuplicateSetter;
@@ -119,6 +117,10 @@ class Class extends core::Object {
   get instanceGetter() → core::int
     ;
   set instanceSetter(dynamic value) → void
+    ;
+  set instanceFieldAndSetter2(core::int value) → void
+    ;
+  set instanceLateFinalFieldAndSetter2(core::int value) → void
     ;
   set instanceDuplicateFieldAndSetter(core::int value) → void
     ;

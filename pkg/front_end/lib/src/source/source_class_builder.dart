@@ -1324,7 +1324,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void _addMemberToClass(SourceMemberBuilder memberBuilder, Member member) {
     member.parent = cls;
-    if (!memberBuilder.isDuplicate && !memberBuilder.isConflictingSetter) {
+    if (!memberBuilder.isDuplicate) {
       if (member is Procedure) {
         cls.addProcedure(member);
       } else if (member is Field) {

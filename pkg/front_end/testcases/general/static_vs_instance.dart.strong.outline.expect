@@ -13,7 +13,8 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field core::int s5;
   synthetic constructor •() → self::C
+    ;
+  set s5(core::int v) → void
     ;
 }

@@ -249,9 +249,9 @@ extension Extension on core::int {
   static set staticSetter = set self::Extension|staticSetter;
   static field staticField = self::Extension|staticField;
   static field staticFieldAndSetter1 = self::Extension|staticFieldAndSetter1;
-  static field staticFieldAndSetter2 = self::Extension|staticFieldAndSetter2;
+  static set staticFieldAndSetter2 = set self::Extension|staticFieldAndSetter2;
   static field staticLateFinalFieldAndSetter1 = self::Extension|staticLateFinalFieldAndSetter1;
-  static field staticLateFinalFieldAndSetter2 = self::Extension|staticLateFinalFieldAndSetter2;
+  static set staticLateFinalFieldAndSetter2 = set self::Extension|staticLateFinalFieldAndSetter2;
   static field staticDuplicateFieldAndSetter = self::Extension|staticDuplicateFieldAndSetter;
   static set staticDuplicateFieldAndSetter = set self::Extension|staticDuplicateFieldAndSetter;
   static field staticFieldAndDuplicateSetter = self::Extension|staticFieldAndDuplicateSetter;
@@ -263,9 +263,7 @@ extension Extension on core::int {
 }
 static field core::int Extension|staticField = 1;
 static field core::int Extension|staticFieldAndSetter1 = 1;
-static field core::int Extension|staticFieldAndSetter2 = 1;
 late static final [setter] field core::int Extension|staticLateFinalFieldAndSetter1;
-late static final [setter] field core::int Extension|staticLateFinalFieldAndSetter2;
 static final field core::int Extension|staticDuplicateFieldAndSetter = 1;
 static final field core::int Extension|staticFieldAndDuplicateSetter = 1;
 static final field core::int Extension|staticDuplicateFieldAndDuplicateSetter = 1;
@@ -274,6 +272,8 @@ static extension-member method Extension|staticMethod() → core::int
 static extension-member get Extension|staticGetter() → core::int
   return 1;
 static extension-member set Extension|staticSetter(dynamic value) → void {}
+static extension-member set Extension|staticFieldAndSetter2(core::int value) → void {}
+static extension-member set Extension|staticLateFinalFieldAndSetter2(core::int value) → void {}
 static extension-member set Extension|staticDuplicateFieldAndSetter(core::int value) → void {}
 static extension-member set Extension|staticFieldAndDuplicateSetter(core::int value) → void {}
 static extension-member set Extension|staticDuplicateFieldAndDuplicateSetter(core::int value) → void {}

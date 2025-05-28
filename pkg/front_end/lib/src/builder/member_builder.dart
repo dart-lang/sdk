@@ -88,10 +88,6 @@ abstract class MemberBuilder implements Builder, LookupResult, NamedBuilder {
   /// the getter and setter capabilities.
   Iterable<Reference> get exportedMemberReferences;
 
-  /// Returns `true` if this member is a setter that conflicts with the implicit
-  /// setter of a field.
-  bool get isConflictingSetter;
-
   /// Returns the [ClassMember]s for the non-setter members created for this
   /// member builder.
   ///
@@ -155,9 +151,6 @@ abstract class MemberBuilderImpl extends NamedBuilderImpl
 
   @override
   bool get isTopLevel => !isDeclarationMember;
-
-  @override
-  bool get isConflictingSetter => false;
 
   @override
   String get fullNameForErrors => name;

@@ -265,9 +265,7 @@ import "dart:core" as core;
 
 static field core::int topLevelField = 1;
 static field core::int topLevelFieldAndSetter1 = 1;
-static field core::int topLevelFieldAndSetter2 = 1;
 late static final [setter] field core::int topLevelLateFinalFieldAndSetter1;
-late static final [setter] field core::int topLevelLateFinalFieldAndSetter2;
 static final field core::int topLevelDuplicateFieldAndSetter = 1;
 static final field core::int topLevelFieldAndDuplicateSetter = 1;
 static final field core::int topLevelDuplicateFieldAndDuplicateSetter = 1;
@@ -279,6 +277,8 @@ static method topLevelMethod() → core::int
 static get topLevelGetter() → core::int
   return 1;
 static set topLevelSetter(dynamic value) → void {}
+static set topLevelFieldAndSetter2(core::int value) → void {}
+static set topLevelLateFinalFieldAndSetter2(core::int value) → void {}
 static set topLevelDuplicateFieldAndSetter(core::int value) → void {}
 static set topLevelFieldAndDuplicateSetter(core::int value) → void {}
 static set topLevelDuplicateFieldAndDuplicateSetter(core::int value) → void {}

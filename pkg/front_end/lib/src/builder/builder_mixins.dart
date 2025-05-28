@@ -94,11 +94,6 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
       } else if (builder.isDuplicate) {
         // Duplicates are not visible in the instance scope.
         builder = null;
-      } else if (builder is MemberBuilder && builder.isConflictingSetter) {
-        // Conflicting setters are not visible in the instance scope.
-        // TODO(johnniwinther): Should we return an [AmbiguousBuilder] here and
-        // above?
-        builder = null;
       }
     }
     return builder as MemberBuilder?;

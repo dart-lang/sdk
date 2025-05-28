@@ -6,7 +6,6 @@ import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/property_builder.dart';
 import 'lookup_result.dart';
 import 'scope.dart';
 import 'uris.dart';
@@ -119,11 +118,7 @@ base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
         assert(
             existing.setable == null ||
                 // Coverage-ignore(suite): Not run.
-                existing.setable == member ||
-                // Coverage-ignore(suite): Not run.
-                // TODO(johnniwinther): Remove this case when getables and
-                //  setables are contained in the same map in the name space.
-                (member is PropertyBuilder && member.isConflictingSetter),
+                existing.setable == member,
             "Trying to map setable $member to $name "
             "replacing the existing value ${existing.setable}");
         if (existing.getable != null) {

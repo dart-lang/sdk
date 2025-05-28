@@ -164,7 +164,7 @@ mixin SourceDeclarationBuilderMixin
   void _buildMember(SourceMemberBuilder memberBuilder, Member member,
       Member? tearOff, BuiltMemberKind memberKind,
       {required bool addMembersToLibrary}) {
-    if (!memberBuilder.isDuplicate && !memberBuilder.isConflictingSetter) {
+    if (!memberBuilder.isDuplicate) {
       if (memberKind == BuiltMemberKind.ExtensionTypeRepresentationField) {
         addMemberInternal(memberBuilder, memberKind, member, tearOff);
       } else {

@@ -410,8 +410,7 @@ class AmbiguousBuilder extends ProblemBuilder {
   @override
   Message get message => templateDuplicatedDeclarationUse.withArguments(name);
 
-  // TODO(ahe): Also provide context.
-
+  // Coverage-ignore(suite): Not run.
   NamedBuilder getFirstDeclaration() {
     NamedBuilder declaration = builder;
     while (declaration.next != null) {
@@ -473,10 +472,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isConflictingSetter => false;
 
   @override
   DeclarationBuilder get declarationBuilder {
