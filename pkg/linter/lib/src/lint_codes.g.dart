@@ -618,7 +618,7 @@ class LinterLintCode extends LintCode {
     "'Future'-returning calls in a non-'async' function.",
     correctionMessage:
         "Try converting the enclosing function to be 'async' and then 'await' "
-        "the future.",
+        "the future, or wrap the expression in 'unawaited'.",
   );
 
   static const LintCode do_not_use_environment = LinterLintCode(

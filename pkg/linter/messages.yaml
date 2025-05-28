@@ -4108,7 +4108,7 @@ LintCode:
     hasPublishedDocs: false
   discarded_futures:
     problemMessage: "'Future'-returning calls in a non-'async' function."
-    correctionMessage: "Try converting the enclosing function to be 'async' and then 'await' the future."
+    correctionMessage: "Try converting the enclosing function to be 'async' and then 'await' the future, or wrap the expression in 'unawaited'."
     state:
       stable: "2.18"
     categories: [errorProne]
