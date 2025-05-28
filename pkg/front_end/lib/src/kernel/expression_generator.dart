@@ -2047,6 +2047,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   Expression _createRead(Expression receiver) {
     Expression read;
     if (readTarget == null) {
+      // Coverage-ignore-block(suite): Not run.
       read = _makeInvalidRead(UnresolvedKind.Getter);
     } else {
       read = _helper.buildExtensionMethodInvocation(

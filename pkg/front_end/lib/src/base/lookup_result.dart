@@ -80,12 +80,15 @@ abstract class LookupResult {
         assert(getable != setable,
             "Unexpected getable $getable and setable $setable.");
         assert(
-            !assertNoGetterSetterConflict || lookupResult.setable == null,
+            !assertNoGetterSetterConflict ||
+                // Coverage-ignore(suite): Not run.
+                lookupResult.setable == null,
             "Unexpected setable ${lookupResult.setable} from "
             "getable $getable and setable $setable.");
         return new GetableSetableResult(getable!, setable);
       }
     } else if (setable is LookupResult) {
+      // Coverage-ignore-block(suite): Not run.
       LookupResult lookupResult = setable as LookupResult;
       if (getable == null) {
         return lookupResult;

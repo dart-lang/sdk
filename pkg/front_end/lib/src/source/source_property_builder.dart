@@ -119,15 +119,10 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   bool get isEnumElement => _introductoryField?.isEnumElement ?? false;
 
   @override
-  NamedBuilder? get getable =>
-      _introductoryField != null || _introductoryGetable != null ? this : null;
+  NamedBuilder? get getable => hasGetter ? this : null;
 
   @override
-  NamedBuilder? get setable =>
-      _introductoryField != null && _introductoryField!.hasSetter ||
-              _introductorySetable != null
-          ? this
-          : null;
+  NamedBuilder? get setable => hasSetter ? this : null;
 
   @override
   int buildBodyNodes(BuildNodesCallback f) => 0;

@@ -384,6 +384,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       return false;
     } else {
       if (member is MemberBuilder && member.isConflictingSetter) {
+        // Coverage-ignore-block(suite): Not run.
         // TODO(johnniwinther): Remove this case when getables and setables are
         //  contained in the same map in the name space.
         _exportNameSpace.addLocalMember(name, member, setter: isSetter);

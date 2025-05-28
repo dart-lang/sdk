@@ -8,12 +8,10 @@ class Fisk {
   //         ^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
   // [cfe] Static property 'fisk' conflicts with instance property of the same name.
-  // [cfe] This static member conflicts with an instance member.
 
   static get hest => null;
   //         ^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] This static member conflicts with an instance member.
   set hest(x) {}
   //  ^
   // [cfe] Instance property 'hest' conflicts with static property of the same name.

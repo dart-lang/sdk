@@ -118,7 +118,9 @@ base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
       if (setter) {
         assert(
             existing.setable == null ||
+                // Coverage-ignore(suite): Not run.
                 existing.setable == member ||
+                // Coverage-ignore(suite): Not run.
                 // TODO(johnniwinther): Remove this case when getables and
                 //  setables are contained in the same map in the name space.
                 (member is PropertyBuilder && member.isConflictingSetter),

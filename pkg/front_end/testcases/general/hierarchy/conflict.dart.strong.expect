@@ -268,7 +268,6 @@ abstract class Class extends self::_Class&Super&Mixin implements self::Interface
   method implementedSetterDeclaredMethod() → void {}
   method implementedFieldDeclaredMethod() → void {}
   method declaredMethodAndSetter() → void {}
-  set declaredMethodAndSetter(core::int value) → void {}
 }
 abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class&Super&Mixin

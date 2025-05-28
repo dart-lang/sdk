@@ -31,12 +31,4 @@ class Class {
   void set instanceSetter(value) {}
 }
 
-expect(expected, actual) {}
-
-main() {}
-
 test() {}
-
-throws(dynamic Function() f) {}
-
-var result;

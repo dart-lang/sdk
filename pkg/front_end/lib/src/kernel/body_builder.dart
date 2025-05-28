@@ -3362,7 +3362,11 @@ class BodyBuilder extends StackListenerImpl
         }
         assert(getable.isStatic || getable.isTopLevel,
             "Unexpected getable: $getable");
-        assert(setable == null || setable.isStatic || setable.isTopLevel,
+        assert(
+            setable == null ||
+                setable.isStatic ||
+                // Coverage-ignore(suite): Not run.
+                setable.isTopLevel,
             "Unexpected setable: $setable");
 
         if (mustBeConst &&
@@ -3433,7 +3437,10 @@ class BodyBuilder extends StackListenerImpl
               unresolvedReadKind: UnresolvedKind.Unknown);
         }
       } else if (setable is MemberBuilder) {
-        assert(setable.isStatic || setable.isTopLevel,
+        assert(
+            setable.isStatic ||
+                // Coverage-ignore(suite): Not run.
+                setable.isTopLevel,
             "Unexpected setable: $setable");
         return new StaticAccessGenerator.fromBuilder(
             this, name, nameToken, null, setable);

@@ -28,7 +28,6 @@ class C {
   static int get n => 42;
   //             ^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] This static member conflicts with an instance member.
 
   void set n(int i) {}
   //       ^
