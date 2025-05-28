@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math' as math;
-
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
@@ -22,7 +20,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -171,9 +168,8 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
     }
     var errorOffset = diagnostic.problemMessage.offset;
     var errorLength = diagnostic.problemMessage.length;
-    var endOffset = math.max(errorOffset + errorLength - 1, 0);
     return _coveringNode =
-        NodeLocator2(errorOffset, endOffset).searchWithin(unit);
+        unit.nodeCovering(offset: errorOffset, length: errorLength);
   }
 
   /// The length of the source range associated with the error message being
