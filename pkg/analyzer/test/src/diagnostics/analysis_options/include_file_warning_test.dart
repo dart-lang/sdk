@@ -15,12 +15,12 @@ main() {
 
 @reflectiveTest
 class IncludeFileWarningTest extends AbstractAnalysisOptionsTest {
-  void test_fileWarning() {
+  Future<void> test_fileWarning() async {
     newFile('/a.yaml', '''
 analyzer:
   something: bad
 ''');
-    assertErrorsInCode(
+    await assertErrorsInCode(
       '''
 include: a.yaml
 ''',

@@ -46,26 +46,26 @@ class DeprecatedSince3Lint extends TestLintRule {
 @reflectiveTest
 class OptionsRuleValidatorIncludedFileTest extends AbstractAnalysisOptionsTest
     with OptionsRuleValidatorTestMixin {
-  test_deprecated_rule_inInclude_ok() {
+  Future<void> test_deprecated_rule_inInclude_ok() async {
     newFile('/included.yaml', '''
 linter:
   rules:
     - deprecated_lint
 ''');
 
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 include: included.yaml
 ''', []);
   }
 
-  test_removed_rule_inInclude_ok() {
+  Future<void> test_removed_rule_inInclude_ok() async {
     newFile('/included.yaml', '''
 linter:
   rules:
     - removed_in_2_12_lint
 ''');
 
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 include: included.yaml
 ''', []);
   }

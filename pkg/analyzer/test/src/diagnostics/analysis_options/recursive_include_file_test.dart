@@ -15,8 +15,8 @@ main() {
 
 @reflectiveTest
 class RecursiveIncludeFileTest extends AbstractAnalysisOptionsTest {
-  void test_itself() {
-    assertErrorsInCode(
+  Future<void> test_itself() async {
+    await assertErrorsInCode(
       '''
 include: analysis_options.yaml
 ''',
@@ -33,8 +33,8 @@ include: analysis_options.yaml
     );
   }
 
-  void test_itself_inList() {
-    assertErrorsInCode(
+  Future<void> test_itself_inList() async {
+    await assertErrorsInCode(
       '''
 include:
   - analysis_options.yaml
@@ -52,14 +52,14 @@ include:
     );
   }
 
-  void test_recursive() {
+  Future<void> test_recursive() async {
     newFile('/a.yaml', '''
 include: b.yaml
 ''');
     newFile('/b.yaml', '''
 include: analysis_options.yaml
 ''');
-    assertErrorsInCode(
+    await assertErrorsInCode(
       '''
 include: a.yaml
 ''',
@@ -76,11 +76,11 @@ include: a.yaml
     );
   }
 
-  void test_recursive_itself() {
+  Future<void> test_recursive_itself() async {
     newFile('/a.yaml', '''
 include: a.yaml
 ''');
-    assertErrorsInCode(
+    await assertErrorsInCode(
       '''
 include: a.yaml
 ''',
@@ -98,7 +98,7 @@ include: a.yaml
     );
   }
 
-  void test_recursive_listAtTop() {
+  Future<void> test_recursive_listAtTop() async {
     newFile('/a.yaml', '''
 include: b.yaml
 ''');
@@ -107,7 +107,7 @@ include: analysis_options.yaml
 ''');
     newFile('/empty.yaml', '''
 ''');
-    assertErrorsInCode(
+    await assertErrorsInCode(
       '''
 include:
   - empty.yaml
@@ -126,7 +126,7 @@ include:
     );
   }
 
-  void test_recursive_listIncluded() {
+  Future<void> test_recursive_listIncluded() async {
     newFile('/a.yaml', '''
 include:
   - empty.yaml
@@ -137,7 +137,7 @@ include: analysis_options.yaml
 ''');
     newFile('/empty.yaml', '''
 ''');
-    assertErrorsInCode(
+    await assertErrorsInCode(
       '''
 include: a.yaml
 ''',
@@ -154,14 +154,14 @@ include: a.yaml
     );
   }
 
-  void test_recursive_notInBeginning() {
+  Future<void> test_recursive_notInBeginning() async {
     newFile('/a.yaml', '''
 include: b.yaml
 ''');
     newFile('/b.yaml', '''
 include: a.yaml
 ''');
-    assertErrorsInCode(
+    await assertErrorsInCode(
       '''
 include: a.yaml
 ''',

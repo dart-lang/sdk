@@ -4489,6 +4489,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   List<FieldElementImpl2> get fields {
+    globalResultRequirements?.record_instanceElement_fields(element: this);
     _readMembers();
     return firstFragment.fields.map((e) => e.asElement2).toList();
   }
@@ -4502,6 +4503,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   List<GetterElementImpl> get getters {
+    globalResultRequirements?.record_instanceElement_getters(element: this);
     _readMembers();
     return firstFragment.getters.map((e) => e.element).toList();
   }
@@ -4557,6 +4559,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   List<SetterElementImpl> get setters {
+    globalResultRequirements?.record_instanceElement_setters(element: this);
     _readMembers();
     return firstFragment.setters.map((e) => e.element).toList();
   }
@@ -4586,7 +4589,15 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       name: name,
     );
 
-    return fields.firstWhereOrNull((e) => e.name3 == name);
+    return globalResultRequirements.withoutRecording(
+      reason: r'''
+The result depends only on the requested field, which we have already
+recorded above.
+''',
+      operation: () {
+        return fields.firstWhereOrNull((e) => e.name3 == name);
+      },
+    );
   }
 
   @Deprecated('Use getField instead')
@@ -4601,7 +4612,15 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       name: name,
     );
 
-    return getters.firstWhereOrNull((e) => e.name3 == name);
+    return globalResultRequirements.withoutRecording(
+      reason: r'''
+The result depends only on the requested getter, which we have already
+recorded above.
+''',
+      operation: () {
+        return getters.firstWhereOrNull((e) => e.name3 == name);
+      },
+    );
   }
 
   @Deprecated('Use getGetter instead')
@@ -4639,7 +4658,15 @@ recorded above.
       name: name,
     );
 
-    return setters.firstWhereOrNull((e) => e.name3 == name);
+    return globalResultRequirements.withoutRecording(
+      reason: r'''
+The result depends only on the requested setter, which we have already
+recorded above.
+''',
+      operation: () {
+        return setters.firstWhereOrNull((e) => e.name3 == name);
+      },
+    );
   }
 
   @Deprecated('Use getSetter instead')

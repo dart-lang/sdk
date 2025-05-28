@@ -6,5 +6,6 @@ extendable:
     class: 'Foo'
 
 callable:
+  - library: 'dart:core'
   - library: 'shared/shared.dart'
     class: 'Foo'

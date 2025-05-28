@@ -1040,8 +1040,8 @@ p.dynamic f() {}
 ''');
   }
 
-  test_errors_hasNullSuffix() {
-    assertErrorsInCode(
+  Future<void> test_errors_hasNullSuffix() async {
+    await assertErrorsInCode(
       r'''
 String f(Map<int, String> a) {
   return a[0];

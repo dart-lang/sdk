@@ -154,7 +154,7 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
       var subscription = file.watch().changes.listen(changesReceived.add);
       // Delay running the rest of the test to allow file.changes propagate.
       return _delayed(() => test(changesReceived)).whenComplete(() {
-        subscription.cancel();
+        unawaited(subscription.cancel());
       });
     });
   }
@@ -177,7 +177,7 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
       // won't be able to reliably distinguish new files from modified
       // ones.
       return _delayed(() => test(changesReceived)).whenComplete(() {
-        subscription.cancel();
+        unawaited(subscription.cancel());
       });
     });
   }

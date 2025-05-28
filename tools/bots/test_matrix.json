@@ -3387,7 +3387,8 @@
             "--arch=x64,x64c",
             "runtime",
             "dartaotruntime",
-            "dart2js_platform.dill"
+            "dart2js_platform.dill",
+            "dart2wasm_platform.dill"
           ]
         },
         {
