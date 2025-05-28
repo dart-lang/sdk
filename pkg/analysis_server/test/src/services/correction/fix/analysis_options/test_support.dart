@@ -4,10 +4,10 @@
 
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
