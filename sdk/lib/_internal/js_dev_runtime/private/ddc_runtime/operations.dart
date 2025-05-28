@@ -911,16 +911,6 @@ bool dtest(obj) {
   return obj;
 }
 
-asInt(obj) {
-  // Note: null (and undefined) will fail this test.
-  if (JS('!', 'Math.floor(#) != #', obj, obj)) {
-    castError(obj, TYPE_REF<int>());
-  }
-  return obj;
-}
-
-asNullableInt(obj) => obj == null ? null : asInt(obj);
-
 /// Checks for null or undefined and returns [x].
 ///
 /// Throws [NoSuchMethodError] when it is null or undefined.
