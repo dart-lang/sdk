@@ -24,6 +24,10 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
 
   ConstructorFragmentDeclaration? _declaration;
 
+  @override
+  late final UriOffsetLength uriOffset = new UriOffsetLength(
+      fileUri, constructorName.fullNameOffset, constructorName.fullNameLength);
+
   PrimaryConstructorFragment({
     required this.constructorName,
     required this.fileUri,
@@ -39,11 +43,6 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
   }) : _beginInitializers = beginInitializers;
-
-  @override
-  String get name => constructorName.name;
-
-  int get fileOffset => constructorName.nameOffset ?? formalsOffset;
 
   Token? get beginInitializers {
     Token? result = _beginInitializers;
@@ -75,6 +74,11 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
     _declaration = value;
   }
 
+  int get fileOffset => constructorName.nameOffset ?? formalsOffset;
+
+  @override
+  String get name => constructorName.name;
+
   @override
   FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
     return new _PrimaryConstructorBodyBuildingContext(this);
@@ -91,6 +95,13 @@ class _PrimaryConstructorBodyBuildingContext
   _PrimaryConstructorBodyBuildingContext(this._fragment);
 
   @override
+  InferenceDataForTesting? get inferenceDataForTesting => _fragment
+      .builder
+      .dataForTesting
+      // Coverage-ignore(suite): Not run.
+      ?.inferenceData;
+
+  @override
   // Coverage-ignore(suite): Not run.
   // TODO(johnniwinther): This matches what is passed when parsing, but seems
   // odd given that it used to allow 'covariant' modifiers, which shouldn't be
@@ -101,10 +112,11 @@ class _PrimaryConstructorBodyBuildingContext
   bool get shouldBuild => !_fragment.modifiers.isConst;
 
   @override
-  LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
-    return _fragment.declaration
-        .computeFormalParameterScope(typeParameterScope);
-  }
+  List<TypeParameter>? get thisTypeParameters =>
+      _fragment.declaration.thisTypeParameters;
+
+  @override
+  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
   LookupScope get typeParameterScope {
@@ -112,21 +124,13 @@ class _PrimaryConstructorBodyBuildingContext
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext() {
-    return _fragment.declaration.createBodyBuilderContext(_fragment.builder);
+  LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
+    return _fragment.declaration
+        .computeFormalParameterScope(typeParameterScope);
   }
 
   @override
-  InferenceDataForTesting? get inferenceDataForTesting => _fragment
-      .builder
-      .dataForTesting
-      // Coverage-ignore(suite): Not run.
-      ?.inferenceData;
-
-  @override
-  List<TypeParameter>? get thisTypeParameters =>
-      _fragment.declaration.thisTypeParameters;
-
-  @override
-  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
+  BodyBuilderContext createBodyBuilderContext() {
+    return _fragment.declaration.createBodyBuilderContext(_fragment.builder);
+  }
 }

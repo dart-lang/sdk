@@ -4,65 +4,6 @@
 
 part of 'fragment.dart';
 
-class PrimaryConstructorFieldFragment implements Fragment {
-  @override
-  final String name;
-
-  final Uri fileUri;
-
-  final int nameOffset;
-
-  final List<MetadataBuilder>? metadata;
-
-  final TypeBuilder type;
-
-  final LookupScope enclosingScope;
-
-  final DeclarationFragment enclosingDeclaration;
-  final LibraryFragment enclosingCompilationUnit;
-
-  SourcePropertyBuilder? _builder;
-  PrimaryConstructorFieldDeclaration? _declaration;
-
-  PrimaryConstructorFieldFragment({
-    required this.name,
-    required this.fileUri,
-    required this.nameOffset,
-    required this.metadata,
-    required this.type,
-    required this.enclosingScope,
-    required this.enclosingDeclaration,
-    required this.enclosingCompilationUnit,
-  });
-
-  @override
-  SourcePropertyBuilder get builder {
-    assert(_builder != null, "Builder has not been computed for $this.");
-    return _builder!;
-  }
-
-  void set builder(SourcePropertyBuilder value) {
-    assert(_builder == null, "Builder has already been computed for $this.");
-    _builder = value;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  PrimaryConstructorFieldDeclaration get declaration {
-    assert(
-        _declaration != null, "Declaration has not been computed for $this.");
-    return _declaration!;
-  }
-
-  void set declaration(PrimaryConstructorFieldDeclaration value) {
-    assert(_declaration == null,
-        "Declaration has already been computed for $this.");
-    _declaration = value;
-  }
-
-  UriOffsetLength get uriOffset =>
-      new UriOffsetLength(fileUri, nameOffset, name.length);
-}
-
 class PrimaryConstructorFieldDeclaration
     with FieldDeclarationMixin
     implements
@@ -86,10 +27,6 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  UriOffsetLength get uriOffset => _fragment.uriOffset;
-
-  @override
   SourcePropertyBuilder get builder => _fragment.builder;
 
   @override
@@ -97,6 +34,15 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   DartType get fieldType => _encoding.type;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DartType get fieldTypeInternal => _encoding.type;
+
+  @override
+  void set fieldTypeInternal(DartType value) {
+    _encoding.type = value;
+  }
 
   @override
   Uri get fileUri => _fragment.fileUri;
@@ -153,12 +99,7 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  DartType get fieldTypeInternal => _encoding.type;
-
-  @override
-  void set fieldTypeInternal(DartType value) {
-    _encoding.type = value;
-  }
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   // Coverage-ignore(suite): Not run.
   /// Builds the body of this field using [initializer] as the initializer
@@ -190,24 +131,6 @@ class PrimaryConstructorFieldDeclaration
     } else if (!hasBodyBeenBuilt) {
       buildBody(coreTypes, null);
     }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void buildImplicitDefaultValue() {
-    _encoding.buildImplicitDefaultValue();
-  }
-
-  @override
-  Initializer buildImplicitInitializer() {
-    return _encoding.buildImplicitInitializer();
-  }
-
-  @override
-  List<Initializer> buildInitializer(int fileOffset, Expression value,
-      {required bool isSynthetic}) {
-    return _encoding.createInitializer(fileOffset, value,
-        isSynthetic: isSynthetic);
   }
 
   @override
@@ -246,6 +169,42 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
+  void buildGetterOutlineExpressions(
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required SourcePropertyBuilder propertyBuilder,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {}
+
+  @override
+  void buildGetterOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required PropertyReferences? references,
+      required List<TypeParameter>? classTypeParameters}) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void buildImplicitDefaultValue() {
+    _encoding.buildImplicitDefaultValue();
+  }
+
+  @override
+  Initializer buildImplicitInitializer() {
+    return _encoding.buildImplicitInitializer();
+  }
+
+  @override
+  List<Initializer> buildInitializer(int fileOffset, Expression value,
+      {required bool isSynthetic}) {
+    return _encoding.createInitializer(fileOffset, value,
+        isSynthetic: isSynthetic);
+  }
+
+  @override
   void checkFieldTypes(SourceLibraryBuilder libraryBuilder,
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {
     libraryBuilder.checkTypesInField(typeEnvironment,
@@ -274,11 +233,25 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
+  void checkGetterTypes(SourceLibraryBuilder libraryBuilder,
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void checkGetterVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context) {
     if (type is! OmittedTypeBuilder) {
       context.reportInboundReferenceIssuesForType(type);
       context.recursivelyReportGenericFunctionTypesAsBoundsForType(type);
     }
+    return 0;
+  }
+
+  @override
+  int computeGetterDefaultTypes(ComputeDefaultTypeContext context) {
     return 0;
   }
 
@@ -327,6 +300,21 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
+  void createGetterEncoding(
+      ProblemReporting problemReporting,
+      SourcePropertyBuilder builder,
+      PropertyEncodingStrategy encodingStrategy,
+      List<NominalParameterBuilder> unboundNominalParameters) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void ensureGetterTypes(
+      {required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required ClassMembersBuilder membersBuilder,
+      required Set<ClassMember>? getterOverrideDependencies}) {}
+
+  @override
   // Coverage-ignore(suite): Not run.
   void ensureTypes(
       ClassMembersBuilder membersBuilder,
@@ -351,8 +339,21 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
+  Iterable<Reference> getExportedGetterReferences(
+      PropertyReferences references) {
+    return [references.getterReference!];
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
   void registerSuperCall() {
     _encoding.registerSuperCall();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void setCovariantByClassInternal() {
+    _encoding.setCovariantByClass();
   }
 
   // Coverage-ignore(suite): Not run.
@@ -387,64 +388,64 @@ class PrimaryConstructorFieldDeclaration
     }
     return inferredType;
   }
+}
+
+class PrimaryConstructorFieldFragment implements Fragment {
+  @override
+  final String name;
+
+  final Uri fileUri;
+
+  final int nameOffset;
+
+  final List<MetadataBuilder>? metadata;
+
+  final TypeBuilder type;
+
+  final LookupScope enclosingScope;
+
+  final DeclarationFragment enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
+
+  SourcePropertyBuilder? _builder;
+  PrimaryConstructorFieldDeclaration? _declaration;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  void setCovariantByClassInternal() {
-    _encoding.setCovariantByClass();
+  late final UriOffsetLength uriOffset =
+      new UriOffsetLength(fileUri, nameOffset, name.length);
+
+  PrimaryConstructorFieldFragment({
+    required this.name,
+    required this.fileUri,
+    required this.nameOffset,
+    required this.metadata,
+    required this.type,
+    required this.enclosingScope,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  });
+
+  @override
+  SourcePropertyBuilder get builder {
+    assert(_builder != null, "Builder has not been computed for $this.");
+    return _builder!;
   }
 
-  @override
-  void buildGetterOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required SourcePropertyBuilder propertyBuilder,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember}) {}
-
-  @override
-  void buildGetterOutlineNode(
-      {required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required BuildNodesCallback f,
-      required PropertyReferences? references,
-      required List<TypeParameter>? classTypeParameters}) {}
-
-  @override
-  void checkGetterTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void checkGetterVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
-
-  @override
-  int computeGetterDefaultTypes(ComputeDefaultTypeContext context) {
-    return 0;
+  void set builder(SourcePropertyBuilder value) {
+    assert(_builder == null, "Builder has already been computed for $this.");
+    _builder = value;
   }
 
-  @override
-  void createGetterEncoding(
-      ProblemReporting problemReporting,
-      SourcePropertyBuilder builder,
-      PropertyEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters) {}
-
-  @override
   // Coverage-ignore(suite): Not run.
-  void ensureGetterTypes(
-      {required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required ClassMembersBuilder membersBuilder,
-      required Set<ClassMember>? getterOverrideDependencies}) {}
+  PrimaryConstructorFieldDeclaration get declaration {
+    assert(
+        _declaration != null, "Declaration has not been computed for $this.");
+    return _declaration!;
+  }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> getExportedGetterReferences(
-      PropertyReferences references) {
-    return [references.getterReference!];
+  void set declaration(PrimaryConstructorFieldDeclaration value) {
+    assert(_declaration == null,
+        "Declaration has already been computed for $this.");
+    _declaration = value;
   }
 }

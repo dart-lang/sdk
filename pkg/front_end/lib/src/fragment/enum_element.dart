@@ -4,254 +4,6 @@
 
 part of 'fragment.dart';
 
-class EnumElementFragment implements Fragment {
-  final List<MetadataBuilder>? metadata;
-
-  @override
-  final String name;
-  final int nameOffset;
-  final Uri fileUri;
-
-  final ConstructorReferenceBuilder? constructorReferenceBuilder;
-
-  final LookupScope enclosingScope;
-  final DeclarationFragment enclosingDeclaration;
-  final LibraryFragment enclosingCompilationUnit;
-
-  Token? _argumentsBeginToken;
-
-  SourcePropertyBuilder? _builder;
-
-  EnumElementDeclaration? _declaration;
-
-  final TypeBuilder type = new InferableTypeBuilder();
-
-  EnumElementFragment({
-    required this.metadata,
-    required this.name,
-    required this.nameOffset,
-    required this.fileUri,
-    required this.constructorReferenceBuilder,
-    required Token? argumentsBeginToken,
-    required this.enclosingScope,
-    required this.enclosingDeclaration,
-    required this.enclosingCompilationUnit,
-  }) : _argumentsBeginToken = argumentsBeginToken;
-
-  @override
-  SourcePropertyBuilder get builder {
-    assert(_builder != null, "Builder has not been computed for $this.");
-    return _builder!;
-  }
-
-  void set builder(SourcePropertyBuilder value) {
-    assert(_builder == null, "Builder has already been computed for $this.");
-    _builder = value;
-  }
-
-  EnumElementDeclaration get declaration {
-    assert(
-        _declaration != null, "Declaration has not been computed for $this.");
-    return _declaration!;
-  }
-
-  void set declaration(EnumElementDeclaration value) {
-    assert(_declaration == null,
-        "Declaration has already been computed for $this.");
-    _declaration = value;
-  }
-
-  UriOffsetLength get uriOffset =>
-      new UriOffsetLength(fileUri, nameOffset, name.length);
-
-  /// Returns the token for begin of the constructor arguments of this enum
-  /// element, if any.
-  ///
-  /// This can only be called once and will hand over the responsibility of
-  /// the token to the caller.
-  Token? get argumentsBeginToken {
-    Token? token = _argumentsBeginToken;
-    _argumentsBeginToken = null;
-    return token;
-  }
-
-  @override
-  String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
-}
-
-class _EnumElementClassMember implements ClassMember {
-  final SourcePropertyBuilder _builder;
-  final EnumElementFragment _fragment;
-
-  Covariance? _covariance;
-
-  _EnumElementClassMember(this._builder, this._fragment);
-
-  @override
-  bool get forSetter => false;
-
-  @override
-  UriOffsetLength get uriOffset => _fragment.uriOffset;
-
-  @override
-  DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<ClassMember> get declarations =>
-      throw new UnsupportedError('$runtimeType.declarations');
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  String get fullName {
-    String className = declarationBuilder.fullNameForErrors;
-    return "${className}.${fullNameForErrors}";
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  String get fullNameForErrors => _builder.fullNameForErrors;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Covariance getCovariance(ClassMembersBuilder membersBuilder) {
-    return _covariance ??= forSetter
-        ? new Covariance.fromMember(getMember(membersBuilder),
-            forSetter: forSetter)
-        : const Covariance.empty();
-  }
-
-  @override
-  Member getMember(ClassMembersBuilder membersBuilder) {
-    inferType(membersBuilder);
-    return forSetter
-        ?
-        // Coverage-ignore(suite): Not run.
-        _builder.writeTarget!
-        : _builder.readTarget!;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
-    return new StaticMemberResult(getMember(membersBuilder), memberKind,
-        isDeclaredAsField: true,
-        fullName: '${declarationBuilder.name}.${_builder.memberName.text}');
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Member? getTearOff(ClassMembersBuilder membersBuilder) => null;
-
-  @override
-  bool get hasDeclarations => false;
-
-  @override
-  void inferType(ClassMembersBuilder membersBuilder) {
-    _builder.inferFieldType(membersBuilder.hierarchyBuilder);
-  }
-
-  @override
-  ClassMember get interfaceMember => this;
-
-  @override
-  bool get isAbstract => false;
-
-  @override
-  bool get isDuplicate => _builder.isDuplicate;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isNoSuchMethodForwarder => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool isObjectMember(ClassBuilder objectClass) {
-    return declarationBuilder == objectClass;
-  }
-
-  @override
-  bool get isProperty => true;
-
-  @override
-  bool isSameDeclaration(ClassMember other) {
-    return other is _EnumElementClassMember &&
-        // Coverage-ignore(suite): Not run.
-        _builder == other._builder;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isSetter => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isSourceDeclaration => true;
-
-  @override
-  bool get isStatic => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isSynthesized => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ClassMemberKind get memberKind => ClassMemberKind.Getter;
-
-  @override
-  Name get name => _builder.memberName;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void registerOverrideDependency(
-      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
-    _builder.registerGetterOverrideDependency(
-        membersBuilder, overriddenMembers);
-  }
-
-  @override
-  String toString() => '$runtimeType($fullName)';
-}
-
-class _EnumElementFragmentBodyBuilderContext extends BodyBuilderContext {
-  final EnumElementFragment _fragment;
-
-  _EnumElementFragmentBodyBuilderContext(
-      this._fragment,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      {required bool isDeclarationInstanceMember})
-      : super(libraryBuilder, declarationBuilder,
-            isDeclarationInstanceMember: isDeclarationInstanceMember);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
-    /// Initializer formals or super parameters cannot occur in getters so
-    /// we don't need to create a new scope.
-    return parent;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  int get memberNameOffset => _fragment.nameOffset;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  int get memberNameLength => _fragment.name.length;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ConstantContext get constantContext {
-    return ConstantContext.inferred;
-  }
-}
-
 class EnumElementDeclaration
     with FieldDeclarationMixin
     implements
@@ -283,49 +35,82 @@ class EnumElementDeclaration
   }
 
   @override
-  void createFieldEncoding(SourcePropertyBuilder builder) {
-    _fragment.builder = builder;
-  }
+  SourcePropertyBuilder get builder => _fragment.builder;
+
+  @override
+  FieldQuality get fieldQuality => FieldQuality.Concrete;
+
+  @override
+  DartType get fieldType => _type;
 
   @override
   // Coverage-ignore(suite): Not run.
-  UriOffsetLength get uriOffset => _fragment.uriOffset;
+  DartType get fieldTypeInternal => _type;
 
-  DartType _computeType(ClassHierarchyBase hierarchy, Token? token) {
-    SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
-    SourceEnumBuilder sourceEnumBuilder =
-        builder.declarationBuilder as SourceEnumBuilder;
-    _buildElement(
-        sourceEnumBuilder,
-        sourceEnumBuilder.selfType.build(libraryBuilder, TypeUse.enumSelfType),
-        libraryBuilder.loader.coreTypes,
-        token);
-    return fieldType;
+  @override
+  void set fieldTypeInternal(DartType value) {
+    _type = value;
+    _field?.type = value;
   }
+
+  @override
+  Uri get fileUri => _fragment.fileUri;
+
+  @override
+  GetterQuality get getterQuality => GetterQuality.Implicit;
+
+  @override
+  bool get hasInitializer => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasSetter => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  shared.Expression? get initializerExpression =>
+      throw new UnsupportedError('${runtimeType}.initializerExpression');
+
+  @override
+  bool get isConst => true;
 
   @override
   bool get isEnumElement => true;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isExtensionTypeDeclaredInstanceField => false;
+
+  @override
+  bool get isFinal => false;
+
+  @override
+  bool get isLate => false;
+
+  @override
+  List<ClassMember> get localMembers =>
+      [new _EnumElementClassMember(builder, _fragment)];
+
+  @override
+  List<MetadataBuilder>? get metadata => _fragment.metadata;
+
+  @override
+  int get nameOffset => _fragment.nameOffset;
+
+  @override
+  Member get readTarget => _field!;
+
+  @override
+  TypeBuilder get type => _fragment.type;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
+
+  @override
   Initializer buildErroneousInitializer(Expression effect, Expression value,
       {required int fileOffset}) {
     throw new UnsupportedError("${runtimeType}.buildErroneousInitializer");
-  }
-
-  @override
-  void buildImplicitDefaultValue() {
-    throw new UnsupportedError("${runtimeType}.buildImplicitDefaultValue");
-  }
-
-  @override
-  Initializer buildImplicitInitializer() {
-    throw new UnsupportedError("${runtimeType}.buildImplicitInitializer");
-  }
-
-  @override
-  List<Initializer> buildInitializer(int fileOffset, Expression value,
-      {required bool isSynthetic}) {
-    throw new UnsupportedError("${runtimeType}.buildInitializer");
   }
 
   @override
@@ -346,12 +131,6 @@ class EnumElementDeclaration
           annotatableFileUri: annotatablesFileUri,
           metadata: metadata);
     }
-  }
-
-  BodyBuilderContext createBodyBuilderContext() {
-    return new _EnumElementFragmentBodyBuilderContext(
-        _fragment, builder.libraryBuilder, builder.declarationBuilder,
-        isDeclarationInstanceMember: builder.isDeclarationInstanceMember);
   }
 
   @override
@@ -377,6 +156,116 @@ class EnumElementDeclaration
             isSynthesized: false)
         .attachMember(_field!);
     f(member: _field!, kind: BuiltMemberKind.Field);
+  }
+
+  @override
+  void buildGetterOutlineExpressions(
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required SourcePropertyBuilder propertyBuilder,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {}
+
+  @override
+  void buildGetterOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required PropertyReferences? references,
+      required List<TypeParameter>? classTypeParameters}) {}
+
+  @override
+  void buildImplicitDefaultValue() {
+    throw new UnsupportedError("${runtimeType}.buildImplicitDefaultValue");
+  }
+
+  @override
+  Initializer buildImplicitInitializer() {
+    throw new UnsupportedError("${runtimeType}.buildImplicitInitializer");
+  }
+
+  @override
+  List<Initializer> buildInitializer(int fileOffset, Expression value,
+      {required bool isSynthetic}) {
+    throw new UnsupportedError("${runtimeType}.buildInitializer");
+  }
+
+  @override
+  void checkFieldTypes(SourceLibraryBuilder libraryBuilder,
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void checkFieldVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  void checkGetterTypes(SourceLibraryBuilder libraryBuilder,
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void checkGetterVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  int computeFieldDefaultTypes(ComputeDefaultTypeContext context) {
+    return 0;
+  }
+
+  @override
+  int computeGetterDefaultTypes(ComputeDefaultTypeContext context) {
+    return 0;
+  }
+
+  BodyBuilderContext createBodyBuilderContext() {
+    return new _EnumElementFragmentBodyBuilderContext(
+        _fragment, builder.libraryBuilder, builder.declarationBuilder,
+        isDeclarationInstanceMember: builder.isDeclarationInstanceMember);
+  }
+
+  @override
+  void createFieldEncoding(SourcePropertyBuilder builder) {
+    _fragment.builder = builder;
+  }
+
+  @override
+  void createGetterEncoding(
+      ProblemReporting problemReporting,
+      SourcePropertyBuilder builder,
+      PropertyEncodingStrategy encodingStrategy,
+      List<NominalParameterBuilder> unboundNominalParameters) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void ensureGetterTypes(
+      {required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required ClassMembersBuilder membersBuilder,
+      required Set<ClassMember>? getterOverrideDependencies}) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void ensureTypes(
+      ClassMembersBuilder membersBuilder,
+      Set<ClassMember>? getterOverrideDependencies,
+      Set<ClassMember>? setterOverrideDependencies) {
+    inferType(membersBuilder.hierarchyBuilder);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> getExportedGetterReferences(
+      PropertyReferences references) {
+    return [references.getterReference!];
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void setCovariantByClassInternal() {
+    _field!.isCovariantByClass = true;
   }
 
   void _buildElement(SourceEnumBuilder sourceEnumBuilder, DartType selfType,
@@ -517,152 +406,264 @@ class EnumElementDeclaration
     fieldType = inferredFieldType;
   }
 
+  DartType _computeType(ClassHierarchyBase hierarchy, Token? token) {
+    SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
+    SourceEnumBuilder sourceEnumBuilder =
+        builder.declarationBuilder as SourceEnumBuilder;
+    _buildElement(
+        sourceEnumBuilder,
+        sourceEnumBuilder.selfType.build(libraryBuilder, TypeUse.enumSelfType),
+        libraryBuilder.loader.coreTypes,
+        token);
+    return fieldType;
+  }
+}
+
+class EnumElementFragment implements Fragment {
+  final List<MetadataBuilder>? metadata;
+
   @override
-  void checkFieldTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
+  final String name;
+  final int nameOffset;
+  final Uri fileUri;
+
+  final ConstructorReferenceBuilder? constructorReferenceBuilder;
+
+  final LookupScope enclosingScope;
+  final DeclarationFragment enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
+
+  Token? _argumentsBeginToken;
+
+  SourcePropertyBuilder? _builder;
+
+  EnumElementDeclaration? _declaration;
+
+  final TypeBuilder type = new InferableTypeBuilder();
+
+  @override
+  late final UriOffsetLength uriOffset =
+      new UriOffsetLength(fileUri, nameOffset, name.length);
+
+  EnumElementFragment({
+    required this.metadata,
+    required this.name,
+    required this.nameOffset,
+    required this.fileUri,
+    required this.constructorReferenceBuilder,
+    required Token? argumentsBeginToken,
+    required this.enclosingScope,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  }) : _argumentsBeginToken = argumentsBeginToken;
+
+  /// Returns the token for begin of the constructor arguments of this enum
+  /// element, if any.
+  ///
+  /// This can only be called once and will hand over the responsibility of
+  /// the token to the caller.
+  Token? get argumentsBeginToken {
+    Token? token = _argumentsBeginToken;
+    _argumentsBeginToken = null;
+    return token;
+  }
+
+  @override
+  SourcePropertyBuilder get builder {
+    assert(_builder != null, "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(SourcePropertyBuilder value) {
+    assert(_builder == null, "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  EnumElementDeclaration get declaration {
+    assert(
+        _declaration != null, "Declaration has not been computed for $this.");
+    return _declaration!;
+  }
+
+  void set declaration(EnumElementDeclaration value) {
+    assert(_declaration == null,
+        "Declaration has already been computed for $this.");
+    _declaration = value;
+  }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
+}
+
+class _EnumElementClassMember implements ClassMember {
+  final SourcePropertyBuilder _builder;
+  final EnumElementFragment _fragment;
+
+  Covariance? _covariance;
+
+  _EnumElementClassMember(this._builder, this._fragment);
+
+  @override
+  DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
 
   @override
   // Coverage-ignore(suite): Not run.
-  void checkFieldVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+  List<ClassMember> get declarations =>
+      throw new UnsupportedError('$runtimeType.declarations');
 
   @override
-  int computeFieldDefaultTypes(ComputeDefaultTypeContext context) {
-    return 0;
+  bool get forSetter => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  String get fullName {
+    String className = declarationBuilder.fullNameForErrors;
+    return "${className}.${fullNameForErrors}";
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void ensureTypes(
-      ClassMembersBuilder membersBuilder,
-      Set<ClassMember>? getterOverrideDependencies,
-      Set<ClassMember>? setterOverrideDependencies) {
-    inferType(membersBuilder.hierarchyBuilder);
+  String get fullNameForErrors => _builder.fullNameForErrors;
+
+  @override
+  bool get hasDeclarations => false;
+
+  @override
+  ClassMember get interfaceMember => this;
+
+  @override
+  bool get isAbstract => false;
+
+  @override
+  bool get isDuplicate => _builder.isDuplicate;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isNoSuchMethodForwarder => false;
+
+  @override
+  bool get isProperty => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSetter => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSourceDeclaration => true;
+
+  @override
+  bool get isStatic => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthesized => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ClassMemberKind get memberKind => ClassMemberKind.Getter;
+
+  @override
+  Name get name => _builder.memberName;
+
+  @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Covariance getCovariance(ClassMembersBuilder membersBuilder) {
+    return _covariance ??= forSetter
+        ? new Covariance.fromMember(getMember(membersBuilder),
+            forSetter: forSetter)
+        : const Covariance.empty();
   }
 
   @override
-  bool get hasInitializer => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasSetter => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  shared.Expression? get initializerExpression =>
-      throw new UnsupportedError('${runtimeType}.initializerExpression');
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExtensionTypeDeclaredInstanceField => false;
-
-  @override
-  bool get isFinal => false;
-
-  @override
-  bool get isLate => false;
-
-  @override
-  List<ClassMember> get localMembers =>
-      [new _EnumElementClassMember(builder, _fragment)];
-
-  @override
-  Member get readTarget => _field!;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  DartType get fieldTypeInternal => _type;
-
-  @override
-  bool get isConst => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void setCovariantByClassInternal() {
-    _field!.isCovariantByClass = true;
+  Member getMember(ClassMembersBuilder membersBuilder) {
+    inferType(membersBuilder);
+    return forSetter
+        ?
+        // Coverage-ignore(suite): Not run.
+        _builder.writeTarget!
+        : _builder.readTarget!;
   }
 
   @override
-  void set fieldTypeInternal(DartType value) {
-    _type = value;
-    _field?.type = value;
+  // Coverage-ignore(suite): Not run.
+  MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
+    return new StaticMemberResult(getMember(membersBuilder), memberKind,
+        isDeclaredAsField: true,
+        fullName: '${declarationBuilder.name}.${_builder.memberName.text}');
   }
 
   @override
-  DartType get fieldType => _type;
-
-  @override
-  SourcePropertyBuilder get builder => _fragment.builder;
-
-  @override
-  Uri get fileUri => _fragment.fileUri;
-
-  @override
-  List<MetadataBuilder>? get metadata => _fragment.metadata;
-
-  @override
-  int get nameOffset => _fragment.nameOffset;
-
-  @override
-  TypeBuilder get type => _fragment.type;
-
-  @override
-  FieldQuality get fieldQuality => FieldQuality.Concrete;
-
-  @override
-  GetterQuality get getterQuality => GetterQuality.Implicit;
-
-  @override
-  void buildGetterOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required SourcePropertyBuilder propertyBuilder,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember}) {}
-
-  @override
-  void buildGetterOutlineNode(
-      {required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required BuildNodesCallback f,
-      required PropertyReferences? references,
-      required List<TypeParameter>? classTypeParameters}) {}
-
-  @override
-  void checkGetterTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
-
-  @override
   // Coverage-ignore(suite): Not run.
-  void checkGetterVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+  Member? getTearOff(ClassMembersBuilder membersBuilder) => null;
 
   @override
-  int computeGetterDefaultTypes(ComputeDefaultTypeContext context) {
-    return 0;
+  void inferType(ClassMembersBuilder membersBuilder) {
+    _builder.inferFieldType(membersBuilder.hierarchyBuilder);
   }
 
   @override
-  void createGetterEncoding(
-      ProblemReporting problemReporting,
-      SourcePropertyBuilder builder,
-      PropertyEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters) {}
+  // Coverage-ignore(suite): Not run.
+  bool isObjectMember(ClassBuilder objectClass) {
+    return declarationBuilder == objectClass;
+  }
+
+  @override
+  bool isSameDeclaration(ClassMember other) {
+    return other is _EnumElementClassMember &&
+        // Coverage-ignore(suite): Not run.
+        _builder == other._builder;
+  }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void ensureGetterTypes(
-      {required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required ClassMembersBuilder membersBuilder,
-      required Set<ClassMember>? getterOverrideDependencies}) {}
+  void registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
+    _builder.registerGetterOverrideDependency(
+        membersBuilder, overriddenMembers);
+  }
+
+  @override
+  String toString() => '$runtimeType($fullName)';
+}
+
+class _EnumElementFragmentBodyBuilderContext extends BodyBuilderContext {
+  final EnumElementFragment _fragment;
+
+  _EnumElementFragmentBodyBuilderContext(
+      this._fragment,
+      SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder? declarationBuilder,
+      {required bool isDeclarationInstanceMember})
+      : super(libraryBuilder, declarationBuilder,
+            isDeclarationInstanceMember: isDeclarationInstanceMember);
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Reference> getExportedGetterReferences(
-      PropertyReferences references) {
-    return [references.getterReference!];
+  ConstantContext get constantContext {
+    return ConstantContext.inferred;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get memberNameLength => _fragment.name.length;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get memberNameOffset => _fragment.nameOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
+    /// Initializer formals or super parameters cannot occur in getters so
+    /// we don't need to create a new scope.
+    return parent;
   }
 }

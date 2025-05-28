@@ -13,6 +13,7 @@ import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -72,10 +73,7 @@ enum _FragmentKind {
 class _FragmentName {
   final _FragmentKind kind;
   final Fragment fragment;
-  final Uri fileUri;
   final String name;
-  final int nameOffset;
-  final int nameLength;
   final bool isAugment;
   final bool inPatch;
   final bool inLibrary;
@@ -83,10 +81,7 @@ class _FragmentName {
   final _PropertyKind? propertyKind;
 
   _FragmentName(this.kind, this.fragment,
-      {required this.fileUri,
-      required this.name,
-      required this.nameOffset,
-      required this.nameLength,
+      {required this.name,
       required this.isAugment,
       required this.inPatch,
       required this.inLibrary,
@@ -99,8 +94,7 @@ typedef _CreateBuilderFunction = void Function(Fragment,
 
 typedef _CreatePropertyFunction = void Function(
     {required String name,
-    required int nameOffset,
-    required Uri fileUri,
+    required UriOffsetLength uriOffset,
     FieldDeclaration? fieldDeclaration,
     GetterDeclaration? getterDeclaration,
     List<GetterDeclaration>? getterAugmentationDeclarations,
@@ -144,8 +138,7 @@ sealed class _PreBuilder {
 class _PropertyPreBuilder extends _PreBuilder {
   final bool inPatch;
   final String name;
-  final Uri fileUri;
-  final int nameOffset;
+  final UriOffsetLength uriOffset;
   final bool isStatic;
   _FragmentName? getter;
   _FragmentName? setter;
@@ -156,24 +149,21 @@ class _PropertyPreBuilder extends _PreBuilder {
       : isStatic = getter.isStatic,
         inPatch = getter.inPatch,
         name = getter.name,
-        nameOffset = getter.nameOffset,
-        fileUri = getter.fileUri;
+        uriOffset = getter.fragment.uriOffset;
 
   // TODO(johnniwinther): Report error if [setter] is augmenting.
   _PropertyPreBuilder.forSetter(_FragmentName this.setter)
       : isStatic = setter.isStatic,
         inPatch = setter.inPatch,
         name = setter.name,
-        nameOffset = setter.nameOffset,
-        fileUri = setter.fileUri;
+        uriOffset = setter.fragment.uriOffset;
 
   // TODO(johnniwinther): Report error if [getter] is augmenting.
   _PropertyPreBuilder.forField(_FragmentName this.getter)
       : isStatic = getter.isStatic,
         inPatch = getter.inPatch,
         name = getter.name,
-        nameOffset = getter.nameOffset,
-        fileUri = getter.fileUri {
+        uriOffset = getter.fragment.uriOffset {
     if (getter!.propertyKind == _PropertyKind.Field) {
       setter = getter;
     }
@@ -210,17 +200,13 @@ class _PropertyPreBuilder extends _PreBuilder {
                 //      static int get foo => 42;
                 //    }
                 //
-                problemReporting.addProblem(
-                    templateStaticConflictsWithInstance
-                        .withArguments(fragmentName.name),
-                    fragmentName.nameOffset,
-                    fragmentName.nameLength,
-                    fragmentName.fileUri,
+                problemReporting.addProblem2(
+                    templateStaticConflictsWithInstance.withArguments(name),
+                    fragmentName.fragment.uriOffset,
                     context: [
                       templateStaticConflictsWithInstanceCause
-                          .withArguments(setter!.name)
-                          .withLocation(setter!.fileUri, setter!.nameOffset,
-                              setter!.nameLength)
+                          .withArguments(name)
+                          .withLocation2(setter!.fragment.uriOffset)
                     ]);
               } else {
                 // Example:
@@ -230,17 +216,13 @@ class _PropertyPreBuilder extends _PreBuilder {
                 //      int get foo => 42;
                 //    }
                 //
-                problemReporting.addProblem(
-                    templateInstanceConflictsWithStatic
-                        .withArguments(fragmentName.name),
-                    fragmentName.nameOffset,
-                    fragmentName.nameLength,
-                    fragmentName.fileUri,
+                problemReporting.addProblem2(
+                    templateInstanceConflictsWithStatic.withArguments(name),
+                    fragmentName.fragment.uriOffset,
                     context: [
                       templateInstanceConflictsWithStaticCause
-                          .withArguments(setter!.name)
-                          .withLocation(setter!.fileUri, setter!.nameOffset,
-                              setter!.nameLength)
+                          .withArguments(name)
+                          .withLocation2(setter!.fragment.uriOffset)
                     ]);
               }
               return false;
@@ -263,17 +245,13 @@ class _PropertyPreBuilder extends _PreBuilder {
               //    int get foo => 42;
               //    int get foo => 87;
               //
-              problemReporting.addProblem(
-                  templateDuplicatedDeclaration
-                      .withArguments(fragmentName.name),
-                  fragmentName.nameOffset,
-                  fragmentName.nameLength,
-                  fragmentName.fileUri,
+              problemReporting.addProblem2(
+                  templateDuplicatedDeclaration.withArguments(name),
+                  fragmentName.fragment.uriOffset,
                   context: <LocatedMessage>[
                     templateDuplicatedDeclarationCause
-                        .withArguments(getter!.name)
-                        .withLocation(getter!.fileUri, getter!.nameOffset,
-                            getter!.nameLength)
+                        .withArguments(name)
+                        .withLocation2(getter!.fragment.uriOffset)
                   ]);
               return false;
             }
@@ -305,17 +283,13 @@ class _PropertyPreBuilder extends _PreBuilder {
                 //      static void set foo(_) {}
                 //    }
                 //
-                problemReporting.addProblem(
-                    templateStaticConflictsWithInstance
-                        .withArguments(fragmentName.name),
-                    fragmentName.nameOffset,
-                    fragmentName.nameLength,
-                    fragmentName.fileUri,
+                problemReporting.addProblem2(
+                    templateStaticConflictsWithInstance.withArguments(name),
+                    fragmentName.fragment.uriOffset,
                     context: [
                       templateStaticConflictsWithInstanceCause
-                          .withArguments(getter!.name)
-                          .withLocation(getter!.fileUri, getter!.nameOffset,
-                              getter!.nameLength)
+                          .withArguments(name)
+                          .withLocation2(getter!.fragment.uriOffset)
                     ]);
                 return false;
               } else {
@@ -326,17 +300,13 @@ class _PropertyPreBuilder extends _PreBuilder {
                 //      void set foo(_) {}
                 //    }
                 //
-                problemReporting.addProblem(
-                    templateInstanceConflictsWithStatic
-                        .withArguments(fragmentName.name),
-                    fragmentName.nameOffset,
-                    fragmentName.nameLength,
-                    fragmentName.fileUri,
+                problemReporting.addProblem2(
+                    templateInstanceConflictsWithStatic.withArguments(name),
+                    fragmentName.fragment.uriOffset,
                     context: [
                       templateInstanceConflictsWithStaticCause
-                          .withArguments(getter!.name)
-                          .withLocation(getter!.fileUri, getter!.nameOffset,
-                              getter!.nameLength)
+                          .withArguments(name)
+                          .withLocation2(getter!.fragment.uriOffset)
                     ]);
                 return false;
               }
@@ -360,17 +330,13 @@ class _PropertyPreBuilder extends _PreBuilder {
                 //    int? foo;
                 //    void set foo(_) {}
                 //
-                problemReporting.addProblem(
-                    templateConflictsWithImplicitSetter
-                        .withArguments(setter!.name),
-                    fragmentName.nameOffset,
-                    fragmentName.nameLength,
-                    fragmentName.fileUri,
+                problemReporting.addProblem2(
+                    templateConflictsWithImplicitSetter.withArguments(name),
+                    fragmentName.fragment.uriOffset,
                     context: [
                       templateConflictsWithImplicitSetterCause
-                          .withArguments(setter!.name)
-                          .withLocation(setter!.fileUri, setter!.nameOffset,
-                              setter!.nameLength)
+                          .withArguments(name)
+                          .withLocation2(setter!.fragment.uriOffset)
                     ]);
                 return false;
               } else {
@@ -379,17 +345,13 @@ class _PropertyPreBuilder extends _PreBuilder {
                 //    void set foo(_) {}
                 //    void set foo(_) {}
                 //
-                problemReporting.addProblem(
-                    templateDuplicatedDeclaration
-                        .withArguments(fragmentName.name),
-                    fragmentName.nameOffset,
-                    fragmentName.nameLength,
-                    fragmentName.fileUri,
+                problemReporting.addProblem2(
+                    templateDuplicatedDeclaration.withArguments(name),
+                    fragmentName.fragment.uriOffset,
                     context: <LocatedMessage>[
                       templateDuplicatedDeclarationCause
-                          .withArguments(setter!.name)
-                          .withLocation(setter!.fileUri, setter!.nameOffset,
-                              setter!.nameLength)
+                          .withArguments(name)
+                          .withLocation2(setter!.fragment.uriOffset)
                     ]);
                 return false;
               }
@@ -404,16 +366,13 @@ class _PropertyPreBuilder extends _PreBuilder {
             //
             assert(getter == null && setter != null);
             // We have an explicit setter.
-            problemReporting.addProblem(
-                templateConflictsWithSetter.withArguments(setter!.name),
-                fragmentName.nameOffset,
-                fragmentName.nameLength,
-                fragmentName.fileUri,
+            problemReporting.addProblem2(
+                templateConflictsWithSetter.withArguments(name),
+                fragmentName.fragment.uriOffset,
                 context: [
                   templateConflictsWithSetterCause
-                      .withArguments(setter!.name)
-                      .withLocation(setter!.fileUri, setter!.nameOffset,
-                          setter!.nameLength)
+                      .withArguments(name)
+                      .withLocation2(setter!.fragment.uriOffset)
                 ]);
             return false;
           } else if (setter != null) {
@@ -464,17 +423,13 @@ class _PropertyPreBuilder extends _PreBuilder {
               //    void set bar(_) {}
               //    int? bar;
               //
-              problemReporting.addProblem(
-                  templateDuplicatedDeclaration
-                      .withArguments(fragmentName.name),
-                  fragmentName.nameOffset,
-                  fragmentName.nameLength,
-                  fragmentName.fileUri,
+              problemReporting.addProblem2(
+                  templateDuplicatedDeclaration.withArguments(name),
+                  fragmentName.fragment.uriOffset,
                   context: <LocatedMessage>[
                     templateDuplicatedDeclarationCause
-                        .withArguments(getter!.name)
-                        .withLocation(getter!.fileUri, getter!.nameOffset,
-                            getter!.nameLength)
+                        .withArguments(name)
+                        .withLocation2(getter!.fragment.uriOffset)
                   ]);
 
               return false;
@@ -489,16 +444,13 @@ class _PropertyPreBuilder extends _PreBuilder {
             //    int? bar;
             //
             assert(getter != null && setter == null);
-            problemReporting.addProblem(
-                templateDuplicatedDeclaration.withArguments(fragmentName.name),
-                fragmentName.nameOffset,
-                fragmentName.nameLength,
-                fragmentName.fileUri,
+            problemReporting.addProblem2(
+                templateDuplicatedDeclaration.withArguments(name),
+                fragmentName.fragment.uriOffset,
                 context: <LocatedMessage>[
                   templateDuplicatedDeclarationCause
-                      .withArguments(getter!.name)
-                      .withLocation(getter!.fileUri, getter!.nameOffset,
-                          getter!.nameLength)
+                      .withArguments(name)
+                      .withLocation2(getter!.fragment.uriOffset)
                 ]);
             return false;
           }
@@ -529,17 +481,13 @@ class _PropertyPreBuilder extends _PreBuilder {
                 //      static final int foo = 42;
                 //    }
                 //
-                problemReporting.addProblem(
-                    templateStaticConflictsWithInstance
-                        .withArguments(fragmentName.name),
-                    fragmentName.nameOffset,
-                    fragmentName.nameLength,
-                    fragmentName.fileUri,
+                problemReporting.addProblem2(
+                    templateStaticConflictsWithInstance.withArguments(name),
+                    fragmentName.fragment.uriOffset,
                     context: [
                       templateStaticConflictsWithInstanceCause
-                          .withArguments(setter!.name)
-                          .withLocation(setter!.fileUri, setter!.nameOffset,
-                              setter!.nameLength)
+                          .withArguments(name)
+                          .withLocation2(setter!.fragment.uriOffset)
                     ]);
                 return false;
               } else {
@@ -550,17 +498,13 @@ class _PropertyPreBuilder extends _PreBuilder {
                 //      final int foo = 42;
                 //    }
                 //
-                problemReporting.addProblem(
-                    templateInstanceConflictsWithStatic
-                        .withArguments(fragmentName.name),
-                    fragmentName.nameOffset,
-                    fragmentName.nameLength,
-                    fragmentName.fileUri,
+                problemReporting.addProblem2(
+                    templateInstanceConflictsWithStatic.withArguments(name),
+                    fragmentName.fragment.uriOffset,
                     context: [
                       templateInstanceConflictsWithStaticCause
-                          .withArguments(setter!.name)
-                          .withLocation(setter!.fileUri, setter!.nameOffset,
-                              setter!.nameLength)
+                          .withArguments(name)
+                          .withLocation2(setter!.fragment.uriOffset)
                     ]);
                 return false;
               }
@@ -607,17 +551,13 @@ class _PropertyPreBuilder extends _PreBuilder {
               //    int get bar => 42;
               //    final int bar = 87;
               //
-              problemReporting.addProblem(
-                  templateDuplicatedDeclaration
-                      .withArguments(fragmentName.name),
-                  fragmentName.nameOffset,
-                  fragmentName.nameLength,
-                  fragmentName.fileUri,
+              problemReporting.addProblem2(
+                  templateDuplicatedDeclaration.withArguments(name),
+                  fragmentName.fragment.uriOffset,
                   context: <LocatedMessage>[
                     templateDuplicatedDeclarationCause
-                        .withArguments(getter!.name)
-                        .withLocation(getter!.fileUri, getter!.nameOffset,
-                            getter!.nameLength)
+                        .withArguments(name)
+                        .withLocation2(getter!.fragment.uriOffset)
                   ]);
               return false;
             }
@@ -630,16 +570,13 @@ class _PropertyPreBuilder extends _PreBuilder {
         //    int get foo => 42;
         //    void foo() {}
         //
-        problemReporting.addProblem(
-            templateDuplicatedDeclaration.withArguments(fragmentName.name),
-            fragmentName.nameOffset,
-            fragmentName.nameLength,
-            fragmentName.fileUri,
+        problemReporting.addProblem2(
+            templateDuplicatedDeclaration.withArguments(name),
+            fragmentName.fragment.uriOffset,
             context: <LocatedMessage>[
               templateDuplicatedDeclarationCause
-                  .withArguments(getter!.name)
-                  .withLocation(
-                      getter!.fileUri, getter!.nameOffset, getter!.nameLength)
+                  .withArguments(name)
+                  .withLocation2(getter!.fragment.uriOffset)
             ]);
       } else {
         assert(setter != null);
@@ -648,16 +585,13 @@ class _PropertyPreBuilder extends _PreBuilder {
         //    void set foo(_) {}
         //    void foo() {}
         //
-        problemReporting.addProblem(
-            templateDeclarationConflictsWithSetter.withArguments(setter!.name),
-            fragmentName.nameOffset,
-            fragmentName.nameLength,
-            fragmentName.fileUri,
+        problemReporting.addProblem2(
+            templateDeclarationConflictsWithSetter.withArguments(name),
+            fragmentName.fragment.uriOffset,
             context: <LocatedMessage>[
               templateDeclarationConflictsWithSetterCause
-                  .withArguments(setter!.name)
-                  .withLocation(
-                      setter!.fileUri, setter!.nameOffset, setter!.nameLength)
+                  .withArguments(name)
+                  .withLocation2(setter!.fragment.uriOffset)
             ]);
       }
       return false;
@@ -678,17 +612,13 @@ class _PropertyPreBuilder extends _PreBuilder {
           //      A.foo();
           //    }
           //
-          problemReporting.addProblem(
-              templateConstructorConflictsWithMember
-                  .withArguments(getter!.name),
-              constructorFragment.nameOffset,
-              constructorFragment.nameLength,
-              constructorFragment.fileUri,
+          problemReporting.addProblem2(
+              templateConstructorConflictsWithMember.withArguments(name),
+              constructorFragment.fragment.uriOffset,
               context: [
                 templateConstructorConflictsWithMemberCause
-                    .withArguments(getter!.name)
-                    .withLocation(
-                        getter!.fileUri, getter!.nameOffset, getter!.nameLength)
+                    .withArguments(name)
+                    .withLocation2(getter!.fragment.uriOffset)
               ]);
         } else {
           // Coverage-ignore-block(suite): Not run.
@@ -701,16 +631,13 @@ class _PropertyPreBuilder extends _PreBuilder {
           //      factory A.foo() => throw '';
           //    }
           //
-          problemReporting.addProblem(
-              templateFactoryConflictsWithMember.withArguments(getter!.name),
-              constructorFragment.nameOffset,
-              constructorFragment.nameLength,
-              constructorFragment.fileUri,
+          problemReporting.addProblem2(
+              templateFactoryConflictsWithMember.withArguments(name),
+              constructorFragment.fragment.uriOffset,
               context: [
                 templateFactoryConflictsWithMemberCause
-                    .withArguments(getter!.name)
-                    .withLocation(
-                        getter!.fileUri, getter!.nameOffset, getter!.nameLength)
+                    .withArguments(name)
+                    .withLocation2(getter!.fragment.uriOffset)
               ]);
         }
       } else {
@@ -723,17 +650,13 @@ class _PropertyPreBuilder extends _PreBuilder {
           //      A.foo();
           //    }
           //
-          problemReporting.addProblem(
-              templateConstructorConflictsWithMember
-                  .withArguments(setter!.name),
-              constructorFragment.nameOffset,
-              constructorFragment.nameLength,
-              constructorFragment.fileUri,
+          problemReporting.addProblem2(
+              templateConstructorConflictsWithMember.withArguments(name),
+              constructorFragment.fragment.uriOffset,
               context: [
                 templateConstructorConflictsWithMemberCause
-                    .withArguments(setter!.name)
-                    .withLocation(
-                        setter!.fileUri, setter!.nameOffset, setter!.nameLength)
+                    .withArguments(name)
+                    .withLocation2(setter!.fragment.uriOffset)
               ]);
         } else {
           assert(constructorFragment.kind == _FragmentKind.Factory,
@@ -745,16 +668,13 @@ class _PropertyPreBuilder extends _PreBuilder {
           //      factory A.foo() => throw '';
           //    }
           //
-          problemReporting.addProblem(
-              templateFactoryConflictsWithMember.withArguments(setter!.name),
-              constructorFragment.nameOffset,
-              constructorFragment.nameLength,
-              constructorFragment.fileUri,
+          problemReporting.addProblem2(
+              templateFactoryConflictsWithMember.withArguments(name),
+              constructorFragment.fragment.uriOffset,
               context: [
                 templateFactoryConflictsWithMemberCause
-                    .withArguments(setter!.name)
-                    .withLocation(
-                        setter!.fileUri, setter!.nameOffset, setter!.nameLength)
+                    .withArguments(name)
+                    .withLocation2(setter!.fragment.uriOffset)
               ]);
         }
       }
@@ -843,8 +763,7 @@ class _PropertyPreBuilder extends _PreBuilder {
         name: name,
         inPatch: inPatch,
         isStatic: isStatic,
-        nameOffset: nameOffset,
-        fileUri: fileUri,
+        uriOffset: uriOffset,
         fieldDeclaration: fieldDeclaration,
         getterDeclaration: getterDeclaration,
         getterAugmentationDeclarations: getterAugmentationDeclarations,
@@ -894,16 +813,13 @@ class _ConstructorPreBuilder extends _PreBuilder {
       //      A();
       //    }
       //
-      problemReporting.addProblem(
+      problemReporting.addProblem2(
           templateDuplicatedDeclaration.withArguments(fragmentName.name),
-          fragmentName.nameOffset,
-          fragmentName.nameLength,
-          fragmentName.fileUri,
+          fragmentName.fragment.uriOffset,
           context: <LocatedMessage>[
             templateDuplicatedDeclarationCause
                 .withArguments(fragment.name)
-                .withLocation(
-                    fragment.fileUri, fragment.nameOffset, fragment.nameLength)
+                .withLocation2(fragment.fragment.uriOffset)
           ]);
       return false;
     }
@@ -923,16 +839,13 @@ class _ConstructorPreBuilder extends _PreBuilder {
         //      static void foo() {}
         //    }
         //
-        problemReporting.addProblem(
+        problemReporting.addProblem2(
             templateMemberConflictsWithConstructor.withArguments(fragment.name),
-            nonConstructorFragment.nameOffset,
-            nonConstructorFragment.nameLength,
-            nonConstructorFragment.fileUri,
+            nonConstructorFragment.fragment.uriOffset,
             context: [
               templateMemberConflictsWithConstructorCause
                   .withArguments(fragment.name)
-                  .withLocation(fragment.fileUri, fragment.nameOffset,
-                      fragment.nameLength)
+                  .withLocation2(fragment.fragment.uriOffset)
             ]);
       } else {
         assert(fragment.kind == _FragmentKind.Factory,
@@ -944,16 +857,13 @@ class _ConstructorPreBuilder extends _PreBuilder {
         //      static void foo() {}
         //    }
         //
-        problemReporting.addProblem(
+        problemReporting.addProblem2(
             templateMemberConflictsWithFactory.withArguments(fragment.name),
-            nonConstructorFragment.nameOffset,
-            nonConstructorFragment.nameLength,
-            nonConstructorFragment.fileUri,
+            nonConstructorFragment.fragment.uriOffset,
             context: [
               templateMemberConflictsWithFactoryCause
                   .withArguments(fragment.name)
-                  .withLocation(fragment.fileUri, fragment.nameOffset,
-                      fragment.nameLength)
+                  .withLocation2(fragment.fragment.uriOffset)
             ]);
       }
     }
@@ -1003,16 +913,13 @@ class _DeclarationPreBuilder extends _PreBuilder {
         //    class Foo {}
         //    set Foo(_) {}
         //
-        problemReporting.addProblem(
+        problemReporting.addProblem2(
             templateSetterConflictsWithDeclaration.withArguments(fragment.name),
-            fragmentName.nameOffset,
-            fragmentName.nameLength,
-            fragmentName.fileUri,
+            fragmentName.fragment.uriOffset,
             context: [
               templateSetterConflictsWithDeclarationCause
                   .withArguments(fragment.name)
-                  .withLocation(fragment.fileUri, fragment.nameOffset,
-                      fragment.nameLength)
+                  .withLocation2(fragment.fragment.uriOffset)
             ]);
       } else {
         // Example:
@@ -1020,16 +927,13 @@ class _DeclarationPreBuilder extends _PreBuilder {
         //    class Foo {}
         //    class Foo {}
         //
-        problemReporting.addProblem(
+        problemReporting.addProblem2(
             templateDuplicatedDeclaration.withArguments(fragmentName.name),
-            fragmentName.nameOffset,
-            fragmentName.nameLength,
-            fragmentName.fileUri,
+            fragmentName.fragment.uriOffset,
             context: <LocatedMessage>[
               templateDuplicatedDeclarationCause
                   .withArguments(fragment.name)
-                  .withLocation(fragment.fileUri, fragment.nameOffset,
-                      fragment.nameLength)
+                  .withLocation2(fragment.fragment.uriOffset)
             ]);
       }
       return false;
@@ -1049,16 +953,13 @@ class _DeclarationPreBuilder extends _PreBuilder {
         //      A.foo();
         //    }
         //
-        problemReporting.addProblem(
+        problemReporting.addProblem2(
             templateConstructorConflictsWithMember.withArguments(fragment.name),
-            constructorFragment.nameOffset,
-            constructorFragment.nameLength,
-            constructorFragment.fileUri,
+            constructorFragment.fragment.uriOffset,
             context: [
               templateConstructorConflictsWithMemberCause
                   .withArguments(fragment.name)
-                  .withLocation(fragment.fileUri, fragment.nameOffset,
-                      fragment.nameLength)
+                  .withLocation2(fragment.fragment.uriOffset)
             ]);
       } else {
         assert(constructorFragment.kind == _FragmentKind.Factory,
@@ -1070,16 +971,13 @@ class _DeclarationPreBuilder extends _PreBuilder {
         //      factory A.foo() => throw '';
         //    }
         //
-        problemReporting.addProblem(
+        problemReporting.addProblem2(
             templateFactoryConflictsWithMember.withArguments(fragment.name),
-            constructorFragment.nameOffset,
-            constructorFragment.nameLength,
-            constructorFragment.fileUri,
+            constructorFragment.fragment.uriOffset,
             context: [
               templateFactoryConflictsWithMemberCause
                   .withArguments(fragment.name)
-                  .withLocation(fragment.fileUri, fragment.nameOffset,
-                      fragment.nameLength)
+                  .withLocation2(fragment.fragment.uriOffset)
             ]);
       }
     }
@@ -1152,8 +1050,7 @@ void _checkAugmentation(
             templateUnmatchedAugmentationDeclaration
                 .withArguments(fragmentName.name);
     }
-    problemReporting.addProblem(message, fragmentName.nameOffset,
-        fragmentName.nameLength, fragmentName.fileUri);
+    problemReporting.addProblem2(message, fragmentName.fragment.uriOffset);
   }
 }
 
@@ -1248,10 +1145,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         addFragment(new _FragmentName(
           _FragmentKind.Class,
           fragment,
-          fileUri: fragment.fileUri,
           name: fragment.name,
-          nameOffset: fragment.nameOffset,
-          nameLength: fragment.name.length,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
@@ -1259,10 +1153,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case EnumFragment():
         addFragment(new _FragmentName(
           _FragmentKind.Enum, fragment,
-          fileUri: fragment.fileUri,
           name: fragment.name,
-          nameOffset: fragment.nameOffset,
-          nameLength: fragment.name.length,
           // TODO(johnniwinther): Support enum augmentations.
           isAugment: false,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
@@ -1272,10 +1163,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         addFragment(new _FragmentName(
           _FragmentKind.ExtensionType,
           fragment,
-          fileUri: fragment.fileUri,
           name: fragment.name,
-          nameOffset: fragment.nameOffset,
-          nameLength: fragment.name.length,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
@@ -1284,10 +1172,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         addFragment(new _FragmentName(
           _FragmentKind.Method,
           fragment,
-          fileUri: fragment.fileUri,
           name: fragment.name,
-          nameOffset: fragment.nameOffset,
-          nameLength: fragment.name.length,
           isAugment: fragment.modifiers.isAugment,
           isStatic: declarationBuilder == null || fragment.modifiers.isStatic,
           inPatch: fragment.enclosingDeclaration?.isPatch ??
@@ -1298,10 +1183,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         addFragment(new _FragmentName(
           _FragmentKind.Mixin,
           fragment,
-          fileUri: fragment.fileUri,
           name: fragment.name,
-          nameOffset: fragment.nameOffset,
-          nameLength: fragment.name.length,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
@@ -1310,10 +1192,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         addFragment(new _FragmentName(
           _FragmentKind.NamedMixinApplication,
           fragment,
-          fileUri: fragment.fileUri,
           name: fragment.name,
-          nameOffset: fragment.nameOffset,
-          nameLength: fragment.name.length,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
@@ -1321,10 +1200,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case TypedefFragment():
         addFragment(new _FragmentName(
           _FragmentKind.Typedef, fragment,
-          fileUri: fragment.fileUri,
           name: fragment.name,
-          nameOffset: fragment.nameOffset,
-          nameLength: fragment.name.length,
           // TODO(johnniwinther): Support typedef augmentations.
           isAugment: false,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
@@ -1335,10 +1211,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           addFragment(new _FragmentName(
             _FragmentKind.Extension,
             fragment,
-            fileUri: fragment.fileUri,
             name: fragment.name,
-            nameOffset: fragment.fileOffset,
-            nameLength: fragment.name.length,
             isAugment: fragment.modifiers.isAugment,
             inPatch: fragment.enclosingCompilationUnit.isPatch,
             inLibrary: true,
@@ -1350,10 +1223,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         addFragment(new _FragmentName(
           _FragmentKind.Factory,
           fragment,
-          fileUri: fragment.fileUri,
           name: fragment.constructorName.fullName,
-          nameOffset: fragment.constructorName.fullNameOffset,
-          nameLength: fragment.constructorName.fullNameLength,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: declarationBuilder == null,
@@ -1362,10 +1232,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         addFragment(new _FragmentName(
           _FragmentKind.Constructor,
           fragment,
-          fileUri: fragment.fileUri,
           name: fragment.constructorName.fullName,
-          nameOffset: fragment.constructorName.fullNameOffset,
-          nameLength: fragment.constructorName.fullNameLength,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: declarationBuilder == null,
@@ -1374,10 +1241,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         addFragment(new _FragmentName(
           _FragmentKind.Constructor,
           fragment,
-          fileUri: fragment.fileUri,
           name: fragment.constructorName.fullName,
-          nameOffset: fragment.constructorName.fullNameOffset,
-          nameLength: fragment.constructorName.fullNameLength,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: declarationBuilder == null,
@@ -1386,10 +1250,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         _FragmentName fragmentName = new _FragmentName(
           _FragmentKind.Property,
           fragment,
-          fileUri: fragment.fileUri,
           name: fragment.name,
-          nameOffset: fragment.nameOffset,
-          nameLength: fragment.name.length,
           isAugment: fragment.modifiers.isAugment,
           propertyKind: fragment.hasSetter
               ? _PropertyKind.Field
@@ -1404,10 +1265,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         _FragmentName fragmentName = new _FragmentName(
           _FragmentKind.Property,
           fragment,
-          fileUri: fragment.fileUri,
           name: fragment.name,
-          nameOffset: fragment.nameOffset,
-          nameLength: fragment.name.length,
           isAugment: false,
           propertyKind: _PropertyKind.FinalField,
           isStatic: false,
@@ -1419,10 +1277,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         _FragmentName fragmentName = new _FragmentName(
           _FragmentKind.Property,
           fragment,
-          fileUri: fragment.fileUri,
           name: fragment.name,
-          nameOffset: fragment.nameOffset,
-          nameLength: fragment.name.length,
           isAugment: fragment.modifiers.isAugment,
           propertyKind: _PropertyKind.Getter,
           isStatic: declarationBuilder == null || fragment.modifiers.isStatic,
@@ -1435,10 +1290,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         _FragmentName fragmentName = new _FragmentName(
           _FragmentKind.Property,
           fragment,
-          fileUri: fragment.fileUri,
           name: fragment.name,
-          nameOffset: fragment.nameOffset,
-          nameLength: fragment.name.length,
           isAugment: fragment.modifiers.isAugment,
           propertyKind: _PropertyKind.Setter,
           isStatic: declarationBuilder == null || fragment.modifiers.isStatic,
@@ -1451,10 +1303,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         _FragmentName fragmentName = new _FragmentName(
           _FragmentKind.Property,
           fragment,
-          fileUri: fragment.fileUri,
           name: fragment.name,
-          nameOffset: fragment.nameOffset,
-          nameLength: fragment.name.length,
           isAugment: false,
           propertyKind: _PropertyKind.FinalField,
           isStatic: true,
@@ -1580,8 +1429,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
 
   void createProperty(
       {required String name,
-      required int nameOffset,
-      required Uri fileUri,
+      required UriOffsetLength uriOffset,
       FieldDeclaration? fieldDeclaration,
       GetterDeclaration? getterDeclaration,
       List<GetterDeclaration>? getterAugmentationDeclarations,
@@ -1593,8 +1441,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         problemReporting: problemReporting,
         loader: loader,
         name: name,
-        nameOffset: nameOffset,
-        fileUri: fileUri,
+        uriOffset: uriOffset,
         enclosingLibraryBuilder: enclosingLibraryBuilder,
         declarationBuilder: declarationBuilder,
         unboundNominalParameters: unboundNominalParameters,
@@ -1653,8 +1500,7 @@ class LibraryNameSpaceBuilder {
     void _addBuilder(_AddBuilder addBuilder) {
       String name = addBuilder.name;
       NamedBuilder declaration = addBuilder.declaration;
-      Uri fileUri = addBuilder.fileUri;
-      int charOffset = addBuilder.charOffset;
+      UriOffsetLength uriOffset = addBuilder.uriOffset;
 
       assert(declaration.next == null,
           "Unexpected declaration.next ${declaration.next} on $declaration");
@@ -1675,8 +1521,8 @@ class LibraryNameSpaceBuilder {
         // Prefix builders are added when computing the import scope.
         assert(declaration is! PrefixBuilder,
             "Unexpected prefix builder $declaration.");
-        unhandled(
-            "${declaration.runtimeType}", "addBuilder", charOffset, fileUri);
+        unhandled("${declaration.runtimeType}", "addBuilder",
+            uriOffset.fileOffset, uriOffset.fileUri);
       }
 
       assert(
@@ -1689,12 +1535,10 @@ class LibraryNameSpaceBuilder {
       if (addBuilder.inPatch &&
           !name.startsWith('_') &&
           !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
-        problemReporting.addProblem(
+        problemReporting.addProblem2(
             templatePatchInjectionFailed.withArguments(
                 name, enclosingLibraryBuilder.importUri),
-            charOffset,
-            noLength,
-            fileUri);
+            uriOffset);
       }
 
       LookupResult? existingResult = content[name];
@@ -1842,13 +1686,13 @@ abstract class DeclarationFragmentImpl implements DeclarationFragment {
 
   String get name;
 
-  int get fileOffset;
-
   DeclarationFragmentKind get kind;
 
   bool declaresConstConstructor = false;
 
   DeclarationBuilder get builder;
+
+  UriOffsetLength get uriOffset;
 
   void addPrimaryConstructorField(PrimaryConstructorFieldFragment fragment) {
     throw new UnsupportedError(
@@ -1872,11 +1716,10 @@ abstract class DeclarationFragmentImpl implements DeclarationFragment {
 class _AddBuilder {
   final String name;
   final NamedBuilder declaration;
-  final Uri fileUri;
-  final int charOffset;
+  final UriOffsetLength uriOffset;
   final bool inPatch;
 
-  _AddBuilder(this.name, this.declaration, this.fileUri, this.charOffset,
+  _AddBuilder(this.name, this.declaration, this.uriOffset,
       {required this.inPatch});
 }
 
@@ -1954,8 +1797,7 @@ class DeclarationNameSpaceBuilder {
     void _addBuilder(_AddBuilder addBuilder) {
       String name = addBuilder.name;
       NamedBuilder declaration = addBuilder.declaration;
-      Uri fileUri = addBuilder.fileUri;
-      int charOffset = addBuilder.charOffset;
+      UriOffsetLength uriOffset = addBuilder.uriOffset;
 
       assert(declaration.next == null,
           "Unexpected declaration.next ${declaration.next} on $declaration");
@@ -1963,8 +1805,8 @@ class DeclarationNameSpaceBuilder {
       bool isConstructor =
           declaration is ConstructorBuilder || declaration is FactoryBuilder;
       if (!isConstructor && name == _name) {
-        problemReporting.addProblem(
-            messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);
+        problemReporting.addProblem2(
+            messageMemberWithSameNameAsClass, uriOffset);
       }
       if (isConstructor) {
         if (includeConstructors) {
@@ -1979,12 +1821,10 @@ class DeclarationNameSpaceBuilder {
           !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
         // TODO(johnniwinther): Test adding a no-name constructor in the
         //  patch, either as an injected or duplicated constructor.
-        problemReporting.addProblem(
+        problemReporting.addProblem2(
             templatePatchInjectionFailed.withArguments(
                 name, enclosingLibraryBuilder.importUri),
-            charOffset,
-            noLength,
-            fileUri);
+            uriOffset);
       }
 
       if (isConstructor) {
@@ -2179,8 +2019,7 @@ _AddBuilder _createTypedefBuilder(TypedefFragment fragment,
   if (reference != null) {
     loader.buildersCreatedWithReferences[reference] = typedefBuilder;
   }
-  return new _AddBuilder(
-      fragment.name, typedefBuilder, fragment.fileUri, fragment.nameOffset,
+  return new _AddBuilder(fragment.name, typedefBuilder, fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
@@ -2279,8 +2118,7 @@ _AddBuilder _createClassBuilder(
   if (indexedClass != null) {
     loader.buildersCreatedWithReferences[indexedClass.reference] = classBuilder;
   }
-  return new _AddBuilder(
-      fragment.name, classBuilder, fragment.fileUri, fragment.fileOffset,
+  return new _AddBuilder(fragment.name, classBuilder, fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
@@ -2315,8 +2153,7 @@ _AddBuilder _createMixinBuilder(MixinFragment fragment,
   if (indexedClass != null) {
     loader.buildersCreatedWithReferences[indexedClass.reference] = mixinBuilder;
   }
-  return new _AddBuilder(
-      fragment.name, mixinBuilder, fragment.fileUri, fragment.fileOffset,
+  return new _AddBuilder(fragment.name, mixinBuilder, fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
@@ -2367,8 +2204,7 @@ _AddBuilder _createNamedMixinApplicationBuilder(
     loader.buildersCreatedWithReferences[referencesFromIndexedClass.reference] =
         classBuilder;
   }
-  return new _AddBuilder(
-      fragment.name, classBuilder, fragment.fileUri, fragment.nameOffset,
+  return new _AddBuilder(fragment.name, classBuilder, fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
@@ -2408,8 +2244,7 @@ _AddBuilder _createEnumBuilder(EnumFragment fragment,
   if (indexedClass != null) {
     loader.buildersCreatedWithReferences[indexedClass.reference] = enumBuilder;
   }
-  return new _AddBuilder(
-      fragment.name, enumBuilder, fragment.fileUri, fragment.fileOffset,
+  return new _AddBuilder(fragment.name, enumBuilder, fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
@@ -2497,8 +2332,7 @@ _AddBuilder _createExtensionBuilder(
   if (reference != null) {
     loader.buildersCreatedWithReferences[reference] = extensionBuilder;
   }
-  return new _AddBuilder(
-      fragment.name, extensionBuilder, fragment.fileUri, fragment.fileOffset,
+  return new _AddBuilder(fragment.name, extensionBuilder, fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
@@ -2533,8 +2367,8 @@ _AddBuilder _createExtensionTypeBuilder(ExtensionTypeFragment fragment,
           fragment: fragment,
           indexedContainer: indexedContainer,
           representationFieldFragment: representationFieldFragment);
-  return new _AddBuilder(fragment.name, extensionTypeDeclarationBuilder,
-      fragment.fileUri, fragment.fileOffset,
+  return new _AddBuilder(
+      fragment.name, extensionTypeDeclarationBuilder, fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
@@ -2542,8 +2376,7 @@ _AddBuilder _createPropertyBuilder({
   required ProblemReporting problemReporting,
   required SourceLoader loader,
   required String name,
-  required int nameOffset,
-  required Uri fileUri,
+  required UriOffsetLength uriOffset,
   required SourceLibraryBuilder enclosingLibraryBuilder,
   required DeclarationBuilder? declarationBuilder,
   required List<NominalParameterBuilder> unboundNominalParameters,
@@ -2590,8 +2423,8 @@ _AddBuilder _createPropertyBuilder({
       fieldIsLateWithLowering: fieldIsLateWithLowering);
 
   SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder(
-      fileUri: fileUri,
-      fileOffset: nameOffset,
+      fileUri: uriOffset.fileUri,
+      fileOffset: uriOffset.fileOffset,
       name: name,
       libraryBuilder: enclosingLibraryBuilder,
       declarationBuilder: declarationBuilder,
@@ -2622,8 +2455,7 @@ _AddBuilder _createPropertyBuilder({
 
   references.registerReference(loader, propertyBuilder);
 
-  return new _AddBuilder(name, propertyBuilder, fileUri, nameOffset,
-      inPatch: inPatch);
+  return new _AddBuilder(name, propertyBuilder, uriOffset, inPatch: inPatch);
 }
 
 _AddBuilder _createMethodBuilder(
@@ -2733,8 +2565,7 @@ _AddBuilder _createMethodBuilder(
   if (procedureReference != null) {
     loader.buildersCreatedWithReferences[procedureReference] = methodBuilder;
   }
-  return new _AddBuilder(
-      fragment.name, methodBuilder, fragment.fileUri, fragment.nameOffset,
+  return new _AddBuilder(fragment.name, methodBuilder, fragment.uriOffset,
       inPatch: fragment.enclosingDeclaration?.isPatch ??
           fragment.enclosingCompilationUnit.isPatch);
 }
@@ -2918,8 +2749,7 @@ _AddBuilder _createConstructorBuilder(
         constructorBuilder;
   }
 
-  return new _AddBuilder(fragment.name, constructorBuilder, fragment.fileUri,
-      fragment.fullNameOffset,
+  return new _AddBuilder(fragment.name, constructorBuilder, fragment.uriOffset,
       inPatch: fragment.enclosingDeclaration.isPatch);
 }
 
@@ -3015,8 +2845,7 @@ _AddBuilder _createPrimaryConstructorBuilder(
     loader.buildersCreatedWithReferences[constructorReference] =
         constructorBuilder;
   }
-  return new _AddBuilder(
-      fragment.name, constructorBuilder, fragment.fileUri, fragment.fileOffset,
+  return new _AddBuilder(fragment.name, constructorBuilder, fragment.uriOffset,
       inPatch: fragment.enclosingDeclaration.isPatch);
 }
 
@@ -3149,8 +2978,7 @@ _AddBuilder _createFactoryBuilder(
   if (procedureReference != null) {
     loader.buildersCreatedWithReferences[procedureReference] = factoryBuilder;
   }
-  return new _AddBuilder(
-      fragment.name, factoryBuilder, fragment.fileUri, fragment.fullNameOffset,
+  return new _AddBuilder(fragment.name, factoryBuilder, fragment.uriOffset,
       inPatch: fragment.enclosingDeclaration.isPatch);
 }
 

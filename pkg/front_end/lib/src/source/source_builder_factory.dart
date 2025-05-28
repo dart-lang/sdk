@@ -21,6 +21,7 @@ import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -346,12 +347,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  void beginExtensionDeclaration(String? name, int charOffset,
+  void beginExtensionDeclaration(String? name, int nameOrExtensionOffset,
       List<TypeParameterFragment>? typeParameters) {
     _declarationFragments.push(new ExtensionFragment(
         name: name,
         fileUri: _compilationUnit.fileUri,
-        fileOffset: charOffset,
+        nameOrExtensionOffset: nameOrExtensionOffset,
         typeParameters: typeParameters,
         enclosingScope: _compilationUnitScope,
         typeParameterScope: _typeScopes.current.lookupScope,
@@ -981,7 +982,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required List<TypeParameterFragment>? typeParameters,
       required TypeBuilder onType,
       required int startOffset,
-      required int nameOrExtensionOffset,
       required int endOffset}) {
     ExtensionFragment declarationFragment = endExtensionDeclaration();
 
@@ -995,7 +995,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     declarationFragment.modifiers = modifiers;
     declarationFragment.onType = onType;
     declarationFragment.startOffset = startOffset;
-    declarationFragment.nameOrExtensionOffset = nameOrExtensionOffset;
     declarationFragment.endOffset = endOffset;
 
     _constructorReferences.clear();
@@ -1526,10 +1525,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           context: [
             templateConstructorWithWrongNameContext
                 .withArguments(enclosingDeclaration.name)
-                .withLocation(
-                    _compilationUnit.importUri,
-                    enclosingDeclaration.fileOffset,
-                    enclosingDeclaration.name.length)
+                .withLocation2(enclosingDeclaration.uriOffset)
           ]);
     }
 

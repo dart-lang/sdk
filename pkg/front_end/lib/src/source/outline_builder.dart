@@ -1487,7 +1487,6 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeParameterFragment>? typeParameters =
         pop(NullValues.NominalParameters) as List<TypeParameterFragment>?;
     Identifier? name = pop(NullValues.Identifier) as Identifier?;
-    int nameOrExtensionOffset = name?.nameOffset ?? extensionKeyword.charOffset;
     List<MetadataBuilder>? metadata =
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(extensionKeyword.charOffset);
@@ -1502,7 +1501,6 @@ class OutlineBuilder extends StackListenerImpl {
         typeParameters: typeParameters,
         onType: onType as TypeBuilder,
         startOffset: startOffset,
-        nameOrExtensionOffset: nameOrExtensionOffset,
         endOffset: endToken.charOffset);
     popDeclarationContext(DeclarationContext.Extension);
   }
