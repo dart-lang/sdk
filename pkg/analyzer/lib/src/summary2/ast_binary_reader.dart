@@ -283,7 +283,7 @@ class AstBinaryReader {
 
   AugmentedExpression _readAugmentedExpression() {
     var node = AugmentedExpressionImpl(augmentedKeyword: Tokens.augmented());
-    node.fragment = _reader.readFragmentOrMember() as Fragment?;
+    node.fragment = _reader.readFragmentOrMember() as FragmentImpl?;
     _readExpressionResolution(node);
     return node;
   }

@@ -1919,7 +1919,7 @@ final class AugmentedExpressionImpl extends ExpressionImpl
   final Token augmentedKeyword;
 
   @override
-  Fragment? fragment;
+  FragmentImpl? fragment;
 
   @generated
   AugmentedExpressionImpl({required this.augmentedKeyword});
@@ -2013,7 +2013,7 @@ final class AugmentedInvocationImpl extends ExpressionImpl
   ArgumentListImpl _arguments;
 
   @override
-  ExecutableFragment? fragment;
+  ExecutableFragmentImpl? fragment;
 
   @generated
   AugmentedInvocationImpl({

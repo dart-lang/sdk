@@ -865,10 +865,9 @@ class _Element2Writer extends _AbstractElementWriter {
   void _writeFragmentCodeRange(Fragment f) {
     if (configuration.withCodeRanges) {
       if (f is FragmentImpl) {
-        var e = f as FragmentImpl;
-        if (!e.isSynthetic) {
-          _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
-          _sink.writelnWithIndent('codeLength: ${e.codeLength}');
+        if (!f.isSynthetic) {
+          _sink.writelnWithIndent('codeOffset: ${f.codeOffset}');
+          _sink.writelnWithIndent('codeLength: ${f.codeLength}');
         }
       }
     }

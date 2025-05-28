@@ -3949,7 +3949,7 @@ abstract class FragmentImpl implements FragmentOrMember {
 
 /// A shared internal interface of `Element` and [Member].
 /// Used during migration to avoid referencing `Element`.
-abstract class FragmentOrMember {
+abstract class FragmentOrMember implements Fragment {
   /// The analysis context in which this element is defined.
   AnalysisContext get context;
 
@@ -8273,6 +8273,7 @@ mixin ParameterElementMixin implements VariableElementOrMember {
   /// The code of the default value, or `null` if no default value.
   String? get defaultValueCode;
 
+  @override
   FormalParameterElementImpl get element;
 
   /// Whether the parameter is covariant, meaning it is allowed to have a
@@ -8473,7 +8474,8 @@ class PatternVariableFragmentImpl extends LocalVariableFragmentImpl
 /// Currently we write [Element] using the first fragment.
 /// Usually this works (as good as a hack can), but [PrefixElementImpl2]
 /// does not have [FragmentImpl] fragments. So, we use this fake element.
-// TODO(scheglov): resonsider how we write Element2.
+// TODO(scheglov): reconsider how we write Element2.
+// TODO(scheglov): remove this class
 class PrefixElementImpl extends FragmentImpl {
   final PrefixElementImpl2 element2;
 
@@ -8485,10 +8487,37 @@ class PrefixElementImpl extends FragmentImpl {
       );
 
   @override
+  List<Fragment> get children3 => throw UnimplementedError();
+
+  @override
+  Element get element => throw UnimplementedError();
+
+  @override
+  Fragment? get enclosingFragment => throw UnimplementedError();
+
+  @override
   ElementKind get kind => ElementKind.PREFIX;
 
   @override
   Null get library => null;
+
+  @override
+  LibraryFragment? get libraryFragment => throw UnimplementedError();
+
+  @override
+  String? get name2 => throw UnimplementedError();
+
+  @override
+  int? get nameOffset2 => throw UnimplementedError();
+
+  @override
+  Fragment? get nextFragment => throw UnimplementedError();
+
+  @override
+  int get offset => throw UnimplementedError();
+
+  @override
+  Fragment? get previousFragment => throw UnimplementedError();
 }
 
 class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement {

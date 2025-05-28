@@ -718,10 +718,6 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
-  void writeFragment(Fragment? fragment) {
-    writeFragmentOrMember(fragment as FragmentImpl?);
-  }
-
   // TODO(scheglov): Triage places where we write elements.
   // Some of then cannot be members, e.g. type names.
   void writeFragmentOrMember(FragmentOrMember? element) {

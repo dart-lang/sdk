@@ -747,6 +747,10 @@ abstract class Member implements FragmentOrMember {
   Element get baseElement;
 
   @override
+  // TODO(scheglov): stop implementing [Fragment] and remove
+  List<Fragment> get children3 => throw UnimplementedError();
+
+  @override
   AnalysisContext get context => _declaration.context;
 
   @override
@@ -757,6 +761,14 @@ abstract class Member implements FragmentOrMember {
 
   @override
   String? get documentationComment => _declaration.documentationComment;
+
+  @override
+  // TODO(scheglov): stop implementing [Fragment] and remove
+  Element get element => throw UnimplementedError();
+
+  @override
+  // TODO(scheglov): stop implementing [Fragment] and remove
+  Fragment? get enclosingFragment => throw UnimplementedError();
 
   @override
   int get id => _declaration.id;
@@ -774,6 +786,10 @@ abstract class Member implements FragmentOrMember {
   ElementKind get kind => _declaration.kind;
 
   @override
+  // TODO(scheglov): stop implementing [Fragment] and remove
+  LibraryFragment? get libraryFragment => throw UnimplementedError();
+
+  @override
   Source? get librarySource => _declaration.librarySource;
 
   @override
@@ -785,10 +801,30 @@ abstract class Member implements FragmentOrMember {
   String? get name => _declaration.name;
 
   @override
+  // TODO(scheglov): stop implementing [Fragment] and remove
+  String? get name2 => throw UnimplementedError();
+
+  @override
   int get nameLength => _declaration.nameLength;
 
   @override
   int get nameOffset => _declaration.nameOffset;
+
+  @override
+  // TODO(scheglov): stop implementing [Fragment] and remove
+  int? get nameOffset2 => throw UnimplementedError();
+
+  @override
+  // TODO(scheglov): stop implementing [Fragment] and remove
+  Fragment? get nextFragment => throw UnimplementedError();
+
+  @override
+  // TODO(scheglov): stop implementing [Fragment] and remove
+  int get offset => throw UnimplementedError();
+
+  @override
+  // TODO(scheglov): stop implementing [Fragment] and remove
+  Fragment? get previousFragment => throw UnimplementedError();
 
   @override
   AnalysisSession? get session => _declaration.session;
