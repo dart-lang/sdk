@@ -287,6 +287,7 @@ class InheritanceManager3 {
   @experimental
   Interface getInterface2(InterfaceElement element) {
     element as InterfaceElementImpl2; // TODO(scheglov): remove cast
+    globalResultRequirements?.record_interface_all(element: element);
     return getInterface(element.asElement);
   }
 

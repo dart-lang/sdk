@@ -18,10 +18,8 @@ as part of the stress test.
 `generate_stress_test.dart`: Can be used to consume `stress_test_list.json` and
 build the stress test files.
 
-`stress_test_list.json`: Contains two lists of tests (one for NNBD and one for
-non-NNBD) that can be used to generate a stress test.
+`stress_test_list.json`: Contains a list of tests that can be used to generate a
+stress test.
 
-To ensure the list doesn't get out-of-date we have two tests on regular bots
-that will try to compile the stress test to kernel, thereby ensuring that the
-files at least exist and compile, see
-`runtime/tests/vm/dart/isolates/concurrency_stress_sanity_test.dart`.
+The stress test is run on the `iso-stress-linux-arm64` and 
+`iso-stress-linux-x64` builders.

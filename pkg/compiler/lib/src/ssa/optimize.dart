@@ -4100,7 +4100,7 @@ class SsaCodeMotion extends HBaseVisitor<void> implements OptimizationPhase {
 class SsaTypeConversionInserter extends HBaseVisitor<void>
     implements OptimizationPhase {
   @override
-  final String name = "SsaTypeconversionInserter";
+  final String name = "SsaTypeConversionInserter";
   final JClosedWorld closedWorld;
 
   SsaTypeConversionInserter(this.closedWorld);
@@ -4116,16 +4116,16 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
   @override
   bool validPostcondition(HGraph graph) => true;
 
-  // Update users of [input] that are dominated by [:dominator.first:]
-  // to use [TypeKnown] of [input] instead. As the type information depends
-  // on the control flow, we mark the inserted [HTypeKnown] nodes as
-  // non-movable.
-  void insertTypePropagationForDominatedUsers(
+  /// Update users of [value] that are dominated by the start of the [dominator]
+  /// block to use [TypeKnown] of [value] instead. As the type refinement
+  /// depends on the control flow, we mark the inserted [HTypeKnown] nodes as
+  /// non-movable.
+  void insertTypeRefinement(
     HBasicBlock dominator,
-    HInstruction input,
+    HInstruction value,
     AbstractValue convertedType,
   ) {
-    DominatedUses dominatedUses = DominatedUses.of(input, dominator.first!);
+    DominatedUses dominatedUses = DominatedUses.of(value, dominator.first!);
     if (dominatedUses.isEmpty) return;
 
     // Check to avoid adding a duplicate HTypeKnown node.
@@ -4134,18 +4134,31 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
       if (user is HTypeKnown &&
           user.isPinned &&
           user.knownType == convertedType &&
-          user.checkedInput == input) {
+          user.checkedInput == value) {
         return;
       }
     }
 
-    HTypeKnown newInput = HTypeKnown.pinned(convertedType, input);
-    dominator.addBefore(dominator.first, newInput);
-    dominatedUses.replaceWith(newInput);
+    final replacement = HTypeKnown.pinned(convertedType, value);
+    dominator.addBefore(dominator.first, replacement);
+    dominatedUses.replaceWith(replacement);
+  }
+
+  void insertTypeRefinements(
+    List<HBasicBlock> targets,
+    HInstruction value,
+    AbstractValue convertedType,
+  ) {
+    for (final block in targets) {
+      insertTypeRefinement(block, value, convertedType);
+    }
   }
 
   @override
   void visitIsTest(HIsTest node) {
+    HInstruction input = node.checkedInput;
+    if (input.usedBy.length <= 1) return; // No other uses to refine.
+
     List<HBasicBlock> trueTargets = [];
     List<HBasicBlock> falseTargets = [];
 
@@ -4153,12 +4166,8 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
 
     if (trueTargets.isEmpty && falseTargets.isEmpty) return;
 
-    AbstractValue convertedType = node.checkedAbstractValue.abstractValue;
-    HInstruction input = node.checkedInput;
-
-    for (HBasicBlock block in trueTargets) {
-      insertTypePropagationForDominatedUsers(block, input, convertedType);
-    }
+    AbstractValue whenTrueType = node.checkedAbstractValue.abstractValue;
+    insertTypeRefinements(trueTargets, input, whenTrueType);
     // TODO(sra): Also strengthen uses for when the condition is precise and
     // known false (e.g. int? x; ... if (x is! int) use(x)). Avoid strengthening
     // to `null`.
@@ -4166,6 +4175,9 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
 
   @override
   void visitIsTestSimple(HIsTestSimple node) {
+    HInstruction input = node.checkedInput;
+    if (input.usedBy.length <= 1) return; // No other uses to refine.
+
     List<HBasicBlock> trueTargets = [];
     List<HBasicBlock> falseTargets = [];
 
@@ -4173,12 +4185,8 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
 
     if (trueTargets.isEmpty && falseTargets.isEmpty) return;
 
-    AbstractValue convertedType = node.checkedAbstractValue.abstractValue;
-    HInstruction input = node.checkedInput;
-
-    for (HBasicBlock block in trueTargets) {
-      insertTypePropagationForDominatedUsers(block, input, convertedType);
-    }
+    AbstractValue whenTrueType = node.checkedAbstractValue.abstractValue;
+    insertTypeRefinements(trueTargets, input, whenTrueType);
     // TODO(sra): Also strengthen uses for when the condition is precise and
     // known false (e.g. int? x; ... if (x is! int) use(x)). Avoid strengthening
     // to `null`.
@@ -4199,6 +4207,8 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
       return;
     }
 
+    if (input.usedBy.length <= 1) return; // No other uses to refine.
+
     if (_abstractValueDomain.isNull(input.instructionType).isDefinitelyFalse) {
       return;
     }
@@ -4213,13 +4223,30 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
     AbstractValue nonNullType = _abstractValueDomain.excludeNull(
       input.instructionType,
     );
-
-    for (HBasicBlock block in falseTargets) {
-      insertTypePropagationForDominatedUsers(block, input, nonNullType);
-    }
+    insertTypeRefinements(falseTargets, input, nonNullType);
     // We don't strengthen the known-true references. It doesn't happen often
     // and we don't want "if (x==null) return x;" to convert between JavaScript
     // 'null' and 'undefined'.
+  }
+
+  @override
+  void visitIsLateSentinel(HIsLateSentinel node) {
+    final input = node.inputs.single;
+    if (input.usedBy.length <= 1) return; // No other uses to refine.
+
+    List<HBasicBlock> trueTargets = [];
+    List<HBasicBlock> falseTargets = [];
+
+    collectTargets(node, trueTargets, falseTargets);
+
+    if (trueTargets.isEmpty && falseTargets.isEmpty) return;
+
+    final sentinelType = _abstractValueDomain.lateSentinelType;
+    final nonSentinelType = _abstractValueDomain.excludeLateSentinel(
+      input.instructionType,
+    );
+    insertTypeRefinements(trueTargets, input, sentinelType);
+    insertTypeRefinements(falseTargets, input, nonSentinelType);
   }
 
   void collectTargets(

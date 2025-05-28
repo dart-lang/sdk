@@ -2524,7 +2524,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     checkUnreachableNode(node);
-    var result = _propertyElementResolver.resolveDotShorthand(node);
+    var result = _propertyElementResolver.resolveDotShorthand(
+      node,
+      contextType: contextType,
+    );
     _resolvePropertyAccessRhs_common(
       result,
       node,
@@ -4462,7 +4465,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     DartType type;
     if (element is MethodElement) {
       type = element.type;
-    } else if (element is ConstructorElementImpl2) {
+    } else if (element is ConstructorElementMixin2) {
       type = element.type;
     } else if (element is GetterElement) {
       type = resolverResult.getType!;

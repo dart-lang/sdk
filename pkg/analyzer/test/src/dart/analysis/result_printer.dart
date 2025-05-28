@@ -167,14 +167,19 @@ class BundleRequirementsPrinter {
       sink.writeElements('${libEntry.key}', interfaceEntries, (interfaceEntry) {
         sink.writelnWithIndent(interfaceEntry.key.asString);
         sink.withIndent(() {
+          var requirements = interfaceEntry.value;
+          if (requirements.interfaceId case var id?) {
+            var idStr = idProvider.manifestId(id);
+            sink.writelnWithIndent('interfaceId: $idStr');
+          }
           sink.writeElements(
             'constructors',
-            interfaceEntry.value.constructors.sorted,
+            requirements.constructors.sorted,
             _writeNamedId,
           );
           sink.writeElements(
             'methods',
-            interfaceEntry.value.methods.sorted,
+            requirements.methods.sorted,
             _writeNamedId,
           );
         });
@@ -503,6 +508,14 @@ class DriverEventsPrinter {
           'interfaceName': failure.interfaceName.asString,
           'expectedIds': failure.expectedIds.asString(idProvider),
           'actualIds': failure.actualIds.asString(idProvider),
+        });
+      case InterfaceIdMismatch():
+        sink.writelnWithIndent('interfaceIdMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'interfaceName': failure.interfaceName.asString,
+          'expectedId': idProvider.manifestId(failure.expectedId),
+          'actualId': idProvider.manifestId(failure.actualId),
         });
       case InterfaceConstructorIdMismatch():
         sink.writelnWithIndent('interfaceConstructorIdMismatch');
@@ -1157,9 +1170,12 @@ class LibraryManifestPrinter {
       }).toList();
     }
 
-    var mapEntries = notIgnored(item.interface.map);
+    var interface = item.interface;
+    var idStr = idProvider.manifestId(interface.id);
+    sink.writelnWithIndent('interface: $idStr');
+
+    var mapEntries = notIgnored(interface.map);
     if (mapEntries.isNotEmpty) {
-      sink.writelnWithIndent('interface');
       sink.withIndent(() {
         if (mapEntries.isNotEmpty) {
           sink.writelnWithIndent('map');
@@ -1170,7 +1186,7 @@ class LibraryManifestPrinter {
           });
         }
 
-        var combinedIds = item.interface.combinedIds;
+        var combinedIds = interface.combinedIds;
         if (combinedIds.isNotEmpty) {
           sink.writelnWithIndent('combinedIds');
           sink.withIndent(() {
