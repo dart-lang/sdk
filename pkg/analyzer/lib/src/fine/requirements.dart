@@ -202,6 +202,9 @@ class InstanceItemRequirements {
   final Map<LookupName, ManifestItemId?> requestedSetters;
   final Map<LookupName, ManifestItemId?> requestedMethods;
 
+  ManifestItemIdList? allDeclaredFields;
+  ManifestItemIdList? allDeclaredGetters;
+  ManifestItemIdList? allDeclaredSetters;
   ManifestItemIdList? allDeclaredMethods;
 
   InstanceItemRequirements({
@@ -209,6 +212,9 @@ class InstanceItemRequirements {
     required this.requestedGetters,
     required this.requestedSetters,
     required this.requestedMethods,
+    required this.allDeclaredFields,
+    required this.allDeclaredGetters,
+    required this.allDeclaredSetters,
     required this.allDeclaredMethods,
   });
 
@@ -218,6 +224,9 @@ class InstanceItemRequirements {
       requestedGetters: {},
       requestedSetters: {},
       requestedMethods: {},
+      allDeclaredFields: null,
+      allDeclaredGetters: null,
+      allDeclaredSetters: null,
       allDeclaredMethods: null,
     );
   }
@@ -228,6 +237,9 @@ class InstanceItemRequirements {
       requestedGetters: reader.readNameToIdMap(),
       requestedSetters: reader.readNameToIdMap(),
       requestedMethods: reader.readNameToIdMap(),
+      allDeclaredFields: ManifestItemIdList.readOptional(reader),
+      allDeclaredGetters: ManifestItemIdList.readOptional(reader),
+      allDeclaredSetters: ManifestItemIdList.readOptional(reader),
       allDeclaredMethods: ManifestItemIdList.readOptional(reader),
     );
   }
@@ -237,6 +249,9 @@ class InstanceItemRequirements {
     sink.writeNameToIdMap(requestedGetters);
     sink.writeNameToIdMap(requestedSetters);
     sink.writeNameToIdMap(requestedMethods);
+    allDeclaredFields.writeOptional(sink);
+    allDeclaredGetters.writeOptional(sink);
+    allDeclaredSetters.writeOptional(sink);
     allDeclaredMethods.writeOptional(sink);
   }
 }
@@ -510,13 +525,56 @@ class RequirementsManifest {
           }
         }
 
+        if (requirements.allDeclaredFields case var required?) {
+          var actualItems = instanceItem.declaredFields.values;
+          var actualIds = actualItems.map((item) => item.id);
+          if (!required.equalToIterable(actualIds)) {
+            return InstanceChildrenIdsMismatch(
+              libraryUri: libraryUri,
+              instanceName: instanceName,
+              childrenPropertyName: 'fields',
+              expectedIds: required,
+              actualIds: ManifestItemIdList(actualIds.toList()),
+            );
+          }
+        }
+
+        if (requirements.allDeclaredGetters case var required?) {
+          var actualItems = instanceItem.declaredGetters.values;
+          var actualIds = actualItems.map((item) => item.id);
+          if (!required.equalToIterable(actualIds)) {
+            return InstanceChildrenIdsMismatch(
+              libraryUri: libraryUri,
+              instanceName: instanceName,
+              childrenPropertyName: 'getters',
+              expectedIds: required,
+              actualIds: ManifestItemIdList(actualIds.toList()),
+            );
+          }
+        }
+
+        if (requirements.allDeclaredSetters case var required?) {
+          var actualItems = instanceItem.declaredSetters.values;
+          var actualIds = actualItems.map((item) => item.id);
+          if (!required.equalToIterable(actualIds)) {
+            return InstanceChildrenIdsMismatch(
+              libraryUri: libraryUri,
+              instanceName: instanceName,
+              childrenPropertyName: 'setters',
+              expectedIds: required,
+              actualIds: ManifestItemIdList(actualIds.toList()),
+            );
+          }
+        }
+
         if (requirements.allDeclaredMethods case var required?) {
           var actualItems = instanceItem.declaredMethods.values;
           var actualIds = actualItems.map((item) => item.id);
           if (!required.equalToIterable(actualIds)) {
-            return InstanceMethodIdsMismatch(
+            return InstanceChildrenIdsMismatch(
               libraryUri: libraryUri,
-              interfaceName: instanceName,
+              instanceName: instanceName,
+              childrenPropertyName: 'methods',
               expectedIds: required,
               actualIds: ManifestItemIdList(actualIds.toList()),
             );
@@ -641,6 +699,24 @@ class RequirementsManifest {
     }
   }
 
+  void record_instanceElement_fields({required InstanceElementImpl2 element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var itemRequirements = _getInstanceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    requirements.allDeclaredFields ??= ManifestItemIdList(
+      item.declaredFields.values.map((item) => item.id).toList(),
+    );
+  }
+
   void record_instanceElement_getField({
     required InstanceElementImpl2 element,
     required String name,
@@ -710,6 +786,24 @@ class RequirementsManifest {
     requirements.requestedSetters[methodName] = methodId;
   }
 
+  void record_instanceElement_getters({required InstanceElementImpl2 element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var itemRequirements = _getInstanceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    requirements.allDeclaredGetters ??= ManifestItemIdList(
+      item.declaredGetters.values.map((item) => item.id).toList(),
+    );
+  }
+
   void record_instanceElement_methods({required InstanceElementImpl2 element}) {
     if (_recordingLockLevel != 0) {
       return;
@@ -725,6 +819,24 @@ class RequirementsManifest {
 
     requirements.allDeclaredMethods ??= ManifestItemIdList(
       item.declaredMethods.values.map((item) => item.id).toList(),
+    );
+  }
+
+  void record_instanceElement_setters({required InstanceElementImpl2 element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var itemRequirements = _getInstanceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    requirements.allDeclaredSetters ??= ManifestItemIdList(
+      item.declaredSetters.values.map((item) => item.id).toList(),
     );
   }
 

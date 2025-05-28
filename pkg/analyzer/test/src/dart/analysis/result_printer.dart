@@ -111,44 +111,59 @@ class BundleRequirementsPrinter {
     sink.writeElements('instances', libEntries, (libEntry) {
       var interfaceEntries = libEntry.value.sorted;
       sink.writeElements('${libEntry.key}', interfaceEntries, (instanceEntry) {
+        var instanceRequirements = instanceEntry.value;
         sink.writelnWithIndent(instanceEntry.key.asString);
+
         sink.withIndent(() {
-          sink.writeElements(
+          void writeRequested(
+            String name,
+            Map<LookupName, ManifestItemId?> nameToIdMap,
+          ) {
+            sink.writeElements(name, nameToIdMap.sorted, _writeNamedId);
+          }
+
+          writeRequested(
             'requestedFields',
-            instanceEntry.value.requestedFields.sorted,
-            _writeNamedId,
+            instanceRequirements.requestedFields,
           );
-        });
-        sink.withIndent(() {
-          sink.writeElements(
+          writeRequested(
             'requestedGetters',
-            instanceEntry.value.requestedGetters.sorted,
-            _writeNamedId,
+            instanceRequirements.requestedGetters,
           );
-        });
-        sink.withIndent(() {
-          sink.writeElements(
+          writeRequested(
             'requestedSetters',
-            instanceEntry.value.requestedSetters.sorted,
-            _writeNamedId,
+            instanceRequirements.requestedSetters,
           );
-        });
-        sink.withIndent(() {
-          sink.writeElements(
+          writeRequested(
             'requestedMethods',
-            instanceEntry.value.requestedMethods.sorted,
-            _writeNamedId,
+            instanceRequirements.requestedMethods,
           );
         });
 
         sink.withIndent(() {
-          var idList = instanceEntry.value.allDeclaredMethods;
-          if (idList != null) {
-            if (idList.ids.isNotEmpty) {
+          void writeAllDeclared(String name, ManifestItemIdList? idList) {
+            if (idList != null && idList.ids.isNotEmpty) {
               var idListStr = idList.asString(idProvider);
-              sink.writelnWithIndent('allDeclaredMethods: $idListStr');
+              sink.writelnWithIndent('$name: $idListStr');
             }
           }
+
+          writeAllDeclared(
+            'allDeclaredFields',
+            instanceRequirements.allDeclaredFields,
+          );
+          writeAllDeclared(
+            'allDeclaredGetters',
+            instanceRequirements.allDeclaredGetters,
+          );
+          writeAllDeclared(
+            'allDeclaredSetters',
+            instanceRequirements.allDeclaredSetters,
+          );
+          writeAllDeclared(
+            'allDeclaredMethods',
+            instanceRequirements.allDeclaredMethods,
+          );
         });
       });
     });
@@ -501,11 +516,12 @@ class DriverEventsPrinter {
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
         });
-      case InstanceMethodIdsMismatch():
-        sink.writelnWithIndent('instanceMethodIdsMismatch');
+      case InstanceChildrenIdsMismatch():
+        sink.writelnWithIndent('instanceChildrenIdsMismatch');
         sink.writeProperties({
           'libraryUri': failure.libraryUri,
-          'interfaceName': failure.interfaceName.asString,
+          'instanceName': failure.instanceName.asString,
+          'childrenPropertyName': failure.childrenPropertyName,
           'expectedIds': failure.expectedIds.asString(idProvider),
           'actualIds': failure.actualIds.asString(idProvider),
         });
