@@ -321,7 +321,7 @@ class PluginServer {
     var errorReporter = ErrorReporter(
         listener, unitResult.libraryElement2.firstFragment.source);
 
-    var currentUnit = LintRuleUnitContext(
+    var currentUnit = RuleContextUnit(
       file: unitResult.file,
       content: unitResult.content,
       errorReporter: errorReporter,
@@ -329,7 +329,7 @@ class PluginServer {
     );
     var allUnits = [
       for (var unitResult in libraryResult.units)
-        LintRuleUnitContext(
+        RuleContextUnit(
           file: unitResult.file,
           content: unitResult.content,
           errorReporter: errorReporter,
@@ -341,7 +341,7 @@ class PluginServer {
     // `benchhmark.dart` script does.
     var nodeRegistry = RuleVisitorRegistry(enableTiming: false);
 
-    var context = LinterContextWithResolvedResults(
+    var context = RuleContextWithResolvedResults(
       allUnits,
       currentUnit,
       libraryResult.element2.typeProvider,
