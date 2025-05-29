@@ -50,6 +50,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on LinterContext {
   bool get hasEnancedPartsFeatureEnabled =>
-      this is LinterContextWithResolvedResults &&
+      this is RuleContextWithResolvedResults &&
       isFeatureEnabled(Feature.enhanced_parts);
 }

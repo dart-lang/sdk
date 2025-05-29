@@ -615,21 +615,16 @@ class FieldMember extends VariableMember
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {}
 
-  /// If the given [element]'s type is different when any type parameters from the
-  /// defining type's declaration are replaced with the actual type arguments
-  /// from the [definingType], create a field member representing the given
-  /// field. Return the member that was created, or the base field if no member
-  /// was created.
-  static FieldElementOrMember from(
-    FieldFragmentImpl element,
-    InterfaceType definingType,
+  static FieldElement2OrMember from(
+    FieldElementImpl2 element,
+    MapSubstitution substitution,
   ) {
-    if (definingType.typeArguments.isEmpty) {
+    if (substitution.map.isEmpty) {
       return element;
     }
     return FieldMember(
-      declaration: element,
-      substitution: Substitution.fromInterfaceType(definingType),
+      declaration: element.firstFragment,
+      substitution: substitution,
     );
   }
 

@@ -1417,7 +1417,8 @@ class Translator with KernelNodes {
     if (target.asMember.isInstanceMember) {
       final table = dispatchTableForTarget(target);
       final selector = table.selectorForTarget(target);
-      if (selector.containsTarget(target)) {
+      if (selector.containsTarget(target) ||
+          selector.isDynamicSubmoduleOverridable) {
         return selector.paramInfo;
       }
     }

@@ -230,16 +230,16 @@ abstract class InstanceElementBuilder<
   }
 
   void _addFirstFragment() {
-    var firstFragment = this.firstFragment;
-    var element = firstFragment.element;
-
-    if (element is MixinElementImpl2) {
-      if (firstFragment is MixinFragmentImpl) {
-        element.superclassConstraints.addAll(
-          firstFragment.superclassConstraints,
-        );
-      }
-    }
+    // TODO(scheglov): restore eventually
+    // var firstFragment = this.firstFragment;
+    // var element = firstFragment.element;
+    // if (element is MixinElementImpl2) {
+    //   if (firstFragment is MixinFragmentImpl) {
+    //     element.superclassConstraints.addAll(
+    //       firstFragment.superclassConstraints,
+    //     );
+    //   }
+    // }
   }
 }
 

@@ -468,9 +468,7 @@ mixin ElementsTypesMixin {
     fragment.interfaces = interfaces;
     fragment.constructors = const <ConstructorFragmentImpl>[];
 
-    var element = MixinElementImpl2(Reference.root(), fragment);
-    element.superclassConstraints = fragment.superclassConstraints;
-
+    MixinElementImpl2(Reference.root(), fragment);
     return fragment;
   }
 
@@ -491,8 +489,6 @@ mixin ElementsTypesMixin {
     fragment.constructors = const <ConstructorFragmentImpl>[];
 
     var element = MixinElementImpl2(Reference.root(), fragment);
-    element.superclassConstraints = fragment.superclassConstraints;
-
     return element;
   }
 
@@ -775,11 +771,6 @@ extension MixinElementImpl2Extension on MixinElementImpl2 {
         isEmpty,
         reason: 'Not supported in tests',
       );
-
-      superclassConstraints = [
-        ...superclassConstraints,
-        ...augmentation.superclassConstraints,
-      ];
     }
   }
 }
@@ -798,11 +789,6 @@ extension MixinElementImplExtension on MixinFragmentImpl {
         isEmpty,
         reason: 'Not supported in tests',
       );
-
-      augmentedInternal.superclassConstraints = [
-        ...augmentedInternal.superclassConstraints,
-        ...augmentation.superclassConstraints,
-      ];
     }
   }
 }

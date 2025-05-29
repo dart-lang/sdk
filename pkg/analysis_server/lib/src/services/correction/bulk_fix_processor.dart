@@ -273,15 +273,15 @@ class BulkFixProcessor {
         }
         if (parsedLibrary is ParsedLibraryResult) {
           var errorListener = RecordingErrorListener();
-          var unitContexts = <LintRuleUnitContext>[];
+          var contextUnits = <RuleContextUnit>[];
 
           for (var parsedUnit in parsedLibrary.units) {
             var errorReporter = ErrorReporter(
               errorListener,
               StringSource(parsedUnit.content, null),
             );
-            unitContexts.add(
-              LintRuleUnitContext(
+            contextUnits.add(
+              RuleContextUnit(
                 file: parsedUnit.file,
                 content: parsedUnit.content,
                 errorReporter: errorReporter,
@@ -289,8 +289,8 @@ class BulkFixProcessor {
               ),
             );
           }
-          for (var unitContext in unitContexts) {
-            _computeParsedResultLint(unitContext, unitContexts);
+          for (var unitContext in contextUnits) {
+            _computeParsedResultLint(unitContext, contextUnits);
           }
           await _fixErrorsInParsedLibrary(
             parsedLibrary,
@@ -531,11 +531,13 @@ class BulkFixProcessor {
   /// Computes lint for lint rules with names [_syntacticLintCodes] (rules that
   /// do not require [ResolvedUnitResult]s).
   void _computeParsedResultLint(
-    LintRuleUnitContext currentUnit,
-    List<LintRuleUnitContext> allUnits,
+    RuleContextUnit currentUnit,
+    List<RuleContextUnit> allUnits,
   ) {
     var nodeRegistry = RuleVisitorRegistry(enableTiming: false);
-    var context = LinterContextWithParsedResults(allUnits, currentUnit);
+    // TODO(srawlins): We are passing `currentUnit` in as `definingUnit`. Seems
+    // wrong.
+    var context = RuleContextWithParsedResults(allUnits, currentUnit);
     var lintRules =
         _syntacticLintCodes
             .map((name) => Registry.ruleRegistry.getRule(name))

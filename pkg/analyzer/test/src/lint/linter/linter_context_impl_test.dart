@@ -25,7 +25,7 @@ main() {
 
 @reflectiveTest
 abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
-  late final LinterContextWithResolvedResults context;
+  late final RuleContextWithResolvedResults context;
 
   Future<void> resolve(String content) async {
     await resolveTestCode(content);
@@ -33,7 +33,7 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
       RecordingErrorListener(),
       StringSource(result.content, null),
     );
-    var contextUnit = LintRuleUnitContext(
+    var contextUnit = RuleContextUnit(
       file: result.file,
       content: result.content,
       errorReporter: errorReporter,
@@ -46,7 +46,7 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
     var workspace = analysisContext.contextRoot.workspace;
     var workspacePackage = workspace.findPackageFor(libraryPath);
 
-    context = LinterContextWithResolvedResults(
+    context = RuleContextWithResolvedResults(
       [contextUnit],
       contextUnit,
       result.typeProvider,

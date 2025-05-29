@@ -373,15 +373,15 @@ class TypesBuilder {
     InstanceFragmentImpl fragment, {
     WithClause? withClause,
   }) {
-    var element = fragment.element;
-
     if (fragment is InterfaceFragmentImpl) {
       _toInferMixins[fragment] = _ToInferMixins(fragment, withClause);
     }
 
-    if (fragment is MixinFragmentImpl && element is MixinElementImpl2) {
-      element.superclassConstraints.addAll(fragment.superclassConstraints);
-    }
+    // TODO(scheglov): restore?
+    // var element = fragment.element;
+    // if (fragment is MixinFragmentImpl && element is MixinElementImpl2) {
+    //   element.superclassConstraints.addAll(fragment.superclassConstraints);
+    // }
   }
 
   /// The [FunctionType] to use when a function type is expected for a type

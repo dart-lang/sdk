@@ -354,7 +354,6 @@ class LibraryBuilder {
           if (element.superclassConstraints.isEmpty) {
             shouldResetClassHierarchies = true;
             interfaceFragment.superclassConstraints = [objectType];
-            element.superclassConstraints = [objectType];
           }
       }
     }

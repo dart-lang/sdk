@@ -107,7 +107,6 @@ class LibraryAnalyzer {
       constructorFieldsVerifier: ConstructorFieldsVerifier(
         typeSystem: _typeSystem,
       ),
-      files: _libraryFiles,
     );
   }
 
@@ -382,11 +381,11 @@ class LibraryAnalyzer {
 
   void _computeLints() {
     var definingUnit = _libraryElement.definingCompilationUnit;
-    var analysesToContextUnits = <FileAnalysis, LintRuleUnitContext>{};
-    LintRuleUnitContext? definingContextUnit;
+    var analysesToContextUnits = <FileAnalysis, RuleContextUnit>{};
+    RuleContextUnit? definingContextUnit;
     WorkspacePackageImpl? workspacePackage;
     for (var fileAnalysis in _libraryFiles.values) {
-      var linterContextUnit = LintRuleUnitContext(
+      var linterContextUnit = RuleContextUnit(
         file: fileAnalysis.file.resource,
         content: fileAnalysis.file.content,
         unit: fileAnalysis.unit,
@@ -403,7 +402,7 @@ class LibraryAnalyzer {
     definingContextUnit ??= allUnits.first;
 
     var nodeRegistry = RuleVisitorRegistry(enableTiming: _enableLintRuleTiming);
-    var context = LinterContextWithResolvedResults(
+    var context = RuleContextWithResolvedResults(
       allUnits,
       definingContextUnit,
       _typeProvider,
@@ -673,14 +672,6 @@ class LibraryAnalyzer {
       fileKind: _library,
       fileElement: _libraryElement.definingCompilationUnit,
     );
-
-    // Configure scopes for all files to track imports usages.
-    // Associate tracking objects with file objects.
-    for (var fileAnalysis in _libraryFiles.values) {
-      var scope = fileAnalysis.element.scope;
-      var tracking = scope.importsTrackingInit();
-      fileAnalysis.importsTracking = tracking;
-    }
 
     for (var fileAnalysis in _libraryFiles.values) {
       _resolveFile(fileAnalysis);

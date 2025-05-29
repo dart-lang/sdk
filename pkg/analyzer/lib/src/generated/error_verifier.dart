@@ -20,7 +20,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
-import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -6537,7 +6536,6 @@ class LibraryVerificationContext {
   final duplicationDefinitionContext = DuplicationDefinitionContext();
   final LibraryFileKind libraryKind;
   final ConstructorFieldsVerifier constructorFieldsVerifier;
-  final Map<FileState, FileAnalysis> files;
 
   /// A table mapping names to the exported elements.
   final Map<String, Element> _exportedElements = {};
@@ -6554,7 +6552,6 @@ class LibraryVerificationContext {
   LibraryVerificationContext({
     required this.libraryKind,
     required this.constructorFieldsVerifier,
-    required this.files,
   });
 
   bool libraryCycleContains(Uri uri) {

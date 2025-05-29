@@ -7642,9 +7642,6 @@ class MixinElementImpl2 extends InterfaceElementImpl2 implements MixinElement {
   @override
   final MixinFragmentImpl firstFragment;
 
-  @override
-  List<InterfaceTypeImpl> superclassConstraints = [];
-
   MixinElementImpl2(this.reference, this.firstFragment) {
     reference.element2 = this;
     firstFragment.augmentedInternal = this;
@@ -7664,6 +7661,11 @@ class MixinElementImpl2 extends InterfaceElementImpl2 implements MixinElement {
 
   @override
   bool get isBase => firstFragment.isBase;
+
+  @override
+  List<InterfaceTypeImpl> get superclassConstraints {
+    return [for (var fragment in fragments) ...fragment.superclassConstraints];
+  }
 
   /// Names of methods, getters, setters, and operators that this mixin
   /// declaration super-invokes.  For setters this includes the trailing "=".
