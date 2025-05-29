@@ -1894,9 +1894,6 @@ class MixinElementLinkedData extends ElementLinkedData<MixinFragmentImpl> {
     element.superclassConstraints = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
 
-    var augmented = element.augmentedInternal;
-    augmented.superclassConstraints = reader._readInterfaceTypeList();
-
     applyConstantOffsets?.perform();
   }
 }
@@ -1962,13 +1959,37 @@ class ResolutionReader {
   }
 
   Element? readElement() {
-    var kind = readEnum(ElementKind2.values);
+    var kind = readEnum(ElementTag.values);
     switch (kind) {
-      case ElementKind2.importPrefix:
+      case ElementTag.null_:
+        return null;
+      case ElementTag.dynamic_:
+        return DynamicElementImpl2.instance;
+      case ElementTag.never_:
+        return NeverElementImpl2.instance;
+      case ElementTag.multiplyDefined:
+        return null;
+      case ElementTag.memberWithTypeArguments:
+        var elementImpl = readElement() as ElementImpl2;
+        var enclosing = elementImpl.enclosingElement as InstanceElementImpl2;
+
+        var typeArguments = _readTypeList();
+        var substitution = Substitution.fromPairs2(
+          enclosing.typeParameters2,
+          typeArguments,
+        );
+
+        if (elementImpl is ExecutableElementImpl2) {
+          return ExecutableMember.from(elementImpl, substitution);
+        } else {
+          elementImpl as FieldElementImpl2;
+          return FieldMember.from(elementImpl, substitution);
+        }
+      case ElementTag.elementImpl:
         var referenceIndex = _reader.readUInt30();
         var reference = _referenceReader.referenceOfIndex(referenceIndex);
-        return reference.element2 as PrefixElementImpl2;
-      case ElementKind2.other:
+        return _elementFactory.elementOfReference3(reference);
+      case ElementTag.viaFragment:
         // TODO(scheglov): eventually stop using fragments here.
         var fragment = readFragmentOrMember();
         switch (fragment) {

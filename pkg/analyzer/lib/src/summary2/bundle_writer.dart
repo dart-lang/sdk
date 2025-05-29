@@ -451,9 +451,6 @@ class BundleWriter {
       _resolutionSink._writeTypeList(fragment.superclassConstraints);
       _resolutionSink._writeTypeList(fragment.interfaces);
 
-      var element = fragment.element;
-      _resolutionSink._writeTypeList(element.superclassConstraints);
-
       _writeList(
         fragment.fields.where((e) => !e.isSynthetic).toList(),
         _writeFieldElement,
@@ -698,33 +695,46 @@ class ResolutionSink extends _SummaryDataWriter {
     required _BundleWriterReferences references,
   }) : _references = references;
 
-  // TODO(scheglov): Triage places where we write elements.
-  // Some of then cannot be members, e.g. type names.
   void writeElement(Element? element) {
     switch (element) {
-      case PrefixElementImpl2():
-        writeEnum(ElementKind2.importPrefix);
-        var reference = element.reference;
+      case null:
+        writeEnum(ElementTag.null_);
+      case DynamicElementImpl2():
+        writeEnum(ElementTag.dynamic_);
+      case NeverElementImpl2():
+        writeEnum(ElementTag.never_);
+      case MultiplyDefinedElementImpl2():
+        writeEnum(ElementTag.multiplyDefined);
+      case Member element:
+        writeEnum(ElementTag.memberWithTypeArguments);
+
+        var baseElement = element.baseElement;
+        writeElement(baseElement);
+
+        var typeArguments = _enclosingClassTypeArguments(
+          baseElement,
+          element.substitution.map,
+        );
+        _writeTypeList(typeArguments);
+      // TODO(scheglov): give reference to each element below
+      case ConstructorElementImpl2():
+      case FieldElementImpl2():
+      case FormalParameterElementImpl():
+      case GetterElementImpl():
+      case MethodElementImpl2():
+      case SetterElementImpl():
+      case TypeParameterElementImpl2():
+        // TODO(scheglov): eventually stop using fragments here.
+        writeEnum(ElementTag.viaFragment);
+        writeByte(Tag.RawElement);
+        _writeElement(element);
+      case ElementImpl2():
+        writeEnum(ElementTag.elementImpl);
+        var reference = element.reference!;
         var referenceIndex = _references._indexOfReference(reference);
         writeUInt30(referenceIndex);
       default:
-        // TODO(scheglov): eventually stop using fragments here.
-        writeEnum(ElementKind2.other);
-        if (element case Member element) {
-          var baseElement = element.baseElement;
-
-          var typeArguments = _enclosingClassTypeArguments(
-            baseElement,
-            element.substitution.map,
-          );
-
-          writeByte(Tag.MemberWithTypeArguments);
-          _writeElement(baseElement);
-          _writeTypeList(typeArguments);
-        } else {
-          writeByte(Tag.RawElement);
-          _writeElement(element);
-        }
+        throw StateError('${element.runtimeType}');
     }
   }
 

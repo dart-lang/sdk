@@ -106,12 +106,9 @@ class LinkedElementFactory {
     return Namespace(exportedNames);
   }
 
-  LibraryElementImpl? createLibraryElementForReading(Uri uri) {
+  LibraryElementImpl createLibraryElementForReading(Uri uri) {
     var sourceFactory = analysisContext.sourceFactory;
-    var librarySource = sourceFactory.forUri2(uri);
-
-    // The URI cannot be resolved, we don't know the library.
-    if (librarySource == null) return null;
+    var librarySource = sourceFactory.forUri2(uri)!;
 
     var reader = _libraryReaders[uri];
     if (reader == null) {
@@ -204,6 +201,31 @@ class LinkedElementFactory {
   // TODO(scheglov): Why would this method return `null`?
   Element? elementOfReference2(Reference reference) {
     return elementOfReference(reference)?.asElement2;
+  }
+
+  Element elementOfReference3(Reference reference) {
+    if (reference.element2 case var element?) {
+      return element;
+    }
+
+    if (reference.isLibrary) {
+      var uri = uriCache.parse(reference.name);
+      return createLibraryElementForReading(uri);
+    }
+
+    var parentRef = reference.parentNotContainer;
+    var parentElement = elementOfReference(parentRef);
+
+    // Only classes delay creating children.
+    if (parentElement is ClassFragmentImpl) {
+      parentElement.linkedData?.readMembers(parentElement);
+    }
+
+    var element = reference.element2;
+    if (element == null) {
+      throw StateError('Expected existing element: $reference');
+    }
+    return element;
   }
 
   bool hasLibrary(Uri uri) {

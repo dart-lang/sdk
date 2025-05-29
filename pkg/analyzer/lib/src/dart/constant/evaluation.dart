@@ -3026,6 +3026,7 @@ class _InstanceCreationEvaluator {
   ///
   /// Returns an [InvalidConstant] if one is found, or `null` otherwise.
   InvalidConstant? _checkFields() {
+    var substitution = Substitution.fromInterfaceType(_constructor.returnType);
     var fields = _constructor.declaration.enclosingElement3.fields;
     for (var field in fields) {
       if ((field.isFinal || field.isConst) &&
@@ -3040,7 +3041,7 @@ class _InstanceCreationEvaluator {
           continue;
         }
         // Match the value and the type.
-        var fieldType = FieldMember.from(field, _constructor.returnType).type;
+        var fieldType = substitution.substituteType(field.type);
         if (!typeSystem.runtimeTypeMatch(fieldValue, fieldType)) {
           var isRuntimeException = hasTypeParameterReference(field.type);
           var errorNode = field.constantInitializer ?? _errorNode;
