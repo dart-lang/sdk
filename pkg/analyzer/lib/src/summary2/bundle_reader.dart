@@ -1962,18 +1962,25 @@ class ResolutionReader {
   }
 
   Element? readElement() {
-    var fragment = readFragmentOrMember();
-    switch (fragment) {
-      case null:
-        return null;
-      case PrefixElementImpl():
-        return fragment.element2;
-      case FragmentImpl():
-        return fragment.asElement2;
-      case ExecutableMember():
-        return fragment;
-      default:
-        throw UnimplementedError('${fragment.runtimeType}');
+    var kind = readEnum(ElementKind2.values);
+    switch (kind) {
+      case ElementKind2.importPrefix:
+        var referenceIndex = _reader.readUInt30();
+        var reference = _referenceReader.referenceOfIndex(referenceIndex);
+        return reference.element2 as PrefixElementImpl2;
+      case ElementKind2.other:
+        // TODO(scheglov): eventually stop using fragments here.
+        var fragment = readFragmentOrMember();
+        switch (fragment) {
+          case null:
+            return null;
+          case FragmentImpl():
+            return fragment.asElement2;
+          case ExecutableMember():
+            return fragment;
+          default:
+            throw UnimplementedError('${fragment.runtimeType}');
+        }
     }
   }
 
