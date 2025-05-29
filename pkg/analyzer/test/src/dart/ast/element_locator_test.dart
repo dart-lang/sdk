@@ -138,6 +138,55 @@ foo@37
 ''');
   }
 
+  test_locate_DotShorthandConstructorInvocation() async {
+    await resolveTestCode(r'''
+class A {}
+
+void main() {
+ A a = .new();
+}
+''');
+    var node = findNode.singleDotShorthandConstructorInvocation;
+    var element = ElementLocator.locate2(node);
+    _assertElement(element, r'''
+<testLibraryFragment>::@class::A::@constructor::new#element
+''');
+  }
+
+  test_locate_DotShorthandInvocation() async {
+    await resolveTestCode(r'''
+class A {
+  static A foo() => A();
+}
+
+void main() {
+ A a = .foo();
+}
+''');
+    var node = findNode.singleDotShorthandInvocation;
+    var element = ElementLocator.locate2(node);
+    _assertElement(element, r'''
+<testLibraryFragment>::@class::A::@method::foo#element
+''');
+  }
+
+  test_locate_DotShorthandPropertyAccess() async {
+    await resolveTestCode(r'''
+class A {
+  static A foo = A();
+}
+
+void main() {
+ A a = .foo;
+}
+''');
+    var node = findNode.singleDotShorthandPropertyAccess;
+    var element = ElementLocator.locate2(node);
+    _assertElement(element, r'''
+<testLibraryFragment>::@class::A::@getter::foo#element
+''');
+  }
+
   test_locate_EnumConstantDeclaration() async {
     await resolveTestCode(r'''
 enum E {
