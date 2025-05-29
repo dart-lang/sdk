@@ -17,7 +17,7 @@ class FileAnalysis {
   final CompilationUnitImpl unit;
   final LibraryFragmentImpl element;
   final IgnoreInfo ignoreInfo;
-  late ImportsTracking importsTracking;
+  final ImportsTracking importsTracking;
 
   FileAnalysis({
     required this.file,
@@ -25,5 +25,6 @@ class FileAnalysis {
     required this.unit,
     required this.element,
   }) : errorReporter = ErrorReporter(errorListener, file.source),
-       ignoreInfo = IgnoreInfo.forDart(unit, file.content);
+       ignoreInfo = IgnoreInfo.forDart(unit, file.content),
+       importsTracking = element.scope.importsTrackingInit();
 }

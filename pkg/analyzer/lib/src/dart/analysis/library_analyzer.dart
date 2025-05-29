@@ -107,7 +107,6 @@ class LibraryAnalyzer {
       constructorFieldsVerifier: ConstructorFieldsVerifier(
         typeSystem: _typeSystem,
       ),
-      files: _libraryFiles,
     );
   }
 
@@ -673,14 +672,6 @@ class LibraryAnalyzer {
       fileKind: _library,
       fileElement: _libraryElement.definingCompilationUnit,
     );
-
-    // Configure scopes for all files to track imports usages.
-    // Associate tracking objects with file objects.
-    for (var fileAnalysis in _libraryFiles.values) {
-      var scope = fileAnalysis.element.scope;
-      var tracking = scope.importsTrackingInit();
-      fileAnalysis.importsTracking = tracking;
-    }
 
     for (var fileAnalysis in _libraryFiles.values) {
       _resolveFile(fileAnalysis);
