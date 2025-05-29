@@ -1,3 +1,20 @@
+package:analyzer/analysis_rule/rule_state.dart:
+  dart2_12 (static getter: Version)
+  dart3 (static getter: Version)
+  dart3_3 (static getter: Version)
+  RuleState (class extends Object):
+    deprecated (constructor: RuleState Function({String? replacedBy, Version? since}))
+    experimental (constructor: RuleState Function({Version? since}))
+    internal (constructor: RuleState Function({Version? since}))
+    removed (constructor: RuleState Function({String? replacedBy, Version? since}))
+    stable (constructor: RuleState Function({Version? since}))
+    isDeprecated (getter: bool)
+    isExperimental (getter: bool)
+    isInternal (getter: bool)
+    isRemoved (getter: bool)
+    label (getter: String)
+    replacedBy (getter: String?)
+    since (getter: Version?)
 package:analyzer/dart/analysis/analysis_context.dart:
   AnalysisContext@1 (class extends Object):
     new (constructor: AnalysisContext@1 Function())

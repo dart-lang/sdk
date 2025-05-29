@@ -2559,7 +2559,7 @@ class AnalysisDriverScheduler {
       throw StateError('The scheduler has already been started.');
     }
     _started = true;
-    unawaited(_run());
+    _run();
   }
 
   /// Return a future that will be completed the next time the status is idle.
@@ -2570,7 +2570,7 @@ class AnalysisDriverScheduler {
 
   /// Run infinitely analysis cycle, selecting the drivers with the highest
   /// priority first.
-  Future<void> _run() async {
+  void _run() async {
     // Give other microtasks the time to run before doing the analysis cycle.
     await null;
     Stopwatch timer = Stopwatch()..start();

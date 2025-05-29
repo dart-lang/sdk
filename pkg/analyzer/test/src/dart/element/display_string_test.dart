@@ -127,7 +127,7 @@ String? longMethodName(
 
   void test_property_getter() {
     var getterA = GetterFragmentImpl.forVariable(
-      TopLevelVariableFragmentImpl('a', 0),
+      TopLevelVariableFragmentImpl(name: 'a', nameOffset: 0),
     )..returnType = stringNone;
 
     expect(getterA.getDisplayString(), 'String get a');
@@ -135,7 +135,9 @@ String? longMethodName(
 
   void test_property_setter() {
     var setterA =
-        SetterFragmentImpl.forVariable(TopLevelVariableFragmentImpl('a', 0))
+        SetterFragmentImpl.forVariable(
+            TopLevelVariableFragmentImpl(name: 'a', nameOffset: 0),
+          )
           ..returnType = voidNone
           ..parameters = [
             requiredParameter(name: 'value', type: stringNone).asElement,

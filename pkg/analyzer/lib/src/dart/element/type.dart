@@ -412,7 +412,7 @@ class FunctionTypeImpl extends TypeImpl
       return instantiate([
         for (var i = 0; i < typeFormals.length; i++)
           TypeParameterTypeImpl(
-            element3: TypeParameterFragmentImpl.synthetic('T$i').element,
+            element3: TypeParameterFragmentImpl.synthetic(name: 'T$i').element,
             nullabilitySuffix: NullabilitySuffix.none,
           ),
       ]).hashCode;
@@ -466,7 +466,7 @@ class FunctionTypeImpl extends TypeImpl
       TypeParameterElement p1 = params1[i];
       TypeParameterElement p2 = params2[i];
       TypeParameterFragmentImpl pFresh = TypeParameterFragmentImpl.synthetic(
-        p2.name3!,
+        name: p2.name3!,
       );
 
       TypeParameterTypeImpl variableFresh = pFresh.instantiate(

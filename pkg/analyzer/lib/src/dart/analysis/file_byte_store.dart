@@ -38,7 +38,7 @@ class EvictingFileByteStore implements ByteStore {
 
   EvictingFileByteStore(this._cachePath, this._maxSizeBytes)
     : _fileByteStore = FileByteStore(_cachePath) {
-    unawaited(_requestCacheCleanUp());
+    _requestCacheCleanUp();
   }
 
   @override
@@ -50,7 +50,7 @@ class EvictingFileByteStore implements ByteStore {
     // Update the current size.
     _bytesWrittenSinceCleanup += bytes.length;
     if (_bytesWrittenSinceCleanup > _maxSizeBytes ~/ 8) {
-      unawaited(_requestCacheCleanUp());
+      _requestCacheCleanUp();
     }
     return bytes;
   }
@@ -59,7 +59,7 @@ class EvictingFileByteStore implements ByteStore {
   void release(Iterable<String> keys) {}
 
   /// If the cache clean up process has not been requested yet, request it.
-  Future<void> _requestCacheCleanUp() async {
+  void _requestCacheCleanUp() async {
     if (_cleanUpSendPortShouldBePrepared) {
       _cleanUpSendPortShouldBePrepared = false;
       ReceivePort response = ReceivePort();

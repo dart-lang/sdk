@@ -88,12 +88,12 @@ extension ConnectedAppsExtension on DartToolingDaemon {
     );
   }
 
-  /// Returns a list of VM service URIs for running applications in the context
-  /// of this DTD instance.
-  Future<StringListResponse> getVmServiceUris() {
-    return _callOnConnectedAppService<StringListResponse>(
-      ConnectedAppServiceConstants.getVmServiceUris,
-      parseResponse: StringListResponse.fromDTDResponse,
+  /// Returns a response containing information about the set of VM service
+  /// connections this DTD instance is aware of.
+  Future<VmServicesResponse> getVmServices() {
+    return _callOnConnectedAppService<VmServicesResponse>(
+      ConnectedAppServiceConstants.getVmServices,
+      parseResponse: VmServicesResponse.fromDTDResponse,
     );
   }
 

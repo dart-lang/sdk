@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -15,13 +16,12 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show RuleVisitorRegistry;
 import 'package:analyzer/src/lint/pub.dart';
-import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 
-export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
-export 'package:analyzer/src/lint/state.dart'
+export 'package:analyzer/analysis_rule/rule_state.dart'
     show dart2_12, dart3, dart3_3, RuleState;
+export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 
 /// Describes an [AbstractAnalysisRule] which reports diagnostics using exactly
 /// one [DiagnosticCode].

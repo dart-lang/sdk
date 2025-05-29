@@ -55,8 +55,12 @@ void main() {
           expect(response.type, 'Success');
           expect(response.value, null);
           expect(
-            (await client.getVmServiceUris()).value,
-            [testApp.vmServiceUri],
+            (await client.getVmServices())
+                .vmServicesInfos
+                .map((s) => s.toJson()),
+            [
+              {'uri': testApp.vmServiceUri},
+            ],
           );
 
           response = await client.registerVmService(
@@ -66,8 +70,12 @@ void main() {
           expect(response.type, 'Success');
           expect(response.value, null);
           expect(
-            (await client.getVmServiceUris()).value,
-            [testApp.vmServiceUri],
+            (await client.getVmServices())
+                .vmServicesInfos
+                .map((s) => s.toJson()),
+            [
+              {'uri': testApp.vmServiceUri},
+            ],
           );
         });
 
@@ -100,8 +108,12 @@ void main() {
           expect(response.type, 'Success');
           expect(response.value, null);
           expect(
-            (await client.getVmServiceUris()).value,
-            [testApp.vmServiceUri],
+            (await client.getVmServices())
+                .vmServicesInfos
+                .map((s) => s.toJson()),
+            [
+              {'uri': testApp.vmServiceUri},
+            ],
           );
 
           response = await client.unregisterVmService(
@@ -110,7 +122,7 @@ void main() {
           );
           expect(response.type, 'Success');
           expect(response.value, null);
-          expect((await client.getVmServiceUris()).value, <String>[]);
+          expect((await client.getVmServices()).vmServicesInfos, isEmpty);
         });
 
         test('succeeds for URI that is not in the registry', () async {
@@ -161,13 +173,14 @@ void main() {
       });
     });
 
-    test('getVmServiceUris', () async {
+    test('getVmServices', () async {
       await startDtd();
 
       final testApp1 = DartCliAppProcess();
       await testApp1.start();
       var response = await client.registerVmService(
         uri: testApp1.vmServiceUri,
+        name: 'app 1',
         secret: dtdSecret!,
       );
       expect(response.type, 'Success');
@@ -177,13 +190,20 @@ void main() {
       await testApp2.start();
       response = await client.registerVmService(
         uri: testApp2.vmServiceUri,
+        exposedUri: testApp2.vmServiceUri,
         secret: dtdSecret!,
       );
       expect(response.type, 'Success');
       expect(response.value, null);
 
-      final uris = await client.getVmServiceUris();
-      expect(uris.value, [testApp1.vmServiceUri, testApp2.vmServiceUri]);
+      final servicesResponse = await client.getVmServices();
+      expect(
+        servicesResponse.vmServicesInfos.map((s) => s.toJson()),
+        [
+          {'uri': testApp1.vmServiceUri, 'name': 'app 1'},
+          {'uri': testApp2.vmServiceUri, 'exposedUri': testApp2.vmServiceUri},
+        ],
+      );
     });
 
     group('sends stream updates', () {

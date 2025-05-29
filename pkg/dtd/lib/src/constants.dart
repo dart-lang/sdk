@@ -39,7 +39,7 @@ extension ConnectedAppServiceConstants on Never {
 
   /// Service method name for the method that returns a list of VM service URIs
   /// for running applications in the context of a DTD instance.
-  static const getVmServiceUris = 'getVmServiceUris';
+  static const getVmServices = 'getVmServices';
 
   /// Service method name for the method that registers a new VM service
   /// connection.

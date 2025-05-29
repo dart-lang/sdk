@@ -518,14 +518,17 @@ class ProcessStarter {
       if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
         ReportChildError();
       }
+      close(write_out_[0]);
 
       if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
         ReportChildError();
       }
+      close(read_in_[1]);
 
       if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
         ReportChildError();
       }
+      close(read_err_[1]);
     } else {
       ASSERT(mode_ == kInheritStdio);
     }
@@ -939,6 +942,7 @@ int Process::Exec(Namespace* namespc,
     Utils::StrError(errno, errmsg, errmsg_len);
     return -1;
   }
+
   // TODO(dart:io) Test for the existence of execveat, and use it instead.
   execvp(const_cast<const char*>(realpath),
          const_cast<char* const*>(arguments));

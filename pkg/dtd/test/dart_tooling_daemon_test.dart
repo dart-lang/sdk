@@ -153,7 +153,7 @@ void main() {
               'getRegisteredServices',
               'ConnectedApp.registerVmService',
               'ConnectedApp.unregisterVmService',
-              'ConnectedApp.getVmServiceUris',
+              'ConnectedApp.getVmServices',
               'FileSystem.readFileAsString',
               'FileSystem.writeFileAsString',
               'FileSystem.listDirectoryContents',

@@ -560,7 +560,7 @@ extension TypeAliasElementImplExtension on TypeAliasFragmentImpl {
 
 extension TypeParameterElement2Extension on TypeParameterElement {
   TypeParameterElementImpl2 freshCopy() {
-    var fragment = TypeParameterFragmentImpl(name3 ?? '', -1);
+    var fragment = TypeParameterFragmentImpl(name: name3 ?? '', nameOffset: -1);
     fragment.bound = bound;
     return TypeParameterElementImpl2(firstFragment: fragment, name3: name3);
   }

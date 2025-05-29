@@ -16,42 +16,13 @@ import 'internal_service.dart';
 
 typedef _VmServiceUpdate = ({
   /// The metadata describing the VM service connection that this update is for.
-  _VmServiceMetadata vmServiceMetadata,
+  VmServiceInfo vmServiceInfo,
 
   /// The update event kind.
   _VmServiceUpdateKind kind,
 });
 
-typedef _VmServiceMetadata = ({
-  /// The URI for the VM service connection.
-  String uri,
-
-  /// The URI for the VM service connection that has been exposed to the
-  /// user/client machine if the backend VM service is running in a different
-  /// location (for example, an editor running in the user's browser with the
-  /// backend on a remote server).
-  ///
-  /// Code that runs on the user/client machine (such as DevTools and DevTools
-  /// extensions) should prefer this URI (if provided) whereas code that also
-  /// runs on the backend (such as the debug adapter) should always use [uri].
-  ///
-  /// This value will be null or identical to [uri] in environments where
-  /// there is no exposing to do (for example, an editor running locally on the
-  /// same machine that the VM service is running).
-  String? exposedUri,
-
-  /// The human-readable name for this VM service connection as defined by tool
-  /// or service that started it (e.g. 'Flutter - Pixel 5').
-  ///
-  /// This is optional and may be null if the DTD client that registered the VM
-  /// service did not provide a name.
-  String? name,
-});
-
-typedef _VmServiceWithMetadata = ({
-  VmService vmService,
-  _VmServiceMetadata metadata,
-});
+typedef _VmServiceWithInfo = ({VmService vmService, VmServiceInfo info});
 
 enum _VmServiceUpdateKind {
   registered('VmServiceRegistered'),
@@ -116,8 +87,8 @@ class ConnectedAppService extends InternalService {
       )
       ..registerServiceMethod(
         serviceName,
-        ConnectedAppServiceConstants.getVmServiceUris,
-        _getVmServiceUris,
+        ConnectedAppServiceConstants.getVmServices,
+        _getVmServices,
       );
 
     _vmServiceUpdatesSubscription = _vmServiceUpdates.stream.listen((update) {
@@ -125,9 +96,9 @@ class ConnectedAppService extends InternalService {
         EventParameters.streamId: _streamId,
         EventParameters.eventKind: update.kind.id,
         EventParameters.eventData: {
-          EventParameters.uri: update.vmServiceMetadata.uri,
-          EventParameters.exposedUri: update.vmServiceMetadata.exposedUri,
-          EventParameters.name: update.vmServiceMetadata.name,
+          EventParameters.uri: update.vmServiceInfo.uri,
+          EventParameters.exposedUri: update.vmServiceInfo.exposedUri,
+          EventParameters.name: update.vmServiceInfo.name,
         },
         EventParameters.timestamp: DateTime.now().millisecondsSinceEpoch,
       });
@@ -145,7 +116,7 @@ class ConnectedAppService extends InternalService {
 
   /// The total set of VM service connections DTD is aware of, stored by their
   /// URI as a String.
-  final _vmServices = <String, _VmServiceWithMetadata>{};
+  final _vmServices = <String, _VmServiceWithInfo>{};
 
   /// A [StreamController] used internally in this service to track service
   /// registered and unregistered events.
@@ -182,15 +153,15 @@ class ConnectedAppService extends InternalService {
 
       try {
         await vmServiceConnectUri(uri).then((vmService) async {
-          final metadata = (
+          final info = VmServiceInfo(
             uri: uri,
             exposedUri: exposedUri,
             name: name,
           );
-          _vmServices[uri] = (vmService: vmService, metadata: metadata);
+          _vmServices[uri] = (vmService: vmService, info: info);
           _vmServiceUpdates.add(
             (
-              vmServiceMetadata: metadata,
+              vmServiceInfo: info,
               kind: _VmServiceUpdateKind.registered,
             ),
           );
@@ -244,18 +215,22 @@ class ConnectedAppService extends InternalService {
     if (removedService != null) {
       _vmServiceUpdates.add(
         (
-          vmServiceMetadata: removedService.metadata,
+          vmServiceInfo: removedService.info,
           kind: _VmServiceUpdateKind.unregistered
         ),
       );
     }
   }
 
-  /// Returns a list of VM service URIs for running applications in the context
-  /// of this DTD instance.
-  Future<Map<String, Object?>> _getVmServiceUris(Parameters _) async {
+  /// Returns a response containing information for each VM service connection
+  /// in the context of this DTD instance.
+  Future<Map<String, Object?>> _getVmServices(Parameters _) async {
     return await _mutex.runGuardedWeak(() {
-      return StringListResponse(_vmServices.keys.toList()).toJson();
+      return VmServicesResponse(
+        vmServicesInfos: _vmServices.values
+            .map((vmServiceWithInfo) => vmServiceWithInfo.info)
+            .toList(),
+      ).toJson();
     });
   }
 }

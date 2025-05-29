@@ -13,9 +13,6 @@ final Version dart3 = Version(3, 0, 0);
 /// A version describing Dart language version 3.3.0.
 final Version dart3_3 = Version(3, 3, 0);
 
-@Deprecated("Prefer to use 'RuleState'")
-typedef State = RuleState;
-
 /// Describes the state of an analysis rule.
 final class RuleState {
   /// An Optional Dart language version that identifies the start of this state.

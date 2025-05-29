@@ -180,7 +180,7 @@ class IsNullableTest extends AbstractTypeSystemTest {
     );
 
     isNullable(
-      interfaceTypeQuestion2(
+      interfaceTypeQuestion(
         extensionType2('A', representationType: intNone, interfaces: [intNone]),
       ),
     );
@@ -317,7 +317,7 @@ class IsPotentiallyNullableTest extends AbstractTypeSystemTest {
 
   test_interface_extensionType2() {
     isPotentiallyNullable(
-      interfaceTypeQuestion2(extensionType2('A', representationType: intNone)),
+      interfaceTypeQuestion(extensionType2('A', representationType: intNone)),
     );
 
     isPotentiallyNullable(
