@@ -10646,7 +10646,7 @@ main() {
     });
   });
 
-  group('Sound null safety:', () {
+  group('Sound flow analysis:', () {
     group('<nonNull> as Null:', () {
       test('When enabled, is guaranteed to throw', () {
         h.run([expr('int').as_('Null'), checkReachable(false)]);
