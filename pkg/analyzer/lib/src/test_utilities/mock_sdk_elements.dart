@@ -1093,6 +1093,11 @@ class _MockSdkElementsBuilder {
                   .toList()
           ..returnType = returnType
           ..typeParameters = typeFormals;
+    MethodElementImpl2(
+      name3: name,
+      reference: Reference.root(),
+      firstFragment: fragment,
+    );
     return fragment;
   }
 

@@ -1398,7 +1398,8 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeReference(e);
+      // TODO(scheglov): write after https://dart-review.googlesource.com/c/sdk/+/431940
+      // _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       // _writeElementReference(e.enclosingElement, label: 'enclosingElement');
       if (e.hasEnclosingTypeParameterReference) {

@@ -373,7 +373,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@method::test
+element: self::@class::A::@method::test
 formalParameters
   id: 0
     kind: requiredPositional

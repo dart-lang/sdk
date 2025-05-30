@@ -1270,6 +1270,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var reference = _readReference();
+      var reference2 = _readReference();
       var fragmentName = _readFragmentName();
       // TODO(scheglov): we do this only because MethodElement2 uses this name.
       var name = _reader.readStringReference();
@@ -1287,6 +1288,13 @@ class LibraryReader {
       fragment.typeParameters = _readTypeParameters();
       fragment.parameters = _readParameters();
       fragment.typeInferenceError = _readTopLevelInferenceError();
+
+      MethodElementImpl2(
+        name3: name,
+        reference: reference2,
+        firstFragment: fragment,
+      );
+
       return fragment;
     });
   }

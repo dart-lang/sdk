@@ -7528,12 +7528,22 @@ class MethodElementImpl2 extends ExecutableElementImpl2
         _HasSinceSdkVersionMixin
     implements MethodElement2OrMember {
   @override
+  final Reference reference;
+
+  @override
   final String? name3;
 
   @override
   final MethodFragmentImpl firstFragment;
 
-  MethodElementImpl2(this.name3, this.firstFragment);
+  MethodElementImpl2({
+    required this.name3,
+    required this.reference,
+    required this.firstFragment,
+  }) {
+    reference.element2 = this;
+    firstFragment.element = this;
+  }
 
   @override
   MethodElementImpl2 get baseElement => this;
@@ -7599,7 +7609,7 @@ abstract class MethodElementOrMember implements ExecutableElementOrMember {
 class MethodFragmentImpl extends ExecutableFragmentImpl
     implements MethodElementOrMember, MethodFragment {
   @override
-  late final MethodElementImpl2 element = MethodElementImpl2(name, this);
+  late final MethodElementImpl2 element;
 
   @override
   String? name2;

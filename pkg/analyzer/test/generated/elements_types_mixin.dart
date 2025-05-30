@@ -445,11 +445,18 @@ mixin ElementsTypesMixin {
     List<TypeParameterElementImpl2> typeParameters = const [],
     List<FormalParameterElementImpl> formalParameters = const [],
   }) {
-    return MethodFragmentImpl(name: name, nameOffset: 0)
-      ..isStatic = isStatic
-      ..parameters = formalParameters.map((e) => e.asElement).toList()
-      ..returnType = returnType
-      ..typeParameters = typeParameters.map((e) => e.asElement).toList();
+    var fragment =
+        MethodFragmentImpl(name: name, nameOffset: 0)
+          ..isStatic = isStatic
+          ..parameters = formalParameters.map((e) => e.asElement).toList()
+          ..returnType = returnType
+          ..typeParameters = typeParameters.map((e) => e.asElement).toList();
+    MethodElementImpl2(
+      name3: name,
+      reference: Reference.root(),
+      firstFragment: fragment,
+    );
+    return fragment;
   }
 
   MixinFragmentImpl mixin_({

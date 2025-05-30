@@ -1156,12 +1156,35 @@ class InheritanceManager3 {
     }
 
     if (executable is MethodElementOrMember) {
-      var result = MethodFragmentImpl(name: executable.name, nameOffset: -1);
+      var fragmentName = executable.name;
+      var fragmentReference = class_.reference!
+          .getChild('@method')
+          .getChild(fragmentName);
+
+      if (fragmentReference.element case MethodFragmentImpl result) {
+        return result;
+      }
+
+      var result = MethodFragmentImpl(name: fragmentName, nameOffset: -1);
+      result.reference = fragmentReference;
+      fragmentReference.element = result;
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.returnType = executable.returnType;
       result.typeParameters = executable.typeParameters;
+
+      var elementName = executable.asElement2.name3!;
+      var elementReference = class_.element.reference!
+          .getChild('@method')
+          .getChild(elementName);
+      assert(elementReference.element2 == null);
+      MethodElementImpl2(
+        name3: elementName,
+        reference: elementReference,
+        firstFragment: result,
+      );
+
       return result;
     }
 
@@ -1216,9 +1239,20 @@ class InheritanceManager3 {
     }
 
     if (first is MethodElementOrMember) {
-      var firstMethod = first;
-      var fragmentName = first.asElement2.firstFragment.name2;
-      var result = MethodFragmentImpl(name: firstMethod.name, nameOffset: -1);
+      var firstElement = first.asElement2;
+      var fragmentName = firstElement.firstFragment.name2!;
+
+      var fragmentReference = targetClass.reference!
+          .getChild('@method')
+          .getChild(fragmentName);
+
+      if (fragmentReference.element case MethodFragmentImpl result) {
+        return result;
+      }
+
+      var result = MethodFragmentImpl(name: first.name, nameOffset: -1);
+      result.reference = fragmentReference;
+      fragmentReference.element = result;
       result.enclosingElement3 = targetClass;
       result.name2 = fragmentName;
       result.typeParameters = resultType.typeFormals;
@@ -1228,6 +1262,18 @@ class InheritanceManager3 {
           resultType.parameters
               .map((e) => e.firstFragment as FormalParameterFragmentImpl)
               .toList();
+
+      var elementName = first.asElement2.name3!;
+      var elementReference = targetClass.element.reference!
+          .getChild('@method')
+          .getChild(elementName);
+      assert(elementReference.element2 == null);
+      MethodElementImpl2(
+        name3: elementName,
+        reference: elementReference,
+        firstFragment: result,
+      );
+
       return result;
     } else {
       var firstAccessor = first as PropertyAccessorElementOrMember;
