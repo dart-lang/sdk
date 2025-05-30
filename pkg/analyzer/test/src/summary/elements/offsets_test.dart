@@ -1635,18 +1635,18 @@ library
           methods
             raw @17
               reference: <testLibraryFragment>::@class::C::@method::raw
-              element: <testLibraryFragment>::@class::C::@method::raw#element
+              element: <testLibrary>::@class::C::@method::raw
               codeOffset: 12
               codeLength: 13
             hasDocComment @68
               reference: <testLibraryFragment>::@class::C::@method::hasDocComment
-              element: <testLibraryFragment>::@class::C::@method::hasDocComment#element
+              element: <testLibrary>::@class::C::@method::hasDocComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 29
               codeLength: 57
             hasAnnotation @107
               reference: <testLibraryFragment>::@class::C::@method::hasAnnotation
-              element: <testLibraryFragment>::@class::C::@method::hasAnnotation#element
+              element: <testLibrary>::@class::C::@method::hasAnnotation
               metadata
                 Annotation
                   atSign: @ @90
@@ -1662,7 +1662,7 @@ library
               codeLength: 35
             annotationThenComment @180
               reference: <testLibraryFragment>::@class::C::@method::annotationThenComment
-              element: <testLibraryFragment>::@class::C::@method::annotationThenComment#element
+              element: <testLibrary>::@class::C::@method::annotationThenComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -1679,7 +1679,7 @@ library
               codeLength: 77
             commentThenAnnotation @261
               reference: <testLibraryFragment>::@class::C::@method::commentThenAnnotation
-              element: <testLibraryFragment>::@class::C::@method::commentThenAnnotation#element
+              element: <testLibrary>::@class::C::@method::commentThenAnnotation
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -1696,7 +1696,7 @@ library
               codeLength: 77
             commentAroundAnnotation @342
               reference: <testLibraryFragment>::@class::C::@method::commentAroundAnnotation
-              element: <testLibraryFragment>::@class::C::@method::commentAroundAnnotation#element
+              element: <testLibrary>::@class::C::@method::commentAroundAnnotation
               documentationComment: /// Comment 2.
               metadata
                 Annotation
@@ -1720,13 +1720,16 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         raw
+          reference: <testLibrary>::@class::C::@method::raw
           firstFragment: <testLibraryFragment>::@class::C::@method::raw
           returnType: void
         hasDocComment
+          reference: <testLibrary>::@class::C::@method::hasDocComment
           firstFragment: <testLibraryFragment>::@class::C::@method::hasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           returnType: void
         hasAnnotation
+          reference: <testLibrary>::@class::C::@method::hasAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::hasAnnotation
           metadata
             Annotation
@@ -1741,6 +1744,7 @@ library
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           returnType: void
         annotationThenComment
+          reference: <testLibrary>::@class::C::@method::annotationThenComment
           firstFragment: <testLibraryFragment>::@class::C::@method::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -1756,6 +1760,7 @@ library
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           returnType: void
         commentThenAnnotation
+          reference: <testLibrary>::@class::C::@method::commentThenAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -1771,6 +1776,7 @@ library
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           returnType: void
         commentAroundAnnotation
+          reference: <testLibrary>::@class::C::@method::commentAroundAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::commentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
@@ -2885,7 +2891,7 @@ library
           methods
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo
-              element: <testLibraryFragment>::@class::A::@method::foo#element
+              element: <testLibrary>::@class::A::@method::foo
               typeParameters
                 T @21
                   element: T@21
@@ -2901,6 +2907,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           typeParameters
             T

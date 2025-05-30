@@ -501,7 +501,7 @@ DotShorthandConstructorInvocation
         period: .
         memberName: SimpleIdentifier
           token: member
-          element: <testLibraryFragment>::@class::C::@method::member#element
+          element: <testLibrary>::@class::C::@method::member
           staticType: C<dynamic> Function()
         argumentList: ArgumentList
           leftParenthesis: (

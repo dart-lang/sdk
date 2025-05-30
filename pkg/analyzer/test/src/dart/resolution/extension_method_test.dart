@@ -689,7 +689,7 @@ FunctionExpressionInvocation
         correspondingParameter: <testLibraryFragment>::@class::C::@method::call::@parameter::x#element
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticInvokeType: int Function(int)
   staticType: int
 ''');
@@ -722,7 +722,7 @@ FunctionExpressionInvocation
         correspondingParameter: <testLibraryFragment>::@extension::E::@method::call::@parameter::x#element
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@extension::E::@method::call#element
+  element: <testLibrary>::@extension::E::@method::call
   staticInvokeType: int Function(int)
   staticType: int
 ''');
@@ -752,7 +752,7 @@ FunctionExpressionInvocation
         correspondingParameter: <testLibraryFragment>::@extension::E::@method::call::@parameter::x#element
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@extension::E::@method::call#element
+  element: <testLibrary>::@extension::E::@method::call
   staticInvokeType: int Function(int)
   staticType: int
 ''');
@@ -786,7 +786,7 @@ AssignmentExpression
   readType: C
   writeElement2: <testLibraryFragment>::@function::f::@parameter::c#element
   writeType: C
-  element: <testLibraryFragment>::@class::C::@method::+#element
+  element: <testLibrary>::@class::C::@method::+
   staticType: C
 ''');
   }
@@ -817,7 +817,7 @@ AssignmentExpression
   readType: C
   writeElement2: <testLibraryFragment>::@function::f::@parameter::c#element
   writeType: C
-  element: <testLibraryFragment>::@extension::E::@method::+#element
+  element: <testLibrary>::@extension::E::@method::+
   staticType: C
 ''');
   }
@@ -1194,7 +1194,7 @@ extension E2<T extends B> on T {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibraryFragment>::@extension::E1::@method::m#element
+    element: <testLibrary>::@extension::E1::@method::m
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1221,7 +1221,7 @@ extension E2 on B {
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E1::@method::a#element
+    element: <testLibrary>::@extension::E1::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1247,7 +1247,7 @@ extension E<T extends B> on T {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibraryFragment>::@class::B::@method::m#element
+    element: <testLibrary>::@class::B::@method::m
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1273,7 +1273,7 @@ extension E on B {
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@method::a#element
+    element: <testLibrary>::@extension::E::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1302,7 +1302,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@method::a#element
+    element: <testLibrary>::@extension::E::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1334,7 +1334,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::A::@method::a#element
+    element: <testLibrary>::@extension::A::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1367,7 +1367,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1408,7 +1408,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: package:test/x.dart::<fragment>::@extension::E::@method::foo#element
+    element: package:test/x.dart::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1475,7 +1475,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1504,7 +1504,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1534,7 +1534,7 @@ MethodInvocation
   operator: ?.
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1563,7 +1563,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1592,7 +1592,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@extension::E::@method::_foo#element
+    element: <testLibrary>::@extension::E::@method::_foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1628,7 +1628,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: _foo
-    element: <testLibrary>::@fragment::package:test/a.dart::@extension::E::@method::_foo#element
+    element: <testLibrary>::@extension::E::@method::_foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1665,7 +1665,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::B_Ext::@method::a#element
+    element: <testLibrary>::@extension::B_Ext::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1706,7 +1706,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::B_Ext::@method::f#element
+      baseElement: <testLibrary>::@extension::B_Ext::@method::f
       substitution: {T: C}
     staticType: void Function(C)
   argumentList: ArgumentList
@@ -1747,7 +1747,7 @@ BinaryExpression
     literal: 2
     correspondingParameter: <testLibraryFragment>::@class::C::@method::+::@parameter::i#element
     staticType: int
-  element: <testLibraryFragment>::@class::C::@method::+#element
+  element: <testLibrary>::@class::C::@method::+
   staticInvokeType: void Function(int)
   staticType: void
 ''');
@@ -1774,7 +1774,7 @@ BinaryExpression
     literal: 2
     correspondingParameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::i#element
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@method::+#element
+  element: <testLibrary>::@extension::E::@method::+
   staticInvokeType: void Function(int)
   staticType: void
 ''');
@@ -1802,7 +1802,7 @@ BinaryExpression
     literal: 2
     correspondingParameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::i#element
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@method::+#element
+  element: <testLibrary>::@extension::E::@method::+
   staticInvokeType: void Function(int)
   staticType: void
 ''');
@@ -1832,7 +1832,7 @@ BinaryExpression
     literal: 1
     correspondingParameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::_#element
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@method::+#element
+  element: <testLibrary>::@extension::E::@method::+
   staticInvokeType: int Function(int)
   staticType: int
 ''');
@@ -1877,7 +1877,7 @@ IndexExpression
     correspondingParameter: <testLibraryFragment>::@class::C::@method::[]::@parameter::index#element
     staticType: int
   rightBracket: ]
-  element: <testLibraryFragment>::@class::C::@method::[]#element
+  element: <testLibrary>::@class::C::@method::[]
   staticType: void
 ''');
   }
@@ -1904,7 +1904,7 @@ IndexExpression
     correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index#element
     staticType: int
   rightBracket: ]
-  element: <testLibraryFragment>::@extension::E::@method::[]#element
+  element: <testLibrary>::@extension::E::@method::[]
   staticType: void
 ''');
   }
@@ -1932,7 +1932,7 @@ IndexExpression
     correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index#element
     staticType: int
   rightBracket: ]
-  element: <testLibraryFragment>::@extension::E::@method::[]#element
+  element: <testLibrary>::@extension::E::@method::[]
   staticType: void
 ''');
   }
@@ -1960,7 +1960,7 @@ IndexExpression
     correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index#element
     staticType: int
   rightBracket: ]
-  element: <testLibraryFragment>::@extension::E::@method::[]#element
+  element: <testLibrary>::@extension::E::@method::[]
   staticType: int
 ''');
   }
@@ -1989,7 +1989,7 @@ IndexExpression
     correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index#element
     staticType: int
   rightBracket: ]
-  element: <testLibraryFragment>::@extension::E::@method::[]#element
+  element: <testLibrary>::@extension::E::@method::[]
   staticType: int?
 ''');
   }
@@ -2029,7 +2029,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::C::@method::[]=#element
+  writeElement2: <testLibrary>::@class::C::@method::[]=
   writeType: int
   element: <null>
   staticType: int
@@ -2068,7 +2068,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@method::[]=#element
+  writeElement2: <testLibrary>::@extension::E::@method::[]=
   writeType: int
   element: <null>
   staticType: int
@@ -2108,7 +2108,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@method::[]=#element
+  writeElement2: <testLibrary>::@extension::E::@method::[]=
   writeType: int
   element: <null>
   staticType: int
@@ -2139,7 +2139,7 @@ PostfixExpression
   readType: C
   writeElement2: <testLibraryFragment>::@function::f::@parameter::c#element
   writeType: C
-  element: <testLibraryFragment>::@class::C::@method::+#element
+  element: <testLibrary>::@class::C::@method::+
   staticType: C
 ''');
   }
@@ -2165,7 +2165,7 @@ PostfixExpression
   readType: int Function(int)
   writeElement2: <testLibraryFragment>::@function::g::@parameter::f#element
   writeType: int Function(int)
-  element: <testLibraryFragment>::@extension::E::@method::+#element
+  element: <testLibrary>::@extension::E::@method::+
   staticType: int Function(int)
 ''');
   }
@@ -2192,7 +2192,7 @@ PostfixExpression
   readType: C
   writeElement2: <testLibraryFragment>::@function::f::@parameter::c#element
   writeType: C
-  element: <testLibraryFragment>::@extension::E::@method::+#element
+  element: <testLibrary>::@extension::E::@method::+
   staticType: C
 ''');
   }
@@ -2221,7 +2221,7 @@ PostfixExpression
   readType: A?
   writeElement2: <testLibraryFragment>::@function::f::@parameter::a#element
   writeType: A?
-  element: <testLibraryFragment>::@extension::E::@method::+#element
+  element: <testLibrary>::@extension::E::@method::+
   staticType: A?
 ''');
   }
@@ -2250,7 +2250,7 @@ PrefixExpression
   readType: C
   writeElement2: <testLibraryFragment>::@function::f::@parameter::c#element
   writeType: C
-  element: <testLibraryFragment>::@class::C::@method::+#element
+  element: <testLibrary>::@class::C::@method::+
   staticType: C
 ''');
   }
@@ -2276,7 +2276,7 @@ PrefixExpression
   readType: int Function(int)
   writeElement2: <testLibraryFragment>::@function::g::@parameter::f#element
   writeType: int Function(int)
-  element: <testLibraryFragment>::@extension::E::@method::+#element
+  element: <testLibrary>::@extension::E::@method::+
   staticType: int Function(int)
 ''');
   }
@@ -2303,7 +2303,7 @@ PrefixExpression
   readType: C
   writeElement2: <testLibraryFragment>::@function::f::@parameter::c#element
   writeType: C
-  element: <testLibraryFragment>::@extension::E::@method::+#element
+  element: <testLibrary>::@extension::E::@method::+
   staticType: C
 ''');
   }
@@ -2332,7 +2332,7 @@ PrefixExpression
   readType: A?
   writeElement2: <testLibraryFragment>::@function::f::@parameter::a#element
   writeType: A?
-  element: <testLibraryFragment>::@extension::E::@method::+#element
+  element: <testLibrary>::@extension::E::@method::+
   staticType: A?
 ''');
   }
@@ -2357,7 +2357,7 @@ PrefixExpression
     token: c
     element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::unary-#element
+  element: <testLibrary>::@class::C::@method::unary-
   staticType: C
 ''');
   }
@@ -2379,7 +2379,7 @@ PrefixExpression
     token: f
     element: <testLibraryFragment>::@function::g::@parameter::f#element
     staticType: int Function(int)
-  element: <testLibraryFragment>::@extension::E::@method::unary-#element
+  element: <testLibrary>::@extension::E::@method::unary-
   staticType: void
 ''');
   }
@@ -2402,7 +2402,7 @@ PrefixExpression
     token: c
     element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
-  element: <testLibraryFragment>::@extension::E::@method::unary-#element
+  element: <testLibrary>::@extension::E::@method::unary-
   staticType: C
 ''');
   }
@@ -2427,7 +2427,7 @@ PrefixExpression
     token: a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
-  element: <testLibraryFragment>::@extension::E::@method::unary-#element
+  element: <testLibrary>::@extension::E::@method::unary-
   staticType: A?
 ''');
   }
@@ -2645,9 +2645,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@method::a#element
+    element: <testLibrary>::@extension::E::@method::a
     staticType: void Function(int)
-  element: <testLibraryFragment>::@extension::E::@method::a#element
+  element: <testLibrary>::@extension::E::@method::a
   staticType: void Function(int)
 ''');
   }
@@ -2672,9 +2672,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@method::a#element
+    element: <testLibrary>::@extension::E::@method::a
     staticType: void Function(int)
-  element: <testLibraryFragment>::@extension::E::@method::a#element
+  element: <testLibrary>::@extension::E::@method::a
   staticType: void Function(int)
 ''');
   }
@@ -2848,7 +2848,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: a
-    element: package:test/lib.dart::<fragment>::@extension::E::@method::a#element
+    element: package:test/lib.dart::@extension::E::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2880,7 +2880,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@method::a#element
+    element: <testLibrary>::@extension::E::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3002,9 +3002,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@method::a#element
+    element: <testLibrary>::@extension::E::@method::a
     staticType: void Function(int)
-  element: <testLibraryFragment>::@extension::E::@method::a#element
+  element: <testLibrary>::@extension::E::@method::a
   staticType: void Function(int)
 ''');
   }
@@ -3064,7 +3064,7 @@ FunctionExpressionInvocation
         correspondingParameter: <testLibraryFragment>::@extension::E::@method::call::@parameter::x#element
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@extension::E::@method::call#element
+  element: <testLibrary>::@extension::E::@method::call
   staticInvokeType: int Function(int)
   staticType: int
 ''');
@@ -3193,7 +3193,7 @@ extension E on C {
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@method::a#element
+    element: <testLibrary>::@extension::E::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3222,7 +3222,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@class::C::@method::a#element
+    element: <testLibrary>::@class::C::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3249,7 +3249,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@method::a#element
+    element: <testLibrary>::@extension::E::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3280,7 +3280,7 @@ BinaryExpression
     literal: 2
     correspondingParameter: <testLibraryFragment>::@class::C::@method::+::@parameter::i#element
     staticType: int
-  element: <testLibraryFragment>::@class::C::@method::+#element
+  element: <testLibrary>::@class::C::@method::+
   staticInvokeType: void Function(int)
   staticType: void
 ''');
@@ -3305,7 +3305,7 @@ BinaryExpression
     literal: 2
     correspondingParameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::i#element
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@method::+#element
+  element: <testLibrary>::@extension::E::@method::+
   staticInvokeType: void Function(int)
   staticType: void
 ''');
@@ -3333,7 +3333,7 @@ IndexExpression
     correspondingParameter: <testLibraryFragment>::@class::C::@method::[]::@parameter::index#element
     staticType: int
   rightBracket: ]
-  element: <testLibraryFragment>::@class::C::@method::[]#element
+  element: <testLibrary>::@class::C::@method::[]
   staticType: void
 ''');
   }
@@ -3358,7 +3358,7 @@ IndexExpression
     correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index#element
     staticType: int
   rightBracket: ]
-  element: <testLibraryFragment>::@extension::E::@method::[]#element
+  element: <testLibrary>::@extension::E::@method::[]
   staticType: void
 ''');
   }
@@ -3395,7 +3395,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::C::@method::[]=#element
+  writeElement2: <testLibrary>::@class::C::@method::[]=
   writeType: int
   element: <null>
   staticType: int
@@ -3432,7 +3432,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@method::[]=#element
+  writeElement2: <testLibrary>::@extension::E::@method::[]=
   writeType: int
   element: <null>
   staticType: int
@@ -3456,7 +3456,7 @@ PrefixExpression
   operand: ThisExpression
     thisKeyword: this
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::unary-#element
+  element: <testLibrary>::@class::C::@method::unary-
   staticType: void
 ''');
   }
@@ -3476,7 +3476,7 @@ PrefixExpression
   operand: ThisExpression
     thisKeyword: this
     staticType: C
-  element: <testLibraryFragment>::@extension::E::@method::unary-#element
+  element: <testLibrary>::@extension::E::@method::unary-
   staticType: void
 ''');
   }
@@ -3631,7 +3631,7 @@ extension E on C {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@extension::E::@method::a#element
+  element: <testLibrary>::@extension::E::@method::a
   staticType: void Function(int)
 ''');
   }
@@ -3654,7 +3654,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@method::a#element
+    element: <testLibrary>::@extension::E::@method::a
     staticType: void Function(int)
   staticType: void Function(int)
 ''');
@@ -3745,7 +3745,7 @@ extension E on C {
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@method::a#element
+    element: <testLibrary>::@extension::E::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3768,7 +3768,7 @@ extension E on C {
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@method::a#element
+    element: <testLibrary>::@extension::E::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3855,7 +3855,7 @@ extension E on C {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@extension::E::@method::a#element
+  element: <testLibrary>::@extension::E::@method::a
   staticType: void Function(int)
 ''');
   }
@@ -3873,7 +3873,7 @@ extension E on C {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@extension::E::@method::a#element
+  element: <testLibrary>::@extension::E::@method::a
   staticType: void Function(int)
 ''');
   }

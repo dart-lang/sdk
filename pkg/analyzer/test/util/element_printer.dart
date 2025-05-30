@@ -85,12 +85,7 @@ class ElementPrinter {
       case TopLevelFunctionElementImpl element:
         writelnReference(element.reference);
       case MethodElementImpl2 element:
-        var firstFragment = element.firstFragment as FragmentImpl;
-        var reference = firstFragment.reference;
-        writeReference(reference!);
-        _sink.writeln('#element');
-      // TODO(scheglov): use after https://dart-review.googlesource.com/c/sdk/+/431940
-      // writelnReference(element.reference);
+        writelnReference(element.reference);
       case FragmentedElementMixin element:
         var firstFragment = element.firstFragment as FragmentImpl;
         var reference = firstFragment.reference!;

@@ -1496,7 +1496,7 @@ library
           methods
             foo @34
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+              element: <testLibrary>::@extensionType::A::@method::foo
               formalParameters
                 a @42
                   element: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a#element
@@ -1518,6 +1518,7 @@ library
           returnType: int
       methods
         foo
+          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
           formalParameters
             requiredPositional a
@@ -1556,7 +1557,7 @@ library
           methods
             foo @34
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+              element: <testLibrary>::@extensionType::A::@method::foo
               formalParameters
                 default a @43
                   reference: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
@@ -1583,6 +1584,7 @@ library
           returnType: int
       methods
         foo
+          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
           formalParameters
             optionalNamed a

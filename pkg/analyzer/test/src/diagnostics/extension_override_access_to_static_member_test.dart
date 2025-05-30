@@ -55,7 +55,7 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  element: <testLibraryFragment>::@extension::E::@method::call#element
+  element: <testLibrary>::@extension::E::@method::call
   staticInvokeType: void Function()
   staticType: void
 ''');
@@ -138,7 +138,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: empty
-    element: <testLibraryFragment>::@extension::E::@method::empty#element
+    element: <testLibrary>::@extension::E::@method::empty
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (

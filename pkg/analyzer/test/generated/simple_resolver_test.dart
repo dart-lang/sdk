@@ -1209,7 +1209,7 @@ void main() {
     assertResolvedNodeText(findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
-  element: <testLibraryFragment>::@mixin::M2::@method::f#element
+  element: <testLibrary>::@mixin::M2::@method::f
   staticType: void Function()
 ''');
   }
@@ -1233,7 +1233,7 @@ class C extends B with M1, M2 {
     assertResolvedNodeText(findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
-  element: <testLibraryFragment>::@mixin::M2::@method::f#element
+  element: <testLibrary>::@mixin::M2::@method::f
   staticType: void Function()
 ''');
   }
@@ -1256,7 +1256,7 @@ void main() {
     assertResolvedNodeText(findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
-  element: <testLibraryFragment>::@mixin::M2::@method::f#element
+  element: <testLibrary>::@mixin::M2::@method::f
   staticType: void Function()
 ''');
   }

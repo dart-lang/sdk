@@ -354,7 +354,7 @@ library
           methods
             bar @77
               reference: <testLibraryFragment>::@class::C::@method::bar
-              element: <testLibraryFragment>::@class::C::@method::bar#element
+              element: <testLibrary>::@class::C::@method::bar
               metadata
                 Annotation
                   atSign: @ @65
@@ -407,6 +407,7 @@ library
           returnType: int
       methods
         bar
+          reference: <testLibrary>::@class::C::@method::bar
           firstFragment: <testLibraryFragment>::@class::C::@method::bar
           metadata
             Annotation
@@ -3011,7 +3012,7 @@ library
           methods
             m @54
               reference: <testLibraryFragment>::@class::C::@method::m
-              element: <testLibraryFragment>::@class::C::@method::m#element
+              element: <testLibrary>::@class::C::@method::m
               metadata
                 Annotation
                   atSign: @ @44
@@ -3060,6 +3061,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           metadata
             Annotation
@@ -3127,7 +3129,7 @@ library
           methods
             m @54
               reference: <testLibraryFragment>::@mixin::M::@method::m
-              element: <testLibraryFragment>::@mixin::M::@method::m#element
+              element: <testLibrary>::@mixin::M::@method::m
               metadata
                 Annotation
                   atSign: @ @44
@@ -3175,6 +3177,7 @@ library
         Object
       methods
         m
+          reference: <testLibrary>::@mixin::M::@method::m
           firstFragment: <testLibraryFragment>::@mixin::M::@method::m
           metadata
             Annotation
@@ -3366,7 +3369,7 @@ library
           methods
             bar @77
               reference: <testLibraryFragment>::@mixin::M::@method::bar
-              element: <testLibraryFragment>::@mixin::M::@method::bar#element
+              element: <testLibrary>::@mixin::M::@method::bar
               metadata
                 Annotation
                   atSign: @ @65
@@ -3418,6 +3421,7 @@ library
           returnType: int
       methods
         bar
+          reference: <testLibrary>::@mixin::M::@method::bar
           firstFragment: <testLibraryFragment>::@mixin::M::@method::bar
           metadata
             Annotation
@@ -3817,7 +3821,7 @@ library
           methods
             method @40
               reference: <testLibraryFragment>::@class::A::@method::method
-              element: <testLibraryFragment>::@class::A::@method::method#element
+              element: <testLibrary>::@class::A::@method::method
               metadata
                 Annotation
                   atSign: @ @28
@@ -3870,6 +3874,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         method
+          reference: <testLibrary>::@class::A::@method::method
           firstFragment: <testLibraryFragment>::@class::A::@method::method
           metadata
             Annotation
@@ -5812,7 +5817,7 @@ library
           methods
             m @29
               reference: <testLibraryFragment>::@class::C::@method::m
-              element: <testLibraryFragment>::@class::C::@method::m#element
+              element: <testLibrary>::@class::C::@method::m
               formalParameters
                 x @34
                   element: <testLibraryFragment>::@class::C::@method::m::@parameter::x#element
@@ -5846,6 +5851,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType x

@@ -40,7 +40,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -81,7 +81,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@mixin::M::@method::foo#element
+    element: <testLibrary>::@mixin::M::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -116,7 +116,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@mixin::A::@method::foo#element
+    element: <testLibrary>::@mixin::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -153,7 +153,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -194,7 +194,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -226,7 +226,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -262,7 +262,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -480,7 +480,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   staticType: void Function()
 ''');

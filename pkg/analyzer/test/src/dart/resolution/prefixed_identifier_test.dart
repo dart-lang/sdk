@@ -64,9 +64,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<U>(int, U)
-  element: <testLibraryFragment>::@class::A::@method::foo#element
+  element: <testLibrary>::@class::A::@method::foo
   staticType: void Function<U>(int, U)
 ''');
   }
@@ -92,9 +92,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
-  element: <testLibraryFragment>::@class::A::@method::foo#element
+  element: <testLibrary>::@class::A::@method::foo
   staticType: void Function(int)
 ''');
   }
@@ -164,7 +164,7 @@ AssignmentExpression
   readType: int
   writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }

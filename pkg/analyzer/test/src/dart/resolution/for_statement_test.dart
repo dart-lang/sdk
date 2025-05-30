@@ -1402,7 +1402,7 @@ ForStatement
         readType: int
         writeElement2: a@36
         writeType: int
-        element: dart:core::<fragment>::@class::num::@method::-#element
+        element: dart:core::@class::num::@method::-
         staticType: int
   rightParenthesis: )
   body: Block

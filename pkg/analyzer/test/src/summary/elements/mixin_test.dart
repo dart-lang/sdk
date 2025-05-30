@@ -119,7 +119,7 @@ library
           methods
             m @144
               reference: <testLibraryFragment>::@mixin::M::@method::m
-              element: <testLibraryFragment>::@mixin::M::@method::m#element
+              element: <testLibrary>::@mixin::M::@method::m
               formalParameters
                 v @153
                   element: <testLibraryFragment>::@mixin::M::@method::m::@parameter::v#element
@@ -203,6 +203,7 @@ library
           returnType: void
       methods
         m
+          reference: <testLibrary>::@mixin::M::@method::m
           firstFragment: <testLibraryFragment>::@mixin::M::@method::m
           formalParameters
             requiredPositional v
@@ -1269,7 +1270,7 @@ library
           methods
             foo @22 invokesSuperSelf
               reference: <testLibraryFragment>::@mixin::M::@method::foo
-              element: <testLibraryFragment>::@mixin::M::@method::foo#element
+              element: <testLibrary>::@mixin::M::@method::foo
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -1278,6 +1279,7 @@ library
         Object
       methods
         foo
+          reference: <testLibrary>::@mixin::M::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
           returnType: void
 ''');
@@ -1312,7 +1314,7 @@ library
           methods
             A @33
               reference: <testLibraryFragment>::@mixin::B::@method::A
-              element: <testLibraryFragment>::@mixin::B::@method::A#element
+              element: <testLibrary>::@mixin::B::@method::A
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -1328,6 +1330,7 @@ library
         A
       methods
         A
+          reference: <testLibrary>::@mixin::B::@method::A
           firstFragment: <testLibraryFragment>::@mixin::B::@method::A
           returnType: void
 ''');
@@ -1356,7 +1359,7 @@ library
           methods
             foo @20
               reference: <testLibraryFragment>::@mixin::M::@method::foo
-              element: <testLibraryFragment>::@mixin::M::@method::foo#element
+              element: <testLibrary>::@mixin::M::@method::foo
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -1367,6 +1370,7 @@ library
         Object
       methods
         foo
+          reference: <testLibrary>::@mixin::M::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
           returnType: void
 ''');
@@ -1395,7 +1399,7 @@ library
           methods
             foo @20
               reference: <testLibraryFragment>::@mixin::M::@method::foo
-              element: <testLibraryFragment>::@mixin::M::@method::foo#element
+              element: <testLibrary>::@mixin::M::@method::foo
               formalParameters
                 _ @26
                   element: <testLibraryFragment>::@mixin::M::@method::foo::@parameter::_#element
@@ -1409,6 +1413,7 @@ library
         Object
       methods
         foo
+          reference: <testLibrary>::@mixin::M::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
           hasEnclosingTypeParameterReference: true
           formalParameters

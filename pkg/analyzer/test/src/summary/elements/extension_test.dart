@@ -287,7 +287,7 @@ library
           methods
             bar @88
               reference: <testLibraryFragment>::@extension::E::@method::bar
-              element: <testLibraryFragment>::@extension::E::@method::bar#element
+              element: <testLibrary>::@extension::E::@method::bar
               metadata
                 Annotation
                   atSign: @ @76
@@ -337,6 +337,7 @@ library
           returnType: int
       methods
         bar
+          reference: <testLibrary>::@extension::E::@method::bar
           firstFragment: <testLibraryFragment>::@extension::E::@method::bar
           metadata
             Annotation
@@ -452,7 +453,7 @@ library
           methods
             foo @35
               reference: <testLibraryFragment>::@extension::E::@method::foo
-              element: <testLibraryFragment>::@extension::E::@method::foo#element
+              element: <testLibrary>::@extension::E::@method::foo
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -461,6 +462,7 @@ library
         T
       methods
         foo
+          reference: <testLibrary>::@extension::E::@method::foo
           firstFragment: <testLibraryFragment>::@extension::E::@method::foo
           returnType: void
 ''');
@@ -489,7 +491,7 @@ library
           methods
             foo @35
               reference: <testLibraryFragment>::@extension::E::@method::foo
-              element: <testLibraryFragment>::@extension::E::@method::foo#element
+              element: <testLibrary>::@extension::E::@method::foo
               formalParameters
                 _ @41
                   element: <testLibraryFragment>::@extension::E::@method::foo::@parameter::_#element
@@ -501,6 +503,7 @@ library
         T
       methods
         foo
+          reference: <testLibrary>::@extension::E::@method::foo
           firstFragment: <testLibraryFragment>::@extension::E::@method::foo
           hasEnclosingTypeParameterReference: true
           formalParameters
