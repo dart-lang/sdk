@@ -2480,7 +2480,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     if (superElement is FieldEntity) {
       // TODO(sra): We can lower these in the simplifier.
       js.Name fieldName = _namer.instanceFieldPropertyName(superElement);
-      use(node.getDartReceiver(_closedWorld));
+      use(node.getDartReceiver());
       js.PropertyAccess access =
           js.PropertyAccess(
                 pop(),
