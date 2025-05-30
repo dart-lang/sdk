@@ -76,6 +76,23 @@ suggestions
 ''');
   }
 
+  Future<void> test_enumConstant() async {
+    allowedIdentifiers = const {'value1'};
+    await computeSuggestions('''
+enum MyEnum {
+  /// This doc should suggest the commented enum constant name [val^].
+  value1
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  value1
+    kind: enumConstant
+''');
+  }
+
   Future<void> test_extension() async {
     allowedIdentifiers = const {'MyExt'};
     await computeSuggestions('''

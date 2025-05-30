@@ -634,7 +634,7 @@ void f() {}
 /// [$code]
 void f() {}
 ''');
-    _assertSource('', findNode.commentReference(code));
+    _assertSource('[x]', findNode.commentReference(code));
   }
 
   void test_visitCompilationUnit_declaration() {
