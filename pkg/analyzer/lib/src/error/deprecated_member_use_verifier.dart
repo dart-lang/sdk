@@ -258,7 +258,9 @@ abstract class BaseDeprecatedMemberUseVerifier {
       }
       element = variable;
     }
-    var annotation = element.metadata.firstWhereOrNull((e) => e.isDeprecated);
+    var annotation = element.metadataAnnotations.firstWhereOrNull(
+      (e) => e.isDeprecated,
+    );
     if (annotation == null || annotation.element2 is PropertyAccessorElement) {
       return null;
     }

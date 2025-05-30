@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:meta/meta_meta.dart';
 
@@ -120,7 +119,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
     if (interfaceElement == null) {
       return const <TargetKind>{};
     }
-    for (var annotation in interfaceElement.metadata) {
+    for (var annotation in interfaceElement.metadata2.annotations) {
       if (annotation.isTarget) {
         var value = annotation.computeConstantValue();
         if (value == null) {

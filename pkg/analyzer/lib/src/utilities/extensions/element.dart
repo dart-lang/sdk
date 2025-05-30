@@ -164,7 +164,7 @@ extension Element2Extension on Element {
     return false;
   }
 
-  List<ElementAnnotation> get metadata {
+  List<ElementAnnotation> get metadataAnnotations {
     if (this case Annotatable annotatable) {
       return annotatable.metadata2.annotations;
     }
