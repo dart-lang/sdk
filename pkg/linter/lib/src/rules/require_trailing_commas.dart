@@ -29,7 +29,7 @@ class RequireTrailingCommas extends LintRule {
     LinterContext context,
   ) {
     // Don't report if tall-style is enforced by the formatter.
-    var languageVersion = context.libraryElement2?.languageVersion.effective;
+    var languageVersion = context.libraryElement?.languageVersion.effective;
     if (languageVersion != null && languageVersion >= language37) return;
 
     var visitor = _Visitor(this);

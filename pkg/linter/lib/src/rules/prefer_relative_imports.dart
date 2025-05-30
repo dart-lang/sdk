@@ -32,7 +32,7 @@ class PreferRelativeImports extends LintRule {
   ) {
     if (!context.isInLibDir) return;
 
-    var sourceUri = context.libraryElement2?.uri;
+    var sourceUri = context.libraryElement?.uri;
     if (sourceUri == null) return;
 
     var visitor = _Visitor(this, sourceUri, context);
