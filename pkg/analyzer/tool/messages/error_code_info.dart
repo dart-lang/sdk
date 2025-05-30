@@ -172,6 +172,9 @@ Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeAnalyzerMessagesYaml(
           st,
         );
       }
+      if (errorCodeInfo.hasPublishedDocs == null) {
+        problem('Missing hasPublishedDocs for $className.$errorName');
+      }
 
       if (errorCodeInfo case AliasErrorCodeInfo(:var aliasFor)) {
         var aliasForPath = aliasFor.split('.');
@@ -215,7 +218,11 @@ Map<String, FrontEndErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
     if (errorValue is! Map<Object?, Object?>) {
       problem('value associated with error $errorName is not a map');
     }
-    result[errorName] = FrontEndErrorCodeInfo.fromYaml(errorValue);
+    try {
+      result[errorName] = FrontEndErrorCodeInfo.fromYaml(errorValue);
+    } catch (e, st) {
+      Error.throwWithStackTrace('while processing $errorName, $e', st);
+    }
   }
   return result;
 }
@@ -468,9 +475,11 @@ abstract class ErrorCodeInfo {
   /// If present, user-facing documentation for the error.
   final String? documentation;
 
-  /// `true` if diagnostics with this code have documentation for them that has
+  /// Whether diagnostics with this code have documentation for them that has
   /// been published.
-  final bool hasPublishedDocs;
+  ///
+  /// `null` if the YAML doesn't contain this information.
+  final bool? hasPublishedDocs;
 
   /// Indicates whether this error is caused by an unresolved identifier.
   final bool isUnresolvedIdentifier;
@@ -494,7 +503,7 @@ abstract class ErrorCodeInfo {
   ErrorCodeInfo({
     this.comment,
     this.documentation,
-    this.hasPublishedDocs = false,
+    this.hasPublishedDocs,
     this.isUnresolvedIdentifier = false,
     this.sharedName,
     required this.problemMessage,
@@ -511,7 +520,7 @@ abstract class ErrorCodeInfo {
         correctionMessage: yaml['correctionMessage'] as String?,
         deprecatedMessage: yaml['deprecatedMessage'] as String?,
         documentation: yaml['documentation'] as String?,
-        hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
+        hasPublishedDocs: yaml['hasPublishedDocs'] as bool?,
         isUnresolvedIdentifier:
             yaml['isUnresolvedIdentifier'] as bool? ?? false,
         problemMessage: yaml['problemMessage'] as String? ?? '',
@@ -574,7 +583,7 @@ abstract class ErrorCodeInfo {
       var codeLines = _splitText(code, maxWidth: maxWidth);
       out.writeln('${codeLines.map(json.encode).join('\n')},');
     }
-    if (hasPublishedDocs) {
+    if (hasPublishedDocs ?? false) {
       out.writeln('hasPublishedDocs:true,');
     }
     if (isUnresolvedIdentifier) {
@@ -606,7 +615,7 @@ abstract class ErrorCodeInfo {
     'problemMessage': problemMessage,
     if (correctionMessage != null) 'correctionMessage': correctionMessage,
     if (isUnresolvedIdentifier) 'isUnresolvedIdentifier': true,
-    if (hasPublishedDocs) 'hasPublishedDocs': true,
+    if (hasPublishedDocs ?? false) 'hasPublishedDocs': true,
     if (comment != null) 'comment': comment,
     if (documentation != null) 'documentation': documentation,
   };

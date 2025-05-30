@@ -223,6 +223,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.3"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
 
@@ -542,6 +543,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.0"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule was removed from the SDK in Dart 3; it is no longer functional.
       Its advice is compiler-specific and mostly obsolete with null safety.
@@ -1909,6 +1911,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.3"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
 
@@ -1938,6 +1941,7 @@ LintCode:
     state:
       stable: "2.1"
       removed: "3.3"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
 
@@ -2545,6 +2549,7 @@ LintCode:
     state:
       experimental: "3.3"
       removed: "3.3"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       This rule has been removed.
   avoid_unused_constructor_parameters:
@@ -4438,6 +4443,7 @@ LintCode:
     state:
       stable: "2.19"
       removed: "3.0"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.
 
@@ -5343,6 +5349,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.0"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.
 
@@ -5428,6 +5435,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.3"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
 
@@ -5868,6 +5876,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.3"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
 
@@ -7951,6 +7960,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.0"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.
 
@@ -8652,6 +8662,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.0"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.0; it is no longer functional.
 
@@ -11312,6 +11323,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.0"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.
 
