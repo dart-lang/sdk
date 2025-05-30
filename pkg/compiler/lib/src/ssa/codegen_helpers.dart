@@ -111,7 +111,7 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
       // The instructionType of [nullCheck] is not nullable (since it is the
       // (not) null check!) This means that if we do need to check the type, we
       // should test against nullCheck.checkedInput, not the direct input.
-      if (current!.getDartReceiver(_closedWorld) == nullCheck) {
+      if (current!.getDartReceiver() == nullCheck) {
         if (current is HFieldGet) return current;
         if (current is HFieldSet) return current;
         if (current is HGetLength) return current;

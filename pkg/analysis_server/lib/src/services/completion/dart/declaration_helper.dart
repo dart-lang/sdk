@@ -399,7 +399,10 @@ class DeclarationHelper {
       return;
     }
     AstNode? parent = containingMember.parent ?? containingMember;
-    if (parent is ClassMember) {
+    if (parent is EnumConstantDeclaration) {
+      assert(node is CommentReference);
+      parent = parent.parent;
+    } else if (parent is ClassMember) {
       assert(node is CommentReference);
       parent = parent.parent;
     } else if (parent is Directive) {

@@ -57,7 +57,7 @@ class SinceSdkVersionComputer {
   /// Returns the maximal specified `@Since()` version, `null` if none.
   static Version? _specifiedVersion(Annotatable element) {
     var annotations =
-        element.metadata2.annotations.cast<ElementAnnotationImpl>();
+        element.metadata.annotations.cast<ElementAnnotationImpl>();
     Version? result;
     for (var annotation in annotations) {
       if (annotation.isDartInternalSince) {

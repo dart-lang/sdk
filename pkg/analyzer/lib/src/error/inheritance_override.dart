@@ -983,7 +983,7 @@ class _ClassVerifier {
         if (method.isStatic) {
           continue;
         }
-        if (method.metadata2.hasMustBeOverridden) {
+        if (method.metadata.hasMustBeOverridden) {
           var methodDeclaration = classElement.getMethod(method.name3!);
           if (methodDeclaration == null || methodDeclaration.isAbstract) {
             notOverridden.add(method.baseElement);
@@ -997,8 +997,8 @@ class _ClassVerifier {
         if (getter.isStatic) {
           continue;
         }
-        if (getter.metadata2.hasMustBeOverridden ||
-            (getter.variable3?.metadata2.hasMustBeOverridden ?? false)) {
+        if (getter.metadata.hasMustBeOverridden ||
+            (getter.variable3?.metadata.hasMustBeOverridden ?? false)) {
           var declaration = classElement.getGetter(getter.name3!);
           if (declaration == null || declaration.isAbstract) {
             notOverridden.add(getter);
@@ -1012,8 +1012,8 @@ class _ClassVerifier {
         if (setter.isStatic) {
           continue;
         }
-        if (setter.metadata2.hasMustBeOverridden ||
-            (setter.variable3?.metadata2.hasMustBeOverridden ?? false)) {
+        if (setter.metadata.hasMustBeOverridden ||
+            (setter.variable3?.metadata.hasMustBeOverridden ?? false)) {
           var declaration = classElement.getSetter(setter.name3!);
           if (declaration == null || declaration.isAbstract) {
             notOverridden.add(setter);

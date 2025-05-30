@@ -6,7 +6,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -43,7 +42,7 @@ main() {
     var argument = findNode.integerLiteral('3');
     var parameter = argument.correspondingParameter!;
 
-    ElementAnnotation annotation = parameter.metadata[0];
+    ElementAnnotation annotation = parameter.metadata.annotations[0];
 
     DartObject value = annotation.computeConstantValue()!;
     expect(value.getField('f')!.toStringValue(), 'x');

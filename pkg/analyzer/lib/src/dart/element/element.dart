@@ -62,7 +62,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 abstract class AnnotatableElementImpl implements ElementImpl2, Annotatable {
   @override
-  MetadataImpl get metadata2;
+  MetadataImpl get metadata;
 }
 
 /// Shared implementation for an augmentable [Fragment].
@@ -1497,9 +1497,13 @@ class DynamicElementImpl2 extends TypeDefiningElementImpl2 {
   Null get library2 => null;
 
   @override
-  Metadata get metadata2 {
+  MetadataImpl get metadata {
     return MetadataImpl(const []);
   }
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   @override
   String get name3 => 'dynamic';
@@ -1541,6 +1545,13 @@ class DynamicFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
 
   @override
   Null get libraryFragment => null;
+
+  @override
+  MetadataImpl get metadata => MetadataImpl(metadata3);
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   @override
   String get name2 => 'dynamic';
@@ -1998,9 +2009,13 @@ sealed class ElementDirectiveImpl implements ElementDirective {
   Null get documentationComment => null;
 
   @override
-  MetadataImpl get metadata2 {
+  MetadataImpl get metadata {
     return MetadataImpl(annotations);
   }
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 }
 
 abstract class ElementImpl2 implements Element {
@@ -2250,7 +2265,7 @@ abstract class ExecutableElement2OrMember implements ExecutableElement {
   List<FormalParameterElementMixin> get formalParameters;
 
   @override
-  MetadataImpl get metadata2;
+  MetadataImpl get metadata;
 
   @override
   TypeImpl get returnType;
@@ -2509,9 +2524,9 @@ abstract class ExecutableFragmentImpl extends _ExistingElementImpl
   bool get isSynchronous => !isAsynchronous;
 
   @override
-  List<ElementAnnotationImpl> get metadata {
+  List<ElementAnnotationImpl> get metadata3 {
     linkedData?.read(this);
-    return super.metadata;
+    return super.metadata3;
   }
 
   @override
@@ -2674,9 +2689,9 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
   ElementKind get kind => ElementKind.EXTENSION;
 
   @override
-  List<ElementAnnotationImpl> get metadata {
+  List<ElementAnnotationImpl> get metadata3 {
     linkedData?.read(this);
-    return super.metadata;
+    return super.metadata3;
   }
 
   @override
@@ -3129,9 +3144,9 @@ class FieldFragmentImpl extends PropertyInducingElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  List<ElementAnnotationImpl> get metadata {
+  List<ElementAnnotationImpl> get metadata3 {
     linkedData?.read(this);
-    return super.metadata;
+    return super.metadata3;
   }
 
   @override
@@ -3486,6 +3501,13 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   }
 
   @override
+  MetadataImpl get metadata => MetadataImpl(metadata3);
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
+
+  @override
   // TODO(augmentations): Support chaining between the fragments.
   FormalParameterFragmentImpl? get nextFragment => null;
 
@@ -3551,13 +3573,16 @@ mixin FragmentedAnnotatableElementMixin<E extends Fragment>
     return buffer.toString();
   }
 
-  MetadataImpl get metadata2 {
+  MetadataImpl get metadata {
     var annotations = <ElementAnnotationImpl>[];
     for (var fragment in _fragments) {
-      annotations.addAll((fragment as FragmentImpl).metadata);
+      annotations.addAll((fragment as FragmentImpl).metadata3);
     }
     return MetadataImpl(annotations);
   }
+
+  @Deprecated('Use metadata instead')
+  MetadataImpl get metadata2 => metadata;
 
   Version? get sinceSdkVersion {
     if (this is Element) {
@@ -3828,15 +3853,13 @@ abstract class FragmentImpl implements FragmentOrMember {
   Source? get librarySource => library?.source;
 
   @override
-  List<ElementAnnotationImpl> get metadata {
+  List<ElementAnnotationImpl> get metadata3 {
     return _metadata;
   }
 
-  set metadata(List<ElementAnnotationImpl> metadata) {
+  set metadata3(List<ElementAnnotationImpl> metadata) {
     _metadata = metadata;
   }
-
-  MetadataImpl get metadata2 => MetadataImpl(metadata);
 
   @override
   String? get name => _name;
@@ -4007,7 +4030,8 @@ abstract class FragmentOrMember implements Fragment {
   ///
   /// The array will be empty if the element does not have any metadata or if
   /// the library containing this element has not yet been resolved.
-  List<ElementAnnotation> get metadata;
+  // TODO(scheglov): replace with `metadata` in [Annotatable] fragments.
+  List<ElementAnnotation> get metadata3;
 
   /// The name of this element, or `null` if this element does not have a name.
   String? get name;
@@ -4195,7 +4219,11 @@ class GenericFunctionTypeElementImpl2 extends FunctionTypedElementImpl2
   LibraryElementImpl get library2 => _wrappedElement.library;
 
   @override
-  Metadata get metadata2 => _wrappedElement.metadata2;
+  MetadataImpl get metadata => _wrappedElement.metadata;
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   @override
   String? get name3 => _wrappedElement.name;
@@ -4554,7 +4582,11 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   LibraryElementImpl get library2 => firstFragment.library;
 
   @override
-  MetadataImpl get metadata2 => firstFragment.metadata2;
+  MetadataImpl get metadata => firstFragment.metadata;
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   @override
   @trackedDirectlyExpensive
@@ -4947,9 +4979,9 @@ abstract class InstanceFragmentImpl extends _ExistingElementImpl
   }
 
   @override
-  List<ElementAnnotationImpl> get metadata {
+  List<ElementAnnotationImpl> get metadata3 {
     linkedData?.read(this);
-    return super.metadata;
+    return super.metadata3;
   }
 
   @override
@@ -6021,9 +6053,13 @@ class LibraryElementImpl extends ElementImpl2 implements LibraryElement {
   String? get lookupName => null;
 
   @override
-  MetadataImpl get metadata2 {
+  MetadataImpl get metadata {
     return MetadataImpl(annotations);
   }
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   @override
   String? get name3 => name;
@@ -6192,7 +6228,7 @@ class LibraryElementImpl extends ElementImpl2 implements LibraryElement {
     if (reference is ExportedReferenceExported) {
       for (var location in reference.locations) {
         var export = location.exportOf(this);
-        if (!export.metadata2.hasDeprecated) {
+        if (!export.metadata.hasDeprecated) {
           return false;
         }
       }
@@ -6524,9 +6560,16 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   Source get librarySource => library.source;
 
   @override
-  List<ElementAnnotationImpl> get metadata {
+  MetadataImpl get metadata => MetadataImpl(metadata3);
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
+
+  @override
+  List<ElementAnnotationImpl> get metadata3 {
     linkedData?.read(this);
-    return super.metadata;
+    return super.metadata3;
   }
 
   List<MixinFragmentImpl> get mixins {
@@ -6883,7 +6926,11 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
   bool get isStatic => _wrappedElement.isStatic;
 
   @override
-  MetadataImpl get metadata2 => _wrappedElement.metadata2;
+  MetadataImpl get metadata => _wrappedElement.metadata;
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   @override
   TypeImpl get returnType => _wrappedElement.returnType;
@@ -6978,7 +7025,11 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
   }
 
   @override
-  Metadata get metadata2 => wrappedElement.metadata2;
+  MetadataImpl get metadata => MetadataImpl(_wrappedElement.metadata3);
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   @override
   TypeImpl get type => _wrappedElement.type;
@@ -8081,9 +8132,13 @@ class NeverElementImpl2 extends TypeDefiningElementImpl2 {
   Null get library2 => null;
 
   @override
-  Metadata get metadata2 {
+  MetadataImpl get metadata {
     return MetadataImpl(const []);
   }
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   @override
   String get name3 => 'Never';
@@ -8136,6 +8191,13 @@ class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
 
   @override
   Null get libraryFragment => null;
+
+  @override
+  MetadataImpl get metadata => MetadataImpl(metadata3);
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   @override
   String get name2 => 'Never';
@@ -8907,9 +8969,9 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   }
 
   @override
-  List<ElementAnnotationImpl> get metadata {
+  List<ElementAnnotationImpl> get metadata3 {
     linkedData?.read(this);
-    return super.metadata;
+    return super.metadata3;
   }
 
   @override
@@ -8950,7 +9012,7 @@ abstract class PropertyInducingElement2OrMember
   GetterElement2OrMember? get getter2;
 
   @override
-  MetadataImpl get metadata2;
+  MetadataImpl get metadata;
 
   @override
   SetterElement2OrMember? get setter2;
@@ -9045,6 +9107,13 @@ abstract class PropertyInducingElementImpl
   LibraryFragment get libraryFragment {
     return enclosingFragment.libraryFragment!;
   }
+
+  @override
+  MetadataImpl get metadata => MetadataImpl(metadata3);
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   @override
   FragmentImpl get nonSynthetic {
@@ -9703,9 +9772,9 @@ class TopLevelVariableFragmentImpl extends PropertyInducingElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  List<ElementAnnotationImpl> get metadata {
+  List<ElementAnnotationImpl> get metadata3 {
     linkedData?.read(this);
-    return super.metadata;
+    return super.metadata3;
   }
 
   @override
@@ -10031,9 +10100,9 @@ class TypeAliasFragmentImpl extends _ExistingElementImpl
   }
 
   @override
-  List<ElementAnnotationImpl> get metadata {
+  List<ElementAnnotationImpl> get metadata3 {
     linkedData?.read(this);
-    return super.metadata;
+    return super.metadata3;
   }
 
   @override
@@ -10269,6 +10338,13 @@ class TypeParameterFragmentImpl extends FragmentImpl
   }
 
   @override
+  MetadataImpl get metadata => MetadataImpl(metadata3);
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
+
+  @override
   String get name {
     return super.name!;
   }
@@ -10369,6 +10445,13 @@ mixin TypeParameterizedElementMixin on FragmentImpl
   LibraryFragmentImpl get libraryFragment => enclosingUnit;
 
   ElementLinkedData? get linkedData;
+
+  @override
+  MetadataImpl get metadata => MetadataImpl(metadata3);
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   /// The type parameters declared by this element directly.
   ///

@@ -110,7 +110,7 @@ CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
   }
 
   for (var param in namedParams) {
-    if (param.metadata2.hasRequired || param.isRequiredNamed) {
+    if (param.metadata.hasRequired || param.isRequiredNamed) {
       if (sb.isNotEmpty) {
         sb.write(', ');
       }

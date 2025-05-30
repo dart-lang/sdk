@@ -209,7 +209,7 @@ class RelevanceComputer {
         );
       case NamedArgumentSuggestion():
         var parameter = suggestion.parameter;
-        if (parameter.isRequiredNamed || parameter.metadata2.hasRequired) {
+        if (parameter.isRequiredNamed || parameter.metadata.hasRequired) {
           return Relevance.requiredNamedArgument;
         } else {
           return Relevance.namedArgument;

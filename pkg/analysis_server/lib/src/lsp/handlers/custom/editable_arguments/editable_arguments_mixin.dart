@@ -188,8 +188,8 @@ extension on InvocationExpressionImpl {
     };
 
     return switch (element) {
-      FragmentedAnnotatableElementMixin(:var metadata2) =>
-        metadata2.hasWidgetFactory,
+      FragmentedAnnotatableElementMixin(:var metadata) =>
+        metadata.hasWidgetFactory,
       _ => false,
     };
   }

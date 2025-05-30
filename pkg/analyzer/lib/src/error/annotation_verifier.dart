@@ -475,7 +475,7 @@ class AnnotationVerifier {
       return;
     }
 
-    for (var annotation in declaredElement.metadata2.annotations) {
+    for (var annotation in declaredElement.metadata.annotations) {
       if (annotation.isVisibleForTemplate) {
         return;
       }

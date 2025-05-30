@@ -55,8 +55,8 @@ class RenameParameter extends Change<_Data> {
                 type: parameterElement.type,
               );
               builder.write(', ');
-              if (overriddenParameter.metadata2.hasDeprecated &&
-                  !parameterElement.metadata2.hasDeprecated) {
+              if (overriddenParameter.metadata.hasDeprecated &&
+                  !parameterElement.metadata.hasDeprecated) {
                 builder.write('@deprecated ');
               }
             });

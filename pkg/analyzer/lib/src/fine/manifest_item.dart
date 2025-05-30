@@ -43,7 +43,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
     ) {
       return ClassItem(
         id: id,
-        metadata: ManifestMetadata.encode(context, element.metadata2),
+        metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         declaredConflicts: {},
         declaredFields: {},
@@ -108,7 +108,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl2> {
     ) {
       return EnumItem(
         id: id,
-        metadata: ManifestMetadata.encode(context, element.metadata2),
+        metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         declaredConflicts: {},
         declaredFields: {},
@@ -173,7 +173,7 @@ class ExtensionItem<E extends ExtensionElementImpl2> extends InstanceItem<E> {
     ) {
       return ExtensionItem(
         id: id,
-        metadata: ManifestMetadata.encode(context, element.metadata2),
+        metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         declaredConflicts: {},
         declaredFields: {},
@@ -244,7 +244,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl2> {
     ) {
       return ExtensionTypeItem(
         id: id,
-        metadata: ManifestMetadata.encode(context, element.metadata2),
+        metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         declaredConflicts: {},
         declaredFields: {},
@@ -522,7 +522,7 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl2> {
   }) {
     return InstanceItemFieldItem(
       id: id,
-      metadata: ManifestMetadata.encode(context, element.metadata2),
+      metadata: ManifestMetadata.encode(context, element.metadata),
       isStatic: element.isStatic,
       type: element.type.encode(context),
       constInitializer: element.constantInitializer2?.expression.encode(
@@ -715,7 +715,7 @@ class InstanceItemMethodItem
   }) {
     return InstanceItemMethodItem(
       id: id,
-      metadata: ManifestMetadata.encode(context, element.metadata2),
+      metadata: ManifestMetadata.encode(context, element.metadata),
       isStatic: element.isStatic,
       functionType: element.type.encode(context),
     );
@@ -891,7 +891,7 @@ class InterfaceItemConstructorItem
     return context.withFormalParameters(element.formalParameters, () {
       return InterfaceItemConstructorItem(
         id: id,
-        metadata: ManifestMetadata.encode(context, element.metadata2),
+        metadata: ManifestMetadata.encode(context, element.metadata),
         isStatic: false,
         isConst: element.isConst,
         isFactory: element.isFactory,
@@ -1159,7 +1159,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl2> {
     ) {
       return MixinItem(
         id: id,
-        metadata: ManifestMetadata.encode(context, element.metadata2),
+        metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         declaredConflicts: {},
         declaredFields: {},
@@ -1226,7 +1226,7 @@ class TopLevelFunctionItem extends TopLevelItem<TopLevelFunctionElementImpl> {
   }) {
     return TopLevelFunctionItem(
       id: id,
-      metadata: ManifestMetadata.encode(context, element.metadata2),
+      metadata: ManifestMetadata.encode(context, element.metadata),
       functionType: element.type.encode(context),
     );
   }
@@ -1365,7 +1365,7 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl2> {
   }) {
     return TopLevelVariableItem(
       id: id,
-      metadata: ManifestMetadata.encode(context, element.metadata2),
+      metadata: ManifestMetadata.encode(context, element.metadata),
       type: element.type.encode(context),
       constInitializer: element.constantInitializer2?.expression.encode(
         context,
@@ -1421,7 +1421,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl2> {
     ) {
       return TypeAliasItem(
         id: id,
-        metadata: ManifestMetadata.encode(context, element.metadata2),
+        metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         aliasedType: element.aliasedType.encode(context),
       );
@@ -1492,7 +1492,7 @@ extension _AnnotatableElementExtension on AnnotatableElementImpl {
     if (this case PropertyAccessorElementImpl2 accessor) {
       return accessor.thisOrVariableMetadata;
     }
-    return metadata2;
+    return metadata;
   }
 }
 
@@ -1560,9 +1560,9 @@ extension _LookupNameToInterfaceItemConstructorItemMapExtension
 extension _PropertyAccessExtension on PropertyAccessorElementImpl2 {
   MetadataImpl get thisOrVariableMetadata {
     if (isSynthetic) {
-      return variable3!.metadata2;
+      return variable3!.metadata;
     } else {
-      return metadata2;
+      return metadata;
     }
   }
 }

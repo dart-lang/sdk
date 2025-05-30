@@ -66,11 +66,11 @@ class OverrideHelper {
   bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element is GetterElement && element.isSynthetic) {
       var variable = element.variable3;
-      if (variable != null && variable.metadata2.hasNonVirtual) {
+      if (variable != null && variable.metadata.hasNonVirtual) {
         return true;
       }
     }
-    return element.metadata2.hasNonVirtual;
+    return element.metadata.hasNonVirtual;
   }
 
   /// Returns the list of names that belong to [interfaceElement], but are not

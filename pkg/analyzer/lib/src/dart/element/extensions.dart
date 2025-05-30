@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:meta/meta_meta.dart';
 
@@ -33,25 +32,25 @@ extension Element2Extension on Element {
   /// annotation.
   bool get hasOrInheritsDoNotStore {
     if (this case Annotatable annotatable) {
-      if (annotatable.metadata2.hasDoNotStore) {
+      if (annotatable.metadata.hasDoNotStore) {
         return true;
       }
     }
 
     var ancestor = enclosingElement;
     if (ancestor is InterfaceElement) {
-      if (ancestor.metadata2.hasDoNotStore) {
+      if (ancestor.metadata.hasDoNotStore) {
         return true;
       }
       ancestor = ancestor.enclosingElement;
     } else if (ancestor is ExtensionElement) {
-      if (ancestor.metadata2.hasDoNotStore) {
+      if (ancestor.metadata.hasDoNotStore) {
         return true;
       }
       ancestor = ancestor.enclosingElement;
     }
 
-    return ancestor is LibraryElement && ancestor.metadata2.hasDoNotStore;
+    return ancestor is LibraryElement && ancestor.metadata.hasDoNotStore;
   }
 
   /// Return `true` if this element is an instance member of a class or mixin.
@@ -120,7 +119,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
     if (interfaceElement == null) {
       return const <TargetKind>{};
     }
-    for (var annotation in interfaceElement.metadata) {
+    for (var annotation in interfaceElement.metadata.annotations) {
       if (annotation.isTarget) {
         var value = annotation.computeConstantValue();
         if (value == null) {

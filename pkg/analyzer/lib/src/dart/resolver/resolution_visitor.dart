@@ -551,7 +551,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     var element = node.libraryExport;
     if (element != null) {
-      _setElementAnnotations(node.metadata, element.metadata2.annotations);
+      _setElementAnnotations(node.metadata, element.metadata.annotations);
     }
 
     _withElementWalker(null, () {
@@ -961,7 +961,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var element = node.libraryImport;
     if (element != null) {
-      _setElementAnnotations(node.metadata, element.metadata2.annotations);
+      _setElementAnnotations(node.metadata, element.metadata.annotations);
     }
 
     _withElementWalker(null, () {
@@ -1024,7 +1024,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     ++_libraryDirectiveIndex;
     var element = node.element2;
     if (element is LibraryElementImpl && _libraryDirectiveIndex == 1) {
-      _setElementAnnotations(node.metadata, element.metadata2.annotations);
+      _setElementAnnotations(node.metadata, element.metadata.annotations);
     }
 
     _withElementWalker(null, () {
@@ -1132,7 +1132,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitPartDirective(covariant PartDirectiveImpl node) {
     var partInclude = node.partInclude;
     if (partInclude != null) {
-      _setElementAnnotations(node.metadata, partInclude.metadata2.annotations);
+      _setElementAnnotations(node.metadata, partInclude.metadata.annotations);
     }
 
     _withElementWalker(null, () {
@@ -1824,9 +1824,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       annotations.accept(this);
     }
     if (_elementWalker != null) {
-      _setElementAnnotations(annotations, element.metadata);
+      _setElementAnnotations(annotations, element.metadata3);
     } else if (annotations.isNotEmpty) {
-      element.metadata =
+      element.metadata3 =
           annotations.map((annotation) {
             return annotation.elementAnnotation!;
           }).toList();

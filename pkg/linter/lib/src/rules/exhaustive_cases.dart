@@ -82,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var end = statement.rightParenthesis.end;
         var elements = enumConstants[constant]!;
         var preferredElement = elements.firstWhere(
-          (element) => !element.metadata2.hasDeprecated,
+          (element) => !element.metadata.hasDeprecated,
           orElse: () => elements.first,
         );
         if (preferredElement.name3 case var name?) {

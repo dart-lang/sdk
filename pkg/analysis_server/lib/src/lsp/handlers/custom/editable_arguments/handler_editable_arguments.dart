@@ -245,7 +245,7 @@ class EditableArgumentsHandler
       isRequired: parameter.isRequired,
       isNullable:
           parameter.type.nullabilitySuffix == NullabilitySuffix.question,
-      isDeprecated: parameter.metadata2.hasDeprecated,
+      isDeprecated: parameter.metadata.hasDeprecated,
       isEditable: notEditableReason == null,
       notEditableReason: notEditableReason,
     );

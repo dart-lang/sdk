@@ -24,6 +24,7 @@ import 'package:analysis_server/src/services/correction/refactoring_performance.
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
+import 'package:analysis_server/src/status/message_scheduler_page.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:analysis_server/src/utilities/stream_string_stink.dart';
@@ -1554,6 +1555,7 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
     pages.add(ByteStoreTimingPage(this));
     pages.add(CompletionPage(this));
     pages.add(FixesPage(this));
+    pages.add(MessageSchedulerPage(this));
     pages.add(RefactoringsPage(this));
   }
 

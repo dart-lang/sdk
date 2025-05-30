@@ -842,7 +842,7 @@ class SuggestionBuilder {
       completion,
       selectionRange.offset - offsetDelta,
       selectionRange.length,
-      element.metadata2.hasDeprecated,
+      element.metadata.hasDeprecated,
       false,
       displayText: displayText,
       requiredImports: overrideImports.toList(),

@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.constKeyword != null) return;
     var element = node.declaredFragment?.element;
     if (element == null) return;
-    if (element.metadata2.hasImmutable) {
+    if (element.metadata.hasImmutable) {
       rule.reportAtToken(node.name);
     }
   }
@@ -116,6 +116,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// `@immutable`.
   static bool _hasImmutableAnnotation(InterfaceElement clazz) {
     var selfAndInheritedClasses = _getSelfAndSuperClasses(clazz);
-    return selfAndInheritedClasses.any((cls) => cls.metadata2.hasImmutable);
+    return selfAndInheritedClasses.any((cls) => cls.metadata.hasImmutable);
   }
 }

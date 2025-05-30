@@ -305,12 +305,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     // Ensure there is at most one @DefaultAsset annotation per library
     var hasDefaultAsset = false;
 
-    if (node.element2 case LibraryElement library) {
-      for (var metadata in library.metadata) {
-        var annotationValue = metadata.computeConstantValue();
+    if (node.element2 case LibraryElementImpl library) {
+      for (var annotation in library.metadata.annotations) {
+        var annotationValue = annotation.computeConstantValue();
         if (annotationValue != null && annotationValue.isDefaultAsset) {
           if (hasDefaultAsset) {
-            var name = (metadata as ElementAnnotationImpl).annotationAst.name;
+            var name = annotation.annotationAst.name;
             _errorReporter.atNode(
               name,
               FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET,
@@ -454,7 +454,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         formalParameterList?.parameters ?? <FormalParameter>[];
     var hadNativeAnnotation = false;
 
-    for (var annotation in declarationElement.metadata) {
+    for (var annotation in declarationElement.metadataAnnotations) {
       var annotationValue = annotation.computeConstantValue();
       var annotationType = annotationValue?.type; // Native<T>
 
@@ -1738,7 +1738,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     };
 
     if (referencedElement != null) {
-      for (var annotation in referencedElement.metadata) {
+      for (var annotation in referencedElement.metadataAnnotations) {
         var value = annotation.computeConstantValue();
         var annotationType = value?.type;
 
@@ -2279,7 +2279,7 @@ extension on ElementAnnotation {
 extension on TopLevelFunctionElement {
   /// @Native(isLeaf: true) external function.
   bool get isNativeLeaf {
-    for (var annotation in metadata2.annotations) {
+    for (var annotation in metadata.annotations) {
       if (annotation.isNativeLeaf) {
         return true;
       }
@@ -2291,7 +2291,7 @@ extension on TopLevelFunctionElement {
 extension on MethodElement {
   /// @Native(isLeaf: true) external function.
   bool get isNativeLeaf {
-    for (var annotation in metadata2.annotations) {
+    for (var annotation in metadata.annotations) {
       if (annotation.isNativeLeaf) {
         return true;
       }

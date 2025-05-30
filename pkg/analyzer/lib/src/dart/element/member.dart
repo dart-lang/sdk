@@ -284,6 +284,13 @@ abstract class ExecutableMember extends Member
   Source get librarySource => _declaration.librarySource!;
 
   @override
+  MetadataImpl get metadata => baseElement.metadata;
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
+
+  @override
   int get nameOffset => declaration.nameOffset;
 
   @override
@@ -478,7 +485,7 @@ class FieldMember extends VariableMember
   });
 
   @override
-  FieldElement get baseElement => _element2;
+  FieldElementImpl2 get baseElement => _element2;
 
   @override
   List<Element> get children2 => const [];
@@ -554,6 +561,13 @@ class FieldMember extends VariableMember
   String? get lookupName => _element2.lookupName;
 
   @override
+  MetadataImpl get metadata => baseElement.metadata;
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
+
+  @override
   String get name => declaration.name;
 
   @override
@@ -579,7 +593,7 @@ class FieldMember extends VariableMember
   Source? get source => _declaration.source;
 
   @override
-  FieldElement get _element2 => declaration.asElement2;
+  FieldElementImpl2 get _element2 => declaration.asElement2;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -788,9 +802,7 @@ abstract class Member implements FragmentOrMember {
   Source? get librarySource => _declaration.librarySource;
 
   @override
-  List<ElementAnnotation> get metadata => _declaration.metadata;
-
-  MetadataImpl get metadata2 => declaration.metadata2;
+  List<ElementAnnotation> get metadata3 => _declaration.metadata3;
 
   @override
   String? get name => _declaration.name;
@@ -1039,6 +1051,13 @@ class ParameterMember extends VariableMember
 
   @override
   String? get lookupName => _element2.lookupName;
+
+  @override
+  MetadataImpl get metadata => baseElement.metadata;
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   @override
   String get name => declaration.name;

@@ -27,6 +27,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     show MessageType;
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
+import 'package:analysis_server/src/scheduler/scheduler_tracking_listener.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -296,8 +297,12 @@ abstract class AnalysisServer {
          httpClient,
          Platform.environment['PUB_HOSTED_URL'],
        ),
-       messageScheduler = MessageScheduler(listener: messageSchedulerListener) {
-    messageScheduler.setServer(this);
+       messageScheduler = MessageScheduler(
+         listener:
+             messageSchedulerListener ??
+             SchedulerTrackingListener(analyticsManager),
+       ) {
+    messageScheduler.server = this;
     // Set the default URI converter. This uses the resource providers path
     // context (unlike the initialized value) which allows tests to override it.
     uriConverter = ClientUriConverter.noop(baseResourceProvider.pathContext);

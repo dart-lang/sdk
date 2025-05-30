@@ -214,7 +214,7 @@ class C {
 ''');
     // Check metadata without asking any other properties.
     var x = library.getClass2('C')!.getField('x')!;
-    expect(x.metadata2.annotations, hasLength(1));
+    expect(x.metadata.annotations, hasLength(1));
     // Check details.
     checkElementText(library, r'''
 library
@@ -5513,7 +5513,7 @@ part 'b.dart';
     // The difference with the test above is that we ask the part first.
     // There was a bug that we were not loading library directives.
     expect(
-      library.definingCompilationUnit.parts[0].metadata2.annotations,
+      library.definingCompilationUnit.parts[0].metadata.annotations,
       isEmpty,
     );
   }
@@ -6554,7 +6554,7 @@ int x = 0;
 ''');
     // Check metadata without asking any other properties.
     var x = library.getTopLevelVariable('x')!;
-    expect(x.metadata2.annotations, hasLength(1));
+    expect(x.metadata.annotations, hasLength(1));
     // Check details.
     checkElementText(library, r'''
 library

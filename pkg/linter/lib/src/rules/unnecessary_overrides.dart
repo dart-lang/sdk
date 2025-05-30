@@ -112,11 +112,11 @@ abstract class _AbstractUnnecessaryOverrideVisitor
   /// Returns whether [declaration] is annotated with any metadata (other than
   /// `@override` or `@Override`).
   bool _addsMetadata() {
-    var metadata = declaration.declaredFragment?.element.metadata2;
+    var metadata = declaration.declaredFragment?.element.metadata;
     if (metadata != null) {
       for (var annotation in metadata.annotations) {
         if (annotation.isOverride) continue;
-        if (annotation.isProtected && _inheritedMethod.metadata2.hasProtected) {
+        if (annotation.isProtected && _inheritedMethod.metadata.hasProtected) {
           continue;
         }
 
@@ -159,10 +159,10 @@ abstract class _AbstractUnnecessaryOverrideVisitor
   bool _makesPublicFromProtected() {
     var declaredElement = declaration.declaredFragment?.element;
     if (declaredElement == null) return false;
-    if (declaredElement.metadata2.hasProtected) {
+    if (declaredElement.metadata.hasProtected) {
       return false;
     }
-    return _inheritedMethod.metadata2.hasProtected;
+    return _inheritedMethod.metadata.hasProtected;
   }
 
   bool _sameKind(FormalParameterElement first, FormalParameterElement second) {

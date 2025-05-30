@@ -43,19 +43,19 @@ extension ElementExtensions on Element {
   /// annotation.
   bool get hasOrInheritsDeprecated {
     if (this case Annotatable annotatable) {
-      if (annotatable.metadata2.hasDeprecated) {
+      if (annotatable.metadata.hasDeprecated) {
         return true;
       }
     }
 
     var ancestor = enclosingElement;
     if (ancestor is InterfaceElement) {
-      if (ancestor.metadata2.hasDeprecated) {
+      if (ancestor.metadata.hasDeprecated) {
         return true;
       }
       ancestor = ancestor.enclosingElement;
     }
-    return ancestor is LibraryElement && ancestor.metadata2.hasDeprecated;
+    return ancestor is LibraryElement && ancestor.metadata.hasDeprecated;
   }
 
   /// Return this element and all its enclosing elements.

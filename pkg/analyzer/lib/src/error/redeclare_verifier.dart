@@ -37,7 +37,7 @@ class RedeclareVerifier extends RecursiveAstVisitor<void> {
     // Static members can't redeclare.
     if (element.isStatic) return;
 
-    if (element.metadata2.hasRedeclare && !_redeclaresMember(element)) {
+    if (element.metadata.hasRedeclare && !_redeclaresMember(element)) {
       switch (element) {
         case MethodElement():
           _errorReporter.atToken(

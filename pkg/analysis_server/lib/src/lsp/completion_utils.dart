@@ -620,7 +620,7 @@ CompletionDetail _getCompletionDetail(
   var detail = fullSignature;
   if (element != null &&
       (element is Annotatable &&
-          (element as Annotatable).metadata2.hasDeprecated) &&
+          (element as Annotatable).metadata.hasDeprecated) &&
       !supportsDeprecated) {
     // If the item is deprecated and we don't support the native deprecated flag
     // then include it in the details.

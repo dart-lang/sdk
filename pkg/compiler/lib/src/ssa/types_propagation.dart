@@ -438,7 +438,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       pendingOptimizations.putIfAbsent(node, () => checkInputs);
     }
 
-    HInstruction receiver = node.getDartReceiver(closedWorld);
+    HInstruction receiver = node.getDartReceiver();
     AbstractValue receiverType = receiver.instructionType;
     node.updateReceiverType(abstractValueDomain, receiverType);
 

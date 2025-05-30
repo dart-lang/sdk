@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!element.isConst) return;
 
     // Handled by an analyzer warning.
-    if (element.metadata2.hasLiteral) return;
+    if (element.metadata.hasLiteral) return;
 
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is ClassElement && enclosingElement.isDartCoreObject) {

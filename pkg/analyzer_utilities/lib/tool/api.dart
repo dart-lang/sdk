@@ -396,10 +396,10 @@ class ApiDescription {
     }
 
     if (element case Annotatable element) {
-      if (element.metadata2.hasDeprecated) {
+      if (element.metadata.hasDeprecated) {
         parentheticals.add(['deprecated']);
       }
-      if (element.metadata2.hasExperimental) {
+      if (element.metadata.hasExperimental) {
         parentheticals.add(['experimental']);
       }
     }
@@ -661,7 +661,7 @@ extension on Element {
       // Any element annotated with `@analyzerPublicApi` is considered to be
       // part of the public API of the analyzer package.
       if (this case Annotatable(
-        metadata2: Metadata(:var annotations),
+        metadata: Metadata(:var annotations),
       ) when annotations.any(_isPublicApiAnnotation)) {
         return true;
       }

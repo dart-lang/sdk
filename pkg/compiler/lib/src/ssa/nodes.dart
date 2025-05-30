@@ -1334,7 +1334,7 @@ abstract class HInstruction implements SpannableWithEntity {
   AbstractBool isPrimitiveOrNull(AbstractValueDomain domain) =>
       domain.isPrimitiveOrNull(instructionType);
 
-  HInstruction? getDartReceiver(JClosedWorld closedWorld) => null;
+  HInstruction? getDartReceiver() => null;
   bool onlyThrowsNSM() => false;
 
   bool isInBasicBlock() => block != null;
@@ -1480,8 +1480,6 @@ abstract class HInstruction implements SpannableWithEntity {
   bool isConstantString() => false;
   bool isConstantFalse() => false;
   bool isConstantTrue() => false;
-
-  bool isInterceptor(JClosedWorld closedWorld) => false;
 
   bool isValid() {
     HValidator validator = HValidator();
@@ -1914,6 +1912,12 @@ abstract class HInvoke extends HInstruction
   /// input is the Dart receiver.
   bool isInterceptedCall = false;
 
+  /// [_isCallOnInterceptor] is true if this invocation uses the interceptor
+  /// calling convention *and* the interceptor input is an interceptor, and not
+  /// the receiver. A call has `isInterceptedCall == true` and
+  /// `_isCallOnInterceptor == false` after the 'self interceptor' optimization.
+  bool _isCallOnInterceptor = false;
+
   HInvoke(super.inputs, super.type) : super() {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
@@ -1928,6 +1932,30 @@ abstract class HInvoke extends HInstruction
 
   void setAllocation(bool value) {
     _isAllocation = value;
+  }
+
+  bool get isCallOnInterceptor => _isCallOnInterceptor;
+
+  /// Update 'isCallOnInterceptor'. An intercepted call can go through
+  /// refinements that drop references to unneeded values or arguments:
+  ///
+  ///     interceptor.foo(receiver, ...); // isCallOnInterceptor = true
+  /// -->
+  ///     receiver.foo(receiver, ...);    // isCallOnInterceptor = false
+  /// -->
+  ///     receiver.foo(dummy, ...);       // isCallOnInterceptor = false
+  void updateIsCallOnInterceptor() {
+    if (isInterceptedCall && _isCallOnInterceptor) {
+      final interceptor = inputs[0].nonCheck();
+      final receiver = inputs[1].nonCheck();
+      if (interceptor == receiver) {
+        _isCallOnInterceptor = false;
+      } else if (receiver case HConstant(
+        constant: DummyInterceptorConstantValue(),
+      )) {
+        _isCallOnInterceptor = false;
+      }
+    }
   }
 }
 
@@ -1978,6 +2006,8 @@ abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
           : const InvokeDynamicSpecializer(),
       super(inputs, resultType) {
     isInterceptedCall = isIntercepted;
+    _isCallOnInterceptor = isIntercepted;
+    updateIsCallOnInterceptor();
   }
 
   Selector get selector => _selector;
@@ -2047,17 +2077,12 @@ abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
   HInstruction get receiver => inputs[0];
 
   @override
-  HInstruction getDartReceiver(JClosedWorld closedWorld) {
-    return isCallOnInterceptor(closedWorld) ? inputs[1] : inputs[0];
+  HInstruction getDartReceiver() {
+    return _isCallOnInterceptor ? inputs[1] : inputs[0];
   }
 
   /// The type arguments passed in this dynamic invocation.
   List<DartType> get typeArguments;
-
-  /// Returns whether this call is on an interceptor object.
-  bool isCallOnInterceptor(JClosedWorld closedWorld) {
-    return isInterceptedCall && receiver.isInterceptor(closedWorld);
-  }
 
   @override
   _GvnType get _gvnType => _GvnType.invokeDynamic;
@@ -2238,6 +2263,8 @@ class HInvokeStatic extends HInvoke {
     bool isIntercepted = false,
   }) : super(inputs, type) {
     isInterceptedCall = isIntercepted;
+    _isCallOnInterceptor = isIntercepted;
+    updateIsCallOnInterceptor();
   }
 
   @override
@@ -2282,13 +2309,8 @@ class HInvokeSuper extends HInvokeStatic {
 
   HInstruction get receiver => inputs[0];
   @override
-  HInstruction getDartReceiver(JClosedWorld closedWorld) {
-    return isCallOnInterceptor(closedWorld) ? inputs[1] : inputs[0];
-  }
-
-  /// Returns whether this call is on an interceptor object.
-  bool isCallOnInterceptor(JClosedWorld closedWorld) {
-    return isInterceptedCall && receiver.isInterceptor(closedWorld);
+  HInstruction getDartReceiver() {
+    return isCallOnInterceptor ? inputs[1] : inputs[0];
   }
 
   @override
@@ -2375,27 +2397,11 @@ class HFieldGet extends HFieldAccess {
   }
 
   @override
-  bool isInterceptor(JClosedWorld closedWorld) {
-    final entity = sourceElement;
-    // In case of a closure inside an interceptor class, JavaScript `this`, the
-    // interceptor, is stored in the generated closure class, and accessed
-    // through a [HFieldGet].
-    // TODO(sra): It would be better to track this as an explicit property
-    // rather than recover it from `sourceElement`.
-    if (entity is ThisLocal) {
-      return closedWorld.interceptorData.isInterceptedClass(
-        entity.enclosingClass,
-      );
-    }
-    return false;
-  }
-
-  @override
   bool canThrow(AbstractValueDomain domain) =>
       receiver.isNull(domain).isPotentiallyTrue;
 
   @override
-  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  HInstruction getDartReceiver() => receiver;
   @override
   bool onlyThrowsNSM() => true;
 
@@ -2425,7 +2431,7 @@ class HFieldSet extends HFieldAccess {
       receiver.isNull(domain).isPotentiallyTrue;
 
   @override
-  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  HInstruction getDartReceiver() => receiver;
   @override
   bool onlyThrowsNSM() => true;
 
@@ -2478,7 +2484,7 @@ class HGetLength extends HInstruction {
       receiver.isNull(domain).isPotentiallyTrue;
 
   @override
-  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  HInstruction getDartReceiver() => receiver;
   @override
   bool onlyThrowsNSM() => true;
 
@@ -2553,7 +2559,7 @@ class HReadModifyWrite extends HInstruction implements HLateInstruction {
       receiver.isNull(domain).isPotentiallyTrue;
 
   @override
-  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  HInstruction getDartReceiver() => receiver;
   @override
   bool onlyThrowsNSM() => true;
 
@@ -3253,10 +3259,6 @@ class HConstant extends HInstruction {
   @override
   bool isConstantTrue() => constant is TrueConstantValue;
 
-  @override
-  bool isInterceptor(JClosedWorld closedWorld) =>
-      constant is InterceptorConstantValue;
-
   // Maybe avoid this if the literal is big?
   @override
   bool isCodeMotionInvariant() => true;
@@ -3338,25 +3340,10 @@ class HThis extends HParameterValue {
   HThis(ThisLocal? element, AbstractValue type) : super(element, type);
 
   @override
-  ThisLocal? get sourceElement => super.sourceElement as ThisLocal?;
-
-  @override
-  set sourceElement(covariant ThisLocal? local) {
-    super.sourceElement = local;
-  }
-
-  @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitThis(this);
 
   @override
   bool isCodeMotionInvariant() => true;
-
-  @override
-  bool isInterceptor(JClosedWorld closedWorld) {
-    return closedWorld.interceptorData.isInterceptedClass(
-      sourceElement!.enclosingClass,
-    );
-  }
 
   @override
   String toString() => 'this';
@@ -3634,9 +3621,6 @@ class HInterceptor extends HInstruction {
   }
 
   @override
-  bool isInterceptor(JClosedWorld closedWorld) => true;
-
-  @override
   _GvnType get _gvnType => _GvnType.interceptor;
   @override
   bool typeEquals(other) => other is HInterceptor;
@@ -3670,9 +3654,8 @@ class HOneShotInterceptor extends HInvokeDynamic {
   ) : super(selector, receiverType, null, inputs, true, resultType) {
     assert(inputs[0].isConstantNull());
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
+    _isCallOnInterceptor = true;
   }
-  @override
-  bool isCallOnInterceptor(JClosedWorld closedWorld) => true;
 
   @override
   String toString() =>
@@ -3767,7 +3750,7 @@ class HIndex extends HInstruction {
   bool get isMovable => false;
 
   @override
-  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  HInstruction getDartReceiver() => receiver;
   @override
   bool onlyThrowsNSM() => true;
   @override
@@ -3806,7 +3789,7 @@ class HIndexAssign extends HInstruction {
   bool get isMovable => false;
 
   @override
-  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  HInstruction getDartReceiver() => receiver;
   @override
   bool onlyThrowsNSM() => true;
   @override
@@ -3832,7 +3815,7 @@ class HCharCodeAt extends HInstruction {
   bool get isMovable => false;
 
   @override
-  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  HInstruction getDartReceiver() => receiver;
   @override
   bool onlyThrowsNSM() => true;
   @override

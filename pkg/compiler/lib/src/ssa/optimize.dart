@@ -1042,7 +1042,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       if (folded != node) return folded;
     }
 
-    HInstruction receiver = node.getDartReceiver(_closedWorld);
+    HInstruction receiver = node.getDartReceiver();
     AbstractValue receiverType = receiver.instructionType;
     final element = _closedWorld.locateSingleMember(
       node.selector,
@@ -1090,8 +1090,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
     if (element is FieldEntity && element.name == node.selector.name) {
       FieldEntity field = element;
-      if (!_nativeData.isNativeMember(field) &&
-          !node.isCallOnInterceptor(_closedWorld)) {
+      if (!_nativeData.isNativeMember(field) && !node.isCallOnInterceptor) {
         // Insertion point for the closure call.
         HInstruction insertionPoint = node;
         HInstruction load;
@@ -1991,7 +1990,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       HInstruction folded = handleInterceptedCall(node);
       if (folded != node) return folded;
     }
-    HInstruction receiver = node.getDartReceiver(_closedWorld);
+    HInstruction receiver = node.getDartReceiver();
     AbstractValue receiverType = receiver.instructionType;
 
     Selector selector = node.selector;
@@ -2102,7 +2101,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       if (folded != node) return folded;
     }
 
-    HInstruction receiver = node.getDartReceiver(_closedWorld);
+    HInstruction receiver = node.getDartReceiver();
     AbstractValue receiverType = receiver.instructionType;
     final member = node.element ??= _closedWorld.locateSingleMember(
       node.selector,
@@ -2175,7 +2174,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   @override
   HInstruction visitInvokeClosure(HInvokeClosure node) {
-    HInstruction closure = node.getDartReceiver(_closedWorld);
+    HInstruction closure = node.getDartReceiver();
 
     // Replace indirect call to static method tear-off closure with direct call
     // to static method.
@@ -3169,10 +3168,10 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
     if (!instruction.onlyThrowsNSM()) return false;
 
-    final receiver = instruction.getDartReceiver(closedWorld);
+    final receiver = instruction.getDartReceiver();
     HInstruction? current = instruction.next;
     do {
-      if ((current!.getDartReceiver(closedWorld) == receiver) &&
+      if ((current!.getDartReceiver() == receiver) &&
           current.canThrow(_abstractValueDomain)) {
         return true;
       }
@@ -3218,9 +3217,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       if (use is HFieldSet) {
         // The use must be the receiver.  Even if the use is also the argument,
         // i.e.  a.x = a, the store is still dead if all other uses are dead.
-        if (use.getDartReceiver(closedWorld) == instruction) return true;
+        if (use.getDartReceiver() == instruction) return true;
       } else if (use is HFieldGet) {
-        assert(use.getDartReceiver(closedWorld) == instruction);
+        assert(use.getDartReceiver() == instruction);
         if (isDeadCode(use)) return true;
       }
       return false;
@@ -3236,7 +3235,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
   bool isTrivialDeadStore(HInstruction instruction) {
     return instruction is HFieldSet &&
-        isTrivialDeadStoreReceiver(instruction.getDartReceiver(closedWorld));
+        isTrivialDeadStoreReceiver(instruction.getDartReceiver());
   }
 
   bool isDeadCode(HInstruction instruction) {
@@ -3335,11 +3334,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
         final phiBlock = phi.block!;
         phiBlock.rewrite(phi, replacement);
         phiBlock.removePhi(phi);
-        if (replacement.sourceElement == null &&
-            phi.sourceElement != null &&
-            replacement is! HThis) {
-          replacement.sourceElement = phi.sourceElement;
-        }
+        replacement.sourceElement ??= phi.sourceElement;
         return;
       }
     }
@@ -3714,11 +3709,7 @@ class SsaRedundantPhiEliminator implements OptimizationPhase {
       final phiBlock = phi.block!;
       phiBlock.rewrite(phi, candidate);
       phiBlock.removePhi(phi);
-      if (candidate.sourceElement == null &&
-          phi.sourceElement != null &&
-          candidate is! HThis) {
-        candidate.sourceElement = phi.sourceElement;
-      }
+      candidate.sourceElement ??= phi.sourceElement;
     }
   }
 
@@ -4508,7 +4499,7 @@ class SsaLoadElimination extends HBaseVisitor<void>
   @override
   void visitFieldGet(HFieldGet node) {
     FieldEntity element = node.element;
-    HInstruction receiver = node.getDartReceiver(_closedWorld).nonCheck();
+    HInstruction receiver = node.getDartReceiver().nonCheck();
     _visitFieldGet(element, receiver, node);
   }
 
@@ -4545,7 +4536,7 @@ class SsaLoadElimination extends HBaseVisitor<void>
   @override
   void visitFieldSet(HFieldSet node) {
     FieldEntity element = node.element;
-    HInstruction receiver = node.getDartReceiver(_closedWorld).nonCheck();
+    HInstruction receiver = node.getDartReceiver().nonCheck();
     if (memorySet.registerFieldValueUpdate(element, receiver, node.value)) {
       node.block!.remove(node);
     }

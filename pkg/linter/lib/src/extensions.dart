@@ -79,7 +79,7 @@ extension AstNodeExtension on AstNode {
     if (self is VariableDeclaration) {
       var element = self.declaredFragment?.element;
       if (element is TopLevelVariableElement) {
-        return element.metadata2.hasInternal;
+        return element.metadata.hasInternal;
       }
     }
 
@@ -87,7 +87,7 @@ extension AstNodeExtension on AstNode {
     if (parent == null) return false;
 
     return switch (parent.declaredFragment?.element) {
-      Annotatable(:var metadata2) => metadata2.hasInternal,
+      Annotatable(:var metadata) => metadata.hasInternal,
       _ => false,
     };
   }
@@ -156,7 +156,7 @@ extension ClassElementExtension on ClassElement {
       this,
     ];
 
-    return inheritedAndSelfElements.any((e) => e.metadata2.hasImmutable);
+    return inheritedAndSelfElements.any((e) => e.metadata.hasImmutable);
 
     // TODO(pq): update when implemented or replace w/ a better has{*} call
     // https://github.com/dart-lang/linter/issues/4939
@@ -340,7 +340,7 @@ extension ElementExtension on Element? {
     if (self == null || self is! Annotatable) {
       return false;
     }
-    return (self as Annotatable).metadata2.hasAwaitNotRequired ||
+    return (self as Annotatable).metadata.hasAwaitNotRequired ||
         (self is PropertyAccessorElement && self.variable3.hasAwaitNotRequired);
   }
 
@@ -536,7 +536,7 @@ extension FunctionBodyExtension on FunctionBody? {
 extension InstanceElementExtension on InstanceElement {
   bool get isReflectiveTest =>
       this is ClassElement &&
-      metadata2.annotations.any((a) => a.isReflectiveTest);
+      metadata.annotations.any((a) => a.isReflectiveTest);
 }
 
 extension InterfaceElementExtension on InterfaceElement {

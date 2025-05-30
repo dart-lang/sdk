@@ -51,7 +51,7 @@ class _Generator {
   Future<_ImplClass?> _buildImplClass(ClassDeclarationImpl nodeImpl) async {
     var classElement = nodeImpl.declaredFragment!.element;
     var generateObject =
-        classElement.metadata2.annotations
+        classElement.metadata.annotations
             .map((annotation) {
               var generateObject = annotation.computeConstantValue();
               var generateObjectType = generateObject?.type;
@@ -675,14 +675,14 @@ void visitChildren(AstVisitor visitor) {''');
           case ConstructorDeclarationImpl():
             var element = member.declaredFragment!.element;
             memberName = element.lookupName!;
-            if (element.metadata2.hasDoNotGenerate) {
+            if (element.metadata.hasDoNotGenerate) {
               implClass.doNotGenerateLookupNames.add(memberName);
               continue;
             }
           case MethodDeclarationImpl():
             var element = member.declaredFragment!.element;
             memberName = element.lookupName!;
-            if (element.metadata2.hasDoNotGenerate) {
+            if (element.metadata.hasDoNotGenerate) {
               implClass.doNotGenerateLookupNames.add(memberName);
               continue;
             }

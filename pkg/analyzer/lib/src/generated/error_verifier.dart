@@ -6156,7 +6156,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             if (typeSystem.isPotentiallyNonNullable(type)) {
               var parameterName = _parameterName(parameter);
               var errorTarget = parameterName ?? parameter;
-              if (parameterElement.metadata2.hasRequired) {
+              if (parameterElement.metadata.hasRequired) {
                 errorReporter.atEntity(
                   errorTarget,
                   CompileTimeErrorCode

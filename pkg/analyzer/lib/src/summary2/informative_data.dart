@@ -2013,7 +2013,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   void applyToExports(List<LibraryExportImpl> elements) {
     for (var element in elements) {
-      applyToMetadataList(element.metadata2.annotations);
+      applyToMetadataList(element.metadata.annotations);
     }
   }
 
@@ -2029,12 +2029,12 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   void applyToImports(List<LibraryImportImpl> elements) {
     for (var element in elements) {
-      applyToMetadataList(element.metadata2.annotations);
+      applyToMetadataList(element.metadata.annotations);
     }
   }
 
   void applyToMetadata(FragmentImpl element) {
-    applyToMetadataList(element.metadata);
+    applyToMetadataList(element.metadata3);
   }
 
   void applyToMetadataList(List<ElementAnnotationImpl> metadata) {
@@ -2046,7 +2046,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   void applyToParts(List<PartIncludeImpl> elements) {
     for (var element in elements) {
-      applyToMetadataList(element.metadata2.annotations);
+      applyToMetadataList(element.metadata.annotations);
     }
   }
 

@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void checkArgument(Expression arg, FormalParameterElement? param) {
     if (param == null ||
         param.isRequired ||
-        param.metadata2.hasRequired ||
+        param.metadata.hasRequired ||
         !param.isOptional) {
       return;
     }
