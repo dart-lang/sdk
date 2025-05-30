@@ -119,6 +119,7 @@ class C extends core::Object {
   }
   set c(synthesized core::int value) → void
     this.{mai::C::_#C#c#AI} = value;
+  @#C3
   get d() → core::int {
     synthesized core::int value = this.{mai::C::_#C#d#FI}{core::int};
     if(_in::isSentinel(value)) {
@@ -213,6 +214,11 @@ static get b() → core::int
 static set b(synthesized core::int value) → void
   return mai2::_#b.{_la::_Cell::finalFieldValue} = value;
 
+constants  {
+  #C1 = "dart2js:allow-cse"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}
 
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///main_lib1.dart:8:16 -> DoubleConstant(-1.0)

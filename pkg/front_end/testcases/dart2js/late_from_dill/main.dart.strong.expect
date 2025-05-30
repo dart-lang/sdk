@@ -119,6 +119,7 @@ class C extends core::Object {
   }
   set c(synthesized core::int value) → void
     this.{mai::C::_#C#c#AI} = value;
+  @#C3
   get d() → core::int {
     synthesized core::int value = this.{mai::C::_#C#d#FI}{core::int};
     if(_in::isSentinel(value)) {
@@ -212,3 +213,9 @@ static get b() → core::int
   return mai2::_#b.{_la::_Cell::readField}<core::int>(){() → core::int};
 static set b(synthesized core::int value) → void
   return mai2::_#b.{_la::_Cell::finalFieldValue} = value;
+
+constants  {
+  #C1 = "dart2js:allow-cse"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}

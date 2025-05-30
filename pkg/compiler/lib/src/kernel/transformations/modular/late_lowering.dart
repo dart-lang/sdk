@@ -76,6 +76,10 @@ class LateLowering {
 
   final ExtensionTable _extensionTable = ExtensionTable();
 
+  late final InstanceConstant pragmaAllowCSE = _pragmaConstant(
+    'dart2js:allow-cse',
+  );
+
   LateLowering(this._coreTypes, CompilerOptions? _options)
     : _omitLateNames = _options?.omitLateNames ?? false,
       _readLocal = _Reader(_coreTypes.cellReadLocal),
@@ -674,6 +678,12 @@ class LateLowering {
     // transformer flags to reflect whether the getter contains super calls.
     getter.transformerFlags = field.transformerFlags;
     _copyAnnotations(getter, field);
+    if (initializer != null && field.isFinal) {
+      getter.addAnnotation(
+        ConstantExpression(pragmaAllowCSE, _coreTypes.pragmaNonNullableRawType)
+          ..fileOffset = field.fileOffset,
+      );
+    }
     enclosingClass.addProcedure(getter);
 
     VariableDeclaration setterValue = VariableDeclaration(
@@ -748,6 +758,13 @@ class LateLowering {
         throw StateError('Non-constant annotation on $source');
       }
     }
+  }
+
+  InstanceConstant _pragmaConstant(String pragmaName) {
+    return InstanceConstant(_coreTypes.pragmaClass.reference, [], {
+      _coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
+      _coreTypes.pragmaOptions.fieldReference: NullConstant(),
+    });
   }
 
   TreeNode transformField(Field field, Member contextMember) {
