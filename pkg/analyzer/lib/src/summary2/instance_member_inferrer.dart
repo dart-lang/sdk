@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -23,6 +23,10 @@ class InstanceMemberInferrer {
 
   /// Initialize a newly create inferrer.
   InstanceMemberInferrer(this.inheritance);
+
+  TypeSystemImpl get typeSystem {
+    return currentInterfaceElement.library.typeSystem;
+  }
 
   /// Infer type information for all of the instance members in the given
   /// compilation [unit].
@@ -132,25 +136,25 @@ class InstanceMemberInferrer {
     overriddenSetters ??= const [];
 
     TypeImpl combinedGetterType() {
-      var combinedGetter = inheritance.combineSignatures(
-        targetClass: currentInterfaceElement,
+      var combinedGetterType = inheritance.combineSignatureTypes(
+        typeSystem: typeSystem,
         candidates: overriddenGetters!,
         name: getterName,
       );
-      if (combinedGetter != null) {
-        return combinedGetter.returnType;
+      if (combinedGetterType != null) {
+        return combinedGetterType.returnType;
       }
       return DynamicTypeImpl.instance;
     }
 
     TypeImpl combinedSetterType() {
-      var combinedSetter = inheritance.combineSignatures(
-        targetClass: currentInterfaceElement,
+      var combinedSetterType = inheritance.combineSignatureTypes(
+        typeSystem: typeSystem,
         candidates: overriddenSetters!,
         name: setterName,
       );
-      if (combinedSetter != null) {
-        var parameters = combinedSetter.parameters;
+      if (combinedSetterType != null) {
+        var parameters = combinedSetterType.parameters;
         if (parameters.isNotEmpty) {
           return parameters[0].type;
         }
@@ -416,18 +420,17 @@ class InstanceMemberInferrer {
         element.parameters.any((e) => e.hasImplicitType);
     if (hasImplicitType) {
       var conflicts = <Conflict>[];
-      var combinedSignature = inheritance.combineSignatures(
-        targetClass: currentInterfaceElement,
+      combinedSignatureType = inheritance.combineSignatureTypes(
+        typeSystem: typeSystem,
         candidates: overriddenElements,
         name: name,
         conflicts: conflicts,
       );
-      if (combinedSignature != null) {
+      if (combinedSignatureType != null) {
         combinedSignatureType = _toOverriddenFunctionType(
           element,
-          combinedSignature,
+          combinedSignatureType,
         );
-        if (combinedSignatureType != null) {}
       } else {
         var conflictExplanation = '<unknown>';
         if (conflicts.length == 1) {
@@ -714,8 +717,8 @@ class InstanceMemberInferrer {
     }
   }
 
-  /// Return the [FunctionType] of the [overriddenElement] that [element]
-  /// overrides. Return `null`, in case of type parameters inconsistency.
+  /// Return [overriddenType] with type parameters substituted to [element].
+  /// Return `null`, in case of type parameters inconsistency.
   ///
   /// The overridden element must have the same number of generic type
   /// parameters as the target element, or none.
@@ -726,16 +729,15 @@ class InstanceMemberInferrer {
   /// should infer this as `m<T>(T t)`.
   FunctionTypeImpl? _toOverriddenFunctionType(
     ExecutableElementOrMember element,
-    ExecutableElementOrMember overriddenElement,
+    FunctionTypeImpl overriddenType,
   ) {
     var elementTypeParameters = element.asElement2.typeParameters2;
-    var overriddenTypeParameters = overriddenElement.typeParameters;
+    var overriddenTypeParameters = overriddenType.typeParameters;
 
     if (elementTypeParameters.length != overriddenTypeParameters.length) {
       return null;
     }
 
-    var overriddenType = overriddenElement.type;
     if (elementTypeParameters.isEmpty) {
       return overriddenType;
     }

@@ -217,6 +217,149 @@ augment class Foo {
     );
   }
 
+  Future<void> test_dotShorthand_constructor_named() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+void f() {
+  Foo foo = .nam^ed();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {
+  [!Foo.named();!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    await expectTarget(
+      code,
+      _isItem(
+        CallHierarchyKind.constructor,
+        'Foo.named',
+        otherFile,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('named', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+void f() {
+  Foo foo = .ne^w();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+[!class Foo {}!]
+''');
+
+    newFile(otherFile, otherCode.code);
+    await expectTarget(
+      code,
+      _isItem(
+        CallHierarchyKind.constructor,
+        'Foo',
+        otherFile,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('Foo {', otherCode, 'Foo'),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
+  }
+
+  Future<void> test_dotShorthand_extensionType() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+void f() {
+  Foo foo = .ba^r;
+}
+''');
+
+    var otherCode = TestCode.parse('''
+extension type Foo(int x) {
+  [!static Foo get bar => Foo(1);!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    await expectTarget(
+      code,
+      _isItem(
+        CallHierarchyKind.property,
+        'get bar',
+        otherFile,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('bar', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
+  }
+
+  Future<void> test_dotShorthand_getter() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+void f() {
+  Foo foo = .ba^r;
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {
+  [!static Foo get bar => Foo();!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    await expectTarget(
+      code,
+      _isItem(
+        CallHierarchyKind.property,
+        'get bar',
+        otherFile,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('bar', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
+  }
+
+  Future<void> test_dotShorthand_method() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+void f() {
+  Foo foo = .ba^r();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {
+  [!static Foo bar() => Foo();!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    await expectTarget(
+      code,
+      _isItem(
+        CallHierarchyKind.method,
+        'bar',
+        otherFile,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('bar', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
+  }
+
   Future<void> test_extension_method() async {
     var code = TestCode.parse('''
 extension StringExtension on String {
@@ -993,6 +1136,249 @@ final foo1 = Foo();
     );
   }
 
+  Future<void> test_dotShorthand_constructor_named() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+[!void f() {
+  Foo foo1 = .nam^ed();
+}!]
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {
+  Foo.named();
+}
+
+Foo foo2 = .named();
+''');
+
+    // Gets the expected range that follows the string [prefix].
+    SourceRange rangeAfter(String prefix, TestCode code) =>
+        rangeAfterPrefix(prefix, code, 'named');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findIncomingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          testFile.path,
+          containerName: 'test.dart',
+          nameRange: rangeAtSearch('f() {', code, 'f'),
+          codeRange: code.range.sourceRange,
+          ranges: [rangeAfter('foo1 = .', code)],
+        ),
+        _isResult(
+          CallHierarchyKind.file,
+          'other.dart',
+          otherFile,
+          containerName: null,
+          nameRange: startOfFile,
+          codeRange: entireRange(otherCode),
+          ranges: [rangeAfter('foo2 = .', otherCode)],
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+[!void f() {
+  Foo foo1 = .ne^w();
+}!]
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {}
+
+Foo foo2 = .new();
+''');
+
+    // Gets the expected range that follows the string [prefix].
+    SourceRange rangeAfter(String prefix, TestCode code) =>
+        rangeAfterPrefix(prefix, code, 'new');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findIncomingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          testFile.path,
+          containerName: 'test.dart',
+          nameRange: rangeAtSearch('f() {', code, 'f'),
+          codeRange: code.range.sourceRange,
+          ranges: [rangeAfter('foo1 = .', code)],
+        ),
+        _isResult(
+          CallHierarchyKind.file,
+          'other.dart',
+          otherFile,
+          containerName: null,
+          nameRange: startOfFile,
+          codeRange: entireRange(otherCode),
+          ranges: [rangeAfter('foo2 = .', otherCode)],
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_dotShorthand_extensionType() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+[!void f() {
+  Foo foo1 = .gett^er;
+}!]
+''');
+
+    var otherCode = TestCode.parse('''
+extension type Foo(int x) {
+  static Foo get getter => Foo(1);
+}
+
+Foo foo2 = .getter;
+''');
+
+    // Gets the expected range that follows the string [prefix].
+    SourceRange rangeAfter(String prefix, TestCode code) =>
+        rangeAfterPrefix(prefix, code, 'getter');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findIncomingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          testFile.path,
+          containerName: 'test.dart',
+          nameRange: rangeAtSearch('f() {', code, 'f'),
+          codeRange: code.range.sourceRange,
+          ranges: [rangeAfter('foo1 = .', code)],
+        ),
+        _isResult(
+          CallHierarchyKind.file,
+          'other.dart',
+          otherFile,
+          containerName: null,
+          nameRange: startOfFile,
+          codeRange: entireRange(otherCode),
+          ranges: [rangeAfter('foo2 = .', otherCode)],
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_dotShorthand_getter() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+[!void f() {
+  Foo foo1 = .gett^er;
+}!]
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {
+  static Foo get getter => Foo();
+}
+
+Foo foo2 = .getter;
+''');
+
+    // Gets the expected range that follows the string [prefix].
+    SourceRange rangeAfter(String prefix, TestCode code) =>
+        rangeAfterPrefix(prefix, code, 'getter');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findIncomingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          testFile.path,
+          containerName: 'test.dart',
+          nameRange: rangeAtSearch('f() {', code, 'f'),
+          codeRange: code.range.sourceRange,
+          ranges: [rangeAfter('foo1 = .', code)],
+        ),
+        _isResult(
+          CallHierarchyKind.file,
+          'other.dart',
+          otherFile,
+          containerName: null,
+          nameRange: startOfFile,
+          codeRange: entireRange(otherCode),
+          ranges: [rangeAfter('foo2 = .', otherCode)],
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_dotShorthand_method() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+[!void f() {
+  Foo foo1 = .meth^od();
+}!]
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {
+  static Foo method() => Foo();
+}
+
+Foo foo2 = .method();
+''');
+
+    // Gets the expected range that follows the string [prefix].
+    SourceRange rangeAfter(String prefix, TestCode code) =>
+        rangeAfterPrefix(prefix, code, 'method');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findIncomingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          testFile.path,
+          containerName: 'test.dart',
+          nameRange: rangeAtSearch('f() {', code, 'f'),
+          codeRange: code.range.sourceRange,
+          ranges: [rangeAfter('foo1 = .', code)],
+        ),
+        _isResult(
+          CallHierarchyKind.file,
+          'other.dart',
+          otherFile,
+          containerName: null,
+          nameRange: startOfFile,
+          codeRange: entireRange(otherCode),
+          ranges: [rangeAfter('foo2 = .', otherCode)],
+        ),
+      ]),
+    );
+  }
+
   Future<void> test_extension_method() async {
     var code = TestCode.parse('''
 extension StringExtension on String {
@@ -1739,6 +2125,184 @@ augment class Foo {
         codeRange: otherCode.range.sourceRange,
       ),
     ]);
+  }
+
+  Future<void> test_dotShorthand_constructor_named() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+class Foo {
+  Foo.b^ar() {
+    A a = .named();
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class A {
+  [!A.named();!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findOutgoingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(
+          CallHierarchyKind.constructor,
+          'A.named',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('named', otherCode),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [rangeAfterPrefix('a = .', code, 'named')],
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+class Foo {
+  Foo.b^ar() {
+    A a = .new();
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+[!class A {}!]
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findOutgoingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(
+          CallHierarchyKind.constructor,
+          'A',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('A {', otherCode, 'A'),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [rangeAfterPrefix('a = .', code, 'new')],
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_dotShorthand_extensionType() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+class Foo {
+  Foo.b^ar() {
+    A a = .getter;
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+extension type A(int x) {
+  [!static A get getter => A(1);!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findOutgoingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(
+          CallHierarchyKind.property,
+          'get getter',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('getter', otherCode),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [rangeAfterPrefix('a = .', code, 'getter')],
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_dotShorthand_getter() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+class Foo {
+  Foo.b^ar() {
+    A a = .getter;
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class A {
+  [!static A get getter => A();!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findOutgoingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(
+          CallHierarchyKind.property,
+          'get getter',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('getter', otherCode),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [rangeAfterPrefix('a = .', code, 'getter')],
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_dotShorthand_method() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+class Foo {
+  Foo.b^ar() {
+    A a = .method();
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class A {
+  [!static A method() => A();!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findOutgoingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(
+          CallHierarchyKind.method,
+          'method',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('method', otherCode),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [rangeAfterPrefix('a = .', code, 'method')],
+        ),
+      ]),
+    );
   }
 
   Future<void> test_extension_method() async {

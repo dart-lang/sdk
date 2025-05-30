@@ -180,7 +180,9 @@ test options, specifying how tests should be run.''')
     ..addOption('progress',
         abbr: 'p',
         allowed: Progress.names,
-        defaultsTo: Progress.compact.name,
+        defaultsTo: stdioType(stdout) == StdioType.terminal
+            ? Progress.compact.name
+            : Progress.line.name,
         help: '''Progress indication mode.
 
 Allowed values are:

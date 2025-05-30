@@ -107,21 +107,10 @@ class InheritanceManager3 {
     var targetLibrary = targetClass.library;
     var typeSystem = targetLibrary.typeSystem;
 
-    var validOverrides = <ExecutableElementOrMember>[];
-    for (var i = 0; i < candidates.length; i++) {
-      ExecutableElementOrMember? validOverride = candidates[i];
-      var validOverrideType = validOverride.type;
-      for (var j = 0; j < candidates.length; j++) {
-        var candidate = candidates[j];
-        if (!typeSystem.isSubtypeOf(validOverrideType, candidate.type)) {
-          validOverride = null;
-          break;
-        }
-      }
-      if (validOverride != null) {
-        validOverrides.add(validOverride);
-      }
-    }
+    var validOverrides = _getValidOverrides(
+      candidates: candidates,
+      typeSystem: typeSystem,
+    );
 
     if (validOverrides.isEmpty) {
       conflicts?.add(CandidatesConflict(name: name, candidates: candidates));
@@ -132,6 +121,47 @@ class InheritanceManager3 {
         candidates.map((e) => e.asElement2).toList();
 
     return _topMerge(typeSystem, targetClass, validOverrides);
+  }
+
+  /// Combine types of [candidates] into a single most specific type.
+  ///
+  /// If such signature does not exist, return `null`, and if [conflicts] is
+  /// not `null`, add a new [Conflict] to it.
+  FunctionTypeImpl? combineSignatureTypes({
+    required TypeSystemImpl typeSystem,
+    required List<ExecutableElementOrMember> candidates,
+    required Name name,
+    List<Conflict>? conflicts,
+  }) {
+    if (candidates.length == 1) {
+      return candidates[0].type;
+    }
+
+    var validOverrides = _getValidOverrides(
+      typeSystem: typeSystem,
+      candidates: candidates,
+    );
+
+    if (validOverrides.isEmpty) {
+      conflicts?.add(CandidatesConflict(name: name, candidates: candidates));
+      return null;
+    }
+
+    // Often there is one most specific signature.
+    var firstType = validOverrides[0].type;
+    if (validOverrides.length == 1) {
+      return firstType;
+    }
+
+    // Maybe more than valid, but the same type.
+    if (validOverrides.every((e) => e.type == firstType)) {
+      return firstType;
+    }
+
+    return _topMergeSignatureTypes(
+      typeSystem: typeSystem,
+      validOverrides: validOverrides,
+    );
   }
 
   /// Return the result of [getInherited2] with [type] substitution.
@@ -1170,25 +1200,14 @@ class InheritanceManager3 {
     }
 
     var firstType = first.type;
-    var allTypesEqual = true;
-    for (var executable in validOverrides) {
-      if (executable.type != firstType) {
-        allTypesEqual = false;
-        break;
-      }
-    }
-
-    if (allTypesEqual) {
+    if (validOverrides.every((e) => e.type == firstType)) {
       return first;
     }
 
-    var resultType = validOverrides
-        .map((e) {
-          return typeSystem.normalizeFunctionType(e.type);
-        })
-        .reduce((previous, next) {
-          return typeSystem.topMerge(previous, next) as FunctionTypeImpl;
-        });
+    var resultType = _topMergeSignatureTypes(
+      typeSystem: typeSystem,
+      validOverrides: validOverrides,
+    );
 
     for (var executable in validOverrides) {
       if (executable.type == resultType) {
@@ -1267,9 +1286,41 @@ class InheritanceManager3 {
     return declared;
   }
 
+  /// Returns executables that are valid overrides of [candidates].
+  static List<ExecutableElementOrMember> _getValidOverrides({
+    required TypeSystemImpl typeSystem,
+    required List<ExecutableElementOrMember> candidates,
+  }) {
+    var validOverrides = <ExecutableElementOrMember>[];
+    outer:
+    for (var i = 0; i < candidates.length; i++) {
+      var validOverride = candidates[i];
+      var validOverrideType = validOverride.type;
+      for (var j = 0; j < candidates.length; j++) {
+        var candidate = candidates[j];
+        if (!typeSystem.isSubtypeOf(validOverrideType, candidate.type)) {
+          continue outer;
+        }
+      }
+      validOverrides.add(validOverride);
+    }
+    return validOverrides;
+  }
+
   static bool _isDeclaredInObject(ExecutableElementOrMember element) {
     var enclosing = element.asElement2.enclosingElement;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
+  }
+
+  static FunctionTypeImpl _topMergeSignatureTypes({
+    required TypeSystemImpl typeSystem,
+    required List<ExecutableElementOrMember> validOverrides,
+  }) {
+    return validOverrides
+        .map((e) => typeSystem.normalizeFunctionType(e.type))
+        .reduce((previous, next) {
+          return typeSystem.topMerge(previous, next) as FunctionTypeImpl;
+        });
   }
 }
 

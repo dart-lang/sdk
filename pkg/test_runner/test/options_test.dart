@@ -18,7 +18,6 @@ void main() {
 void testDefaults() {
   // TODO(rnystrom): Test other options.
   var configuration = parseConfiguration([]);
-  Expect.equals(Progress.compact, configuration.progress);
   Expect.equals(NnbdMode.strong, configuration.nnbdMode);
 }
 

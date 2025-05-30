@@ -469,6 +469,26 @@ class _OutboundCallVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    collect(node.constructorName);
+    super.visitDotShorthandConstructorInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    collect(node.memberName);
+    super.visitDotShorthandInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    collect(node.propertyName);
+    super.visitDotShorthandPropertyAccess(node);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     // Only descend into function declarations if they are the target/root
     // function.
