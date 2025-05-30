@@ -69,47 +69,47 @@ class OptionsParser {
     ..addMultiOption('compiler',
         abbr: 'c',
         allowed: Compiler.names,
-        help: '''How the Dart code should be compiled or statically processed.
-dart2js:              Compile to JavaScript using dart2js.
-dart2analyzer:        Perform static analysis on Dart code using the analyzer.
-compare_analyzer_cfe: Compare analyzer and common front end representations.
-ddc:                  Compile to JavaScript using dartdevc.
-app_jitk:             Compile the Dart code into Kernel and then into an app
-                      snapshot.
-dartk:                Compile the Dart code into Kernel before running test.
-dartkp:               Compile the Dart code into Kernel and then Kernel into
-                      AOT snapshot before running the test.
-spec_parser:          Parse Dart code using the specification parser.
-fasta:                Compile using CFE for errors, but do not run.
-''')
+        allowedHelp: {
+          'dart2js': 'Compile to JavaScript using dart2js.',
+          'dart2analyzer':
+              'Perform static analysis on Dart code using the analyzer.',
+          'compare_analyzer_cfe':
+              'Compare analyzer and common front end representations.',
+          'ddc': 'Compile to JavaScript using dartdevc.',
+          'app_jitk': 'Compile the Dart code into Kernel and then into '
+              'an app snapshot.',
+          'dartk': 'Compile the Dart code into Kernel before running test.',
+          'dartkp': 'Compile the Dart code into Kernel and then Kernel into '
+              'AOT snapshot before running the test.',
+          'spec_parser': 'Parse Dart code using the specification parser.',
+          'fasta': 'Compile using CFE for errors, but do not run.',
+        },
+        help: 'How the Dart code should be compiled or statically processed.')
     ..addMultiOption('runtime',
         abbr: 'r',
         allowed: Runtime.names,
-        help: '''Where the tests should be run.
-vm:               Run Dart code on the standalone Dart VM.
-dart_precompiled: Run a precompiled snapshot on the VM without a JIT.
-d8:               Run JavaScript from the command line using Chrome's v8.
-jsc:              Run JavaScript from the command line using Safari/WebKit's jsc.
-jsshell:          Run JavaScript from the command line using Firefox's js-shell.
-
-firefox:
-chrome:
-safari:
-chromeOnAndroid:  Run JavaScript in the specified browser.
-
-none:             No runtime, compile only.''')
+        allowedHelp: {
+          'vm': 'Run Dart code on the standalone Dart VM.',
+          'dart_precompiled':
+              'Run a precompiled snapshot on the VM without a JIT.',
+          'd8': "Run JavaScript from the command line using Chrome's v8.",
+          'jsc':
+              "Run JavaScript from the command line using Safari/WebKit's jsc.",
+          'jsshell':
+              "Run JavaScript from the command line using Firefox's js-shell.",
+          'firefox': 'Run JavaScript in Firefox.',
+          'chrome': 'Run JavaScript in Chrome.',
+          'safari': 'Run JavaScript in Safari.',
+          'chromeOnAndroid': 'Run JavaScript in Chrome on Android.',
+          'none': 'No runtime, compile only.',
+        },
+        help: 'Where the tests should be run.')
     ..addMultiOption('arch',
         abbr: 'a',
         allowed: ['all', ...Architecture.names],
         defaultsTo: [Architecture.host.name],
         hide: true,
-        help: '''The architecture to run tests for.
-
-Allowed values are:
-all
-ia32, x64
-arm, arm64, simarm, simarm64, arm_x64
-riscv32, riscv64, simriscv32, simriscv64''')
+        help: 'The architecture to run tests for.')
     ..addOption('system',
         abbr: 's',
         allowed: ['all', ...System.names],
@@ -183,10 +183,7 @@ test options, specifying how tests should be run.''')
         defaultsTo: stdioType(stdout) == StdioType.terminal
             ? Progress.compact.name
             : Progress.line.name,
-        help: '''Progress indication mode.
-
-Allowed values are:
-compact, color, line, verbose, silent, status''')
+        help: 'Progress indication mode.')
     ..addFlag('report',
         hide: true,
         help: 'Print a summary report of the number of tests, by expectation.')
@@ -256,9 +253,7 @@ compact, color, line, verbose, silent, status''')
     ..addOption('nnbd',
         allowed: NnbdMode.names,
         defaultsTo: NnbdMode.strong.name,
-        help: '''Which set of non-nullable type features to use.
-
-Allowed values are: legacy, weak, strong''')
+        help: 'Which set of non-nullable type features to use.')
     ..addOption('output-directory',
         aliases: ['output_directory'],
         defaultsTo: "logs",
