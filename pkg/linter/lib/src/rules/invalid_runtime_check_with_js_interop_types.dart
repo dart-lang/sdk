@@ -84,7 +84,7 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
   var element = type.element3;
   // `hasJS` only checks for the `dart:_js_annotations` definition, which is
   // what we want here.
-  if (element.metadata2.hasJS) return true;
+  if (element.metadata.hasJS) return true;
   return _sdkWebLibraries.any((uri) => element.isFromLibrary(uri)) ||
       // While a type test with types from this library is very rare, we should
       // still ignore it for consistency.
@@ -102,7 +102,7 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
 DartType? _jsTypeForStaticInterop(InterfaceType type) {
   var element = type.element3;
   if (element is! ClassElement) return null;
-  var metadata = element.metadata2;
+  var metadata = element.metadata;
   var hasJS = false;
   var hasStaticInterop = false;
   LibraryElement? dartJsInterop;

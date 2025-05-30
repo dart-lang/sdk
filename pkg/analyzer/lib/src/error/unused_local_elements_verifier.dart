@@ -78,7 +78,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     var element = node.declaredFragment?.element;
     if (element != null) {
-      if (element.metadata2.hasJS) {
+      if (element.metadata.hasJS) {
         usedElements.addElement(element);
       }
     }
@@ -1128,7 +1128,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   static bool _hasPragmaVmEntryPoint(Element element) {
     return element is Annotatable &&
-        ((element as Annotatable).metadata2 as MetadataImpl)
+        ((element as Annotatable).metadata as MetadataImpl)
             .hasPragmaVmEntryPoint;
   }
 }

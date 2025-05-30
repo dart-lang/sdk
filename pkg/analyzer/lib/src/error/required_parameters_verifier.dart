@@ -226,7 +226,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     FormalParameterElement element,
   ) {
     var annotation =
-        element.metadata2.annotations.firstWhereOrNull((e) => e.isRequired)
+        element.metadata.annotations.firstWhereOrNull((e) => e.isRequired)
             as ElementAnnotationImpl?;
     if (annotation != null) {
       return _RequiredAnnotation(annotation);

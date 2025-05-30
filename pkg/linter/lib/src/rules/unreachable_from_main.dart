@@ -184,7 +184,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
         _addDefaultSuperConstructorDeclaration(node);
       }
 
-      var metadata = element.metadata2;
+      var metadata = element.metadata;
       // This for-loop style is copied from analyzer's `hasX` getters on
       // [Element].
       for (var i = 0; i < metadata.annotations.length; i++) {
@@ -613,11 +613,11 @@ extension on LibraryElement {
 
 extension on Element {
   bool get hasVisibleForTesting => switch (this) {
-    Annotatable(:var metadata2) => metadata2.hasVisibleForTesting,
+    Annotatable(:var metadata) => metadata.hasVisibleForTesting,
     _ => false,
   };
   bool get hasWidgetPreview => switch (this) {
-    Annotatable(:var metadata2) =>
+    Annotatable(:var metadata) =>
       // Widget previews can be applied to public:
       //   - Constructors (generative and factory)
       //   - Top-level functions
@@ -627,7 +627,7 @@ extension on Element {
               (this is ExecutableElement &&
                   (this as ExecutableElement).isStatic)) &&
           !isPrivate &&
-          metadata2.hasWidgetPreview,
+          metadata.hasWidgetPreview,
     _ => false,
   };
   bool get isPragma => (library2?.isDartCore ?? false) && name3 == 'pragma';

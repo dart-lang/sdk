@@ -123,7 +123,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           element.typeParameters2.isNotEmpty &&
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
-          !element.metadata2.hasOptionalTypeArgs) {
+          !element.metadata.hasOptionalTypeArgs) {
         rule.reportAtNode(
           namedType,
           diagnosticCode: LinterLintCode.always_specify_types_add_type,

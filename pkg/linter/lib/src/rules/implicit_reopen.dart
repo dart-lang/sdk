@@ -45,7 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     required String type,
   }) {
     if (element is! ClassElement) return;
-    if (element.metadata2.hasReopen) return;
+    if (element.metadata.hasReopen) return;
     if (element.isSealed) return;
     if (element.isMixinClass) return;
 

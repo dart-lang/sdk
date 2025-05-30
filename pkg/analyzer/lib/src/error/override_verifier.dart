@@ -42,7 +42,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
       var fieldElement = field.declaredFragment?.element as FieldElement;
-      if (fieldElement.metadata2.hasOverride) {
+      if (fieldElement.metadata.hasOverride) {
         var getter = fieldElement.getter2;
         if (getter != null && _isOverride(getter)) continue;
 
@@ -60,7 +60,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     var element = node.declaredFragment!.element;
-    if (element.metadata2.hasOverride && !_isOverride(element)) {
+    if (element.metadata.hasOverride && !_isOverride(element)) {
       switch (element) {
         case MethodElement():
           _errorReporter.atToken(

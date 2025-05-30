@@ -290,7 +290,7 @@ enum _E1 { one, two }
 enum E2 { three, four }''');
     {
       var engineElement = findElement2.enum_('_E1');
-      expect(engineElement.metadata2.hasDeprecated, isTrue);
+      expect(engineElement.metadata.hasDeprecated, isTrue);
       // create notification Element
       var element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.ENUM);
@@ -307,7 +307,7 @@ enum E2 { three, four }''');
       expect(element.parameters, isNull);
       expect(
           element.flags,
-          (engineElement.metadata2.hasDeprecated
+          (engineElement.metadata.hasDeprecated
                   ? plugin.Element.FLAG_DEPRECATED
                   : 0) |
               plugin.Element.FLAG_PRIVATE);

@@ -114,13 +114,13 @@ extension Element2Extension on Element {
   /// Whether the element is effectively [internal].
   bool get isInternal {
     if (this case Annotatable annotatable) {
-      if (annotatable.metadata2.hasInternal) {
+      if (annotatable.metadata.hasInternal) {
         return true;
       }
     }
     if (this case PropertyAccessorElement accessor) {
       var variable = accessor.variable3;
-      if (variable != null && variable.metadata2.hasInternal) {
+      if (variable != null && variable.metadata.hasInternal) {
         return true;
       }
     }
@@ -132,17 +132,17 @@ extension Element2Extension on Element {
     var self = this;
     if (self is PropertyAccessorElement &&
         self.enclosingElement is InterfaceElement) {
-      if (self.metadata2.hasProtected) {
+      if (self.metadata.hasProtected) {
         return true;
       }
       var variable = self.variable3;
-      if (variable != null && variable.metadata2.hasProtected) {
+      if (variable != null && variable.metadata.hasProtected) {
         return true;
       }
     }
     if (self is MethodElement &&
         self.enclosingElement is InterfaceElement &&
-        self.metadata2.hasProtected) {
+        self.metadata.hasProtected) {
       return true;
     }
     return false;
@@ -151,13 +151,13 @@ extension Element2Extension on Element {
   /// Whether the element is effectively [visibleForTesting].
   bool get isVisibleForTesting {
     if (this case Annotatable annotatable) {
-      if (annotatable.metadata2.hasVisibleForTesting) {
+      if (annotatable.metadata.hasVisibleForTesting) {
         return true;
       }
     }
     if (this case PropertyAccessorElement accessor) {
       var variable = accessor.variable3;
-      if (variable != null && variable.metadata2.hasVisibleForTesting) {
+      if (variable != null && variable.metadata.hasVisibleForTesting) {
         return true;
       }
     }
@@ -166,7 +166,7 @@ extension Element2Extension on Element {
 
   List<ElementAnnotation> get metadataAnnotations {
     if (this case Annotatable annotatable) {
-      return annotatable.metadata2.annotations;
+      return annotatable.metadata.annotations;
     }
     return [];
   }
@@ -176,7 +176,7 @@ extension ElementImplExtension on FragmentImpl {
   FragmentImpl? get enclosingElementImpl => enclosingElement3;
 
   AnnotationImpl annotationAst(int index) {
-    return metadata[index].annotationAst;
+    return metadata3[index].annotationAst;
   }
 }
 

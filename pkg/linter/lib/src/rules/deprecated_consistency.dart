@@ -83,5 +83,5 @@ class _Visitor extends SimpleAstVisitor<void> {
 }
 
 extension on Annotatable {
-  bool get hasDeprecated => metadata2.hasDeprecated;
+  bool get hasDeprecated => metadata.hasDeprecated;
 }

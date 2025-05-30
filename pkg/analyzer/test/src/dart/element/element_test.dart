@@ -42,7 +42,7 @@ main() {
     var argument = findNode.integerLiteral('3');
     var parameter = argument.correspondingParameter!;
 
-    ElementAnnotation annotation = parameter.metadata2.annotations[0];
+    ElementAnnotation annotation = parameter.metadata.annotations[0];
 
     DartObject value = annotation.computeConstantValue()!;
     expect(value.getField('f')!.toStringValue(), 'x');

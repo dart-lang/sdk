@@ -286,10 +286,10 @@ abstract class BaseDeprecatedMemberUseVerifier {
     if (element is PropertyAccessorElement && element.isSynthetic) {
       // TODO(brianwilkerson): Why isn't this the implementation for PropertyAccessorElement?
       var variable = element.variable3;
-      return variable != null && variable.metadata2.hasDeprecated;
+      return variable != null && variable.metadata.hasDeprecated;
     }
     if (element is Annotatable) {
-      return (element as Annotatable).metadata2.hasDeprecated;
+      return (element as Annotatable).metadata.hasDeprecated;
     }
     return false;
   }

@@ -38,7 +38,7 @@ class ElementWriter with TreeWriter {
 
     var firstFragment = element.firstFragment;
     if (element case Annotatable element) {
-      properties['annotations'] = element.metadata2.annotations;
+      properties['annotations'] = element.metadata.annotations;
     }
     if (element is InterfaceElement) {
       properties['interfaces'] = element.interfaces;

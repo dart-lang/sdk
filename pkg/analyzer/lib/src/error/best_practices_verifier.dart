@@ -129,9 +129,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
        _widgetPreviewVerifier = WidgetPreviewVerifier(_errorReporter),
        _workspacePackage = workspacePackage {
     _deprecatedVerifier.pushInDeprecatedValue(
-      _currentLibrary.metadata2.hasDeprecated,
+      _currentLibrary.metadata.hasDeprecated,
     );
-    _inDoNotStoreMember = _currentLibrary.metadata2.hasDoNotStore;
+    _inDoNotStoreMember = _currentLibrary.metadata.hasDoNotStore;
   }
 
   @override
@@ -203,8 +203,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _invalidAccessVerifier._enclosingClass = element;
 
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
-    _deprecatedVerifier.pushInDeprecatedValue(element.metadata2.hasDeprecated);
-    if (element.metadata2.hasDoNotStore) {
+    _deprecatedVerifier.pushInDeprecatedValue(element.metadata.hasDeprecated);
+    if (element.metadata.hasDoNotStore) {
       _inDoNotStoreMember = true;
     }
 
@@ -225,7 +225,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _checkForImmutable(node);
     _checkForInvalidSealedSuperclass(node);
     _deprecatedVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.metadata2.hasDeprecated,
+      node.declaredFragment!.element.metadata.hasDeprecated,
     );
 
     try {
@@ -275,7 +275,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       body: node.body,
       initializers: node.initializers,
     );
-    _deprecatedVerifier.pushInDeprecatedValue(element.metadata2.hasDeprecated);
+    _deprecatedVerifier.pushInDeprecatedValue(element.metadata.hasDeprecated);
     try {
       super.visitConstructorDeclaration(node);
     } finally {
@@ -310,7 +310,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
     _deprecatedVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.metadata2.hasDeprecated,
+      node.declaredFragment!.element.metadata.hasDeprecated,
     );
 
     try {
@@ -323,7 +323,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.metadata2.hasDeprecated,
+      node.declaredFragment!.element.metadata.hasDeprecated,
     );
 
     try {
@@ -351,7 +351,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.metadata2.hasDeprecated,
+      node.declaredFragment!.element.metadata.hasDeprecated,
     );
 
     try {
@@ -370,7 +370,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.metadata2.hasDeprecated,
+      node.declaredFragment!.element.metadata.hasDeprecated,
     );
 
     try {
@@ -443,8 +443,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
     var element = node.declaredFragment!.element;
-    _deprecatedVerifier.pushInDeprecatedValue(element.metadata2.hasDeprecated);
-    if (element.metadata2.hasDoNotStore) {
+    _deprecatedVerifier.pushInDeprecatedValue(element.metadata.hasDeprecated);
+    if (element.metadata.hasDoNotStore) {
       _inDoNotStoreMember = true;
     }
     try {
@@ -495,7 +495,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _checkStrictInferenceReturnType(node.returnType, node, node.name.lexeme);
     _checkStrictInferenceInParameters(node.parameters);
     _deprecatedVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.metadata2.hasDeprecated,
+      node.declaredFragment!.element.metadata.hasDeprecated,
     );
 
     try {
@@ -532,7 +532,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       );
     }
     _deprecatedVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.metadata2.hasDeprecated,
+      node.declaredFragment!.element.metadata.hasDeprecated,
     );
 
     try {
@@ -581,8 +581,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var element = node.declaredFragment!.element;
     var enclosingElement = element.enclosingElement;
 
-    _deprecatedVerifier.pushInDeprecatedValue(element.metadata2.hasDeprecated);
-    if (element.metadata2.hasDoNotStore) {
+    _deprecatedVerifier.pushInDeprecatedValue(element.metadata.hasDeprecated);
+    if (element.metadata.hasDoNotStore) {
       _inDoNotStoreMember = true;
     }
     try {
@@ -655,7 +655,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = _enclosingClass;
 
-    _deprecatedVerifier.pushInDeprecatedValue(element.metadata2.hasDeprecated);
+    _deprecatedVerifier.pushInDeprecatedValue(element.metadata.hasDeprecated);
 
     try {
       _checkForImmutable(node);
@@ -900,7 +900,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       Set<InterfaceElement> visited,
     ) {
       if (visited.add(element)) {
-        if (element.metadata2.hasImmutable) {
+        if (element.metadata.hasImmutable) {
           return true;
         }
         for (InterfaceType interface in element.mixins) {
@@ -981,7 +981,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var libraryElement = libraryExport.exportedLibrary2;
     if (libraryElement == null) return;
 
-    if (libraryElement.metadata2.hasInternal) {
+    if (libraryElement.metadata.hasInternal) {
       _errorReporter.atNode(
         node,
         WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
@@ -993,7 +993,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     );
     exportNamespace.definedNames2.forEach((String name, Element element) {
       if (element case Annotatable annotatable) {
-        if (annotatable.metadata2.hasInternal) {
+        if (annotatable.metadata.hasInternal) {
           _errorReporter.atNode(
             node,
             WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
@@ -1010,7 +1010,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         ];
         for (var type in signatureTypes) {
           var aliasElement = type?.alias?.element2;
-          if (aliasElement != null && aliasElement.metadata2.hasInternal) {
+          if (aliasElement != null && aliasElement.metadata.hasInternal) {
             _errorReporter.atNode(
               node,
               WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,
@@ -1036,7 +1036,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     // `Element.hasOrInheritsSealed`?
     for (InterfaceType supertype in element.allSupertypes) {
       var superclass = supertype.element3;
-      if (superclass.metadata2.hasSealed) {
+      if (superclass.metadata.hasSealed) {
         if (!currentPackageContains(superclass)) {
           if (element is MixinElement &&
               element.superclassConstraints.contains(supertype)) {
@@ -1132,7 +1132,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (constructor == null) {
       return;
     }
-    if (!node.isConst && constructor.metadata2.hasLiteral && node.canBeConst) {
+    if (!node.isConst && constructor.metadata.hasLiteral && node.canBeConst) {
       // Echoing jwren's `TODO` from _checkForDeprecatedMemberUse:
       // TODO(jwren): We should modify ConstructorElement.getDisplayName(), or
       // have the logic centralized elsewhere, instead of doing this logic
@@ -1361,7 +1361,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkRequiredParameter(FormalParameterList node) {
     var requiredParameters = node.parameters.where(
-      (p) => p.declaredFragment?.element.metadata2.hasRequired == true,
+      (p) => p.declaredFragment?.element.metadata.hasRequired == true,
     );
     var nonNamedParamsWithRequired = requiredParameters.where(
       (p) => p.isPositional,
@@ -1564,11 +1564,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   static bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element is PropertyAccessorElement && element.isSynthetic) {
       var variable = element.variable3;
-      if (variable != null && variable.metadata2.hasNonVirtual) {
+      if (variable != null && variable.metadata.hasNonVirtual) {
         return true;
       }
     }
-    return element.metadata2.hasNonVirtual;
+    return element.metadata.hasNonVirtual;
   }
 
   /// Checks for the passed as expression for the [WarningCode.UNNECESSARY_CAST]
@@ -1999,13 +1999,13 @@ class _InvalidAccessVerifier {
 
   bool _hasDoNotSubmit(Element element) {
     if (element case Annotatable annotatable) {
-      if (annotatable.metadata2.hasDoNotSubmit) {
+      if (annotatable.metadata.hasDoNotSubmit) {
         return true;
       }
     }
     if (element is PropertyAccessorElement) {
       var variable = element.variable3;
-      return variable != null && variable.metadata2.hasDoNotSubmit;
+      return variable != null && variable.metadata.hasDoNotSubmit;
     }
     return false;
   }
@@ -2022,14 +2022,14 @@ class _InvalidAccessVerifier {
 
   bool _hasVisibleForOverriding(Element element) {
     if (element case Annotatable annotatable) {
-      if (annotatable.metadata2.hasVisibleForOverriding) {
+      if (annotatable.metadata.hasVisibleForOverriding) {
         return true;
       }
     }
 
     if (element is PropertyAccessorElement) {
       var variable = element.variable3;
-      return variable != null && variable.metadata2.hasVisibleForOverriding;
+      return variable != null && variable.metadata.hasVisibleForOverriding;
     }
 
     return false;
@@ -2040,13 +2040,13 @@ class _InvalidAccessVerifier {
       return false;
     }
     if (element case Annotatable annotatable) {
-      if (annotatable.metadata2.hasVisibleForTemplate) {
+      if (annotatable.metadata.hasVisibleForTemplate) {
         return true;
       }
     }
     if (element is PropertyAccessorElement) {
       var variable = element.variable3;
-      if (variable != null && variable.metadata2.hasVisibleForTemplate) {
+      if (variable != null && variable.metadata.hasVisibleForTemplate) {
         return true;
       }
     }
@@ -2059,13 +2059,13 @@ class _InvalidAccessVerifier {
 
   bool _hasVisibleOutsideTemplate(Element element) {
     if (element case Annotatable annotatable) {
-      if (annotatable.metadata2.hasVisibleOutsideTemplate) {
+      if (annotatable.metadata.hasVisibleOutsideTemplate) {
         return true;
       }
     }
     if (element is PropertyAccessorElement) {
       var variable = element.variable3;
-      if (variable != null && variable.metadata2.hasVisibleOutsideTemplate) {
+      if (variable != null && variable.metadata.hasVisibleOutsideTemplate) {
         return true;
       }
     }

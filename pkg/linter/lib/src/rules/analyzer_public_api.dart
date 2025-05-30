@@ -387,7 +387,7 @@ extension on Element {
       return true;
     }
     if (this case Annotatable(
-      metadata2: Metadata(:var annotations),
+      metadata: Metadata(:var annotations),
     ) when annotations.any(_isPublicApiAnnotation)) {
       return true;
     }

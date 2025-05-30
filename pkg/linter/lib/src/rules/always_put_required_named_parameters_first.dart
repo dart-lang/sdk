@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var param in node.parameters.where((p) => p.isNamed)) {
       var element = param.declaredFragment?.element;
       if (element != null &&
-          (element.metadata2.hasRequired || element.isRequiredNamed)) {
+          (element.metadata.hasRequired || element.isRequiredNamed)) {
         if (nonRequiredSeen) {
           var name = param.name;
           if (name != null) {

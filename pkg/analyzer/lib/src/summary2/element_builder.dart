@@ -90,13 +90,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       switch (firstDirective) {
         case ExportDirectiveImpl():
           firstDirectiveMetadata =
-              firstDirective.libraryExport?.metadata2.annotations;
+              firstDirective.libraryExport?.metadata.annotations;
         case ImportDirectiveImpl():
           firstDirectiveMetadata =
-              firstDirective.libraryImport?.metadata2.annotations;
+              firstDirective.libraryImport?.metadata.annotations;
         case PartDirectiveImpl():
           firstDirectiveMetadata =
-              firstDirective.partInclude?.metadata2.annotations;
+              firstDirective.partInclude?.metadata.annotations;
         case LibraryDirectiveImpl():
           // Impossible, since there is no library directive.
           break;
@@ -131,7 +131,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       fragment.isSealed = true;
     }
     fragment.hasExtendsClause = node.extendsClause != null;
-    fragment.metadata = _buildAnnotations(node.metadata);
+    fragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
@@ -203,7 +203,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       fragment.isAbstract = true;
       fragment.isSealed = true;
     }
-    fragment.metadata = _buildAnnotations(node.metadata);
+    fragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
@@ -265,7 +265,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.isConst = node.constKeyword != null;
     element.isExternal = node.externalKeyword != null;
     element.isFactory = node.factoryKeyword != null;
-    element.metadata = _buildAnnotations(node.metadata);
+    element.metadata3 = _buildAnnotations(node.metadata);
     element.typeName = node.returnType.name;
     element.typeNameOffset = node.returnType.offset;
     element.periodOffset = node.period?.offset;
@@ -310,7 +310,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     fragment.name2 = name2;
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
     fragment.isAugmentation = node.augmentKeyword != null;
-    fragment.metadata = _buildAnnotations(node.metadata);
+    fragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
@@ -366,7 +366,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       field.nameOffset2 = _getFragmentNameOffset(nameToken);
       _setCodeRange(field, constant);
       _setDocumentation(field, constant);
-      field.metadata = _buildAnnotationsWithUnit(
+      field.metadata3 = _buildAnnotationsWithUnit(
         _unitElement,
         constant.metadata,
       );
@@ -538,7 +538,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     fragment.name2 = name2;
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
     fragment.isAugmentation = node.augmentKeyword != null;
-    fragment.metadata = _buildAnnotations(node.metadata);
+    fragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
@@ -624,7 +624,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     fragment.name2 = name2;
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
     fragment.isAugmentation = node.augmentKeyword != null;
-    fragment.metadata = _buildAnnotations(node.metadata);
+    fragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
@@ -724,7 +724,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       fragment.isFinal = node.fields.isFinal;
       fragment.isLate = node.fields.isLate;
       fragment.isStatic = node.isStatic;
-      fragment.metadata = metadata;
+      fragment.metadata3 = metadata;
       _setCodeRange(fragment, variable);
       _setDocumentation(fragment, node);
 
@@ -775,7 +775,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     fragment.name2 = _getFragmentName(nameToken);
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
     fragment.hasImplicitType = node.type == null && node.parameters == null;
-    fragment.metadata = _buildAnnotations(node.metadata);
+    fragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(fragment, node);
 
     node.declaredFragment = fragment;
@@ -937,7 +937,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     executableFragment.isAsynchronous = body.isAsynchronous;
     executableFragment.isExternal = node.externalKeyword != null;
     executableFragment.isGenerator = body.isGenerator;
-    executableFragment.metadata = _buildAnnotations(node.metadata);
+    executableFragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(executableFragment, node);
     _setDocumentation(executableFragment, node);
 
@@ -972,7 +972,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     fragment.name2 = name2;
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
     fragment.isFunctionTypeAliasBased = true;
-    fragment.metadata = _buildAnnotations(node.metadata);
+    fragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
@@ -1057,7 +1057,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
     fragment.isExplicitlyCovariant = node.covariantKeyword != null;
     fragment.isFinal = node.isFinal;
-    fragment.metadata = _buildAnnotations(node.metadata);
+    fragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(fragment, node);
 
     node.declaredFragment = fragment;
@@ -1124,7 +1124,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     fragment.name2 = name2;
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
     fragment.isAugmentation = node.augmentKeyword != null;
-    fragment.metadata = _buildAnnotations(node.metadata);
+    fragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
@@ -1270,7 +1270,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     executableFragment.isExternal =
         node.externalKeyword != null || node.body is NativeFunctionBody;
     executableFragment.isGenerator = node.body.isGenerator;
-    executableFragment.metadata = _buildAnnotations(node.metadata);
+    executableFragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(executableFragment, node);
     _setDocumentation(executableFragment, node);
 
@@ -1298,7 +1298,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.isBase = node.baseKeyword != null;
-    fragment.metadata = _buildAnnotations(node.metadata);
+    fragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
@@ -1439,7 +1439,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     fragment.hasImplicitType = node.type == null;
     fragment.isExplicitlyCovariant = node.covariantKeyword != null;
     fragment.isFinal = node.isFinal;
-    fragment.metadata = _buildAnnotations(node.metadata);
+    fragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(fragment, node);
 
     node.declaredFragment = fragment;
@@ -1480,7 +1480,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     fragment.name2 = _getFragmentName(nameToken);
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
     fragment.hasImplicitType = node.type == null && node.parameters == null;
-    fragment.metadata = _buildAnnotations(node.metadata);
+    fragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(fragment, node);
 
     node.declaredFragment = fragment;
@@ -1541,7 +1541,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       fragment.isExternal = node.externalKeyword != null;
       fragment.isFinal = node.variables.isFinal;
       fragment.isLate = node.variables.isLate;
-      fragment.metadata = metadata;
+      fragment.metadata3 = metadata;
       _setCodeRange(fragment, variable);
       _setDocumentation(fragment, node);
 
@@ -1627,7 +1627,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     );
     fragment.name2 = _getFragmentName(nameToken);
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
-    fragment.metadata = _buildAnnotations(node.metadata);
+    fragment.metadata3 = _buildAnnotations(node.metadata);
     _setCodeRange(fragment, node);
 
     node.declaredFragment = fragment;
@@ -1776,7 +1776,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     fieldFragment.name2 = _getFragmentName(fieldNameToken);
     fieldFragment.nameOffset2 = _getFragmentNameOffset(fieldNameToken);
     fieldFragment.isFinal = true;
-    fieldFragment.metadata = _buildAnnotations(representation.fieldMetadata);
+    fieldFragment.metadata3 = _buildAnnotations(representation.fieldMetadata);
 
     var fieldBeginToken =
         representation.fieldMetadata.beginToken ?? representation.fieldType;

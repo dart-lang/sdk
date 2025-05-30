@@ -133,7 +133,7 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
     if (library == null) {
       return;
     }
-    _deprecatedVerifier.pushInDeprecatedValue(library.metadata2.hasDeprecated);
+    _deprecatedVerifier.pushInDeprecatedValue(library.metadata.hasDeprecated);
 
     super.visitCompilationUnit(node);
   }
@@ -347,7 +347,7 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   void _withDeprecatedFragment(Fragment? fragment, void Function() recurse) {
     var isDeprecated = false;
     if (fragment?.element case Annotatable annotatable) {
-      isDeprecated = annotatable.metadata2.hasDeprecated;
+      isDeprecated = annotatable.metadata.hasDeprecated;
     }
 
     _deprecatedVerifier.pushInDeprecatedValue(isDeprecated);

@@ -2989,7 +2989,8 @@ package:analyzer/dart/element/element.dart:
   Annotatable (class extends Object):
     new (constructor: Annotatable Function())
     documentationComment (getter: String?)
-    metadata2 (getter: Metadata)
+    metadata (getter: Metadata)
+    metadata2 (getter: Metadata, deprecated)
   BindPatternVariableElement (class extends Object implements PatternVariableElement):
     new (constructor: BindPatternVariableElement Function())
     firstFragment (getter: BindPatternVariableFragment)

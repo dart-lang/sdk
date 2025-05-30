@@ -26,7 +26,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
     } else if (node
             .rightHandSide
             .correspondingParameter
-            ?.metadata2
+            ?.metadata
             .hasMustBeConst ??
         false) {
       // If the operator is not `=`, then the argument cannot be const, as it
@@ -103,7 +103,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
         continue;
       }
 
-      if (parameter.metadata2.hasMustBeConst) {
+      if (parameter.metadata.hasMustBeConst) {
         Expression resolvedArgument;
         if (parameter.isNamed) {
           resolvedArgument = (argument as NamedExpression).expression;

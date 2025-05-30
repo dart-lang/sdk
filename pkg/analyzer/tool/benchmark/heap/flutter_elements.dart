@@ -317,7 +317,7 @@ class _AllElementVisitor extends GeneralizingElementVisitor2<void> {
   void visitElement(Element element) {
     // This triggers lazy reading.
     if (element case Annotatable element) {
-      element.metadata2;
+      element.metadata;
     }
     super.visitElement(element);
   }

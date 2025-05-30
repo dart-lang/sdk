@@ -866,7 +866,7 @@ main() {
 const A = null;
 @A class C<A> {}''');
 
-    var annotations = findElement2.class_('C').metadata2.annotations;
+    var annotations = findElement2.class_('C').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var cDeclaration = findNode.classDeclaration('C<A>');
@@ -889,7 +889,7 @@ class D {}
 mixin E {}
 ''');
 
-    var annotations = findElement2.class_('C').metadata2.annotations;
+    var annotations = findElement2.class_('C').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var cDeclaration = findNode.classTypeAlias('C<A>');
@@ -910,7 +910,7 @@ const A = null;
 @A enum E { A, B }
 ''');
 
-    var annotations = findElement2.enum_('E').metadata2.annotations;
+    var annotations = findElement2.enum_('E').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var eDeclaration = findNode.enumDeclaration('E');
@@ -930,7 +930,7 @@ Annotation
 const A = null;
 @A extension E<A> on List<A> {}''');
 
-    var annotations = findElement2.extension_('E').metadata2.annotations;
+    var annotations = findElement2.extension_('E').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var cDeclaration = findNode.extensionDeclaration('E<A>');
@@ -952,7 +952,7 @@ class C {
   @A int f = 1;
 }''');
 
-    var metadata = findElement2.field('f').metadata2.annotations;
+    var metadata = findElement2.field('f').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -964,7 +964,7 @@ class C {
   C(@A this.f);
 }''');
 
-    var metadata = findElement2.fieldFormalParameter('f').metadata2.annotations;
+    var metadata = findElement2.fieldFormalParameter('f').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -973,7 +973,7 @@ class C {
 const A = null;
 @A f() {}''');
 
-    var annotations = findElement2.topFunction('f').metadata2.annotations;
+    var annotations = findElement2.topFunction('f').metadata.annotations;
     expect(annotations, hasLength(1));
   }
 
@@ -982,7 +982,7 @@ const A = null;
 const A = null;
 @A f<A>() {}''');
 
-    var annotations = findElement2.topFunction('f').metadata2.annotations;
+    var annotations = findElement2.topFunction('f').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var fDeclaration = findNode.functionDeclaration('f<A>');
@@ -1003,7 +1003,7 @@ const A = null;
 @A typedef F<A>(int A);
 ''');
 
-    var annotations = findElement2.typeAlias('F').metadata2.annotations;
+    var annotations = findElement2.typeAlias('F').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var fDeclaration = findNode.functionTypeAlias('F');
@@ -1023,7 +1023,7 @@ Annotation
 const A = null;
 f(@A int p(int x)) {}''');
 
-    var metadata = findElement2.parameter('p').metadata2.annotations;
+    var metadata = findElement2.parameter('p').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -1032,7 +1032,7 @@ f(@A int p(int x)) {}''');
 const A = null;
 f(@A int p<A>(int x)) {}''');
 
-    var annotations = findElement2.parameter('p').metadata2.annotations;
+    var annotations = findElement2.parameter('p').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var pDeclaration = findNode.functionTypedFormalParameter('p<A>');
@@ -1053,7 +1053,7 @@ const A = null;
 @A typedef F<A> = A Function();
 ''');
 
-    var annotations = findElement2.typeAlias('F').metadata2.annotations;
+    var annotations = findElement2.typeAlias('F').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var fDeclaration = findNode.genericTypeAlias('F<A>');
@@ -1073,7 +1073,7 @@ Annotation
 @A library lib;
 const A = null;''');
 
-    var metadata = result.libraryElement2.metadata2.annotations;
+    var metadata = result.libraryElement2.metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -1084,7 +1084,7 @@ class C {
   @A void m() {}
 }''');
 
-    var metadata = findElement2.method('m').metadata2.annotations;
+    var metadata = findElement2.method('m').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -1095,7 +1095,7 @@ class C {
   @A void m<A>() {}
 }''');
 
-    var annotations = findElement2.method('m').metadata2.annotations;
+    var annotations = findElement2.method('m').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var mDeclaration = findNode.methodDeclaration('m<A>');
@@ -1115,7 +1115,7 @@ Annotation
 const A = null;
 @A mixin M<A> on Object {}''');
 
-    var annotations = findElement2.mixin('M').metadata2.annotations;
+    var annotations = findElement2.mixin('M').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var mDeclaration = findNode.mixinDeclaration('M<A>');
@@ -1135,7 +1135,7 @@ Annotation
 const A = null;
 f({@A int p = 0}) {}''');
 
-    var metadata = findElement2.parameter('p').metadata2.annotations;
+    var metadata = findElement2.parameter('p').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -1144,7 +1144,7 @@ f({@A int p = 0}) {}''');
 const A = null;
 f([@A int p = 0]) {}''');
 
-    var metadata = findElement2.parameter('p').metadata2.annotations;
+    var metadata = findElement2.parameter('p').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -1153,8 +1153,8 @@ f([@A int p = 0]) {}''');
 const A = null;
 f(@A p1, @A int p2) {}''');
 
-    expect(findElement2.parameter('p1').metadata2.annotations, hasLength(1));
-    expect(findElement2.parameter('p2').metadata2.annotations, hasLength(1));
+    expect(findElement2.parameter('p1').metadata.annotations, hasLength(1));
+    expect(findElement2.parameter('p2').metadata.annotations, hasLength(1));
   }
 
   test_metadata_typedef() async {
@@ -1162,7 +1162,7 @@ f(@A p1, @A int p2) {}''');
 const A = null;
 @A typedef F<A>();''');
 
-    expect(findElement2.typeAlias('F').metadata2.annotations, hasLength(1));
+    expect(findElement2.typeAlias('F').metadata.annotations, hasLength(1));
 
     var annotation = findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''

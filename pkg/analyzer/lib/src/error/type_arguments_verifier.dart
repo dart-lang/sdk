@@ -633,7 +633,7 @@ class TypeArgumentsVerifier {
   /// - [type] does not have any `dynamic` type arguments.
   /// - the element is marked with `@optionalTypeArgs` from "package:meta".
   bool _isMissingTypeArguments(AstNode node, DartType type, Element? element) {
-    var elementMetadata = element.ifTypeOrNull<Annotatable>()?.metadata2;
+    var elementMetadata = element.ifTypeOrNull<Annotatable>()?.metadata;
     if (elementMetadata == null) {
       return false;
     }

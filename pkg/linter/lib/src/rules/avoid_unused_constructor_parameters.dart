@@ -45,7 +45,7 @@ class _ConstructorVisitor extends RecursiveAstVisitor<void> {
             return element != null &&
                 element is! FieldFormalParameterElement &&
                 element is! SuperFormalParameterElement &&
-                !element.metadata2.hasDeprecated &&
+                !element.metadata.hasDeprecated &&
                 !(element.name3 ?? '').isJustUnderscores;
           }).toSet();
 

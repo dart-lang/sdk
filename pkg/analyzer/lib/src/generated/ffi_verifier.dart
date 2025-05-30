@@ -306,7 +306,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var hasDefaultAsset = false;
 
     if (node.element2 case LibraryElementImpl library) {
-      for (var annotation in library.metadata2.annotations) {
+      for (var annotation in library.metadata.annotations) {
         var annotationValue = annotation.computeConstantValue();
         if (annotationValue != null && annotationValue.isDefaultAsset) {
           if (hasDefaultAsset) {
@@ -2279,7 +2279,7 @@ extension on ElementAnnotation {
 extension on TopLevelFunctionElement {
   /// @Native(isLeaf: true) external function.
   bool get isNativeLeaf {
-    for (var annotation in metadata2.annotations) {
+    for (var annotation in metadata.annotations) {
       if (annotation.isNativeLeaf) {
         return true;
       }
@@ -2291,7 +2291,7 @@ extension on TopLevelFunctionElement {
 extension on MethodElement {
   /// @Native(isLeaf: true) external function.
   bool get isNativeLeaf {
-    for (var annotation in metadata2.annotations) {
+    for (var annotation in metadata.annotations) {
       if (annotation.isNativeLeaf) {
         return true;
       }

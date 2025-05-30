@@ -129,7 +129,7 @@ class ClassElementLinkedData extends ElementLinkedData<ClassFragmentImpl> {
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
     _readTypeParameters(reader, element.typeParameters);
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
@@ -217,7 +217,7 @@ class ConstructorElementLinkedData
   void _read(element, reader) {
     _addEnclosingElementTypeParameters(reader, element);
 
-    element.metadata = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
     element.superConstructor =
@@ -302,7 +302,7 @@ abstract class ElementLinkedData<E> {
     List<FormalParameterFragmentImpl> parameters,
   ) {
     for (var parameter in parameters) {
-      parameter.metadata = reader._readAnnotationList(unitElement: unitElement);
+      parameter.metadata3 = reader._readAnnotationList(unitElement: unitElement);
       _readTypeParameters(reader, parameter.typeParameters);
       _readFormalParameters(reader, parameter.parameters);
       parameter.type = reader.readRequiredType();
@@ -325,7 +325,7 @@ abstract class ElementLinkedData<E> {
   ) {
     reader._addTypeParameters(typeParameters);
     for (var typeParameter in typeParameters) {
-      typeParameter.metadata = reader._readAnnotationList(
+      typeParameter.metadata3 = reader._readAnnotationList(
         unitElement: unitElement,
       );
       typeParameter.bound = reader.readType();
@@ -351,7 +351,7 @@ class EnumElementLinkedData extends ElementLinkedData<EnumFragmentImpl> {
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
+    element.metadata3 = reader._readAnnotationList(
       unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
@@ -380,7 +380,7 @@ class ExtensionElementLinkedData
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
+    element.metadata3 = reader._readAnnotationList(
       unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
@@ -410,7 +410,7 @@ class ExtensionTypeElementLinkedData
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
+    element.metadata3 = reader._readAnnotationList(
       unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
@@ -438,7 +438,7 @@ class FieldElementLinkedData extends ElementLinkedData<FieldFragmentImpl> {
   @override
   void _read(element, reader) {
     _addEnclosingElementTypeParameters(reader, element);
-    element.metadata = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
     element.type = reader.readRequiredType();
 
     if (element is ConstFieldFragmentImpl) {
@@ -470,7 +470,7 @@ class FunctionElementLinkedData
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
     _readTypeParameters(reader, element.typeParameters);
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
@@ -1862,7 +1862,7 @@ class MethodElementLinkedData extends ElementLinkedData<MethodFragmentImpl> {
   @override
   void _read(element, reader) {
     _addEnclosingElementTypeParameters(reader, element);
-    element.metadata = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
     _readTypeParameters(reader, element.typeParameters);
     _readFormalParameters(reader, element.parameters);
     element.returnType = reader.readRequiredType();
@@ -1887,7 +1887,7 @@ class MixinElementLinkedData extends ElementLinkedData<MixinFragmentImpl> {
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
+    element.metadata3 = reader._readAnnotationList(
       unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
@@ -1918,7 +1918,7 @@ class PropertyAccessorElementLinkedData
   void _read(element, reader) {
     _addEnclosingElementTypeParameters(reader, element);
 
-    element.metadata = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
 
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
@@ -2303,7 +2303,7 @@ class ResolutionReader {
         // TODO(scheglov): reuse for formal parameters
         _localElements.length -= typeParameters.length;
         if (unitElement != null) {
-          element.metadata = _readAnnotationList(unitElement: unitElement);
+          element.metadata3 = _readAnnotationList(unitElement: unitElement);
         }
         return element;
       } else {
@@ -2320,7 +2320,7 @@ class ResolutionReader {
         // TODO(scheglov): reuse for formal parameters
         _localElements.length -= typeParameters.length;
         if (unitElement != null) {
-          element.metadata = _readAnnotationList(unitElement: unitElement);
+          element.metadata3 = _readAnnotationList(unitElement: unitElement);
         }
         return element;
       }
@@ -2435,7 +2435,7 @@ class ResolutionReader {
     for (var typeParameter in typeParameters) {
       typeParameter.bound = readType();
       if (unitElement != null) {
-        typeParameter.metadata = _readAnnotationList(unitElement: unitElement);
+        typeParameter.metadata3 = _readAnnotationList(unitElement: unitElement);
       }
     }
     return typeParameters;
@@ -2474,7 +2474,7 @@ class TopLevelVariableElementLinkedData
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
     element.type = reader.readRequiredType();
 
     if (element is ConstTopLevelVariableFragmentImpl) {
@@ -2506,7 +2506,7 @@ class TypeAliasElementLinkedData
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
     _readTypeParameters(reader, element.typeParameters);
     element.aliasedElement = reader._readAliasedElement(unitElement);
     element.aliasedType = reader.readRequiredType();

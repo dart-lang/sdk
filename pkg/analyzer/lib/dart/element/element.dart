@@ -186,6 +186,16 @@ abstract class Annotatable {
   ///
   /// The list will be empty if the receiver does not have any metadata or if
   /// the library containing this element has not yet been fully resolved.
+  Metadata get metadata;
+
+  /// The metadata associated with the element or fragment.
+  ///
+  /// If the receiver is an element that has fragments, the list will include
+  /// all of the metadata from all of the fragments.
+  ///
+  /// The list will be empty if the receiver does not have any metadata or if
+  /// the library containing this element has not yet been fully resolved.
+  @Deprecated('Use metadata instead')
   Metadata get metadata2;
 }
 
