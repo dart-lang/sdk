@@ -577,7 +577,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "L6SMsr0eTyQlN6KR4VWrJ1Kx7DLrq0yWL1u8XbmfzuAC",
+      "version": "DG11ez0PRGu8loi2mYSO_7_iW5KrUS9IEvwM9ZynXH4C",
       }
     ],
     "condition": 'download_fuchsia_deps',
