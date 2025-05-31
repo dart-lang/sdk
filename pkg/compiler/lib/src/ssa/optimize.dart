@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection' show Queue;
+
 import 'package:js_runtime/synced/array_flags.dart' show ArrayFlags;
 
 import '../common.dart';
@@ -4150,15 +4152,11 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
     HInstruction input = node.checkedInput;
     if (input.usedBy.length <= 1) return; // No other uses to refine.
 
-    List<HBasicBlock> trueTargets = [];
-    List<HBasicBlock> falseTargets = [];
-
-    collectTargets(node, trueTargets, falseTargets);
-
-    if (trueTargets.isEmpty && falseTargets.isEmpty) return;
+    final targets = ConditionTargets(node);
+    if (targets.isEmpty) return;
 
     AbstractValue whenTrueType = node.checkedAbstractValue.abstractValue;
-    insertTypeRefinements(trueTargets, input, whenTrueType);
+    insertTypeRefinements(targets.whenTrue, input, whenTrueType);
     // TODO(sra): Also strengthen uses for when the condition is precise and
     // known false (e.g. int? x; ... if (x is! int) use(x)). Avoid strengthening
     // to `null`.
@@ -4169,15 +4167,11 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
     HInstruction input = node.checkedInput;
     if (input.usedBy.length <= 1) return; // No other uses to refine.
 
-    List<HBasicBlock> trueTargets = [];
-    List<HBasicBlock> falseTargets = [];
-
-    collectTargets(node, trueTargets, falseTargets);
-
-    if (trueTargets.isEmpty && falseTargets.isEmpty) return;
+    final targets = ConditionTargets(node);
+    if (targets.isEmpty) return;
 
     AbstractValue whenTrueType = node.checkedAbstractValue.abstractValue;
-    insertTypeRefinements(trueTargets, input, whenTrueType);
+    insertTypeRefinements(targets.whenTrue, input, whenTrueType);
     // TODO(sra): Also strengthen uses for when the condition is precise and
     // known false (e.g. int? x; ... if (x is! int) use(x)). Avoid strengthening
     // to `null`.
@@ -4204,17 +4198,13 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
       return;
     }
 
-    List<HBasicBlock> trueTargets = [];
-    List<HBasicBlock> falseTargets = [];
-
-    collectTargets(node, trueTargets, falseTargets);
-
-    if (trueTargets.isEmpty && falseTargets.isEmpty) return;
+    final targets = ConditionTargets(node);
+    if (targets.isEmpty) return;
 
     AbstractValue nonNullType = _abstractValueDomain.excludeNull(
       input.instructionType,
     );
-    insertTypeRefinements(falseTargets, input, nonNullType);
+    insertTypeRefinements(targets.whenFalse, input, nonNullType);
     // We don't strengthen the known-true references. It doesn't happen often
     // and we don't want "if (x==null) return x;" to convert between JavaScript
     // 'null' and 'undefined'.
@@ -4225,26 +4215,92 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
     final input = node.inputs.single;
     if (input.usedBy.length <= 1) return; // No other uses to refine.
 
-    List<HBasicBlock> trueTargets = [];
-    List<HBasicBlock> falseTargets = [];
-
-    collectTargets(node, trueTargets, falseTargets);
-
-    if (trueTargets.isEmpty && falseTargets.isEmpty) return;
+    final targets = ConditionTargets(node);
+    if (targets.isEmpty) return;
 
     final sentinelType = _abstractValueDomain.lateSentinelType;
     final nonSentinelType = _abstractValueDomain.excludeLateSentinel(
       input.instructionType,
     );
-    insertTypeRefinements(trueTargets, input, sentinelType);
-    insertTypeRefinements(falseTargets, input, nonSentinelType);
+    insertTypeRefinements(targets.whenTrue, input, sentinelType);
+    insertTypeRefinements(targets.whenFalse, input, nonSentinelType);
+  }
+}
+
+typedef _Step = (HInstruction, {_Targets? whenTrue, _Targets? whenFalse});
+
+/// [ConditionTargets] collects the target blocks for a condition. The target
+/// blocks are blocks reachable only when the condition is true (`whenTrue`) and
+/// blocks reachable only when the condition is false (`whenFalse`).
+///
+/// The algorithm starts with an initial condition instruction and two empty
+/// sets of targets, [_trueTargets] and [_falseTargets]. If the condition is
+/// used in HIf control flow, we know the condition is true in the then-block
+/// and false in the else-block.
+///
+/// If the condition is used by HNot, we can infer that when the HNot is true,
+/// the condition was false and the trueTargets of the HNot are the falseTargets
+/// of the original condition. The HNot is added to a work queue with flipped
+/// targets.
+///
+/// If the condition is used in a phi, or a HIf controlling a phi, depending on
+/// how the condition is used, sometimes when the phi is true or false, we can
+/// infer something about the original condition's targets.
+///
+/// `whenTrue:` and `whenFalse` each have three possible values, (1)
+/// _trueTargets, (2) _falseTargets, and (3) `null`.
+class ConditionTargets {
+  /// For the visited set, only one of `whenTrue:` and `whenFalse:` used, the
+  /// other is `null`. It is unusual, but possible to visit both of:
+  ///
+  ///     (cond, whenTrue: _trueTargets, whenFalse: null)
+  ///     (cond, whenTrue: _falseTargets, whenFalse: null)
+  ///
+  /// This is a contradition (cond both must be true and also must be
+  /// false). Contradictions happen only in unreachable code.
+  final Set<_Step> _visited = {};
+
+  final Queue<_Step> _queue = Queue();
+
+  final _Targets _trueTargets = _Targets();
+  final _Targets _falseTargets = _Targets();
+
+  ConditionTargets(HInstruction condition) {
+    _add(condition, _trueTargets, _falseTargets);
+    while (_queue.isNotEmpty) {
+      _step();
+    }
   }
 
-  void collectTargets(
-    HInstruction instruction,
-    List<HBasicBlock>? trueTargets,
-    List<HBasicBlock>? falseTargets,
-  ) {
+  bool get isEmpty => _trueTargets.isEmpty && _falseTargets.isEmpty;
+
+  List<HBasicBlock> get whenTrue => _trueTargets.blocks;
+  List<HBasicBlock> get whenFalse => _falseTargets.blocks;
+
+  void _add(HInstruction node, _Targets? trueTargets, _Targets? falseTargets) {
+    if (trueTargets == null && falseTargets == null) return;
+    _queue.add((node, whenTrue: trueTargets, whenFalse: falseTargets));
+  }
+
+  void _step() {
+    var (instruction, whenTrue: trueTargets, whenFalse: falseTargets) = _queue
+        .removeFirst();
+
+    // The same instruction (I) can be reached on different paths with different
+    // combinations of trueTargets (T) and falseTargets (F).  Filling in the
+    // targets for problem (I,T,F) is separable into processing (I,T,null) and
+    // (I,null,F), so we check if we have visited this instruction before by
+    // querying trueTargets and falseTargets independently, and remove the
+    // separable subproblem that already has been solved.
+    if (trueTargets != null &&
+        !_visited.add((instruction, whenTrue: trueTargets, whenFalse: null))) {
+      trueTargets = null;
+    }
+    if (falseTargets != null &&
+        !_visited.add((instruction, whenTrue: null, whenFalse: falseTargets))) {
+      falseTargets = null;
+    }
+
     if (trueTargets == null && falseTargets == null) return;
 
     for (HInstruction user in instruction.usedBy) {
@@ -4278,22 +4334,22 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
                 if (right.isConstantFalse()) {
                   // When `c ? x : false` is true, `c` must be true.
                   // So pass `c`'s trueTargets as the phi's trueTargets.
-                  collectTargets(phi, trueTargets, null);
+                  _add(phi, trueTargets, null);
                 } else if (right.isConstantTrue()) {
                   // When `c ? x : true` is false, `c` must be true.
                   // So pass `c`'s trueTargets as the phi's falseTargets.
-                  collectTargets(phi, null, trueTargets);
+                  _add(phi, null, trueTargets);
                 }
 
                 final left = phi.inputs[0];
                 if (left.isConstantFalse()) {
                   // When `c ? false : x` is true, `c` must be false.
                   // So pass `c`'s falseTargets as the phi's trueTargets.
-                  collectTargets(phi, falseTargets, null);
+                  _add(phi, falseTargets, null);
                 } else if (left.isConstantTrue()) {
                   // When `c ? true : x` is false, `c` must be false.
                   // So pass `c`'s falseTargets as the phi's falseTargets.
-                  collectTargets(phi, null, falseTargets);
+                  _add(phi, null, falseTargets);
                 }
 
                 // Sanity checks:
@@ -4301,14 +4357,14 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
                 // For `c ? true : false`, we pass both `c`'s trueTargets and
                 // falseTargets as the same targets of the phi.
                 //
-                // For `c ? false : true`, we pass the targets reversed, like we
-                // for `HNot`.
+                // For `c ? false : true`, we pass the targets reversed, like
+                // we do for `HNot`.
                 //
                 // For `c ? false : false`, we pass both `c`'s trueTargets and
                 // falseTargets to the unreachable trueTargets of the phi. We
-                // might insert contradictory strengthenings, which might refine
-                // a value to Never, i.e. we potentially 'prove' the code is
-                // unreachable.
+                // might insert contradictory strengthenings, which might
+                // refine a value to Never, i.e. we potentially 'prove' the
+                // code is unreachable.
               }
             }
           }
@@ -4318,26 +4374,33 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
         // Don't insert refinements on else-branch - may be a critical edge
         // block which we currently need to keep empty (except for phis).
       } else if (user is HNot) {
-        collectTargets(user, falseTargets, trueTargets);
+        _add(user, falseTargets, trueTargets);
       } else if (user is HPhi) {
         List<HInstruction> inputs = user.inputs;
         if (inputs.length == 2) {
           assert(inputs.contains(instruction));
           HInstruction other = inputs[(inputs[0] == instruction) ? 1 : 0];
           if (other.isConstantTrue()) {
-            // The condition flows to `HPhi(true, user)` or `HPhi(user, true)`,
+            // The condition flows to `HPhi(true,user)` or `HPhi(user,true)`,
             // which means that a downstream HIf has true-branch control flow
             // that does not depend on the original instruction, so stop
             // collecting [trueTargets].
-            collectTargets(user, null, falseTargets);
+            _add(user, null, falseTargets);
           } else if (other.isConstantFalse()) {
             // Ditto for false.
-            collectTargets(user, trueTargets, null);
+            _add(user, trueTargets, null);
           }
         }
       }
     }
   }
+}
+
+class _Targets {
+  final List<HBasicBlock> _blocks = [];
+  bool get isEmpty => _blocks.isEmpty;
+  void add(HBasicBlock block) => _blocks.add(block);
+  List<HBasicBlock> get blocks => _blocks;
 }
 
 /// Optimization phase that tries to eliminate memory loads (for example

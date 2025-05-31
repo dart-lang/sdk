@@ -7873,11 +7873,19 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       return false;
     }
 
-    // Don't inline functions marked with 'allow-cse' and 'allow-dce' since we
-    // need the call instruction to do these optimizations. We might be able to
+    // Don't inline functions marked with 'allow-dce' since we need the call
+    // instruction to recognize the whole call as unused. We might be able to
     // inline simple methods afterwards.
-    if (closedWorld.annotationsData.allowCSE(function) ||
-        closedWorld.annotationsData.allowDCE(function)) {
+    if (closedWorld.annotationsData.allowDCE(function)) {
+      return false;
+    }
+
+    // Don't inline functions marked with 'allow-cse' since we need the call
+    // instructions to recognize repeated calls. We might be able to inline
+    // simple methods afterwards. If this is the only call site, we will never
+    // find the repeated call, so we should consider inlining here.
+    if (closedWorld.annotationsData.allowCSE(function) &&
+        !_isCalledOnce(function)) {
       return false;
     }
 

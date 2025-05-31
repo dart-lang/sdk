@@ -1344,6 +1344,9 @@ abstract class HInstruction implements SpannableWithEntity {
     bool hasSameType = typeEquals(other);
     assert(hasSameType == (_gvnType == other._gvnType));
     if (!hasSameType) return false;
+    // Check the data first to ensure we are considering the same element or
+    // selector.
+    if (!dataEquals(other)) return false;
     assert((useGvn() && other.useGvn()) || (allowCSE && other.allowCSE));
     if (sideEffects != other.sideEffects) return false;
     // Check that the inputs match.
@@ -1355,8 +1358,7 @@ abstract class HInstruction implements SpannableWithEntity {
         return false;
       }
     }
-    // Check that the data in the instruction matches.
-    return dataEquals(other);
+    return true;
   }
 
   int gvnHashCode() {
@@ -2092,13 +2094,8 @@ abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
 
   @override
   bool dataEquals(HInvokeDynamic other) {
-    // Use the name and the kind instead of [Selector.operator==]
-    // because we don't need to check the arity (already checked in
-    // [gvnEquals]), and the receiver types may not be in sync.
-    // TODO(sra): If we GVN calls with named (optional) arguments then the
-    // selector needs a deeper check for the same subset of named arguments.
-    return selector.name == other.selector.name &&
-        selector.kind == other.selector.kind;
+    return selector == other.selector &&
+        (useGvn() == other.useGvn() || allowCSE == other.allowCSE);
   }
 }
 
