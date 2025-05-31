@@ -67,12 +67,12 @@ ImplicitCallReference
     readElement2: <null>
     readType: null
     writeElement2: MethodMember
-      baseElement: dart:core::<fragment>::@class::Map::@method::[]=#element
+      baseElement: dart:core::@class::Map::@method::[]=
       substitution: {K: int, V: C}
     writeType: C
     element: <null>
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
 ''');
   }
@@ -168,7 +168,7 @@ ImplicitCallReference
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: int Function(int)
   typeArgumentTypes
     int
@@ -240,7 +240,7 @@ ImplicitCallReference
     element: <null>
     staticInvokeType: null
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
 ''');
   }
@@ -263,7 +263,7 @@ ImplicitCallReference
     token: c
     element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
 ''');
   }
@@ -288,7 +288,7 @@ ImplicitCallReference
     token: c
     element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
 ''');
   }
@@ -313,7 +313,7 @@ ImplicitCallReference
     token: c
     element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
 ''');
   }
@@ -339,7 +339,7 @@ ImplicitCallReference
     token: c2
     element: <testLibraryFragment>::@function::foo::@parameter::c2#element
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
 ''');
   }
@@ -370,7 +370,7 @@ ImplicitCallReference
         operator: ..
         methodName: SimpleIdentifier
           token: m
-          element: <testLibraryFragment>::@class::C::@method::m#element
+          element: <testLibrary>::@class::C::@method::m
           staticType: void Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -378,7 +378,7 @@ ImplicitCallReference
         staticInvokeType: void Function()
         staticType: void
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: void Function()
 ''');
   }
@@ -410,7 +410,7 @@ ImplicitCallReference
       staticType: C
     element: <testLibraryFragment>::@class::C::@getter::c#element
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
 ''');
   }
@@ -449,7 +449,7 @@ ImplicitCallReference
       element: <testLibraryFragment>::@class::C::@getter::c#element
       staticType: C
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
 ''');
   }
@@ -472,7 +472,7 @@ ImplicitCallReference
     token: c
     element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
 ''');
   }
@@ -495,7 +495,7 @@ ImplicitCallReference
     token: c
     element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
 ''');
   }
@@ -518,7 +518,7 @@ ImplicitCallReference
     token: c
     element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
 ''');
   }
@@ -541,7 +541,7 @@ ImplicitCallReference
     token: c
     element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
 ''');
   }
@@ -563,7 +563,7 @@ ImplicitCallReference
     element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: A
       alias: <testLibrary>::@typeAlias::B
-  element: <testLibraryFragment>::@class::A::@method::call#element
+  element: <testLibrary>::@class::A::@method::call
   staticType: void Function()
 ''');
   }
@@ -583,7 +583,7 @@ ImplicitCallReference
     token: x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: X
-  element: <testLibraryFragment>::@class::A::@method::call#element
+  element: <testLibrary>::@class::A::@method::call
   staticType: void Function()
 ''');
   }
@@ -603,7 +603,7 @@ ImplicitCallReference
     token: y
     element: <testLibraryFragment>::@function::f::@parameter::y#element
     staticType: Y
-  element: <testLibraryFragment>::@class::A::@method::call#element
+  element: <testLibrary>::@class::A::@method::call
   staticType: void Function()
 ''');
   }
@@ -673,7 +673,7 @@ MethodInvocation
   operator: ..
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1109,7 +1109,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: bar
-    element: package:test/a.dart::<fragment>::@class::A::@method::bar#element
+    element: package:test/a.dart::@class::A::@method::bar
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1373,7 +1373,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (

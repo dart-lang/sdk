@@ -118,7 +118,7 @@ CascadeExpression
       operator: ..
       methodName: SimpleIdentifier
         token: foo
-        element: <testLibraryFragment>::@class::A::@method::foo#element
+        element: <testLibrary>::@class::A::@method::foo
         staticType: void Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -129,7 +129,7 @@ CascadeExpression
       operator: ..
       methodName: SimpleIdentifier
         token: bar
-        element: <testLibraryFragment>::@class::A::@method::bar#element
+        element: <testLibrary>::@class::A::@method::bar
         staticType: void Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -167,7 +167,7 @@ MethodInvocation
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          element: dart:core::<fragment>::@class::num::@method::clamp#element
+          element: dart:core::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -238,7 +238,7 @@ MethodInvocation
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          element: dart:core::<fragment>::@class::num::@method::clamp#element
+          element: dart:core::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -297,7 +297,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -351,7 +351,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -389,7 +389,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -427,7 +427,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -465,7 +465,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -516,7 +516,7 @@ MethodInvocation
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          element: dart:core::<fragment>::@class::num::@method::clamp#element
+          element: dart:core::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -584,7 +584,7 @@ MethodInvocation
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          element: dart:core::<fragment>::@class::num::@method::clamp#element
+          element: dart:core::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -643,7 +643,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -697,7 +697,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -735,7 +735,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -773,7 +773,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -811,7 +811,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -849,7 +849,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -887,7 +887,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -925,7 +925,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -963,7 +963,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -997,7 +997,7 @@ MethodInvocation
   operator: ..
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1048,7 +1048,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: <testLibraryFragment>::@extension::E::@method::clamp#element
+    element: <testLibrary>::@extension::E::@method::clamp
     staticType: String Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1086,7 +1086,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1127,7 +1127,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1225,7 +1225,7 @@ MethodInvocation
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          element: <testLibraryFragment>::@class::A::@method::clamp#element
+          element: <testLibrary>::@class::A::@method::clamp
           staticType: num Function(String, String)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1286,7 +1286,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: <testLibraryFragment>::@class::A::@method::clamp#element
+    element: <testLibrary>::@class::A::@method::clamp
     staticType: String Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1338,7 +1338,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: <testLibraryFragment>::@extension::E::@method::clamp#element
+    element: <testLibrary>::@extension::E::@method::clamp
     staticType: String Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1380,7 +1380,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: <testLibraryFragment>::@extension::E::@method::clamp#element
+    element: <testLibrary>::@extension::E::@method::clamp
     staticType: String Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1746,7 +1746,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2775,7 +2775,7 @@ class B extends A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3216,7 +3216,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: call
-    element: <testLibraryFragment>::@class::C::@method::call#element
+    element: <testLibrary>::@class::C::@method::call
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3251,7 +3251,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3277,7 +3277,7 @@ extension type A(int it) {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3347,7 +3347,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@method::foo#element
+    element: <testLibrary>::@class::C::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3518,7 +3518,7 @@ MethodInvocation
           correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
           staticType: int
         correspondingParameter: <null>
-        element: dart:core::<fragment>::@class::num::@method::+#element
+        element: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
     rightParenthesis: )
@@ -3668,7 +3668,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::A::@method::foo#element
+    element: <testLibrary>::@extension::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3745,7 +3745,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4131,7 +4131,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@method::foo#element
+    element: <testLibrary>::@class::C::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4169,7 +4169,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@method::foo#element
+    element: <testLibrary>::@class::C::@method::foo
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4219,7 +4219,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::I2::@method::foo#element
+    element: <testLibrary>::@class::I2::@method::foo
     staticType: void Function(Object)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4258,7 +4258,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4359,7 +4359,7 @@ MethodInvocation
     operator: ?.
     methodName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::C::@method::foo#element
+      element: <testLibrary>::@class::C::@method::foo
       staticType: C Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -4369,7 +4369,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: bar
-    element: <testLibraryFragment>::@class::C::@method::bar#element
+    element: <testLibrary>::@class::C::@method::bar
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4525,7 +4525,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@enum::E::@method::foo#element
+    element: <testLibrary>::@enum::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4560,7 +4560,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@mixin::M::@method::foo#element
+    element: <testLibrary>::@mixin::M::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4591,7 +4591,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4622,7 +4622,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4662,7 +4662,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4693,7 +4693,7 @@ MethodInvocation
   operator: ?.
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4728,7 +4728,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4801,7 +4801,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::X::@method::foo#element
+    element: <testLibrary>::@extensionType::X::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4835,7 +4835,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     element: MethodMember
-      baseElement: <testLibraryFragment>::@class::A::@method::foo#element
+      baseElement: <testLibrary>::@class::A::@method::foo
       substitution: {T: int}
     staticType: int Function()
   argumentList: ArgumentList
@@ -4869,7 +4869,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: double Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4983,7 +4983,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5069,7 +5069,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    element: dart:core::<fragment>::@class::int::@method::toString#element
+    element: dart:core::@class::int::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5109,7 +5109,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5153,7 +5153,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5188,7 +5188,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5220,7 +5220,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
+      baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: int}
     staticType: int Function()
   argumentList: ArgumentList
@@ -5334,7 +5334,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5428,7 +5428,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: package:test/a.dart::<fragment>::@class::C::@method::foo#element
+    element: package:test/a.dart::@class::C::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5464,7 +5464,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5500,7 +5500,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5580,7 +5580,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5612,7 +5612,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5775,7 +5775,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5810,7 +5810,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5842,7 +5842,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5875,7 +5875,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5913,7 +5913,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5947,7 +5947,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: abs
-    element: dart:core::<fragment>::@class::int::@method::abs#element
+    element: dart:core::@class::int::@method::abs
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5982,7 +5982,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::B::@method::foo#element
+    element: <testLibrary>::@class::B::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6263,7 +6263,7 @@ class A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6294,7 +6294,7 @@ class A<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: E Function<E>(A<E>)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6448,7 +6448,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: int Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6481,7 +6481,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: codeUnitAt
-    element: dart:core::<fragment>::@class::String::@method::codeUnitAt#element
+    element: dart:core::@class::String::@method::codeUnitAt
     staticType: int Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7063,7 +7063,7 @@ FunctionExpressionInvocation
         correspondingParameter: <testLibraryFragment>::@class::C::@method::call::@parameter::_#element
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticInvokeType: void Function(int)
   staticType: void
 ''');
@@ -7118,7 +7118,7 @@ class B extends A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7149,7 +7149,7 @@ class C {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@method::foo#element
+    element: <testLibrary>::@class::C::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7366,7 +7366,7 @@ CascadeExpression
       operator: ?..
       methodName: SimpleIdentifier
         token: foo
-        element: <testLibraryFragment>::@class::A::@method::foo#element
+        element: <testLibrary>::@class::A::@method::foo
         staticType: int Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -7377,7 +7377,7 @@ CascadeExpression
       operator: ..
       methodName: SimpleIdentifier
         token: bar
-        element: <testLibraryFragment>::@class::A::@method::bar#element
+        element: <testLibrary>::@class::A::@method::bar
         staticType: int Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -7419,7 +7419,7 @@ CascadeExpression
       operator: ..
       methodName: SimpleIdentifier
         token: bar
-        element: <testLibraryFragment>::@class::A::@method::bar#element
+        element: <testLibrary>::@class::A::@method::bar
         staticType: int Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -7462,7 +7462,7 @@ CascadeExpression
         operator: ..
         methodName: SimpleIdentifier
           token: foo
-          element: <testLibraryFragment>::@class::A::@method::foo#element
+          element: <testLibrary>::@class::A::@method::foo
           staticType: int? Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -7472,7 +7472,7 @@ CascadeExpression
       operator: ?.
       methodName: SimpleIdentifier
         token: abs
-        element: dart:core::<fragment>::@class::int::@method::abs#element
+        element: dart:core::@class::int::@method::abs
         staticType: int Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -7533,7 +7533,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    element: dart:core::<fragment>::@class::Object::@method::toString#element
+    element: dart:core::@class::Object::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7562,7 +7562,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    element: dart:core::<fragment>::@class::Object::@method::toString#element
+    element: dart:core::@class::Object::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7746,7 +7746,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: remainder
-    element: dart:core::<fragment>::@class::num::@method::remainder#element
+    element: dart:core::@class::num::@method::remainder
     staticType: num Function(num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7779,7 +7779,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: remainder
-    element: dart:core::<fragment>::@class::num::@method::remainder#element
+    element: dart:core::@class::num::@method::remainder
     staticType: num Function(num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7819,7 +7819,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: remainder
-    element: dart:core::<fragment>::@class::num::@method::remainder#element
+    element: dart:core::@class::num::@method::remainder
     staticType: num Function(num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8042,7 +8042,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@mixin::M::@method::foo#element
+    element: <testLibrary>::@mixin::M::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8201,7 +8201,7 @@ MethodInvocation
           correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
           staticType: int
         correspondingParameter: <null>
-        element: dart:core::<fragment>::@class::num::@method::+#element
+        element: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
       ListLiteral

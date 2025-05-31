@@ -424,6 +424,7 @@ class BundleWriter {
   void _writeMethodElement(MethodFragmentImpl fragment) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(fragment);
+    _writeReference2(fragment.element.reference);
     _writeFragmentName(fragment);
     _sink._writeStringReference(fragment.name);
     MethodElementFlags.write(_sink, fragment);
@@ -721,7 +722,6 @@ class ResolutionSink extends _SummaryDataWriter {
       case FieldElementImpl2():
       case FormalParameterElementImpl():
       case GetterElementImpl():
-      case MethodElementImpl2():
       case SetterElementImpl():
       case TypeParameterElementImpl2():
         // TODO(scheglov): eventually stop using fragments here.

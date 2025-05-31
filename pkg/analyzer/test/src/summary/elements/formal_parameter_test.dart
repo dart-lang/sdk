@@ -66,7 +66,7 @@ library
           methods
             m @17
               reference: <testLibraryFragment>::@class::A::@method::m
-              element: <testLibraryFragment>::@class::A::@method::m#element
+              element: <testLibrary>::@class::A::@method::m
               formalParameters
                 default a @32
                   reference: <testLibraryFragment>::@class::A::@method::m::@parameter::a
@@ -80,6 +80,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             optionalNamed covariant a
@@ -113,7 +114,7 @@ library
           methods
             m @17
               reference: <testLibraryFragment>::@class::A::@method::m
-              element: <testLibraryFragment>::@class::A::@method::m#element
+              element: <testLibrary>::@class::A::@method::m
               formalParameters
                 default a @32
                   element: <testLibraryFragment>::@class::A::@method::m::@parameter::a#element
@@ -126,6 +127,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             optionalPositional covariant a
@@ -158,7 +160,7 @@ library
           methods
             m @17
               reference: <testLibraryFragment>::@class::A::@method::m
-              element: <testLibraryFragment>::@class::A::@method::m#element
+              element: <testLibrary>::@class::A::@method::m
               formalParameters
                 a @31
                   element: <testLibraryFragment>::@class::A::@method::m::@parameter::a#element
@@ -171,6 +173,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional covariant a
@@ -209,7 +212,7 @@ library
           methods
             f @20
               reference: <testLibraryFragment>::@class::A::@method::f
-              element: <testLibraryFragment>::@class::A::@method::f#element
+              element: <testLibrary>::@class::A::@method::f
               formalParameters
                 t @34
                   element: <testLibraryFragment>::@class::A::@method::f::@parameter::t#element
@@ -227,7 +230,7 @@ library
           methods
             f @75
               reference: <testLibraryFragment>::@class::B::@method::f
-              element: <testLibraryFragment>::@class::B::@method::f#element
+              element: <testLibrary>::@class::B::@method::f
               formalParameters
                 t @79
                   element: <testLibraryFragment>::@class::B::@method::f::@parameter::t#element
@@ -242,6 +245,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::A::@method::f
           firstFragment: <testLibraryFragment>::@class::A::@method::f
           hasEnclosingTypeParameterReference: true
           formalParameters
@@ -260,6 +264,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         f
+          reference: <testLibrary>::@class::B::@method::f
           firstFragment: <testLibraryFragment>::@class::B::@method::f
           hasEnclosingTypeParameterReference: true
           formalParameters
@@ -296,7 +301,7 @@ library
           methods
             m @17
               reference: <testLibraryFragment>::@class::A::@method::m
-              element: <testLibraryFragment>::@class::A::@method::m#element
+              element: <testLibrary>::@class::A::@method::m
               formalParameters
                 default a @32
                   reference: <testLibraryFragment>::@class::A::@method::m::@parameter::a
@@ -312,7 +317,7 @@ library
           methods
             m @68
               reference: <testLibraryFragment>::@class::B::@method::m
-              element: <testLibraryFragment>::@class::B::@method::m#element
+              element: <testLibrary>::@class::B::@method::m
               formalParameters
                 default a @73
                   reference: <testLibraryFragment>::@class::B::@method::m::@parameter::a
@@ -326,6 +331,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             optionalNamed covariant a
@@ -342,6 +348,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             optionalNamed covariant a
@@ -371,7 +378,7 @@ library
           methods
             f @10
               reference: <testLibraryFragment>::@class::C::@method::f
-              element: <testLibraryFragment>::@class::C::@method::f#element
+              element: <testLibrary>::@class::C::@method::f
               formalParameters
                 g @12
                   element: <testLibraryFragment>::@class::C::@method::f::@parameter::g#element
@@ -384,6 +391,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional g
@@ -422,7 +430,7 @@ library
           methods
             f @16
               reference: <testLibraryFragment>::@class::C::@method::f
-              element: <testLibraryFragment>::@class::C::@method::f#element
+              element: <testLibrary>::@class::C::@method::f
               formalParameters
                 g @20
                   element: <testLibraryFragment>::@class::C::@method::f::@parameter::g#element
@@ -438,6 +446,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           hasEnclosingTypeParameterReference: true
           formalParameters
@@ -470,7 +479,7 @@ library
           methods
             f @10
               reference: <testLibraryFragment>::@class::C::@method::f
-              element: <testLibraryFragment>::@class::C::@method::f#element
+              element: <testLibrary>::@class::C::@method::f
               formalParameters
                 g @16
                   element: <testLibraryFragment>::@class::C::@method::f::@parameter::g#element
@@ -483,6 +492,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional g
@@ -511,7 +521,7 @@ library
           methods
             f @10
               reference: <testLibraryFragment>::@class::C::@method::f
-              element: <testLibraryFragment>::@class::C::@method::f#element
+              element: <testLibrary>::@class::C::@method::f
               formalParameters
                 g @17
                   element: <testLibraryFragment>::@class::C::@method::f::@parameter::g#element
@@ -524,6 +534,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional g
@@ -767,7 +778,7 @@ library
           methods
             positional @24
               reference: <testLibraryFragment>::@class::C::@method::positional
-              element: <testLibraryFragment>::@class::C::@method::positional#element
+              element: <testLibrary>::@class::C::@method::positional
               formalParameters
                 default x @36
                   element: <testLibraryFragment>::@class::C::@method::positional::@parameter::x#element
@@ -777,7 +788,7 @@ library
                       staticType: int
             named @61
               reference: <testLibraryFragment>::@class::C::@method::named
-              element: <testLibraryFragment>::@class::C::@method::named#element
+              element: <testLibrary>::@class::C::@method::named
               formalParameters
                 default x @68
                   reference: <testLibraryFragment>::@class::C::@method::named::@parameter::x
@@ -795,6 +806,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static positional
+          reference: <testLibrary>::@class::C::@method::positional
           firstFragment: <testLibraryFragment>::@class::C::@method::positional
           formalParameters
             optionalPositional hasImplicitType x
@@ -803,6 +815,7 @@ library
                 expression: expression_0
           returnType: void
         static named
+          reference: <testLibrary>::@class::C::@method::named
           firstFragment: <testLibraryFragment>::@class::C::@method::named
           formalParameters
             optionalNamed hasImplicitType x

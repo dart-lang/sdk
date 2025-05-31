@@ -199,17 +199,16 @@ _CollectedOptionsData _collectOptionsData(AnalysisDriver driver) {
   return (totalProducerTime, details.toString());
 }
 
-class AnalysisDriverTimingsPage extends DiagnosticPageWithNav
-    implements PostablePage {
+class AnalysisDriverPage extends DiagnosticPageWithNav implements PostablePage {
   static const _resetFormId = 'reset-driver-timers';
 
-  AnalysisDriverTimingsPage(DiagnosticsSite site)
+  AnalysisDriverPage(DiagnosticsSite site)
     : super(
         site,
-        'driver-timings',
-        'Analysis Driver',
+        'analysis-driver',
+        'Analysis driver',
         description:
-            'Timing statistics collected by the analysis driver scheduler since last reset.',
+            'Timing statistics collected by the analysis driver scheduler since the last reset.',
         indentInNav: true,
       );
 
@@ -249,8 +248,8 @@ class AnalysisPerformanceLogPage extends WebSocketLoggingPage {
     : super(
         site,
         'analysis-performance-log',
-        'Analysis Performance Log',
-        description: 'Realtime logging from the Analysis Performance Log',
+        'Analysis performance log',
+        description: 'Real-time logging from the analysis performance log',
       );
 
   @override
@@ -334,7 +333,7 @@ class AssistsPage extends DiagnosticPageWithNav with PerformanceChartMixin {
   AssistsPage(DiagnosticsSite site)
     : super(
         site,
-        'getAssists',
+        'assists',
         'Assists',
         description: 'Latency and timing statistics for getting assists.',
         indentInNav: true,
@@ -437,65 +436,6 @@ class AstPage extends DiagnosticPageWithNav {
   }
 }
 
-class ByteStoreTimingPage extends DiagnosticPageWithNav
-    with PerformanceChartMixin {
-  ByteStoreTimingPage(DiagnosticsSite site)
-    : super(
-        site,
-        'byte-store-timing',
-        'FileByteStore',
-        description: 'FileByteStore Timing statistics.',
-        indentInNav: true,
-      );
-
-  @override
-  Future<void> generateContent(Map<String, String> params) async {
-    h3('FileByteStore Timings');
-
-    var byteStoreTimings =
-        server.byteStoreTimings
-            ?.where(
-              (timing) =>
-                  timing.readCount != 0 || timing.readTime != Duration.zero,
-            )
-            .toList();
-    if (byteStoreTimings == null || byteStoreTimings.isEmpty) {
-      p(
-        'There are currently no timings. '
-        'Try refreshing after the server has performed initial analysis.',
-      );
-      return;
-    }
-
-    buf.writeln('<table>');
-    buf.writeln(
-      '<tr><th>Files Read</th><th>Time Taken</th><th>&nbsp;</th></tr>',
-    );
-    for (var i = 0; i < byteStoreTimings.length; i++) {
-      var timing = byteStoreTimings[i];
-      if (timing.readCount == 0) {
-        continue;
-      }
-
-      var nextTiming =
-          i + 1 < byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
-      var duration = (nextTiming?.time ?? DateTime.now()).difference(
-        timing.time,
-      );
-      var description =
-          'Between <em>${timing.reason}</em> and <em>${nextTiming?.reason ?? 'now'} (${printMilliseconds(duration.inMilliseconds)})</em>.';
-      buf.writeln(
-        '<tr>'
-        '<td class="right">${timing.readCount} files</td>'
-        '<td class="right">${printMilliseconds(timing.readTime.inMilliseconds)}</td>'
-        '<td>$description</td>'
-        '</tr>',
-      );
-    }
-    buf.writeln('</table>');
-  }
-}
-
 class ClientPage extends DiagnosticPageWithNav {
   ClientPage(super.site, [super.id = 'client', super.title = 'Client'])
     : super(description: 'Information about the client.');
@@ -507,12 +447,68 @@ class ClientPage extends DiagnosticPageWithNav {
   }
 }
 
+class CodeCompletionPage extends DiagnosticPageWithNav
+    with PerformanceChartMixin {
+  CodeCompletionPage(DiagnosticsSite site)
+    : super(
+        site,
+        'code-completion',
+        'Code Completion',
+        description: 'Latency statistics for code completion.',
+        indentInNav: true,
+      );
+
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
+  List<CompletionPerformance> get performanceItems =>
+      server.recentPerformance.completion.items.toList();
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    var completions = performanceItems;
+
+    if (completions.isEmpty) {
+      blankslate('No completions recorded.');
+      return;
+    }
+
+    var fastCount =
+        completions.where((c) => c.elapsedInMilliseconds <= 100).length;
+    p(
+      '${completions.length} results; ${printPercentage(fastCount / completions.length)} within 100ms.',
+    );
+
+    drawChart(completions);
+
+    // emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln(
+      '<tr><th>Time</th><th>Computed Results</th><th>Transmitted Results</th><th>Source</th><th>Snippet</th></tr>',
+    );
+    for (var completion in completions) {
+      var shortName = pathContext.basename(completion.path);
+      buf.writeln(
+        '<tr>'
+        '<td class="pre right"><a href="/timing?id=${completion.id}&kind=completion">'
+        '${_formatLatencyTiming(completion.elapsedInMilliseconds, completion.requestLatency)}'
+        '</a></td>'
+        '<td class="right">${completion.computedSuggestionCountStr}</td>'
+        '<td class="right">${completion.transmittedSuggestionCountStr}</td>'
+        '<td>${escape(shortName)}</td>'
+        '<td><code>${escape(completion.snippet)}</code></td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
+  }
+}
+
 class CollectReportPage extends DiagnosticPage {
   CollectReportPage(DiagnosticsSite site)
     : super(
         site,
-        'collectreport',
-        'Collect Report',
+        'collect-report',
+        'Collect report',
         description: 'Collect a shareable report for filing issues.',
       );
 
@@ -956,61 +952,6 @@ class CommunicationsPage extends DiagnosticPageWithNav {
       );
     }
     buf.write('</table>');
-  }
-}
-
-class CompletionPage extends DiagnosticPageWithNav with PerformanceChartMixin {
-  CompletionPage(DiagnosticsSite site)
-    : super(
-        site,
-        'completion',
-        'Code Completion',
-        description: 'Latency statistics for code completion.',
-        indentInNav: true,
-      );
-
-  path.Context get pathContext => server.resourceProvider.pathContext;
-
-  List<CompletionPerformance> get performanceItems =>
-      server.recentPerformance.completion.items.toList();
-
-  @override
-  Future<void> generateContent(Map<String, String> params) async {
-    var completions = performanceItems;
-
-    if (completions.isEmpty) {
-      blankslate('No completions recorded.');
-      return;
-    }
-
-    var fastCount =
-        completions.where((c) => c.elapsedInMilliseconds <= 100).length;
-    p(
-      '${completions.length} results; ${printPercentage(fastCount / completions.length)} within 100ms.',
-    );
-
-    drawChart(completions);
-
-    // emit the data as a table
-    buf.writeln('<table>');
-    buf.writeln(
-      '<tr><th>Time</th><th>Computed Results</th><th>Transmitted Results</th><th>Source</th><th>Snippet</th></tr>',
-    );
-    for (var completion in completions) {
-      var shortName = pathContext.basename(completion.path);
-      buf.writeln(
-        '<tr>'
-        '<td class="pre right"><a href="/timing?id=${completion.id}&kind=completion">'
-        '${_formatLatencyTiming(completion.elapsedInMilliseconds, completion.requestLatency)}'
-        '</a></td>'
-        '<td class="right">${completion.computedSuggestionCountStr}</td>'
-        '<td class="right">${completion.transmittedSuggestionCountStr}</td>'
-        '<td>${escape(shortName)}</td>'
-        '<td><code>${escape(completion.snippet)}</code></td>'
-        '</tr>',
-      );
-    }
-    buf.writeln('</table>');
   }
 }
 
@@ -1550,10 +1491,10 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
     // Add timing pages
     pages.add(TimingPage(this));
     // (Nested)
-    pages.add(AnalysisDriverTimingsPage(this));
+    pages.add(AnalysisDriverPage(this));
     pages.add(AssistsPage(this));
-    pages.add(ByteStoreTimingPage(this));
-    pages.add(CompletionPage(this));
+    pages.add(FileByteStoreTimingPage(this));
+    pages.add(CodeCompletionPage(this));
     pages.add(FixesPage(this));
     pages.add(MessageSchedulerPage(this));
     pages.add(RefactoringsPage(this));
@@ -1576,7 +1517,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
   ElementModelPage(DiagnosticsSite site)
     : super(
         site,
-        'element',
+        'element-model',
         'Element model',
         description: 'The element model for a file.',
       );
@@ -1639,7 +1580,7 @@ class EnvironmentVariablesPage extends DiagnosticPageWithNav {
     : super(
         site,
         'environment',
-        'Environment Variables',
+        'Environment variables',
         description:
             'System environment variables as seen from the analysis server.',
       );
@@ -1707,7 +1648,7 @@ class FeedbackPage extends DiagnosticPage {
         site,
         'feedback',
         'Feedback',
-        description: 'Providing feedback and filing issues.',
+        description: 'How to provide feedback and file issues.',
       );
 
   @override
@@ -1746,11 +1687,70 @@ class FeedbackPage extends DiagnosticPage {
   }
 }
 
+class FileByteStoreTimingPage extends DiagnosticPageWithNav
+    with PerformanceChartMixin {
+  FileByteStoreTimingPage(DiagnosticsSite site)
+    : super(
+        site,
+        'file-byte-store-timing',
+        'FileByteStore timing',
+        description: 'FileByteStore timing statistics.',
+        indentInNav: true,
+      );
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    h3('FileByteStore Timings');
+
+    var byteStoreTimings =
+        server.byteStoreTimings
+            ?.where(
+              (timing) =>
+                  timing.readCount != 0 || timing.readTime != Duration.zero,
+            )
+            .toList();
+    if (byteStoreTimings == null || byteStoreTimings.isEmpty) {
+      p(
+        'There are currently no timings. '
+        'Try refreshing after the server has performed initial analysis.',
+      );
+      return;
+    }
+
+    buf.writeln('<table>');
+    buf.writeln(
+      '<tr><th>Files Read</th><th>Time Taken</th><th>&nbsp;</th></tr>',
+    );
+    for (var i = 0; i < byteStoreTimings.length; i++) {
+      var timing = byteStoreTimings[i];
+      if (timing.readCount == 0) {
+        continue;
+      }
+
+      var nextTiming =
+          i + 1 < byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
+      var duration = (nextTiming?.time ?? DateTime.now()).difference(
+        timing.time,
+      );
+      var description =
+          'Between <em>${timing.reason}</em> and <em>${nextTiming?.reason ?? 'now'} (${printMilliseconds(duration.inMilliseconds)})</em>.';
+      buf.writeln(
+        '<tr>'
+        '<td class="right">${timing.readCount} files</td>'
+        '<td class="right">${printMilliseconds(timing.readTime.inMilliseconds)}</td>'
+        '<td>$description</td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
+  }
+}
+
 class FixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
   FixesPage(DiagnosticsSite site)
     : super(
         site,
-        'getFixes',
+        'fixes',
         'Fixes',
         description: 'Latency and timing statistics for getting fixes.',
         indentInNav: true,
@@ -1809,8 +1809,8 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
   LspCapabilitiesPage(DiagnosticsSite site, this.server)
     : super(
         site,
-        'lsp_capabilities',
-        'LSP Capabilities',
+        'lsp-capabilities',
+        'LSP capabilities',
         description: 'Client and Server LSP Capabilities.',
         indentInNav: true,
       );
@@ -1872,8 +1872,8 @@ class LspRegistrationsPage extends DiagnosticPageWithNav {
   LspRegistrationsPage(DiagnosticsSite site, this.server)
     : super(
         site,
-        'lsp_registrations',
-        'LSP Registrations',
+        'lsp-registrations',
+        'LSP registrations',
         description: 'Current LSP feature registrations.',
         indentInNav: true,
       );
@@ -1931,8 +1931,8 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
   MemoryAndCpuPage(DiagnosticsSite site, this.profiler)
     : super(
         site,
-        'memory',
-        'Memory and CPU Usage',
+        'memory-and-cpu-usage',
+        'Memory and CPU usage',
         description: 'Memory and CPU usage for the analysis server.',
       );
 

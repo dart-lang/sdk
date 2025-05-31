@@ -138,7 +138,7 @@ library
           methods
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo
-              element: <testLibraryFragment>::@class::A::@method::foo#element
+              element: <testLibrary>::@class::A::@method::foo
               formalParameters
                 a @35
                   element: <testLibraryFragment>::@class::A::@method::foo::@parameter::a#element
@@ -151,6 +151,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           formalParameters
             requiredPositional a
@@ -183,7 +184,7 @@ library
           methods
             foo @26
               reference: <testLibraryFragment>::@class::A::@method::foo
-              element: <testLibraryFragment>::@class::A::@method::foo#element
+              element: <testLibrary>::@class::A::@method::foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -193,6 +194,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           returnType: (int, String)
 ''');

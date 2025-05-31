@@ -303,7 +303,7 @@ ObjectPattern
         declaredElement: hasImplicitType y@83
           type: void Function()
         matchedValueType: void Function()
-      element2: <testLibraryFragment>::@class::A::@method::foo#element
+      element2: <testLibrary>::@class::A::@method::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -346,7 +346,7 @@ ObjectPattern
         declaredElement: hasImplicitType y@97
           type: void Function()
         matchedValueType: void Function()
-      element2: <testLibraryFragment>::@extension::E::@method::foo#element
+      element2: <testLibrary>::@extension::E::@method::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');

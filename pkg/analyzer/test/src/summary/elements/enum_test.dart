@@ -1247,7 +1247,7 @@ library
                       rightOperand: IntegerLiteral
                         literal: 2 @53
                         staticType: int
-                      element: dart:core::<fragment>::@class::num::@method::+#element
+                      element: dart:core::@class::num::@method::+
                       staticInvokeType: num Function(num)
                       staticType: int
           getters
@@ -2916,7 +2916,7 @@ library
           methods
             foo @23
               reference: <testLibraryFragment>::@enum::E::@method::foo
-              element: <testLibraryFragment>::@enum::E::@method::foo#element
+              element: <testLibrary>::@enum::E::@method::foo
               typeParameters
                 U @27
                   element: U@27
@@ -2959,6 +2959,7 @@ library
           returnType: List<E<dynamic>>
       methods
         foo
+          reference: <testLibrary>::@enum::E::@method::foo
           firstFragment: <testLibraryFragment>::@enum::E::@method::foo
           hasEnclosingTypeParameterReference: true
           typeParameters
@@ -3035,7 +3036,7 @@ library
           methods
             toString @23
               reference: <testLibraryFragment>::@enum::E::@method::toString
-              element: <testLibraryFragment>::@enum::E::@method::toString#element
+              element: <testLibrary>::@enum::E::@method::toString
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -3068,6 +3069,7 @@ library
           returnType: List<E>
       methods
         toString
+          reference: <testLibrary>::@enum::E::@method::toString
           firstFragment: <testLibraryFragment>::@enum::E::@method::toString
           returnType: String
 ''');
@@ -5031,7 +5033,7 @@ library
           methods
             foo @52
               reference: <testLibraryFragment>::@class::A::@method::foo
-              element: <testLibraryFragment>::@class::A::@method::foo#element
+              element: <testLibrary>::@class::A::@method::foo
         class B @70
           reference: <testLibraryFragment>::@class::B
           element: <testLibrary>::@class::B
@@ -5043,7 +5045,7 @@ library
           methods
             foo @92
               reference: <testLibraryFragment>::@class::B::@method::foo
-              element: <testLibraryFragment>::@class::B::@method::foo#element
+              element: <testLibrary>::@class::B::@method::foo
         class C @110
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -5055,7 +5057,7 @@ library
           methods
             foo @141
               reference: <testLibraryFragment>::@class::C::@method::foo
-              element: <testLibraryFragment>::@class::C::@method::foo#element
+              element: <testLibrary>::@class::C::@method::foo
         class D @159
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
@@ -5172,6 +5174,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           returnType: dynamic
     class B
@@ -5184,6 +5187,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
           returnType: dynamic
     class C
@@ -5197,6 +5201,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::C::@method::foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
           returnType: dynamic
     class alias D
@@ -5884,7 +5889,7 @@ library
           methods
             foo @40
               reference: <testLibraryFragment>::@enum::E::@method::foo
-              element: <testLibraryFragment>::@enum::E::@method::foo#element
+              element: <testLibrary>::@enum::E::@method::foo
               metadata
                 Annotation
                   atSign: @ @30
@@ -5938,6 +5943,7 @@ library
           returnType: List<E>
       methods
         foo
+          reference: <testLibrary>::@enum::E::@method::foo
           firstFragment: <testLibraryFragment>::@enum::E::@method::foo
           metadata
             Annotation
@@ -6056,7 +6062,7 @@ library
           methods
             bar @81
               reference: <testLibraryFragment>::@enum::E::@method::bar
-              element: <testLibraryFragment>::@enum::E::@method::bar#element
+              element: <testLibrary>::@enum::E::@method::bar
               metadata
                 Annotation
                   atSign: @ @69
@@ -6130,6 +6136,7 @@ library
           returnType: int
       methods
         bar
+          reference: <testLibrary>::@enum::E::@method::bar
           firstFragment: <testLibraryFragment>::@enum::E::@method::bar
           metadata
             Annotation

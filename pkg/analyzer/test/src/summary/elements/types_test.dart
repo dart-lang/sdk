@@ -311,7 +311,7 @@ library
           methods
             m @30
               reference: <testLibraryFragment>::@class::C::@method::m
-              element: <testLibraryFragment>::@class::C::@method::m#element
+              element: <testLibrary>::@class::C::@method::m
               typeParameters
                 V @32
                   element: V@32
@@ -334,6 +334,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           typeParameters
             V
@@ -377,7 +378,7 @@ library
           methods
             call @17
               reference: <testLibraryFragment>::@class::C::@method::call
-              element: <testLibraryFragment>::@class::C::@method::call#element
+              element: <testLibrary>::@class::C::@method::call
         class D @36
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
@@ -408,6 +409,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         call
+          reference: <testLibrary>::@class::C::@method::call
           firstFragment: <testLibraryFragment>::@class::C::@method::call
           returnType: void
     class D
@@ -435,7 +437,7 @@ library
                       token: c @68
                       element: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c#element
                       staticType: C
-                    element: <testLibraryFragment>::@class::C::@method::call#element
+                    element: <testLibrary>::@class::C::@method::call
                     staticType: void Function()
                 rightParenthesis: ) @69
               element: <testLibraryFragment>::@class::D::@constructor::named#element
@@ -828,7 +830,7 @@ library
           methods
             == @74
               reference: <testLibraryFragment>::@class::X1::@method::==
-              element: <testLibraryFragment>::@class::X1::@method::==#element
+              element: <testLibrary>::@class::X1::@method::==
               formalParameters
                 other @77
                   element: <testLibraryFragment>::@class::X1::@method::==::@parameter::other#element
@@ -843,7 +845,7 @@ library
           methods
             == @145
               reference: <testLibraryFragment>::@class::X2::@method::==
-              element: <testLibraryFragment>::@class::X2::@method::==#element
+              element: <testLibrary>::@class::X2::@method::==
               formalParameters
                 other @148
                   element: <testLibraryFragment>::@class::X2::@method::==::@parameter::other#element
@@ -858,7 +860,7 @@ library
           methods
             == @213
               reference: <testLibraryFragment>::@class::X3::@method::==
-              element: <testLibraryFragment>::@class::X3::@method::==#element
+              element: <testLibrary>::@class::X3::@method::==
               formalParameters
                 other @216
                   element: <testLibraryFragment>::@class::X3::@method::==::@parameter::other#element
@@ -873,6 +875,7 @@ library
           superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeDefault::@constructor::new#element
       methods
         ==
+          reference: <testLibrary>::@class::X1::@method::==
           firstFragment: <testLibraryFragment>::@class::X1::@method::==
           formalParameters
             requiredPositional hasImplicitType other
@@ -888,6 +891,7 @@ library
           superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeObject::@constructor::new#element
       methods
         ==
+          reference: <testLibrary>::@class::X2::@method::==
           firstFragment: <testLibraryFragment>::@class::X2::@method::==
           formalParameters
             requiredPositional hasImplicitType other
@@ -903,6 +907,7 @@ library
           superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeInt::@constructor::new#element
       methods
         ==
+          reference: <testLibrary>::@class::X3::@method::==
           firstFragment: <testLibraryFragment>::@class::X3::@method::==
           formalParameters
             requiredPositional hasImplicitType other
@@ -1247,7 +1252,7 @@ library
           methods
             f @31
               reference: <testLibraryFragment>::@class::C::@method::f
-              element: <testLibraryFragment>::@class::C::@method::f#element
+              element: <testLibrary>::@class::C::@method::f
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -1257,6 +1262,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           returnType: O Function(O)
             alias: package:test/a.dart::@typeAlias::F
@@ -2097,7 +2103,7 @@ library
           methods
             g @23
               reference: <testLibraryFragment>::@class::C::@method::g
-              element: <testLibraryFragment>::@class::C::@method::g#element
+              element: <testLibrary>::@class::C::@method::g
               typeParameters
                 V @25
                   element: V@25
@@ -2115,6 +2121,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         g
+          reference: <testLibrary>::@class::C::@method::g
           firstFragment: <testLibraryFragment>::@class::C::@method::g
           typeParameters
             V
@@ -2161,7 +2168,7 @@ library
           methods
             g @23
               reference: <testLibraryFragment>::@class::C::@method::g
-              element: <testLibraryFragment>::@class::C::@method::g#element
+              element: <testLibrary>::@class::C::@method::g
               typeParameters
                 V @25
                   element: V@25
@@ -2179,6 +2186,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         g
+          reference: <testLibrary>::@class::C::@method::g
           firstFragment: <testLibraryFragment>::@class::C::@method::g
           typeParameters
             V

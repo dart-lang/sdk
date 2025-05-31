@@ -55,7 +55,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -85,7 +85,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C<dynamic> Function<U>(U)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -132,7 +132,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -176,7 +176,7 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -234,7 +234,7 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -261,7 +261,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -292,7 +292,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -323,7 +323,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -358,7 +358,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: instances
-    element: <testLibraryFragment>::@class::C::@method::instances#element
+    element: <testLibrary>::@class::C::@method::instances
     staticType: List<C> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -442,7 +442,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: one
-    element: <testLibraryFragment>::@extensionType::C::@method::one#element
+    element: <testLibrary>::@extensionType::C::@method::one
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -474,7 +474,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -506,7 +506,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -545,7 +545,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: mixinOne
-    element: <testLibraryFragment>::@mixin::CMixin::@method::mixinOne#element
+    element: <testLibrary>::@mixin::CMixin::@method::mixinOne
     staticType: CMixin Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -576,7 +576,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: memberType
-    element: <testLibraryFragment>::@class::C::@method::memberType#element
+    element: <testLibrary>::@class::C::@method::memberType
     staticType: C<U> Function<U, V>(U)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -596,7 +596,7 @@ DotShorthandInvocation
               period: .
               memberName: SimpleIdentifier
                 token: member
-                element: <testLibraryFragment>::@class::C::@method::member#element
+                element: <testLibrary>::@class::C::@method::member
                 staticType: C<int> Function()
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -698,7 +698,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@method::foo#element
+    element: <testLibrary>::@class::C::@method::foo
     staticType: C<X> Function<X>(X)
   argumentList: ArgumentList
     leftParenthesis: (

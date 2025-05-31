@@ -476,7 +476,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@method::foo#element
+    element: <testLibrary>::@class::C::@method::foo
     staticType: String Function<X>()
   staticType: String Function<X>()
 ''');

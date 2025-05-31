@@ -784,7 +784,7 @@ class A {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: foo
-  element: <testLibraryFragment>::@class::A::@method::foo#element
+  element: <testLibrary>::@class::A::@method::foo
   staticType: void Function(int)
 ''');
   }

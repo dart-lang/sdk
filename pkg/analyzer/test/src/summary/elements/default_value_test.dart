@@ -43,7 +43,7 @@ library
           methods
             X @21
               reference: <testLibraryFragment>::@class::A::@method::X
-              element: <testLibraryFragment>::@class::A::@method::X#element
+              element: <testLibrary>::@class::A::@method::X
               formalParameters
                 default a @32
                   reference: <testLibraryFragment>::@class::A::@method::X::@parameter::a
@@ -65,6 +65,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         abstract X
+          reference: <testLibrary>::@class::A::@method::X
           firstFragment: <testLibraryFragment>::@class::A::@method::X
           hasEnclosingTypeParameterReference: true
           formalParameters
@@ -234,7 +235,7 @@ library
           methods
             foo @45
               reference: <testLibraryFragment>::@class::B::@method::foo
-              element: <testLibraryFragment>::@class::B::@method::foo#element
+              element: <testLibrary>::@class::B::@method::foo
               formalParameters
                 default a @50
                   reference: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
@@ -285,6 +286,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
           formalParameters
             optionalNamed hasImplicitType a
@@ -354,9 +356,9 @@ library
                   period: . @42
                   identifier: SimpleIdentifier
                     token: compare @43
-                    element: dart:core::<fragment>::@class::Comparable::@method::compare#element
+                    element: dart:core::@class::Comparable::@method::compare
                     staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
-                  element: dart:core::<fragment>::@class::Comparable::@method::compare#element
+                  element: dart:core::@class::Comparable::@method::compare
                   staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
   functions
     f
@@ -614,17 +616,17 @@ library
           methods
             f @44
               reference: <testLibraryFragment>::@extension::E::@method::f
-              element: <testLibraryFragment>::@extension::E::@method::f#element
+              element: <testLibrary>::@extension::E::@method::f
             g @65
               reference: <testLibraryFragment>::@extension::E::@method::g
-              element: <testLibraryFragment>::@extension::E::@method::g#element
+              element: <testLibrary>::@extension::E::@method::g
               formalParameters
                 default p @75
                   element: <testLibraryFragment>::@extension::E::@method::g::@parameter::p#element
                   initializer: expression_0
                     SimpleIdentifier
                       token: f @79
-                      element: <testLibraryFragment>::@extension::E::@method::f#element
+                      element: <testLibrary>::@extension::E::@method::f
                       staticType: void Function()
   classes
     class A
@@ -639,9 +641,11 @@ library
       firstFragment: <testLibraryFragment>::@extension::E
       methods
         static f
+          reference: <testLibrary>::@extension::E::@method::f
           firstFragment: <testLibraryFragment>::@extension::E::@method::f
           returnType: void
         static g
+          reference: <testLibrary>::@extension::E::@method::g
           firstFragment: <testLibraryFragment>::@extension::E::@method::g
           formalParameters
             optionalPositional p
@@ -693,7 +697,7 @@ library
           methods
             foo @50
               reference: <testLibraryFragment>::@class::C::@method::foo
-              element: <testLibraryFragment>::@class::C::@method::foo#element
+              element: <testLibrary>::@class::C::@method::foo
               formalParameters
                 default b @70
                   element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
@@ -730,6 +734,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::C::@method::foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
           formalParameters
             optionalPositional b
@@ -1044,7 +1049,7 @@ library
           methods
             foo @45
               reference: <testLibraryFragment>::@class::C::@method::foo
-              element: <testLibraryFragment>::@class::C::@method::foo#element
+              element: <testLibrary>::@class::C::@method::foo
               typeParameters
                 T @49
                   element: T@49
@@ -1083,6 +1088,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::C::@method::foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
           typeParameters
             T
@@ -1139,7 +1145,7 @@ library
           methods
             foo @54
               reference: <testLibraryFragment>::@class::C::@method::foo
-              element: <testLibraryFragment>::@class::C::@method::foo#element
+              element: <testLibrary>::@class::C::@method::foo
               typeParameters
                 E2 @58
                   element: E2@58
@@ -1181,6 +1187,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::C::@method::foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
           hasEnclosingTypeParameterReference: true
           typeParameters
@@ -1236,7 +1243,7 @@ library
           methods
             foo @48
               reference: <testLibraryFragment>::@class::C::@method::foo
-              element: <testLibraryFragment>::@class::C::@method::foo#element
+              element: <testLibrary>::@class::C::@method::foo
               formalParameters
                 default b @58
                   element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
@@ -1274,6 +1281,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::C::@method::foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
           hasEnclosingTypeParameterReference: true
           formalParameters

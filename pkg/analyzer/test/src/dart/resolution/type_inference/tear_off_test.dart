@@ -91,7 +91,7 @@ FunctionReference
     operator: .
     propertyName: SimpleIdentifier
       token: f
-      element: <testLibraryFragment>::@class::C::@method::f#element
+      element: <testLibrary>::@class::C::@method::f
       staticType: T Function<T>(T)
     staticType: T Function<T>(T)
   staticType: int Function(int)
@@ -143,9 +143,9 @@ FunctionReference
     period: .
     identifier: SimpleIdentifier
       token: f
-      element: <testLibraryFragment>::@class::C::@method::f#element
+      element: <testLibrary>::@class::C::@method::f
       staticType: T Function<T>(T)
-    element: <testLibraryFragment>::@class::C::@method::f#element
+    element: <testLibrary>::@class::C::@method::f
     staticType: T Function<T>(T)
   staticType: int Function(int)
   typeArgumentTypes
@@ -176,7 +176,7 @@ FunctionReference
     operator: .
     propertyName: SimpleIdentifier
       token: f
-      element: <testLibraryFragment>::@class::C::@method::f#element
+      element: <testLibrary>::@class::C::@method::f
       staticType: T Function<T>(T)
     staticType: T Function<T>(T)
   staticType: int Function(int)

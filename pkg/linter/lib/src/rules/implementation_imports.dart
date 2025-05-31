@@ -24,7 +24,7 @@ class ImplementationImports extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var libraryUri = context.libraryElement2?.uri;
+    var libraryUri = context.libraryElement?.uri;
     if (libraryUri == null) return;
 
     // If the source URI is not a `package` URI, bail out.

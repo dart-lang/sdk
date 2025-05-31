@@ -45,7 +45,7 @@ void main() {
     var node = findNode.assignment('+=');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::num::@method::+#element
+dart:core::@class::num::@method::+
 ''');
   }
 
@@ -54,7 +54,7 @@ dart:core::<fragment>::@class::num::@method::+#element
     var node = findNode.binary('+');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::num::@method::+#element
+dart:core::@class::num::@method::+
 ''');
   }
 
@@ -166,7 +166,7 @@ void main() {
     var node = findNode.singleDotShorthandInvocation;
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@method::foo#element
+<testLibrary>::@class::A::@method::foo
 ''');
   }
 
@@ -367,7 +367,7 @@ void main() {
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
 MethodMember
-  baseElement: dart:core::<fragment>::@class::List::@method::[]#element
+  baseElement: dart:core::@class::List::@method::[]
   substitution: {E: int}
 ''');
   }
@@ -449,7 +449,7 @@ class A {
     var node = findNode.methodDeclaration('foo');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@method::foo#element
+<testLibrary>::@class::A::@method::foo
 ''');
   }
 
@@ -466,7 +466,7 @@ void main() {
     var node = findNode.methodInvocation('foo();');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@method::foo#element
+<testLibrary>::@class::A::@method::foo
 ''');
   }
 
@@ -512,7 +512,7 @@ dart:core::<fragment>::@class::int::@getter::isEven#element
     var node = findNode.postfix('x++');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::num::@method::+#element
+dart:core::@class::num::@method::+
 ''');
   }
 
@@ -547,7 +547,7 @@ dart:core::<fragment>::@class::int::@getter::isEven#element
     var node = findNode.prefix('++x');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::num::@method::+#element
+dart:core::@class::num::@method::+
 ''');
   }
 

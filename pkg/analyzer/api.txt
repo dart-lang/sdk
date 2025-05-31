@@ -1,3 +1,22 @@
+package:analyzer/analysis_rule/rule_context.dart:
+  RuleContext (class extends Object):
+    new (constructor: RuleContext Function())
+    allUnits (getter: List<RuleContextUnit>)
+    currentUnit (getter: RuleContextUnit?)
+    definingUnit (getter: RuleContextUnit)
+    isInLibDir (getter: bool)
+    isInTestDirectory (getter: bool)
+    libraryElement (getter: LibraryElement?)
+    package (getter: WorkspacePackage?)
+    typeProvider (getter: TypeProvider)
+    typeSystem (getter: TypeSystem)
+    isFeatureEnabled (method: bool Function(Feature))
+  RuleContextUnit (class extends Object):
+    new (constructor: RuleContextUnit Function({required String content, required ErrorReporter errorReporter, required File file, required CompilationUnit unit}))
+    content (getter: String)
+    errorReporter (getter: ErrorReporter)
+    file (getter: File)
+    unit (getter: CompilationUnit)
 package:analyzer/analysis_rule/rule_state.dart:
   dart2_12 (static getter: Version)
   dart3 (static getter: Version)

@@ -680,7 +680,7 @@ AssignmentExpression
   readType: int
   writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
 
@@ -714,7 +714,7 @@ AssignmentExpression
   readType: int?
   writeElement2: <testLibraryFragment>::@class::A::@setter::y#element
   writeType: int?
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -776,7 +776,7 @@ AssignmentExpression
   readType: int
   writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int?
 ''');
 
@@ -810,7 +810,7 @@ AssignmentExpression
   readType: int
   writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -847,7 +847,7 @@ AssignmentExpression
   readType: int
   writeElement2: <testLibraryFragment>::@function::m::@parameter::x#element
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
 
@@ -866,7 +866,7 @@ AssignmentExpression
   readType: int?
   writeElement2: <testLibraryFragment>::@function::m::@parameter::y#element
   writeType: int?
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }

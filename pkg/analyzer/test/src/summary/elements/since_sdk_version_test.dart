@@ -220,7 +220,7 @@ library
           methods
             foo @58
               reference: dart:foo::<fragment>::@class::A::@method::foo
-              element: dart:foo::<fragment>::@class::A::@method::foo#element
+              element: dart:foo::@class::A::@method::foo
   classes
     class A
       reference: dart:foo::@class::A
@@ -228,6 +228,7 @@ library
       sinceSdkVersion: 2.15.0
       methods
         foo
+          reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
           sinceSdkVersion: 2.15.0
           returnType: void
@@ -258,7 +259,7 @@ library
           methods
             foo @75
               reference: dart:foo::<fragment>::@class::A::@method::foo
-              element: dart:foo::<fragment>::@class::A::@method::foo#element
+              element: dart:foo::@class::A::@method::foo
   classes
     class A
       reference: dart:foo::@class::A
@@ -266,6 +267,7 @@ library
       sinceSdkVersion: 2.15.0
       methods
         foo
+          reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
           sinceSdkVersion: 2.16.0
           returnType: void
@@ -296,7 +298,7 @@ library
           methods
             foo @75
               reference: dart:foo::<fragment>::@class::A::@method::foo
-              element: dart:foo::<fragment>::@class::A::@method::foo#element
+              element: dart:foo::@class::A::@method::foo
   classes
     class A
       reference: dart:foo::@class::A
@@ -304,6 +306,7 @@ library
       sinceSdkVersion: 2.15.0
       methods
         foo
+          reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
           sinceSdkVersion: 2.15.0
           returnType: void
@@ -550,7 +553,7 @@ library
           methods
             foo @62
               reference: dart:foo::<fragment>::@enum::E::@method::foo
-              element: dart:foo::<fragment>::@enum::E::@method::foo#element
+              element: dart:foo::@enum::E::@method::foo
   enums
     enum E
       reference: dart:foo::@enum::E
@@ -585,6 +588,7 @@ library
           returnType: List<E>
       methods
         foo
+          reference: dart:foo::@enum::E::@method::foo
           firstFragment: dart:foo::<fragment>::@enum::E::@method::foo
           sinceSdkVersion: 2.15.0
           returnType: void
@@ -614,7 +618,7 @@ library
           methods
             foo @69
               reference: dart:foo::<fragment>::@extension::E::@method::foo
-              element: dart:foo::<fragment>::@extension::E::@method::foo#element
+              element: dart:foo::@extension::E::@method::foo
   extensions
     extension E
       reference: dart:foo::@extension::E
@@ -622,6 +626,7 @@ library
       sinceSdkVersion: 2.15.0
       methods
         foo
+          reference: dart:foo::@extension::E::@method::foo
           firstFragment: dart:foo::<fragment>::@extension::E::@method::foo
           sinceSdkVersion: 2.15.0
           returnType: void
@@ -651,7 +656,7 @@ library
           methods
             foo @58
               reference: dart:foo::<fragment>::@mixin::M::@method::foo
-              element: dart:foo::<fragment>::@mixin::M::@method::foo#element
+              element: dart:foo::@mixin::M::@method::foo
   mixins
     mixin M
       reference: dart:foo::@mixin::M
@@ -661,6 +666,7 @@ library
         Object
       methods
         foo
+          reference: dart:foo::@mixin::M::@method::foo
           firstFragment: dart:foo::<fragment>::@mixin::M::@method::foo
           sinceSdkVersion: 2.15.0
           returnType: void

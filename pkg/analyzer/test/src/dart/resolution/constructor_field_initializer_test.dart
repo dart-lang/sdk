@@ -115,7 +115,7 @@ ConstructorFieldInitializer
                     literal: 1
                     correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
                     staticType: int
-                  element: dart:core::<fragment>::@class::num::@method::+#element
+                  element: dart:core::@class::num::@method::+
                   staticInvokeType: num Function(num)
                   staticType: int
                 semicolon: ;
@@ -169,7 +169,7 @@ ConstructorFieldInitializer
               literal: 1
               correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::+#element
+            element: dart:core::@class::num::@method::+
             staticInvokeType: num Function(num)
             staticType: int
         declaredElement: null@null

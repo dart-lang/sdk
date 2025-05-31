@@ -131,7 +131,7 @@ RecordLiteral
           token: a
           element: <testLibraryFragment>::@getter::a#element
           staticType: A
-        element: <testLibraryFragment>::@class::A::@method::call#element
+        element: <testLibrary>::@class::A::@method::call
         staticType: void Function()
   rightParenthesis: )
   staticType: ({void Function() f1})
@@ -158,7 +158,7 @@ RecordLiteral
         token: a
         element: <testLibraryFragment>::@getter::a#element
         staticType: A
-      element: <testLibraryFragment>::@class::A::@method::call#element
+      element: <testLibrary>::@class::A::@method::call
       staticType: void Function()
   rightParenthesis: )
   staticType: (void Function(),)

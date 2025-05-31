@@ -103,7 +103,7 @@ AssignmentExpression
   readType: int
   writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -407,7 +407,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   staticType: void Function(int)
 ''');
@@ -492,7 +492,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   staticType: void Function(int)
 ''');
@@ -629,7 +629,7 @@ AssignmentExpression
   readType: int
   writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1193,7 +1193,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: toString
-    element: dart:core::<fragment>::@class::Object::@method::toString#element
+    element: dart:core::@class::Object::@method::toString
     staticType: String Function()
   staticType: String Function()
 ''');
@@ -1596,7 +1596,7 @@ AssignmentExpression
   readType: int
   writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -2497,7 +2497,7 @@ AssignmentExpression
   readType: int
   writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -2624,7 +2624,7 @@ bar() {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: foo
-  element: <testLibraryFragment>::@class::A::@method::foo#element
+  element: <testLibrary>::@class::A::@method::foo
   staticType: void Function(int)
 ''');
   }

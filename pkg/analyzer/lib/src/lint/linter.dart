@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -13,15 +14,21 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show RuleVisitorRegistry;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/workspace/workspace.dart';
-import 'package:meta/meta.dart';
 
 export 'package:analyzer/analysis_rule/rule_state.dart'
     show dart2_12, dart3, dart3_3, RuleState;
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
+
+/// Returns whether [filePath] is in the top-level `lib` directory in [package].
+bool _isInLibDir(String? filePath, WorkspacePackage? package) {
+  if (package == null) return false;
+  if (filePath == null) return false;
+  var libDir = package.root.getChildAssumingFolder('lib');
+  return libDir.contains(filePath);
+}
 
 /// A soon-to-be deprecated alias for [RuleContext].
 typedef LinterContext = RuleContext;
@@ -290,70 +297,6 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
   );
 }
 
-/// Provides access to information needed by analysis rules that is not
-/// available from AST nodes or the element model.
-abstract class RuleContext {
-  /// The list of all compilation units that make up the library under analysis,
-  /// including the defining compilation unit, all parts, and all augmentations.
-  List<RuleContextUnit> get allUnits;
-
-  /// The compilation unit being analyzed.
-  ///
-  /// `null` when a unit is not currently being analyzed (for example when node
-  /// processors are being registered).
-  RuleContextUnit? get currentUnit;
-
-  /// The defining compilation unit of the library under analysis.
-  RuleContextUnit get definingUnit;
-
-  /// Whether the [definingUnit]'s location is in a package's top-level 'lib'
-  /// directory, including locations deeply nested, and locations in the
-  /// package-implementation directory, 'lib/src'.
-  bool get isInLibDir;
-
-  /// Whether the [definingUnit] is in a [package]'s "test" directory.
-  bool get isInTestDirectory;
-
-  /// The library element representing the library that contains the compilation
-  /// unit being analyzed.
-  @experimental
-  LibraryElement? get libraryElement2;
-
-  /// The package in which the library being analyzed lives, or `null` if it
-  /// does not live in a package.
-  WorkspacePackage? get package;
-
-  TypeProvider get typeProvider;
-
-  TypeSystem get typeSystem;
-
-  /// Whether the given [feature] is enabled in this rule context.
-  bool isFeatureEnabled(Feature feature);
-
-  static bool _isInLibDir(String? filePath, WorkspacePackage? package) {
-    if (package == null) return false;
-    if (filePath == null) return false;
-    var libDir = package.root.getChildAssumingFolder('lib');
-    return libDir.contains(filePath);
-  }
-}
-
-/// Provides access to information needed by analysis rules that is not
-/// available from AST nodes or the element model.
-class RuleContextUnit {
-  final File _file;
-  final String content;
-  final ErrorReporter errorReporter;
-  final CompilationUnit unit;
-
-  RuleContextUnit({
-    required File file,
-    required this.content,
-    required this.errorReporter,
-    required this.unit,
-  }) : _file = file;
-}
-
 /// A [RuleContext] for a library, parsed into [ParsedUnitResult]s.
 ///
 /// This is available for analysis rules that can operate on parsed,
@@ -371,17 +314,14 @@ final class RuleContextWithParsedResults implements RuleContext {
   RuleContextWithParsedResults(this.allUnits, this.definingUnit);
 
   @override
-  bool get isInLibDir => RuleContext._isInLibDir(
-    definingUnit.unit.declaredFragment?.source.fullName,
-    package,
-  );
+  bool get isInLibDir =>
+      _isInLibDir(definingUnit.unit.declaredFragment?.source.fullName, package);
 
   @override
   bool get isInTestDirectory => false;
 
-  @experimental
   @override
-  LibraryElement get libraryElement2 =>
+  LibraryElement get libraryElement =>
       throw UnsupportedError(
         'RuleContext with parsed results does not include a LibraryElement',
       );
@@ -437,26 +377,23 @@ final class RuleContextWithResolvedResults implements RuleContext {
   );
 
   @override
-  bool get isInLibDir => RuleContext._isInLibDir(
-    definingUnit.unit.declaredFragment?.source.fullName,
-    package,
-  );
+  bool get isInLibDir =>
+      _isInLibDir(definingUnit.unit.declaredFragment?.source.fullName, package);
 
   @override
   bool get isInTestDirectory {
     if (package case var package?) {
-      var file = definingUnit._file;
+      var file = definingUnit.file;
       return package.isInTestDirectory(file);
     }
     return false;
   }
 
-  @experimental
   @override
-  LibraryElement get libraryElement2 =>
+  LibraryElement get libraryElement =>
       definingUnit.unit.declaredFragment!.element;
 
   @override
   bool isFeatureEnabled(Feature feature) =>
-      libraryElement2.featureSet.isEnabled(feature);
+      libraryElement.featureSet.isEnabled(feature);
 }

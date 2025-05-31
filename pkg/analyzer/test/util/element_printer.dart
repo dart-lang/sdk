@@ -84,6 +84,8 @@ class ElementPrinter {
         _sink.writeln('#element');
       case TopLevelFunctionElementImpl element:
         writelnReference(element.reference);
+      case MethodElementImpl2 element:
+        writelnReference(element.reference);
       case FragmentedElementMixin element:
         var firstFragment = element.firstFragment as FragmentImpl;
         var reference = firstFragment.reference!;
@@ -122,11 +124,6 @@ class ElementPrinter {
         writelnReference(element.reference);
       case MixinElementImpl2 element:
         writelnReference(element.reference);
-      case MethodElement element:
-        var firstFragment = element.firstFragment as FragmentImpl;
-        var reference = firstFragment.reference;
-        writeReference(reference!);
-        _sink.writeln('#element');
       case MultiplyDefinedElementImpl2 multiElement:
         _sink.writeln('multiplyDefinedElement');
         _sink.withIndent(() {

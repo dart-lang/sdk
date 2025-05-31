@@ -1263,6 +1263,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       reference = _enclosingContext.addMethod(refName, fragment);
       executableFragment = fragment;
+
+      var containerBuilder = _enclosingContext.instanceElementBuilder!;
+      var containerElement = containerBuilder.element;
+      var containerRef = containerElement.reference!.getChild('@method');
+      var elementReference = containerRef.addChild(refName);
+
+      MethodElementImpl2(
+        name3: name,
+        reference: elementReference,
+        firstFragment: fragment,
+      );
     }
     executableFragment.hasImplicitReturnType = node.returnType == null;
     executableFragment.invokesSuperSelf = node.invokesSuperSelf;

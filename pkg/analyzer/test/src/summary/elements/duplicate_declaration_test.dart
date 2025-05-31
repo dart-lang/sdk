@@ -392,10 +392,10 @@ library
           methods
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo::@def::0
-              element: <testLibraryFragment>::@class::A::@method::foo::@def::0#element
+              element: <testLibrary>::@class::A::@method::foo::@def::0
             foo @33
               reference: <testLibraryFragment>::@class::A::@method::foo::@def::1
-              element: <testLibraryFragment>::@class::A::@method::foo::@def::1#element
+              element: <testLibrary>::@class::A::@method::foo::@def::1
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -405,9 +405,11 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo::@def::0
           firstFragment: <testLibraryFragment>::@class::A::@method::foo::@def::0
           returnType: void
         foo
+          reference: <testLibrary>::@class::A::@method::foo::@def::1
           firstFragment: <testLibraryFragment>::@class::A::@method::foo::@def::1
           returnType: void
 ''');

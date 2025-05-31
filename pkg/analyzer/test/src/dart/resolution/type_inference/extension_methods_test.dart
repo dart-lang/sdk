@@ -73,7 +73,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
+      baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: int, U: U}
     staticType: Map<int, U> Function<U>(U)
   argumentList: ArgumentList
@@ -112,7 +112,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
+      baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: T}
     staticType: List<T> Function()
   argumentList: ArgumentList
@@ -145,7 +145,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
+      baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: String, U: U}
     staticType: Map<String, U> Function<U>(U)
   argumentList: ArgumentList
@@ -189,11 +189,11 @@ PrefixedIdentifier
   identifier: SimpleIdentifier
     token: foo
     element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
+      baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: int, U: U}
     staticType: Map<int, U> Function<U>(U)
   element: MethodMember
-    baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
+    baseElement: <testLibrary>::@extension::E::@method::foo
     substitution: {T: int, U: U}
   staticType: Map<int, U> Function<U>(U)
 ''');
@@ -266,7 +266,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: test
     element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::Test::@method::test#element
+      baseElement: <testLibrary>::@extension::Test::@method::test
       substitution: {T: S}
     staticType: S Function(S) Function()
   argumentList: ArgumentList
@@ -514,7 +514,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
+      baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: num, U: U}
     staticType: Map<num, U> Function<U>(U)
   argumentList: ArgumentList
@@ -578,7 +578,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
+      baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: num, U: U}
     staticType: Map<num, U> Function<U>(U)
   staticType: Map<num, U> Function<U>(U)
@@ -753,7 +753,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
+      baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: int, U: U}
     staticType: Map<int, U> Function<U>(U)
   argumentList: ArgumentList
@@ -809,7 +809,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
+      baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: int, U: U}
     staticType: Map<int, U> Function<U>(U)
   staticType: Map<int, U> Function<U>(U)

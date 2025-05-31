@@ -2107,7 +2107,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: fold
     element: MethodMember
-      baseElement: <testLibraryFragment>::@class::Iterable::@method::fold#element
+      baseElement: <testLibrary>::@class::Iterable::@method::fold
       substitution: {T: dynamic, S: S}
     staticType: S Function<S>(S, S Function(S, dynamic))
   argumentList: ArgumentList
@@ -4221,7 +4221,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: map
     element: MethodMember
-      baseElement: <testLibraryFragment>::@class::List::@method::map#element
+      baseElement: <testLibrary>::@class::List::@method::map
       substitution: {E: dynamic, T: T}
     staticType: T Function<T>(T Function(dynamic))
   argumentList: ArgumentList
@@ -4265,7 +4265,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: map
     element: MethodMember
-      baseElement: <testLibraryFragment>::@class::List::@method::map#element
+      baseElement: <testLibrary>::@class::List::@method::map
       substitution: {E: dynamic, T: T}
     staticType: T Function<T>(T Function(dynamic))
   argumentList: ArgumentList
@@ -4417,7 +4417,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: MethodMember
-      baseElement: <testLibraryFragment>::@class::C::@method::f#element
+      baseElement: <testLibrary>::@class::C::@method::f
       substitution: {T: S, S: S}
     staticType: S Function<S₀>(S₀)
   typeArguments: TypeArgumentList
@@ -4491,7 +4491,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: MethodMember
-      baseElement: <testLibraryFragment>::@class::C::@method::f#element
+      baseElement: <testLibrary>::@class::C::@method::f
       substitution: {T: S, S: S}
     staticType: S Function<S₀ extends S>(S₀)
   typeArguments: TypeArgumentList
@@ -4523,7 +4523,7 @@ MethodInvocation
 SimpleIdentifier
   token: f
   element: MethodMember
-    baseElement: <testLibraryFragment>::@class::C::@method::f#element
+    baseElement: <testLibrary>::@class::C::@method::f
     substitution: {T: S, S: S}
   staticType: S Function<S₀ extends S>(S₀)
 ''');
@@ -5276,7 +5276,7 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibraryFragment>::@class::C::@method::m#element
+    element: <testLibrary>::@class::C::@method::m
     staticType: void Function<S0 extends T, S1 extends List<S0>>(S0, S1)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5321,7 +5321,7 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibraryFragment>::@class::C::@method::m#element
+    element: <testLibrary>::@class::C::@method::m
     staticType: Map<S0, S1> Function<S0 extends T, S1 extends List<S0>>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5353,7 +5353,7 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibraryFragment>::@class::C::@method::m#element
+    element: <testLibrary>::@class::C::@method::m
     staticType: void Function<S extends T>(S)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5391,7 +5391,7 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibraryFragment>::@class::C::@method::m#element
+    element: <testLibrary>::@class::C::@method::m
     staticType: S Function<S extends T>()
   argumentList: ArgumentList
     leftParenthesis: (
