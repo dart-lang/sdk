@@ -1074,6 +1074,24 @@ DEFINE_RUNTIME_ENTRY(AdjustArgumentsDesciptorForImplicitClosure, 3) {
 #endif  // defined(DART_DYNAMIC_MODULES)
 }
 
+// Converts type arguments passed to a constructor tear-off
+// into an instance type arguments.
+// Arg0: class to allocate
+// Arg1: type arguments
+// Return value: instance type arguments
+DEFINE_RUNTIME_ENTRY(ConvertToInstanceTypeArguments, 2) {
+#if defined(DART_DYNAMIC_MODULES)
+  const auto& cls = Class::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& type_args =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
+  const auto& result = TypeArguments::Handle(
+      zone, cls.GetInstanceTypeArguments(thread, type_args));
+  arguments.SetReturn(result);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
 // Check that arguments are valid for the given closure.
 // Arg0: closure
 // Arg1: arguments descriptor

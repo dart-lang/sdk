@@ -3714,6 +3714,28 @@ SwitchDispatch:
         }
       }
     }
+    const intptr_t num_type_args = cls->untag()->num_type_arguments_;
+    if (num_type_args != 0) {
+      if ((type_args == null_value) ||
+          (Smi::Value(type_args->untag()->length()) != num_type_args)) {
+        SP[1] = target;    // Save target.
+        SP[2] = argdesc_;  // Save arguments descriptor.
+        SP[3] = cls;       // Save class.
+
+        SP[4] = 0;  // Space for result.
+        SP[5] = cls;
+        SP[6] = type_args;
+
+        Exit(thread, FP, SP + 7, pc);
+        INVOKE_RUNTIME(DRT_ConvertToInstanceTypeArguments,
+                       NativeArguments(thread, 2, SP + 5, SP + 4));
+
+        target = Function::RawCast(SP[1]);
+        argdesc_ = Array::RawCast(SP[2]);
+        cls = Class::RawCast(SP[3]);
+        type_args = TypeArguments::RawCast(SP[4]);
+      }
+    }
 
     SP[1] = target;    // Save target.
     SP[2] = argdesc_;  // Save arguments descriptor.
