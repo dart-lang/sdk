@@ -7,6 +7,13 @@ set -ex
 debfile="$1"
 checkout=$(pwd)
 
+# api.buildbucket.gitiles_commit.id is not populated in try jobs :(
+if [ ! -f $debfile ]; then
+  echo "warning: $debfile does not exist"
+  version=$(tools/debian_package/get_version.py)
+  debfile="out/ReleaseX64/dart_${version}-1_amd64.deb"
+fi
+
 function test_image() {
   image="$1"
   docker run -v $checkout:$checkout -w $checkout -i --rm $image tools/debian_package/test_debian_package_inside_docker.sh $debfile
