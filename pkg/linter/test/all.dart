@@ -12,7 +12,6 @@ import 'integration_test.dart' as integration;
 import 'lint_code_test.dart' as lint_code;
 import 'mocks.dart';
 import 'pubspec_test.dart' as pubspec;
-import 'rule_test.dart' as rule;
 import 'rules/all.dart' as rules;
 import 'scope_util_test.dart' as scope_util;
 import 'utils_test.dart' as utils;
@@ -37,7 +36,6 @@ void main() {
   integration.main();
   lint_code.main();
   pubspec.main();
-  rule.main();
   rules.main();
   scope_util.main();
   utils.main();
