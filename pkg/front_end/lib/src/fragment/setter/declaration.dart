@@ -34,7 +34,7 @@ import 'encoding.dart';
 abstract class SetterDeclaration {
   Uri get fileUri;
 
-  UriOffsetLength? get uriOffset;
+  UriOffsetLength get uriOffset;
 
   List<MetadataBuilder>? get metadata;
 

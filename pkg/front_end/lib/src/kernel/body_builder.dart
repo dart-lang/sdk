@@ -1242,6 +1242,9 @@ class BodyBuilder extends StackListenerImpl
                 originParameter.type,
                 parameter.hasDeclaredInitializer);
             originParameter.initializer = initializer..parent = originParameter;
+            if (initializer is InvalidExpression) {
+              originParameter.isErroneouslyInitialized = true;
+            }
             parameter.initializerWasInferred = true;
           }
           VariableDeclaration? tearOffParameter =

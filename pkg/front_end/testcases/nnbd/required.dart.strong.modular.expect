@@ -71,7 +71,7 @@ class B extends self::A {
   synthetic constructor •() → self::B
     : super self::A::•()
     ;
-  method foo({core::int x = #C2}) → dynamic {}
+  method foo({erroneously-initialized core::int x = #C2}) → dynamic {}
 }
 class C extends self::A {
   synthetic constructor •() → self::C

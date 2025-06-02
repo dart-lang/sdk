@@ -1424,6 +1424,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               formal.fileOffset,
               formal.name.length,
               formal.fileUri);
+          formal.variable?.isErroneouslyInitialized = true;
         }
       }
     }

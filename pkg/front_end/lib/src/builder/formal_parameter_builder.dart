@@ -6,7 +6,13 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
     show FormalParameterKind;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart'
-    show DartType, DynamicType, Expression, NullLiteral, VariableDeclaration;
+    show
+        DartType,
+        DynamicType,
+        Expression,
+        InvalidExpression,
+        NullLiteral,
+        VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
@@ -282,6 +288,9 @@ class FormalParameterBuilder extends NamedBuilderImpl
         initializer = bodyBuilder.typeInferrer.inferParameterInitializer(
             bodyBuilder, initializer, variable!.type, hasDeclaredInitializer);
         variable!.initializer = initializer..parent = variable;
+        if (initializer is InvalidExpression) {
+          variable!.isErroneouslyInitialized = true;
+        }
         initializerWasInferred = true;
         bodyBuilder.performBacklogComputations();
       } else if (kind.isOptional) {

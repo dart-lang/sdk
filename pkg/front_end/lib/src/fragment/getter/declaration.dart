@@ -34,7 +34,7 @@ import 'encoding.dart';
 abstract class GetterDeclaration {
   Uri get fileUri;
 
-  UriOffsetLength? get uriOffset;
+  UriOffsetLength get uriOffset;
 
   GetterQuality get getterQuality;
 

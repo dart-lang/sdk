@@ -1502,7 +1502,8 @@ type VariableDeclarationPlain {
 
   UInt flags (isFinal, isConst, hasDeclaredInitializer, isInitializingFormal,
               isCovariantByClass, isLate, isRequired, isCovariantByDeclaration,
-              isLowered, isSynthesized, isHoisted, isWildcard, isSuperInitializingFormal);
+              isLowered, isSynthesized, isHoisted, isWildcard, isSuperInitializingFormal,
+              isErroneouslyInitialized);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
