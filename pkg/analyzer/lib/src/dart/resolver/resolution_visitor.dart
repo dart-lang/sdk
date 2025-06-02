@@ -233,9 +233,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       var exceptionNode = node.exceptionParameter;
       if (exceptionNode != null) {
         var fragment = LocalVariableFragmentImpl(
-          name: exceptionNode.name.lexeme,
+          name2: _getFragmentName(exceptionNode.name),
           nameOffset: exceptionNode.name.offset,
-        )..name2 = _getFragmentName(exceptionNode.name);
+        );
         _elementHolder.enclose(fragment);
         _define(fragment.element);
 
@@ -258,9 +258,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       var stackTraceNode = node.stackTraceParameter;
       if (stackTraceNode != null) {
         var fragment = LocalVariableFragmentImpl(
-          name: stackTraceNode.name.lexeme,
+          name2: _getFragmentName(stackTraceNode.name),
           nameOffset: stackTraceNode.name.offset,
-        )..name2 = _getFragmentName(stackTraceNode.name);
+        );
         _elementHolder.enclose(fragment);
         _define(fragment.element);
 
@@ -380,9 +380,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitDeclaredIdentifier(covariant DeclaredIdentifierImpl node) {
     var nameToken = node.name;
     var fragment = LocalVariableFragmentImpl(
-      name: nameToken.lexeme,
+      name2: _getFragmentName(nameToken),
       nameOffset: nameToken.offset,
-    )..name2 = _getFragmentName(nameToken);
+    );
     _elementHolder.enclose(fragment);
     node.declaredFragment = fragment;
 
@@ -411,9 +411,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var name = node.name.lexeme;
     var fragment = BindPatternVariableFragmentImpl(
       node: node,
-      name: name,
+      name2: _getFragmentName(node.name),
       nameOffset: node.name.offset,
-    )..name2 = _getFragmentName(node.name);
+    );
     _patternVariables.add(name, fragment.element);
     _elementHolder.enclose(fragment);
     _define(fragment.element);
@@ -445,7 +445,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (node.parameter is FieldFormalParameter) {
         // Only for recovery, this should not happen in valid code.
         fragment = DefaultFieldFormalParameterElementImpl(
-          name: name2 ?? '',
           nameOffset: nameOffset2 ?? -1,
           parameterKind: node.kind,
           name2: name2,
@@ -454,7 +453,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       } else if (node.parameter is SuperFormalParameter) {
         // Only for recovery, this should not happen in valid code.
         fragment = DefaultSuperFormalParameterElementImpl(
-          name: name2 ?? '',
           nameOffset: nameOffset2 ?? -1,
           parameterKind: node.kind,
           name2: name2,
@@ -462,7 +460,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         )..constantInitializer = node.defaultValue;
       } else {
         fragment = DefaultParameterFragmentImpl(
-          name: name2 ?? '',
           nameOffset: nameOffset2 ?? -1,
           parameterKind: node.kind,
           name2: name2,
@@ -631,7 +628,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       } else {
         // Only for recovery, this should not happen in valid code.
         fragment = FieldFormalParameterFragmentImpl(
-          name: nameToken.lexeme,
           nameOffset: nameToken.offset,
           name2: nameToken.lexeme.nullIfEmpty,
           nameOffset2: nameToken.offset.nullIfNegative,
@@ -842,7 +838,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         fragment = _elementWalker!.getParameter();
       } else {
         fragment = FormalParameterFragmentImpl(
-          name: nameToken.lexeme,
           nameOffset: nameToken.offset,
           name2: nameToken.lexeme.nullIfEmpty,
           nameOffset2: nameToken.offset.nullIfNegative,
@@ -1222,7 +1217,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       } else {
         if (nameToken != null) {
           fragment = FormalParameterFragmentImpl(
-            name: nameToken.lexeme,
             nameOffset: nameToken.offset,
             name2: nameToken.lexeme.nullIfEmpty,
             nameOffset2: nameToken.offset.nullIfNegative,
@@ -1230,7 +1224,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           );
         } else {
           fragment = FormalParameterFragmentImpl(
-            name: '',
             nameOffset: -1,
             name2: null,
             nameOffset2: null,
@@ -1282,7 +1275,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       } else {
         // Only for recovery, this should not happen in valid code.
         element = SuperFormalParameterFragmentImpl(
-          name: nameToken.lexeme,
           nameOffset: nameToken.offset,
           name2: nameToken.lexeme.nullIfEmpty,
           nameOffset2: nameToken.offset.nullIfNegative,
@@ -1477,11 +1469,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       label as LabelImpl;
       var labelName = label.label;
       var element = LabelFragmentImpl(
-        name: labelName.name,
+        name2: labelName.name,
         nameOffset: labelName.offset,
         onSwitchMember: onSwitchMember,
       );
-      element.name2 = labelName.name;
       labelName.element = element.asElement2;
       _elementHolder.enclose(element);
     }
@@ -1504,10 +1495,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var nameToken = node.name;
 
     var fragment = LocalFunctionFragmentImpl(
-      name: nameToken.lexeme,
+      name2: nameToken.nameIfNotEmpty,
       nameOffset: nameToken.offset,
     );
-    fragment.name2 = nameToken.nameIfNotEmpty;
     fragment.nameOffset2 = nameToken.offsetIfNotEmpty;
     node.declaredFragment = fragment;
     node.functionExpression.declaredFragment = fragment;
@@ -1532,14 +1522,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       LocalVariableFragmentImpl fragment;
       if (isConst && variable.initializer != null) {
         fragment = ConstLocalVariableFragmentImpl(
-          name: nameToken.lexeme,
+          name2: _getFragmentName(nameToken),
           nameOffset: nameToken.offset,
-        )..name2 = _getFragmentName(nameToken);
+        ) ;
       } else {
         fragment = LocalVariableFragmentImpl(
-          name: nameToken.lexeme,
+          name2: _getFragmentName(nameToken),
           nameOffset: nameToken.offset,
-        )..name2 = _getFragmentName(nameToken);
+        );
       }
       variable.declaredFragment = fragment;
       _elementHolder.enclose(fragment);
@@ -1566,10 +1556,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         fragment = _elementWalker!.getTypeParameter();
       } else {
         fragment = TypeParameterFragmentImpl(
-          name: name.lexeme,
+          name2: name.lexeme,
           nameOffset: name.offset,
         );
-        fragment.name2 = name.lexeme;
         fragment.nameOffset2 = name.offset;
         _elementHolder.addTypeParameter(fragment);
 
@@ -2001,7 +1990,7 @@ class _VariableBinder
     }
 
     var resultFragment = JoinPatternVariableFragmentImpl(
-      name: first.name3!,
+      name2: first.name3,
       nameOffset: -1,
       variables: expandedVariables.map((e) => e.asElement).toList(),
       inconsistency: inconsistency.maxWithAll(
@@ -2009,7 +1998,7 @@ class _VariableBinder
           (e) => e.inconsistency,
         ),
       ),
-    )..name2 = first.name3;
+    );
     resultFragment
       ..enclosingFragment = first.firstFragment.enclosingFragment
       ..type = InvalidTypeImpl.instance;

@@ -323,7 +323,6 @@ class BundleWriter {
     _writeOptionalReference(element.getter?.reference);
     _writeOptionalReference(element.setter?.reference);
     _writeFragmentName(element);
-    _sink._writeStringReference(element.name2 ?? '');
     _sink.writeBool(element is ConstFieldFragmentImpl);
     FieldElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
@@ -426,7 +425,6 @@ class BundleWriter {
     _writeReference(fragment);
     _writeReference2(fragment.element.reference);
     _writeFragmentName(fragment);
-    _sink._writeStringReference(fragment.name2 ?? '');
     MethodElementFlags.write(_sink, fragment);
 
     _resolutionSink._writeMetadata(fragment.metadata);
@@ -491,7 +489,6 @@ class BundleWriter {
   // TODO(scheglov): Deduplicate parameter writing implementation.
   void _writeParameterElement(FormalParameterFragmentImpl element) {
     _writeFragmentName(element);
-    _sink._writeStringReference(element.name2 ?? '');
     _sink.writeBool(element is ConstVariableElement);
     _sink.writeBool(element.isInitializingFormal);
     _sink.writeBool(element.isSuperFormal);
@@ -574,7 +571,6 @@ class BundleWriter {
     _writeOptionalReference(fragment.getter?.reference);
     _writeOptionalReference(fragment.setter?.reference);
     _writeFragmentName(fragment);
-    _sink._writeStringReference(fragment.name2 ?? '');
     _sink.writeBool(fragment.isConst);
     TopLevelVariableElementFlags.write(_sink, fragment);
     _sink._writeTopLevelInferenceError(fragment.typeInferenceError);
@@ -590,7 +586,6 @@ class BundleWriter {
     _writeReference(fragment);
     _writeReference2(fragment.element.reference);
     _writeFragmentName(fragment);
-    _sink._writeStringReference(fragment.name2 ?? '');
     _sink.writeBool(fragment.isFunctionTypeAliasBased);
     TypeAliasElementFlags.write(_sink, fragment);
 
@@ -603,7 +598,6 @@ class BundleWriter {
   }
 
   void _writeTypeParameterElement(TypeParameterFragmentImpl element) {
-    _sink._writeStringReference(element.name2 ?? '');
     _writeFragmentName(element);
     _sink.writeByte(_encodeVariance(element).index);
     _resolutionSink._writeMetadata(element.metadata);
@@ -906,7 +900,7 @@ class ResolutionSink extends _SummaryDataWriter {
       writeBool(parameter.isInitializingFormal);
       _writeTypeParameters(parameter.typeParameters, () {
         writeType(parameter.type);
-        _writeStringReference(parameter.name2 ?? '');
+        _writeFragmentName(parameter);
         _writeFormalParameters(
           parameter.parameters,
           withAnnotations: withAnnotations,
@@ -1012,7 +1006,6 @@ class ResolutionSink extends _SummaryDataWriter {
       writeUInt30(typeParameters.length);
       for (var typeParameter in typeParameters) {
         _writeFragmentName(typeParameter);
-        _writeStringReference(typeParameter.name2 ?? '');
       }
       for (var typeParameter in typeParameters) {
         writeType(typeParameter.bound);

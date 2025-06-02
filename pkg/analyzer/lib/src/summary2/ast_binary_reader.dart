@@ -449,7 +449,6 @@ class AstBinaryReader {
 
     var nonDefaultElement = parameter.declaredFragment!;
     var fragment = DefaultParameterFragmentImpl(
-      name: nonDefaultElement.name2 ?? '',
       nameOffset: nonDefaultElement.nameOffset,
       name2: nonDefaultElement.name2,
       nameOffset2: nonDefaultElement.nameOffset2,
@@ -1225,7 +1224,6 @@ class AstBinaryReader {
     _reader.readByte(); // TODO(scheglov): inherits covariant
 
     var fragment = FormalParameterFragmentImpl(
-      name: name?.lexeme ?? '',
       nameOffset: -1,
       name2: name?.lexeme,
       nameOffset2: null,

@@ -143,14 +143,13 @@ class LibraryBuilder {
       if (classFragment.isMixinApplication) continue;
       if (classFragment.constructors.isNotEmpty) continue;
 
-      var constructor = ConstructorFragmentImpl(name: '', nameOffset: -1)
+      var constructor = ConstructorFragmentImpl(name2: 'new', nameOffset: -1)
         ..isSynthetic = true;
       var containerRef = classFragment.reference!.getChild('@constructor');
       var reference = containerRef.getChild('new');
       reference.element = constructor;
       constructor.reference = reference;
       constructor.typeName = classFragment.name2;
-      constructor.name2 = 'new';
 
       classFragment.constructors = [constructor].toFixedList();
     }
@@ -210,7 +209,7 @@ class LibraryBuilder {
       if (hasConstructor(enumFragment)) continue;
 
       var constructor =
-          ConstructorFragmentImpl(name: '', nameOffset: -1)
+          ConstructorFragmentImpl(name2: 'new', nameOffset: -1)
             ..isConst = true
             ..isSynthetic = true;
       var containerRef = enumFragment.reference!.getChild('@constructor');
@@ -218,7 +217,6 @@ class LibraryBuilder {
       reference.element = constructor;
       constructor.reference = reference;
       constructor.typeName = enumFragment.name2;
-      constructor.name2 = 'new';
 
       enumFragment.constructors =
           [...enumFragment.constructors, constructor].toFixedList();

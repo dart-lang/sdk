@@ -260,10 +260,9 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
     var freshElements = List.generate(elements.length, (index) {
       var element = elements[index];
       var freshElement = TypeParameterFragmentImpl(
-        name: element.name3!,
+        name2: element.name3,
         nameOffset: -1,
       );
-      freshElement.name2 = element.name3;
       var freshType = freshElement.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );
