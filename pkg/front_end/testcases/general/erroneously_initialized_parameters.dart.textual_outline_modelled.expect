@@ -1,0 +1,41 @@
+class A {
+  A.optionalNamed({int x = ""}) {}
+  A.optionalNamedImplicit({int x}) {}
+  A.optionalPositional([int x = ""]) {}
+  A.optionalPositionalImplicit([int x]) {}
+  void fooOptionalNamed({int x = ""}) {}
+  void fooOptionalNamedImplicit({int x}) {}
+  void fooOptionalPositional([int x = ""]) {}
+  void fooOptionalPositionalImplicit([int x]) {}
+}
+
+enum EN {
+  element;
+
+  void foobarOptionalPositional([int x = ""]) {}
+  void foobarOptionalNamed({int x = ""}) {}
+  void foobarOptionalPositionalImplicit([int x]) {}
+  void foobarOptionalNamedImplicit({int x}) {}
+}
+
+extension E on A {
+  void barOptionalNamed({int x = ""}) {}
+  void barOptionalNamedImplicit({int x}) {}
+  void barOptionalPositional([int x = ""]) {}
+  void barOptionalPositionalImplicit([int x]) {}
+}
+
+extension type ET(A it) {
+  void bazOptionalNamed({int x = ""}) {}
+  void bazOptionalNamedImplicit({int x}) {}
+  void bazOptionalPositional([int x = ""]) {}
+  void bazOptionalPositionalImplicit([int x]) {}
+}
+
+topLevelOptionalNamed({int x = ""}) {}
+
+topLevelOptionalNamedImplicit({int x}) {}
+
+topLevelOptionalPositional([int x = ""]) {}
+
+topLevelOptionalPositionalImplicit([int x]) {}
