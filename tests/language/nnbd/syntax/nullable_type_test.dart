@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Requirements=nnbd-strong
-
 // Test that the trailing "?" is accepted after all type syntaxes.  Verify that
 // the compiler understands the resulting type to be nullable by trying to
 // construct a list containing `null`.  Verify that the runtime understands the

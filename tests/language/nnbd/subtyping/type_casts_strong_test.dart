@@ -4,8 +4,6 @@
 
 // VMOptions=--optimization_counter_threshold=10 --deterministic
 
-// Requirements=nnbd-strong
-
 import 'package:expect/expect.dart';
 
 class C {}

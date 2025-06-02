@@ -349,7 +349,6 @@ class VMTestSuite extends TestSuite {
       if (expectations.contains(Expectation.crash)) '--suppress-core-dump',
       if (experiments.isNotEmpty)
         '--enable-experiment=${experiments.join(",")}',
-      if (configuration.nnbdMode == NnbdMode.strong) '--sound-null-safety',
       ...configuration.standardOptions,
       ...configuration.vmOptions,
       test.name

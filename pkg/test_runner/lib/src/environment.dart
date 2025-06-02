@@ -26,7 +26,6 @@ final _variables = {
   "jscl": _Variable.bool((c) => c.runtime.isJSCommandLine),
   "minified": _Variable.bool((c) => c.isMinified),
   "mode": _Variable((c) => c.mode.name, Mode.names),
-  "nnbd": _Variable((TestConfiguration c) => c.nnbdMode.name, NnbdMode.names),
   "qemu": _Variable.bool((c) => c.useQemu),
   "runtime": _Variable(_runtimeName, _runtimeNames),
   "sanitizer": _Variable((c) => c.sanitizer.name, Sanitizer.names),

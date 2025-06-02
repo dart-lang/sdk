@@ -250,10 +250,6 @@ test options, specifying how tests should be run.''')
         hide: true, help: 'Path to safari browser executable.')
     ..addFlag('use-sdk',
         aliases: ['use_sdk'], help: 'Use compiler or runtime from the SDK.')
-    ..addOption('nnbd',
-        allowed: NnbdMode.names,
-        defaultsTo: NnbdMode.strong.name,
-        help: 'Which set of non-nullable type features to use.')
     ..addOption('output-directory',
         aliases: ['output_directory'],
         defaultsTo: "logs",
@@ -408,7 +404,6 @@ has been specified on the command line.''')
     'compiler',
     'runtime',
     'timeout',
-    'nnbd',
     'sanitizer',
     'enable-asserts',
     'use-cfe',
@@ -628,14 +623,13 @@ has been specified on the command line.''')
     }
 
     var progress = Progress.find(data["progress"] as String);
-    var nnbdMode = NnbdMode.find(data["nnbd"] as String);
 
     void addConfiguration(Configuration innerConfiguration,
         [String? namedConfiguration]) {
       var configuration = TestConfiguration(
           configuration: innerConfiguration,
           progress: progress,
-          selectors: _expandSelectors(data, innerConfiguration.nnbdMode),
+          selectors: _expandSelectors(data),
           build: data["build"] as bool,
           testList: data["test-list-contents"] as List<String>?,
           repeat: int.parse(data["repeat"] as String),
@@ -784,7 +778,6 @@ has been specified on the command line.''')
                     mode,
                     runtime,
                     system,
-                    nnbdMode: nnbdMode,
                     sanitizer: sanitizer,
                     timeout: timeout,
                     enableAsserts: data['enable-asserts'] as bool,
@@ -819,7 +812,7 @@ has been specified on the command line.''')
   ///
   /// If no selectors are explicitly given, uses the default suite patterns.
   Map<String, RegExp> _expandSelectors(
-      Map<String, dynamic> configuration, NnbdMode nnbdMode) {
+      Map<String, dynamic> configuration) {
     var selectors = configuration['selectors'] as List<String>? ?? [];
 
     if (selectors.isEmpty || configuration['default-suites'] as bool) {
@@ -904,7 +897,7 @@ class OptionParseException implements Exception {
 /// given filter options.
 ///
 /// If any of the options `--system`, `--arch`, `--mode`, `--compiler`,
-/// `--nnbd`, or `--runtime` (or their abbreviations) are passed, then only
+/// or `--runtime` (or their abbreviations) are passed, then only
 /// configurations matching those are shown.
 void findConfigurations(Map<String, dynamic> options) {
   var testMatrix = TestMatrix.fromPath('tools/bots/test_matrix.json');
@@ -935,11 +928,6 @@ void findConfigurations(Map<String, dynamic> options) {
   var compilers = [...(options['compiler'] as List<String>).map(Compiler.find)];
   var runtimes = [...(options['runtime'] as List<String>).map(Runtime.find)];
 
-  NnbdMode? nnbdMode;
-  if (options.containsKey('nnbd')) {
-    nnbdMode = NnbdMode.find(options['nnbd'] as String);
-  }
-
   var names = SplayTreeSet<String>();
   for (var configuration in testMatrix.configurations) {
     if (system != null && configuration.system != system) continue;
@@ -954,7 +942,6 @@ void findConfigurations(Map<String, dynamic> options) {
     if (runtimes.isNotEmpty && !runtimes.contains(configuration.runtime)) {
       continue;
     }
-    if (nnbdMode != null && configuration.nnbdMode != nnbdMode) continue;
 
     names.add(configuration.name);
   }
@@ -965,7 +952,6 @@ void findConfigurations(Map<String, dynamic> options) {
     if (modes.isNotEmpty) "mode=$modes",
     if (compilers.isNotEmpty) "compiler=$compilers",
     if (runtimes.isNotEmpty) "runtime=$runtimes",
-    if (nnbdMode != null) "nnbd=$nnbdMode",
   ];
 
   if (filters.isEmpty) {

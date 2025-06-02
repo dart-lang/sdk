@@ -34,19 +34,6 @@ List<String> _experimentsArgument(
   return ['--enable-experiment=${experiments.join(',')}'];
 }
 
-List<String> _nnbdModeArgument(TestConfiguration configuration) {
-  switch (configuration.nnbdMode) {
-    case NnbdMode.legacy:
-      return [];
-    case NnbdMode.strong:
-      return ['--sound-null-safety'];
-    case NnbdMode.weak:
-      return ['--no-sound-null-safety'];
-  }
-
-  throw 'unreachable';
-}
-
 /// Grouping of a command with its expected result.
 class CommandArtifact {
   final List<Command> commands;
@@ -193,7 +180,6 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       else if (_configuration.hotReloadRollback)
         '--hot-reload-rollback-test-mode',
       ...vmOptions,
-      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -249,7 +235,6 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...vmOptions,
-      ..._nnbdModeArgument(_configuration),
       ...args
     ];
   }
@@ -275,7 +260,6 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       else if (_configuration.hotReloadRollback)
         '--hot-reload-rollback-test-mode',
       ...vmOptions,
-      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -985,7 +969,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         '--no-sim-use-hardfp',
       ],
       if (_configuration.isMinified) '--obfuscate',
-      ..._nnbdModeArgument(_configuration),
       if (arguments.contains('--print-flow-graph-optimized'))
         '--redirect-isolate-log-to=$tempDir/out.il',
       if (arguments.contains('--print-flow-graph-optimized') &&
@@ -1192,7 +1175,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
-      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -1254,7 +1236,6 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
-      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -1273,7 +1254,6 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
-      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -1427,7 +1407,6 @@ abstract mixin class VMKernelCompilerMixin {
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
         '--enable-asserts',
-      ..._nnbdModeArgument(_configuration),
       ..._configuration.genKernelOptions,
     ];
 

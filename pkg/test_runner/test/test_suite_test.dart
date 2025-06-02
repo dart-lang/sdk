@@ -10,35 +10,7 @@ import 'package:test_runner/src/test_file.dart';
 import 'utils.dart';
 
 void main() {
-  testNnbdRequirements();
   testVmOptions();
-}
-
-void testNnbdRequirements() {
-  // Note: The backslashes are to avoid the test_runner thinking these are
-  // Requirements markers for this file itself.
-  var testFiles = [
-    createTestFile(source: "", path: "none_test.dart"),
-    createTestFile(source: "/\/ Requirements=nnbd", path: "nnbd_test.dart"),
-    createTestFile(
-        source: "/\/ Requirements=nnbd-legacy", path: "legacy_test.dart"),
-    createTestFile(
-        source: "/\/ Requirements=nnbd-weak", path: "weak_test.dart"),
-    createTestFile(
-        source: "/\/ Requirements=nnbd-strong", path: "strong_test.dart"),
-  ];
-
-  expectTestCases([], testFiles,
-      ["language/none_test", "language/nnbd_test", "language/strong_test"]);
-
-  expectTestCases(["--nnbd=legacy"], testFiles,
-      ["language/none_test", "language/legacy_test"]);
-
-  expectTestCases(["--nnbd=weak"], testFiles,
-      ["language/none_test", "language/nnbd_test", "language/weak_test"]);
-
-  expectTestCases(["--nnbd=strong"], testFiles,
-      ["language/none_test", "language/nnbd_test", "language/strong_test"]);
 }
 
 void testVmOptions() {
