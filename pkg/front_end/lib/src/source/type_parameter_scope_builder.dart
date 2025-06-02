@@ -140,32 +140,70 @@ class _PropertyPreBuilder extends _PreBuilder {
   final String name;
   final UriOffsetLength uriOffset;
   final bool isStatic;
-  _FragmentName? getter;
-  _FragmentName? setter;
-  List<_FragmentName> augmentations = [];
+  FieldDeclaration? _field;
+  GetterDeclaration? _getter;
+  _PropertyKind? _getterPropertyKind;
+  SetterDeclaration? _setter;
+  _PropertyKind? _setterPropertyKind;
+  List<GetterDeclaration> _getterAugmentations = [];
+  List<SetterDeclaration> _setterAugmentations = [];
 
   // TODO(johnniwinther): Report error if [getter] is augmenting.
-  _PropertyPreBuilder.forGetter(_FragmentName this.getter)
+  _PropertyPreBuilder.forGetter(_FragmentName getter)
       : isStatic = getter.isStatic,
         inPatch = getter.inPatch,
         name = getter.name,
-        uriOffset = getter.fragment.uriOffset;
+        uriOffset = getter.fragment.uriOffset,
+        _getterPropertyKind = getter.propertyKind {
+    _Declarations declarations = _createDeclarations(getter.fragment);
+    assert(declarations.field == null,
+        "Unexpected field declaration from getter ${getter.fragment}.");
+    assert(declarations.getter != null,
+        "Unexpected getter declaration from getter ${getter.fragment}.");
+    assert(declarations.setter == null,
+        "Unexpected setter declaration from getter ${getter.fragment}.");
+    _getter = declarations.getter;
+  }
 
   // TODO(johnniwinther): Report error if [setter] is augmenting.
-  _PropertyPreBuilder.forSetter(_FragmentName this.setter)
+  _PropertyPreBuilder.forSetter(_FragmentName setter)
       : isStatic = setter.isStatic,
         inPatch = setter.inPatch,
         name = setter.name,
-        uriOffset = setter.fragment.uriOffset;
+        uriOffset = setter.fragment.uriOffset,
+        _setterPropertyKind = setter.propertyKind {
+    _Declarations declarations = _createDeclarations(setter.fragment);
+    assert(declarations.field == null,
+        "Unexpected field declaration from setter ${setter.fragment}.");
+    assert(declarations.getter == null,
+        "Unexpected getter declaration from setter ${setter.fragment}.");
+    assert(declarations.setter != null,
+        "Unexpected setter declaration from setter ${setter.fragment}.");
+    _setter = declarations.setter;
+  }
 
-  // TODO(johnniwinther): Report error if [getter] is augmenting.
-  _PropertyPreBuilder.forField(_FragmentName this.getter)
-      : isStatic = getter.isStatic,
-        inPatch = getter.inPatch,
-        name = getter.name,
-        uriOffset = getter.fragment.uriOffset {
-    if (getter!.propertyKind == _PropertyKind.Field) {
-      setter = getter;
+  // TODO(johnniwinther): Report error if [field] is augmenting.
+  _PropertyPreBuilder.forField(_FragmentName field)
+      : isStatic = field.isStatic,
+        inPatch = field.inPatch,
+        name = field.name,
+        uriOffset = field.fragment.uriOffset,
+        _getterPropertyKind = field.propertyKind {
+    _Declarations declarations = _createDeclarations(field.fragment);
+    assert(declarations.field != null,
+        "Unexpected field declaration from field ${field.fragment}.");
+    assert(declarations.getter != null,
+        "Unexpected getter declaration from field ${field.fragment}.");
+    assert(
+        (declarations.setter != null) ==
+            (_getterPropertyKind == _PropertyKind.Field),
+        "Unexpected setter declaration from field ${field.fragment}.");
+    _field = declarations.field;
+    _getter = declarations.getter;
+    _setter = declarations.setter;
+
+    if (_getterPropertyKind == _PropertyKind.Field) {
+      _setterPropertyKind = field.propertyKind;
     }
   }
 
@@ -176,7 +214,7 @@ class _PropertyPreBuilder extends _PreBuilder {
     if (propertyKind != null) {
       switch (propertyKind) {
         case _PropertyKind.Getter:
-          if (getter == null) {
+          if (_getter == null) {
             // Example:
             //
             //    void set foo(_) {}
@@ -206,7 +244,7 @@ class _PropertyPreBuilder extends _PreBuilder {
                     context: [
                       templateStaticConflictsWithInstanceCause
                           .withArguments(name)
-                          .withLocation2(setter!.fragment.uriOffset)
+                          .withLocation2(_setter!.uriOffset)
                     ]);
               } else {
                 // Example:
@@ -222,12 +260,25 @@ class _PropertyPreBuilder extends _PreBuilder {
                     context: [
                       templateInstanceConflictsWithStaticCause
                           .withArguments(name)
-                          .withLocation2(setter!.fragment.uriOffset)
+                          .withLocation2(_setter!.uriOffset)
                     ]);
               }
               return false;
             } else {
-              getter = fragmentName;
+              _Declarations declarations =
+                  _createDeclarations(fragmentName.fragment);
+              assert(
+                  declarations.field == null,
+                  "Unexpected field declaration from getter "
+                  "${fragmentName.fragment}.");
+              assert(
+                  declarations.setter == null,
+                  "Unexpected setter declaration from getter "
+                  "${fragmentName.fragment}.");
+              _getter = declarations.getter;
+              assert(_getterPropertyKind == null,
+                  "Unexpected setter property kind for $_setter");
+              _getterPropertyKind == propertyKind;
               return true;
             }
           } else {
@@ -237,7 +288,17 @@ class _PropertyPreBuilder extends _PreBuilder {
               //    int get foo => 42;
               //    augment int get foo => 87;
               //
-              augmentations.add(fragmentName);
+              _Declarations declarations =
+                  _createDeclarations(fragmentName.fragment);
+              assert(
+                  declarations.field == null,
+                  "Unexpected field declaration from getter "
+                  "${fragmentName.fragment}.");
+              assert(
+                  declarations.setter == null,
+                  "Unexpected setter declaration from getter "
+                  "${fragmentName.fragment}.");
+              _getterAugmentations.add(declarations.getter!);
               return true;
             } else {
               // Example:
@@ -251,13 +312,13 @@ class _PropertyPreBuilder extends _PreBuilder {
                   context: <LocatedMessage>[
                     templateDuplicatedDeclarationCause
                         .withArguments(name)
-                        .withLocation2(getter!.fragment.uriOffset)
+                        .withLocation2(_getter!.uriOffset)
                   ]);
               return false;
             }
           }
         case _PropertyKind.Setter:
-          if (setter == null) {
+          if (_setter == null) {
             // Examples:
             //
             //    int get foo => 42;
@@ -289,7 +350,7 @@ class _PropertyPreBuilder extends _PreBuilder {
                     context: [
                       templateStaticConflictsWithInstanceCause
                           .withArguments(name)
-                          .withLocation2(getter!.fragment.uriOffset)
+                          .withLocation2(_getter!.uriOffset)
                     ]);
                 return false;
               } else {
@@ -306,12 +367,25 @@ class _PropertyPreBuilder extends _PreBuilder {
                     context: [
                       templateInstanceConflictsWithStaticCause
                           .withArguments(name)
-                          .withLocation2(getter!.fragment.uriOffset)
+                          .withLocation2(_getter!.uriOffset)
                     ]);
                 return false;
               }
             } else {
-              setter = fragmentName;
+              _Declarations declarations =
+                  _createDeclarations(fragmentName.fragment);
+              assert(
+                  declarations.field == null,
+                  "Unexpected field declaration from setter "
+                  "${fragmentName.fragment}.");
+              assert(
+                  declarations.getter == null,
+                  "Unexpected getter declaration from setter "
+                  "${fragmentName.fragment}.");
+              _setter = declarations.setter;
+              assert(_setterPropertyKind == null,
+                  "Unexpected setter property kind for $_getter");
+              _setterPropertyKind == propertyKind;
               return true;
             }
           } else {
@@ -321,10 +395,20 @@ class _PropertyPreBuilder extends _PreBuilder {
               //    void set foo(_) {}
               //    augment void set foo(_) {}
               //
-              augmentations.add(fragmentName);
+              _Declarations declarations =
+                  _createDeclarations(fragmentName.fragment);
+              assert(
+                  declarations.field == null,
+                  "Unexpected field declaration from setter "
+                  "${fragmentName.fragment}.");
+              assert(
+                  declarations.getter == null,
+                  "Unexpected getter declaration from setter "
+                  "${fragmentName.fragment}.");
+              _setterAugmentations.add(declarations.setter!);
               return true;
             } else {
-              if (setter!.propertyKind == _PropertyKind.Field) {
+              if (_setterPropertyKind == _PropertyKind.Field) {
                 // Example:
                 //
                 //    int? foo;
@@ -336,7 +420,7 @@ class _PropertyPreBuilder extends _PreBuilder {
                     context: [
                       templateConflictsWithImplicitSetterCause
                           .withArguments(name)
-                          .withLocation2(setter!.fragment.uriOffset)
+                          .withLocation2(_setter!.uriOffset)
                     ]);
                 return false;
               } else {
@@ -351,20 +435,20 @@ class _PropertyPreBuilder extends _PreBuilder {
                     context: <LocatedMessage>[
                       templateDuplicatedDeclarationCause
                           .withArguments(name)
-                          .withLocation2(setter!.fragment.uriOffset)
+                          .withLocation2(_setter!.uriOffset)
                     ]);
                 return false;
               }
             }
           }
         case _PropertyKind.Field:
-          if (getter == null) {
+          if (_getter == null) {
             // Example:
             //
             //    void set foo(_) {}
             //    int? foo;
             //
-            assert(getter == null && setter != null);
+            assert(_getter == null && _setter != null);
             // We have an explicit setter.
             problemReporting.addProblem2(
                 templateConflictsWithSetter.withArguments(name),
@@ -372,10 +456,10 @@ class _PropertyPreBuilder extends _PreBuilder {
                 context: [
                   templateConflictsWithSetterCause
                       .withArguments(name)
-                      .withLocation2(setter!.fragment.uriOffset)
+                      .withLocation2(_setter!.uriOffset)
                 ]);
             return false;
-          } else if (setter != null) {
+          } else if (_setter != null) {
             // Examples:
             //
             //    int? foo;
@@ -389,17 +473,21 @@ class _PropertyPreBuilder extends _PreBuilder {
             //    void set baz(_) {}
             //    int baz = 87;
             //
-            assert(getter != null && setter != null);
+            assert(_getter != null && _setter != null);
             // We have both getter and setter
             if (fragmentName.isAugment) {
               // Coverage-ignore-block(suite): Not run.
-              if (getter!.propertyKind == fragmentName.propertyKind) {
+              if (_getterPropertyKind == fragmentName.propertyKind) {
                 // Example:
                 //
                 //    int foo = 42;
                 //    augment int foo = 87;
                 //
-                augmentations.add(fragmentName);
+                _Declarations declarations =
+                    _createDeclarations(fragmentName.fragment);
+                // TODO(johnniwinther): Handle field augmentation.
+                _getterAugmentations.add(declarations.getter!);
+                _setterAugmentations.add(declarations.setter!);
                 return true;
               } else {
                 // Example:
@@ -429,7 +517,7 @@ class _PropertyPreBuilder extends _PreBuilder {
                   context: <LocatedMessage>[
                     templateDuplicatedDeclarationCause
                         .withArguments(name)
-                        .withLocation2(getter!.fragment.uriOffset)
+                        .withLocation2(_getter!.uriOffset)
                   ]);
 
               return false;
@@ -443,25 +531,25 @@ class _PropertyPreBuilder extends _PreBuilder {
             //    final int bar = 42;
             //    int? bar;
             //
-            assert(getter != null && setter == null);
+            assert(_getter != null && _setter == null);
             problemReporting.addProblem2(
                 templateDuplicatedDeclaration.withArguments(name),
                 fragmentName.fragment.uriOffset,
                 context: <LocatedMessage>[
                   templateDuplicatedDeclarationCause
                       .withArguments(name)
-                      .withLocation2(getter!.fragment.uriOffset)
+                      .withLocation2(_getter!.uriOffset)
                 ]);
             return false;
           }
         case _PropertyKind.FinalField:
-          if (getter == null) {
+          if (_getter == null) {
             // Example:
             //
             //    void set foo(_) {}
             //    final int foo = 42;
             //
-            assert(getter == null && setter != null);
+            assert(_getter == null && _setter != null);
             // We have an explicit setter.
             if (fragmentName.isAugment) {
               // Example:
@@ -487,7 +575,7 @@ class _PropertyPreBuilder extends _PreBuilder {
                     context: [
                       templateStaticConflictsWithInstanceCause
                           .withArguments(name)
-                          .withLocation2(setter!.fragment.uriOffset)
+                          .withLocation2(_setter!.uriOffset)
                     ]);
                 return false;
               } else {
@@ -504,12 +592,24 @@ class _PropertyPreBuilder extends _PreBuilder {
                     context: [
                       templateInstanceConflictsWithStaticCause
                           .withArguments(name)
-                          .withLocation2(setter!.fragment.uriOffset)
+                          .withLocation2(_setter!.uriOffset)
                     ]);
                 return false;
               }
             } else {
-              getter = fragmentName;
+              _Declarations declarations =
+                  _createDeclarations(fragmentName.fragment);
+              assert(
+                  declarations.setter == null,
+                  "Unexpected setter declaration from field "
+                  "${fragmentName.fragment}.");
+              _field = declarations.field;
+              _getter = declarations.getter;
+              assert(
+                  _getterPropertyKind == null,
+                  "Unexpected getter property kind $_getterPropertyKind for "
+                  "$_setter.");
+              _getterPropertyKind = propertyKind;
               return true;
             }
           } else {
@@ -523,13 +623,20 @@ class _PropertyPreBuilder extends _PreBuilder {
             //
             if (fragmentName.isAugment) {
               // Coverage-ignore-block(suite): Not run.
-              if (getter!.propertyKind == fragmentName.propertyKind) {
+              if (_getterPropertyKind == fragmentName.propertyKind) {
                 // Example:
                 //
                 //    final int foo = 42;
                 //    augment final int foo = 87;
                 //
-                augmentations.add(fragmentName);
+                _Declarations declarations =
+                    _createDeclarations(fragmentName.fragment);
+                assert(
+                    declarations.setter == null,
+                    "Unexpected setter declaration from final field "
+                    "${fragmentName.fragment}.");
+                // TODO(johnniwinther): Handle field augmentation.
+                _getterAugmentations.add(declarations.getter!);
                 return true;
               } else {
                 // Example:
@@ -557,14 +664,14 @@ class _PropertyPreBuilder extends _PreBuilder {
                   context: <LocatedMessage>[
                     templateDuplicatedDeclarationCause
                         .withArguments(name)
-                        .withLocation2(getter!.fragment.uriOffset)
+                        .withLocation2(_getter!.uriOffset)
                   ]);
               return false;
             }
           }
       }
     } else {
-      if (getter != null) {
+      if (_getter != null) {
         // Example:
         //
         //    int get foo => 42;
@@ -576,10 +683,10 @@ class _PropertyPreBuilder extends _PreBuilder {
             context: <LocatedMessage>[
               templateDuplicatedDeclarationCause
                   .withArguments(name)
-                  .withLocation2(getter!.fragment.uriOffset)
+                  .withLocation2(_getter!.uriOffset)
             ]);
       } else {
-        assert(setter != null);
+        assert(_setter != null);
         // Example:
         //
         //    void set foo(_) {}
@@ -591,7 +698,7 @@ class _PropertyPreBuilder extends _PreBuilder {
             context: <LocatedMessage>[
               templateDeclarationConflictsWithSetterCause
                   .withArguments(name)
-                  .withLocation2(setter!.fragment.uriOffset)
+                  .withLocation2(_setter!.uriOffset)
             ]);
       }
       return false;
@@ -603,7 +710,7 @@ class _PropertyPreBuilder extends _PreBuilder {
       ProblemReporting problemReporting, _FragmentName constructorFragment) {
     // Check conflict with constructor.
     if (isStatic) {
-      if (getter != null) {
+      if (_getter != null) {
         if (constructorFragment.kind == _FragmentKind.Constructor) {
           // Example:
           //
@@ -618,7 +725,7 @@ class _PropertyPreBuilder extends _PreBuilder {
               context: [
                 templateConstructorConflictsWithMemberCause
                     .withArguments(name)
-                    .withLocation2(getter!.fragment.uriOffset)
+                    .withLocation2(_getter!.uriOffset)
               ]);
         } else {
           // Coverage-ignore-block(suite): Not run.
@@ -637,7 +744,7 @@ class _PropertyPreBuilder extends _PreBuilder {
               context: [
                 templateFactoryConflictsWithMemberCause
                     .withArguments(name)
-                    .withLocation2(getter!.fragment.uriOffset)
+                    .withLocation2(_getter!.uriOffset)
               ]);
         }
       } else {
@@ -656,7 +763,7 @@ class _PropertyPreBuilder extends _PreBuilder {
               context: [
                 templateConstructorConflictsWithMemberCause
                     .withArguments(name)
-                    .withLocation2(setter!.fragment.uriOffset)
+                    .withLocation2(_setter!.uriOffset)
               ]);
         } else {
           assert(constructorFragment.kind == _FragmentKind.Factory,
@@ -674,7 +781,7 @@ class _PropertyPreBuilder extends _PreBuilder {
               context: [
                 templateFactoryConflictsWithMemberCause
                     .withArguments(name)
-                    .withLocation2(setter!.fragment.uriOffset)
+                    .withLocation2(_setter!.uriOffset)
               ]);
         }
       }
@@ -713,62 +820,16 @@ class _PropertyPreBuilder extends _PreBuilder {
   @override
   void createBuilders(_CreateBuilderFunction createBuilder,
       _CreatePropertyFunction createProperty) {
-    FieldDeclaration? fieldDeclaration;
-    GetterDeclaration? getterDeclaration;
-    SetterDeclaration? setterDeclaration;
-    if (getter != null) {
-      _Declarations declarations = _createDeclarations(getter!.fragment);
-      fieldDeclaration = declarations.field;
-      getterDeclaration = declarations.getter;
-      setterDeclaration = declarations.setter;
-    }
-    if (setter != null && setter!.propertyKind != _PropertyKind.Field) {
-      _Declarations declarations = _createDeclarations(setter!.fragment);
-      assert(declarations.field == null,
-          "Unexpected field declaration from setter $setter");
-      assert(declarations.getter == null,
-          "Unexpected getter declaration from setter $setter");
-      assert(setterDeclaration == null,
-          "Unexpected setter declaration from getter $getter");
-      setterDeclaration = declarations.setter;
-    }
-
-    List<GetterDeclaration>? getterAugmentationDeclarations;
-    List<SetterDeclaration>? setterAugmentationDeclarations;
-
-    List<Fragment>? getterAugmentations;
-    List<Fragment>? setterAugmentations;
-    for (_FragmentName fragmentName in augmentations) {
-      _Declarations declarations = _createDeclarations(fragmentName.fragment);
-      // TODO(johnniwinther): Support field augmentations.
-      assert(declarations.field == null,
-          "Unexpected field declaration from augmentation $fragmentName");
-      if (declarations.getter != null) {
-        (getterAugmentationDeclarations ??= []).add(declarations.getter!);
-      }
-      if (declarations.setter != null) {
-        (setterAugmentationDeclarations ??= []).add(declarations.setter!);
-      }
-
-      if (fragmentName.fragment is GetterFragment) {
-        (getterAugmentations ??= []).add(fragmentName.fragment);
-      } else if (fragmentName.fragment is SetterFragment) {
-        (setterAugmentations ??= []).add(fragmentName.fragment);
-      } else {
-        throw new UnsupportedError("Unexpected augmentation $fragmentName");
-      }
-    }
-    augmentations.clear();
     createProperty(
         name: name,
         inPatch: inPatch,
         isStatic: isStatic,
         uriOffset: uriOffset,
-        fieldDeclaration: fieldDeclaration,
-        getterDeclaration: getterDeclaration,
-        getterAugmentationDeclarations: getterAugmentationDeclarations,
-        setterDeclaration: setterDeclaration,
-        setterAugmentationDeclarations: setterAugmentationDeclarations);
+        fieldDeclaration: _field,
+        getterDeclaration: _getter,
+        getterAugmentationDeclarations: _getterAugmentations,
+        setterDeclaration: _setter,
+        setterAugmentationDeclarations: _setterAugmentations);
   }
 }
 
