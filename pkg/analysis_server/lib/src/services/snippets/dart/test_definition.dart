@@ -43,11 +43,7 @@ class TestDefinition extends DartSnippetProducer with TestSnippetMixin {
 
   @override
   Future<bool> isValid() async {
-    if (!await super.isValid()) {
-      return false;
-    }
-
-    return isInTestDirectory;
+    return await super.isValid() && isInTestDirectory;
   }
 }
 

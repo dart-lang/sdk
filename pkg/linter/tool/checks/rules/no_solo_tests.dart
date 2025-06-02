@@ -29,7 +29,7 @@ class NoSoloTests extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    if (context.definingUnit.unit.inTestDir) {
+    if (context.isInTestDirectory) {
       var visitor = _Visitor(this);
       registry.addMethodDeclaration(this, visitor);
     }
