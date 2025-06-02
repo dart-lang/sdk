@@ -11,7 +11,6 @@ load(
     "arm64",
     "chrome",
     "flutter_pool",
-    "jammy",
     "mac",
     "no_android",
     "no_reclient",
@@ -29,7 +28,7 @@ dart.ci_sandbox_builder(
 dart.ci_sandbox_builder(
     "pkg-linux-release-arm64",
     category = "pkg|la",
-    dimensions = [jammy, arm64],
+    dimensions = [arm64],
 )
 dart.ci_sandbox_builder(
     "pkg-mac-release",
