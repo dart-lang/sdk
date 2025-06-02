@@ -956,14 +956,16 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     }
 
     var format = _configuration.genSnapshotFormat!;
-    var basename = (format == GenSnapshotFormat.assembly) ? 'out.S' : 'out.aotsnapshot';
+    var output = (format == GenSnapshotFormat.assembly)
+        ? tempAssemblyFile(tempDir)
+        : tempAOTFile(tempDir);
     // Whether or not loading units are used. Mach-O doesn't currently support
     // this, and this isn't done for assembly output to avoid having to handle
     // the assembly of multiple assembly output files.
     var split = format == GenSnapshotFormat.elf;
     var args = [
       "--snapshot-kind=${format.snapshotType}",
-      "--${format.fileOption}=$tempDir/$basename",
+      "--${format.fileOption}=$output",
       if (split) "--loading-unit-manifest=$tempDir/ignored.json",
       if (_isAndroid && (_isArm || _isArmX64)) ...[
         '--no-sim-use-hardfp',
@@ -1074,6 +1076,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         case Architecture.arm_x64:
           target = ['-arch', 'armv7'];
           break;
+        case Architecture.arm64:
+        case Architecture.arm64c:
         case Architecture.simarm64:
         case Architecture.simarm64c:
           target = ['-arch', 'arm64'];
@@ -1087,6 +1091,25 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
           target = ['-arch', 'riscv64'];
           break;
       }
+    } else if (Platform.isWindows) {
+      cc = 'buildtools\\win-x64\\clang\\bin\\clang.exe';
+      shared = '-shared';
+      switch (_configuration.architecture) {
+        case Architecture.x64:
+        case Architecture.x64c:
+        case Architecture.simx64:
+        case Architecture.simx64c:
+          target = ['--target=x86_64-windows'];
+          break;
+        case Architecture.arm64:
+        case Architecture.arm64c:
+        case Architecture.simarm64:
+        case Architecture.simarm64c:
+          target = ['--target=arm64-windows'];
+          break;
+      }
+      ldFlags.add('-nostdlib');
+      ldFlags.add('-Wl,/NOENTRY');
     } else {
       throw "Platform not supported: ${Platform.operatingSystem}";
     }
@@ -1096,8 +1119,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ...ldFlags,
       shared,
       '-o',
-      '$tempDir/out.aotsnapshot',
-      '$tempDir/out.S'
+      tempAOTFile(tempDir),
+      tempAssemblyFile(tempDir),
     ];
 
     return CompilationCommand('assemble', tempDir, bootstrapDependencies(), cc,
@@ -1109,7 +1132,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       String tempDir, Map<String, String> environmentOverrides) {
     var stripTool = "$ndkPath/toolchains/llvm/prebuilt/"
         "$host-x86_64/bin/llvm-strip";
-    var args = ['--strip-unneeded', "$tempDir/out.aotsnapshot"];
+    var args = ['--strip-unneeded', tempAOTFile(tempDir)];
     return CompilationCommand('strip', tempDir, bootstrapDependencies(),
         stripTool, args, environmentOverrides,
         alwaysCompile: !_useSdk);
@@ -1124,8 +1147,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   /// almost identical configurations are tested simultaneously.
   Command computeRemoveAssemblyCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
-    return CompilationCommand('remove_assembly', tempDir,
-        bootstrapDependencies(), 'rm', ['$tempDir/out.S'], environmentOverrides,
+    String exec;
+    List<String> args;
+
+    if (Platform.isWindows) {
+      exec = "cmd.exe";
+      args = ["/c", "del", tempAssemblyFile(tempDir)];
+    } else {
+      exec = "rm";
+      args = [tempAssemblyFile(tempDir)];
+    }
+
+    return CompilationCommand("remove_assembly", tempDir,
+        bootstrapDependencies(), exec, args, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
 
@@ -1169,8 +1203,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       // directory on the device, use that one instead.
       dir = DartPrecompiledAdbRuntimeConfiguration.deviceTestDir;
     }
-    originalArguments =
-        _replaceDartFiles(originalArguments, "$dir/out.aotsnapshot");
+    originalArguments = _replaceDartFiles(originalArguments, tempAOTFile(dir));
 
     return [
       if (_enableAsserts) '--enable_asserts',
@@ -1373,6 +1406,21 @@ abstract mixin class VMKernelCompilerMixin {
 
   String tempKernelFile(String tempDir) =>
       Path('$tempDir/out.dill').toNativePath();
+  String tempAssemblyFile(String tempDir) =>
+      Path('$tempDir/out.S').toNativePath();
+  String tempAOTFile(String tempDir) {
+    switch (_configuration.system) {
+      case System.android:
+      case System.fuchsia:
+      case System.linux:
+        return Path('$tempDir/libout.so').toNativePath();
+      case System.mac:
+        return Path('$tempDir/libout.dylib').toNativePath();
+      case System.win:
+        return Path('$tempDir/out.dll').toNativePath();
+    }
+    return Path('$tempDir/out.aotsnapshot').toNativePath();
+  }
 
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {

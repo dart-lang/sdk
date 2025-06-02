@@ -1191,6 +1191,10 @@ static inline Dwarf* AddDwarfIfUnstripped(
     bool strip,
     SharedObjectWriter* writer,
     const Trie<const char>* deobfuscation_trie) {
+#if defined(DART_TARGET_OS_WINDOWS)
+  // PE uses PDB instead of DWARF.
+  return nullptr;
+#else
   if (!strip) {
     if (writer != nullptr) {
       // Reuse the existing DWARF object.
@@ -1200,6 +1204,7 @@ static inline Dwarf* AddDwarfIfUnstripped(
     return new (zone) Dwarf(zone, deobfuscation_trie);
   }
   return nullptr;
+#endif
 }
 
 AssemblyImageWriter::AssemblyImageWriter(
@@ -1257,6 +1262,23 @@ void AssemblyImageWriter::Finalize() {
 #else
   assembly_stream_->WriteString(".section .note.GNU-stack,\"\",@progbits\n");
 #endif
+#endif
+
+#if defined(DART_TARGET_OS_WINDOWS)
+  // __declspec(dllexport)
+  const char* const exported_symbols[] = {
+      kVmSnapshotDataCSymbol,
+      kVmSnapshotInstructionsCSymbol,
+      kIsolateSnapshotDataCSymbol,
+      kIsolateSnapshotInstructionsCSymbol,
+  };
+  assembly_stream_->WriteString(".section .drectve,\"yni\"\n");
+  assembly_stream_->WriteString(".ascii \"");
+  for (const char* exported_symbol : exported_symbols) {
+    assembly_stream_->WriteString(" /EXPORT:");
+    assembly_stream_->WriteString(exported_symbol);
+  }
+  assembly_stream_->WriteString("\"\n");
 #endif
 }
 
@@ -1492,6 +1514,8 @@ void AssemblyImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
 #elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
     // MachO symbol tables don't include the size of the symbol, so don't bother
     // printing it to the assembly output.
+#elif defined(DART_TARGET_OS_WINDOWS)
+    // Windows also doesn't have a .size directive.
 #else
     UNIMPLEMENTED();
 #endif
@@ -1527,7 +1551,7 @@ bool AssemblyImageWriter::EnterSection(ProgramSection section,
       current_symbols_ =
           new (zone_) SharedObjectWriter::SymbolDataArray(zone_, 0);
 #if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
-    defined(DART_TARGET_OS_FUCHSIA)
+    defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_WINDOWS)
       assembly_stream_->WriteString(".section .rodata\n");
 #elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
       assembly_stream_->WriteString(".const\n");
@@ -1591,9 +1615,12 @@ void AssemblyImageWriter::ExitSection(ProgramSection name,
 #elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
   // MachO symbol tables don't include the size of the symbol, so don't bother
   // printing it to the assembly output.
+#elif defined(DART_TARGET_OS_WINDOWS)
+  // Windows also doesn't have a .size directive.
 #else
   UNIMPLEMENTED();
 #endif
+
   // We need to generate a text segment of the appropriate size in the shared
   // object writer for two reasons:
   //
@@ -1687,6 +1714,8 @@ void AssemblyImageWriter::AddCodeSymbol(const Code& code,
 #elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
   // MachO symbol tables don't include the size of the symbol, so don't bother
   // printing it to the assembly output.
+#elif defined(DART_TARGET_OS_WINDOWS)
+  // Windows also doesn't have a .size directive.
 #else
   UNIMPLEMENTED();
 #endif

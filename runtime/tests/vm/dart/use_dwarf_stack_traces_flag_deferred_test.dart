@@ -35,7 +35,11 @@ Future<void> main() async {
       'use_dwarf_stack_traces_flag_deferred_program.dart',
     ),
     runNonDwarf,
-    [runElf, runAssembly],
+    [
+      runElf,
+      // Don't run assembly on Windows since DLLs don't contain DWARF.
+      if (!Platform.isWindows) runAssembly,
+    ],
   );
 }
 

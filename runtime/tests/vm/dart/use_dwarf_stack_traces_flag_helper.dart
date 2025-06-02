@@ -23,7 +23,7 @@ Object get skipAssembly {
   if (isSimulator) {
     return "running on a simulated architecture";
   }
-  return (Platform.isLinux || Platform.isMacOS)
+  return (Platform.isLinux || Platform.isMacOS || Platform.isWindows)
       ? false
       : "no process for assembling snapshots on this platform";
 }

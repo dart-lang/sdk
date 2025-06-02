@@ -297,6 +297,14 @@ static int ParseArguments(int argc,
             "an output file for --assembly.\n\n");
         return -1;
       }
+#if defined(DART_TARGET_OS_WINDOWS)
+      if (debugging_info_filename != nullptr) {
+        // TODO(https://github.com/dart-lang/sdk/issues/60812): Support PDB.
+        Syslog::PrintErr(
+            "warning: ignoring --save-debugging-info when "
+            "generating assembly for Windows.\n\n");
+      }
+#endif
       break;
     }
   }

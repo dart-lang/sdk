@@ -35,6 +35,7 @@ dart::SimpleHashMap* DartUtils::environment_ = nullptr;
 
 MagicNumberData appjit_magic_number = {8, {0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0}};
 MagicNumberData aotelf_magic_number = {4, {0x7F, 0x45, 0x4C, 0x46, 0x0}};
+MagicNumberData aotpe_magic_number = {2, {0x4d, 0x5a}};
 MagicNumberData aotcoff_arm32_magic_number = {2, {0x01, 0xC0}};
 MagicNumberData aotcoff_arm64_magic_number = {2, {0xAA, 0x64}};
 MagicNumberData aotcoff_riscv32_magic_number = {2, {0x50, 0x32}};
@@ -404,6 +405,7 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const char* filename) {
   ASSERT(aotelf_magic_number.length <= appjit_magic_number.length);
   ASSERT(static_cast<intptr_t>(sizeof(mach_o::mach_header::magic)) <=
          appjit_magic_number.length);
+  ASSERT(aotpe_magic_number.length <= appjit_magic_number.length);
   ASSERT(aotcoff_arm32_magic_number.length <= appjit_magic_number.length);
   ASSERT(aotcoff_arm64_magic_number.length <= appjit_magic_number.length);
   ASSERT(aotcoff_riscv32_magic_number.length <= appjit_magic_number.length);
@@ -463,6 +465,10 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t* buffer,
     } else if (magic == mach_o::MH_MAGIC_64) {
       return kAotMachO64MagicNumber;
     }
+  }
+
+  if (CheckMagicNumber(buffer, buffer_length, aotpe_magic_number)) {
+    return kAotPEMagicNumber;
   }
 
   if (CheckMagicNumber(buffer, buffer_length, aotcoff_arm32_magic_number)) {

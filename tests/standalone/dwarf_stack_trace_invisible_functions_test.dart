@@ -67,6 +67,10 @@ Future<void> main() async {
     return; // Generated dwarf.so not available on the test device.
   }
 
+  if (Platform.script.toString().endsWith(".dll")) {
+    return; // DWARF not available in DLLs.
+  }
+
   final dwarf = Dwarf.fromFile(
     path.join(
       Platform.environment["TEST_COMPILATION_DIR"]!,
