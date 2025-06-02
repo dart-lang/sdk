@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
@@ -72,18 +71,18 @@ ReceivePort httpServe(void Function(String) onRequest) {
     rp.sendPort.send(s);
   });
   rp.listen(
-      (s) {
-        print('httpServe counter: $counter');
-        onRequest(s);
-      },
-      onError: (e, st) {
-        print('httpServe receiver get error $e $st');
-      },
-      onDone: () {
-        nativeHttpStopServing();
-        callback.close();
-      },
-    );
+    (s) {
+      print('httpServe counter: $counter');
+      onRequest(s);
+    },
+    onError: (e, st) {
+      print('httpServe receiver get error $e $st');
+    },
+    onDone: () {
+      nativeHttpStopServing();
+      callback.close();
+    },
+  );
 
   // Invoke the native function to start the HTTP server. Our example
   // HTTP library will start a server on a background thread, and pass
