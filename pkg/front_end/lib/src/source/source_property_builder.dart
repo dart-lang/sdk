@@ -611,6 +611,7 @@ class GetterClassMember implements ClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     if (isStatic) {
       return new StaticMemberResult(getMember(membersBuilder), memberKind,
@@ -742,6 +743,7 @@ class SetterClassMember implements ClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     if (isStatic) {
       return new StaticMemberResult(getMember(membersBuilder), memberKind,

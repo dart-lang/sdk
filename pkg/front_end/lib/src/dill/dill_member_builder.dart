@@ -367,6 +367,7 @@ class DillClassMember extends BuilderClassMember {
             "member $memberBuilder.");
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isSourceDeclaration => false;
 
   @override
@@ -428,6 +429,7 @@ class DillClassMember extends BuilderClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     Member member = getMember(membersBuilder);
     if (member is Procedure &&

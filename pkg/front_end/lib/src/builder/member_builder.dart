@@ -223,9 +223,9 @@ abstract class BuilderClassMember implements ClassMember {
   ClassMember get interfaceMember => this;
 
   @override
+  // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     if (isStatic) {
-      // Coverage-ignore-block(suite): Not run.
       return new StaticMemberResult(getMember(membersBuilder), memberKind,
           isDeclaredAsField:
               isDeclaredAsField(memberBuilder, forSetter: forSetter),

@@ -55,6 +55,7 @@ sealed class MemberResult {
       ClassMembersBuilder membersBuilder, TypeDeclarationType thisType);
 }
 
+// Coverage-ignore(suite): Not run.
 class TypeDeclarationInstanceMemberResult implements MemberResult {
   final Member member;
   final ClassMemberKind kind;
@@ -90,8 +91,7 @@ class TypeDeclarationInstanceMemberResult implements MemberResult {
   DartType getMemberType(
       ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
     DartType type = switch (kind) {
-      ClassMemberKind.Method => // Coverage-ignore(suite): Not run.
-        member.getterType,
+      ClassMemberKind.Method => member.getterType,
       ClassMemberKind.Getter => member.getterType,
       ClassMemberKind.Setter => member.setterType,
     };
@@ -107,6 +107,7 @@ class TypeDeclarationInstanceMemberResult implements MemberResult {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class StaticMemberResult implements MemberResult {
   final Member member;
   final ClassMemberKind kind;
@@ -134,14 +135,14 @@ class StaticMemberResult implements MemberResult {
   DartType getMemberType(
       ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
     return switch (kind) {
-      ClassMemberKind.Method => // Coverage-ignore(suite): Not run.
-        member.getterType,
+      ClassMemberKind.Method => member.getterType,
       ClassMemberKind.Getter => member.getterType,
       ClassMemberKind.Setter => member.setterType,
     };
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class ExtensionTypeMemberResult implements MemberResult {
   final ExtensionTypeDeclaration extensionTypeDeclaration;
   final Member member;
@@ -177,7 +178,6 @@ class ExtensionTypeMemberResult implements MemberResult {
         "Unexpected member type for $member (${member.runtimeType}).");
     FunctionType type = member.getterType as FunctionType;
     if (type.typeParameters.isNotEmpty) {
-      // Coverage-ignore-block(suite): Not run.
       type = FunctionTypeInstantiator.instantiate(
           type,
           membersBuilder.hierarchyBuilder.types.getTypeArgumentsAsInstanceOf(
@@ -185,7 +185,6 @@ class ExtensionTypeMemberResult implements MemberResult {
     }
     switch (kind) {
       case ClassMemberKind.Method:
-        // Coverage-ignore(suite): Not run.
         // For methods [member] is the tear-off so the member type is the return
         // type.
         return type.returnType;
@@ -373,6 +372,7 @@ abstract class SynthesizedMember extends ClassMember {
   bool get isSetter => forSetter;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isSourceDeclaration => false;
 
   @override
@@ -388,6 +388,7 @@ abstract class SynthesizedMember extends ClassMember {
       ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {}
 
   @override
+  // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     return new TypeDeclarationInstanceMemberResult(
         getMember(membersBuilder), memberKind,
@@ -1078,6 +1079,7 @@ bool isDeclaredAsField(MemberBuilder memberBuilder, {required bool forSetter}) {
             // Coverage-ignore(suite): Not run.
             memberBuilder.setterQuality == SetterQuality.ImplicitAbstract);
   } else {
+    // Coverage-ignore-block(suite): Not run.
     return memberBuilder is PropertyBuilder && memberBuilder.hasField;
   }
 }
