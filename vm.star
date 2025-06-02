@@ -216,17 +216,25 @@ _nightly_builder(
     category = "vm|aot|a6",
     dimensions = [arm64],
 )
-_vm_builder(
-    "vm-aot-mac-release-arm64",
-    category = "vm|aot|m1",
-    dimensions = [mac, arm64],
-    properties = [no_android, slow_shards],
+_nightly_builder(
+    "vm-aot-mac-debug-x64",
+    category = "vm|aot|md",
+    dimensions = mac,
 )
 _vm_builder(
     "vm-aot-mac-release-x64",
-    category = "vm|aot|m",
+    category = "vm|aot|mr",
     dimensions = mac,
-    properties = slow_shards,
+)
+_nightly_builder(
+    "vm-aot-mac-debug-arm64",
+    category = "vm|aot|mda",
+    dimensions = [mac, arm64],
+)
+_vm_builder(
+    "vm-aot-mac-release-arm64",
+    category = "vm|aot|mra",
+    dimensions = [mac, arm64],
 )
 _nightly_builder(
     "vm-aot-win-debug-x64",
