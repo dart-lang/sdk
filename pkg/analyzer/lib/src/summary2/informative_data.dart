@@ -102,7 +102,6 @@ class InformativeDataApplier {
     var applyOffsets = ApplyConstantOffsets(unitInfo.libraryConstantOffsets, (
       applier,
     ) {
-      applier.applyToMetadata(unitElement);
       applier.applyToImports(unitElement.libraryImports);
       applier.applyToExports(unitElement.libraryExports);
       applier.applyToParts(unitElement.parts);
@@ -201,7 +200,7 @@ class InformativeDataApplier {
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
       var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element);
+        applier.applyToMetadata(element.metadata);
         applier.applyToTypeParameters(element.typeParameters);
         applier.applyToFormalParameters(element.parameters);
       });
@@ -229,7 +228,7 @@ class InformativeDataApplier {
     );
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
 
@@ -265,7 +264,7 @@ class InformativeDataApplier {
     );
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
 
@@ -313,7 +312,7 @@ class InformativeDataApplier {
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
       var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element);
+        applier.applyToMetadata(element.metadata);
         applier.applyToFormalParameters(element.parameters);
         applier.applyToConstructorInitializers(element);
       });
@@ -347,7 +346,7 @@ class InformativeDataApplier {
     _applyToMethods(element.methods, info.methods);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
 
@@ -384,7 +383,7 @@ class InformativeDataApplier {
     _applyToMethods(element.methods, info.methods);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
 
@@ -421,7 +420,7 @@ class InformativeDataApplier {
     var fieldApplyOffsets = ApplyConstantOffsets(infoRep.fieldConstantOffsets, (
       applier,
     ) {
-      applier.applyToMetadata(representationField);
+      applier.applyToMetadata(representationField.metadata);
     });
 
     var fieldLinkedData = representationField.linkedData;
@@ -462,7 +461,7 @@ class InformativeDataApplier {
     _applyToMethods(element.methods, info.methods);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
 
@@ -485,7 +484,7 @@ class InformativeDataApplier {
       element.documentationComment = info.documentationComment;
 
       var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element);
+        applier.applyToMetadata(element.metadata);
         applier.applyToConstantInitializer(element);
       });
 
@@ -526,7 +525,7 @@ class InformativeDataApplier {
     _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
       applier.applyToFormalParameters(element.parameters);
     });
@@ -602,7 +601,7 @@ class InformativeDataApplier {
     var applyOffsets = ApplyConstantOffsets(info.libraryConstantOffsets, (
       applier,
     ) {
-      applier.applyToMetadataList(element.annotations);
+      applier.applyToMetadata(element.metadata);
     });
 
     var linkedData = element.linkedData;
@@ -629,7 +628,7 @@ class InformativeDataApplier {
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
       var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element);
+        applier.applyToMetadata(element.metadata);
         applier.applyToTypeParameters(element.typeParameters);
         applier.applyToFormalParameters(element.parameters);
       });
@@ -662,7 +661,7 @@ class InformativeDataApplier {
     _applyToMethods(element.methods, info.methods);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
 
@@ -684,7 +683,7 @@ class InformativeDataApplier {
     element.documentationComment = info.documentationComment;
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToConstantInitializer(element);
     });
 
@@ -719,7 +718,7 @@ class InformativeDataApplier {
     List<_InfoTypeParameter>? aliasedTypeParameters,
   }) {
     var applyOffsets = ApplyConstantOffsets(constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
 
       var aliasedElement = element.aliasedElement;
@@ -2007,13 +2006,13 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   void applyToEnumConstants(List<FieldFragmentImpl> constants) {
     for (var constant in constants) {
-      applyToMetadata(constant);
+      applyToMetadata(constant.metadata);
     }
   }
 
   void applyToExports(List<LibraryExportImpl> elements) {
     for (var element in elements) {
-      applyToMetadataList(element.metadata.annotations);
+      applyToMetadata(element.metadata);
     }
   }
 
@@ -2021,7 +2020,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     List<FormalParameterFragmentImpl> formalParameters,
   ) {
     for (var parameter in formalParameters) {
-      applyToMetadata(parameter);
+      applyToMetadata(parameter.metadata);
       applyToFormalParameters(parameter.parameters);
       applyToConstantInitializer(parameter);
     }
@@ -2029,16 +2028,12 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   void applyToImports(List<LibraryImportImpl> elements) {
     for (var element in elements) {
-      applyToMetadataList(element.metadata.annotations);
+      applyToMetadata(element.metadata);
     }
   }
 
-  void applyToMetadata(FragmentImpl element) {
-    applyToMetadataList(element.metadata3);
-  }
-
-  void applyToMetadataList(List<ElementAnnotationImpl> metadata) {
-    for (var annotation in metadata) {
+  void applyToMetadata(MetadataImpl metadata) {
+    for (var annotation in metadata.annotations) {
       var node = annotation.annotationAst;
       node.accept(this);
     }
@@ -2046,13 +2041,13 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   void applyToParts(List<PartIncludeImpl> elements) {
     for (var element in elements) {
-      applyToMetadataList(element.metadata.annotations);
+      applyToMetadata(element.metadata);
     }
   }
 
   void applyToTypeParameters(List<TypeParameterFragmentImpl> typeParameters) {
     for (var typeParameter in typeParameters) {
-      applyToMetadata(typeParameter);
+      applyToMetadata(typeParameter.metadata);
     }
   }
 

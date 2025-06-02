@@ -803,9 +803,6 @@ abstract class Member implements FragmentOrMember {
   @override
   Source? get librarySource => _declaration.librarySource;
 
-  @override
-  List<ElementAnnotation> get metadata3 => _declaration.metadata3;
-
   @Deprecated('Use name2 instead')
   @override
   String? get name => _declaration.name;

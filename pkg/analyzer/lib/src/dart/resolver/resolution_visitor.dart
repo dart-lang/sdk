@@ -1824,7 +1824,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _setOrCreateMetadataElements(
-    FragmentImpl element,
+    AnnotatableFragmentImpl element,
     NodeList<AnnotationImpl> annotations, {
     bool visitNodes = true,
   }) {
@@ -1832,12 +1832,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       annotations.accept(this);
     }
     if (_elementWalker != null) {
-      _setElementAnnotations(annotations, element.metadata3);
+      _setElementAnnotations(annotations, element.metadata.annotations);
     } else if (annotations.isNotEmpty) {
-      element.metadata3 =
-          annotations.map((annotation) {
-            return annotation.elementAnnotation!;
-          }).toList();
+      element.metadata = MetadataImpl(
+        annotations.map((annotation) {
+          return annotation.elementAnnotation!;
+        }).toList(),
+      );
     }
   }
 
