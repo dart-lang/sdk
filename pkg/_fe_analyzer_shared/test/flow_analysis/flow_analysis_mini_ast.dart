@@ -48,6 +48,22 @@ class FlowAnalysisTestHarness extends Harness
     if (variable != null && operations.isFinal(variable)) return true;
     return false;
   }
+
+  @override
+  bool isValidPromotionStep({
+    required SharedTypeView previousType,
+    required SharedTypeView newType,
+  }) {
+    // Caller must ensure that `newType <: previousType`.
+    assert(
+      typeOperations.isSubtypeOf(newType, previousType),
+      "Expected $newType to be a subtype of $previousType.",
+    );
+    // Promotion to a mutual subtype is not allowed. Since the caller has
+    // already ensured that `newType <: previousType`, it's only necessary to
+    // check whether `previousType <: newType`.
+    return !typeOperations.isSubtypeOf(previousType, newType);
+  }
 }
 
 /// Helper class allowing tests to examine the values of variables' SSA nodes.

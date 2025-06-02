@@ -39,13 +39,13 @@ class C<X extends core::Object?, Y extends core::Object> extends core::Object {
     if(x is core::Object?) {
       core::Set<core::Object?> v = block {
         final core::Set<core::Object?> #t5 = col::LinkedHashSet::•<core::Object?>();
-        #t5.{core::Set::add}{Invariant}(x{self::C::X% & core::Object? /* '%' & '?' = '%' */}){(core::Object?) → core::bool};
+        #t5.{core::Set::add}{Invariant}(x){(core::Object?) → core::bool};
         #t5.{core::Set::add}{Invariant}(42){(core::Object?) → core::bool};
       } =>#t5;
       core::Set<core::Object?> w = block {
         final core::Set<core::Object?> #t6 = col::LinkedHashSet::•<core::Object?>();
         #t6.{core::Set::add}{Invariant}(42){(core::Object?) → core::bool};
-        #t6.{core::Set::add}{Invariant}(x{self::C::X% & core::Object? /* '%' & '?' = '%' */}){(core::Object?) → core::bool};
+        #t6.{core::Set::add}{Invariant}(x){(core::Object?) → core::bool};
       } =>#t6;
       self::assertRightSubtype(v);
       self::assertLeftSubtype<core::Set<core::Object?>>(v);

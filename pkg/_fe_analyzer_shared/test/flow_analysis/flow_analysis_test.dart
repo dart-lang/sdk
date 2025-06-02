@@ -6013,6 +6013,7 @@ main() {
       // non-promotable.
       h.addMember('C', '_property', 'int?', promotable: false);
       h.addMember('D', '_property', 'int?', promotable: true);
+      h.addSuperInterfaces('C', (_) => [Type('Object')]);
       h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
       var x = Var('x');
       h.run([
@@ -6360,6 +6361,7 @@ main() {
       test('Assigned but not promotable in try, promoted in finally', () {
         h.addMember('C', '_property', 'int?', promotable: false);
         h.addMember('D', '_property', 'int?', promotable: true);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
         h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
         var c = Var('c');
         h.run([
@@ -11988,6 +11990,297 @@ main() {
         });
       });
     });
+
+    group('When disabled, may promote to mutual subtypes:', () {
+      test('Type cast', () {
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<Object?>')),
+          x.as_('List<dynamic>'),
+          checkPromoted(x, 'List<dynamic>'),
+        ]);
+      });
+
+      test('Type check', () {
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<Object?>')),
+          if_(x.is_(isInverted: true, 'List<dynamic>'), [return_()]),
+          checkPromoted(x, 'List<dynamic>'),
+        ]);
+      });
+
+      test('Type of interest promotion', () {
+        // Note: to work around the fact that a full demotion clears types of
+        // interest (see https://github.com/dart-lang/language/issues/4380),
+        // this test starts with a variable of type `dynamic` and promotes it
+        // first to `List<Object?>?` and then to `List<dynamic>`. This ensures
+        // that the write that follows (which writes a value of type
+        // `List<Object?>?`) does not fully demote the variable, so the types of
+        // interest will be preserved.
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('dynamic')),
+          x.as_('List<Object?>?'),
+          // `x` is now promoted to `List<Object?>?` and `List<Object?>` is a
+          // type of interest
+          checkPromoted(x, 'List<Object?>?'),
+          x.as_('List<dynamic>'),
+          // `x` is now promoted to `List<dynamic>` and `List<dynamic>` is a
+          // type of interest.
+          checkPromoted(x, 'List<dynamic>'),
+          x.write(expr('List<Object?>?')),
+          // `x` is now demoted back to `List<Object?>?`.
+          checkPromoted(x, 'List<Object?>?'),
+          x.write(expr('List<Object?>')),
+          // `x` is now promoted to `List<Object?>`.
+          checkPromoted(x, 'List<Object?>'),
+          x.write(expr('List<void>')),
+          // Type of interest promotion rejected `List<Object?>` (because it was
+          // the already-promoted type), but accepted `List<dynamic>`.
+          checkPromoted(x, 'List<dynamic>'),
+        ]);
+      });
+
+      group('Finally clause:', () {
+        test('Variable', () {
+          h.disableSoundFlowAnalysis();
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            try_([
+              x.as_('List<Object?>'),
+              checkPromoted(x, 'List<Object?>'),
+            ]).finally_([
+              checkNotPromoted(x),
+              x.as_('List<dynamic>'),
+              checkPromoted(x, 'List<dynamic>'),
+            ]),
+            // After the try/finally, the promotions in the try block are
+            // layered over the promotions in the finally block (see
+            // https://github.com/dart-lang/language/issues/4382), so the
+            // promotion to `List<Object?>` layers over the promotion to
+            // `List<dynamic>`.
+            checkPromoted(x, 'List<Object?>'),
+          ]);
+        });
+
+        test('Promotable property of unmodified variable', () {
+          h.disableSoundFlowAnalysis();
+          h.addMember('C', '_property', 'Object?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            try_([
+              x.property('_property').as_('List<Object?>'),
+              checkPromoted(x.property('_property'), 'List<Object?>'),
+            ]).finally_([
+              checkNotPromoted(x),
+              x.property('_property').as_('List<dynamic>'),
+              checkPromoted(x.property('_property'), 'List<dynamic>'),
+            ]),
+            // After the try/finally, the promotions in the try block are
+            // layered over the promotions in the finally block (see
+            // https://github.com/dart-lang/language/issues/4382), so the
+            // promotion to `List<Object?>` layers over the promotion to
+            // `List<dynamic>`.
+            checkPromoted(x.property('_property'), 'List<Object?>'),
+          ]);
+        });
+
+        test('Promotable property of modified variable', () {
+          h.disableSoundFlowAnalysis();
+          h.addMember('C', '_property', 'Object?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            try_([
+              x.write(expr('C')),
+              x.property('_property').as_('List<dynamic>'),
+              checkPromoted(x.property('_property'), 'List<dynamic>'),
+            ]).finally_([
+              checkNotPromoted(x),
+              x.property('_property').as_('List<Object?>'),
+              checkPromoted(x.property('_property'), 'List<Object?>'),
+            ]),
+            // After the try/finally, the promotions in the finally block are
+            // layered over the promotions in the try block (see
+            // https://github.com/dart-lang/language/issues/4382), so the
+            // promotion to `List<Object?>` layers over the promotion to
+            // `List<dynamic>`.
+            checkPromoted(x.property('_property'), 'List<Object?>'),
+          ]);
+        });
+      });
+
+      test('Boolean variable', () {
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        var b = Var('b');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          declare(b, initializer: x.is_('List<Object?>')),
+          checkNotPromoted(x),
+          x.as_('List<dynamic>'),
+          checkPromoted(x, 'List<dynamic>'),
+          if_(b, [
+            // The promotion to `List<Object?>`, captured at the declaration
+            // site of `b`, is layered over the promotion to `List<dynamic>`.
+            checkPromoted(x, 'List<Object?>'),
+          ]),
+        ]);
+      });
+    });
+
+    group('When enabled, do not promote to mutual subtypes:', () {
+      test('Type cast', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<Object?>')),
+          x.as_('List<dynamic>'),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('Type check', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<Object?>')),
+          if_(x.is_(isInverted: true, 'List<dynamic>'), [return_()]),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('Type of interest promotion', () {
+        // Note: to work around the fact that a full demotion clears types of
+        // interest (see https://github.com/dart-lang/language/issues/4380),
+        // this test starts with a variable of type `dynamic` and promotes it
+        // first to `List<Object?>?` and then to `List<dynamic>`. This ensures
+        // that the write that follows (which writes a value of type
+        // `List<Object?>?`) does not fully demote the variable, so the types of
+        // interest will be preserved.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('dynamic')),
+          x.as_('List<Object?>?'),
+          // `x` is now promoted to `List<Object?>?` and `List<Object?>` is a
+          // type of interest
+          checkPromoted(x, 'List<Object?>?'),
+          x.as_('List<dynamic>'),
+          // `x` is now promoted to `List<dynamic>` and `List<dynamic>` is a
+          // type of interest.
+          checkPromoted(x, 'List<dynamic>'),
+          x.write(expr('List<Object?>?')),
+          // `x` is now demoted back to `List<Object?>?`.
+          checkPromoted(x, 'List<Object?>?'),
+          x.write(expr('List<Object?>')),
+          // `x` is now promoted to `List<Object?>`.
+          checkPromoted(x, 'List<Object?>'),
+          x.write(expr('List<void>')),
+          // Type of interest promotion rejected `List<Object?>` (because it was
+          // the already-promoted type) and `List<dynamic>` (because it is a
+          // mutual subtype with the already-promoted type).
+          checkPromoted(x, 'List<Object?>'),
+        ]);
+      });
+
+      group('Finally clause:', () {
+        test('Variable', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            try_([
+              x.as_('List<Object?>'),
+              checkPromoted(x, 'List<Object?>'),
+            ]).finally_([
+              checkNotPromoted(x),
+              x.as_('List<dynamic>'),
+              checkPromoted(x, 'List<dynamic>'),
+            ]),
+            // After the try/finally, the promotions in the try block are
+            // layered over the promotions in the finally block (see
+            // https://github.com/dart-lang/language/issues/4382), so the
+            // promotion to `List<Object?>` layers over the promotion to
+            // `List<dynamic>`. But since the two types are mutual subtypes, the
+            // promotion to `List<Object?>` is discarded, leaving only the
+            // promotion to `List<dynamic>`.
+            checkPromoted(x, 'List<dynamic>'),
+          ]);
+        });
+
+        test('Promotable property of unmodified variable', () {
+          h.addMember('C', '_property', 'Object?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            try_([
+              x.property('_property').as_('List<Object?>'),
+              checkPromoted(x.property('_property'), 'List<Object?>'),
+            ]).finally_([
+              checkNotPromoted(x),
+              x.property('_property').as_('List<dynamic>'),
+              checkPromoted(x.property('_property'), 'List<dynamic>'),
+            ]),
+            // After the try/finally, the promotions in the try block are
+            // layered over the promotions in the finally block (see
+            // https://github.com/dart-lang/language/issues/4382), so the
+            // promotion to `List<Object?>` layers over the promotion to
+            // `List<dynamic>`. But since the two types are mutual subtypes, the
+            // promotion to `List<Object?>` is discarded, leaving only the
+            // promotion to `List<dynamic>`.
+            checkPromoted(x.property('_property'), 'List<dynamic>'),
+          ]);
+        });
+
+        test('Promotable property of modified variable', () {
+          h.addMember('C', '_property', 'Object?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            try_([
+              x.write(expr('C')),
+              x.property('_property').as_('List<dynamic>'),
+              checkPromoted(x.property('_property'), 'List<dynamic>'),
+            ]).finally_([
+              checkNotPromoted(x),
+              x.property('_property').as_('List<Object?>'),
+              checkPromoted(x.property('_property'), 'List<Object?>'),
+            ]),
+            // After the try/finally, the promotions in the finally block are
+            // layered over the promotions in the try block (see
+            // https://github.com/dart-lang/language/issues/4382), so the
+            // promotion to `List<Object?>` layers over the promotion to
+            // `List<dynamic>`. But since the two types are mutual subtypes, the
+            // promotion to `List<Object?>` is discarded, leaving only the
+            // promotion to `List<dynamic>`.
+            checkPromoted(x.property('_property'), 'List<dynamic>'),
+          ]);
+        });
+      });
+
+      test('Boolean variable', () {
+        var x = Var('x');
+        var b = Var('b');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          declare(b, initializer: x.is_('List<Object?>')),
+          checkNotPromoted(x),
+          x.as_('List<dynamic>'),
+          checkPromoted(x, 'List<dynamic>'),
+          if_(b, [
+            // The promotion to `List<Object?>`, captured at the declaration
+            // site of `b`, is layered over the promotion to `List<dynamic>`.
+            // But since the two types are mutual subtypes, the promotion to
+            // `List<Object?>` is discarded, leaving only the promotion to
+            // `List<dynamic>`.
+            checkPromoted(x, 'List<dynamic>'),
+          ]),
+        ]);
+      });
+    });
   });
 
   group('Demotion and type of interest promotion:', () {
@@ -12329,7 +12622,6 @@ extension on FlowModel<SharedTypeView> {
     h.promotionKeyStore.keyForVariable(variable),
     writtenType,
     newSsaNode,
-    h.typeOperations,
     unpromotedType: SharedTypeView(variable.type),
   );
 }
