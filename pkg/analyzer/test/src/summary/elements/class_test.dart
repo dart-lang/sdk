@@ -9265,7 +9265,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::0#element
               formalParameters
                 <null-name>
-                  element: <testLibraryFragment>::@class::C::@setter::0::@parameter::_#element
+                  element: <testLibraryFragment>::@class::C::@setter::0::@parameter::#element
   classes
     abstract class C
       reference: <testLibrary>::@class::C
@@ -9301,7 +9301,7 @@ library
         synthetic set <null-name>
           firstFragment: <testLibraryFragment>::@class::C::@setter::0
           formalParameters
-            requiredPositional _
+            requiredPositional <null-name>
               type: Object
           returnType: void
 ''');
@@ -12326,7 +12326,7 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
-        
+        <null-name>
           reference: <testLibrary>::@class::A::@method::0
           firstFragment: <testLibraryFragment>::@class::A::@method::0
           returnType: dynamic
@@ -14832,7 +14832,7 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
-        unary-
+        -
           reference: <testLibrary>::@class::A::@method::unary-
           firstFragment: <testLibraryFragment>::@class::A::@method::unary-
           returnType: int

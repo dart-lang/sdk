@@ -537,7 +537,7 @@ lsp.Location? fragmentToLocation(
   ) when isSynthetic) {
     var element = nonSynthetic;
     nameOffset = element.nameOffset.nullIfNegative;
-    nameLength = element.name?.length;
+    nameLength = element.name2?.length;
   } else {
     nameOffset = fragment.nameOffset2;
     nameLength = fragment.name2?.length;

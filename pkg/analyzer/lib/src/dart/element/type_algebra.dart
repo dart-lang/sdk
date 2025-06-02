@@ -263,6 +263,7 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
         name: element.name3!,
         nameOffset: -1,
       );
+      freshElement.name2 = element.name3;
       var freshType = freshElement.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );

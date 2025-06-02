@@ -449,7 +449,7 @@ class AstBinaryReader {
 
     var nonDefaultElement = parameter.declaredFragment!;
     var fragment = DefaultParameterFragmentImpl(
-      name: nonDefaultElement.name,
+      name: nonDefaultElement.name2 ?? '',
       nameOffset: nonDefaultElement.nameOffset,
       name2: nonDefaultElement.name2,
       nameOffset2: nonDefaultElement.nameOffset2,

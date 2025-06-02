@@ -6408,7 +6408,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
       context,
       this,
       declaredElement2!,
-      declaredFragment!.name,
+      declaredFragment!.name2 ?? '',
       type?.typeOrThrow.wrapSharedTypeView(),
     );
     declaredElement2!.type = result.staticType.unwrapTypeView();

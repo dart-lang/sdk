@@ -271,8 +271,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.periodOffset = node.period?.offset;
     element.nameEnd = nameNode.end;
     if ((node.period, node.name) case (var _?, var name?)) {
-      element.name2 = name.lexeme;
-      element.nameOffset2 = name.offset;
+      element.name2 = _getFragmentName(name) ?? 'new';
+      element.nameOffset2 = _getFragmentNameOffset(name);
     } else {
       element.name2 = 'new';
     }
@@ -380,7 +380,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         constructorName: ConstructorNameImpl(
           type: NamedTypeImpl(
             importPrefix: null,
-            name: StringToken(TokenType.STRING, fragment.name, -1),
+            name: StringToken(TokenType.STRING, fragment.name2 ?? '', -1),
             typeArguments: constantArguments?.typeArguments,
             question: null,
           ),
@@ -467,7 +467,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         arguments: [
           NamedTypeImpl(
             importPrefix: null,
-            name: StringToken(TokenType.STRING, fragment.name, -1),
+            name: StringToken(TokenType.STRING, fragment.name2 ?? '', -1),
             typeArguments: null,
             question: null,
           )..element2 = fragment.asElement2,
@@ -1270,7 +1270,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var elementReference = containerRef.addChild(refName);
 
       MethodElementImpl2(
-        name3: name,
+        name3: fragment.name2,
         reference: elementReference,
         firstFragment: fragment,
       );
@@ -1805,7 +1805,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         FieldFormalParameterFragmentImpl(
             name: fieldName,
             nameOffset: nameOffset2 ?? -1,
-            name2: fieldName.nullIfEmpty,
+            name2: fieldName,
             nameOffset2: nameOffset2,
             parameterKind: ParameterKind.REQUIRED,
           )
@@ -2065,7 +2065,7 @@ class _EnclosingContext {
 
     var containerName =
         element.isAugmentation ? '@constructorAugmentation' : '@constructor';
-    var referenceName = element.name.ifNotEmptyOrElse('new');
+    var referenceName = element.name2;
     return _addReference(containerName, referenceName, element);
   }
 

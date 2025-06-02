@@ -157,7 +157,7 @@ class GenericInferrer {
       argumentType: SharedTypeView(argumentType),
       parameterType: SharedTypeView(parameterType),
       parameterName: parameterName,
-      genericClassName: genericClass?.name,
+      genericClassName: genericClass?.name2,
       isGenericClassInDartCore: genericClass?.library.isDartCore ?? false,
     );
     inferenceLogWriter?.enterConstraintGeneration(
@@ -189,7 +189,7 @@ class GenericInferrer {
       constrainArgument(
         argumentTypes[i],
         parameters[i].type,
-        parameters[i].name,
+        parameters[i].name2 ?? '',
         genericClass: genericClass,
         nodeForTesting: nodeForTesting,
       );
@@ -210,7 +210,7 @@ class GenericInferrer {
       constrainArgument(
         argumentTypes[i],
         parameters[i].type,
-        parameters[i].name3!,
+        parameters[i].name3 ?? '',
         genericClass: genericClass,
         nodeForTesting: nodeForTesting,
       );

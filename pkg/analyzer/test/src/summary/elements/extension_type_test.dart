@@ -1672,7 +1672,7 @@ library
               typeNameOffset: 15
               formalParameters
                 this.<null-name> (offset=17)
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::<empty>#element
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::#element
           getters
             synthetic get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::<empty>
@@ -1693,7 +1693,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final hasImplicitType <empty>
+            requiredPositional final hasImplicitType <null-name>
               type: InvalidType
       getters
         synthetic get <null-name>

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:meta/meta_meta.dart';
 
 extension DartTypeExtension on DartType {
@@ -188,7 +187,7 @@ extension ParameterElementMixinExtension on ParameterElementMixin {
     bool? isCovariant,
   }) {
     return FormalParameterFragmentImpl.synthetic(
-      name.nullIfEmpty,
+      name2,
       type ?? this.type,
       kind ?? parameterKind,
     )..isExplicitlyCovariant = isCovariant ?? this.isCovariant;
@@ -246,6 +245,6 @@ extension RecordTypeExtension on RecordType {
 
 extension TypeParameterElementImplExtension on TypeParameterFragmentImpl {
   bool get isWildcardVariable {
-    return name == '_' && library.hasWildcardVariablesFeatureEnabled;
+    return name2 == '_' && library.hasWildcardVariablesFeatureEnabled;
   }
 }

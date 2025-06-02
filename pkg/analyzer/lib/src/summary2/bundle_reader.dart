@@ -302,7 +302,9 @@ abstract class ElementLinkedData<E> {
     List<FormalParameterFragmentImpl> parameters,
   ) {
     for (var parameter in parameters) {
-      parameter.metadata3 = reader._readAnnotationList(unitElement: unitElement);
+      parameter.metadata3 = reader._readAnnotationList(
+        unitElement: unitElement,
+      );
       _readTypeParameters(reader, parameter.typeParameters);
       _readFormalParameters(reader, parameter.parameters);
       parameter.type = reader.readRequiredType();
@@ -1290,7 +1292,7 @@ class LibraryReader {
       fragment.typeInferenceError = _readTopLevelInferenceError();
 
       MethodElementImpl2(
-        name3: name,
+        name3: fragmentName,
         reference: reference2,
         firstFragment: fragment,
       );
@@ -2348,6 +2350,10 @@ class ResolutionReader {
     return _elementFactory.elementOfReference(reference);
   }
 
+  String? _readFragmentName() {
+    return _reader.readOptionalStringReference();
+  }
+
   // TODO(scheglov): Optimize for write/read of types without type parameters.
   FunctionTypeImpl _readFunctionType() {
     // TODO(scheglov): reuse for formal parameters
@@ -2434,8 +2440,10 @@ class ResolutionReader {
     LibraryFragmentImpl? unitElement,
   ) {
     var typeParameters = readTypedList(() {
+      var fragmentName = _readFragmentName();
       var name = readStringReference();
       var typeParameter = TypeParameterFragmentImpl(name: name, nameOffset: -1);
+      typeParameter.name2 = fragmentName;
       _localElements.add(typeParameter);
       return typeParameter;
     });

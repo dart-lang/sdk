@@ -235,7 +235,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         var fragment = LocalVariableFragmentImpl(
           name: exceptionNode.name.lexeme,
           nameOffset: exceptionNode.name.offset,
-        );
+        )..name2 = _getFragmentName(exceptionNode.name);
         _elementHolder.enclose(fragment);
         _define(fragment.element);
 
@@ -260,7 +260,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         var fragment = LocalVariableFragmentImpl(
           name: stackTraceNode.name.lexeme,
           nameOffset: stackTraceNode.name.offset,
-        );
+        )..name2 = _getFragmentName(stackTraceNode.name);
         _elementHolder.enclose(fragment);
         _define(fragment.element);
 
@@ -382,7 +382,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var fragment = LocalVariableFragmentImpl(
       name: nameToken.lexeme,
       nameOffset: nameToken.offset,
-    );
+    )..name2 = _getFragmentName(nameToken);
     _elementHolder.enclose(fragment);
     node.declaredFragment = fragment;
 
@@ -413,7 +413,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       node: node,
       name: name,
       nameOffset: node.name.offset,
-    );
+    )..name2 = _getFragmentName(node.name);
     _patternVariables.add(name, fragment.element);
     _elementHolder.enclose(fragment);
     _define(fragment.element);
@@ -1481,6 +1481,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         nameOffset: labelName.offset,
         onSwitchMember: onSwitchMember,
       );
+      element.name2 = labelName.name;
       labelName.element = element.asElement2;
       _elementHolder.enclose(element);
     }
@@ -1533,12 +1534,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         fragment = ConstLocalVariableFragmentImpl(
           name: nameToken.lexeme,
           nameOffset: nameToken.offset,
-        );
+        )..name2 = _getFragmentName(nameToken);
       } else {
         fragment = LocalVariableFragmentImpl(
           name: nameToken.lexeme,
           nameOffset: nameToken.offset,
-        );
+        )..name2 = _getFragmentName(nameToken);
       }
       variable.declaredFragment = fragment;
       _elementHolder.enclose(fragment);
@@ -1576,7 +1577,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       }
       typeParameter.declaredFragment = fragment;
 
-      if (!_isWildCardVariable(fragment.name)) {
+      if (!_isWildCardVariable(fragment.name2)) {
         _define(fragment.element);
       }
 
@@ -1617,6 +1618,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  String? _getFragmentName(Token? nameToken) {
+    if (nameToken == null || nameToken.isSynthetic) {
+      return null;
+    }
+    return nameToken.lexeme;
+  }
+
   NullabilitySuffix _getNullability(bool hasQuestion) {
     if (hasQuestion) {
       return NullabilitySuffix.question;
@@ -1625,7 +1633,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  bool _isWildCardVariable(String name) =>
+  bool _isWildCardVariable(String? name) =>
       name == '_' &&
       _libraryElement.featureSet.isEnabled(Feature.wildcard_variables);
 
@@ -1868,9 +1876,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
                 .EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE,
             arguments: [
               implementedRepresentation,
-              type.element3.name3!,
+              type.element3.name3 ?? '',
               declaredRepresentation,
-              declaredElement.name,
+              declaredElement.name2 ?? '',
             ],
           );
         }
@@ -2000,7 +2008,7 @@ class _VariableBinder
           (e) => e.inconsistency,
         ),
       ),
-    );
+    )..name2 = first.name3;
     resultFragment
       ..enclosingFragment = first.firstFragment.enclosingFragment
       ..type = InvalidTypeImpl.instance;

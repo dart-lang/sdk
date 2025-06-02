@@ -348,7 +348,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     var fragment = node.declaredFragment;
     if (fragment?.element == element) {
-      if (fragment!.name.isEmpty) {
+      if (fragment!.name2 == 'new') {
         references.add(
           MatchInfo(
             fragment.nameOffset + fragment.nameLength,

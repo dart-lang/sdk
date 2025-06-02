@@ -50,7 +50,8 @@ Map<Object, FormalParameterElementMixin> _computeParameterMap(
   int unnamedParameterIndex = 0;
   return {
     for (var parameter in parameters)
-      parameter.isNamed ? parameter.name3! : unnamedParameterIndex++: parameter,
+      parameter.isNamed ? parameter.name3 ?? '' : unnamedParameterIndex++:
+          parameter,
   };
 }
 
@@ -642,7 +643,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         inferrer?.constrainArgument(
           argument.typeOrThrow,
           parameter.type,
-          parameter.name3!,
+          parameter.name3 ?? '',
           nodeForTesting: node,
         );
       }
@@ -717,7 +718,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
           inferrer?.constrainArgument(
             argument.typeOrThrow,
             parameter.type,
-            parameter.name3!,
+            parameter.name3 ?? '',
             nodeForTesting: node,
           );
         }

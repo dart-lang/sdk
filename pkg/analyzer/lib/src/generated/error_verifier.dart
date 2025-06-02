@@ -147,7 +147,7 @@ class EnclosingExecutableContext {
   }
 
   bool get isClosure => switch (element) {
-    LocalFunctionElement(:var displayName) => displayName.isEmpty,
+    LocalFunctionElement(:var name3) => name3 == null,
     _ => false,
   };
 
@@ -2236,7 +2236,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         continue;
       }
 
-      String name = method.name;
+      String name = method.name2 ?? '';
 
       // find inherited property accessors
       var getter =
@@ -2432,9 +2432,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     EnumFragmentImpl fragment,
   ) {
     for (var typeParameter in fragment.typeParameters) {
-      var name = typeParameter.name;
+      var name = typeParameter.name2 ?? '';
       // name is same as the name of the enclosing enum
-      if (fragment.name == name) {
+      if (fragment.name2 == name) {
         errorReporter.atElement2(
           typeParameter.asElement2,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM,
@@ -2461,9 +2461,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var typeParameter in fragment.typeParameters) {
       if (typeParameter.isWildcardVariable) continue;
 
-      var name = typeParameter.name;
+      var name = typeParameter.name2 ?? '';
       // name is same as the name of the enclosing class
-      if (fragment.name == name) {
+      if (fragment.name2 == name) {
         errorReporter.atElement2(
           typeParameter.asElement2,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
@@ -4602,8 +4602,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           fragment.asElement2,
           CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
           arguments: [
-            superElement.name3!,
-            fragment.name,
+            superElement.name3 ?? '',
+            fragment.name2 ?? '',
             superUnnamedConstructor,
           ],
         );
@@ -5918,7 +5918,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 CompileTimeErrorCode
                     .WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
                 arguments: [
-                  typeParameter.name,
+                  typeParameter.name2 ?? '',
                   typeParameter.variance.keyword,
                   superVariance.keyword,
                   superInterface,
@@ -5929,7 +5929,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 typeParameter.asElement2,
                 CompileTimeErrorCode
                     .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-                arguments: [typeParameter.name, superInterface],
+                arguments: [typeParameter.name2 ?? '', superInterface],
               );
             }
           }
@@ -5971,7 +5971,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
         arguments: [
           typeParameter.variance.keyword,
-          typeParameter.name,
+          typeParameter.name2 ?? '',
           variance.keyword,
         ],
       );

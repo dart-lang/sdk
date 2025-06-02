@@ -77,7 +77,7 @@ class ElementTextConfiguration {
         case LibraryFragment():
           return true;
         case ClassFragmentImpl():
-          return classNames.contains(o.name);
+          return classNames.contains(o.name2);
         case ClassElement():
           return classNames.contains(o.name3);
         case ConstructorFragment():

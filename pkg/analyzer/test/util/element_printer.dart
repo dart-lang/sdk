@@ -277,18 +277,18 @@ class ElementPrinter {
           enclosingElement != null
               ? _elementToReferenceString(enclosingElement)
               : 'root';
-      return '$enclosingStr::@parameter::${element.name}';
+      return '$enclosingStr::@parameter::${element.name2 ?? ''}';
     } else if (element is JoinPatternVariableFragmentImpl) {
       return [
         if (!element.isConsistent) 'notConsistent ',
         if (element.isFinal) 'final ',
-        element.name,
+        element.name2 ?? '',
         '[',
         element.variables.map(_elementToReferenceString).join(', '),
         ']',
       ].join();
     } else {
-      return '${element.name}@${element.nameOffset}';
+      return '${element.name2 ?? ''}@${element.nameOffset}';
     }
   }
 
@@ -310,7 +310,7 @@ class ElementPrinter {
       return [
         if (!element.isConsistent) 'notConsistent ',
         if (element.isFinal) 'final ',
-        element.name,
+        element.name2 ?? '',
         '[',
         element.variables.map(_elementToReferenceString).join(', '),
         ']',

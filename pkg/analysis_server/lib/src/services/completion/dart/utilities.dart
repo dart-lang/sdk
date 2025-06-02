@@ -15,7 +15,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     as protocol
     show Element, ElementKind;
@@ -183,7 +182,7 @@ DefaultArgument? getDefaultStringParameterValue(
     var params = type.formalParameters.indexed
         .map((r) {
           var (index, parameter) = r;
-          var name = parameter.displayName.ifNotEmptyOrElse('p${index + 1}');
+          var name = parameter.name3 ?? 'p${index + 1}';
           return '${getTypeString(parameter.type)}$name';
         })
         .join(', ');
