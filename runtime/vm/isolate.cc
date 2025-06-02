@@ -2595,15 +2595,6 @@ void IsolateGroup::MaybeIncreaseReloadEveryNStackOverflowChecks() {
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-void Isolate::set_forward_table_new(WeakTable* table) {
-  std::unique_ptr<WeakTable> value(table);
-  forward_table_new_ = std::move(value);
-}
-void Isolate::set_forward_table_old(WeakTable* table) {
-  std::unique_ptr<WeakTable> value(table);
-  forward_table_old_ = std::move(value);
-}
-
 void Isolate::Shutdown() {
   Thread* thread = Thread::Current();
   ASSERT(this == thread->isolate());
@@ -2799,11 +2790,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&loaded_prefixes_set_storage_));
-
-  if (pointers_to_verify_at_exit_.length() != 0) {
-    visitor->VisitPointers(&pointers_to_verify_at_exit_[0],
-                           pointers_to_verify_at_exit_.length());
-  }
 }
 
 void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,

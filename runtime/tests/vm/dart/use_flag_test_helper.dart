@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ffi';
 
 import 'package:expect/config.dart';
 import 'package:expect/expect.dart';
@@ -68,23 +69,40 @@ final checkedInDartVM = path.join(
 // Lazily initialize 'lipo' so that tests that don't use it on platforms
 // that don't have it don't fail.
 late final lipo = () {
-  final path = "/usr/bin/lipo";
-  if (File(path).existsSync()) {
-    return path;
+  final clangBuildTools = clangBuildToolsDir;
+  if (clangBuildTools != null) {
+    final lipoPath = path.join(clangBuildTools, "llvm-lipo");
+    if (File(lipoPath).existsSync()) {
+      return lipoPath;
+    }
+    throw 'Could not find lipo binary at $lipoPath';
   }
-  throw 'Could not find lipo binary at $path';
+  throw 'Could not find lipo binary';
 }();
 
 final isSimulator = path.basename(buildDir).contains('SIM');
 
 String? get clangBuildToolsDir {
   String archDir;
-  if (Platform.isLinux) {
-    archDir = 'linux-x64';
-  } else if (Platform.isMacOS) {
-    archDir = 'mac-x64';
-  } else {
-    return null;
+  switch (Abi.current()) {
+    case Abi.linuxX64:
+      archDir = 'linux-x64';
+      break;
+    case Abi.linuxArm64:
+      archDir = 'linux-arm64';
+      break;
+    case Abi.macosX64:
+      archDir = 'mac-x64';
+      break;
+    case Abi.macosArm64:
+      archDir = 'mac-arm64';
+      break;
+    case Abi.windowsX64:
+    case Abi.windowsArm64: // We don't have a proper host win-arm64 toolchain.
+      archDir = 'win-x64';
+      break;
+    default:
+      return null;
   }
   var clangDir = path.join(sdkDir, 'buildtools', archDir, 'clang', 'bin');
   return Directory(clangDir).existsSync() ? clangDir : null;
@@ -104,36 +122,35 @@ Future<void> assembleSnapshot(
   String cc = 'gcc';
   String shared = '-shared';
 
-  if (buildDir.endsWith('SIMRISCV64')) {
-    cc = 'riscv64-linux-gnu-gcc';
-  } else if (isSimulator) {
-    // For other simulators, depend on buildtools existing.
-    final clangBuildTools = clangBuildToolsDir;
-    if (clangBuildTools != null) {
-      cc = path.join(clangBuildTools, 'clang');
-    } else {
-      throw 'Cannot assemble for ${path.basename(buildDir)} '
-          'without //buildtools on ${Platform.operatingSystem}';
-    }
-  } else if (Platform.isMacOS) {
-    cc = 'clang';
+  final clangBuildTools = clangBuildToolsDir;
+  if (clangBuildTools != null) {
+    cc = path.join(clangBuildTools, Platform.isWindows ? 'clang.exe' : 'clang');
+  } else {
+    throw 'Cannot assemble for ${path.basename(buildDir)} '
+        'without //buildtools on ${Platform.operatingSystem}';
   }
 
-  if (buildDir.endsWith('SIMARM')) {
-    ccFlags.add('--target=armv7-linux-gnueabihf');
-  } else if (buildDir.endsWith('SIMARM64')) {
-    ccFlags.add('--target=aarch64-linux-gnu');
-  } else if (buildDir.endsWith('SIMRISCV64')) {
-    ccFlags.add('--target=riscv64-linux-gnu');
-  } else if (Platform.isMacOS) {
+  if (Platform.isMacOS) {
     shared = '-dynamiclib';
     // Tell Mac linker to give up generating eh_frame from dwarf.
     ldFlags.add('-Wl,-no_compact_unwind');
+    if (buildDir.endsWith('ARM64')) {
+      ccFlags.add('--target=arm64-apple-darwin');
+    } else {
+      ccFlags.add('--target=x86_64-apple-darwin');
+    }
+  } else if (Platform.isLinux) {
+    if (buildDir.endsWith('ARM')) {
+      ccFlags.add('--target=armv7-linux-gnueabihf');
+    } else if (buildDir.endsWith('ARM64')) {
+      ccFlags.add('--target=aarch64-linux-gnu');
+    } else if (buildDir.endsWith('X64')) {
+      ccFlags.add('--target=x86_64-linux-gnu');
+    } else if (buildDir.endsWith('RISCV64')) {
+      ccFlags.add('--target=riscv64-linux-gnu');
+    }
   }
 
-  if (buildDir.endsWith('X64') || buildDir.endsWith('SIMARM64')) {
-    ccFlags.add('-m64');
-  }
   if (debug) {
     ccFlags.add('-g');
   }
@@ -141,8 +158,8 @@ Future<void> assembleSnapshot(
   await run(cc, <String>[
     ...ccFlags,
     ...ldFlags,
+    '-nostdlib',
     shared,
-    if (!Platform.isMacOS) '-nostdlib',
     '-o',
     snapshotPath,
     assemblyPath,

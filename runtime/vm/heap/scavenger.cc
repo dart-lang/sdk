@@ -1459,19 +1459,17 @@ void Scavenger::MournWeakTables() {
     delete table;
   }
 
-  // Each isolate might have a weak table used for fast snapshot writing (i.e.
+  // Each thread  might have a weak table used for fast snapshot writing (i.e.
   // isolate communication). Rehash those tables if need be.
-  heap_->isolate_group()->ForEachIsolate(
-      [&](Isolate* isolate) {
-        auto table = isolate->forward_table_new();
-        if (table != nullptr) {
-          auto replacement = WeakTable::NewFrom(table);
-          rehash_weak_table(table, replacement, isolate->forward_table_old(),
-                            nullptr);
-          isolate->set_forward_table_new(replacement);
-        }
-      },
-      /*at_safepoint=*/true);
+  heap_->isolate_group()->thread_registry()->ForEachThread([&](Thread* thread) {
+    auto table = thread->forward_table_new();
+    if (table != nullptr) {
+      auto replacement = WeakTable::NewFrom(table);
+      rehash_weak_table(table, replacement, thread->forward_table_old(),
+                        nullptr);
+      thread->set_forward_table_new(replacement);
+    }
+  });
 }
 
 void Scavenger::Forward(MarkingStackBlock* reading) {

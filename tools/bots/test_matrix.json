@@ -132,23 +132,11 @@
       "pkg/",
       "samples/",
       "tools/",
-      "buildtools/linux-arm64/clang/bin/llvm",
-      "buildtools/linux-arm64/clang/bin/llvm-nm",
-      "buildtools/linux-arm64/clang/bin/llvm-strip",
-      "buildtools/linux-arm64/clang/bin/llvm-symbolizer",
-      "buildtools/linux-x64/clang/bin/llvm",
-      "buildtools/linux-x64/clang/bin/llvm-nm",
-      "buildtools/linux-x64/clang/bin/llvm-strip",
-      "buildtools/linux-x64/clang/bin/llvm-symbolizer",
-      "buildtools/mac-arm64/clang/bin/llvm",
-      "buildtools/mac-arm64/clang/bin/llvm-nm",
-      "buildtools/mac-arm64/clang/bin/llvm-strip",
-      "buildtools/mac-arm64/clang/bin/llvm-symbolizer",
+      "buildtools/linux-arm64/clang/bin/",
+      "buildtools/linux-x64/clang/bin/",
+      "buildtools/mac-arm64/clang/bin/",
       "buildtools/mac-arm64/clang/lib/clang/21/lib/darwin/",
-      "buildtools/mac-x64/clang/bin/llvm",
-      "buildtools/mac-x64/clang/bin/llvm-nm",
-      "buildtools/mac-x64/clang/bin/llvm-strip",
-      "buildtools/mac-x64/clang/bin/llvm-symbolizer",
+      "buildtools/mac-x64/clang/bin/",
       "buildtools/mac-x64/clang/lib/clang/21/lib/darwin/",
       "buildtools/win-x64/clang/bin/llvm-symbolizer.exe",
       "third_party/android_tools/sdk/platform-tools/adb",
@@ -313,8 +301,13 @@
         "enable-asserts": true
       }
     },
-    "vm-aot-(linux|mac|fuchsia)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
+    "vm-aot-(linux|fuchsia)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {}
+    },
+    "vm-aot-mac-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
+      "options": {
+        "gen-snapshot-format" : "macho-dylib"
+      }
     },
     "vm-aot-win-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {
@@ -1075,6 +1068,11 @@
         "vm-aot-linux-debug-x64c",
         "vm-aot-linux-product-x64",
         "vm-aot-linux-release-simarm64",
+        "vm-aot-mac-debug-arm64",
+        "vm-aot-mac-debug-x64",
+        "vm-aot-mac-product-arm64",
+        "vm-aot-mac-release-arm64",
+        "vm-aot-mac-release-x64",
         "vm-aot-win-debug-x64",
         "vm-aot-win-debug-x64c",
         "vm-aot-win-product-x64"
@@ -1087,6 +1085,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "runtime",
             "dartaotruntime"
           ]
@@ -1135,59 +1134,6 @@
           ],
           "fileset": "vm",
           "shards": 8
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-aot-mac-release-arm64",
-        "vm-aot-mac-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the VM AOT builders. Without shards because shards are missing XCode. Includes VM service testing."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--codesigning-identity=-",
-            "runtime",
-            "dartaotruntime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nvm-aot-${system}-${mode}-${arch}",
-            "--default-suites",
-            "pkg/pkg/vm_service/"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-aot-mac-product-arm64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the VM AOT builders. Without shards because shards are missing XCode."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--codesigning-identity=-",
-            "runtime",
-            "dartaotruntime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nvm-aot-${system}-${mode}-${arch}"
-          ]
         }
       ]
     },

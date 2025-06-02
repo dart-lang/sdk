@@ -10,6 +10,7 @@
 #endif
 
 #include <setjmp.h>
+#include <memory>
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
@@ -71,6 +72,7 @@ class TimelineStream;
 class TypeArguments;
 class TypeParameter;
 class TypeUsageInfo;
+class WeakTable;
 class Zone;
 
 namespace bytecode {
@@ -1341,6 +1343,17 @@ class Thread : public ThreadState {
     ASSERT(value == nullptr || deopt_context_ == nullptr);
     deopt_context_ = value;
   }
+  // The weak table used in the snapshot writer for the purpose of fast message
+  // sending.
+  WeakTable* forward_table_new() { return forward_table_new_.get(); }
+  void set_forward_table_new(WeakTable* table);
+
+  WeakTable* forward_table_old() { return forward_table_old_.get(); }
+  void set_forward_table_old(WeakTable* table);
+
+  MallocGrowableArray<ObjectPtr>* pointers_to_verify_at_exit() {
+    return &pointers_to_verify_at_exit_;
+  }
 
  private:
   template <class T>
@@ -1605,6 +1618,12 @@ class Thread : public ThreadState {
 #endif
 
   DeoptContext* deopt_context_ = nullptr;
+
+  // Used during message sending of messages between isolates.
+  std::unique_ptr<WeakTable> forward_table_new_;
+  std::unique_ptr<WeakTable> forward_table_old_;
+
+  MallocGrowableArray<ObjectPtr> pointers_to_verify_at_exit_;
 
   explicit Thread(bool is_vm_isolate);
 

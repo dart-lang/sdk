@@ -7,7 +7,7 @@
 
 namespace dart {
 
-class Isolate;
+class Thread;
 class Object;
 class ObjectPtr;
 class Zone;
@@ -41,7 +41,7 @@ typedef enum {
 // Traversal doesn't follow all the object graph links, only those
 // that makes sense isolate message passing.
 const char* FindRetainingPath(Zone* zone,
-                              Isolate* isolate,
+                              Thread* thread,
                               const Object& from,
                               const Object& to,
                               TraversalRules traversal_rules);
