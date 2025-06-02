@@ -168,15 +168,18 @@ testFinallyClauseVariable(Object? x) {
     // Verify that the type really is `List<dynamic>` and not `List<Object?>`.
     x.first.abs();
   }
-  // After the try/finally, the promotions in the try block are layered over the
-  // promotions in the finally block (see
-  // https://github.com/dart-lang/language/issues/4382), so the promotion to
-  // `List<Object?>` layers over the promotion to `List<dynamic>`. But since the
-  // two types are mutual subtypes, the promotion to `List<Object?>` is
-  // discarded, leaving only the promotion to `List<dynamic>`.
-  x.expectStaticType<Exactly<List<dynamic>>>();
-  // Verify that the type really is `List<dynamic>` and not `List<Object?>`.
-  x.first.abs();
+  // After the try/finally, the promotions in the finally block are layered over
+  // the promotions in the try block, so the promotion to `List<dynamic>` layers
+  // over the promotion to `List<Object?>`. But since the two types are mutual
+  // subtypes, the promotion to `List<dynamic>` is discarded, leaving only the
+  // promotion to `List<Object?>`.
+  x.expectStaticType<Exactly<List<Object?>>>();
+  // Verify that the type really is `List<Object?>` and not `List<dynamic>`.
+  {
+    var z = x.first;
+    z!;
+    [z].expectStaticType<Exactly<List<Object>>>();
+  }
 }
 
 // When promotions from a `try` block and `finally` block are combined, a
@@ -204,15 +207,20 @@ testFinallyClausePropertyOfUnmodifiedVariable(C x) {
     // Verify that the type really is `List<dynamic>` and not `List<Object?>`.
     x._f.first.abs();
   }
-  // After the try/finally, the promotions in the try block are layered over the
-  // promotions in the finally block (see
-  // https://github.com/dart-lang/language/issues/4382), so the promotion to
-  // `List<Object?>` layers over the promotion to `List<dynamic>`. But since the
-  // two types are mutual subtypes, the promotion to `List<Object?>` is
-  // discarded, leaving only the promotion to `List<dynamic>`.
-  x._f.expectStaticType<Exactly<List<dynamic>>>();
-  // Verify that the type really is `List<dynamic>` and not `List<Object?>`.
-  x._f.first.abs();
+  // After the try/finally, the promotions in the finally block are layered over
+  // the promotions in the try block, so the promotion to `List<dynamic>` layers
+  // over the promotion to `List<Object?>`. But since the two types are mutual
+  // subtypes, the promotion to `List<dynamic>` is discarded, leaving only the
+  // promotion to `List<Object?>`.
+  x._f.expectStaticType<Exactly<List<Object?>>>();
+  // Verify that the type really is `List<Object?>` and not `List<dynamic>`.
+  // (This works because applying `!` to a variable of type `Object?` promotes
+  // it, but applying `!` to a variable of type `dynamic` doesn't promote it.)
+  {
+    var z = x._f.first;
+    z!;
+    [z].expectStaticType<Exactly<List<Object>>>();
+  }
 }
 
 // When promotions from a `try` block and `finally` block are combined, a

@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 
 import '../mini_ast.dart';
@@ -37,6 +38,9 @@ class FlowAnalysisTestHarness extends Harness
 
   @override
   final SharedTypeView boolType = SharedTypeView(Type('bool'));
+
+  @override
+  TypeAnalyzerOptions get typeAnalyzerOptions => computeTypeAnalyzerOptions();
 
   @override
   FlowAnalysisOperations<Var, SharedTypeView> get typeOperations =>

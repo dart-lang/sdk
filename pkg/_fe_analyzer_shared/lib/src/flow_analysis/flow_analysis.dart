@@ -2668,11 +2668,18 @@ class FlowModel<Type extends Object> {
         //
         // In all of these cases, the correct thing to do is to keep all
         // promotions that were done in both the `try` and `finally` blocks.
-        newPromotedTypes = PromotionModel.rebasePromotedTypes(
-          helper,
-          thisModel.promotedTypes,
-          afterFinallyModel.promotedTypes,
-        );
+        newPromotedTypes =
+            helper.typeAnalyzerOptions.soundFlowAnalysisEnabled
+                ? PromotionModel.rebasePromotedTypes(
+                  helper,
+                  afterFinallyModel.promotedTypes,
+                  thisModel.promotedTypes,
+                )
+                : PromotionModel.rebasePromotedTypes(
+                  helper,
+                  thisModel.promotedTypes,
+                  afterFinallyModel.promotedTypes,
+                );
         // And we can safely restore the SSA node from the end of the try block.
         newSsaNode = thisModel.ssaNode;
         if (newSsaNode != afterFinallyModel.ssaNode) {
@@ -3381,6 +3388,9 @@ mixin FlowModelHelper<Type extends Object> {
   /// everything in the control flow that might be promotable.
   @visibleForTesting
   PromotionKeyStore<Object> get promotionKeyStore;
+
+  /// Language features enables affecting the behavior of flow analysis.
+  TypeAnalyzerOptions get typeAnalyzerOptions;
 
   /// The [FlowAnalysisTypeOperations], used to access types and check
   /// subtyping.
@@ -4988,7 +4998,7 @@ class _FlowAnalysisImpl<
     implements
         FlowAnalysis<Node, Statement, Expression, Variable, Type>,
         _PropertyTargetHelper<Expression, Type> {
-  /// Language features enables affecting the behavior of flow analysis.
+  @override
   final TypeAnalyzerOptions typeAnalyzerOptions;
 
   /// The [FlowAnalysisOperations], used to access types, check subtyping, and
