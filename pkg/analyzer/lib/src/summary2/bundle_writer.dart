@@ -110,7 +110,7 @@ class BundleWriter {
 
     // Write resolution data for the library.
     _sink.writeUInt30(_resolutionSink.offset);
-    _resolutionSink._writeAnnotationList(libraryElement.metadata.annotations);
+    _resolutionSink._writeMetadata(libraryElement.metadata);
     _resolutionSink.writeElement(libraryElement.entryPoint2);
     _writeFieldNameNonPromotabilityInfo(
       libraryElement.fieldNameNonPromotabilityInfo,
@@ -387,13 +387,13 @@ class BundleWriter {
   }
 
   void _writeLibraryExport(LibraryExportImpl element) {
-    _resolutionSink._writeAnnotationList(element.annotations);
+    _resolutionSink._writeMetadata(element.metadata);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeDirectiveUri(element.uri);
   }
 
   void _writeLibraryImport(LibraryImportImpl element) {
-    _resolutionSink._writeAnnotationList(element.annotations);
+    _resolutionSink._writeMetadata(element.metadata);
     _sink.writeBool(element.isSynthetic);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeLibraryImportPrefixFragment(element.prefix2);
@@ -521,7 +521,7 @@ class BundleWriter {
   /// sequentially.
   void _writePartElementsMetadata(LibraryFragmentImpl unitElement) {
     for (var element in unitElement.parts) {
-      _resolutionSink._writeAnnotationList(element.annotations);
+      _resolutionSink._writeMetadata(element.metadata);
     }
   }
 
@@ -859,14 +859,6 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
-  void _writeAnnotationList(List<ElementAnnotation> annotations) {
-    writeUInt30(annotations.length);
-    for (var annotation in annotations) {
-      annotation as ElementAnnotationImpl;
-      _writeNode(annotation.annotationAst);
-    }
-  }
-
   void _writeElement(Element? element) {
     switch (element) {
       case null:
@@ -951,7 +943,9 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeMetadata(MetadataImpl metadata) {
-    _writeAnnotationList(metadata.annotations);
+    writeList(metadata.annotations, (annotation) {
+      _writeNode(annotation.annotationAst);
+    });
   }
 
   void _writeNode(AstNode node) {

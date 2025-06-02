@@ -174,7 +174,7 @@ class CompilationUnitElementLinkedData
   @override
   void _read(element, reader) {
     for (var import in element.libraryImports) {
-      import.annotations = reader._readAnnotationList(unitElement: unitElement);
+      import.metadata = reader._readMetadata(unitElement: unitElement);
       var uri = import.uri;
       if (uri is DirectiveUriWithLibraryImpl) {
         uri.library2 = reader.libraryOfUri(uri.source.uri);
@@ -182,7 +182,7 @@ class CompilationUnitElementLinkedData
     }
 
     for (var export in element.libraryExports) {
-      export.annotations = reader._readAnnotationList(unitElement: unitElement);
+      export.metadata = reader._readMetadata(unitElement: unitElement);
       var uri = export.uri;
       if (uri is DirectiveUriWithLibraryImpl) {
         uri.library2 = reader.libraryOfUri(uri.source.uri);
@@ -190,7 +190,7 @@ class CompilationUnitElementLinkedData
     }
 
     for (var part in element.parts) {
-      part.annotations = reader._readAnnotationList(unitElement: unitElement);
+      part.metadata = reader._readMetadata(unitElement: unitElement);
     }
 
     applyConstantOffsets?.perform();
@@ -2261,17 +2261,6 @@ class ResolutionReader {
     return type;
   }
 
-  List<ElementAnnotationImpl> _readAnnotationList({
-    required LibraryFragmentImpl unitElement,
-  }) {
-    return readTypedList(() {
-      var ast = _readRequiredNode() as AnnotationImpl;
-      return ElementAnnotationImpl(unitElement)
-        ..annotationAst = ast
-        ..element2 = ast.element2;
-    });
-  }
-
   List<FormalParameterFragmentImpl> _readFormalParameters(
     LibraryFragmentImpl? unitElement,
   ) {
@@ -2378,7 +2367,13 @@ class ResolutionReader {
   }
 
   MetadataImpl _readMetadata({required LibraryFragmentImpl unitElement}) {
-    var annotations = _readAnnotationList(unitElement: unitElement);
+    var annotations = readTypedList(() {
+      var ast = _readRequiredNode() as AnnotationImpl;
+      return ElementAnnotationImpl(unitElement)
+        ..annotationAst = ast
+        ..element2 = ast.element2;
+    });
+
     return MetadataImpl(annotations);
   }
 

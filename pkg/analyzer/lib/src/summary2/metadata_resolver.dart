@@ -97,6 +97,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     node.metadata.accept(this);
+
+    // We access export directive metadata while building scopes.
+    // But for the current library cycle the metadata was not resolved yet.
+    // Now that we resolved it, reset the cache.
+    node.libraryExport!.metadata.resetCache();
   }
 
   @override

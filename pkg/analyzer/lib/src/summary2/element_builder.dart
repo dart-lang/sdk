@@ -512,7 +512,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     var index = _exportDirectiveIndex++;
     var exportElement = _unitElement.libraryExports[index];
-    exportElement.annotations = _buildAnnotations(node.metadata);
+    exportElement.metadata = _buildMetadata(node.metadata);
     node.libraryExport = exportElement;
   }
 
@@ -1177,7 +1177,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var index = _importDirectiveIndex++;
     var importElement = _unitElement.libraryImports[index];
-    importElement.annotations = _buildAnnotations(node.metadata);
+    importElement.metadata = _buildMetadata(node.metadata);
     node.libraryImport = importElement;
   }
 
@@ -1370,7 +1370,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitPartDirective(covariant PartDirectiveImpl node) {
     var index = _partDirectiveIndex++;
     var partElement = _unitElement.parts[index];
-    partElement.annotations = _buildAnnotations(node.metadata);
+    partElement.metadata = _buildMetadata(node.metadata);
     node.partInclude = partElement;
   }
 
@@ -1650,10 +1650,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitWithClause(WithClause node) {
     node.mixinTypes.accept(this);
-  }
-
-  List<ElementAnnotationImpl> _buildAnnotations(List<Annotation> nodeList) {
-    return _buildAnnotationsWithUnit(_unitElement, nodeList);
   }
 
   void _buildExecutableElementChildren({

@@ -2004,17 +2004,13 @@ sealed class ElementDirectiveImpl implements ElementDirective {
   @override
   final DirectiveUri uri;
 
-  List<ElementAnnotationImpl> annotations = [];
+  @override
+  MetadataImpl metadata = MetadataImpl(const []);
 
   ElementDirectiveImpl({required this.uri});
 
   @override
   Null get documentationComment => null;
-
-  @override
-  MetadataImpl get metadata {
-    return MetadataImpl(annotations);
-  }
 
   @Deprecated('Use metadata instead')
   @override
@@ -7478,6 +7474,10 @@ final class MetadataImpl implements Metadata {
       }
     }
     return false;
+  }
+
+  void resetCache() {
+    _metadataFlags2 = 0;
   }
 
   /// Return flags that denote presence of a few specific annotations.
