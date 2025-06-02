@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <utility>
+
 #include "vm/thread.h"
 
 #include "vm/cpu.h"
@@ -1083,6 +1085,11 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
     // We are not on the mutator thread.
     RELEASE_ASSERT(top_exit_frame_info() == 0);
   }
+
+  if (pointers_to_verify_at_exit_.length() != 0) {
+    visitor->VisitPointers(&pointers_to_verify_at_exit_[0],
+                           pointers_to_verify_at_exit_.length());
+  }
 }
 
 class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
@@ -1614,6 +1621,15 @@ void Thread::ResetDartMutatorState() {
   shared_field_table_values_ = nullptr;
   ONLY_IN_PRECOMPILED(global_object_pool_ = ObjectPool::null());
   ONLY_IN_PRECOMPILED(dispatch_table_array_ = nullptr);
+}
+
+void Thread::set_forward_table_new(WeakTable* table) {
+  std::unique_ptr<WeakTable> value(table);
+  forward_table_new_ = std::move(value);
+}
+void Thread::set_forward_table_old(WeakTable* table) {
+  std::unique_ptr<WeakTable> value(table);
+  forward_table_old_ = std::move(value);
 }
 
 #if !defined(PRODUCT)

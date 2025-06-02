@@ -85,7 +85,6 @@ class StoreBuffer;
 class StubCode;
 class ThreadRegistry;
 class UserTag;
-class WeakTable;
 
 class IsolateVisitor {
  public:
@@ -1461,14 +1460,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   }
   static bool IsVMInternalIsolate(const Isolate* isolate);
 
-  // The weak table used in the snapshot writer for the purpose of fast message
-  // sending.
-  WeakTable* forward_table_new() { return forward_table_new_.get(); }
-  void set_forward_table_new(WeakTable* table);
-
-  WeakTable* forward_table_old() { return forward_table_old_.get(); }
-  void set_forward_table_old(WeakTable* table);
-
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
 
@@ -1483,10 +1474,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void init_loaded_prefixes_set_storage();
   bool IsPrefixLoaded(const LibraryPrefix& prefix) const;
   void SetPrefixIsLoaded(const LibraryPrefix& prefix);
-
-  MallocGrowableArray<ObjectPtr>* pointers_to_verify_at_exit() {
-    return &pointers_to_verify_at_exit_;
-  }
 
   bool SetOwnerThread(ThreadId expected_old_owner, ThreadId new_owner);
 
@@ -1689,10 +1676,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   Monitor spawn_count_monitor_;
   intptr_t spawn_count_ = 0;
 
-  // Used during message sending of messages between isolates.
-  std::unique_ptr<WeakTable> forward_table_new_;
-  std::unique_ptr<WeakTable> forward_table_old_;
-
   // Signals whether the isolate can receive messages (e.g. KillAllIsolates can
   // send a kill message).
   // This is protected by [isolate_creation_monitor_].
@@ -1733,8 +1716,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   static intptr_t pending_shutdowns_;
 
   ArrayPtr loaded_prefixes_set_storage_;
-
-  MallocGrowableArray<ObjectPtr> pointers_to_verify_at_exit_;
 
   bool is_system_isolate_ = false;
 
