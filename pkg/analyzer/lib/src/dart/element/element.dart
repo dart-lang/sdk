@@ -6245,10 +6245,6 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   @override
   final LibraryElementImpl library;
 
-  @override
-  // TODO(scheglov): Why is it even annotatable?
-  final MetadataImpl metadata = MetadataImpl(const []);
-
   /// The libraries exported by this unit.
   List<LibraryExportImpl> _libraryExports = _Sentinel.libraryExport;
 
@@ -6499,10 +6495,6 @@ class LibraryFragmentImpl extends _ExistingElementImpl
 
   @override
   Source get librarySource => library.source;
-
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
 
   List<MixinFragmentImpl> get mixins {
     return _mixins;

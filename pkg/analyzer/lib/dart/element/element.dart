@@ -2534,7 +2534,7 @@ abstract class LibraryExport implements ElementDirective {
 }
 
 /// The portion of a [LibraryElement] coming from a single compilation unit.
-abstract class LibraryFragment implements Fragment, Annotatable {
+abstract class LibraryFragment implements Fragment {
   /// The extension elements accessible within this fragment.
   List<ExtensionElement> get accessibleExtensions2;
 

@@ -3544,7 +3544,7 @@ package:analyzer/dart/element/element.dart:
     combinators (getter: List<NamespaceCombinator>)
     exportKeywordOffset (getter: int)
     exportedLibrary2 (getter: LibraryElement?)
-  LibraryFragment (class extends Object implements Fragment, Annotatable):
+  LibraryFragment (class extends Object implements Fragment):
     new (constructor: LibraryFragment Function())
     accessibleExtensions2 (getter: List<ExtensionElement>)
     classes2 (getter: List<ClassFragment>)
