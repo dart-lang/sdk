@@ -131,7 +131,7 @@ vars = {
   # EOL comment after a dependency to instead pin at the current revision.
   "ai_rev": "2a5eb30492c4231624ae954e93aa1491e4aca84f",
   "core_rev": "635dfa32c261ba078438b74de397f2207904ca78",
-  "dartdoc_rev": "8e6a95c4aba8def4ef01ccc600b3a3cfb8f3cb9e",
+  "dartdoc_rev": "4ceea6b8240bf1dd9694a170368264e40c67d66b",
   "ecosystem_rev": "8cebaf083e9107995811f1f0d2b40b570a0bbb66",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
   "http_rev": "e70a41b8b841ada9ba124b3b9e1a4d3c525b8bf9",
