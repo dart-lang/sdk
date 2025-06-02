@@ -79,61 +79,6 @@ library;
 //   void set method4(int value) {}
 //            ^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:89:11: Error: The type 'int' of the getter 'ExtensionType11.property' is not a subtype of the type 'String' of the setter 'ExtensionType11.property'.
-//   int get property => 42; /* Error */
-//           ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:90:12: Context: This is the declaration of the setter 'ExtensionType11.property'.
-//   void set property(String value) {} /* Error */
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:93:16: Error: The type 'int' of the inherited getter 'ClassL.property' is not a subtype of the type 'String' of the inherited setter 'ClassM.property'.
-// extension type ExtensionType12a(ClassLM n) /* Error */
-//                ^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:93:11: Context: This is the declaration of the getter 'ClassL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:97:12: Context: This is the declaration of the setter 'ClassM.property'.
-//   void set property(String value) {}
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:98:12: Error: The type 'int' of the inherited getter 'ClassL.property' is not a subtype of the type 'bool' of the setter 'ExtensionType12b.property'.
-//   void set property(bool value) {} /* Error */
-//            ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:93:11: Context: This is the declaration of the getter 'ClassL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:103:12: Error: The type 'bool' of the getter 'ExtensionType12c.property' is not a subtype of the type 'String' of the inherited setter 'ClassM.property'.
-//   bool get property => true; /* Error */
-//            ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:97:12: Context: This is the declaration of the setter 'ClassM.property'.
-//   void set property(String value) {}
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:112:16: Error: The type 'int' of the inherited getter 'ExtensionTypeL.property' is not a subtype of the type 'String' of the inherited setter 'ExtensionTypeM.property'.
-// extension type ExtensionType13a(ClassLM i) /* Error */
-//                ^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:103:11: Context: This is the declaration of the getter 'ExtensionTypeL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:107:12: Context: This is the declaration of the setter 'ExtensionTypeM.property'.
-//   void set property(String value) {}
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:117:12: Error: The type 'int' of the inherited getter 'ExtensionTypeL.property' is not a subtype of the type 'bool' of the setter 'ExtensionType13b.property'.
-//   void set property(bool value) {} /* Error */
-//            ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:103:11: Context: This is the declaration of the getter 'ExtensionTypeL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:122:12: Error: The type 'bool' of the getter 'ExtensionType13c.property' is not a subtype of the type 'String' of the inherited setter 'ExtensionTypeM.property'.
-//   bool get property => true; /* Error */
-//            ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:107:12: Context: This is the declaration of the setter 'ExtensionTypeM.property'.
-//   void set property(String value) {}
-//            ^^^^^^^^
-//
 // pkg/front_end/testcases/extension_types/implements_conflicts.dart:42:16: Error: Extension type 'ExtensionType6a' inherits multiple members named 'method2' with incompatible signatures.
 // Try adding a declaration of 'method2' to 'ExtensionType6a'.
 // extension type ExtensionType6a(ClassF c) /* Error */

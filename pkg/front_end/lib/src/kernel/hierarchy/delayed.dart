@@ -91,8 +91,10 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
 
   LibraryBuilder get libraryBuilder => declarationBuilder.libraryBuilder;
 
+  // Coverage-ignore(suite): Not run.
   int get declarationOffset => declarationBuilder.fileOffset;
 
+  // Coverage-ignore(suite): Not run.
   Uri get declarationUri => declarationBuilder.fileUri;
 
   void _checkGetterSetter({
@@ -130,6 +132,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
                     .withLocation(setterUri, setterOffset, name.text.length)
               ]);
         } else if (getterIsDeclared) {
+          // Coverage-ignore-block(suite): Not run.
           Template<Message Function(DartType, String, DartType, String)>
               template = templateInvalidGetterSetterTypeSetterInheritedGetter;
           if (getterIsField) {
@@ -167,6 +170,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
                     .withLocation(getterUri, getterOffset, name.text.length)
               ]);
         } else {
+          // Coverage-ignore-block(suite): Not run.
           Template<Message Function(DartType, String, DartType, String)>
               template = templateInvalidGetterSetterTypeBothInheritedGetter;
           Template<Message Function(String)> context =
@@ -263,6 +267,7 @@ class DelayedClassGetterSetterCheck extends DelayedGetterSetterCheck {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class DelayedExtensionTypeGetterSetterCheck extends DelayedGetterSetterCheck {
   final SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder;
   final Name name;

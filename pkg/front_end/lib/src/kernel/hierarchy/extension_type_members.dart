@@ -218,13 +218,21 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
           /// `ET1.property2` is _not_ a subtype of the setter
           /// `ET2.property1`.
           ///
-          _membersBuilder.registerGetterSetterCheck(
-              new DelayedExtensionTypeGetterSetterCheck(
-                  extensionTypeDeclarationBuilder
-                      as SourceExtensionTypeDeclarationBuilder,
-                  name,
-                  getableMember,
-                  setableMember));
+          SourceExtensionTypeDeclarationBuilder
+              sourceExtensionTypeDeclarationBuilder =
+              extensionTypeDeclarationBuilder
+                  as SourceExtensionTypeDeclarationBuilder;
+          if (!sourceExtensionTypeDeclarationBuilder
+              .libraryBuilder.libraryFeatures.getterSetterError.isEnabled) {
+            // Coverage-ignore-block(suite): Not run.
+            _membersBuilder.registerGetterSetterCheck(
+                new DelayedExtensionTypeGetterSetterCheck(
+                    extensionTypeDeclarationBuilder
+                        as SourceExtensionTypeDeclarationBuilder,
+                    name,
+                    getableMember,
+                    setableMember));
+          }
         }
       }
     }

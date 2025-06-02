@@ -191,6 +191,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     return new TypeDeclarationInstanceMemberResult(
         getMember(membersBuilder), memberKind,

@@ -77,6 +77,7 @@ namespace dart {
   V(AllocateSubtypeTestCache)                                                  \
   V(GetFieldForDispatch)                                                       \
   V(AdjustArgumentsDesciptorForImplicitClosure)                                \
+  V(ConvertToInstanceTypeArguments)                                            \
   V(ClosureArgumentsValid)                                                     \
   V(ResolveCallFunction)                                                       \
   V(InterpretedInstanceCallMissHandler)                                        \
