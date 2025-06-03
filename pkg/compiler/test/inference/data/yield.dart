@@ -15,7 +15,7 @@ main() {
 // Yield a single integer.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: yieldZero:[exact=_SyncStarIterable|powerset={N}]*/
+/*member: yieldZero:[exact=_SyncStarIterable|powerset={N}{O}{N}]*/
 yieldZero() sync* {
   yield 0;
 }
@@ -24,7 +24,7 @@ yieldZero() sync* {
 // Yield a list of integers.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: yieldList:[exact=_SyncStarIterable|powerset={N}]*/
+/*member: yieldList:[exact=_SyncStarIterable|powerset={N}{O}{N}]*/
 yieldList() sync* {
   yield [0, 1, 2, 3];
 }
@@ -33,7 +33,7 @@ yieldList() sync* {
 // Yield star of a list of integers.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: yieldStarList:[exact=_SyncStarIterable|powerset={N}]*/
+/*member: yieldStarList:[exact=_SyncStarIterable|powerset={N}{O}{N}]*/
 yieldStarList() sync* {
   yield* [0, 1, 2, 3];
 }
@@ -42,7 +42,7 @@ yieldStarList() sync* {
 // Yield multiple integers.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: yieldMany:[exact=_SyncStarIterable|powerset={N}]*/
+/*member: yieldMany:[exact=_SyncStarIterable|powerset={N}{O}{N}]*/
 yieldMany() sync* {
   yield 0;
   yield 1;
@@ -54,7 +54,7 @@ yieldMany() sync* {
 // Yield an integer and a string.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: yieldIntAndString:[exact=_SyncStarIterable|powerset={N}]*/
+/*member: yieldIntAndString:[exact=_SyncStarIterable|powerset={N}{O}{N}]*/
 yieldIntAndString() sync* {
   yield 0;
   yield '';

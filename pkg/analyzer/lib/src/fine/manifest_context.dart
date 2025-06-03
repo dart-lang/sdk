@@ -92,6 +92,9 @@ final class ManifestElement {
   /// The URI of the library that declares the element.
   final Uri libraryUri;
 
+  /// The kind, mostly to distinguish fields and getters.
+  final ManifestElementKind kind;
+
   /// The top-level element name.
   final String topLevelName;
 
@@ -103,6 +106,7 @@ final class ManifestElement {
 
   ManifestElement({
     required this.libraryUri,
+    required this.kind,
     required this.topLevelName,
     required this.memberName,
     required this.id,
@@ -111,6 +115,7 @@ final class ManifestElement {
   factory ManifestElement.read(SummaryDataReader reader) {
     return ManifestElement(
       libraryUri: reader.readUri(),
+      kind: reader.readEnum(ManifestElementKind.values),
       topLevelName: reader.readStringUtf8(),
       memberName: reader.readOptionalStringUtf8(),
       id: reader.readOptionalObject(() => ManifestItemId.read(reader)),
@@ -118,13 +123,14 @@ final class ManifestElement {
   }
 
   @override
-  int get hashCode => Object.hash(libraryUri, topLevelName, memberName);
+  int get hashCode => Object.hash(libraryUri, kind, topLevelName, memberName);
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is ManifestElement &&
         other.libraryUri == libraryUri &&
+        other.kind == kind &&
         other.topLevelName == topLevelName &&
         other.memberName == memberName;
   }
@@ -132,7 +138,7 @@ final class ManifestElement {
   /// If [element] matches this description, records the reference and id.
   /// If not, returns `false`, it is a mismatch anyway.
   bool match(MatchContext context, Element element) {
-    var enclosingElement = element.enclosingElement2!;
+    var enclosingElement = element.enclosingElement!;
     Element givenTopLevelElement;
     Element? givenMemberElement;
     if (enclosingElement is LibraryElement) {
@@ -144,6 +150,9 @@ final class ManifestElement {
     var givenLibraryUri = enclosingElement.library2!.uri;
 
     if (givenLibraryUri != libraryUri) {
+      return false;
+    }
+    if (ManifestElementKind.of(element) != kind) {
       return false;
     }
     if (givenTopLevelElement.lookupName != topLevelName) {
@@ -162,6 +171,7 @@ final class ManifestElement {
 
   void write(BufferedSink sink) {
     sink.writeUri(libraryUri);
+    sink.writeEnum(kind);
     sink.writeStringUtf8(topLevelName);
     sink.writeOptionalStringUtf8(memberName);
     id.writeOptional(sink);
@@ -170,17 +180,18 @@ final class ManifestElement {
   static ManifestElement encode(EncodeContext context, Element element) {
     Element topLevelElement;
     Element? memberElement;
-    var enclosingElement = element.enclosingElement2!;
+    var enclosingElement = element.enclosingElement!;
     if (enclosingElement is LibraryElement) {
       topLevelElement = element;
     } else {
       topLevelElement = enclosingElement;
-      assert(topLevelElement.enclosingElement2 is LibraryElement);
+      assert(topLevelElement.enclosingElement is LibraryElement);
       memberElement = element;
     }
 
     return ManifestElement(
       libraryUri: topLevelElement.library2!.uri,
+      kind: ManifestElementKind.of(element),
       topLevelName: topLevelElement.lookupName!,
       memberName: memberElement?.lookupName,
       id: context.getElementId(element),
@@ -189,6 +200,61 @@ final class ManifestElement {
 
   static List<ManifestElement> readList(SummaryDataReader reader) {
     return reader.readTypedList(() => ManifestElement.read(reader));
+  }
+}
+
+/// Note, "instance" means inside [InstanceElement], not as "not static".
+enum ManifestElementKind {
+  class_,
+  enum_,
+  extensionType,
+  mixin_,
+  typeAlias,
+  topLevelVariable,
+  topLevelGetter,
+  topLevelSetter,
+  topLevelFunction,
+  instanceField,
+  instanceGetter,
+  instanceSetter,
+  instanceMethod,
+  interfaceConstructor;
+
+  static ManifestElementKind of(Element element) {
+    switch (element) {
+      case ClassElement():
+        return ManifestElementKind.class_;
+      case EnumElement():
+        return ManifestElementKind.enum_;
+      case ExtensionTypeElement():
+        return ManifestElementKind.extensionType;
+      case MixinElement():
+        return ManifestElementKind.mixin_;
+      case TopLevelVariableElement():
+        return ManifestElementKind.topLevelVariable;
+      case GetterElement():
+        if (element.enclosingElement is LibraryElement) {
+          return ManifestElementKind.topLevelGetter;
+        }
+        return ManifestElementKind.instanceGetter;
+      case SetterElement():
+        if (element.enclosingElement is LibraryElement) {
+          return ManifestElementKind.topLevelSetter;
+        }
+        return ManifestElementKind.instanceSetter;
+      case TopLevelFunctionElement():
+        return ManifestElementKind.topLevelFunction;
+      case FieldElement():
+        return ManifestElementKind.instanceField;
+      case MethodElement():
+        return ManifestElementKind.instanceMethod;
+      case ConstructorElement():
+        return ManifestElementKind.interfaceConstructor;
+      case TypeAliasElement():
+        return ManifestElementKind.typeAlias;
+      default:
+        throw StateError('Unexpected (${element.runtimeType}) $element');
+    }
   }
 }
 
@@ -273,10 +339,10 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
   ManifestItemId? getElementId(Element element) {
     Element topLevelElement;
     Element? memberElement;
-    if (element.enclosingElement2 is LibraryElement) {
+    if (element.enclosingElement is LibraryElement) {
       topLevelElement = element;
     } else {
-      topLevelElement = element.enclosingElement2!;
+      topLevelElement = element.enclosingElement!;
       memberElement = element;
     }
 
@@ -291,7 +357,19 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
 
     // SAFETY: if we can reference the element, it has a name.
     var topLevelName = topLevelElement.lookupName!.asLookupName;
-    var topLevelItem = manifest.items[topLevelName];
+    TopLevelItem? topLevelItem;
+    switch (topLevelElement) {
+      case ClassElement():
+        topLevelItem = manifest.declaredClasses[topLevelName];
+      case MixinElement():
+        topLevelItem = manifest.declaredMixins[topLevelName];
+      case GetterElement():
+        return manifest.declaredGetters[topLevelName]?.id;
+      case SetterElement():
+        return manifest.declaredSetters[topLevelName]?.id;
+      case TopLevelFunctionElement():
+        return manifest.declaredFunctions[topLevelName]?.id;
+    }
 
     // TODO(scheglov): remove it after supporting all elements
     if (topLevelItem == null) {

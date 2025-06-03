@@ -130,7 +130,7 @@ SwitchExpression
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: foo
-          element: <testLibraryFragment>::@class::A::@method::foo#element
+          element: <testLibrary>::@class::A::@method::foo
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -326,7 +326,7 @@ class A {
 SwitchExpressionCase
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
-      const: const
+      constKeyword: const
       expression: InstanceCreationExpression
         constructorName: ConstructorName
           type: NamedType
@@ -654,7 +654,7 @@ SwitchExpression
                 token: a
                 element: a@58
                 staticType: int
-              element2: dart:core::<fragment>::@class::Object::@method::==#element
+              element2: dart:core::@class::Object::@method::==
               matchedValueType: Object?
           rightBracket: ]
           matchedValueType: Object?
@@ -671,7 +671,7 @@ SwitchExpression
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       arrow: =>
@@ -741,7 +741,7 @@ SwitchExpression
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       arrow: =>

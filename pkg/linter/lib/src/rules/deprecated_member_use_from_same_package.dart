@@ -9,10 +9,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
     show BaseDeprecatedMemberUseVerifier;
-import 'package:analyzer/src/workspace/workspace.dart' // ignore: implementation_imports
-    show WorkspacePackage;
+import 'package:analyzer/workspace/workspace.dart';
 
 import '../analyzer.dart';
 
@@ -20,7 +20,7 @@ const _desc =
     'Avoid using deprecated elements from within the package in which they are '
     'declared.';
 
-class DeprecatedMemberUseFromSamePackage extends LintRule {
+class DeprecatedMemberUseFromSamePackage extends MultiAnalysisRule {
   DeprecatedMemberUseFromSamePackage()
     : super(
         name: LintNames.deprecated_member_use_from_same_package,
@@ -28,7 +28,7 @@ class DeprecatedMemberUseFromSamePackage extends LintRule {
       );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.deprecated_member_use_from_same_package_with_message,
     LinterLintCode.deprecated_member_use_from_same_package_without_message,
   ];
@@ -44,7 +44,7 @@ class DeprecatedMemberUseFromSamePackage extends LintRule {
 }
 
 class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
-  final LintRule _rule;
+  final MultiAnalysisRule _rule;
   final WorkspacePackage _workspacePackage;
 
   _DeprecatedMemberUseVerifier(this._rule, this._workspacePackage);
@@ -71,7 +71,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
         errorEntity.offset,
         errorEntity.length,
         arguments: [displayName],
-        errorCode:
+        diagnosticCode:
             LinterLintCode
                 .deprecated_member_use_from_same_package_without_message,
       );
@@ -85,7 +85,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
         errorEntity.offset,
         errorEntity.length,
         arguments: [displayName, normalizedMessage],
-        errorCode:
+        diagnosticCode:
             LinterLintCode.deprecated_member_use_from_same_package_with_message,
       );
     }
@@ -98,7 +98,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
 class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   final _DeprecatedMemberUseVerifier _deprecatedVerifier;
 
-  _RecursiveVisitor(LintRule rule, WorkspacePackage package)
+  _RecursiveVisitor(MultiAnalysisRule rule, WorkspacePackage package)
     : _deprecatedVerifier = _DeprecatedMemberUseVerifier(rule, package);
 
   @override
@@ -133,7 +133,7 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
     if (library == null) {
       return;
     }
-    _deprecatedVerifier.pushInDeprecatedValue(library.metadata2.hasDeprecated);
+    _deprecatedVerifier.pushInDeprecatedValue(library.metadata.hasDeprecated);
 
     super.visitCompilationUnit(node);
   }
@@ -347,7 +347,7 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   void _withDeprecatedFragment(Fragment? fragment, void Function() recurse) {
     var isDeprecated = false;
     if (fragment?.element case Annotatable annotatable) {
-      isDeprecated = annotatable.metadata2.hasDeprecated;
+      isDeprecated = annotatable.metadata.hasDeprecated;
     }
 
     _deprecatedVerifier.pushInDeprecatedValue(isDeprecated);
@@ -363,7 +363,7 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 /// remainder of visitations to [_RecursiveVisitor], which keeps track of
 /// the deprecated-ness of ancestor declaration nodes.
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule _rule;
+  final MultiAnalysisRule _rule;
   final LinterContext _context;
 
   _Visitor(this._rule, this._context);

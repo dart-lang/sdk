@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/token.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -15,7 +17,8 @@ class DanglingLibraryDocComments extends LintRule {
     : super(name: LintNames.dangling_library_doc_comments, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.dangling_library_doc_comments;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.dangling_library_doc_comments;
 
   @override
   void registerNodeProcessors(

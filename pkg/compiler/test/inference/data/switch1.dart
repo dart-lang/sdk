@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: foo:[exact=JSString|powerset={I}]*/
-foo(int /*[subclass=JSInt|powerset={I}]*/ x) {
+/*member: foo:[exact=JSString|powerset={I}{O}{I}]*/
+foo(int /*[subclass=JSInt|powerset={I}{O}{N}]*/ x) {
   var a = "one";
   switch (x) {
     case 1:
@@ -20,6 +20,6 @@ foo(int /*[subclass=JSInt|powerset={I}]*/ x) {
 main() {
   foo(
     new DateTime.now()
-        . /*[exact=DateTime|powerset={N}]*/ millisecondsSinceEpoch,
+        . /*[exact=DateTime|powerset={N}{O}{N}]*/ millisecondsSinceEpoch,
   );
 }

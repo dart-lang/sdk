@@ -335,6 +335,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
       initial_field_table_(new FieldTable(/*isolate=*/nullptr)),
+      sentinel_field_table_(new FieldTable(/*isolate=*/nullptr)),
       shared_initial_field_table_(new FieldTable(/*isolate=*/nullptr,
                                                  /*isolate_group=*/nullptr)),
       shared_field_table_(new FieldTable(/*isolate=*/nullptr, this)),
@@ -637,7 +638,9 @@ void IsolateGroup::IncreaseMutatorCount(Thread* thread,
     // does not do a NotifyAll to prevent the case of thousands of threads
     // waking up to claim a ~dozen slots, so we keep notifying while there are
     // both available slots and waiters.
-    if ((active_mutators_ != max_active_mutators_) && (waiting_mutators_ > 0)) {
+    if ((waiting_mutators_ > 0) &&
+        ((!has_timeout_waiter_) ||
+         (active_mutators_ != max_active_mutators_))) {
       ml.Notify();
     }
   }
@@ -849,7 +852,11 @@ void IsolateGroup::RegisterStaticField(const Field& field,
   const bool need_to_grow_backing_store =
       initial_field_table()->Register(field);
   const intptr_t field_id = field.field_id();
+  if (need_to_grow_backing_store) {
+    sentinel_field_table()->AllocateIndex(field_id);
+  }
   initial_field_table()->SetAt(field_id, initial_value.ptr());
+  sentinel_field_table()->SetAt(field_id, Object::sentinel().ptr());
 
   SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
   if (need_to_grow_backing_store) {
@@ -885,6 +892,7 @@ void IsolateGroup::FreeStaticField(const Field& field) {
     shared_field_table()->Free(field_id);
   } else {
     initial_field_table()->Free(field_id);
+    sentinel_field_table()->Free(field_id);
     ForEachIsolate([&](Isolate* isolate) {
       auto field_table = isolate->field_table();
       // The isolate might've just been created and is now participating in
@@ -2587,15 +2595,6 @@ void IsolateGroup::MaybeIncreaseReloadEveryNStackOverflowChecks() {
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-void Isolate::set_forward_table_new(WeakTable* table) {
-  std::unique_ptr<WeakTable> value(table);
-  forward_table_new_ = std::move(value);
-}
-void Isolate::set_forward_table_old(WeakTable* table) {
-  std::unique_ptr<WeakTable> value(table);
-  forward_table_old_ = std::move(value);
-}
-
 void Isolate::Shutdown() {
   Thread* thread = Thread::Current();
   ASSERT(this == thread->isolate());
@@ -2791,11 +2790,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&loaded_prefixes_set_storage_));
-
-  if (pointers_to_verify_at_exit_.length() != 0) {
-    visitor->VisitPointers(&pointers_to_verify_at_exit_[0],
-                           pointers_to_verify_at_exit_.length());
-  }
 }
 
 void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
@@ -2972,6 +2966,7 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
   }
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
   initial_field_table()->VisitObjectPointers(visitor);
+  sentinel_field_table()->VisitObjectPointers(visitor);
   shared_initial_field_table()->VisitObjectPointers(visitor);
   shared_field_table()->VisitObjectPointers(visitor);
 
@@ -3821,8 +3816,19 @@ FfiCallbackMetadata::Trampoline Isolate::CreateIsolateLocalFfiCallback(
   if (keep_isolate_alive) {
     UpdateNativeCallableKeepIsolateAliveCounter(1);
   }
-  return FfiCallbackMetadata::Instance()->CreateIsolateLocalFfiCallback(
-      this, zone, trampoline, target, &ffi_callback_list_head_);
+  return FfiCallbackMetadata::Instance()->CreateLocalFfiCallback(
+      this, /*isolate_group=*/nullptr, zone, trampoline, target,
+      &ffi_callback_list_head_);
+}
+
+// TODO(aam): Should this be in IsolateGroup?
+FfiCallbackMetadata::Trampoline Isolate::CreateIsolateGroupSharedFfiCallback(
+    Zone* zone,
+    const Function& trampoline,
+    const Closure& target) {
+  return FfiCallbackMetadata::Instance()->CreateLocalFfiCallback(
+      /*isolate=*/nullptr, group(), zone, trampoline, target,
+      &ffi_callback_list_head_);
 }
 
 bool Isolate::HasLivePorts() {

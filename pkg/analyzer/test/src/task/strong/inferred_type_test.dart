@@ -2055,7 +2055,7 @@ class C {
 ''',
       [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 49, 4)],
     );
-    var x = _resultLibraryElement.classes[0].fields2[0];
+    var x = _resultLibraryElement.classes[0].fields[0];
     _assertTypeStr(x.type, 'int');
   }
 
@@ -2069,7 +2069,7 @@ int get y => null;
 ''',
       [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 4)],
     );
-    var x = _resultLibraryElement.classes[0].fields2[0];
+    var x = _resultLibraryElement.classes[0].fields[0];
     _assertTypeStr(x.type, 'int');
   }
 
@@ -3139,7 +3139,7 @@ typedef void F<V>(V v);
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 88, 4),
       ],
     );
-    var f = _resultLibraryElement.getClass2('C')!.methods2[0];
+    var f = _resultLibraryElement.getClass2('C')!.methods[0];
     _assertTypeStr(f.type, 'void Function(U) Function<U>(U)');
   }
 
@@ -3153,7 +3153,7 @@ abstract class D<T> {
 }
 typedef List<V> G<V>();
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.methods2[0];
+    var f = _resultLibraryElement.getClass2('C')!.methods[0];
     _assertTypeStr(f.type, 'void Function<U>(List<U> Function())');
   }
 
@@ -3173,7 +3173,7 @@ typedef V F<V>();
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 88, 4),
       ],
     );
-    var f = _resultLibraryElement.getClass2('C')!.methods2[0];
+    var f = _resultLibraryElement.getClass2('C')!.methods[0];
     _assertTypeStr(f.type, 'U Function() Function<U>(U)');
   }
 
@@ -4016,7 +4016,7 @@ class D {
         ),
       ],
     );
-    var f = _resultLibraryElement.getClass2('C')!.setters2[0];
+    var f = _resultLibraryElement.getClass2('C')!.setters[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
@@ -4029,7 +4029,7 @@ class D {
   set foo(int x) {}
 }
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.setters2[0];
+    var f = _resultLibraryElement.getClass2('C')!.setters[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
@@ -4043,10 +4043,10 @@ class C {
   };
 }
 ''');
-    var x = _resultLibraryElement.getClass2('C')!.fields2[0];
+    var x = _resultLibraryElement.getClass2('C')!.fields[0];
     expect(x.name3, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = _resultLibraryElement.getClass2('C')!.fields2[1];
+    var y = _resultLibraryElement.getClass2('C')!.fields[1];
     expect(y.name3, 'y');
     _assertTypeStr(y.type, 'Map<String, Map<String, String>>');
   }
@@ -4061,7 +4061,7 @@ class C {
     var x = _resultLibraryElement.topLevelVariables[0];
     expect(x.name3, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = _resultLibraryElement.getClass2('C')!.fields2[0];
+    var y = _resultLibraryElement.getClass2('C')!.fields[0];
     expect(y.name3, 'y');
     _assertTypeStr(y.type, 'String');
   }
@@ -4473,7 +4473,7 @@ class C {
       (int i) => {i: b};
 }
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.fields2[0];
+    var f = _resultLibraryElement.getClass2('C')!.fields[0];
     _assertTypeStr(f.type, 'Map<int, bool> Function(int) Function(bool)');
   }
 
@@ -4483,7 +4483,7 @@ class C {
   static final f = (bool b) => b;
 }
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.fields2[0];
+    var f = _resultLibraryElement.getClass2('C')!.fields[0];
     _assertTypeStr(f.type, 'bool Function(bool)');
   }
 
@@ -4493,7 +4493,7 @@ class C {
   static final f = (bool b) => 1;
 }
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.fields2[0];
+    var f = _resultLibraryElement.getClass2('C')!.fields[0];
     _assertTypeStr(f.type, 'int Function(bool)');
   }
 
@@ -5381,6 +5381,7 @@ main() {
           34,
           1,
         ),
+        error(WarningCode.DEAD_CODE, 36, 5),
         error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 39, 2),
         error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
       ],
@@ -5404,6 +5405,7 @@ main() {
           40,
           1,
         ),
+        error(WarningCode.DEAD_CODE, 42, 5),
         error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 45, 2),
       ],
     );

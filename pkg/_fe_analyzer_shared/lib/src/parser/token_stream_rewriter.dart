@@ -42,9 +42,14 @@ abstract class TokenStreamRewriter {
         next = new SyntheticBeginToken(TokenType.OPEN_PAREN, offset);
     if (includeIdentifier) {
       next = _setNext(
-          next,
-          new SyntheticStringToken(
-              TokenType.IDENTIFIER, '', offset, /* _length = */ 0));
+        next,
+        new SyntheticStringToken(
+          TokenType.IDENTIFIER,
+          '',
+          offset,
+          /* _length = */ 0,
+        ),
+      );
     }
     next = _setNext(next, new SyntheticToken(TokenType.CLOSE_PAREN, offset));
     _setEndGroup(leftParen, next);
@@ -117,7 +122,9 @@ abstract class TokenStreamRewriter {
     _setNext(previousToken, replacementToken);
 
     _setPrecedingComments(
-        replacementToken as SimpleToken, replacedToken.precedingComments);
+      replacementToken as SimpleToken,
+      replacedToken.precedingComments,
+    );
 
     _setNext(_lastTokenInChain(replacementToken), replacedToken.next!);
 
@@ -151,13 +158,19 @@ abstract class TokenStreamRewriter {
   /// The old token will be linked from the new one though, so it's not totally
   /// gone.
   ReplacementToken replaceNextTokenWithSyntheticToken(
-      Token previousToken, TokenType newTokenType) {
-    assert(newTokenType is! Keyword,
-        'use an unwritten variation of insertSyntheticKeyword instead');
+    Token previousToken,
+    TokenType newTokenType,
+  ) {
+    assert(
+      newTokenType is! Keyword,
+      'use an unwritten variation of insertSyntheticKeyword instead',
+    );
 
     // [token] <--> [a] <--> [b]
-    ReplacementToken replacement =
-        new ReplacementToken(newTokenType, previousToken.next!);
+    ReplacementToken replacement = new ReplacementToken(
+      newTokenType,
+      previousToken.next!,
+    );
     insertToken(previousToken, replacement);
     // [token] <--> [replacement] <--> [a] <--> [b]
     _setNext(replacement, replacement.next!.next!);
@@ -173,13 +186,20 @@ abstract class TokenStreamRewriter {
   /// be found via the next pointer chain on it) though, so it's not totally
   /// gone.
   ReplacementToken replaceNextTokensWithSyntheticToken(
-      Token previousToken, int count, TokenType newTokenType) {
-    assert(newTokenType is! Keyword,
-        'use an unwritten variation of insertSyntheticKeyword instead');
+    Token previousToken,
+    int count,
+    TokenType newTokenType,
+  ) {
+    assert(
+      newTokenType is! Keyword,
+      'use an unwritten variation of insertSyntheticKeyword instead',
+    );
 
     // [token] <--> [a_1] <--> ... <--> [a_n] <--> [b]
-    ReplacementToken replacement =
-        new ReplacementToken(newTokenType, previousToken.next!);
+    ReplacementToken replacement = new ReplacementToken(
+      newTokenType,
+      previousToken.next!,
+    );
     insertToken(previousToken, replacement);
     // [token] <--> [replacement] <--> [a_1] <--> ... <--> [a_n] <--> [b]
 
@@ -197,21 +217,30 @@ abstract class TokenStreamRewriter {
   /// Insert a synthetic identifier after [token] and return the new identifier.
   Token insertSyntheticIdentifier(Token token, [String value = '']) {
     return insertToken(
-        token,
-        new SyntheticStringToken(TokenType.IDENTIFIER, value,
-            token.next!.charOffset, /* _length = */ 0));
+      token,
+      new SyntheticStringToken(
+        TokenType.IDENTIFIER,
+        value,
+        token.next!.charOffset,
+        /* _length = */ 0,
+      ),
+    );
   }
 
   /// Insert a new synthetic [keyword] after [token] and return the new token.
   Token insertSyntheticKeyword(Token token, Keyword keyword) => insertToken(
-      token, new SyntheticKeywordToken(keyword, token.next!.charOffset));
+    token,
+    new SyntheticKeywordToken(keyword, token.next!.charOffset),
+  );
 
   /// Insert a new simple synthetic token of [newTokenType] after [token]
   /// and return the new token.
   Token insertSyntheticToken(Token token, TokenType newTokenType) {
     assert(newTokenType is! Keyword, 'use insertSyntheticKeyword instead');
     return insertToken(
-        token, new SyntheticToken(newTokenType, token.next!.charOffset));
+      token,
+      new SyntheticToken(newTokenType, token.next!.charOffset),
+    );
   }
 
   Token _setNext(Token setOn, Token nextToken);
@@ -282,10 +311,12 @@ class NextTokenStreamChange implements TokenStreamChange {
   final Token? nextTokenBeforeSynthetic;
 
   NextTokenStreamChange(
-      UndoableTokenStreamRewriter rewriter, this.setOn, this.nextToken)
-      : setOnNext = setOn.next,
-        nextTokenPrevious = nextToken.previous,
-        nextTokenBeforeSynthetic = nextToken.beforeSynthetic {
+    UndoableTokenStreamRewriter rewriter,
+    this.setOn,
+    this.nextToken,
+  ) : setOnNext = setOn.next,
+      nextTokenPrevious = nextToken.previous,
+      nextTokenBeforeSynthetic = nextToken.beforeSynthetic {
     rewriter._changes.add(this);
     setOn.next = nextToken;
     nextToken.previous = setOn;
@@ -305,8 +336,10 @@ class EndGroupTokenStreamChange implements TokenStreamChange {
   final Token? endGroup;
 
   EndGroupTokenStreamChange(
-      UndoableTokenStreamRewriter rewriter, this.setOn, Token endGroup)
-      : endGroup = setOn.endGroup {
+    UndoableTokenStreamRewriter rewriter,
+    this.setOn,
+    Token endGroup,
+  ) : endGroup = setOn.endGroup {
     rewriter._changes.add(this);
     setOn.endGroup = endGroup;
   }
@@ -322,8 +355,10 @@ class OffsetTokenStreamChange implements TokenStreamChange {
   final int offset;
 
   OffsetTokenStreamChange(
-      UndoableTokenStreamRewriter rewriter, this.setOn, int offset)
-      : offset = setOn.offset {
+    UndoableTokenStreamRewriter rewriter,
+    this.setOn,
+    int offset,
+  ) : offset = setOn.offset {
     rewriter._changes.add(this);
     setOn.offset = offset;
   }
@@ -339,8 +374,10 @@ class PrecedingCommentsTokenStreamChange implements TokenStreamChange {
   final CommentToken? comment;
 
   PrecedingCommentsTokenStreamChange(
-      UndoableTokenStreamRewriter rewriter, this.setOn, CommentToken? comment)
-      : comment = setOn.precedingComments {
+    UndoableTokenStreamRewriter rewriter,
+    this.setOn,
+    CommentToken? comment,
+  ) : comment = setOn.precedingComments {
     rewriter._changes.add(this);
     setOn.precedingComments = comment;
   }
@@ -356,8 +393,10 @@ class PreviousTokenStreamChange implements TokenStreamChange {
   final Token previous;
 
   PreviousTokenStreamChange(
-      UndoableTokenStreamRewriter rewriter, this.setOn, Token previous)
-      : previous = setOn.previous! {
+    UndoableTokenStreamRewriter rewriter,
+    this.setOn,
+    Token previous,
+  ) : previous = setOn.previous! {
     rewriter._changes.add(this);
     setOn.previous = previous;
   }

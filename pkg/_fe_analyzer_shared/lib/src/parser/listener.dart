@@ -29,7 +29,11 @@ import 'member_kind.dart' show MemberKind;
 
 abstract class UnescapeErrorListener {
   void handleUnescapeError(
-      Message message, covariant location, int offset, int length);
+    Message message,
+    covariant location,
+    int offset,
+    int length,
+  );
 }
 
 /// A parser event listener that does nothing except throw exceptions
@@ -77,14 +81,21 @@ class Listener implements UnescapeErrorListener {
   /// One of the two possible corresponding end events for
   /// [beginAwaitExpression].
   void endInvalidAwaitExpression(
-      Token beginToken, Token endToken, MessageCode errorCode) {
+    Token beginToken,
+    Token endToken,
+    MessageCode errorCode,
+  ) {
     logEvent("InvalidAwaitExpression");
   }
 
   void beginBlock(Token token, BlockKind blockKind) {}
 
   void endBlock(
-      int count, Token beginToken, Token endToken, BlockKind blockKind) {
+    int count,
+    Token beginToken,
+    Token endToken,
+    BlockKind blockKind,
+  ) {
     logEvent("Block");
   }
 
@@ -115,7 +126,11 @@ class Listener implements UnescapeErrorListener {
   ///
   /// The actual kind of declaration is indicated by [kind].
   void endClassOrMixinOrExtensionBody(
-      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
+    DeclarationKind kind,
+    int memberCount,
+    Token beginToken,
+    Token endToken,
+  ) {
     logEvent("ClassOrMixinOrExtensionBody");
   }
 
@@ -135,16 +150,17 @@ class Listener implements UnescapeErrorListener {
   ///
   /// At this point we have parsed the name and type parameter declarations.
   void beginClassDeclaration(
-      Token begin,
-      Token? abstractToken,
-      Token? macroToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token? augmentToken,
-      Token? mixinToken,
-      Token name) {}
+    Token begin,
+    Token? abstractToken,
+    Token? macroToken,
+    Token? sealedToken,
+    Token? baseToken,
+    Token? interfaceToken,
+    Token? finalToken,
+    Token? augmentToken,
+    Token? mixinToken,
+    Token name,
+  ) {}
 
   /// Handle an extends clause in a class declaration. Substructures:
   /// - supertype (may be a mixin application)
@@ -195,8 +211,13 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Handle the beginning of a mixin declaration.
-  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
-      Token? baseToken, Token mixinKeyword, Token name) {}
+  void beginMixinDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token? baseToken,
+    Token mixinKeyword,
+    Token name,
+  ) {}
 
   /// Handle an on clause in a mixin declaration. Substructures:
   /// - implemented types
@@ -253,14 +274,21 @@ class Listener implements UnescapeErrorListener {
   ///
   /// At this point we have parsed the name and type parameter declarations.
   void beginExtensionDeclaration(
-      Token? augmentToken, Token extensionKeyword, Token? name) {}
+    Token? augmentToken,
+    Token extensionKeyword,
+    Token? name,
+  ) {}
 
   /// Handle the end of an extension methods declaration.  Substructures:
   /// - substructures from [beginExtensionDeclaration]
   /// - on type
   /// - body
-  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
-      Token? onKeyword, Token endToken) {
+  void endExtensionDeclaration(
+    Token beginToken,
+    Token extensionKeyword,
+    Token? onKeyword,
+    Token endToken,
+  ) {
     logEvent('ExtensionDeclaration');
   }
 
@@ -269,15 +297,23 @@ class Listener implements UnescapeErrorListener {
   ///
   /// At this point we have parsed the name and type parameter declarations.
   void beginExtensionTypeDeclaration(
-      Token? augmentKeyword, Token extensionKeyword, Token name) {}
+    Token? augmentKeyword,
+    Token extensionKeyword,
+    Token name,
+  ) {}
 
   /// Handle the end of an extension methods declaration.  Substructures:
   /// - substructures from [beginExtensionTypeDeclaration]
   /// - primary constructor formals
   /// - implements clause
   /// - body
-  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
-      Token extensionKeyword, Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token extensionKeyword,
+    Token typeKeyword,
+    Token endToken,
+  ) {
     logEvent('ExtensionTypeDeclaration');
   }
 
@@ -297,7 +333,10 @@ class Listener implements UnescapeErrorListener {
   /// - constructor name (if [hasConstructorName] is `true`)
   /// - formals
   void endPrimaryConstructor(
-      Token beginToken, Token? constKeyword, bool hasConstructorName) {
+    Token beginToken,
+    Token? constKeyword,
+    bool hasConstructorName,
+  ) {
     logEvent('PrimaryConstructor');
   }
 
@@ -335,8 +374,12 @@ class Listener implements UnescapeErrorListener {
   void beginConstructorReference(Token start) {}
 
   // TODO(jensj): Renamed `start` to `beginToken`?
-  void endConstructorReference(Token start, Token? periodBeforeName,
-      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
+  void endConstructorReference(
+    Token start,
+    Token? periodBeforeName,
+    Token endToken,
+    ConstructorReferenceContext constructorReferenceContext,
+  ) {
     logEvent("ConstructorReference");
   }
 
@@ -344,7 +387,10 @@ class Listener implements UnescapeErrorListener {
 
   // TODO(jensj): Renamed `doKeyword` to `beginToken`?
   void endDoWhileStatement(
-      Token doKeyword, Token whileKeyword, Token endToken) {
+    Token doKeyword,
+    Token whileKeyword,
+    Token endToken,
+  ) {
     logEvent("DoWhileStatement");
   }
 
@@ -366,8 +412,13 @@ class Listener implements UnescapeErrorListener {
   /// Handle the end of an enum declaration.  Substructures:
   /// - [memberCount] times:
   ///   - Enum member
-  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
-      int memberCount, Token endToken) {
+  void endEnum(
+    Token beginToken,
+    Token enumKeyword,
+    Token leftBrace,
+    int memberCount,
+    Token endToken,
+  ) {
     logEvent("Enum");
   }
 
@@ -380,11 +431,21 @@ class Listener implements UnescapeErrorListener {
   /// - initializers
   /// - async marker
   /// - body
-  void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endEnumConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+      getOrSet,
+      beginToken,
+      beginParam,
+      beginInitializers,
+      endToken,
+    );
   }
 
   /// Handle the enum elements. Substructures:
@@ -401,7 +462,10 @@ class Listener implements UnescapeErrorListener {
   /// - with clause
   /// - implemented types
   void handleEnumHeader(
-      Token? augmentToken, Token enumKeyword, Token leftBrace) {
+    Token? augmentToken,
+    Token enumKeyword,
+    Token leftBrace,
+  ) {
     logEvent("EnumHeader");
   }
 
@@ -413,7 +477,10 @@ class Listener implements UnescapeErrorListener {
   }
 
   void endEnumFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     endClassFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
@@ -441,44 +508,66 @@ class Listener implements UnescapeErrorListener {
 
   /// Note that this is ended by [endClassFactoryMethod],
   /// [endMixinFactoryMethod] or [endExtensionFactoryMethod].
-  void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
-      Token? externalToken, Token? constToken) {}
+  void beginFactoryMethod(
+    DeclarationKind declarationKind,
+    Token lastConsumed,
+    Token? externalToken,
+    Token? constToken,
+  ) {}
 
   void endClassFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     logEvent("ClassFactoryMethod");
   }
 
   void endMixinFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   void endExtensionFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   void endExtensionTypeFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
-  void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
-      Token? covariantToken, Token? varFinalOrConst) {}
+  void beginFormalParameter(
+    Token token,
+    MemberKind kind,
+    Token? requiredToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+  ) {}
 
   void endFormalParameter(
-      Token? thisKeyword,
-      Token? superKeyword,
-      Token? periodAfterThisOrSuper,
-      Token nameToken,
-      Token? initializerStart,
-      Token? initializerEnd,
-      FormalParameterKind kind,
-      MemberKind memberKind) {
+    Token? thisKeyword,
+    Token? superKeyword,
+    Token? periodAfterThisOrSuper,
+    Token nameToken,
+    Token? initializerStart,
+    Token? initializerEnd,
+    FormalParameterKind kind,
+    MemberKind memberKind,
+  ) {
     logEvent("FormalParameter");
   }
 
@@ -489,7 +578,11 @@ class Listener implements UnescapeErrorListener {
   void beginFormalParameters(Token token, MemberKind kind) {}
 
   void endFormalParameters(
-      int count, Token beginToken, Token endToken, MemberKind kind) {
+    int count,
+    Token beginToken,
+    Token endToken,
+    MemberKind kind,
+  ) {
     logEvent("FormalParameters");
   }
 
@@ -501,16 +594,17 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Started by [beginFields].
   void endClassFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     logEvent("Fields");
   }
 
@@ -522,28 +616,30 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Started by [beginFields].
   void endMixinFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassFields(
-        abstractToken,
-        augmentToken,
-        externalToken,
-        staticToken,
-        covariantToken,
-        lateToken,
-        varFinalOrConst,
-        count,
-        beginToken,
-        endToken);
+      abstractToken,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      lateToken,
+      varFinalOrConst,
+      count,
+      beginToken,
+      endToken,
+    );
   }
 
   /// Handle the end of a extension field declaration.  Substructures:
@@ -554,28 +650,30 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Started by [beginFields].
   void endExtensionFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassFields(
-        abstractToken,
-        augmentToken,
-        externalToken,
-        staticToken,
-        covariantToken,
-        lateToken,
-        varFinalOrConst,
-        count,
-        beginToken,
-        endToken);
+      abstractToken,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      lateToken,
+      varFinalOrConst,
+      count,
+      beginToken,
+      endToken,
+    );
   }
 
   /// Handle the end of a extension type field declaration.  Substructures:
@@ -586,28 +684,30 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Started by [beginFields].
   void endExtensionTypeFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassFields(
-        abstractToken,
-        augmentToken,
-        externalToken,
-        staticToken,
-        covariantToken,
-        lateToken,
-        varFinalOrConst,
-        count,
-        beginToken,
-        endToken);
+      abstractToken,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      lateToken,
+      varFinalOrConst,
+      count,
+      beginToken,
+      endToken,
+    );
   }
 
   /// Handle the end of an enum field declaration.  Substructures:
@@ -618,27 +718,29 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Started by [beginFields].
   void endEnumFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     endClassFields(
-        abstractToken,
-        augmentToken,
-        externalToken,
-        staticToken,
-        covariantToken,
-        lateToken,
-        varFinalOrConst,
-        count,
-        beginToken,
-        endToken);
+      abstractToken,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      lateToken,
+      varFinalOrConst,
+      count,
+      beginToken,
+      endToken,
+    );
   }
 
   /// Handle the end of an enum method declaration.  Substructures:
@@ -650,10 +752,20 @@ class Listener implements UnescapeErrorListener {
   /// - initializers
   /// - async marker
   /// - body
-  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endEnumMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+      getOrSet,
+      beginToken,
+      beginParam,
+      beginInitializers,
+      endToken,
+    );
   }
 
   /// Marks that the grammar term `forInitializerStatement` has been parsed and
@@ -679,7 +791,9 @@ class Listener implements UnescapeErrorListener {
   /// it was a `localVariableDeclaration` of the form
   /// `metadata patternVariableDeclaration ';'`.
   void handleForInitializerPatternVariableAssignment(
-      Token keyword, Token equals) {
+    Token keyword,
+    Token equals,
+  ) {
     logEvent("handleForInitializerPatternVariableAssignment");
   }
 
@@ -690,8 +804,13 @@ class Listener implements UnescapeErrorListener {
   /// Marks the end of parsing the control structure of a for statement
   /// or for control flow entry up to and including the closing parenthesis.
   /// `for` `(` initialization `;` condition `;` updaters `)`
-  void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {}
+  void handleForLoopParts(
+    Token forKeyword,
+    Token leftParen,
+    Token leftSeparator,
+    Token rightSeparator,
+    int updateExpressionCount,
+  ) {}
 
   // TODO(jensj): Should this have a `beginToken`?
   void endForStatement(Token endToken) {
@@ -712,8 +831,13 @@ class Listener implements UnescapeErrorListener {
   /// If [patternKeyword] is not `null`, it is either a `var` or `final` token,
   /// and this takes the form:
   ///   `for` `(` patternKeyword pattern `in` iterator `)`
-  void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {}
+  void handleForInLoopParts(
+    Token? awaitToken,
+    Token forToken,
+    Token leftParenthesis,
+    Token? patternKeyword,
+    Token inKeyword,
+  ) {}
 
   // One of the two possible corresponding end events for [beginForStatement].
   // TODO(jensj): Should this have a `beginToken`?
@@ -828,7 +952,10 @@ class Listener implements UnescapeErrorListener {
   /// The boolean [isFunctionExpression] indicates that we are in the latter
   /// case.
   void endFunctionName(
-      Token beginToken, Token token, bool isFunctionExpression) {
+    Token beginToken,
+    Token token,
+    bool isFunctionExpression,
+  ) {
     logEvent("FunctionName");
   }
 
@@ -849,8 +976,12 @@ class Listener implements UnescapeErrorListener {
   /// - Alias type variables
   /// - Type (FunctionTypeAnnotation)
   // TODO(jensj): Should this have a `beginToken`?
-  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
-      Token endToken) {
+  void endTypedef(
+    Token? augmentToken,
+    Token typedefKeyword,
+    Token? equals,
+    Token endToken,
+  ) {
     logEvent("FunctionTypeAlias");
   }
 
@@ -897,16 +1028,17 @@ class Listener implements UnescapeErrorListener {
   ///
   /// At this point we have parsed the name and type parameter declarations.
   void beginNamedMixinApplication(
-      Token beginToken,
-      Token? abstractToken,
-      Token? macroToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token? augmentToken,
-      Token? mixinToken,
-      Token name) {}
+    Token beginToken,
+    Token? abstractToken,
+    Token? macroToken,
+    Token? sealedToken,
+    Token? baseToken,
+    Token? interfaceToken,
+    Token? finalToken,
+    Token? augmentToken,
+    Token? mixinToken,
+    Token name,
+  ) {}
 
   /// Handle a named mixin application with clause (e.g. "A with B, C").
   /// Substructures:
@@ -931,8 +1063,13 @@ class Listener implements UnescapeErrorListener {
   /// the number of implemented types is passed as a parameter.
   ///
   /// TODO(jensj): Rename `begin` to `beginToken` for consistency.
-  void endNamedMixinApplication(Token begin, Token classKeyword, Token equals,
-      Token? implementsKeyword, Token endToken) {
+  void endNamedMixinApplication(
+    Token begin,
+    Token classKeyword,
+    Token equals,
+    Token? implementsKeyword,
+    Token endToken,
+  ) {
     logEvent("NamedMixinApplication");
   }
 
@@ -1117,7 +1254,10 @@ class Listener implements UnescapeErrorListener {
   /// - metadata
   /// - uri
   void endLibraryAugmentation(
-      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
+    Token augmentKeyword,
+    Token libraryKeyword,
+    Token semicolon,
+  ) {
     logEvent("LibraryAugmentation");
   }
 
@@ -1136,8 +1276,12 @@ class Listener implements UnescapeErrorListener {
   /// - expression
   /// - expression
   // TODO(jensj): Should this have a `beginToken`?
-  void handleLiteralMapEntry(Token colon, Token endToken,
-      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
+  void handleLiteralMapEntry(
+    Token colon,
+    Token endToken, {
+    Token? nullAwareKeyToken,
+    Token? nullAwareValueToken,
+  }) {
     logEvent("LiteralMapEntry");
   }
 
@@ -1192,15 +1336,16 @@ class Listener implements UnescapeErrorListener {
   /// [endExtensionConstructor], [endExtensionMethod], [endMixinConstructor] or
   /// [endMixinMethod].
   void beginMethod(
-      DeclarationKind declarationKind,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? varFinalOrConst,
-      Token? getOrSet,
-      Token name,
-      String? enclosingDeclarationName) {}
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {}
 
   /// Handle the end of a class method declaration.  Substructures:
   /// - metadata
@@ -1211,8 +1356,13 @@ class Listener implements UnescapeErrorListener {
   /// - initializers
   /// - async marker
   /// - body
-  void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endClassMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     logEvent("ClassMethod");
   }
 
@@ -1225,11 +1375,21 @@ class Listener implements UnescapeErrorListener {
   /// - initializers
   /// - async marker
   /// - body
-  void endMixinMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endMixinMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+      getOrSet,
+      beginToken,
+      beginParam,
+      beginInitializers,
+      endToken,
+    );
   }
 
   /// Handle the end of a extension method declaration.  Substructures:
@@ -1241,11 +1401,21 @@ class Listener implements UnescapeErrorListener {
   /// - initializers
   /// - async marker
   /// - body
-  void endExtensionMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endExtensionMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+      getOrSet,
+      beginToken,
+      beginParam,
+      beginInitializers,
+      endToken,
+    );
   }
 
   /// Handle the end of a extension type method declaration.  Substructures:
@@ -1257,11 +1427,21 @@ class Listener implements UnescapeErrorListener {
   /// - initializers
   /// - async marker
   /// - body
-  void endExtensionTypeMethod(Token? getOrSet, Token beginToken,
-      Token beginParam, Token? beginInitializers, Token endToken) {
+  void endExtensionTypeMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+      getOrSet,
+      beginToken,
+      beginParam,
+      beginInitializers,
+      endToken,
+    );
   }
 
   /// Handle the end of a class constructor declaration.  Substructures:
@@ -1273,11 +1453,21 @@ class Listener implements UnescapeErrorListener {
   /// - initializers
   /// - async marker
   /// - body
-  void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endClassConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+      getOrSet,
+      beginToken,
+      beginParam,
+      beginInitializers,
+      endToken,
+    );
   }
 
   /// Handle the end of a mixin constructor declaration.  Substructures:
@@ -1289,11 +1479,21 @@ class Listener implements UnescapeErrorListener {
   /// - initializers
   /// - async marker
   /// - body
-  void endMixinConstructor(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endMixinConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+      getOrSet,
+      beginToken,
+      beginParam,
+      beginInitializers,
+      endToken,
+    );
   }
 
   /// Handle the end of a extension constructor declaration.  Substructures:
@@ -1305,11 +1505,21 @@ class Listener implements UnescapeErrorListener {
   /// - initializers
   /// - async marker
   /// - body
-  void endExtensionConstructor(Token? getOrSet, Token beginToken,
-      Token beginParam, Token? beginInitializers, Token endToken) {
+  void endExtensionConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+      getOrSet,
+      beginToken,
+      beginParam,
+      beginInitializers,
+      endToken,
+    );
   }
 
   /// Handle the end of an extension type constructor declaration.
@@ -1322,11 +1532,21 @@ class Listener implements UnescapeErrorListener {
   /// - initializers
   /// - async marker
   /// - body
-  void endExtensionTypeConstructor(Token? getOrSet, Token beginToken,
-      Token beginParam, Token? beginInitializers, Token endToken) {
+  void endExtensionTypeConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     // TODO(johnniwinther): push implementation into subclasses
     endClassConstructor(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+      getOrSet,
+      beginToken,
+      beginParam,
+      beginInitializers,
+      endToken,
+    );
   }
 
   void beginMetadataStar(Token token) {}
@@ -1349,7 +1569,11 @@ class Listener implements UnescapeErrorListener {
   void beginOptionalFormalParameters(Token token) {}
 
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken, MemberKind kind) {
+    int count,
+    Token beginToken,
+    Token endToken,
+    MemberKind kind,
+  ) {
     logEvent("OptionalFormalParameters");
   }
 
@@ -1371,7 +1595,11 @@ class Listener implements UnescapeErrorListener {
   /// If [hasName] is true, this part refers to its library by name, otherwise,
   /// by URI.
   void endPartOf(
-      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
+    Token partKeyword,
+    Token ofKeyword,
+    Token semicolon,
+    bool hasName,
+  ) {
     logEvent("PartOf");
   }
 
@@ -1417,7 +1645,10 @@ class Listener implements UnescapeErrorListener {
   }
 
   void endReturnStatement(
-      bool hasExpression, Token beginToken, Token endToken) {
+    bool hasExpression,
+    Token beginToken,
+    Token endToken,
+  ) {
     logEvent("ReturnStatement");
   }
 
@@ -1457,7 +1688,10 @@ class Listener implements UnescapeErrorListener {
 
   // TODO(jensj): Should this have a `beginToken`?
   void endSwitchExpressionBlock(
-      int caseCount, Token beginToken, Token endToken) {
+    int caseCount,
+    Token beginToken,
+    Token endToken,
+  ) {
     logEvent("SwitchExpressionBlock");
   }
 
@@ -1520,15 +1754,16 @@ class Listener implements UnescapeErrorListener {
   /// Note that this is ended with [endTopLevelFields], [endClassFields],
   /// [endMixinFields] or [endExtensionFields].
   void beginFields(
-      DeclarationKind declarationKind,
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      Token lastConsumed) {}
+    DeclarationKind declarationKind,
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    Token lastConsumed,
+  ) {}
 
   /// Handle the end of a top level variable declaration.  Substructures:
   /// - Metadata
@@ -1539,20 +1774,24 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Started by [beginFields].
   void endTopLevelFields(
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     logEvent("TopLevelFields");
   }
 
   void beginTopLevelMethod(
-      Token lastConsumed, Token? augmentToken, Token? externalToken) {}
+    Token lastConsumed,
+    Token? augmentToken,
+    Token? externalToken,
+  ) {}
 
   /// Handle the end of a top level method.  Substructures:
   /// - metadata
@@ -1584,7 +1823,11 @@ class Listener implements UnescapeErrorListener {
   }
 
   void endTryStatement(
-      int catchCount, Token tryKeyword, Token? finallyKeyword, Token endToken) {
+    int catchCount,
+    Token tryKeyword,
+    Token? finallyKeyword,
+    Token endToken,
+  ) {
     logEvent("TryStatement");
   }
 
@@ -1629,8 +1872,11 @@ class Listener implements UnescapeErrorListener {
   /// parser has recovered from an error (since declared variable patterns are
   /// not allowed inside a `patternAssignment`).  The error has already been
   /// reported.
-  void handleDeclaredVariablePattern(Token? keyword, Token variable,
-      {required bool inAssignmentPattern}) {
+  void handleDeclaredVariablePattern(
+    Token? keyword,
+    Token variable, {
+    required bool inAssignmentPattern,
+  }) {
     logEvent('DeclaredVariablePattern');
   }
 
@@ -1657,7 +1903,11 @@ class Listener implements UnescapeErrorListener {
   /// - the number of RecordTypeEntries if [hasNamedFields] is `false`, or
   /// - the number of RecordTypeEntries + 1 if [hasNamedFields] is `true`.
   void endRecordType(
-      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    Token leftBracket,
+    Token? questionMark,
+    int count,
+    bool hasNamedFields,
+  ) {
     logEvent("RecordType");
   }
 
@@ -1731,7 +1981,11 @@ class Listener implements UnescapeErrorListener {
   ///
   /// See [beginTypeVariable] for additional substructures.
   void endTypeVariable(
-      Token token, int index, Token? extendsOrSuper, Token? variance) {
+    Token token,
+    int index,
+    Token? extendsOrSuper,
+    Token? variance,
+  ) {
     logEvent("TypeVariable");
   }
 
@@ -1763,7 +2017,10 @@ class Listener implements UnescapeErrorListener {
   /// - Metadata
   /// - Type
   void beginVariablesDeclaration(
-      Token token, Token? lateToken, Token? varFinalOrConst) {}
+    Token token,
+    Token? lateToken,
+    Token? varFinalOrConst,
+  ) {}
 
   // TODO(jensj): The declaration does end --- on the name of `endToken` it
   // doesn't make sense it's nullable. Also should there be a `beginToken`?
@@ -1940,7 +2197,10 @@ class Listener implements UnescapeErrorListener {
   }
 
   void handleIndexedExpression(
-      Token? question, Token openSquareBracket, Token closeSquareBracket) {
+    Token? question,
+    Token openSquareBracket,
+    Token closeSquareBracket,
+  ) {
     logEvent("IndexedExpression");
   }
 
@@ -1960,13 +2220,19 @@ class Listener implements UnescapeErrorListener {
 
   // TODO(jensj): Should this have a `beginToken`?
   void handleBreakStatement(
-      bool hasTarget, Token breakKeyword, Token endToken) {
+    bool hasTarget,
+    Token breakKeyword,
+    Token endToken,
+  ) {
     logEvent("BreakStatement");
   }
 
   // TODO(jensj): Should this have a `beginToken`?
   void handleContinueStatement(
-      bool hasTarget, Token continueKeyword, Token endToken) {
+    bool hasTarget,
+    Token continueKeyword,
+    Token endToken,
+  ) {
     logEvent("ContinueStatement");
   }
 
@@ -1977,8 +2243,13 @@ class Listener implements UnescapeErrorListener {
   void beginAssert(Token assertKeyword, Assert kind) {}
 
   // TODO(jensj): Should this have a `beginToken`?
-  void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token endToken) {
+  void endAssert(
+    Token assertKeyword,
+    Assert kind,
+    Token leftParenthesis,
+    Token? commaToken,
+    Token endToken,
+  ) {
     logEvent("Assert");
   }
 
@@ -2007,7 +2278,11 @@ class Listener implements UnescapeErrorListener {
   }
 
   void handleLiteralList(
-      int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
+    int count,
+    Token leftBracket,
+    Token? constKeyword,
+    Token rightBracket,
+  ) {
     logEvent("LiteralList");
   }
 
@@ -2212,7 +2487,10 @@ class Listener implements UnescapeErrorListener {
   /// arguments, and a parenthesized list of object pattern fields (see
   /// [handleObjectPatternFields]).
   void handleObjectPattern(
-      Token firstIdentifier, Token? dot, Token? secondIdentifier) {
+    Token firstIdentifier,
+    Token? dot,
+    Token? secondIdentifier,
+  ) {
     logEvent("ObjectPattern");
   }
 
@@ -2234,27 +2512,35 @@ class Listener implements UnescapeErrorListener {
   }
 
   void handleAugmentSuperExpression(
-      Token augmentToken, Token superToken, IdentifierContext context) {
+    Token augmentToken,
+    Token superToken,
+    IdentifierContext context,
+  ) {
     logEvent("AugmentSuperExpression");
   }
 
   void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {}
 
   void endSwitchCase(
-      int labelCount,
-      int expressionCount,
-      Token? defaultKeyword,
-      Token? colonAfterDefault,
-      int statementCount,
-      Token beginToken,
-      Token endToken) {
+    int labelCount,
+    int expressionCount,
+    Token? defaultKeyword,
+    Token? colonAfterDefault,
+    int statementCount,
+    Token beginToken,
+    Token endToken,
+  ) {
     logEvent("SwitchCase");
   }
 
   void beginSwitchExpressionCase() {}
 
   void endSwitchExpressionCase(
-      Token beginToken, Token? when, Token arrow, Token endToken) {
+    Token beginToken,
+    Token? when,
+    Token arrow,
+    Token endToken,
+  ) {
     logEvent("SwitchExpressionCase");
   }
 
@@ -2287,7 +2573,10 @@ class Listener implements UnescapeErrorListener {
   }
 
   void handleValuedFormalParameter(
-      Token equals, Token token, FormalParameterKind kind) {
+    Token equals,
+    Token token,
+    FormalParameterKind kind,
+  ) {
     logEvent("ValuedFormalParameter");
   }
 
@@ -2317,8 +2606,12 @@ class Listener implements UnescapeErrorListener {
 
   /// One of the two possible corresponding end events for
   /// [beginYieldStatement].
-  void endInvalidYieldStatement(Token beginToken, Token? starToken,
-      Token endToken, MessageCode errorCode) {
+  void endInvalidYieldStatement(
+    Token beginToken,
+    Token? starToken,
+    Token endToken,
+    MessageCode errorCode,
+  ) {
     logEvent("InvalidYieldStatement");
   }
 
@@ -2328,7 +2621,10 @@ class Listener implements UnescapeErrorListener {
   /// highlighted. The [startToken] and [endToken] can be the same token.
   // TODO(jensj): Should `startToken` be renamed to `beginToken`?
   void handleRecoverableError(
-      Message message, Token startToken, Token endToken) {}
+    Message message,
+    Token startToken,
+    Token endToken,
+  ) {}
 
   /// The parser noticed a use of the experimental feature by the flag
   /// [experimentalFlag] that was not enabled, but was able to recover from it.
@@ -2337,9 +2633,15 @@ class Listener implements UnescapeErrorListener {
   /// [startToken] and [endToken] can be the same token.
   // TODO(jensj): Should `startToken` be renamed to `beginToken`?
   void handleExperimentNotEnabled(
-      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    ExperimentalFlag experimentalFlag,
+    Token startToken,
+    Token endToken,
+  ) {
     handleRecoverableError(
-        getExperimentNotEnabledMessage(experimentalFlag), startToken, endToken);
+      getExperimentNotEnabledMessage(experimentalFlag),
+      startToken,
+      endToken,
+    );
   }
 
   /// The parser encountered an [ErrorToken] representing an error
@@ -2352,7 +2654,11 @@ class Listener implements UnescapeErrorListener {
 
   @override
   void handleUnescapeError(
-      Message message, Token location, int stringOffset, int length) {
+    Message message,
+    Token location,
+    int stringOffset,
+    int length,
+  ) {
     handleRecoverableError(message, location, location);
   }
 
@@ -2396,7 +2702,10 @@ class Listener implements UnescapeErrorListener {
   /// patterns accepted by the `outerPattern` grammar rule defined in the
   /// patterns spec.
   void handlePatternVariableDeclarationStatement(
-      Token keyword, Token equals, Token semicolon) {
+    Token keyword,
+    Token equals,
+    Token semicolon,
+  ) {
     logEvent('PatternVariableDeclarationStatement');
   }
 

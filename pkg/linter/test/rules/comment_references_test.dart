@@ -17,13 +17,6 @@ class CommentReferencesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.comment_references;
 
-  test_constructorTearoff() async {
-    await assertNoDiagnostics(r'''
-/// Text [Future.delayed].
-class C {}
-''');
-  }
-
   test_false() async {
     await assertDiagnostics(
       r'''
@@ -184,10 +177,33 @@ class B extends A {
 ''');
   }
 
+  test_prefixedIdentifier_constructorTearoff() async {
+    await assertNoDiagnostics(r'''
+/// Text [Future.delayed].
+class C {}
+''');
+  }
+
   test_prefixedIdentifier_importPrefix() async {
     await assertNoDiagnostics(r'''
 import 'dart:async' as async;
 /// Text [async.FutureOr].
+class C {}
+''');
+  }
+
+  test_prefixedIdentifier_instanceMember() async {
+    await assertNoDiagnostics(r'''
+/// Text [int.isEven].
+class C {}
+''');
+  }
+
+  test_prefixedIdentifier_instanceMember_onTypedef() async {
+    await assertNoDiagnostics(r'''
+typedef int2 = int;
+
+/// Text [int2.isEven].
 class C {}
 ''');
   }
@@ -214,6 +230,19 @@ class C {}
 ''');
   }
 
+  test_propertyAccess_onTypedef() async {
+    await assertNoDiagnostics(r'''
+import '' as self;
+class A {
+  int get x => 7;
+}
+typedef B = A;
+
+/// Text [self.B.x].
+class C {}
+''');
+  }
+
   test_this() async {
     await assertDiagnostics(
       r'''
@@ -232,6 +261,15 @@ class C {}
 ''',
       [lint(5, 4)],
     );
+  }
+
+  test_typeAlias() async {
+    await assertNoDiagnostics(r'''
+/// Text [Td].
+class C {}
+
+typedef Td = C;
+''');
   }
 
   test_typeName() async {

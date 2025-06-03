@@ -10,7 +10,7 @@ extension C on int {
   int? get property3 => 1;
 }
 
-void main() {
+void test() {
   C.property2;
   C.property2 = 42;
   C.property3 = 42;

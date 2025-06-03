@@ -89,20 +89,17 @@ mixin ComputeValueMixin {
   }
 
   void findDependencies(Features features, Entity? entity) {
-    Iterable<Entity> dependencies =
-        entity == null
-            ? const []
-            : rtiNeedBuilder.typeVariableTestsForTesting!
-                .getTypeArgumentDependencies(entity);
+    Iterable<Entity> dependencies = entity == null
+        ? const []
+        : rtiNeedBuilder.typeVariableTestsForTesting!
+              .getTypeArgumentDependencies(entity);
     if (dependencies.isNotEmpty) {
-      List<String> names =
-          dependencies.map((Entity d) {
-              if (d is MemberEntity && d.enclosingClass != null) {
-                return '${d.enclosingClass!.name}.${d.name}';
-              }
-              return d.name!;
-            }).toList()
-            ..sort();
+      List<String> names = dependencies.map((Entity d) {
+        if (d is MemberEntity && d.enclosingClass != null) {
+          return '${d.enclosingClass!.name}.${d.name}';
+        }
+        return d.name!;
+      }).toList()..sort();
       features[Tags.dependencies] = '[${names.join(',')}]';
     }
   }
@@ -325,15 +322,15 @@ mixin IrMixin implements ComputeValueMixin {
   MemberEntity? getFrontendMember(MemberEntity backendMember) {
     ElementEnvironment elementEnvironment =
         compiler.frontendClosedWorldForTesting!.elementEnvironment;
-    LibraryEntity frontendLibrary =
-        elementEnvironment.lookupLibrary(backendMember.library.canonicalUri)!;
+    LibraryEntity frontendLibrary = elementEnvironment.lookupLibrary(
+      backendMember.library.canonicalUri,
+    )!;
     if (backendMember.enclosingClass != null) {
       if (backendMember.enclosingClass!.isClosure) return null;
-      ClassEntity frontendClass =
-          elementEnvironment.lookupClass(
-            frontendLibrary,
-            backendMember.enclosingClass!.name,
-          )!;
+      ClassEntity frontendClass = elementEnvironment.lookupClass(
+        frontendLibrary,
+        backendMember.enclosingClass!.name,
+      )!;
       if (backendMember is ConstructorEntity) {
         return elementEnvironment.lookupConstructor(
           frontendClass,
@@ -362,8 +359,9 @@ mixin IrMixin implements ComputeValueMixin {
     if (backendClass.isClosure) return null;
     ElementEnvironment elementEnvironment =
         compiler.frontendClosedWorldForTesting!.elementEnvironment;
-    LibraryEntity frontendLibrary =
-        elementEnvironment.lookupLibrary(backendClass.library.canonicalUri)!;
+    LibraryEntity frontendLibrary = elementEnvironment.lookupLibrary(
+      backendClass.library.canonicalUri,
+    )!;
     return elementEnvironment.lookupClass(frontendLibrary, backendClass.name);
   }
 

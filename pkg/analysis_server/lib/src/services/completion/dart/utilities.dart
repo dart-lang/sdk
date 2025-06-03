@@ -15,7 +15,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     as protocol
     show Element, ElementKind;
@@ -110,7 +109,7 @@ CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
   }
 
   for (var param in namedParams) {
-    if (param.metadata2.hasRequired || param.isRequiredNamed) {
+    if (param.metadata.hasRequired || param.isRequiredNamed) {
       if (sb.isNotEmpty) {
         sb.write(', ');
       }
@@ -183,7 +182,7 @@ DefaultArgument? getDefaultStringParameterValue(
     var params = type.formalParameters.indexed
         .map((r) {
           var (index, parameter) = r;
-          var name = parameter.displayName.ifNotEmptyOrElse('p${index + 1}');
+          var name = parameter.name3 ?? 'p${index + 1}';
           return '${getTypeString(parameter.type)}$name';
         })
         .join(', ');
@@ -237,8 +236,8 @@ InterfaceType instantiateInstanceElement(
 /// Returns whether the [parameter] is part of a constructor for a Flutter
 /// `Widget`.
 bool isFlutterWidgetParameter(FormalParameterElement parameter) {
-  var element = parameter.enclosingElement2;
-  if (element is ConstructorElement && element.enclosingElement2.isWidget) {
+  var element = parameter.enclosingElement;
+  if (element is ConstructorElement && element.enclosingElement.isWidget) {
     return true;
   }
   return false;

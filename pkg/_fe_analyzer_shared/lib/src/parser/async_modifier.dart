@@ -4,9 +4,4 @@
 
 library _fe_analyzer_shared.parser.async_modifier;
 
-enum AsyncModifier {
-  Sync,
-  SyncStar,
-  Async,
-  AsyncStar,
-}
+enum AsyncModifier { Sync, SyncStar, Async, AsyncStar }

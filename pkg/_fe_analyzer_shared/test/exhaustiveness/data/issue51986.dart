@@ -8,20 +8,22 @@ int test1(Object obj) {
    type=Object
   */
   switch (obj) {
-    /*space=int(isEven: true)|Null*/ case int(isEven: true) as int:
+    /*space=int(isEven: true)|Null*/
+    case int(isEven: true) as int:
       return 1;
-    /*space=int*/ case int _:
+    /*space=int*/
+    case int _:
       return 2;
   }
 }
 
 int test2(Object obj) =>
-    /*
+/*
      error=non-exhaustive:Object(),
      fields={isEven:-},
      type=Object
     */
-    switch (obj) {
-      int(isEven: true) as int /*space=int(isEven: true)|Null*/ => 1,
-      int _ /*space=int*/ => 2
-    };
+switch (obj) {
+  int(isEven: true) as int /*space=int(isEven: true)|Null*/ => 1,
+  int _ /*space=int*/ => 2,
+};

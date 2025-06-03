@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart' as type_utils;
@@ -32,7 +33,8 @@ class JoinReturnWithAssignment extends LintRule {
     : super(name: LintNames.join_return_with_assignment, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.join_return_with_assignment;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.join_return_with_assignment;
 
   @override
   void registerNodeProcessors(

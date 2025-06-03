@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/pub.dart'; // ignore: implementation_imports
 import 'package:source_span/source_span.dart';
 
@@ -14,10 +15,10 @@ class SortPubDependencies extends LintRule {
     : super(name: LintNames.sort_pub_dependencies, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.sort_pub_dependencies;
+  DiagnosticCode get diagnosticCode => LinterLintCode.sort_pub_dependencies;
 
   @override
-  PubspecVisitor<void> getPubspecVisitor() => Visitor(this);
+  PubspecVisitor<void> get pubspecVisitor => Visitor(this);
 }
 
 class Visitor extends PubspecVisitor<void> {

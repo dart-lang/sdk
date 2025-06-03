@@ -4,9 +4,9 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_utilities/testing/test_support.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

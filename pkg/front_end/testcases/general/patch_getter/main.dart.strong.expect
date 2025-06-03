@@ -21,7 +21,7 @@ library;
 // pkg/front_end/testcases/general/patch_getter/patch_lib.dart:29:1: Error: Can't inject public 'methodInPatch' into 'dart:test'.
 // Make 'methodInPatch' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
 // methodInPatch() {
-// ^
+// ^^^^^^^^^^^^^
 //
 import self as test;
 import "dart:_internal" as _in;

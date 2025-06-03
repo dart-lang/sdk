@@ -191,7 +191,7 @@ FieldDeclaration
         initializer: MethodInvocation
           methodName: SimpleIdentifier
             token: a
-            element: <testLibraryFragment>::@class::A::@method::a#element
+            element: <testLibrary>::@class::A::@method::a
             staticType: int Function()
           argumentList: ArgumentList
             leftParenthesis: (

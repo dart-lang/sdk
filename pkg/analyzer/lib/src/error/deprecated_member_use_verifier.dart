@@ -189,7 +189,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
     } else if (node is NamedType) {
-      errorEntity = node.name2;
+      errorEntity = node.name;
     } else if (node is NamedExpression) {
       errorEntity = node.name.label;
     } else if (node is PatternFieldImpl) {
@@ -258,7 +258,9 @@ abstract class BaseDeprecatedMemberUseVerifier {
       }
       element = variable;
     }
-    var annotation = element.metadata.firstWhereOrNull((e) => e.isDeprecated);
+    var annotation = element.metadataAnnotations.firstWhereOrNull(
+      (e) => e.isDeprecated,
+    );
     if (annotation == null || annotation.element2 is PropertyAccessorElement) {
       return null;
     }
@@ -284,10 +286,10 @@ abstract class BaseDeprecatedMemberUseVerifier {
     if (element is PropertyAccessorElement && element.isSynthetic) {
       // TODO(brianwilkerson): Why isn't this the implementation for PropertyAccessorElement?
       var variable = element.variable3;
-      return variable != null && variable.metadata2.hasDeprecated;
+      return variable != null && variable.metadata.hasDeprecated;
     }
     if (element is Annotatable) {
-      return (element as Annotatable).metadata2.hasDeprecated;
+      return (element as Annotatable).metadata.hasDeprecated;
     }
     return false;
   }
@@ -354,7 +356,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
 }
 
 class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
-  final WorkspacePackage? _workspacePackage;
+  final WorkspacePackageImpl? _workspacePackage;
   final ErrorReporter _errorReporter;
 
   DeprecatedMemberUseVerifier(

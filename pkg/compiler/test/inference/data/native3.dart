@@ -9,7 +9,7 @@ main() {
   createRectangle();
 }
 
-/*member: createRectangle:[subclass=DomRectReadOnly|powerset={I}]*/
+/*member: createRectangle:[subclass=DomRectReadOnly|powerset={I}{O}{N}]*/
 Rectangle createRectangle()
 // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
 native;

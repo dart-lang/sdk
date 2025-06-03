@@ -8,3 +8,6 @@ extendable:
 can-be-overridden:
   - library: 'shared/shared.dart'
     class: 'Base'
+
+callable:
+  - library: 'dart:core'

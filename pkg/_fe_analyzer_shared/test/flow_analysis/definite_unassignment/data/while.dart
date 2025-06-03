@@ -113,7 +113,8 @@ true_break_if3(bool c) {
   }
   v1;
   v2;
-  /*unassigned*/ v3;
+  /*unassigned*/
+  v3;
 }
 
 true_breakOuterFromInner(bool c) {
@@ -133,7 +134,8 @@ true_breakOuterFromInner(bool c) {
   v1;
   v2;
   v3;
-  /*unassigned*/ v4;
+  /*unassigned*/
+  v4;
 }
 
 true_continue(bool c) {
@@ -151,5 +153,6 @@ true_noBreak(bool c) {
     // No assignment, but not break.
     // So, we don't exit the loop.
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }

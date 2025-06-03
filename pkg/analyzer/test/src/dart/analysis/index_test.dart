@@ -1280,6 +1280,21 @@ void f() {
     // No additional validation, but it should not fail with stack overflow.
   }
 
+  test_isReferencedBy_ConstructorElement_dotShorthand() async {
+    await _indexTestUnit('''
+class A {}
+void f() {
+  A a = .new(); // 1
+  A tearOff = .new; // 2, is also a compile-time error
+}
+''');
+    var element = findElement2.unnamedConstructor('A');
+    assertElementIndexText(element, r'''
+31 3:10 |new| IS_INVOKED_BY qualified
+58 4:16 |new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+''');
+  }
+
   test_isReferencedBy_ConstructorElement_enum_named() async {
     await _indexTestUnit('''
 /// [new E.foo] 1
@@ -1706,6 +1721,21 @@ class A {
 ''');
   }
 
+  test_isReferencedBy_FieldElement_dotShorthand() async {
+    await _indexTestUnit('''
+class A {
+  static A field = A();
+}
+void f() {
+  A a = .field; // 1
+}
+''');
+    var element = findElement2.field('field').getter2!;
+    assertElementIndexText(element, r'''
+56 5:10 |field| IS_REFERENCED_BY qualified
+''');
+  }
+
   test_isReferencedBy_FieldElement_enum() async {
     await _indexTestUnit('''
 enum E {
@@ -1759,7 +1789,7 @@ void f() {
 52 5:16 |values| IS_REFERENCED_BY qualified
 ''');
 
-    var index = typeProvider.enumElement2!.getGetter2('index')!;
+    var index = typeProvider.enumElement2!.getGetter('index')!;
     assertElementIndexText(index, r'''
 78 6:18 |index| IS_REFERENCED_BY qualified
 ''');
@@ -1950,6 +1980,21 @@ class A {
     assertElementIndexText(element, r'''
 52 4:16 |method| IS_REFERENCED_BY qualified
 76 5:11 |method| IS_REFERENCED_BY
+''');
+  }
+
+  test_isReferencedBy_MethodElement_dotShorthand() async {
+    await _indexTestUnit('''
+class A {
+  static A method() => A();
+}
+void f() {
+  A a = .method(); // 1
+}
+''');
+    var element = findElement2.method('method');
+    assertElementIndexText(element, r'''
+60 5:10 |method| IS_INVOKED_BY qualified
 ''');
   }
 

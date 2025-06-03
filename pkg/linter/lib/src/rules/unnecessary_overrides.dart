@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -19,7 +20,7 @@ class UnnecessaryOverrides extends LintRule {
     : super(name: LintNames.unnecessary_overrides, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_overrides;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_overrides;
 
   @override
   void registerNodeProcessors(
@@ -111,11 +112,11 @@ abstract class _AbstractUnnecessaryOverrideVisitor
   /// Returns whether [declaration] is annotated with any metadata (other than
   /// `@override` or `@Override`).
   bool _addsMetadata() {
-    var metadata = declaration.declaredFragment?.element.metadata2;
+    var metadata = declaration.declaredFragment?.element.metadata;
     if (metadata != null) {
       for (var annotation in metadata.annotations) {
         if (annotation.isOverride) continue;
-        if (annotation.isProtected && _inheritedMethod.metadata2.hasProtected) {
+        if (annotation.isProtected && _inheritedMethod.metadata.hasProtected) {
           continue;
         }
 
@@ -158,10 +159,10 @@ abstract class _AbstractUnnecessaryOverrideVisitor
   bool _makesPublicFromProtected() {
     var declaredElement = declaration.declaredFragment?.element;
     if (declaredElement == null) return false;
-    if (declaredElement.metadata2.hasProtected) {
+    if (declaredElement.metadata.hasProtected) {
       return false;
     }
-    return _inheritedMethod.metadata2.hasProtected;
+    return _inheritedMethod.metadata.hasProtected;
   }
 
   bool _sameKind(FormalParameterElement first, FormalParameterElement second) {
@@ -184,7 +185,7 @@ class _UnnecessaryGetterOverrideVisitor
   ExecutableElement? getInheritedElement(MethodDeclaration node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
     var getterName = element.name3;
     if (getterName == null) return null;
@@ -213,7 +214,7 @@ class _UnnecessaryMethodOverrideVisitor
     var element = node.declaredFragment?.element;
     if (element == null) return null;
 
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
 
     return enclosingElement.firstFragment.element.thisType.lookUpMethod3(
@@ -246,7 +247,7 @@ class _UnnecessaryOperatorOverrideVisitor
   ExecutableElement? getInheritedElement(node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
     var methodName = element.name3;
     if (methodName == null) return null;
@@ -295,7 +296,7 @@ class _UnnecessarySetterOverrideVisitor
   ExecutableElement? getInheritedElement(node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
     return enclosingElement.thisType.lookUpSetter3(
       node.name.lexeme,

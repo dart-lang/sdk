@@ -678,7 +678,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitComment(Comment node) {
-    node.visitChildren(this);
+    // This should never call its children. They should, instead, be called
+    // directly by the containing node. Making sure all annotated nodes have
+    // the comments on the children call is the right way to handle this case.
   }
 
   @override
@@ -1118,7 +1120,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset <= extendsKeyword.end) {
       keywordHelper.addKeyword(Keyword.EXTENDS);
     } else if (node.superclass.isFullySynthetic ||
-        node.superclass.name2.coversOffset(offset)) {
+        node.superclass.name.coversOffset(offset)) {
       collector.completionLocation = 'ExtendsClause_superclass';
       _forTypeAnnotation(node, mustBeExtensible: true);
     }
@@ -1401,7 +1403,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           if (offset < variable.name.offset) {
             var type = variable.type;
             if (type == null ||
-                (type is NamedType && offset <= type.name2.end)) {
+                (type is NamedType && offset <= type.name.end)) {
               _forTypeAnnotation(node);
             }
           }
@@ -1626,7 +1628,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             if (namedType.end < offset) {
               identifierHelper(
                 includePrivateIdentifiers: false,
-              ).addSuggestionsFromTypeName(namedType.name2.lexeme);
+              ).addSuggestionsFromTypeName(namedType.name.lexeme);
               return;
             }
           }
@@ -1674,7 +1676,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     var parent = node.parent;
-    if (parent is NamedType && offset <= parent.name2.offset) {
+    if (parent is NamedType && offset <= parent.name.offset) {
       var element = node.element2;
       DartType type;
       collector.completionLocation = 'PropertyAccess_propertyName';
@@ -2582,7 +2584,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         if (type.importPrefix case var importPrefix?) {
           var prefixElement = importPrefix.element2;
           if (prefixElement is PrefixElement) {
-            if (type.name2.coversOffset(offset)) {
+            if (type.name.coversOffset(offset)) {
               declarationHelper(
                 mustBeType: true,
               ).addDeclarationsThroughImportPrefix(prefixElement);
@@ -2786,7 +2788,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           if (namedType.end < offset) {
             identifierHelper(
               includePrivateIdentifiers: false,
-            ).addSuggestionsFromTypeName(namedType.name2.lexeme);
+            ).addSuggestionsFromTypeName(namedType.name.lexeme);
             return;
           }
         }
@@ -3585,7 +3587,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         if (node.type case NamedType namedType) {
           identifierHelper(
             includePrivateIdentifiers: false,
-          ).addSuggestionsFromTypeName(namedType.name2.lexeme);
+          ).addSuggestionsFromTypeName(namedType.name.lexeme);
         }
       }
     } else if (parent is PatternField) {

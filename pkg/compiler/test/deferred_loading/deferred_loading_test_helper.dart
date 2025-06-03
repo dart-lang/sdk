@@ -148,12 +148,11 @@ class OutputUnitDataComputer extends DataComputer<Features> {
   }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     ir.Library node = frontendStrategy.elementMap.getLibraryNode(library);
-    List<PreFragment> preDeferredFragments =
-        compiler
-            .backendStrategy
-            .emitterTask
-            .emitter
-            .preDeferredFragmentsForTesting!;
+    List<PreFragment> preDeferredFragments = compiler
+        .backendStrategy
+        .emitterTask
+        .emitter
+        .preDeferredFragmentsForTesting!;
     Map<String, List<FinalizedFragment>> fragmentsToLoad =
         compiler.backendStrategy.emitterTask.emitter.finalizedFragmentsToLoad;
     Set<OutputUnit> omittedOutputUnits =

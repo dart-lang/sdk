@@ -53,8 +53,9 @@ class SerializationTask extends CompilerTask {
     this._provider,
     this._outputProvider,
     Measurer measurer,
-  ) : _valueInterner =
-          _options.features.internValues.isEnabled ? ValueInterner() : null,
+  ) : _valueInterner = _options.features.internValues.isEnabled
+          ? ValueInterner()
+          : null,
       super(measurer);
 
   @override

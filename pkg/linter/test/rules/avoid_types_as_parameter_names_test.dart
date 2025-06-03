@@ -249,14 +249,11 @@ class C {}
   }
 
   test_typeParameter_wildcard() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 class C<_> {
   var _;
   C.c(this._, _);
 }
-''',
-      [error(WarningCode.UNUSED_FIELD, 19, 1)],
-    );
+''');
   }
 }

@@ -34,9 +34,13 @@ void main(List<String> args) async {
     clientB.onEvent('Service').listen((e) {
       switch (e.kind) {
         case 'ServiceRegistered':
-          serviceRegisteredCompleted.complete();
+          if (e.data['service'] == 'ExampleServer') {
+            serviceRegisteredCompleted.complete();
+          }
         case 'ServiceUnregistered':
-          serviceUnregisteredCompleted.complete();
+          if (e.data['service'] == 'ExampleServer') {
+            serviceUnregisteredCompleted.complete();
+          }
       }
       print(jsonEncode({'stream': e.stream, 'kind': e.kind, 'data': e.data}));
     });

@@ -52,22 +52,19 @@ class _Directory {
 @patch
 class _AsyncDirectoryListerOps {
   @patch
-  factory _AsyncDirectoryListerOps(int pointer) =>
-      _AsyncDirectoryListerOpsImpl(pointer);
+  factory _AsyncDirectoryListerOps._(int pointer) =>
+      _AsyncDirectoryListerOpsImpl._().._setPointer(pointer);
 }
 
 base class _AsyncDirectoryListerOpsImpl extends NativeFieldWrapperClass1
     implements _AsyncDirectoryListerOps {
   _AsyncDirectoryListerOpsImpl._();
 
-  factory _AsyncDirectoryListerOpsImpl(int pointer) =>
-      _AsyncDirectoryListerOpsImpl._().._setPointer(pointer);
-
   @pragma("vm:external-name", "Directory_SetAsyncDirectoryListerPointer")
   external void _setPointer(int pointer);
 
   @pragma("vm:external-name", "Directory_GetAsyncDirectoryListerPointer")
-  external int getPointer();
+  external int _getPointer();
 }
 
 // Corelib 'Uri.base' implementation.

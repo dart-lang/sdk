@@ -335,7 +335,7 @@ extension ElementAnnotationExtension on ElementAnnotation {
     if (element2 is! ConstructorElement) {
       return false;
     }
-    return element2.enclosingElement2.name3 == 'Preview' &&
+    return element2.enclosingElement.name3 == 'Preview' &&
         element2.library2.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
@@ -400,7 +400,7 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
   /// Whether this is a constructor invocation for a class that has the Flutter
   /// class `Widget` as a superclass.
   bool get isWidgetCreation {
-    var element = constructorName.element?.enclosingElement2;
+    var element = constructorName.element?.enclosingElement;
     return element.isWidget;
   }
 
@@ -418,7 +418,7 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
 
   /// The presentation for this node.
   String? get widgetPresentationText {
-    var element = constructorName.element?.enclosingElement2;
+    var element = constructorName.element?.enclosingElement;
     if (!element.isWidget) {
       return null;
     }

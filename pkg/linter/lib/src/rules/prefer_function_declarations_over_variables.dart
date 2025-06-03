@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,7 +18,7 @@ class PreferFunctionDeclarationsOverVariables extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.prefer_function_declarations_over_variables;
 
   @override

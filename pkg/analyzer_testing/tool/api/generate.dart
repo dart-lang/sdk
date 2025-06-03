@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Generates the file `api.txt`, which describes the analyzer public API.
+/// Generates the file `api.txt`, which describes this package's public API.
 library;
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;

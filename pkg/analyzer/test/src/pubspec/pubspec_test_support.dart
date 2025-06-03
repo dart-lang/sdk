@@ -5,7 +5,7 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../generated/test_support.dart';

@@ -20,7 +20,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
 
   void addSubtypedName(NamedType? type) {
     if (type != null) {
-      subtypedNames.add(type.name2.lexeme);
+      subtypedNames.add(type.name.lexeme);
     }
   }
 
@@ -316,7 +316,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _addIfNotShadowed(node.name2, hasImportPrefix: node.importPrefix != null);
+    _addIfNotShadowed(node.name, hasImportPrefix: node.importPrefix != null);
     super.visitNamedType(node);
   }
 

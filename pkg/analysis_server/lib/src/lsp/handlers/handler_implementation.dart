@@ -13,7 +13,6 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 typedef StaticOptions =
     Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>;
@@ -46,12 +45,12 @@ class ImplementationHandler
     var path = pathOfDoc(params.textDocument);
     var unit = await performance.runAsync(
       'requireResolvedUnit',
-      (_) async => path.mapResult(requireResolvedUnit),
+      (_) => path.mapResult(requireResolvedUnit),
     );
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await performance.runAsync(
       '_getImplementations',
-      (performance) async => (unit, offset).mapResults(
+      (performance) => (unit, offset).mapResults(
         (unit, offset) => _getImplementations(unit, offset, token, performance),
       ),
     );

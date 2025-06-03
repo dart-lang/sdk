@@ -13,18 +13,18 @@ class Class extends core::Object {
 extension type ET1(core::int i) {
   abstract extension-type-member representation-field get i() → core::int;
   get getter = self::ET1|get#getter;
+  set setter = self::ET1|set#setter;
   method method = self::ET1|method;
   method tearoff method = self::ET1|get#method;
-  set setter = self::ET1|set#setter;
   constructor • = self::ET1|constructor#;
   constructor tearoff • = self::ET1|constructor#_#new#tearOff;
 }
 extension type ET2(self::Class c) implements self::Class {
   abstract extension-type-member representation-field get c() → self::Class;
   get getter = self::ET2|get#getter;
+  set setter = self::ET2|set#setter;
   method method = self::ET2|method;
   method tearoff method = self::ET2|get#method;
-  set setter = self::ET2|set#setter;
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }

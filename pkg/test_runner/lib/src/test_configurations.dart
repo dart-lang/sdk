@@ -29,8 +29,6 @@ export 'configuration.dart' show TestConfiguration;
 /// here, if possible.
 final testSuiteDirectories = [
   Path('pkg'),
-  Path('runtime/observatory/tests/observatory_ui'),
-  Path('runtime/observatory/tests/service'),
   Path('runtime/tests/vm'),
   Path('samples'),
   Path('tests/corelib'),

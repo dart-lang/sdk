@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:meta/meta.dart';
@@ -27,7 +27,7 @@ abstract class AnalysisResult {
 /// Clients may not extend, implement or mix-in this class.
 abstract class AnalysisResultWithErrors implements FileResult {
   /// The analysis errors that were computed during analysis.
-  List<AnalysisError> get errors;
+  List<Diagnostic> get errors;
 }
 
 /// The type of [InvalidResult] returned when the given URI cannot be resolved.
@@ -253,7 +253,7 @@ abstract class ParseStringResult {
   String get content;
 
   /// The analysis errors that were computed during analysis.
-  List<AnalysisError> get errors;
+  List<Diagnostic> get errors;
 
   /// Information about lines in the content.
   LineInfo get lineInfo;

@@ -12,27 +12,27 @@ main() {
   test4();
 }
 
-/*member: g1:[subclass=JSInt|powerset={I}]*/
+/*member: g1:[subclass=JSInt|powerset={I}{O}{N}]*/
 int g1 = 0;
 
-/*member: test1:[exact=JSUInt31|powerset={I}]*/
+/*member: test1:[exact=JSUInt31|powerset={I}{O}{N}]*/
 test1() {
   int a = 1234;
   int b = 2;
-  return a /*invoke: [exact=JSUInt31|powerset={I}]*/ >>> b;
+  return a /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/ >>> b;
 }
 
-/*member: test2:[subclass=JSUInt32|powerset={I}]*/
+/*member: test2:[subclass=JSUInt32|powerset={I}{O}{N}]*/
 test2() {
-  return g1 /*invoke: [subclass=JSInt|powerset={I}]*/ >>> g1;
+  return g1 /*invoke: [subclass=JSInt|powerset={I}{O}{N}]*/ >>> g1;
 }
 
-/*member: test3:[subclass=JSUInt32|powerset={I}]*/
+/*member: test3:[subclass=JSUInt32|powerset={I}{O}{N}]*/
 test3() {
-  return g1 /*invoke: [subclass=JSInt|powerset={I}]*/ >>> 1;
+  return g1 /*invoke: [subclass=JSInt|powerset={I}{O}{N}]*/ >>> 1;
 }
 
-/*member: test4:[exact=JSUInt31|powerset={I}]*/
+/*member: test4:[exact=JSUInt31|powerset={I}{O}{N}]*/
 test4() {
-  return 10 /*invoke: [exact=JSUInt31|powerset={I}]*/ >>> g1;
+  return 10 /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/ >>> g1;
 }

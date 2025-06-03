@@ -3,73 +3,81 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../builder/builder.dart';
-import '../builder/member_builder.dart';
 import 'scope.dart';
 
 abstract class LookupResult {
-  /// The [Builder] used for reading this entity, if any.
-  Builder? get getable;
+  /// The [NamedBuilder] used for reading this entity, if any.
+  NamedBuilder? get getable;
 
-  /// The [Builder] used for writing to this entity, if any.
-  Builder? get setable;
+  /// The [NamedBuilder] used for writing to this entity, if any.
+  NamedBuilder? get setable;
 
   /// Creates a [LookupResult] for [getable] and [setable] which filters
   /// instance members if [staticOnly] is `true`, and creates an
   /// [AmbiguousBuilder] for duplicates using [fileUri] and [fileOffset].
-  static LookupResult? createProcessedResult(Builder? getable, Builder? setable,
+  static LookupResult? createProcessedResult(LookupResult? result,
       {required String name,
       required Uri fileUri,
       required int fileOffset,
       required bool staticOnly}) {
+    if (result == null) return null;
+    NamedBuilder? getable = result.getable;
+    NamedBuilder? setable = result.setable;
+    bool changed = false;
     if (getable != null) {
       if (getable.next != null) {
         getable = new AmbiguousBuilder(name, getable, fileOffset, fileUri);
+        changed = true;
       }
       if (staticOnly && getable.isDeclarationInstanceMember) {
         getable = null;
+        changed = true;
       }
     }
     if (setable != null) {
       if (setable.next != null) {
-        AmbiguousBuilder ambiguousBuilder =
-            setable = new AmbiguousBuilder(name, setable, fileOffset, fileUri);
-        Builder firstSetable = ambiguousBuilder.getFirstDeclaration();
-        if (firstSetable is MemberBuilder && firstSetable.isConflictingSetter) {
-          setable = null;
-        }
-      } else if (setable is MemberBuilder && setable.isConflictingSetter) {
-        setable = null;
+        setable = new AmbiguousBuilder(name, setable, fileOffset, fileUri);
+        changed = true;
       }
-      if (setable != null &&
-          staticOnly &&
-          setable.isDeclarationInstanceMember) {
+      if (staticOnly && setable.isDeclarationInstanceMember) {
         setable = null;
+        changed = true;
       }
+    }
+    if (!changed) {
+      return result;
     }
 
     return _fromBuilders(getable, setable, assertNoGetterSetterConflict: true);
   }
 
-  static LookupResult? createResult(Builder? getable, Builder? setable) {
+  static LookupResult? createResult(
+      NamedBuilder? getable, NamedBuilder? setable) {
     return _fromBuilders(getable, setable, assertNoGetterSetterConflict: false);
   }
 
-  static LookupResult? _fromBuilders(Builder? getable, Builder? setable,
+  static LookupResult? _fromBuilders(
+      NamedBuilder? getable, NamedBuilder? setable,
       {required bool assertNoGetterSetterConflict}) {
     if (getable is LookupResult) {
       LookupResult lookupResult = getable as LookupResult;
-      if (setable == null) {
+      if (setable == getable) {
+        return lookupResult;
+      } else if (setable == null) {
         return lookupResult;
       } else {
         assert(getable != setable,
             "Unexpected getable $getable and setable $setable.");
         assert(
-            !assertNoGetterSetterConflict || lookupResult.setable == null,
+            !assertNoGetterSetterConflict ||
+                // Coverage-ignore(suite): Not run.
+                lookupResult.setable == null,
             "Unexpected setable ${lookupResult.setable} from "
             "getable $getable and setable $setable.");
         return new GetableSetableResult(getable!, setable);
       }
     } else if (setable is LookupResult) {
+      // Coverage-ignore-block(suite): Not run.
       LookupResult lookupResult = setable as LookupResult;
       if (getable == null) {
         return lookupResult;
@@ -94,34 +102,60 @@ abstract class LookupResult {
       }
     }
   }
+
+  static void addNamedBuilder(
+      Map<String, LookupResult> content, String name, NamedBuilder member,
+      {required bool setter}) {
+    LookupResult? existing = content[name];
+    if (existing != null) {
+      if (setter) {
+        assert(existing.getable != null,
+            "No existing getable for $name: $existing.");
+        content[name] = new GetableSetableResult(existing.getable!, member);
+        return;
+      } else {
+        assert(existing.setable != null,
+            "No existing setable for $name: $existing.");
+        content[name] = new GetableSetableResult(member, existing.setable!);
+        return;
+      }
+    }
+    if (member is LookupResult) {
+      content[name] = member as LookupResult;
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      content[name] =
+          setter ? new SetableResult(member) : new GetableResult(member);
+    }
+  }
 }
 
 class GetableResult implements LookupResult {
   @override
-  final Builder getable;
+  final NamedBuilder getable;
 
   GetableResult(this.getable);
 
   @override
-  Builder? get setable => null;
+  NamedBuilder? get setable => null;
 }
 
 class SetableResult implements LookupResult {
   @override
-  final Builder setable;
+  final NamedBuilder setable;
 
   SetableResult(this.setable);
 
   @override
-  Builder? get getable => null;
+  NamedBuilder? get getable => null;
 }
 
 class GetableSetableResult implements LookupResult {
   @override
-  final Builder getable;
+  final NamedBuilder getable;
 
   @override
-  final Builder setable;
+  final NamedBuilder setable;
 
   GetableSetableResult(this.getable, this.setable);
 }

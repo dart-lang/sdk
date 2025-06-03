@@ -11,10 +11,9 @@ const int $RCURLY = $CLOSE_CURLY_BRACKET;
 
 void main() {
   void check(Object input, Object expected, {bool utf8 = false}) {
-    String string =
-        input is String
-            ? input
-            : String.fromCharCodes(List<int>.from(input as Iterable));
+    String string = input is String
+        ? input
+        : String.fromCharCodes(List<int>.from(input as Iterable));
     String actual = DebugPrint(js.string(string), utf8: utf8);
     if (expected is List) {
       expect(actual.codeUnits, expected);

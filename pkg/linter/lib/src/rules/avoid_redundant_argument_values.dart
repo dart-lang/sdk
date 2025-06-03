@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/constants.dart' // ignore: implementation_imports
     show ExpressionExtension;
 import 'package:collection/collection.dart';
@@ -21,7 +22,8 @@ class AvoidRedundantArgumentValues extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_redundant_argument_values;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_redundant_argument_values;
 
   @override
   void registerNodeProcessors(
@@ -65,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void checkArgument(Expression arg, FormalParameterElement? param) {
     if (param == null ||
         param.isRequired ||
-        param.metadata2.hasRequired ||
+        param.metadata.hasRequired ||
         !param.isOptional) {
       return;
     }

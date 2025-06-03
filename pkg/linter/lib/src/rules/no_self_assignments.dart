@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,7 @@ class NoSelfAssignments extends LintRule {
     : super(name: LintNames.no_self_assignments, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.no_self_assignments;
+  DiagnosticCode get diagnosticCode => LinterLintCode.no_self_assignments;
 
   @override
   void registerNodeProcessors(

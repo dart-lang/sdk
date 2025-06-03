@@ -106,7 +106,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     with
         TypeAnalyzer<TreeNode, Statement, Expression, VariableDeclaration,
             Pattern, InvalidExpression, TypeDeclarationType, TypeDeclaration>,
-        NullShortingMixin<NullAwareGuard, Expression, SharedTypeView>,
+        NullShortingMixin<NullAwareGuard, Expression, VariableDeclaration,
+            SharedTypeView>,
         StackChecker
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
@@ -245,14 +246,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   void createNullAwareGuard(VariableDeclaration variable) {
     startNullShorting(new NullAwareGuard(variable, variable.fileOffset, this),
-        variable.initializer!, new SharedTypeView(variable.type));
-    // Ensure [variable] is promoted to non-nullable.
-    // TODO(johnniwinther): Avoid creating a [VariableGet] to promote the
-    // variable.
-    VariableGet read = new VariableGet(variable);
-    flowAnalysis.variableRead(read, variable);
-    flowAnalysis.nullAwareAccess_rightBegin(
-        read, new SharedTypeView(variable.type));
+        variable.initializer!, new SharedTypeView(variable.type),
+        guardVariable: variable);
   }
 
   @override
@@ -387,7 +382,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression node, DartType typeContext) {
     UriOffset uriOffset = _computeUriOffset(node);
     problems.unhandled("$node (${node.runtimeType})", "InferenceVisitor",
-        uriOffset.fileOffset, uriOffset.uri);
+        uriOffset.fileOffset, uriOffset.fileUri);
   }
 
   @override
@@ -641,7 +636,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult _unhandledStatement(Statement node) {
     UriOffset uriOffset = _computeUriOffset(node);
     return problems.unhandled("${node.runtimeType}", "InferenceVisitor",
-        uriOffset.fileOffset, uriOffset.uri);
+        uriOffset.fileOffset, uriOffset.fileUri);
   }
 
   @override
@@ -988,14 +983,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Ensure the initializer of [_nullAwareVariable] is promoted to
       // non-nullable.
       flow.nullAwareAccess_rightBegin(
-          node.variable.initializer!, new SharedTypeView(node.variable.type));
-      // Ensure [variable] is promoted to non-nullable.
-      // TODO(johnniwinther): Avoid creating a [VariableGet] to promote the
-      // variable.
-      VariableGet read = new VariableGet(node.variable);
-      flowAnalysis.variableRead(read, node.variable);
-      flowAnalysis.nullAwareAccess_rightBegin(
-          read, new SharedTypeView(node.variable.type));
+          node.variable.initializer!, new SharedTypeView(node.variable.type),
+          guardVariable: node.variable);
     }
 
     Cascade? previousEnclosingCascade = _enclosingCascade;
@@ -1635,11 +1624,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         variable.type, inferredType, variableGet,
         isVoidAllowed: true,
         fileOffset: parent.fileOffset,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
-        nullabilityErrorTemplate:
-            templateForInLoopElementTypeNotAssignableNullability,
-        nullabilityPartErrorTemplate:
-            templateForInLoopElementTypeNotAssignablePartNullability);
+        errorTemplate: templateForInLoopElementTypeNotAssignable);
     Statement? expressionEffect;
     if (!identical(implicitDowncast, variableGet)) {
       variable.initializer = implicitDowncast..parent = variable;
@@ -1679,10 +1664,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         wrapType(const DynamicType(), iterableClass, Nullability.nonNullable),
         inferredExpressionType,
         iterable,
-        errorTemplate: templateForInLoopTypeNotIterable,
-        nullabilityErrorTemplate: templateForInLoopTypeNotIterableNullability,
-        nullabilityPartErrorTemplate:
-            templateForInLoopTypeNotIterablePartNullability);
+        errorTemplate: templateForInLoopTypeNotIterable);
     DartType inferredType = const DynamicType();
     if (inferredExpressionType is TypeDeclarationType) {
       // TODO(johnniwinther): Should we use the type of
@@ -1720,7 +1702,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           "${syntheticAssignment.runtimeType}",
           "handleForInStatementWithoutVariable",
           uriOffset.fileOffset,
-          uriOffset.uri);
+          uriOffset.fileUri);
     }
   }
 
@@ -1814,10 +1796,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             Nullability.nonNullable),
         result.expressionType.unwrapTypeView(),
         iterable,
-        errorTemplate: templateForInLoopTypeNotIterable,
-        nullabilityErrorTemplate: templateForInLoopTypeNotIterableNullability,
-        nullabilityPartErrorTemplate:
-            templateForInLoopTypeNotIterablePartNullability);
+        errorTemplate: templateForInLoopTypeNotIterable);
     // This is matched by the call to [forEach_end] in
     // [inferElement], [inferMapEntry] or [inferForInStatement].
     flowAnalysis.forEach_bodyBegin(node);
@@ -2377,34 +2356,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     } else if (spreadTypeBound is InterfaceType) {
       if (!isAssignable(inferredTypeArgument, spreadElementType)) {
-        IsSubtypeOf subtypeCheckResult =
-            typeSchemaEnvironment.performNullabilityAwareSubtypeCheck(
-                spreadElementType, inferredTypeArgument);
-        if (subtypeCheckResult.isSubtypeWhenIgnoringNullabilities()) {
-          if (spreadElementType == subtypeCheckResult.subtype &&
-              inferredTypeArgument == subtypeCheckResult.supertype) {
-            replacement = helper.buildProblem(
-                templateSpreadElementTypeMismatchNullability.withArguments(
-                    spreadElementType, inferredTypeArgument),
-                element.expression.fileOffset,
-                1);
-          } else {
-            replacement = helper.buildProblem(
-                templateSpreadElementTypeMismatchPartNullability.withArguments(
-                    spreadElementType,
-                    inferredTypeArgument,
-                    subtypeCheckResult.subtype!,
-                    subtypeCheckResult.supertype!),
-                element.expression.fileOffset,
-                1);
-          }
-        } else {
-          replacement = helper.buildProblem(
-              templateSpreadElementTypeMismatch.withArguments(
-                  spreadElementType, inferredTypeArgument),
-              element.expression.fileOffset,
-              1);
-        }
+        replacement = helper.buildProblem(
+            templateSpreadElementTypeMismatch.withArguments(
+                spreadElementType, inferredTypeArgument),
+            element.expression.fileOffset,
+            1);
       }
       if (spreadType.isPotentiallyNullable &&
           spreadType is! DynamicType &&
@@ -4508,68 +4464,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression? keyError;
       Expression? valueError;
       if (!isAssignable(inferredKeyType, actualKeyType)) {
-        IsSubtypeOf subtypeCheckResult =
-            typeSchemaEnvironment.performNullabilityAwareSubtypeCheck(
-                actualKeyType, inferredKeyType);
-        if (subtypeCheckResult.isSubtypeWhenIgnoringNullabilities()) {
-          if (actualKeyType == subtypeCheckResult.subtype &&
-              inferredKeyType == subtypeCheckResult.supertype) {
-            keyError = helper.buildProblem(
-                templateSpreadMapEntryElementKeyTypeMismatchNullability
-                    .withArguments(actualKeyType, inferredKeyType),
-                entry.expression.fileOffset,
-                1);
-          } else {
-            keyError = helper.buildProblem(
-                // ignore: lines_longer_than_80_chars
-                templateSpreadMapEntryElementKeyTypeMismatchPartNullability
-                    .withArguments(
-                        actualKeyType,
-                        inferredKeyType,
-                        subtypeCheckResult.subtype!,
-                        subtypeCheckResult.supertype!),
-                entry.expression.fileOffset,
-                1);
-          }
-        } else {
-          keyError = helper.buildProblem(
-              templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
-                  actualKeyType, inferredKeyType),
-              entry.expression.fileOffset,
-              1);
-        }
+        keyError = helper.buildProblem(
+            templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
+                actualKeyType, inferredKeyType),
+            entry.expression.fileOffset,
+            1);
       }
       if (!isAssignable(inferredValueType, actualValueType)) {
-        IsSubtypeOf subtypeCheckResult =
-            typeSchemaEnvironment.performNullabilityAwareSubtypeCheck(
-                actualValueType, inferredValueType);
-        if (subtypeCheckResult.isSubtypeWhenIgnoringNullabilities()) {
-          if (actualValueType == subtypeCheckResult.subtype &&
-              inferredValueType == subtypeCheckResult.supertype) {
-            valueError = helper.buildProblem(
-                templateSpreadMapEntryElementValueTypeMismatchNullability
-                    .withArguments(actualValueType, inferredValueType),
-                entry.expression.fileOffset,
-                1);
-          } else {
-            valueError = helper.buildProblem(
-                // ignore: lines_longer_than_80_chars
-                templateSpreadMapEntryElementValueTypeMismatchPartNullability
-                    .withArguments(
-                        actualValueType,
-                        inferredValueType,
-                        subtypeCheckResult.subtype!,
-                        subtypeCheckResult.supertype!),
-                entry.expression.fileOffset,
-                1);
-          }
-        } else {
-          valueError = helper.buildProblem(
-              templateSpreadMapEntryElementValueTypeMismatch.withArguments(
-                  actualValueType, inferredValueType),
-              entry.expression.fileOffset,
-              1);
-        }
+        valueError = helper.buildProblem(
+            templateSpreadMapEntryElementValueTypeMismatch.withArguments(
+                actualValueType, inferredValueType),
+            entry.expression.fileOffset,
+            1);
       }
       if (spreadType.isPotentiallyNullable &&
           spreadType is! DynamicType &&
@@ -6808,14 +6714,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType contextType =
         rightType.withDeclaredNullability(Nullability.nullable);
     rightResult = ensureAssignableResult(contextType, rightResult,
-        errorTemplate: templateArgumentTypeNotAssignable,
-        nullabilityErrorTemplate: templateArgumentTypeNotAssignableNullability,
-        nullabilityPartErrorTemplate:
-            templateArgumentTypeNotAssignablePartNullability,
-        nullabilityNullErrorTemplate:
-            templateArgumentTypeNotAssignableNullabilityNull,
-        nullabilityNullTypeErrorTemplate:
-            templateArgumentTypeNotAssignableNullabilityNullType);
+        errorTemplate: templateArgumentTypeNotAssignable);
     right = rightResult.expression;
 
     FunctionType functionType =
@@ -9648,6 +9547,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (nonNullableType != variable.type) {
         promotedType = nonNullableType;
       }
+      // It's still necessary to inform flow analysis about the read so that it
+      // can track field promotions.
+      flowAnalysis.variableRead(node, variable);
     } else if (!variable.isLocalFunction) {
       // Don't promote local functions.
       promotedType =
@@ -12180,6 +12082,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                   node.name.text.length));
         }
 
+        TypeDeclaration typeDeclaration = cachedContext.typeDeclaration;
+        if (typeDeclaration is Class && typeDeclaration.isAbstract) {
+          return new ExpressionInferenceResult(
+              const DynamicType(),
+              helper.buildProblem(
+                  templateAbstractClassInstantiation
+                      .withArguments(typeDeclaration.name),
+                  node.nameOffset,
+                  node.name.text.length));
+        }
+
         // The shorthand expression is inferred in the empty context and then
         // type inference infers the type arguments.
         FunctionType functionType = constructor.function
@@ -12318,6 +12231,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                     node.name.text.length));
           }
           if (constructor is Constructor) {
+            TypeDeclaration typeDeclaration = cachedContext.typeDeclaration;
+            if (typeDeclaration is Class && typeDeclaration.isAbstract) {
+              return new ExpressionInferenceResult(
+                  const DynamicType(),
+                  helper.buildProblem(messageAbstractClassConstructorTearOff,
+                      node.nameOffset, node.name.text.length));
+            }
+
             DartType type = constructor.function
                 .computeFunctionType(Nullability.nonNullable);
             Expression tearOff = new ConstructorTearOff(constructor)

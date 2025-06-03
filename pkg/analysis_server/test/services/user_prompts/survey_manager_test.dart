@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unified_analytics/unified_analytics.dart';

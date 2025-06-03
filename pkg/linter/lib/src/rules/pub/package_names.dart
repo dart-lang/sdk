@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
+
 import '../../analyzer.dart';
 import '../../utils.dart';
 
@@ -11,10 +13,10 @@ class PackageNames extends LintRule {
   PackageNames() : super(name: LintNames.package_names, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.package_names;
+  DiagnosticCode get diagnosticCode => LinterLintCode.package_names;
 
   @override
-  PubspecVisitor<void> getPubspecVisitor() => Visitor(this);
+  PubspecVisitor<void> get pubspecVisitor => Visitor(this);
 }
 
 class Visitor extends PubspecVisitor<void> {

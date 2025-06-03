@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' show ConnectionException;
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ExceptionDeleteEvent {
   final dynamic exception;
@@ -53,7 +56,7 @@ class NavNotifyExceptionElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
@@ -66,53 +69,55 @@ class NavNotifyExceptionElement extends CustomElement implements Renderable {
   }
 
   void renderConnectionException() {
-    children = <Element>[
-      new DivElement()
-        ..children = <Element>[
-          new SpanElement()
-            ..text = 'The request cannot be completed because the '
+    children = <HTMLElement>[
+      new HTMLDivElement()
+        ..appendChildren(<HTMLElement>[
+          new HTMLSpanElement()
+            ..textContent = 'The request cannot be completed because the '
                 'VM is currently disconnected',
-          new BRElement(),
-          new BRElement(),
-          new SpanElement()..text = '[',
-          new AnchorElement(href: Uris.vmConnect())
+          new HTMLBRElement(),
+          new HTMLBRElement(),
+          new HTMLSpanElement()..textContent = '[',
+          new HTMLAnchorElement()
+            ..href = Uris.vmConnect()
             ..text = 'Connect to a different VM',
-          new SpanElement()..text = ']',
-          new ButtonElement()
-            ..text = '×'
+          new HTMLSpanElement()..textContent = ']',
+          new HTMLButtonElement()
+            ..textContent = '×'
             ..onClick.map(_toEvent).listen(_delete)
-        ]
+        ])
     ];
   }
 
   void renderGenericException() {
-    List<Element> content;
-    content = <Element>[
-      new SpanElement()..text = 'Unexpected exception:',
-      new BRElement(),
-      new BRElement(),
-      new DivElement()..text = exception.toString(),
-      new BRElement()
+    List<HTMLElement> content;
+    content = <HTMLElement>[
+      new HTMLSpanElement()..textContent = 'Unexpected exception:',
+      new HTMLBRElement(),
+      new HTMLBRElement(),
+      new HTMLDivElement()..textContent = exception.toString(),
+      new HTMLBRElement()
     ];
     if (stacktrace != null) {
-      content.addAll(<Element>[
-        new SpanElement()..text = 'StackTrace:',
-        new BRElement(),
-        new BRElement(),
-        new DivElement()..text = stacktrace.toString(),
-        new BRElement()
+      content.addAll(<HTMLElement>[
+        new HTMLSpanElement()..textContent = 'StackTrace:',
+        new HTMLBRElement(),
+        new HTMLBRElement(),
+        new HTMLDivElement()..textContent = stacktrace.toString(),
+        new HTMLBRElement()
       ]);
     }
-    content.addAll(<Element>[
-      new SpanElement()..text = '[',
-      new AnchorElement(href: Uris.vmConnect())
+    content.addAll(<HTMLElement>[
+      new HTMLSpanElement()..textContent = '[',
+      new HTMLAnchorElement()
+        ..href = Uris.vmConnect()
         ..text = 'Connect to a different VM',
-      new SpanElement()..text = ']',
-      new ButtonElement()
-        ..text = '×'
+      new HTMLSpanElement()..textContent = ']',
+      new HTMLButtonElement()
+        ..textContent = '×'
         ..onClick.map(_toEvent).listen(_delete)
     ]);
-    children = <Element>[new DivElement()..children = content];
+    children = <HTMLElement>[new HTMLDivElement()..appendChildren(content)];
   }
 
   ExceptionDeleteEvent _toEvent(_) {

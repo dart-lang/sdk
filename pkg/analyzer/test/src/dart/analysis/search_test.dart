@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -928,7 +929,7 @@ void f() {
 ''');
 
     var A = findElement2.class_('A');
-    var element = A.constructors2.single;
+    var element = A.constructors.single;
     expect(element.name3, 'named');
 
     await assertElementReferencesText(element, r'''
@@ -1303,6 +1304,22 @@ void f() {
 ''');
   }
 
+  test_searchReferences_ConstructorElement_dotShorthand() async {
+    await resolveTestCode('''
+class A {}
+void main() {
+  A a = .new(); // 1
+  A tearOff = .new; // 2, is also a compile-time error
+}
+''');
+    var element = findElement2.unnamedConstructor('A');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment>::@function::main
+  34 3:10 |new| INVOCATION qualified
+  61 4:16 |new| REFERENCE_BY_CONSTRUCTOR_TEAR_OFF qualified
+''');
+  }
+
   test_searchReferences_ConstructorElement_enum_named() async {
     await resolveTestCode('''
 /// [new E.named] 1
@@ -1495,6 +1512,22 @@ class A {
 ''');
   }
 
+  test_searchReferences_FieldElement_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+  static A field = A();
+}
+void main() {
+  A a = .field; // 1
+}
+''');
+    var element = findElement2.field('field');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment>::@function::main
+  59 5:10 |field| READ qualified
+''');
+  }
+
   test_searchReferences_FieldElement_enum() async {
     await resolveTestCode('''
 enum E {
@@ -1528,7 +1561,7 @@ main() {
   MyEnum.B;
 }
 ''');
-    var index = typeProvider.enumElement2!.getField2('index')!;
+    var index = typeProvider.enumElement2!.getField('index')!;
     await assertElementReferencesText(index, r'''
 <testLibraryFragment>::@function::main
   46 5:12 |index| READ qualified
@@ -1937,6 +1970,24 @@ class A {
 ''');
   }
 
+  test_searchReferences_MethodElement_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+  static A method() => A();
+}
+void main() {
+  A a = .method(); // 1
+  A aa = .method; // 2, is also a compile-time error
+}
+''');
+    var element = findElement2.method('method');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment>::@function::main
+  63 5:10 |method| INVOCATION qualified
+  88 6:11 |method| REFERENCE qualified
+''');
+  }
+
   test_searchReferences_MethodElement_enum() async {
     await resolveTestCode('''
 enum E {
@@ -2109,6 +2160,79 @@ main(A<int> a) {
 <testLibraryFragment>::@function::main
   53 5:5 |m| INVOCATION qualified
 ''');
+  }
+
+  test_searchReferences_ParameterElement_generic_atDeclaration() async {
+    await resolveTestCode('''
+void f() {
+  B().m(p: null); // 1
+  B().m(p: null); // 2
+}
+
+class A<T> {
+  void m({T? p}) {} // 3
+}
+
+class B extends A<String> {}
+''');
+    var element = findElement2.parameter('p');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment>::@function::f
+  19 2:9 |p| REFERENCE qualified
+  42 3:9 |p| REFERENCE qualified
+''');
+  }
+
+  @SkippedTest(
+    // When this test begins passing, the temporary test
+    // test_searchReferences_ParameterElement_generic_atInvocation_doesNotThrow_issue60005
+    // can be removed.
+    issue: 'https://github.com/dart-lang/sdk/issues/60200',
+  )
+  test_searchReferences_ParameterElement_generic_atInvocation() async {
+    await resolveTestCode('''
+void f() {
+  B().m(p: null); // 1
+  B().m(p: null); // 2
+}
+
+class A<T> {
+  void m({T? p}) {} // 3
+}
+
+class B extends A<String> {}
+''');
+    var element =
+        findNode.namedExpression('p: null); // 1').correspondingParameter!;
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment>::@function::f
+  19 2:9 |p| REFERENCE qualified
+  42 3:9 |p| REFERENCE qualified
+''');
+  }
+
+  /// A temporary test to ensure the search does not throw, while
+  /// [test_searchReferences_ParameterElement_generic_atInvocation] is marked as
+  /// failing.
+  ///
+  /// This test can be removed once [test_searchReferences_ParameterElement_generic_atInvocation]
+  /// is passing.
+  test_searchReferences_ParameterElement_generic_atInvocation_doesNotThrow_issue60005() async {
+    await resolveTestCode('''
+void f() {
+  B().m(p: null); // 1
+  B().m(p: null); // 2
+}
+
+class A<T> {
+  void m({T? p}) {} // 3
+}
+
+class B extends A<String> {}
+''');
+    var element =
+        findNode.namedExpression('p: null); // 1').correspondingParameter!;
+    expect(driver.search.references(element, SearchedFiles()), completes);
   }
 
   test_searchReferences_ParameterElement_ofConstructor_super_named() async {

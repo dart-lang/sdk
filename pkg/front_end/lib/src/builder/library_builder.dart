@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-import 'package:front_end/src/builder/property_builder.dart';
 import 'package:kernel/ast.dart' show Annotatable, Library, Version;
 import 'package:kernel/reference_from_index.dart';
 
@@ -11,7 +10,6 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/export.dart' show Export;
 import '../base/loader.dart' show Loader;
-import '../base/lookup_result.dart';
 import '../base/messages.dart'
     show
         FormattedMessage,
@@ -19,17 +17,14 @@ import '../base/messages.dart'
         Message,
         ProblemReporting,
         noLength,
-        templateDuplicatedExport,
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
         templateInternalProblemPrivateConstructorAccess;
 import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
-import '../base/uri_offset.dart';
 import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
-import '../kernel/load_library_builder.dart';
 import '../source/offset_map.dart';
 import '../source/outline_builder.dart';
 import '../source/source_class_builder.dart';
@@ -42,7 +37,6 @@ import 'declaration_builders.dart';
 import 'factory_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
-import 'name_iterator.dart';
 import 'prefix_builder.dart';
 import 'type_builder.dart';
 
@@ -84,7 +78,7 @@ sealed class CompilationUnit {
 
   List<Export> get exporters;
 
-  void addExporter(CompilationUnit exporter,
+  void addExporter(SourceCompilationUnit exporter,
       List<CombinatorBuilder>? combinators, int charOffset);
 
   /// Add a problem with a severity determined by the severity of the message.
@@ -277,7 +271,7 @@ abstract class SourceCompilationUnit
 
   void addImportedBuilderToScope(
       {required String name,
-      required Builder builder,
+      required NamedBuilder builder,
       required int charOffset});
 
   void addImportsToScope();
@@ -325,7 +319,7 @@ abstract class SourceCompilationUnit
 abstract class LibraryBuilder implements Builder, ProblemReporting {
   NameSpace get libraryNameSpace;
 
-  NameSpace get exportNameSpace;
+  ComputedNameSpace get exportNameSpace;
 
   List<Export> get exporters;
 
@@ -361,38 +355,11 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// used in conditional imports and `bool.fromEnvironment` constants.
   bool get isUnsupported;
 
-  /// Returns an iterator of all members (typedefs, classes and members)
-  /// declared in this library, including duplicate declarations.
-  // TODO(johnniwinther): Should the only exist on [SourceLibraryBuilder]?
-  Iterator<Builder> get localMembersIterator;
-
-  /// Returns an iterator of all members of specified type
-  /// declared in this library, including duplicate declarations.
-  // TODO(johnniwinther): Should the only exist on [SourceLibraryBuilder]?
-  Iterator<T> localMembersIteratorOfType<T extends Builder>();
-
-  /// Returns an iterator of all members (typedefs, classes and members)
-  /// declared in this library, including duplicate declarations.
+  /// [Iterator] for all declarations declared in this library of type [T].
   ///
-  /// Compared to [localMembersIterator] this also gives access to the name
-  /// that the builders are mapped to.
-  NameIterator<Builder> get localMembersNameIterator;
-
-  /// [Iterator] for all declarations declared in this library or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting members are _not_ included.
-  Iterator<T> fullMemberIterator<T extends Builder>();
-
-  /// [NameIterator] for all declarations declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting members are _not_ included.
-  NameIterator<T> fullMemberNameIterator<T extends Builder>();
-
-  /// Returns true if the export scope was modified.
-  bool addToExportScope(String name, Builder member,
-      {required UriOffset uriOffset});
+  /// If [includeDuplicates] is `true`, duplicate declarations are included.
+  Iterator<T> filteredMembersIterator<T extends NamedBuilder>(
+      {required bool includeDuplicates});
 
   /// Looks up [constructorName] in the class named [className].
   ///
@@ -415,7 +382,7 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   ///
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
-  Builder? lookupLocalMember(String name, {bool required = false});
+  NamedBuilder? lookupLocalMember(String name, {bool required = false});
 
   void recordAccess(
       CompilationUnit accessor, int charOffset, int length, Uri fileUri);
@@ -467,21 +434,6 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   Uri get importUri;
 
   @override
-  Iterator<Builder> get localMembersIterator {
-    return libraryNameSpace.filteredIterator(includeDuplicates: true);
-  }
-
-  @override
-  Iterator<T> localMembersIteratorOfType<T extends Builder>() {
-    return libraryNameSpace.filteredIterator<T>(includeDuplicates: true);
-  }
-
-  @override
-  NameIterator<Builder> get localMembersNameIterator {
-    return libraryNameSpace.filteredNameIterator(includeDuplicates: true);
-  }
-
-  @override
   FormattedMessage? addProblem(
       Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled = false,
@@ -495,93 +447,6 @@ abstract class LibraryBuilderImpl extends BuilderImpl
         context: context,
         severity: severity,
         problemOnLibrary: true);
-  }
-
-  /// Computes a builder for the export collision between [declaration] and
-  /// [other]. If [declaration] is declared in [libraryNameSpace] then this is
-  /// returned instead of reporting a collision.
-  Builder _computeAmbiguousDeclarationForExport(
-      String name, Builder declaration, Builder other,
-      {required UriOffset uriOffset}) {
-    // Prefix builders and load library builders are not part of an export
-    // scope.
-    assert(declaration is! PrefixBuilder,
-        "Unexpected prefix builder $declaration.");
-    assert(other is! PrefixBuilder, "Unexpected prefix builder $other.");
-    assert(declaration is! LoadLibraryBuilder,
-        "Unexpected load library builder $declaration.");
-    assert(other is! LoadLibraryBuilder,
-        "Unexpected load library builder $other.");
-
-    if (declaration == other) return declaration;
-    if (declaration is InvalidTypeDeclarationBuilder) return declaration;
-    if (other is InvalidTypeDeclarationBuilder) return other;
-    Builder? preferred;
-    Uri? uri;
-    Uri? otherUri;
-    if (libraryNameSpace.lookupLocalMember(name)?.getable == declaration) {
-      return declaration;
-    } else {
-      uri = computeLibraryUri(declaration);
-      otherUri = computeLibraryUri(other);
-      if (otherUri.isScheme("dart") && !uri.isScheme("dart")) {
-        preferred = declaration;
-      } else if (uri.isScheme("dart") && !otherUri.isScheme("dart")) {
-        preferred = other;
-      }
-    }
-    if (preferred != null) {
-      return preferred;
-    }
-
-    Uri firstUri = uri;
-    Uri secondUri = otherUri;
-    if (firstUri.toString().compareTo(secondUri.toString()) > 0) {
-      firstUri = secondUri;
-      secondUri = uri;
-    }
-
-    // TODO(ahe): We should probably use a context object here
-    // instead of including URIs in this message.
-    Message message =
-        templateDuplicatedExport.withArguments(name, firstUri, secondUri);
-    addProblem(message, uriOffset.fileOffset, noLength, uriOffset.uri);
-    // We report the error lazily (setting suppressMessage to false) because the
-    // spec 18.1 states that 'It is not an error if N is introduced by two or
-    // more imports but never referred to.'
-    return new InvalidTypeDeclarationBuilder(name,
-        message.withLocation(uriOffset.uri, uriOffset.fileOffset, name.length),
-        suppressMessage: false);
-  }
-
-  @override
-  bool addToExportScope(String name, Builder member,
-      {required UriOffset uriOffset}) {
-    if (name.startsWith("_")) return false;
-    if (member is PrefixBuilder) return false;
-    bool isSetter = isMappedAsSetter(member);
-    LookupResult? result = exportNameSpace.lookupLocalMember(name);
-    Builder? existing = isSetter ? result?.setable : result?.getable;
-    if (existing == member) {
-      return false;
-    } else {
-      if (member is MemberBuilder && member.isConflictingSetter) {
-        // TODO(johnniwinther): Remove this case when getables and setables are
-        //  contained in the same map in the name space.
-        exportNameSpace.addLocalMember(name, member, setter: isSetter);
-        return true;
-      } else if (existing != null) {
-        exportNameSpace.lookupLocalMember(name);
-        Builder result = _computeAmbiguousDeclarationForExport(
-            name, existing, member,
-            uriOffset: uriOffset);
-        exportNameSpace.addLocalMember(name, result, setter: isSetter);
-        return result != existing;
-      } else {
-        exportNameSpace.addLocalMember(name, member, setter: isSetter);
-        return true;
-      }
-    }
   }
 
   @override
@@ -632,8 +497,8 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   }
 
   @override
-  Builder? lookupLocalMember(String name, {bool required = false}) {
-    Builder? builder = libraryNameSpace.lookupLocalMember(name)?.getable;
+  NamedBuilder? lookupLocalMember(String name, {bool required = false}) {
+    NamedBuilder? builder = libraryNameSpace.lookupLocalMember(name)?.getable;
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

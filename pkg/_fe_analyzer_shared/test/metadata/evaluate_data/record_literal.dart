@@ -6,7 +6,13 @@ class Helper {
   const Helper(a);
 }
 
-@Helper(("a" "b", c: "c" "d"))
+@Helper((
+  "a"
+      "b",
+  c:
+      "c"
+      "d",
+))
 /*member: recordLiteral1:
 resolved=RecordLiteral(AdjacentStringLiterals(
     StringLiteral('a')
@@ -16,7 +22,15 @@ resolved=RecordLiteral(AdjacentStringLiterals(
 evaluate=RecordLiteral(StringLiteral('ab'), c: StringLiteral('cd'))*/
 void recordLiteral1() {}
 
-@Helper(("a" "b", c: (d: "c" "d")))
+@Helper((
+  "a"
+      "b",
+  c: (
+    d:
+        "c"
+        "d",
+  ),
+))
 /*member: recordLiteral2:
 resolved=RecordLiteral(AdjacentStringLiterals(
     StringLiteral('a')
@@ -24,4 +38,4 @@ resolved=RecordLiteral(AdjacentStringLiterals(
     StringLiteral('c')
     StringLiteral('d'))))
 evaluate=RecordLiteral(StringLiteral('ab'), c: RecordLiteral(d: StringLiteral('cd')))*/
-    void recordLiteral2() {}
+void recordLiteral2() {}

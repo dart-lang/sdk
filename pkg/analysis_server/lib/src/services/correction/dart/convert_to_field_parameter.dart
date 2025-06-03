@@ -22,7 +22,7 @@ class ConvertToFieldParameter extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_FIELD_PARAMETER;
+  AssistKind get assistKind => DartAssistKind.CONVERT_TO_INITIALIZING_FORMAL;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

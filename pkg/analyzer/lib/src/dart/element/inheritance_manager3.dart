@@ -107,21 +107,10 @@ class InheritanceManager3 {
     var targetLibrary = targetClass.library;
     var typeSystem = targetLibrary.typeSystem;
 
-    var validOverrides = <ExecutableElementOrMember>[];
-    for (var i = 0; i < candidates.length; i++) {
-      ExecutableElementOrMember? validOverride = candidates[i];
-      var validOverrideType = validOverride.type;
-      for (var j = 0; j < candidates.length; j++) {
-        var candidate = candidates[j];
-        if (!typeSystem.isSubtypeOf(validOverrideType, candidate.type)) {
-          validOverride = null;
-          break;
-        }
-      }
-      if (validOverride != null) {
-        validOverrides.add(validOverride);
-      }
-    }
+    var validOverrides = _getValidOverrides(
+      candidates: candidates,
+      typeSystem: typeSystem,
+    );
 
     if (validOverrides.isEmpty) {
       conflicts?.add(CandidatesConflict(name: name, candidates: candidates));
@@ -132,6 +121,47 @@ class InheritanceManager3 {
         candidates.map((e) => e.asElement2).toList();
 
     return _topMerge(typeSystem, targetClass, validOverrides);
+  }
+
+  /// Combine types of [candidates] into a single most specific type.
+  ///
+  /// If such signature does not exist, return `null`, and if [conflicts] is
+  /// not `null`, add a new [Conflict] to it.
+  FunctionTypeImpl? combineSignatureTypes({
+    required TypeSystemImpl typeSystem,
+    required List<ExecutableElementOrMember> candidates,
+    required Name name,
+    List<Conflict>? conflicts,
+  }) {
+    if (candidates.length == 1) {
+      return candidates[0].type;
+    }
+
+    var validOverrides = _getValidOverrides(
+      typeSystem: typeSystem,
+      candidates: candidates,
+    );
+
+    if (validOverrides.isEmpty) {
+      conflicts?.add(CandidatesConflict(name: name, candidates: candidates));
+      return null;
+    }
+
+    // Often there is one most specific signature.
+    var firstType = validOverrides[0].type;
+    if (validOverrides.length == 1) {
+      return firstType;
+    }
+
+    // Maybe more than valid, but the same type.
+    if (validOverrides.every((e) => e.type == firstType)) {
+      return firstType;
+    }
+
+    return _topMergeSignatureTypes(
+      typeSystem: typeSystem,
+      validOverrides: validOverrides,
+    );
   }
 
   /// Return the result of [getInherited2] with [type] substitution.
@@ -208,7 +238,12 @@ class InheritanceManager3 {
     }
 
     var interface = getInterface(element);
-    return interface.superImplemented.last;
+    if (interface.superImplemented.isNotEmpty) {
+      return interface.superImplemented.last;
+    } else {
+      assert(element.name2 == 'Object');
+      return const {};
+    }
   }
 
   /// Returns the mapping from names to most specific signatures of members
@@ -282,6 +317,7 @@ class InheritanceManager3 {
   @experimental
   Interface getInterface2(InterfaceElement element) {
     element as InterfaceElementImpl2; // TODO(scheglov): remove cast
+    globalResultRequirements?.record_interface_all(element: element);
     return getInterface(element.asElement);
   }
 
@@ -339,7 +375,7 @@ class InheritanceManager3 {
       if (superImplemented.isNotEmpty) {
         return superImplemented.last[name];
       } else {
-        assert(element.name == 'Object');
+        assert(element.name2 == 'Object');
         return null;
       }
     }
@@ -348,7 +384,7 @@ class InheritanceManager3 {
     }
 
     var result = interface.map[name];
-    globalResultRequirements?.notifyInterfaceRequest(
+    globalResultRequirements?.record_interface_getMember(
       element: element.asElement2,
       nameObj: name,
       methodElement: result?.asElement2,
@@ -479,14 +515,17 @@ class InheritanceManager3 {
 
     void addMember(ExecutableElementOrMember member) {
       if (!member.isAbstract && !member.isStatic) {
-        var name = Name(libraryUri, member.name);
-        implemented[name] = member;
+        var lookupName = member.element.lookupName;
+        if (lookupName != null) {
+          var name = Name(libraryUri, lookupName);
+          implemented[name] = member;
+        }
       }
     }
 
-    element.methods2.map((e) => e.asElement).forEach(addMember);
-    element.getters2.map((e) => e.asElement).forEach(addMember);
-    element.setters2.map((e) => e.asElement).forEach(addMember);
+    element.methods.map((e) => e.asElement).forEach(addMember);
+    element.getters.map((e) => e.asElement).forEach(addMember);
+    element.setters.map((e) => e.asElement).forEach(addMember);
   }
 
   void _addMixinMembers({
@@ -500,7 +539,7 @@ class InheritanceManager3 {
         continue;
       }
 
-      var class_ = executable.asElement2.enclosingElement2;
+      var class_ = executable.asElement2.enclosingElement;
       if (class_ is ClassElement && class_.isDartCoreObject) {
         continue;
       }
@@ -649,7 +688,7 @@ class InheritanceManager3 {
         }
 
         var current = currentList.single;
-        if (candidate2.enclosingElement2 == mixinElement) {
+        if (candidate2.enclosingElement == mixinElement) {
           namedCandidates[name] = [candidate];
           if (current.kind != candidate.kind) {
             var currentIsGetter = current.kind == ElementKind.GETTER;
@@ -1067,7 +1106,7 @@ class InheritanceManager3 {
     Name name,
     ExecutableElementOrMember executable,
   ) {
-    if (executable.asElement2.enclosingElement2 == class_.asElement2) {
+    if (executable.asElement2.enclosingElement == class_.asElement2) {
       return executable;
     }
 
@@ -1120,24 +1159,47 @@ class InheritanceManager3 {
     }
 
     if (executable is MethodElementOrMember) {
-      var result = MethodFragmentImpl(executable.name, -1);
+      var fragmentName = executable.name2 ?? '';
+      var fragmentReference = class_.reference!
+          .getChild('@method')
+          .getChild(fragmentName);
+
+      if (fragmentReference.element case MethodFragmentImpl result) {
+        return result;
+      }
+
+      var result = MethodFragmentImpl(name2: executable.name2, nameOffset: -1);
+      result.reference = fragmentReference;
+      fragmentReference.element = result;
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.returnType = executable.returnType;
       result.typeParameters = executable.typeParameters;
+
+      var elementName = executable.asElement2.name3!;
+      var elementReference = class_.element.reference!
+          .getChild('@method')
+          .getChild(elementName);
+      assert(elementReference.element2 == null);
+      MethodElementImpl2(
+        name3: elementName,
+        reference: elementReference,
+        firstFragment: result,
+      );
+
       return result;
     }
 
     if (executable is SetterFragmentImpl) {
-      var result = SetterFragmentImpl(executable.name, -1);
+      var result = SetterFragmentImpl(name2: executable.name2, nameOffset: -1);
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.returnType = executable.returnType;
 
       var field = executable.variable2!;
-      var resultField = FieldFragmentImpl(field.name, -1);
+      var resultField = FieldFragmentImpl(name2: field.name2, nameOffset: -1);
       resultField.enclosingElement3 = class_;
       resultField.getter = field.getter;
       resultField.setter = executable;
@@ -1164,25 +1226,14 @@ class InheritanceManager3 {
     }
 
     var firstType = first.type;
-    var allTypesEqual = true;
-    for (var executable in validOverrides) {
-      if (executable.type != firstType) {
-        allTypesEqual = false;
-        break;
-      }
-    }
-
-    if (allTypesEqual) {
+    if (validOverrides.every((e) => e.type == firstType)) {
       return first;
     }
 
-    var resultType = validOverrides
-        .map((e) {
-          return typeSystem.normalize(e.type) as FunctionTypeImpl;
-        })
-        .reduce((previous, next) {
-          return typeSystem.topMerge(previous, next) as FunctionTypeImpl;
-        });
+    var resultType = _topMergeSignatureTypes(
+      typeSystem: typeSystem,
+      validOverrides: validOverrides,
+    );
 
     for (var executable in validOverrides) {
       if (executable.type == resultType) {
@@ -1191,36 +1242,63 @@ class InheritanceManager3 {
     }
 
     if (first is MethodElementOrMember) {
-      var firstMethod = first;
-      var fragmentName = first.asElement2.firstFragment.name2;
-      var result = MethodFragmentImpl(firstMethod.name, -1);
+      var firstElement = first.asElement2;
+      var fragmentName = firstElement.firstFragment.name2!;
+
+      var fragmentReference = targetClass.reference!
+          .getChild('@method')
+          .getChild(fragmentName);
+
+      if (fragmentReference.element case MethodFragmentImpl result) {
+        return result;
+      }
+
+      var result = MethodFragmentImpl(name2: fragmentName, nameOffset: -1);
+      result.reference = fragmentReference;
+      fragmentReference.element = result;
       result.enclosingElement3 = targetClass;
-      result.name2 = fragmentName;
       result.typeParameters = resultType.typeFormals;
       result.returnType = resultType.returnType;
       // TODO(scheglov): check if can type cast instead
-      result.parameters = resultType.parameters.cast();
+      result.parameters =
+          resultType.parameters
+              .map((e) => e.firstFragment as FormalParameterFragmentImpl)
+              .toList();
+
+      var elementName = first.asElement2.name3!;
+      var elementReference = targetClass.element.reference!
+          .getChild('@method')
+          .getChild(elementName);
+      assert(elementReference.element2 == null);
+      MethodElementImpl2(
+        name3: elementName,
+        reference: elementReference,
+        firstFragment: result,
+      );
+
       return result;
     } else {
       var firstAccessor = first as PropertyAccessorElementOrMember;
       var fragmentName = first.asElement2.firstFragment.name2;
-      var variableName = firstAccessor.displayName;
-      var field = FieldFragmentImpl(variableName, -1);
+      var field = FieldFragmentImpl(name2: fragmentName, nameOffset: -1);
 
       PropertyAccessorFragmentImpl result;
       if (firstAccessor.isGetter) {
-        field.getter = result = GetterFragmentImpl(variableName, -1);
+        field.getter =
+            result = GetterFragmentImpl(name2: fragmentName, nameOffset: -1);
       } else {
-        field.setter = result = SetterFragmentImpl(variableName, -1);
+        field.setter =
+            result = SetterFragmentImpl(name2: fragmentName, nameOffset: -1);
       }
       result.enclosingElement3 = targetClass;
-      result.name2 = fragmentName;
       result.returnType = resultType.returnType;
       // TODO(scheglov): check if can type cast instead
-      result.parameters = resultType.parameters.cast();
+      result.parameters =
+          resultType.parameters
+              .map((e) => e.firstFragment as FormalParameterFragmentImpl)
+              .toList();
 
       field.enclosingElement3 = targetClass;
-      field.name2 = fragmentName;
       if (firstAccessor.isGetter) {
         field.type = result.returnType;
       } else {
@@ -1241,21 +1319,56 @@ class InheritanceManager3 {
 
     void addMember(ExecutableElementOrMember member) {
       if (!member.isStatic) {
-        var name = Name(libraryUri, member.name);
-        declared[name] = member;
+        var lookupName = member.element.lookupName;
+        if (lookupName != null) {
+          var name = Name(libraryUri, lookupName);
+          declared[name] = member;
+        }
       }
     }
 
-    element.methods2.map((e) => e.asElement).forEach(addMember);
-    element.getters2.map((e) => e.asElement).forEach(addMember);
-    element.setters2.map((e) => e.asElement).forEach(addMember);
+    element.methods.map((e) => e.asElement).forEach(addMember);
+    element.getters.map((e) => e.asElement).forEach(addMember);
+    element.setters.map((e) => e.asElement).forEach(addMember);
 
     return declared;
   }
 
+  /// Returns executables that are valid overrides of [candidates].
+  static List<ExecutableElementOrMember> _getValidOverrides({
+    required TypeSystemImpl typeSystem,
+    required List<ExecutableElementOrMember> candidates,
+  }) {
+    var validOverrides = <ExecutableElementOrMember>[];
+    outer:
+    for (var i = 0; i < candidates.length; i++) {
+      var validOverride = candidates[i];
+      var validOverrideType = validOverride.type;
+      for (var j = 0; j < candidates.length; j++) {
+        var candidate = candidates[j];
+        if (!typeSystem.isSubtypeOf(validOverrideType, candidate.type)) {
+          continue outer;
+        }
+      }
+      validOverrides.add(validOverride);
+    }
+    return validOverrides;
+  }
+
   static bool _isDeclaredInObject(ExecutableElementOrMember element) {
-    var enclosing = element.asElement2.enclosingElement2;
+    var enclosing = element.asElement2.enclosingElement;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
+  }
+
+  static FunctionTypeImpl _topMergeSignatureTypes({
+    required TypeSystemImpl typeSystem,
+    required List<ExecutableElementOrMember> validOverrides,
+  }) {
+    return validOverrides
+        .map((e) => typeSystem.normalizeFunctionType(e.type))
+        .reduce((previous, next) {
+          return typeSystem.topMerge(previous, next) as FunctionTypeImpl;
+        });
   }
 }
 
@@ -1523,7 +1636,7 @@ class _ParameterDesc {
 
   factory _ParameterDesc(int index, ParameterElementMixin element) {
     return element.isNamed
-        ? _ParameterDesc.name(element.name)
+        ? _ParameterDesc.name(element.name2)
         : _ParameterDesc.index(index);
   }
 

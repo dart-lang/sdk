@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
@@ -19,14 +19,16 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// A command handler for any of the commands used to implement refactorings.
-class RefactorCommandHandler
-    extends SimpleEditCommandHandler<LspAnalysisServer> {
+class RefactorCommandHandler extends SimpleEditCommandHandler<AnalysisServer> {
   @override
   final String commandName;
 
   final RefactoringProducerGenerator generator;
 
   RefactorCommandHandler(super.server, this.commandName, this.generator);
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<void>> handle(

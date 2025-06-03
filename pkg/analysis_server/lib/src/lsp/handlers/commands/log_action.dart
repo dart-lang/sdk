@@ -16,6 +16,10 @@ class LogActionCommandHandler
   bool get recordsOwnAnalytics => true;
 
   @override
+  // We only currently expect this to be called by the editor.
+  bool get requiresTrustedCaller => true;
+
+  @override
   Future<ErrorOr<void>> handle(
     MessageInfo message,
     Map<String, Object?> parameters,

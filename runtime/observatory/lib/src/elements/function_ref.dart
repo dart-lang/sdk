@@ -4,8 +4,15 @@
 
 library function_ref_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
+import 'package:observatory/src/elements/class_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
+
 import 'package:observatory/models.dart' as M
     show
         IsolateRef,
@@ -14,10 +21,6 @@ import 'package:observatory/models.dart' as M
         ClassRef,
         ObjectRef,
         getFunctionFullName;
-import 'package:observatory/src/elements/class_ref.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
 
 class FunctionRefElement extends CustomElement implements Renderable {
   late RenderingScheduler<FunctionRefElement> _r;
@@ -53,35 +56,35 @@ class FunctionRefElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     title = '';
     _r.disable(notify: true);
   }
 
   void render() {
-    var content = <Element>[
-      new AnchorElement(
-          href: (M.isSyntheticFunction(_function.kind) || (_isolate == null))
-              ? null
-              : Uris.inspect(_isolate!, object: _function))
-        ..text = _function.name
+    var content = <HTMLElement>[
+      new HTMLAnchorElement()
+        ..href = (M.isSyntheticFunction(_function.kind) || (_isolate == null))
+            ? ''
+            : Uris.inspect(_isolate!, object: _function)
+        ..text = _function.name ?? ''
     ];
     if (qualified) {
       M.ObjectRef? owner = _function.dartOwner;
       while (owner is M.FunctionRef) {
         content.addAll([
-          new SpanElement()..text = '.',
-          new AnchorElement(
-              href: (M.isSyntheticFunction(owner.kind) || (_isolate == null))
-                  ? null
-                  : Uris.inspect(_isolate!, object: owner))
-            ..text = owner.name
+          new HTMLSpanElement()..textContent = '.',
+          new HTMLAnchorElement()
+            ..href = (M.isSyntheticFunction(owner.kind) || (_isolate == null))
+                ? ''
+                : Uris.inspect(_isolate!, object: owner)
+            ..text = owner.name!
         ]);
         owner = owner.dartOwner;
       }
       if (owner is M.ClassRef) {
         content.addAll([
-          new SpanElement()..text = '.',
+          new HTMLSpanElement()..textContent = '.',
           new ClassRefElement(_isolate!, owner, queue: _r.queue).element
         ]);
       }

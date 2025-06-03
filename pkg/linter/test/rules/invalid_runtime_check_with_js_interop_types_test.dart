@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -442,7 +443,10 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
       null as JSArray?;
     }
     ''',
-      [error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 54, 13)],
+      [
+        error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 54, 13),
+        error(WarningCode.DEAD_CODE, 75, 17),
+      ],
     );
   }
 

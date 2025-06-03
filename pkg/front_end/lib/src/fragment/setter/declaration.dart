@@ -9,6 +9,7 @@ import 'package:kernel/type_environment.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/metadata_builder.dart';
@@ -24,6 +25,7 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../source/type_parameter_scope_builder.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
@@ -31,6 +33,8 @@ import 'encoding.dart';
 /// Interface for a setter declaration aspect of a [SourcePropertyBuilder].
 abstract class SetterDeclaration {
   Uri get fileUri;
+
+  UriOffsetLength get uriOffset;
 
   List<MetadataBuilder>? get metadata;
 
@@ -80,14 +84,17 @@ abstract class SetterDeclaration {
   List<ClassMember> get localSetters;
 }
 
-class SetterDeclarationImpl
+class RegularSetterDeclaration
     implements SetterDeclaration, SetterFragmentDeclaration {
   final SetterFragment _fragment;
   late final SetterEncoding _encoding;
 
-  SetterDeclarationImpl(this._fragment) {
+  RegularSetterDeclaration(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   AsyncMarker get asyncModifier => _fragment.asyncModifier;
@@ -213,6 +220,9 @@ class SetterDeclarationImpl
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
       List<NominalParameterBuilder> unboundNominalParameters) {
+    _fragment.builder = builder;
+    createNominalParameterBuilders(
+        _fragment.declaredTypeParameters, unboundNominalParameters);
     _encoding = encodingStrategy.createSetterEncoding(
         builder, _fragment, unboundNominalParameters);
     _fragment.typeParameterNameSpace.addTypeParameters(
@@ -253,9 +263,8 @@ class SetterDeclarationImpl
   }
 
   @override
-  List<ClassMember> get localSetters => _fragment.builder.isConflictingSetter
-      ? const []
-      : [new SetterClassMember(_fragment.builder)];
+  List<ClassMember> get localSetters =>
+      [new SetterClassMember(_fragment.builder)];
 }
 
 /// Interface for using a [SetterFragment] to create a [BodyBuilderContext].

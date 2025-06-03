@@ -244,6 +244,7 @@ MethodDeclaration
       TypeParameter
         name: U
         declaredElement: U@41
+          defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
@@ -303,9 +304,11 @@ ExtensionTypeDeclaration
       TypeParameter
         name: T
         declaredElement: T@17
+          defaultType: dynamic
       TypeParameter
         name: U
         declaredElement: U@20
+          defaultType: dynamic
     rightBracket: >
   representation: RepresentationDeclaration
     leftParenthesis: (
@@ -352,9 +355,11 @@ ExtensionTypeDeclaration
       TypeParameter
         name: _
         declaredElement: _@18
+          defaultType: dynamic
       TypeParameter
         name: _
         declaredElement: _@21
+          defaultType: dynamic
       TypeParameter
         name: _
         extendsKeyword: extends
@@ -363,6 +368,7 @@ ExtensionTypeDeclaration
           element2: dart:core::@class::num
           type: num
         declaredElement: _@24
+          defaultType: num
     rightBracket: >
   representation: RepresentationDeclaration
     leftParenthesis: (

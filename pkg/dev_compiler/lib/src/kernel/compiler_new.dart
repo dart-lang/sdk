@@ -616,6 +616,19 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   final Procedure _assertInteropMethod;
 
+  // The direct `_as` methods for primitive types.
+  final Member _asBool;
+  final Member _asDouble;
+  final Member _asInt;
+  final Member _asNum;
+  final Member _asObject;
+  final Member _asString;
+  final Member _asBoolQ;
+  final Member _asDoubleQ;
+  final Member _asIntQ;
+  final Member _asNumQ;
+  final Member _asStringQ;
+
   final DevCompilerConstants _constants;
 
   final NullableInference _nullableInference;
@@ -741,7 +754,18 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _inlineTester = BasicInlineTester(_constants),
         _runtimeLibrary = sdk.getLibrary('dart:_runtime'),
         _rtiLibrary = sdk.getLibrary('dart:_rti'),
-        _rtiClass = sdk.getClass('dart:_rti', 'Rti');
+        _rtiClass = sdk.getClass('dart:_rti', 'Rti'),
+        _asBool = sdk.getTopLevelMember('dart:_rti', '_asBool'),
+        _asDouble = sdk.getTopLevelMember('dart:_rti', '_asDouble'),
+        _asInt = sdk.getTopLevelMember('dart:_rti', '_asInt'),
+        _asNum = sdk.getTopLevelMember('dart:_rti', '_asNum'),
+        _asObject = sdk.getTopLevelMember('dart:_rti', '_asObject'),
+        _asString = sdk.getTopLevelMember('dart:_rti', '_asString'),
+        _asBoolQ = sdk.getTopLevelMember('dart:_rti', '_asBoolQ'),
+        _asDoubleQ = sdk.getTopLevelMember('dart:_rti', '_asDoubleQ'),
+        _asIntQ = sdk.getTopLevelMember('dart:_rti', '_asIntQ'),
+        _asNumQ = sdk.getTopLevelMember('dart:_rti', '_asNumQ'),
+        _asStringQ = sdk.getTopLevelMember('dart:_rti', '_asStringQ');
 
   /// The library for dart:core in the SDK.
   Library get _coreLibrary => _coreTypes.coreLibrary;
@@ -757,6 +781,19 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final FutureOrNormalizer _futureOrNormalizer;
 
   bool _inFunctionExpression = false;
+
+  /// Returns whether or not [uri] can be hot reloaded.
+  ///
+  /// These packages are not updated during the runtime of a standard program,
+  /// allowing us to make the following optimizations:
+  ///  - methods, getters, and setters are emitted without additional levels
+  ///    of indirection
+  ///  - fields are emitted without additional lazy initialization checks.
+  bool _isNonHotReloadableResource(Uri uri) {
+    return (uri.isScheme('dart')) ||
+        (uri.isScheme('package') &&
+            _options.nonHotReloadablePackages.contains(uri.pathSegments[0]));
+  }
 
   /// Module can be emitted only once, and the compiler can be reused after
   /// only in incremental mode, for expression compilation only.
@@ -1163,6 +1200,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       library.classes.forEach(_emitClass);
       _emitLibraryMembers(library);
     }
+    // Creating a function and setting the library object as the prototype
+    // serves as a signal to V8 that the members of the library should get
+    // optimized for fast lookup.
+    // Do not remove without testing for performance regressions.
+    _moduleItems.add(js.statement(
+        '(function() {}).prototype = #', [_libraries[_currentLibrary!]]));
     _staticTypeContext.leaveLibrary(_currentLibrary!);
   }
 
@@ -2755,11 +2798,13 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var virtualFieldSymbol = _emitFieldValueAccessor(field);
     var name = _declareMemberName(field);
     var initializer = _visitInitializer(field.initializer, field.annotations);
-    var getter = _emitLazyInitializingFunction(
-      js.call('this.#', virtualFieldSymbol),
-      initializer,
-      field,
-    );
+    var getter = _isNonHotReloadableResource(_currentLibrary!.importUri)
+        ? js.fun('function() { return this[#]; }', [virtualFieldSymbol])
+        : _emitLazyInitializingFunction(
+            js.call('this.#', virtualFieldSymbol),
+            initializer,
+            field,
+          );
     var jsGetter = js_ast.Method(name, getter, isGetter: true)
       ..sourceInformation = _nodeStart(field);
 
@@ -3118,8 +3163,21 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       var initializer =
           _visitInitializer(member.initializer, member.annotations);
-      var getter = _emitLazyInitializingFunction(
-          js.call('this.#', memberValueStore), initializer, member);
+
+      js_ast.Fun getter;
+      if (_isNonHotReloadableResource(_currentLibrary!.importUri)) {
+        getter = js.fun(
+            'function() { return this[#] === void 0 ? this[#] = # : this[#]; }',
+            [
+              memberValueStore,
+              memberValueStore,
+              initializer,
+              memberValueStore
+            ]);
+      } else {
+        getter = _emitLazyInitializingFunction(
+            js.call('this.#', memberValueStore), initializer, member);
+      }
       properties.add(js_ast.Method(access, getter,
           isGetter: true,
           isStatic: member.isStatic && member.enclosingClass != null)
@@ -3128,7 +3186,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           member.fileOffset,
           member.name.text.length,
         ));
-
       if (!member.isFinal && !member.isConst) {
         var body = <js_ast.Statement>[];
         var param = _emitIdentifier('v');
@@ -3824,11 +3881,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         DDCTypeEnvironment environment, String recipe) {
       switch (environment) {
         case EmptyTypeEnvironment():
-          return js
-              .call('#._Universe.eval(#._theUniverse(), "$recipe", true)', [
-            _emitLibraryName(_rtiLibrary),
-            _emitLibraryName(_rtiLibrary),
-          ]);
+          // Cache ground types in the type table for fast lookup. The table will
+          // lazily lookup the RTI object on first access and then replace the
+          // lazy getter with the initialized RTI object.
+          return _typeTable.nameType(
+              type,
+              js.call('#._Universe.eval(#, "$recipe", true)', [
+                _emitLibraryName(_rtiLibrary),
+                _runtimeCall('typeUniverse'),
+              ]));
         case BindingTypeEnvironment():
           js_ast.Expression env;
           if (environment.isSingleTypeParameter) {
@@ -4575,6 +4636,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (_isDebuggerCall(expr.target)) {
         return _emitDebuggerCall(expr).toStatement();
       }
+    }
+    var jsExpression = _visitExpression(expr);
+    if (jsExpression is js_ast.InvocationWithHotReloadChecks) {
+      // When the static invocation expression has been rewritten to include
+      // hot reload correctness checks the entire resulting node shouldn't
+      // get source-mapped to the original call. Instead the call sites in
+      // the sub-expressions will have the correct mapping applied.
+      return jsExpression.toStatement()..sourceInformation = continueSourceMap;
     }
     return _visitExpression(expr).toStatement();
   }
@@ -5385,7 +5454,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_isTemporaryVariable(v)) {
       var name = _debuggerFriendlyTemporaryVariableName(v);
       name ??= 't\$${_tempVariables.length}';
-      return _tempVariables.putIfAbsent(v, () => _emitScopedId(name!));
+      return _tempVariables.putIfAbsent(
+          v, () => _emitScopedId(name!, needsCapture: true));
     }
     var name = v.name!;
     if (isLateLoweredLocal(v)) {
@@ -5435,8 +5505,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitDynamicGet(DynamicGet node) {
     var jsReceiver = _visitExpression(node.receiver);
     var jsMemberName = _emitMemberName(node.name.text);
-    return _runtimeCall('dload$_replSuffix(#, #)', [jsReceiver, jsMemberName]);
+    return _emitDynamicGet(jsReceiver, jsMemberName);
   }
+
+  js_ast.Expression _emitDynamicGet(
+          js_ast.Expression receiver, js_ast.Expression memberName) =>
+      _runtimeCall('dload$_replSuffix(#, #)', [receiver, memberName]);
 
   @override
   js_ast.Expression visitInstanceGet(InstanceGet node) {
@@ -5466,6 +5540,17 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var jsMemberName =
         _emitMemberName(memberName, member: node.interfaceTarget);
     var instanceGet = js_ast.PropertyAccess(jsReceiver, jsMemberName);
+    if (_shouldRewriteInvocationWithHotReloadChecks(node.interfaceTarget)) {
+      instanceGet.sourceInformation = _nodeStart(node);
+      // Since there are no arguments (unlike methods) the dynamic get path can
+      // be reused for the hot reload checks on a getter.
+      var checkedGet = _emitCast(
+          _emitDynamicGet(
+              _visitExpression(receiver), _emitMemberName(memberName)),
+          node.resultType)
+        ..sourceInformation = _nodeStart(node);
+      return _emitHotReloadSafeInvocation(instanceGet, checkedGet);
+    }
     return _isNullCheckableJsInterop(node.interfaceTarget)
         ? _wrapWithJsInteropNullCheck(instanceGet)
         : instanceGet;
@@ -5524,13 +5609,22 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitDynamicSet(DynamicSet node) {
-    return _emitPropertySet(node.receiver, null, node.value, node.name.text);
+    return _runtimeCall('dput$_replSuffix(#, #, #)', [
+      _visitExpression(node.receiver),
+      _emitMemberName(node.name.text),
+      _visitExpression(node.value)
+    ]);
   }
 
   @override
   js_ast.Expression visitInstanceSet(InstanceSet node) {
-    return _emitPropertySet(
-        node.receiver, node.interfaceTarget, node.value, node.name.text);
+    var target = node.interfaceTarget;
+    var value = isJsMember(target) ? _assertInterop(node.value) : node.value;
+    return js.call('#.# = #', [
+      _visitExpression(node.receiver),
+      _emitMemberName(node.name.text, member: target),
+      _visitExpression(value)
+    ]);
   }
 
   /// True when the result of evaluating [e] is not known to have the Object
@@ -5619,24 +5713,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   // _emitMemberName would be a nice place to handle it, but we don't have
   // access to the target expression there (needed for `dart.replNameLookup`).
   String get _replSuffix => _options.replCompile ? 'Repl' : '';
-
-  js_ast.Expression _emitPropertySet(Expression receiver, Member? member,
-      Expression value, String memberName) {
-    var jsName = _emitMemberName(memberName, member: member);
-
-    if (member != null && isJsMember(member)) {
-      value = _assertInterop(value);
-    }
-
-    var jsReceiver = _visitExpression(receiver);
-    var jsValue = _visitExpression(value);
-
-    if (member == null) {
-      return _runtimeCall(
-          'dput$_replSuffix(#, #, #)', [jsReceiver, jsName, jsValue]);
-    }
-    return js.call('#.# = #', [jsReceiver, jsName, jsValue]);
-  }
 
   @override
   js_ast.Expression visitAbstractSuperPropertyGet(
@@ -6789,24 +6865,41 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var fn = _emitStaticTarget(target);
     var args = _emitArgumentList(node.arguments, target: target);
-    var staticCall = js_ast.Call(fn, args);
-    if (_inFunctionExpression &&
-        !usesJSInterop(node.target) &&
-        !_isBuildingSdk) {
+    var staticCall = js_ast.Call(fn, args)
+      ..sourceInformation = _nodeStart(node);
+    if (_shouldRewriteInvocationWithHotReloadChecks(target)) {
       var checkedCall = _rewriteInvocationWithHotReloadChecks(
-          target, node.arguments, node.getStaticType(_staticTypeContext));
+          target,
+          node.arguments,
+          node.getStaticType(_staticTypeContext),
+          _nodeStart(node));
       // As an optimization, avoid extra checks when the invocation code was
       // compiled in the same generation that it is running.
-      return js.call('# === # ? # : #', [
-        js.number(_hotReloadGeneration),
-        _runtimeCall('global.dartDevEmbedder.hotReloadGeneration'),
-        staticCall,
-        checkedCall
-      ]);
+      return _emitHotReloadSafeInvocation(staticCall, checkedCall);
     }
     return _isNullCheckableJsInterop(target)
         ? _wrapWithJsInteropNullCheck(staticCall)
         : staticCall;
+  }
+
+  /// Returns `true` when an invocation of [target] should be rewritten to
+  /// include checks to preserve soundness in the presence of hot reloads at
+  /// runtime.
+  bool _shouldRewriteInvocationWithHotReloadChecks(Member target) =>
+      _inFunctionExpression &&
+      !_isBuildingSdk &&
+      !usesJSInterop(target) &&
+      target != _assertInteropMethod;
+
+  js_ast.Expression _emitHotReloadSafeInvocation(
+      js_ast.Expression uncheckedCall, js_ast.Expression checkedCall) {
+    var generationCheck = js.call('# === #', [
+      js.number(_hotReloadGeneration),
+      _runtimeCall('global.dartDevEmbedder.hotReloadGeneration')
+    ]);
+    return js_ast.InvocationWithHotReloadChecks(
+        generationCheck, uncheckedCall, checkedCall)
+      ..sourceInformation = continueSourceMap;
   }
 
   /// Rewrites an invocation of [target] that is statically sound at compile
@@ -6820,8 +6913,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// Invokes `noSuchMethod` if the check fails. If that also returns a value,
   /// it's cast to the [expectedReturnType].
+  ///
+  /// The resulting expression for the validated call site will receive the
+  /// [originalCallSiteSourceLocation].
   js_ast.Expression _rewriteInvocationWithHotReloadChecks(
-      Member target, Arguments arguments, DartType expectedReturnType) {
+      Member target,
+      Arguments arguments,
+      DartType expectedReturnType,
+      SourceLocation? originalCallSiteSourceLocation) {
     var hoistedPositionalVariables = <js_ast.Expression>[];
     var hoistedNamedVariables = <String, js_ast.Expression>{};
     js_ast.Expression? letAssignments;
@@ -6900,7 +6999,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           for (var e in hoistedNamedVariables.entries)
             js_ast.Property(js.string(e.key), e.value)
         ])
-    ]);
+    ])
+      ..sourceInformation = originalCallSiteSourceLocation;
     // Cast the result of the checked call or the value returned from a
     // `NoSuchMethod` invocation.
     return js_ast.Binary(
@@ -7556,80 +7656,97 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var fromExpr = node.operand;
     var jsFrom = _visitExpression(fromExpr);
     if (node.isUnchecked) return jsFrom;
-    var to = node.type.extensionTypeErasure;
-    var from = fromExpr.getStaticType(_staticTypeContext).extensionTypeErasure;
-
-    // If the check was put here by static analysis to ensure soundness, we
-    // can't skip it. For example, one could implement covariant generic caller
-    // side checks like this:
-    //
-    //      typedef F<T>(T t);
-    //      class C<T> {
-    //        F<T> f;
-    //        add(T t) {
-    //          // required check `t as T`
-    //        }
-    //      }
-    //      main() {
-    //        C<Object> c = new C<int>()..f = (int x) => x.isEven;
-    //        c.f('hi'); // required check `c.f as F<Object>`
-    //        c.add('hi);
-    //      }
-    //
-    var isTypeError = node.isTypeError;
-    if (!isTypeError &&
-        _types.isSubtypeOf(from, to, SubtypeCheckMode.withNullabilities)) {
-      return jsFrom;
-    }
-
-    if (!isTypeError &&
-        DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
-            .areEqual(from, to) &&
-        _mustBeNonNullable(to)) {
-      // If the underlying type is the same, we only need a null check.
-      return _runtimeCall('nullCast(#, #)', [jsFrom, _emitType(to)]);
-    }
-
-    // All Dart number types map to a JS double.  We can specialize these
-    // cases.
-    if (_typeRep.isNumber(from) && _typeRep.isNumber(to)) {
-      // If `to` is some form of `num`, it should have been filtered above.
-
-      // * -> double? : no-op
-      if (to == _coreTypes.doubleNullableRawType) {
-        return jsFrom;
-      }
-
-      // * -> double : null check
-      if (to == _coreTypes.doubleNonNullableRawType) {
-        if (from.nullability == Nullability.nonNullable) {
-          return jsFrom;
-        }
-        return _runtimeCall('nullCast(#, #)', [jsFrom, _emitType(to)]);
-      }
-
-      // * -> int : asInt check
-      if (to == _coreTypes.intNonNullableRawType) {
-        return _runtimeCall('asInt(#)', [jsFrom]);
-      }
-
-      // * -> int? : asNullableInt check
-      if (to == _coreTypes.intNullableRawType) {
-        return _runtimeCall('asNullableInt(#)', [jsFrom]);
-      }
-    }
-
-    return _emitCast(jsFrom, to);
+    return _emitCast(jsFrom, node.type,
+        fromStaticType: fromExpr.getStaticType(_staticTypeContext),
+        isTypeError: node.isTypeError);
   }
 
-  js_ast.Expression _emitCast(js_ast.Expression expr, DartType type) {
-    var normalizedType = type.extensionTypeErasure;
-    if (_types.isTop(normalizedType)) return expr;
+  js_ast.Expression _emitCast(js_ast.Expression value, DartType toType,
+      {DartType? fromStaticType, bool isTypeError = false}) {
+    toType = toType.extensionTypeErasure;
+    if (_types.isTop(toType)) return value;
+    if (fromStaticType != null) {
+      fromStaticType = fromStaticType.extensionTypeErasure;
+      // If the check was put here by static analysis to ensure soundness, we
+      // can't skip it. For example, one could implement covariant generic
+      // caller side checks like this:
+      //
+      //      typedef F<T>(T t);
+      //      class C<T> {
+      //        F<T> f;
+      //        add(T t) {
+      //          // required check `t as T`
+      //        }
+      //      }
+      //      main() {
+      //        C<Object> c = new C<int>()..f = (int x) => x.isEven;
+      //        c.f('hi'); // required check `c.f as F<Object>`
+      //        c.add('hi);
+      //      }
+      //
+      if (!isTypeError &&
+          _types.isSubtypeOf(
+              fromStaticType, toType, SubtypeCheckMode.withNullabilities)) {
+        return value;
+      }
+      if (!isTypeError &&
+          _mustBeNonNullable(toType) &&
+          DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
+              .areEqual(fromStaticType, toType)) {
+        // If the underlying type is the same, we only need a null check.
+        return _runtimeCall('nullCast(#, #)', [value, _emitType(toType)]);
+      }
+      // All Dart number types map to a JavaScript Number. We can specialize
+      // these cases.
+      if (_typeRep.isNumber(fromStaticType) && _typeRep.isNumber(toType)) {
+        // If `toType` is some form of `num`, it should have been filtered
+        // above.
+        if (toType == _coreTypes.doubleNullableRawType) {
+          // Any number/nullability -> double? : no-op
+          return value;
+        }
+        if (toType == _coreTypes.doubleNonNullableRawType) {
+          if (fromStaticType.nullability == Nullability.nonNullable) {
+            // Any non-nullable number -> double : no-op
+            return value;
+          }
+          // Any number/nullability -> double : null check
+          return _runtimeCall('nullCast(#, #)', [value, _emitType(toType)]);
+        }
+      }
+    }
+    var directMethod = _directCastMethod(toType);
+    if (directMethod != null) {
+      return js.call('#(#)', [_emitTopLevelName(directMethod), value]);
+    }
+
     return js.call('#.#(#)', [
-      _emitType(normalizedType),
+      _emitType(toType),
       _emitMemberName(js_ast.FixedNames.rtiAsField, memberClass: _rtiClass),
-      expr
+      value
     ]);
+  }
+
+  /// Returns the direct `_as` method when [type] is a primitive type otherwise,
+  /// `null`.
+  Member? _directCastMethod(DartType type) {
+    if (type is InterfaceType && type.typeArguments.isEmpty) {
+      if (type.nullability == Nullability.nonNullable) {
+        if (type == _types.coreTypes.boolNonNullableRawType) return _asBool;
+        if (type == _types.coreTypes.doubleNonNullableRawType) return _asDouble;
+        if (type == _types.coreTypes.intNonNullableRawType) return _asInt;
+        if (type == _types.coreTypes.numNonNullableRawType) return _asNum;
+        if (type == _types.coreTypes.objectNonNullableRawType) return _asObject;
+        if (type == _types.coreTypes.stringNonNullableRawType) return _asString;
+      } else if (type.nullability == Nullability.nullable) {
+        if (type == _types.coreTypes.boolNullableRawType) return _asBoolQ;
+        if (type == _types.coreTypes.doubleNullableRawType) return _asDoubleQ;
+        if (type == _types.coreTypes.intNullableRawType) return _asIntQ;
+        if (type == _types.coreTypes.numNullableRawType) return _asNumQ;
+        if (type == _types.coreTypes.stringNullableRawType) return _asStringQ;
+      }
+    }
+    return null;
   }
 
   @override

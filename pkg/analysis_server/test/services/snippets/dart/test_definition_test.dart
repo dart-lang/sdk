@@ -12,6 +12,7 @@ import 'test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TestDefinitionTest);
+    defineReflectiveTests(TestWithFlutterDefinitionTest);
   });
 }
 
@@ -47,75 +48,6 @@ void f() {
   }
 
   Future<void> test_import_dart_existing() async {
-    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
-    var code = TestCode.parse(r'''
-import 'package:test/test.dart';
-
-void f() {
-  test^
-}
-''');
-    var snippet = await expectValidSnippet(code);
-    var result = applySnippet(code, snippet);
-    expect(result, '''
-import 'package:test/test.dart';
-
-void f() {
-  test('test name', () {
-    
-  });
-}
-''');
-  }
-
-  Future<void> test_import_flutter() async {
-    writeTestPackageConfig(flutter_test: true);
-    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
-    var code = TestCode.parse(r'''
-void f() {
-  test^
-}
-''');
-    var snippet = await expectValidSnippet(code);
-    var result = applySnippet(code, snippet);
-    expect(result, '''
-import 'package:flutter_test/flutter_test.dart';
-
-void f() {
-  test('test name', () {
-    
-  });
-}
-''');
-  }
-
-  Future<void> test_import_flutter_existing() async {
-    writeTestPackageConfig(flutter_test: true);
-    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
-    var code = TestCode.parse(r'''
-import 'package:flutter_test/flutter_test.dart';
-
-void f() {
-  test^
-}
-''');
-    var snippet = await expectValidSnippet(code);
-    var result = applySnippet(code, snippet);
-    expect(result, '''
-import 'package:flutter_test/flutter_test.dart';
-
-void f() {
-  test('test name', () {
-    
-  });
-}
-''');
-  }
-
-  /// Ensure we don't import package:flutter_test if package:test is already
-  /// imported.
-  Future<void> test_import_flutter_existingDart() async {
-    writeTestPackageConfig(flutter_test: true);
     testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
     var code = TestCode.parse(r'''
 import 'package:test/test.dart';
@@ -178,5 +110,86 @@ void f() {
 }
 ''';
     await expectNotValidSnippet(code);
+  }
+}
+
+@reflectiveTest
+class TestWithFlutterDefinitionTest extends DartSnippetProducerTest {
+  @override
+  final generator = TestDefinition.new;
+
+  @override
+  bool get addFlutterTestPackageDep => true;
+
+  @override
+  String get label => TestDefinition.label;
+
+  @override
+  String get prefix => TestDefinition.prefix;
+
+  Future<void> test_import_flutter() async {
+    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    var code = TestCode.parse(r'''
+void f() {
+  test^
+}
+''');
+    var snippet = await expectValidSnippet(code);
+    var result = applySnippet(code, snippet);
+    expect(result, '''
+import 'package:flutter_test/flutter_test.dart';
+
+void f() {
+  test('test name', () {
+    
+  });
+}
+''');
+  }
+
+  Future<void> test_import_flutter_existing() async {
+    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    var code = TestCode.parse(r'''
+import 'package:flutter_test/flutter_test.dart';
+
+void f() {
+  test^
+}
+''');
+    var snippet = await expectValidSnippet(code);
+    var result = applySnippet(code, snippet);
+    expect(result, '''
+import 'package:flutter_test/flutter_test.dart';
+
+void f() {
+  test('test name', () {
+    
+  });
+}
+''');
+  }
+
+  /// Ensure we don't import package:flutter_test if package:test is already
+  /// imported.
+  Future<void> test_import_flutter_existingDart() async {
+    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    var code = TestCode.parse(r'''
+import 'package:test/test.dart';
+
+void f() {
+  test^
+}
+''');
+    var snippet = await expectValidSnippet(code);
+    var result = applySnippet(code, snippet);
+    expect(result, '''
+import 'package:test/test.dart';
+
+void f() {
+  test('test name', () {
+    
+  });
+}
+''');
   }
 }

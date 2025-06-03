@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -28,7 +29,7 @@ class ParameterAssignments extends LintRule {
     : super(name: LintNames.parameter_assignments, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.parameter_assignments;
+  DiagnosticCode get diagnosticCode => LinterLintCode.parameter_assignments;
 
   @override
   void registerNodeProcessors(

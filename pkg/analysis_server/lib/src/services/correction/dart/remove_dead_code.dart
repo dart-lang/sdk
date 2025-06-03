@@ -9,7 +9,6 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -47,7 +46,7 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
     var errorLength = diagnostic.problemMessage.length;
     _errorEnd = _errorOffset + errorLength;
 
-    var node = NodeLocator2(_errorOffset).searchWithin(unit);
+    var node = unit.nodeCovering(offset: _errorOffset);
     if (node == null) {
       assert(
         false,

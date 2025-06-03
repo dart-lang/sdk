@@ -346,7 +346,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     var actualErrorCount = 0;
     var actualWarningCount = 0;
     for (var error in _errors) {
-      if (error.errorCode.errorSeverity == DiagnosticSeverity.ERROR) {
+      if (error.errorCode.severity == DiagnosticSeverity.ERROR) {
         actualErrorCount++;
       } else {
         actualWarningCount++;

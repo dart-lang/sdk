@@ -11,8 +11,11 @@ import 'witness.dart';
 
 /// Returns `true` if [caseSpaces] exhaustively covers all possible values of
 /// [valueSpace].
-bool isExhaustive(ObjectPropertyLookup fieldLookup, Space valueSpace,
-    List<Space> caseSpaces) {
+bool isExhaustive(
+  ObjectPropertyLookup fieldLookup,
+  Space valueSpace,
+  List<Space> caseSpaces,
+) {
   return checkExhaustiveness(fieldLookup, valueSpace, caseSpaces) == null;
 }
 
@@ -36,9 +39,13 @@ bool isExhaustive(ObjectPropertyLookup fieldLookup, Space valueSpace,
 /// that an error should be reported; the caller still must check whether the
 /// switch has a `default` clause and whether the scrutinee type is an "always
 /// exhaustive" type.
-NonExhaustiveness? computeExhaustiveness(ObjectPropertyLookup fieldLookup,
-    StaticType valueType, List<bool> caseIsGuarded, List<Space> caseSpaces,
-    {List<CaseUnreachability>? caseUnreachabilities}) {
+NonExhaustiveness? computeExhaustiveness(
+  ObjectPropertyLookup fieldLookup,
+  StaticType valueType,
+  List<bool> caseIsGuarded,
+  List<Space> caseSpaces, {
+  List<CaseUnreachability>? caseUnreachabilities,
+}) {
   _Checker checker = new _Checker(fieldLookup);
 
   Space valuePattern = new Space(const Path.root(), valueType);
@@ -48,11 +55,15 @@ NonExhaustiveness? computeExhaustiveness(ObjectPropertyLookup fieldLookup,
     late List<Space> caseRow = [caseSpaces[i]];
     if (caseUnreachabilities != null && i > 0) {
       // See if this case is covered by previous ones.
-      if (checker._unmatched(caseRows, caseRow,
-              returnMultipleWitnesses: false) ==
+      if (checker._unmatched(
+            caseRows,
+            caseRow,
+            returnMultipleWitnesses: false,
+          ) ==
           null) {
-        caseUnreachabilities
-            .add(new CaseUnreachability(valueType, caseSpaces, i));
+        caseUnreachabilities.add(
+          new CaseUnreachability(valueType, caseSpaces, i),
+        );
       }
     }
     if (!caseIsGuarded[i]) {
@@ -60,8 +71,9 @@ NonExhaustiveness? computeExhaustiveness(ObjectPropertyLookup fieldLookup,
     }
   }
 
-  List<Witness>? witnesses = checker._unmatched(caseRows, [valuePattern],
-      returnMultipleWitnesses: true);
+  List<Witness>? witnesses = checker._unmatched(caseRows, [
+    valuePattern,
+  ], returnMultipleWitnesses: true);
   if (witnesses != null) {
     return new NonExhaustiveness(valueType, caseSpaces, witnesses);
   } else {
@@ -73,14 +85,18 @@ NonExhaustiveness? computeExhaustiveness(ObjectPropertyLookup fieldLookup,
 /// [valueSpace]. If so, returns `null`. Otherwise, returns a list of [Witness]s
 /// of values that aren't matched by anything in [cases].
 List<Witness>? checkExhaustiveness(
-    ObjectPropertyLookup fieldLookup, Space valueSpace, List<Space> cases) {
+  ObjectPropertyLookup fieldLookup,
+  Space valueSpace,
+  List<Space> cases,
+) {
   _Checker checker = new _Checker(fieldLookup);
 
   // TODO(johnniwinther): Perform reachability checking.
   List<List<Space>> caseRows = cases.map((space) => [space]).toList();
 
-  List<Witness>? witnesses = checker._unmatched(caseRows, [valueSpace],
-      returnMultipleWitnesses: true);
+  List<Witness>? witnesses = checker._unmatched(caseRows, [
+    valueSpace,
+  ], returnMultipleWitnesses: true);
 
   // Uncomment this to have it print out the witness for non-exhaustive matches.
   // if (witnesses != null) witnesses.forEach(print);
@@ -100,11 +116,15 @@ class _Checker {
   /// not exhaustive over all values in [valuePatterns]. If it returns `null`,
   /// then [caseRows] exhaustively covers [valuePatterns].
   List<Witness>? _unmatched(
-      List<List<Space>> caseRows, List<Space> valuePatterns,
-      {List<Predicate> witnessPredicates = const [],
-      required bool returnMultipleWitnesses}) {
-    assert(caseRows.every((element) => element.length == valuePatterns.length),
-        "Value patterns: $valuePatterns, case rows: $caseRows.");
+    List<List<Space>> caseRows,
+    List<Space> valuePatterns, {
+    List<Predicate> witnessPredicates = const [],
+    required bool returnMultipleWitnesses,
+  }) {
+    assert(
+      caseRows.every((element) => element.length == valuePatterns.length),
+      "Value patterns: $valuePatterns, case rows: $caseRows.",
+    );
     profile.count('_unmatched');
     // If there are no more columns, then we've tested all the predicates we
     // have to test.
@@ -188,15 +208,16 @@ class _Checker {
         }
         if (type.isSealed) {
           List<Witness>? result = _filterByType(
-              contextType,
-              type,
-              caseRows,
-              firstValuePattern,
-              valuePatterns,
-              witnessPredicates,
-              firstValuePatterns.path,
-              // We don't use the witnesses, so only compute one.
-              returnMultipleWitnesses: false);
+            contextType,
+            type,
+            caseRows,
+            firstValuePattern,
+            valuePatterns,
+            witnessPredicates,
+            firstValuePatterns.path,
+            // We don't use the witnesses, so only compute one.
+            returnMultipleWitnesses: false,
+          );
           if (result == null) {
             // This type was fully handled so no need to test its
             // subtypes.
@@ -207,24 +228,25 @@ class _Checker {
           }
         } else {
           List<Witness>? result = _filterByType(
-              contextType,
-              type,
-              caseRows,
-              firstValuePattern,
-              valuePatterns,
-              witnessPredicates,
-              firstValuePatterns.path,
-              // Don't collect multiple witnesses for to avoid combinatorial
-              // explosion. For instance returning
-              //
-              //    (E.a, E.b), (E.a, E.c) ... (E.z, E.z) // 675 witnesses
-              //
-              // for
-              //
-              //    enum E { a, b, ..., z }
-              //    method((E, E) r) => switch (r) { (E.a, E.a) => 0, };
-              //
-              returnMultipleWitnesses: false);
+            contextType,
+            type,
+            caseRows,
+            firstValuePattern,
+            valuePatterns,
+            witnessPredicates,
+            firstValuePatterns.path,
+            // Don't collect multiple witnesses for to avoid combinatorial
+            // explosion. For instance returning
+            //
+            //    (E.a, E.b), (E.a, E.c) ... (E.z, E.z) // 675 witnesses
+            //
+            // for
+            //
+            //    enum E { a, b, ..., z }
+            //    method((E, E) r) => switch (r) { (E.a, E.a) => 0, };
+            //
+            returnMultipleWitnesses: false,
+          );
 
           // If we found a witness for a subtype that no rows match, then we
           // can stop. There may be others but we don't need to find more.
@@ -247,19 +269,20 @@ class _Checker {
   }
 
   List<Witness>? _filterByType(
-      StaticType contextType,
-      StaticType type,
-      List<List<Space>> caseRows,
-      SingleSpace firstSingleSpaceValue,
-      List<Space> valueSpaces,
-      List<Predicate> witnessPredicates,
-      Path path,
-      {required bool returnMultipleWitnesses}) {
+    StaticType contextType,
+    StaticType type,
+    List<List<Space>> caseRows,
+    SingleSpace firstSingleSpaceValue,
+    List<Space> valueSpaces,
+    List<Predicate> witnessPredicates,
+    Path path, {
+    required bool returnMultipleWitnesses,
+  }) {
     profile.count('_filterByType');
     // Extend the witness with the type we're matching.
     List<Predicate> extendedWitness = [
       ...witnessPredicates,
-      new Predicate(path, contextType, type)
+      new Predicate(path, contextType, type),
     ];
 
     // 1) Discard any rows that might not match because the column's type isn't
@@ -290,26 +313,31 @@ class _Checker {
     Set<Key> propertyKeys = {
       ...firstSingleSpaceValue.properties.keys,
       for (SingleSpace firstPattern in remainingRowFirstSingleSpaces)
-        ...firstPattern.properties.keys
+        ...firstPattern.properties.keys,
     };
 
     Set<Key> additionalPropertyKeys = {
       ...firstSingleSpaceValue.additionalProperties.keys,
       for (SingleSpace firstPattern in remainingRowFirstSingleSpaces)
-        ...firstPattern.additionalProperties.keys
+        ...firstPattern.additionalProperties.keys,
     };
 
     // Sorting isn't necessary, but makes the behavior deterministic.
     List<Key> sortedPropertyKeys = propertyKeys.toList()..sort();
-    List<Key> sortedAdditionalPropertyKeys = additionalPropertyKeys.toList()
-      ..sort();
+    List<Key> sortedAdditionalPropertyKeys =
+        additionalPropertyKeys.toList()..sort();
 
     // Remove the first column from the value list and replace it with any
     // expanded fields.
     valueSpaces = [
-      ..._expandProperties(sortedPropertyKeys, sortedAdditionalPropertyKeys,
-          firstSingleSpaceValue, type, path),
-      ...valueSpaces.skip(1)
+      ..._expandProperties(
+        sortedPropertyKeys,
+        sortedAdditionalPropertyKeys,
+        firstSingleSpaceValue,
+        type,
+        path,
+      ),
+      ...valueSpaces.skip(1),
     ];
 
     // Remove the first column from each row and replace it with any expanded
@@ -317,19 +345,23 @@ class _Checker {
     for (int i = 0; i < remainingRows.length; i++) {
       remainingRows[i] = [
         ..._expandProperties(
-            sortedPropertyKeys,
-            sortedAdditionalPropertyKeys,
-            remainingRowFirstSingleSpaces[i],
-            remainingRowFirstSingleSpaces[i].type,
-            path),
-        ...remainingRows[i].skip(1)
+          sortedPropertyKeys,
+          sortedAdditionalPropertyKeys,
+          remainingRowFirstSingleSpaces[i],
+          remainingRowFirstSingleSpaces[i].type,
+          path,
+        ),
+        ...remainingRows[i].skip(1),
       ];
     }
 
     // Proceed to the next column.
-    return _unmatched(remainingRows, valueSpaces,
-        witnessPredicates: extendedWitness,
-        returnMultipleWitnesses: returnMultipleWitnesses);
+    return _unmatched(
+      remainingRows,
+      valueSpaces,
+      witnessPredicates: extendedWitness,
+      returnMultipleWitnesses: returnMultipleWitnesses,
+    );
   }
 
   /// Given a list of [propertyKeys] and [additionalPropertyKeys], and a
@@ -346,11 +378,12 @@ class _Checker {
   /// In other words, this unpacks a set of properties so that the main
   /// algorithm can add them to the worklist.
   List<Space> _expandProperties(
-      List<Key> propertyKeys,
-      List<Key> additionalPropertyKeys,
-      SingleSpace singleSpace,
-      StaticType type,
-      Path path) {
+    List<Key> propertyKeys,
+    List<Key> additionalPropertyKeys,
+    SingleSpace singleSpace,
+    StaticType type,
+    Path path,
+  ) {
     profile.count('_expandProperties');
     List<Space> result = <Space>[];
     for (Key key in propertyKeys) {
@@ -368,8 +401,9 @@ class _Checker {
         // handled.
         /*assert(propertyType != null,
             "Type $type does not have a type for property $key");*/
-        result.add(new Space(
-            path.add(key), propertyType ?? StaticType.nullableObject));
+        result.add(
+          new Space(path.add(key), propertyType ?? StaticType.nullableObject),
+        );
       }
     }
     for (Key key in additionalPropertyKeys) {
@@ -383,8 +417,12 @@ class _Checker {
         // handled.
         // assert(type.getAdditionalPropertyType(key) != null,
         //    "Type $type does not have a type for additional property $key");
-        result.add(new Space(path.add(key),
-            type.getAdditionalPropertyType(key) ?? StaticType.nullableObject));
+        result.add(
+          new Space(
+            path.add(key),
+            type.getAdditionalPropertyType(key) ?? StaticType.nullableObject,
+          ),
+        );
       }
     }
     return result;
@@ -395,14 +433,16 @@ class _Checker {
 ///
 /// Otherwise, just returns [type].
 List<StaticType> expandSealedSubtypes(
-    StaticType type, Set<Key> keysOfInterest) {
+  StaticType type,
+  Set<Key> keysOfInterest,
+) {
   profile.count('expandSealedSubtypes');
   if (!type.isSealed) {
     return [type];
   } else {
     return {
       for (StaticType subtype in type.getSubtypes(keysOfInterest))
-        ...expandSealedSubtypes(subtype, keysOfInterest)
+        ...expandSealedSubtypes(subtype, keysOfInterest),
     }.toList();
   }
 }

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -19,7 +20,8 @@ class PreferAssertsInInitializerLists extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_asserts_in_initializer_lists;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.prefer_asserts_in_initializer_lists;
 
   @override
   void registerNodeProcessors(
@@ -65,12 +67,12 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
 
   bool _hasAccessor(PropertyAccessorElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement2);
+    return classes != null && classes.contains(element.enclosingElement);
   }
 
   bool _hasMethod(MethodElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement2);
+    return classes != null && classes.contains(element.enclosingElement);
   }
 
   bool _paramMatchesField(

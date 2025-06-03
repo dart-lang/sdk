@@ -4,6 +4,8 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../util/obvious_types.dart';
@@ -16,14 +18,18 @@ class OmitObviousPropertyTypes extends LintRule {
     : super(
         name: 'omit_obvious_property_types',
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   @override
-  List<String> get incompatibleRules => const ['always_specify_types'];
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.omit_obvious_property_types;
 
   @override
-  LintCode get lintCode => LinterLintCode.omit_obvious_property_types;
+  List<String> get incompatibleRules => const [
+    'always_specify_types',
+    'type_annotate_public_apis',
+  ];
 
   @override
   void registerNodeProcessors(

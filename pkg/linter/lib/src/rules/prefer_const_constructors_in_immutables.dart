@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart' show IterableExtension;
 
@@ -20,7 +21,7 @@ class PreferConstConstructorsInImmutables extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.prefer_const_constructors_in_immutables;
 
   @override
@@ -45,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element == null) return;
     if (element.isConst) return;
     if (node.body is! EmptyFunctionBody) return;
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
 
     if (enclosingElement.mixins.isNotEmpty) return;
     if (!_hasImmutableAnnotation(enclosingElement)) return;
@@ -66,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.constKeyword != null) return;
     var element = node.declaredFragment?.element;
     if (element == null) return;
-    if (element.metadata2.hasImmutable) {
+    if (element.metadata.hasImmutable) {
       rule.reportAtToken(node.name);
     }
   }
@@ -85,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declaredElement == null) {
       return false;
     }
-    var clazz = declaredElement.enclosingElement2;
+    var clazz = declaredElement.enclosingElement;
     // Constructor with super-initializer.
     var superInvocation =
         node.initializers.whereType<SuperConstructorInvocation>().firstOrNull;
@@ -115,6 +116,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// `@immutable`.
   static bool _hasImmutableAnnotation(InterfaceElement clazz) {
     var selfAndInheritedClasses = _getSelfAndSuperClasses(clazz);
-    return selfAndInheritedClasses.any((cls) => cls.metadata2.hasImmutable);
+    return selfAndInheritedClasses.any((cls) => cls.metadata.hasImmutable);
   }
 }

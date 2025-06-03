@@ -270,10 +270,10 @@ class C {
     await resolveTestCode(code);
     ClassElement c = findElement2.class_('C');
 
-    SetterElement x = c.setters2[0];
+    SetterElement x = c.setters[0];
     expect(x.returnType, VoidTypeImpl.instance);
 
-    MethodElement operator = c.methods2[0];
+    MethodElement operator = c.methods[0];
     expect(operator.displayName, '[]=');
     expect(operator.returnType, VoidTypeImpl.instance);
   }
@@ -291,10 +291,10 @@ class Derived extends Base {
     await resolveTestCode(code);
     ClassElement c = findElement2.class_('Derived');
 
-    SetterElement x = c.setters2[0];
+    SetterElement x = c.setters[0];
     expect(x.returnType, VoidTypeImpl.instance);
 
-    MethodElement operator = c.methods2[0];
+    MethodElement operator = c.methods[0];
     expect(operator.displayName, '[]=');
     expect(operator.returnType, VoidTypeImpl.instance);
   }

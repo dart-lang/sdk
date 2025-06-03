@@ -27,13 +27,13 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///duplicated_bad_prefix_lib1.dart" as dupe;
 import "org-dartlang-testcase:///duplicated_bad_prefix_lib2.dart" as dupe;
 
-class Dupe#1 extends core::Object {
-  synthetic constructor •() → self::Dupe#1
+class Dupe extends core::Object {
+  synthetic constructor •() → self::Dupe
     : super core::Object::•()
     ;
 }
-class Dupe extends core::Object {
-  synthetic constructor •() → self::Dupe
+class Dupe#1 extends core::Object {
+  synthetic constructor •() → self::Dupe#1
     : super core::Object::•()
     ;
 }

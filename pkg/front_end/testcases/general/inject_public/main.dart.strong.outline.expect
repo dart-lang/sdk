@@ -15,22 +15,22 @@ library;
 // pkg/front_end/testcases/general/inject_public/patch_lib.dart:8:7: Error: Can't inject public 'InjectedClass' into 'dart:test'.
 // Make 'InjectedClass' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
 // class InjectedClass {} // Error
-//       ^
+//       ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/inject_public/patch_lib.dart:10:1: Error: Can't inject public 'injectedMethod' into 'dart:test'.
 // Make 'injectedMethod' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
 // injectedMethod() {} // Error
-// ^
+// ^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/inject_public/patch_lib.dart:15:10: Error: Can't inject public 'staticInjectedMethod' into 'dart:test'.
 // Make 'staticInjectedMethod' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
 //   static staticInjectedMethod() {} // Error
-//          ^
+//          ^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/inject_public/patch_lib.dart:21:10: Error: Can't inject public 'staticInjectedMethod' into 'dart:test'.
 // Make 'staticInjectedMethod' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
 //   static staticInjectedMethod() {} // Error
-//          ^
+//          ^^^^^^^^^^^^^^^^^^^^
 //
 import self as self2;
 import "dart:_internal" as _in;

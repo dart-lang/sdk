@@ -43,7 +43,7 @@ FunctionExpressionInvocation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::A::@method::call#element
+  element: <testLibrary>::@class::A::@method::call
   staticInvokeType: void Function(int)
   staticType: void
   typeArgumentTypes
@@ -86,7 +86,7 @@ FunctionExpressionInvocation
           substitution: {T: int}
         staticType: List<int>
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::A::@method::call#element
+  element: <testLibrary>::@class::A::@method::call
   staticInvokeType: List<int> Function(List<int>)
   staticType: List<int>
   typeArgumentTypes
@@ -117,7 +117,7 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::A::@method::call#element
+  element: <testLibrary>::@class::A::@method::call
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -156,7 +156,7 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::A::@method::call#element
+  element: <testLibrary>::@class::A::@method::call
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -277,7 +277,7 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  element: <testLibraryFragment>::@extension::0::@method::call#element
+  element: <testLibrary>::@extension::0::@method::call
   staticInvokeType: int Function()
   staticType: int
 ''');
@@ -303,7 +303,7 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  element: <testLibraryFragment>::@extension::0::@method::call#element
+  element: <testLibrary>::@extension::0::@method::call
   staticInvokeType: int Function()
   staticType: int
 ''');
@@ -607,7 +607,7 @@ FunctionExpressionInvocation
           correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
           staticType: int
         correspondingParameter: <null>
-        element: dart:core::<fragment>::@class::num::@method::+#element
+        element: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
     rightParenthesis: )
@@ -663,7 +663,7 @@ FunctionExpressionInvocation
           correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
           staticType: int
         correspondingParameter: <null>
-        element: dart:core::<fragment>::@class::num::@method::+#element
+        element: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
     rightParenthesis: )

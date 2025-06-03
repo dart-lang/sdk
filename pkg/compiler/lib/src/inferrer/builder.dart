@@ -143,17 +143,15 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
        _memberData = _inferrer.dataOfMember(_analyzedMember),
        // TODO(johnniwinther): Should side effects also be tracked for field
        // initializers?
-       _sideEffectsBuilder =
-           _analyzedMember is FunctionEntity
-               ? _inferrer.inferredDataBuilder.getSideEffectsBuilder(
-                 _analyzedMember,
-               )
-               : SideEffectsBuilder.free(_analyzedMember),
+       _sideEffectsBuilder = _analyzedMember is FunctionEntity
+           ? _inferrer.inferredDataBuilder.getSideEffectsBuilder(
+               _analyzedMember,
+             )
+           : SideEffectsBuilder.free(_analyzedMember),
        _inGenerativeConstructor = _analyzedNode is ir.Constructor,
-       _capturedAndBoxed =
-           capturedAndBoxed != null
-               ? Map<Local, FieldEntity>.from(capturedAndBoxed)
-               : <Local, FieldEntity>{},
+       _capturedAndBoxed = capturedAndBoxed != null
+           ? Map<Local, FieldEntity>.from(capturedAndBoxed)
+           : <Local, FieldEntity>{},
        _stateInternal =
            previousState ??
            LocalState.initial(
@@ -458,11 +456,10 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       case ir.AsyncMarker.Sync:
         if (_returnType == null) {
           // No return in the body.
-          _returnType =
-              _state.seenReturnOrThrow
-                  ? _types
-                      .nonNullEmpty() // Body always throws.
-                  : _types.nullType;
+          _returnType = _state.seenReturnOrThrow
+              ? _types
+                    .nonNullEmpty() // Body always throws.
+              : _types.nullType;
         } else if (!_state.seenReturnOrThrow) {
           // We haven'TypeInformation seen returns on all branches. So the
           // method may also return null.
@@ -727,18 +724,17 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       PhiElementTypeInformation? elementType;
       int length = 0;
       for (TypeInformation type in elementTypes) {
-        elementType =
-            elementType == null
-                ? _types.allocatePhi(null, null, type, isTry: false)
-                : _types.addPhiInput(null, elementType, type);
+        elementType = elementType == null
+            ? _types.allocatePhi(null, null, type, isTry: false)
+            : _types.addPhiInput(null, elementType, type);
         length++;
       }
-      final simplifiedElementType =
-          elementType == null
-              ? _types.nonNullEmpty()
-              : _types.simplifyPhi(null, null, elementType);
-      TypeInformation containerType =
-          isConst ? _types.constListType : _types.growableListType;
+      final simplifiedElementType = elementType == null
+          ? _types.nonNullEmpty()
+          : _types.simplifyPhi(null, null, elementType);
+      TypeInformation containerType = isConst
+          ? _types.constListType
+          : _types.growableListType;
       return _types.allocateList(
         containerType,
         node,
@@ -766,17 +762,16 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     return _inferrer.concreteTypes.putIfAbsent(node, () {
       PhiElementTypeInformation? elementType;
       for (TypeInformation type in elementTypes) {
-        elementType =
-            elementType == null
-                ? _types.allocatePhi(null, null, type, isTry: false)
-                : _types.addPhiInput(null, elementType, type);
+        elementType = elementType == null
+            ? _types.allocatePhi(null, null, type, isTry: false)
+            : _types.addPhiInput(null, elementType, type);
       }
-      final simplifiedElementType =
-          elementType == null
-              ? _types.nonNullEmpty()
-              : _types.simplifyPhi(null, null, elementType);
-      TypeInformation containerType =
-          isConst ? _types.constSetType : _types.setType;
+      final simplifiedElementType = elementType == null
+          ? _types.nonNullEmpty()
+          : _types.simplifyPhi(null, null, elementType);
+      TypeInformation containerType = isConst
+          ? _types.constSetType
+          : _types.setType;
       return _types.allocateSet(
         containerType,
         node,
@@ -1268,10 +1263,9 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     ir.VariableDeclaration? variable,
   ) {
     if (_types.selectorNeedsUpdate(receiverType, mask)) {
-      mask =
-          receiverType == _types.dynamicType
-              ? null
-              : _types.newTypedSelector(receiverType, mask);
+      mask = receiverType == _types.dynamicType
+          ? null
+          : _types.newTypedSelector(receiverType, mask);
       _inferrer.updateSelectorInMember(
         _analyzedMember,
         callType,
@@ -1780,11 +1774,10 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     if (_isConstructorOfTypedArraySubclass(constructor)) {
       // We have something like `Uint32List(len)`.
       final length = _findLength(arguments);
-      final member =
-          _elementMap.elementEnvironment.lookupClassMember(
-            constructor.enclosingClass,
-            Names.indexName,
-          )!;
+      final member = _elementMap.elementEnvironment.lookupClassMember(
+        constructor.enclosingClass,
+        Names.indexName,
+      )!;
       TypeInformation elementType = _inferrer.returnTypeOfMember(member);
       return _inferrer.concreteTypes.putIfAbsent(
         node,
@@ -1909,8 +1902,11 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       );
 
       // Narrow tested variable to not late sentinel on false branch.
-      final currentTypeInformation =
-          stateWhenNotSentinel.readLocal(_inferrer, _capturedAndBoxed, local)!;
+      final currentTypeInformation = stateWhenNotSentinel.readLocal(
+        _inferrer,
+        _capturedAndBoxed,
+        local,
+      )!;
       stateWhenNotSentinel.updateLocal(
         _inferrer,
         _capturedAndBoxed,
@@ -2164,12 +2160,11 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       LocalState stateAfterCheckWhenFalse = LocalState.childPath(_state);
 
       // Narrow variable to tested type on true branch.
-      final currentTypeInformation =
-          stateAfterCheckWhenTrue.readLocal(
-            _inferrer,
-            _capturedAndBoxed,
-            local,
-          )!;
+      final currentTypeInformation = stateAfterCheckWhenTrue.readLocal(
+        _inferrer,
+        _capturedAndBoxed,
+        local,
+      )!;
       stateAfterCheckWhenTrue.updateLocal(
         _inferrer,
         _capturedAndBoxed,
@@ -2200,12 +2195,8 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       );
 
       // Narrow tested variable to 'not null' on false branch.
-      TypeInformation currentTypeInformation =
-          stateAfterCheckWhenNotNull.readLocal(
-            _inferrer,
-            _capturedAndBoxed,
-            local,
-          )!;
+      TypeInformation currentTypeInformation = stateAfterCheckWhenNotNull
+          .readLocal(_inferrer, _capturedAndBoxed, local)!;
       stateAfterCheckWhenNotNull.updateLocal(
         _inferrer,
         _capturedAndBoxed,
@@ -2277,13 +2268,12 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       final stateAfterRightWhenTrue = _stateAfterWhenTrue;
       final stateAfterRightWhenFalse = _stateAfterWhenFalse;
       final stateAfterWhenTrue = stateAfterRightWhenTrue;
-      LocalState stateAfterWhenFalse = LocalState.childPath(
-        stateBefore,
-      ).mergeDiamondFlow(
-        _inferrer,
-        stateAfterLeftWhenFalse,
-        stateAfterRightWhenFalse,
-      );
+      LocalState stateAfterWhenFalse = LocalState.childPath(stateBefore)
+          .mergeDiamondFlow(
+            _inferrer,
+            stateAfterLeftWhenFalse,
+            stateAfterRightWhenFalse,
+          );
       LocalState after = stateBefore.mergeDiamondFlow(
         _inferrer,
         stateAfterWhenTrue,
@@ -2308,13 +2298,12 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       final rightInfo = handleCondition(node.right)!;
       final stateAfterRightWhenTrue = _stateAfterWhenTrue;
       final stateAfterRightWhenFalse = _stateAfterWhenFalse;
-      LocalState stateAfterWhenTrue = LocalState.childPath(
-        stateBefore,
-      ).mergeDiamondFlow(
-        _inferrer,
-        stateAfterLeftWhenTrue,
-        stateAfterRightWhenTrue,
-      );
+      LocalState stateAfterWhenTrue = LocalState.childPath(stateBefore)
+          .mergeDiamondFlow(
+            _inferrer,
+            stateAfterLeftWhenTrue,
+            stateAfterRightWhenTrue,
+          );
       LocalState stateAfterWhenFalse = stateAfterRightWhenFalse;
       LocalState stateAfter = stateBefore.mergeDiamondFlow(
         _inferrer,
@@ -2552,13 +2541,12 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     // Continue with a copy of the state after the finalizer since control flow
     // should continue linearly. Update abort state to account for try/catch
     // aborting.
-    _state =
-        LocalState.childPath(_state)
-          ..seenReturnOrThrow =
-              _state.seenReturnOrThrow || stateBeforeFinalizer.seenReturnOrThrow
-          ..seenBreakOrContinue =
-              _state.seenBreakOrContinue ||
-              stateBeforeFinalizer.seenBreakOrContinue;
+    _state = LocalState.childPath(_state)
+      ..seenReturnOrThrow =
+          _state.seenReturnOrThrow || stateBeforeFinalizer.seenReturnOrThrow
+      ..seenBreakOrContinue =
+          _state.seenBreakOrContinue ||
+          stateBeforeFinalizer.seenBreakOrContinue;
     return null;
   }
 

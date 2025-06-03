@@ -118,6 +118,21 @@ class TestProject {
         },
       ),
     );
+    file(
+      '.dart_tool/package_graph.json',
+      JsonEncoder.withIndent('  ').convert({
+        'roots': [name],
+        'packages': [
+          {
+            'name': name,
+            'version': '1.0.0',
+            'dependencies': [],
+            'devDependencies': []
+          },
+        ],
+        'configVersion': 1
+      }),
+    );
     if (analysisOptions != null) {
       file('analysis_options.yaml', analysisOptions);
     }

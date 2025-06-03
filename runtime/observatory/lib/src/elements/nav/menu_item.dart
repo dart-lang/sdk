@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class NavMenuItemElement extends CustomElement implements Renderable {
@@ -14,15 +17,15 @@ class NavMenuItemElement extends CustomElement implements Renderable {
 
   late String _label;
   late String _link;
-  List<Element> _content = const <Element>[];
+  List<HTMLElement> _content = const <HTMLElement>[];
 
   String get label => _label;
   String get link => _link;
-  List<Element> get content => _content;
+  List<HTMLElement> get content => _content;
 
   set label(String value) => _label = _r.checkAndReact(_label, value);
   set link(String value) => _link = _r.checkAndReact(_link, value);
-  set content(Iterable<Element> value) {
+  set content(Iterable<HTMLElement> value) {
     _content = value.toList();
     _r.dirty();
   }
@@ -48,17 +51,19 @@ class NavMenuItemElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    children = <Element>[
-      new LIElement()
-        ..classes = ['nav-menu-item']
-        ..children = <Element>[
-          new AnchorElement(href: link)..text = label,
-          new UListElement()..children = _content
-        ]
+    children = <HTMLElement>[
+      new HTMLLIElement()
+        ..className = 'nav-menu-item'
+        ..appendChildren(<HTMLElement>[
+          new HTMLAnchorElement()
+            ..href = link
+            ..text = label,
+          new HTMLUListElement()..appendChildren(_content)
+        ])
     ];
   }
 }

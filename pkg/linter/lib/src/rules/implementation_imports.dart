@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/utilities/extensions/uri.dart';
 
 import '../analyzer.dart';
@@ -16,14 +17,14 @@ class ImplementationImports extends LintRule {
     : super(name: LintNames.implementation_imports, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.implementation_imports;
+  DiagnosticCode get diagnosticCode => LinterLintCode.implementation_imports;
 
   @override
   void registerNodeProcessors(
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var libraryUri = context.libraryElement2?.uri;
+    var libraryUri = context.libraryElement?.uri;
     if (libraryUri == null) return;
 
     // If the source URI is not a `package` URI, bail out.

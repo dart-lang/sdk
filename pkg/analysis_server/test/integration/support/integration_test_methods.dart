@@ -15,6 +15,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'integration_tests.dart';
@@ -25,7 +26,7 @@ abstract class IntegrationTest {
   Server get server;
 
   /// The converter used to convert between URI/Paths in server communication.
-  ClientUriConverter? uriConverter;
+  final ClientUriConverter uriConverter = ClientUriConverter.noop(path.context);
 
   /// Return the version number of the analysis server.
   ///
@@ -392,7 +393,7 @@ abstract class IntegrationTest {
     );
   }
 
-  /// Return the hover information associate with the given location. If some
+  /// Return the hover information associated with the given location. If some
   /// or all of the hover information is not available at the time this request
   /// is processed the information will be omitted from the response.
   ///
@@ -712,12 +713,12 @@ abstract class IntegrationTest {
   /// filesystem. When the filesystem changes, the actual set of analysis roots
   /// is automatically updated, but the set of requested analysis roots is
   /// unchanged. This means that if the client sets an analysis root before the
-  /// root becomes visible to server in the filesystem, there is no error; once
-  /// the server sees the root in the filesystem it will start analyzing it.
-  /// Similarly, server will stop analyzing files that are removed from the
-  /// file system but they will remain in the set of requested roots.
+  /// root becomes visible to the server in the filesystem, there is no error;
+  /// once the server sees the root in the filesystem it will start analyzing
+  /// it. Similarly, the server will stop analyzing files that are removed from
+  /// the file system but they will remain in the set of requested roots.
   ///
-  /// If an included path represents a file, then server will look in the
+  /// If an included path represents a file, then the server will look in the
   /// directory containing the file for a pubspec.yaml file. If none is found,
   /// then the parents of the directory will be searched until such a file is
   /// found or the root of the file system is reached. If such a file is found,
@@ -860,9 +861,9 @@ abstract class IntegrationTest {
   /// Update the content of one or more files. Files that were previously
   /// updated but not included in this update remain unchanged. This
   /// effectively represents an overlay of the filesystem. The files whose
-  /// content is overridden are therefore seen by server as being files with
-  /// the given content, even if the files do not exist on the filesystem or if
-  /// the file path represents the path to a directory on the filesystem.
+  /// content is overridden are therefore seen by the server as being files
+  /// with the given content, even if the files do not exist on the filesystem
+  /// or if the file path represents the path to a directory on the filesystem.
   ///
   /// Parameters
   ///
@@ -946,7 +947,7 @@ abstract class IntegrationTest {
   /// labels: List<ClosingLabel>
   ///
   ///   Closing labels relevant to the file. Each item represents a useful
-  ///   label associated with some range with may be useful to display to the
+  ///   label associated with some range which may be useful to display to the
   ///   user within the editor at the end of the range to indicate what
   ///   construct is closed at that location. Closing labels include
   ///   constructor/method calls and List arguments that span multiple lines.
@@ -1076,7 +1077,7 @@ abstract class IntegrationTest {
   ///
   /// members: List<ImplementedMember>
   ///
-  ///   The member defined in the file that are implemented or overridden.
+  ///   The members defined in the file that are implemented or overridden.
   late final Stream<AnalysisImplementedParams> onAnalysisImplemented =
       _onAnalysisImplemented.stream.asBroadcastStream();
 
@@ -1376,8 +1377,8 @@ abstract class IntegrationTest {
   /// completion: String
   ///
   ///   The `completion` from the selected `CompletionSuggestion`. It could be
-  ///   a name of a class, or a name of a constructor in form
-  ///   "typeName.constructorName()", or an enumeration constant in form
+  ///   a name of a class, or a name of a constructor in the form
+  ///   "typeName.constructorName()", or an enumeration constant in the form
   ///   "enumName.constantName", etc.
   ///
   /// libraryUri: String
@@ -2376,7 +2377,7 @@ abstract class IntegrationTest {
   ///
   /// edit: SourceFileEdit
   ///
-  ///   The file edit that is to be applied to the given file to effect the
+  ///   The file edit that is to be applied to the given file to affect the
   ///   sorting.
   Future<EditSortMembersResult> sendEditSortMembers(String file) async {
     var params = EditSortMembersParams(
@@ -2414,7 +2415,7 @@ abstract class IntegrationTest {
   ///
   /// edit: SourceFileEdit
   ///
-  ///   The file edit that is to be applied to the given file to effect the
+  ///   The file edit that is to be applied to the given file to affect the
   ///   organizing.
   Future<EditOrganizeDirectivesResult> sendEditOrganizeDirectives(
     String file,
@@ -2540,7 +2541,7 @@ abstract class IntegrationTest {
   ///
   /// suggestions: List<CompletionSuggestion> (optional)
   ///
-  ///   The completion suggestions. In contrast to usual completion request,
+  ///   The completion suggestions. In contrast to usual completion requests,
   ///   suggestions for private elements also will be provided.
   ///
   ///   If there are sub-expressions that can have different runtime types, and

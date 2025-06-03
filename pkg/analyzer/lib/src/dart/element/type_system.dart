@@ -1477,6 +1477,14 @@ class TypeSystemImpl implements TypeSystem {
     return NormalizeHelper(this).normalize(T);
   }
 
+  FunctionTypeImpl normalizeFunctionType(FunctionTypeImpl T) {
+    return NormalizeHelper(this).normalizeFunctionType(T);
+  }
+
+  InterfaceTypeImpl normalizeInterfaceType(InterfaceTypeImpl T) {
+    return NormalizeHelper(this).normalizeInterfaceType(T);
+  }
+
   /// Returns a non-nullable version of [type].  This is equivalent to the
   /// operation `NonNull` defined in the spec.
   @override
@@ -1867,8 +1875,8 @@ class TypeSystemImpl implements TypeSystem {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement2 is ExtensionElement ||
-        methodElement.enclosingElement2 is ExtensionTypeElement) {
+    if (methodElement.enclosingElement is ExtensionElement ||
+        methodElement.enclosingElement is ExtensionTypeElement) {
       return currentType;
     }
 
@@ -1970,8 +1978,8 @@ class TypeSystemImpl implements TypeSystem {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement2 is ExtensionElement ||
-        methodElement.enclosingElement2 is ExtensionTypeElement) {
+    if (methodElement.enclosingElement is ExtensionElement ||
+        methodElement.enclosingElement is ExtensionTypeElement) {
       return currentType;
     }
 

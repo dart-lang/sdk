@@ -269,7 +269,7 @@ class _MatcherBuilder {
         );
       }
     } else if (parent is SuperConstructorInvocation) {
-      var superclassName = parent.element?.enclosingElement2.name3;
+      var superclassName = parent.element?.enclosingElement.name3;
       if (superclassName != null) {
         _addMatcher(
           components: [parent.constructorName?.name ?? '', superclassName],
@@ -291,7 +291,7 @@ class _MatcherBuilder {
     //  get a more exact matcher.
     // TODO(brianwilkerson): Use 'new' for the name of the unnamed constructor.
     var constructorName = node.name?.name ?? ''; // ?? 'new';
-    var className = node.type.name2.lexeme;
+    var className = node.type.name.lexeme;
     _addMatcher(
       components: [constructorName, className],
       kinds: const [ElementKind.constructorKind],
@@ -387,7 +387,7 @@ class _MatcherBuilder {
     // TODO(brianwilkerson): Use the static element, if there is one, in order to
     //  get a more exact matcher.
     _addMatcher(
-      components: [node.name2.lexeme],
+      components: [node.name.lexeme],
       kinds: const [
         ElementKind.classKind,
         ElementKind.enumKind,
@@ -546,7 +546,7 @@ class _MatcherBuilder {
         // Add enclosing element to the matcher for non top level property
         // accessors when possible.
         if (element is PropertyAccessorElement) {
-          var enclosingElement = element.enclosingElement2;
+          var enclosingElement = element.enclosingElement;
           if (enclosingElement is! LibraryElement) {
             _addMatcher(
               components: [node.name, enclosingElement.displayName],
@@ -586,7 +586,7 @@ class _MatcherBuilder {
       }
     }
     if (element != null) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is InterfaceElement) {
         return [identifier.name, enclosingElement.name3!];
       } else if (enclosingElement is ExtensionElement) {

@@ -409,7 +409,7 @@ class ElementResolver {
     } else {
       if (element.isFactory &&
           // Check if we've reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
-          !element.enclosingElement2.constructors2.every(
+          !element.enclosingElement.constructors.every(
             (constructor) => constructor.isFactory,
           )) {
         _errorReporter.atNode(

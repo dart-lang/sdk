@@ -19,7 +19,6 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:collection/collection.dart';
 
 Fragment _getEnclosingFragment(
@@ -349,10 +348,10 @@ class Search {
     }
 
     void addElements(InterfaceElement element) {
-      element.getters2.forEach(addElement);
-      element.setters2.forEach(addElement);
-      element.fields2.forEach(addElement);
-      element.methods2.forEach(addElement);
+      element.getters.forEach(addElement);
+      element.setters.forEach(addElement);
+      element.fields.forEach(addElement);
+      element.methods.forEach(addElement);
     }
 
     var files = await _driver.getFilesDefiningClassMemberName(name);
@@ -467,11 +466,8 @@ class Search {
     LibraryImport import,
     SearchedFiles searchedFiles,
   ) async {
-    var legacyElement = import as LibraryImportElementImpl;
-    var legacyResults = await _searchReferences_Import(
-      legacyElement,
-      searchedFiles,
-    );
+    import as LibraryImportImpl;
+    var legacyResults = await _searchReferences_Import(import, searchedFiles);
 
     return legacyResults.map((match) {
       return LibraryFragmentSearchMatch(
@@ -625,14 +621,18 @@ class Search {
     // Prepare the element name.
     String name = element.displayName;
     var externalElement = element;
-    if (externalElement case FormalParameterElement(:var enclosingElement2?)) {
-      externalElement = enclosingElement2;
+    if (externalElement case FormalParameterElement(:var enclosingElement?)) {
+      externalElement = enclosingElement;
     }
     if (externalElement is ConstructorElement) {
-      name = externalElement.enclosingElement2.displayName;
+      name = externalElement.enclosingElement.displayName;
     }
 
-    var elementPath = element.firstFragment.libraryFragment!.source.fullName;
+    var elementPath = element.firstFragment.libraryFragment?.source.fullName;
+    if (elementPath == null) {
+      return;
+    }
+
     var elementFile = _driver.fsState.getExistingFromPath(elementPath);
     if (elementFile == null) {
       return;
@@ -833,16 +833,16 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Import(
-    LibraryImportElementImpl element,
+    LibraryImportImpl element,
     SearchedFiles searchedFiles,
   ) async {
-    String path = element.source.fullName;
+    String path = element.libraryFragment.source.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 
     List<SearchResult> results = <SearchResult>[];
-    LibraryElementImpl libraryElement = element.library;
+    LibraryElementImpl libraryElement = element.libraryFragment.element;
     for (var unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResolvedUnit(unitPath);
@@ -871,8 +871,7 @@ class Search {
       if (unitResult is ResolvedUnitResultImpl) {
         var unit = unitResult.unit;
         for (var directive in unit.directives) {
-          if (directive is PartOfDirectiveImpl &&
-              directive.element == element) {
+          if (directive is PartOfDirectiveImpl) {
             var targetEntity = directive.libraryName ?? directive.uri;
             results.add(
               SearchResult._(
@@ -896,8 +895,8 @@ class Search {
     bool Function(AstNode n) isRootNode,
     SearchedFiles searchedFiles,
   ) async {
-    String path = element.firstFragment.libraryFragment!.source.fullName;
-    if (!searchedFiles.add(path, this)) {
+    String? path = element.firstFragment.libraryFragment?.source.fullName;
+    if (path == null || !searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 
@@ -947,7 +946,7 @@ class Search {
     );
     if (parameter.isNamed ||
         parameter.isOptionalPositional ||
-        parameter.enclosingElement2 is ConstructorElement) {
+        parameter.enclosingElement is ConstructorElement) {
       results.addAll(await _searchReferences(parameter, searchedFiles));
     }
     return results;
@@ -1288,11 +1287,11 @@ class _FindLibraryDeclarations {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       _addDeclaration(element, element.name3!);
-      _addGetters(element.getters2);
-      _addConstructors(element.constructors2);
-      _addFields(element.fields2);
-      _addMethods(element.methods2);
-      _addSetters(element.setters2);
+      _addGetters(element.getters);
+      _addConstructors(element.constructors);
+      _addFields(element.fields);
+      _addMethods(element.methods);
+      _addSetters(element.setters);
     }
   }
 
@@ -1314,7 +1313,7 @@ class _FindLibraryDeclarations {
       return;
     }
 
-    var enclosing = element.enclosingElement2;
+    var enclosing = element.enclosingElement;
 
     String? className;
     String? mixinName;
@@ -1389,10 +1388,10 @@ class _FindLibraryDeclarations {
       if (name != null) {
         _addDeclaration(element, name);
       }
-      _addFields(element.fields2);
-      _addGetters(element.getters2);
-      _addMethods(element.methods2);
-      _addSetters(element.setters2);
+      _addFields(element.fields);
+      _addGetters(element.getters);
+      _addMethods(element.methods);
+      _addSetters(element.setters);
     }
   }
 
@@ -1710,7 +1709,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   void visitNamedType(NamedType node) {
     var element = node.element2;
     if (elements.contains(element)) {
-      _addResult(node.name2, SearchResultKind.REFERENCE);
+      _addResult(node.name, SearchResultKind.REFERENCE);
     }
 
     node.importPrefix?.accept(this);

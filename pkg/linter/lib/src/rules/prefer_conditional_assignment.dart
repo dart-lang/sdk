@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -48,7 +49,8 @@ class PreferConditionalAssignment extends LintRule {
     : super(name: LintNames.prefer_conditional_assignment, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_conditional_assignment;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.prefer_conditional_assignment;
 
   @override
   void registerNodeProcessors(

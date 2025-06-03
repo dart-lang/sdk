@@ -32,6 +32,10 @@ class FieldFragment implements Fragment {
   SourcePropertyBuilder? _builder;
   FieldFragmentDeclaration? _declaration;
 
+  @override
+  late final UriOffsetLength uriOffset =
+      new UriOffsetLength(fileUri, nameOffset, name.length);
+
   FieldFragment({
     required this.name,
     required this.fileUri,

@@ -349,7 +349,7 @@ void f() {
 ''');
 
     var parseResult = parseUnit(path);
-    expect(parseResult.errors, isEmpty);
+    expect(parseResult.diagnostics, isEmpty);
 
     var findNode = FindNode(parseResult.content, parseResult.unit);
     var expression = findNode.parenthesized('); // ref').expression;

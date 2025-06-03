@@ -39,7 +39,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
 
   @override
   void onError(Diagnostic error) {
-    ErrorCode errorCode = error.errorCode;
+    DiagnosticCode errorCode = error.errorCode;
     if (errorCode is CompileTimeErrorCode) {
       switch (errorCode) {
         case CompileTimeErrorCode
@@ -117,7 +117,7 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
   bool get canBeConst {
     var element = declaredFragment!.element;
 
-    var classElement = element.enclosingElement2;
+    var classElement = element.enclosingElement;
     if (classElement is ClassElement && classElement.hasNonFinalField) {
       return false;
     }

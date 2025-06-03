@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
+
 import '../analyzer.dart';
 
 const _desc = r'Avoid returning null for Future.';
@@ -11,9 +14,9 @@ class AvoidReturningNullForFuture extends LintRule {
     : super(
         name: LintNames.avoid_returning_null_for_future,
         description: _desc,
-        state: State.removed(since: dart3_3),
+        state: RuleState.removed(since: dart3_3),
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.removed_lint;
+  DiagnosticCode get diagnosticCode => LinterLintCode.removed_lint;
 }

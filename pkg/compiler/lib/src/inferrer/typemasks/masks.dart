@@ -233,11 +233,6 @@ class CommonMasks with AbstractValueDomain {
   @override
   TypeMask get emptyType => TypeMask.nonNullEmpty(this);
 
-  late final TypeMask indexablePrimitiveType = TypeMask.nonNullSubtype(
-    commonElements.jsIndexableClass,
-    this,
-  );
-
   late final TypeMask readableArrayType = TypeMask.nonNullSubclass(
     commonElements.jsArrayClass,
     this,
@@ -465,10 +460,9 @@ class CommonMasks with AbstractValueDomain {
     covariant TypeMask expressionMask,
     ClassEntity cls,
   ) {
-    final typeMask =
-        (cls == commonElements.nullClass)
-            ? nullType
-            : createNonNullSubtype(cls);
+    final typeMask = (cls == commonElements.nullClass)
+        ? nullType
+        : createNonNullSubtype(cls);
     if (expressionMask.union(typeMask, this) == typeMask) {
       return AbstractBool.true_;
     } else if (expressionMask.isDisjoint(typeMask, closedWorld)) {
@@ -568,41 +562,70 @@ class CommonMasks with AbstractValueDomain {
 
   @override
   AbstractBool isIndexablePrimitive(TypeMask value) =>
-      AbstractBool.trueOrMaybe(_isIndexablePrimitive(value));
-
-  bool _isIndexablePrimitive(TypeMask value) {
-    return value.containsOnlyString(closedWorld) ||
-        _isInstanceOfOrNull(value, commonElements.jsIndexableClass);
-  }
-
-  @override
-  AbstractBool isFixedArray(TypeMask value) {
-    // TODO(sra): Recognize the union of these types as well.
-    return AbstractBool.trueOrMaybe(
-      _containsOnlyType(value, commonElements.jsFixedArrayClass) ||
-          _containsOnlyType(value, commonElements.jsUnmodifiableArrayClass),
-    );
-  }
-
-  @override
-  AbstractBool isExtendableArray(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-      _containsOnlyType(value, commonElements.jsExtendableArrayClass),
-    );
-  }
-
-  @override
-  AbstractBool isMutableArray(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-      _isInstanceOfOrNull(value, commonElements.jsMutableArrayClass),
-    );
-  }
+      AbstractBool.trueOrMaybe(value.containsOnlyString(closedWorld)) |
+      isJsIndexable(value);
 
   @override
   AbstractBool isMutableIndexable(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-      _isInstanceOfOrNull(value, commonElements.jsMutableIndexableClass),
-    );
+    final powerset = value.powerset;
+
+    if (_indexableDomain.containsSingle(
+      powerset,
+      TypeMaskIndexableProperty.mutableIndexable,
+    )) {
+      return AbstractBool.true_;
+    }
+
+    if (!_indexableDomain.contains(
+      powerset,
+      TypeMaskIndexableProperty.mutableIndexable,
+    )) {
+      return AbstractBool.false_;
+    }
+
+    return AbstractBool.maybe;
+  }
+
+  @override
+  AbstractBool isModifiableArray(TypeMask value) {
+    final powerset = value.powerset;
+
+    if (_arrayDomain.containsOnly(
+      powerset,
+      TypeMaskArrayProperty._modifiableEnumSet,
+    )) {
+      return AbstractBool.true_;
+    }
+
+    if (_arrayDomain.containsOnly(
+      powerset,
+      TypeMaskArrayProperty._unmodifiableEnumSet,
+    )) {
+      return AbstractBool.false_;
+    }
+
+    return AbstractBool.maybe;
+  }
+
+  @override
+  AbstractBool isGrowableArray(TypeMask value) {
+    final powerset = value.powerset;
+
+    if (_arrayDomain.containsOnly(
+      powerset,
+      TypeMaskArrayProperty._growableEnumSet,
+    )) {
+      return AbstractBool.true_;
+    }
+
+    if (_arrayDomain.containsOnly(
+      powerset,
+      TypeMaskArrayProperty._fixedLengthEnumSet,
+    )) {
+      return AbstractBool.false_;
+    }
+
+    return AbstractBool.maybe;
   }
 
   @override
@@ -732,12 +755,19 @@ class CommonMasks with AbstractValueDomain {
   AbstractBool isPrimitiveOrNull(TypeMask value) =>
       AbstractBool.trueOrMaybe(_isPrimitiveOrNull(value));
 
-  bool _isPrimitiveOrNull(TypeMask value) {
-    return _isIndexablePrimitive(value) ||
-        _isNumberOrNull(value) ||
-        _isBooleanOrNull(value) ||
-        value.isNull;
-  }
+  bool _isIndexable(TypeMask value) => !_indexableDomain.contains(
+    value.powerset,
+    TypeMaskIndexableProperty.notIndexable,
+  );
+
+  bool _isIndexablePrimitive(TypeMask value) =>
+      value.containsOnlyString(closedWorld) || _isIndexable(value);
+
+  bool _isPrimitiveOrNull(TypeMask value) =>
+      _isIndexablePrimitive(value) ||
+      _isNumberOrNull(value) ||
+      _isBooleanOrNull(value) ||
+      value.isNull;
 
   @override
   TypeMask union(TypeMask a, TypeMask b) => a.union(b, this);
@@ -868,18 +898,24 @@ class CommonMasks with AbstractValueDomain {
 
   @override
   AbstractBool isJsIndexable(TypeMask mask) {
-    return AbstractBool.trueOrMaybe(
-      mask.satisfies(closedWorld.commonElements.jsIndexableClass, closedWorld),
-    );
+    final powerset = mask.powerset;
+
+    if (_isIndexable(mask)) return AbstractBool.true_;
+
+    if (_indexableDomain.containsSingle(
+      powerset,
+      TypeMaskIndexableProperty.notIndexable,
+    )) {
+      return AbstractBool.false_;
+    }
+
+    return AbstractBool.maybe;
   }
 
   @override
   AbstractBool isJsIndexableAndIterable(covariant TypeMask mask) {
     return AbstractBool.trueOrMaybe(
-      mask.satisfies(
-            closedWorld.commonElements.jsIndexableClass,
-            closedWorld,
-          ) &&
+      _isIndexable(mask) &&
           // String is indexable but not iterable.
           !mask.satisfies(
             closedWorld.commonElements.jsStringClass,
@@ -895,9 +931,9 @@ class CommonMasks with AbstractValueDomain {
       return AbstractBool.true_;
     }
     // TODO(sra): Recognize any combination of fixed length indexables.
-    if (mask.containsOnly(closedWorld.commonElements.jsFixedArrayClass) ||
-        mask.containsOnly(
-          closedWorld.commonElements.jsUnmodifiableArrayClass,
+    if (_arrayDomain.containsOnly(
+          mask.powerset,
+          TypeMaskArrayProperty._fixedLengthEnumSet,
         ) ||
         mask.containsOnlyString(closedWorld) ||
         isTypedArray(mask).isDefinitelyTrue) {
@@ -908,15 +944,17 @@ class CommonMasks with AbstractValueDomain {
 
   @override
   AbstractBool isInterceptor(TypeMask value) {
+    final powerset = value.powerset;
+
     if (!_interceptorDomain.contains(
-      value.powerset,
+      powerset,
       TypeMaskInterceptorProperty.interceptor,
     )) {
       return AbstractBool.false_;
     }
 
     if (!_interceptorDomain.contains(
-      value.powerset,
+      powerset,
       TypeMaskInterceptorProperty.notInterceptor,
     )) {
       return AbstractBool.true_;
@@ -944,8 +982,9 @@ class CommonMasks with AbstractValueDomain {
 
   @override
   AbstractValue getDictionaryValueForKey(AbstractValue value, String key) {
-    final result =
-        value is DictionaryTypeMask ? value.getValueForKey(key) : null;
+    final result = value is DictionaryTypeMask
+        ? value.getValueForKey(key)
+        : null;
     return result ?? dynamicType;
   }
 
@@ -1181,12 +1220,11 @@ String formatType(DartTypes dartTypes, TypeMask type) {
       ].join('');
     }
     String nullFlag = type.isNullable ? '?' : '';
-    String subFlag =
-        type.isExact
-            ? ''
-            : type.isSubclass
-            ? '+'
-            : '*';
+    String subFlag = type.isExact
+        ? ''
+        : type.isSubclass
+        ? '+'
+        : '*';
     String sentinelFlag = type.hasLateSentinel ? '\$' : '';
     return '${type.base!.name}$nullFlag$subFlag$sentinelFlag';
   }

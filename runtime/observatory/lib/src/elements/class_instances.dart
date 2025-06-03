@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/any_ref.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/src/elements/strongly_reachable_instances.dart';
 import 'package:observatory/utils.dart';
@@ -68,7 +71,7 @@ class ClassInstancesElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   StronglyReachableInstancesElement? _strong;
@@ -80,95 +83,96 @@ class ClassInstancesElement extends CustomElement implements Renderable {
             queue: _r.queue);
     final instanceCount = _cls.newSpace!.instances + _cls.oldSpace!.instances;
     final size = Utils.formatSize(_cls.newSpace!.size + _cls.oldSpace!.size);
-    children = <Element>[
-      new DivElement()
-        ..classes = ['memberList']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = const ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = const ['memberName']
-                ..text = 'currently allocated',
-              new DivElement()
-                ..classes = const ['memberValue']
-                ..text = 'count ${instanceCount} (shallow size ${size})'
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'strongly reachable ',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = <Element>[_strong!.element]
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'all direct instances'
+    removeChildren();
+    appendChildren(<HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'memberList'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberItem'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'currently allocated',
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..textContent = 'count ${instanceCount} (shallow size ${size})'
+            ]),
+          new HTMLDivElement()
+            ..className = 'memberItem'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'strongly reachable ',
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..appendChild(_strong!.element)
+            ]),
+          new HTMLDivElement()
+            ..className = 'memberItem'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'all direct instances'
                 ..title = 'All instances whose class is exactly this class',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = _createAllInstances()
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'all instances of subclasses'
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..appendChildren(_createAllInstances())
+            ]),
+          new HTMLDivElement()
+            ..className = 'memberItem'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'all instances of subclasses'
                 ..title =
                     'All instances whose class is a subclass of this class',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = _createAllSubclassInstances()
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'all instances of implementors'
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..appendChildren(_createAllSubclassInstances())
+            ]),
+          new HTMLDivElement()
+            ..className = 'memberItem'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'all instances of implementors'
                 ..title =
                     'All instances whose class implements the implicit interface of this class',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = _createAllImplementorInstances()
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..appendChildren(_createAllImplementorInstances())
+            ]),
+          new HTMLDivElement()
+            ..className = 'memberItem'
             ..title = 'Space reachable from this object, '
                 'excluding class references'
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'Reachable size ',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = _createReachableSizeValue()
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'Reachable size ',
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..appendChildren(_createReachableSizeValue())
+            ]),
+          new HTMLDivElement()
+            ..className = 'memberItem'
             ..title = 'Space that would be reclaimed if references to this '
                 'object were replaced with null'
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'Retained size ',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = _createRetainedSizeValue()
-            ],
-        ]
-    ];
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'Retained size ',
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..appendChildren(_createRetainedSizeValue())
+            ]),
+        ])
+    ]);
   }
 
-  List<Element> _createAllInstances() {
-    final content = <Element>[];
+  List<HTMLElement> _createAllInstances() {
+    final content = <HTMLElement>[];
     if (_allInstances != null) {
       if (_allInstances!.isSentinel) {
         content.add(new SentinelValueElement(_allInstances!.asSentinel!,
@@ -178,12 +182,12 @@ class ClassInstancesElement extends CustomElement implements Renderable {
         content.add(anyRef(_isolate, _allInstances!.asValue!, _objects));
       }
     } else {
-      content.add(new SpanElement()..text = '...');
+      content.add(new HTMLSpanElement()..textContent = '...');
     }
-    final button = new ButtonElement()
-      ..classes = ['reachable_size']
+    final button = new HTMLButtonElement()
+      ..className = 'reachable_size'
       ..disabled = _loadingAllInstances
-      ..text = '↺';
+      ..textContent = '↺';
     button.onClick.listen((_) async {
       button.disabled = true;
       _loadingAllInstances = true;
@@ -196,8 +200,8 @@ class ClassInstancesElement extends CustomElement implements Renderable {
     return content;
   }
 
-  List<Element> _createAllSubclassInstances() {
-    final content = <Element>[];
+  List<HTMLElement> _createAllSubclassInstances() {
+    final content = <HTMLElement>[];
     if (_allSubclassInstances != null) {
       if (_allSubclassInstances!.isSentinel) {
         content.add(new SentinelValueElement(_allSubclassInstances!.asSentinel!,
@@ -208,12 +212,12 @@ class ClassInstancesElement extends CustomElement implements Renderable {
             .add(anyRef(_isolate, _allSubclassInstances!.asValue!, _objects));
       }
     } else {
-      content.add(new SpanElement()..text = '...');
+      content.add(new HTMLSpanElement()..textContent = '...');
     }
-    final button = new ButtonElement()
-      ..classes = ['reachable_size']
+    final button = new HTMLButtonElement()
+      ..className = 'reachable_size'
       ..disabled = _loadingAllSubclassInstances
-      ..text = '↺';
+      ..textContent = '↺';
     button.onClick.listen((_) async {
       button.disabled = true;
       _loadingAllSubclassInstances = true;
@@ -226,8 +230,8 @@ class ClassInstancesElement extends CustomElement implements Renderable {
     return content;
   }
 
-  List<Element> _createAllImplementorInstances() {
-    final content = <Element>[];
+  List<HTMLElement> _createAllImplementorInstances() {
+    final content = <HTMLElement>[];
     if (_allImplementorInstances != null) {
       if (_allImplementorInstances!.isSentinel) {
         content.add(new SentinelValueElement(
@@ -239,12 +243,12 @@ class ClassInstancesElement extends CustomElement implements Renderable {
             anyRef(_isolate, _allImplementorInstances!.asValue!, _objects));
       }
     } else {
-      content.add(new SpanElement()..text = '...');
+      content.add(new HTMLSpanElement()..textContent = '...');
     }
-    final button = new ButtonElement()
-      ..classes = ['reachable_size']
+    final button = new HTMLButtonElement()
+      ..className = 'reachable_size'
       ..disabled = _loadingAllImplementorInstances
-      ..text = '↺';
+      ..textContent = '↺';
     button.onClick.listen((_) async {
       button.disabled = true;
       _loadingAllImplementorInstances = true;
@@ -257,25 +261,25 @@ class ClassInstancesElement extends CustomElement implements Renderable {
     return content;
   }
 
-  List<Element> _createReachableSizeValue() {
-    final content = <Element>[];
+  List<HTMLElement> _createReachableSizeValue() {
+    final content = <HTMLElement>[];
     if (_reachableSize != null) {
       if (_reachableSize!.isSentinel) {
         content.add(new SentinelValueElement(_reachableSize!.asSentinel!,
                 queue: _r.queue)
             .element);
       } else {
-        content.add(new SpanElement()
-          ..text = Utils.formatSize(
+        content.add(new HTMLSpanElement()
+          ..textContent = Utils.formatSize(
               int.parse(_reachableSize!.asValue!.valueAsString!)));
       }
     } else {
-      content.add(new SpanElement()..text = '...');
+      content.add(new HTMLSpanElement()..textContent = '...');
     }
-    final button = new ButtonElement()
-      ..classes = ['reachable_size']
+    final button = new HTMLButtonElement()
+      ..className = 'reachable_size'
       ..disabled = _loadingReachableBytes
-      ..text = '↺';
+      ..textContent = '↺';
     button.onClick.listen((_) async {
       button.disabled = true;
       _loadingReachableBytes = true;
@@ -287,25 +291,25 @@ class ClassInstancesElement extends CustomElement implements Renderable {
     return content;
   }
 
-  List<Element> _createRetainedSizeValue() {
-    final content = <Element>[];
+  List<HTMLElement> _createRetainedSizeValue() {
+    final content = <HTMLElement>[];
     if (_retainedSize != null) {
       if (_retainedSize!.isSentinel) {
         content.add(new SentinelValueElement(_retainedSize!.asSentinel!,
                 queue: _r.queue)
             .element);
       } else {
-        content.add(new SpanElement()
-          ..text = Utils.formatSize(
+        content.add(new HTMLSpanElement()
+          ..textContent = Utils.formatSize(
               int.parse(_retainedSize!.asValue!.valueAsString!)));
       }
     } else {
-      content.add(new SpanElement()..text = '...');
+      content.add(new HTMLSpanElement()..textContent = '...');
     }
-    final button = new ButtonElement()
-      ..classes = ['retained_size']
+    final button = new HTMLButtonElement()
+      ..className = 'retained_size'
       ..disabled = _loadingRetainedBytes
-      ..text = '↺';
+      ..textContent = '↺';
     button.onClick.listen((_) async {
       button.disabled = true;
       _loadingRetainedBytes = true;

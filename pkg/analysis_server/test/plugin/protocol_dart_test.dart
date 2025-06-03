@@ -157,7 +157,7 @@ enum _E1 { one, two }
 enum E2 { three, four }''');
     {
       var engineElement = findElement2.enum_('_E1');
-      expect(engineElement.metadata2.hasDeprecated, isTrue);
+      expect(engineElement.metadata.hasDeprecated, isTrue);
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.ENUM);
@@ -174,7 +174,7 @@ enum E2 { three, four }''');
       expect(element.parameters, isNull);
       expect(
         element.flags,
-        (engineElement.metadata2.hasDeprecated ? Element.FLAG_DEPRECATED : 0) |
+        (engineElement.metadata.hasDeprecated ? Element.FLAG_DEPRECATED : 0) |
             Element.FLAG_PRIVATE,
       );
     }
@@ -210,8 +210,8 @@ enum E2 { three, four }''');
       }
       expect(element.parameters, isNull);
       expect(element.returnType, '_E1');
-      var classElement = engineElement.enclosingElement2;
-      expect(classElement.metadata2.hasDeprecated, isTrue);
+      var classElement = engineElement.enclosingElement;
+      expect(classElement.metadata.hasDeprecated, isTrue);
       expect(
         element.flags,
         // Element.FLAG_DEPRECATED |

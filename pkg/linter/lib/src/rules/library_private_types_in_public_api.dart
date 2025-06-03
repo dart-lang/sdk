@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -20,7 +21,8 @@ class LibraryPrivateTypesInPublicApi extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.library_private_types_in_public_api;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.library_private_types_in_public_api;
 
   @override
   void registerNodeProcessors(
@@ -216,7 +218,7 @@ class Validator extends SimpleAstVisitor<void> {
   void visitNamedType(NamedType node) {
     var element = node.element2;
     if (element != null && isPrivate(element)) {
-      rule.reportAtToken(node.name2);
+      rule.reportAtToken(node.name);
     }
     node.typeArguments?.accept(this);
   }

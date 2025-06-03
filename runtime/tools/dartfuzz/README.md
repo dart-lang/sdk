@@ -59,7 +59,7 @@ where
     --dart-top         : sets DART_TOP explicitly through command line
     --mode1            : m1
     --mode2            : m2, and values one of
-        jit-[debug-][ia32|x64|arm32|arm64]               = Dart JIT
+        jit-[debug-][x64|arm32|arm64]                    = Dart JIT
         aot-[debug-][x64|arm32|arm64]                    = Dart AOT
         djs-x64                                          = dart2js + Node.JS
     --[no-]rerun       : re-run a testcase if there is only a divergence in
@@ -71,8 +71,8 @@ If no modes are given, a random combination is used.
 
 This fuzz testing tool must have access to the top of a Dart SDK
 development tree (DART_TOP) in which all proper binaries have been
-built already (for example, testing jit-ia32 will invoke the binary
-${DART_TOP}/out/ReleaseIA32/dart to start the Dart VM). The DART_TOP
+built already (for example, testing jit-x64 will invoke the binary
+${DART_TOP}/out/ReleaseX64/dart to start the Dart VM). The DART_TOP
 can be provided through the --dart-top option, as an environment
 variable, or, by default, as the current directory by invoking the
 fuzz testing tool from the Dart SDK top.

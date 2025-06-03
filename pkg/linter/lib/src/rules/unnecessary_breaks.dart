@@ -5,9 +5,9 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r"Don't use explicit `break`s when a break is implied.";
 
@@ -16,14 +16,14 @@ class UnnecessaryBreaks extends LintRule {
     : super(name: LintNames.unnecessary_breaks, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_breaks;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_breaks;
 
   @override
   void registerNodeProcessors(
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    if (!context.isEnabled(Feature.patterns)) return;
+    if (!context.isFeatureEnabled(Feature.patterns)) return;
 
     var visitor = _Visitor(this);
     registry.addBreakStatement(this, visitor);

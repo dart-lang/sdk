@@ -32,7 +32,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/crashes/crash_01/main_lib.dart:2:3: Error: Type 'Constraints' not found.
+// pkg/front_end/testcases/general/crashes/crash_01/main_lib.dart:6:3: Error: Type 'Constraints' not found.
 //   Constraints get constraints {}
 //   ^^^^^^^^^^^
 //

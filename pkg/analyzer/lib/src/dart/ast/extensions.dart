@@ -237,14 +237,14 @@ extension IdentifierImplExtension on IdentifierImpl {
           name: self.prefix.token,
           period: self.period,
         )..element2 = self.prefix.element,
-        name2: self.identifier.token,
+        name: self.identifier.token,
         typeArguments: typeArguments,
         question: question,
       )..element2 = self.identifier.element;
     } else if (self is SimpleIdentifierImpl) {
       return NamedTypeImpl(
         importPrefix: null,
-        name2: self.token,
+        name: self.token,
         typeArguments: typeArguments,
         question: question,
       )..element2 = self.element;
@@ -283,9 +283,9 @@ extension NamedTypeExtension on NamedType {
   String get qualifiedName {
     var importPrefix = this.importPrefix;
     if (importPrefix != null) {
-      return '${importPrefix.name.lexeme}.${name2.lexeme}';
+      return '${importPrefix.name.lexeme}.${name.lexeme}';
     } else {
-      return name2.lexeme;
+      return name.lexeme;
     }
   }
 }

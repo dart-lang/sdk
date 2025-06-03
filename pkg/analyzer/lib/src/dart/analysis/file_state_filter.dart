@@ -67,7 +67,7 @@ class _PubFilter implements FileStateFilter {
   final Set<String> dependencies;
 
   factory _PubFilter(PubPackage package, String path) {
-    var packageRootFolder = package.workspace.provider.getFolder(package.root);
+    var packageRootFolder = package.root;
     var inLibOrEntryPoint =
         packageRootFolder.getChildAssumingFolder('lib').contains(path) ||
         packageRootFolder.getChildAssumingFolder('bin').contains(path) ||

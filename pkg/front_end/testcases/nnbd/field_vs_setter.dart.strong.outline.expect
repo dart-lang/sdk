@@ -83,6 +83,13 @@ library;
 // int? topLevelFieldAndDuplicateSetter;
 //      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:10:10: Error: 'topLevelFieldAndDuplicateSetter' is already declared in this scope.
+// void set topLevelFieldAndDuplicateSetter(int? value) {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:9:10: Context: Previous declaration of 'topLevelFieldAndDuplicateSetter'.
+// void set topLevelFieldAndDuplicateSetter(int? value) {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:13:12: Error: 'duplicateTopLevelFieldAndSetter1' is already declared in this scope.
 // final int? duplicateTopLevelFieldAndSetter1 = null;
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -125,6 +132,13 @@ library;
 // late final int? topLevelLateFinalFieldAndDuplicateSetter;
 //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:25:10: Error: 'topLevelLateFinalFieldAndDuplicateSetter' is already declared in this scope.
+// void set topLevelLateFinalFieldAndDuplicateSetter(int? value) {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:24:10: Context: Previous declaration of 'topLevelLateFinalFieldAndDuplicateSetter'.
+// void set topLevelLateFinalFieldAndDuplicateSetter(int? value) {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:29:12: Error: Conflicts with the implicit setter of the field 'instanceFieldAndSetter'.
 //   void set instanceFieldAndSetter(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^
@@ -145,6 +159,13 @@ library;
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:31:8: Context: Field 'instanceFieldAndDuplicateSetter' with the implicit setter.
 //   int? instanceFieldAndDuplicateSetter;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:33:12: Error: 'instanceFieldAndDuplicateSetter' is already declared in this scope.
+//   void set instanceFieldAndDuplicateSetter(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:32:12: Context: Previous declaration of 'instanceFieldAndDuplicateSetter'.
+//   void set instanceFieldAndDuplicateSetter(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:36:14: Error: 'duplicateInstanceFieldAndSetter1' is already declared in this scope.
 //   final int? duplicateInstanceFieldAndSetter1 = null;
@@ -188,6 +209,13 @@ library;
 //   late final int? instanceLateFinalFieldAndDuplicateSetter;
 //                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:48:12: Error: 'instanceLateFinalFieldAndDuplicateSetter' is already declared in this scope.
+//   void set instanceLateFinalFieldAndDuplicateSetter(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:47:12: Context: Previous declaration of 'instanceLateFinalFieldAndDuplicateSetter'.
+//   void set instanceLateFinalFieldAndDuplicateSetter(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:51:19: Error: Conflicts with the implicit setter of the field 'staticFieldAndSetter'.
 //   static void set staticFieldAndSetter(int? value) {}
 //                   ^^^^^^^^^^^^^^^^^^^^
@@ -208,6 +236,13 @@ library;
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:53:15: Context: Field 'staticFieldAndDuplicateSetter' with the implicit setter.
 //   static int? staticFieldAndDuplicateSetter;
 //               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:55:19: Error: 'staticFieldAndDuplicateSetter' is already declared in this scope.
+//   static void set staticFieldAndDuplicateSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:54:19: Context: Previous declaration of 'staticFieldAndDuplicateSetter'.
+//   static void set staticFieldAndDuplicateSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:58:21: Error: 'duplicateStaticFieldAndSetter1' is already declared in this scope.
 //   static final int? duplicateStaticFieldAndSetter1 = null;
@@ -251,6 +286,13 @@ library;
 //   static late final int? staticLateFinalFieldAndDuplicateSetter;
 //                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:70:19: Error: 'staticLateFinalFieldAndDuplicateSetter' is already declared in this scope.
+//   static void set staticLateFinalFieldAndDuplicateSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:69:19: Context: Previous declaration of 'staticLateFinalFieldAndDuplicateSetter'.
+//   static void set staticLateFinalFieldAndDuplicateSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:73:12: Error: Conflicts with the implicit setter of the field 'staticFieldAndInstanceSetter'.
 //   void set staticFieldAndInstanceSetter(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -271,6 +313,13 @@ library;
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:75:15: Context: Field 'staticFieldAndInstanceDuplicateSetter' with the implicit setter.
 //   static int? staticFieldAndInstanceDuplicateSetter;
 //               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:77:12: Error: 'staticFieldAndInstanceDuplicateSetter' is already declared in this scope.
+//   void set staticFieldAndInstanceDuplicateSetter(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:76:12: Context: Previous declaration of 'staticFieldAndInstanceDuplicateSetter'.
+//   void set staticFieldAndInstanceDuplicateSetter(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:80:19: Error: Conflicts with the implicit setter of the field 'instanceFieldAndStaticSetter'.
 //   static void set instanceFieldAndStaticSetter(int? value) {}
@@ -293,6 +342,13 @@ library;
 //   int? instanceFieldAndStaticDuplicateSetter;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:84:19: Error: 'instanceFieldAndStaticDuplicateSetter' is already declared in this scope.
+//   static void set instanceFieldAndStaticDuplicateSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:83:19: Context: Previous declaration of 'instanceFieldAndStaticDuplicateSetter'.
+//   static void set instanceFieldAndStaticDuplicateSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:87:14: Error: 'duplicateInstanceFieldAndStaticSetter1' is already declared in this scope.
 //   final int? duplicateInstanceFieldAndStaticSetter1 = null;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -306,6 +362,13 @@ library;
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:86:8: Context: Field 'duplicateInstanceFieldAndStaticSetter1' with the implicit setter.
 //   int? duplicateInstanceFieldAndStaticSetter1;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:88:19: Error: Static property 'duplicateInstanceFieldAndStaticSetter1' conflicts with instance property of the same name.
+//   static void set duplicateInstanceFieldAndStaticSetter1(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:87:14: Context: Conflicting instance property 'duplicateInstanceFieldAndStaticSetter1'.
+//   final int? duplicateInstanceFieldAndStaticSetter1 = null;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:91:8: Error: 'duplicateInstanceFieldAndStaticSetter2' is already declared in this scope.
 //   int? duplicateInstanceFieldAndStaticSetter2;
@@ -341,6 +404,13 @@ library;
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:94:15: Context: Field 'duplicateStaticFieldAndInstanceSetter1' with the implicit setter.
 //   static int? duplicateStaticFieldAndInstanceSetter1;
 //               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:96:12: Error: Instance property 'duplicateStaticFieldAndInstanceSetter1' conflicts with static property of the same name.
+//   void set duplicateStaticFieldAndInstanceSetter1(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:95:21: Context: Conflicting static property 'duplicateStaticFieldAndInstanceSetter1'.
+//   static final int? duplicateStaticFieldAndInstanceSetter1 = null;
+//                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:99:15: Error: 'duplicateStaticFieldAndInstanceSetter2' is already declared in this scope.
 //   static int? duplicateStaticFieldAndInstanceSetter2;
@@ -384,6 +454,13 @@ library;
 //   int? extensionInstanceFieldAndDuplicateSetter;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:109:12: Error: 'extensionInstanceFieldAndDuplicateSetter' is already declared in this scope.
+//   void set extensionInstanceFieldAndDuplicateSetter(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:108:12: Context: Previous declaration of 'extensionInstanceFieldAndDuplicateSetter'.
+//   void set extensionInstanceFieldAndDuplicateSetter(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:112:14: Error: 'duplicateExtensionInstanceFieldAndSetter1' is already declared in this scope.
 //   final int? duplicateExtensionInstanceFieldAndSetter1 = null;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -425,6 +502,13 @@ library;
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:122:15: Context: Field 'extensionStaticFieldAndDuplicateSetter' with the implicit setter.
 //   static int? extensionStaticFieldAndDuplicateSetter;
 //               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:124:19: Error: 'extensionStaticFieldAndDuplicateSetter' is already declared in this scope.
+//   static void set extensionStaticFieldAndDuplicateSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:123:19: Context: Previous declaration of 'extensionStaticFieldAndDuplicateSetter'.
+//   static void set extensionStaticFieldAndDuplicateSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:127:21: Error: 'duplicateExtensionStaticFieldAndSetter1' is already declared in this scope.
 //   static final int? duplicateExtensionStaticFieldAndSetter1 = null;
@@ -468,6 +552,13 @@ library;
 //   static late final int? extensionStaticLateFinalFieldAndDuplicateSetter;
 //                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:139:19: Error: 'extensionStaticLateFinalFieldAndDuplicateSetter' is already declared in this scope.
+//   static void set extensionStaticLateFinalFieldAndDuplicateSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:138:19: Context: Previous declaration of 'extensionStaticLateFinalFieldAndDuplicateSetter'.
+//   static void set extensionStaticLateFinalFieldAndDuplicateSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:142:12: Error: Conflicts with the implicit setter of the field 'extensionStaticFieldAndInstanceSetter'.
 //   void set extensionStaticFieldAndInstanceSetter(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -488,6 +579,13 @@ library;
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:144:15: Context: Field 'extensionStaticFieldAndInstanceDuplicateSetter' with the implicit setter.
 //   static int? extensionStaticFieldAndInstanceDuplicateSetter;
 //               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:146:12: Error: 'extensionStaticFieldAndInstanceDuplicateSetter' is already declared in this scope.
+//   void set extensionStaticFieldAndInstanceDuplicateSetter(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:145:12: Context: Previous declaration of 'extensionStaticFieldAndInstanceDuplicateSetter'.
+//   void set extensionStaticFieldAndInstanceDuplicateSetter(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:149:19: Error: Conflicts with the implicit setter of the field 'extensionInstanceFieldAndStaticSetter'.
 //   static void set extensionInstanceFieldAndStaticSetter(int? value) {}
@@ -510,6 +608,13 @@ library;
 //   int? extensionInstanceFieldAndStaticDuplicateSetter;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:153:19: Error: 'extensionInstanceFieldAndStaticDuplicateSetter' is already declared in this scope.
+//   static void set extensionInstanceFieldAndStaticDuplicateSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:152:19: Context: Previous declaration of 'extensionInstanceFieldAndStaticDuplicateSetter'.
+//   static void set extensionInstanceFieldAndStaticDuplicateSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:156:14: Error: 'duplicateExtensionInstanceFieldAndStaticSetter1' is already declared in this scope.
 //   final int? duplicateExtensionInstanceFieldAndStaticSetter1 = null;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -523,6 +628,13 @@ library;
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:155:8: Context: Field 'duplicateExtensionInstanceFieldAndStaticSetter1' with the implicit setter.
 //   int? duplicateExtensionInstanceFieldAndStaticSetter1;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:157:19: Error: Static property 'duplicateExtensionInstanceFieldAndStaticSetter1' conflicts with instance property of the same name.
+//   static void set duplicateExtensionInstanceFieldAndStaticSetter1(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:156:14: Context: Conflicting instance property 'duplicateExtensionInstanceFieldAndStaticSetter1'.
+//   final int? duplicateExtensionInstanceFieldAndStaticSetter1 = null;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:160:8: Error: 'duplicateExtensionInstanceFieldAndStaticSetter2' is already declared in this scope.
 //   int? duplicateExtensionInstanceFieldAndStaticSetter2;
@@ -558,6 +670,13 @@ library;
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:163:15: Context: Field 'duplicateExtensionStaticFieldAndInstanceSetter1' with the implicit setter.
 //   static int? duplicateExtensionStaticFieldAndInstanceSetter1;
 //               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:165:12: Error: Instance property 'duplicateExtensionStaticFieldAndInstanceSetter1' conflicts with static property of the same name.
+//   void set duplicateExtensionStaticFieldAndInstanceSetter1(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:164:21: Context: Conflicting static property 'duplicateExtensionStaticFieldAndInstanceSetter1'.
+//   static final int? duplicateExtensionStaticFieldAndInstanceSetter1 = null;
+//                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:168:15: Error: 'duplicateExtensionStaticFieldAndInstanceSetter2' is already declared in this scope.
 //   static int? duplicateExtensionStaticFieldAndInstanceSetter2;
@@ -616,10 +735,12 @@ extension Extension on core::int? {
   field extensionInstanceFieldAndDuplicateSetter = self::Extension|extensionInstanceFieldAndDuplicateSetter;
   field duplicateExtensionInstanceFieldAndSetter1 = self::Extension|duplicateExtensionInstanceFieldAndSetter1;
   field duplicateExtensionInstanceFieldAndSetter2 = self::Extension|duplicateExtensionInstanceFieldAndSetter2;
+  set duplicateExtensionInstanceFieldAndSetter2 = self::Extension|set#duplicateExtensionInstanceFieldAndSetter2;
   static field extensionStaticFieldAndSetter = self::Extension|extensionStaticFieldAndSetter;
   static field extensionStaticFieldAndDuplicateSetter = self::Extension|extensionStaticFieldAndDuplicateSetter;
   static field duplicateExtensionStaticFieldAndSetter1 = self::Extension|duplicateExtensionStaticFieldAndSetter1;
   static field duplicateExtensionStaticFieldAndSetter2 = self::Extension|duplicateExtensionStaticFieldAndSetter2;
+  static set duplicateExtensionStaticFieldAndSetter2 = set self::Extension|duplicateExtensionStaticFieldAndSetter2;
   static field extensionStaticLateFinalFieldAndSetter = self::Extension|extensionStaticLateFinalFieldAndSetter;
   static field extensionStaticLateFinalFieldAndDuplicateSetter = self::Extension|extensionStaticLateFinalFieldAndDuplicateSetter;
   static field extensionStaticFieldAndInstanceSetter = self::Extension|extensionStaticFieldAndInstanceSetter;
@@ -630,8 +751,6 @@ extension Extension on core::int? {
   field duplicateExtensionInstanceFieldAndStaticSetter2 = self::Extension|duplicateExtensionInstanceFieldAndStaticSetter2;
   static field duplicateExtensionStaticFieldAndInstanceSetter1 = self::Extension|duplicateExtensionStaticFieldAndInstanceSetter1;
   static field duplicateExtensionStaticFieldAndInstanceSetter2 = self::Extension|duplicateExtensionStaticFieldAndInstanceSetter2;
-  set duplicateExtensionInstanceFieldAndSetter2 = self::Extension|set#duplicateExtensionInstanceFieldAndSetter2;
-  static set duplicateExtensionStaticFieldAndSetter2 = set self::Extension|duplicateExtensionStaticFieldAndSetter2;
 }
 static field core::int? topLevelFieldAndSetter;
 static field core::int? topLevelFieldAndDuplicateSetter;

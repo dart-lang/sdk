@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,7 +15,7 @@ class EolAtEndOfFile extends LintRule {
     : super(name: LintNames.eol_at_end_of_file, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.eol_at_end_of_file;
+  DiagnosticCode get diagnosticCode => LinterLintCode.eol_at_end_of_file;
 
   @override
   void registerNodeProcessors(

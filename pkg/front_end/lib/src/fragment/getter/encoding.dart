@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/base/uri_offset.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
@@ -305,17 +306,16 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       DartType getterType = function.returnType;
       DartType setterType = SourcePropertyBuilder.getSetterType(setterBuilder,
           getterExtensionTypeParameters: null);
-      libraryBuilder.checkGetterSetterTypes(typeEnvironment,
-          getterType: getterType,
-          getterName: _fragment.name,
-          getterFileOffset: _fragment.nameOffset,
-          getterFileUri: _fragment.fileUri,
-          getterNameLength: _fragment.name.length,
-          setterType: setterType,
-          setterName: setterBuilder.name,
-          setterFileOffset: setterBuilder.fileOffset,
-          setterFileUri: setterBuilder.fileUri,
-          setterNameLength: setterBuilder.name.length);
+      libraryBuilder.checkGetterSetterTypes(
+        typeEnvironment,
+        getterType: getterType,
+        getterName: _fragment.name,
+        getterUriOffset: new UriOffsetLength(
+            _fragment.fileUri, _fragment.nameOffset, _fragment.name.length),
+        setterType: setterType,
+        setterName: setterBuilder.name,
+        setterUriOffset: setterBuilder.setterUriOffset!,
+      );
     }
   }
 
@@ -549,14 +549,11 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       libraryBuilder.checkGetterSetterTypes(typeEnvironment,
           getterType: getterType,
           getterName: _fragment.name,
-          getterFileOffset: _fragment.nameOffset,
-          getterFileUri: _fragment.fileUri,
-          getterNameLength: _fragment.name.length,
+          getterUriOffset: new UriOffsetLength(
+              _fragment.fileUri, _fragment.nameOffset, _fragment.name.length),
           setterType: setterType,
           setterName: setterBuilder.name,
-          setterFileOffset: setterBuilder.fileOffset,
-          setterFileUri: setterBuilder.fileUri,
-          setterNameLength: setterBuilder.name.length);
+          setterUriOffset: setterBuilder.setterUriOffset!);
     }
   }
 

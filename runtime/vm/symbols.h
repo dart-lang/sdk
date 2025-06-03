@@ -82,6 +82,8 @@ class ObjectPointerVisitor;
   V(DotFieldADI, ".fieldADI")                                                  \
   V(DotFieldAI, ".fieldAI")                                                    \
   V(DotFieldNI, ".fieldNI")                                                    \
+  V(DotStaticFieldAccessedWithoutIsolate,                                      \
+    ".staticFieldAccessedWithoutIsolate")                                      \
   V(DotRange, ".range")                                                        \
   V(DotUnder, "._")                                                            \
   V(DotValue, ".value")                                                        \
@@ -121,6 +123,7 @@ class ObjectPointerVisitor;
   V(FfiInt8, "Int8")                                                           \
   V(FfiIntPtr, "IntPtr")                                                       \
   V(FfiIsolateLocalCallback, "_FfiIsolateLocalCallback")                       \
+  V(FfiIsolateGroupSharedCallback, "_FfiIsolateGroupSharedCallback")           \
   V(FfiNative, "Native")                                                       \
   V(FfiNativeFunction, "NativeFunction")                                       \
   V(FfiNativeType, "NativeType")                                               \
@@ -136,6 +139,7 @@ class ObjectPointerVisitor;
   V(FfiUint8, "Uint8")                                                         \
   V(FfiVoid, "Void")                                                           \
   V(Field, "Field")                                                            \
+  V(FieldAccessError, "FieldAccessError")                                      \
   V(Finalizable, "Finalizable")                                                \
   V(FinalizerBase, "FinalizerBase")                                            \
   V(FinalizerEntry, "FinalizerEntry")                                          \

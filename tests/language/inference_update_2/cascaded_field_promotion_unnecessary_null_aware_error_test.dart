@@ -53,11 +53,10 @@ void fieldsPromotableWithinCascade(C c) {
     .._field!.expectStaticType<Exactly<Object>>()
     .._field.expectStaticType<Exactly<Object>>();
 
-  // After the cascade, the promotion is not retained, because of the implicit
-  // control flow join implied by the `?..`. (In principle it would be sound to
-  // preserve the promotion, but it's extra work to do so, and it's not clear
-  // that there would be enough user benefit to justify the work).
-  c?._field.expectStaticType<Exactly<Object?>>();
+  // After the cascade, the promotion is retained, because in the implicit
+  // control flow join implied by the `?..`, the control flow path that skips
+  // the promotion is dead.
+  c?._field.expectStaticType<Exactly<Object>>();
   // [error column 4, length 2]
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 }

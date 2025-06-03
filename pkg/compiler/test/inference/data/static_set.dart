@@ -17,10 +17,10 @@ main() {
 /// Static set of an uninitialized top level field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: field1:[null|exact=JSUInt31|powerset={null}{I}]*/
+/*member: field1:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
 var field1;
 
-/*member: setTopLevelFieldUninitialized:[exact=JSUInt31|powerset={I}]*/
+/*member: setTopLevelFieldUninitialized:[exact=JSUInt31|powerset={I}{O}{N}]*/
 setTopLevelFieldUninitialized() => field1 = 42;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -28,21 +28,21 @@ setTopLevelFieldUninitialized() => field1 = 42;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class1 {
-  /*member: Class1.field:[null|exact=JSUInt31|powerset={null}{I}]*/
+  /*member: Class1.field:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
   static var field;
 }
 
-/*member: setStaticFieldUninitialized:[exact=JSUInt31|powerset={I}]*/
+/*member: setStaticFieldUninitialized:[exact=JSUInt31|powerset={I}{O}{N}]*/
 setStaticFieldUninitialized() => Class1.field = 42;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Static set of an initialized top level field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: field2:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+/*member: field2:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
 dynamic field2 = '';
 
-/*member: setTopLevelFieldInitialized:[exact=JSUInt31|powerset={I}]*/
+/*member: setTopLevelFieldInitialized:[exact=JSUInt31|powerset={I}{O}{N}]*/
 setTopLevelFieldInitialized() => field2 = 42;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,20 +50,20 @@ setTopLevelFieldInitialized() => field2 = 42;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class2 {
-  /*member: Class2.field:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+  /*member: Class2.field:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
   static dynamic field = '';
 }
 
-/*member: setStaticFieldInitialized:[exact=JSUInt31|powerset={I}]*/
+/*member: setStaticFieldInitialized:[exact=JSUInt31|powerset={I}{O}{N}]*/
 setStaticFieldInitialized() => Class2.field = 42;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Static set of a top level setter.
 ////////////////////////////////////////////////////////////////////////////////
 
-set _setter1(/*[exact=JSUInt31|powerset={I}]*/ value) {}
+set _setter1(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ value) {}
 
-/*member: setTopLevelSetter:[exact=JSUInt31|powerset={I}]*/
+/*member: setTopLevelSetter:[exact=JSUInt31|powerset={I}{O}{N}]*/
 setTopLevelSetter() => _setter1 = 42;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -71,8 +71,8 @@ setTopLevelSetter() => _setter1 = 42;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class3 {
-  static set setter(/*[exact=JSUInt31|powerset={I}]*/ value) {}
+  static set setter(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ value) {}
 }
 
-/*member: setStaticSetter:[exact=JSUInt31|powerset={I}]*/
+/*member: setStaticSetter:[exact=JSUInt31|powerset={I}{O}{N}]*/
 setStaticSetter() => Class3.setter = 42;

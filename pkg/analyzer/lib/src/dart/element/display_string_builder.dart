@@ -37,11 +37,11 @@ class ElementDisplayStringBuilder {
   String toString() => _buffer.toString();
 
   void writeAbstractElement(FragmentImpl element) {
-    _write(element.name ?? '<unnamed $runtimeType>');
+    _write(element.name2 ?? '<unnamed ${element.runtimeType}>');
   }
 
   void writeAbstractElement2(ElementImpl2 element) {
-    _write(element.name3 ?? '<unnamed $runtimeType>');
+    _write(element.name3 ?? '<unnamed ${element.runtimeType}>');
   }
 
   void writeClassElement(ClassFragmentImpl element) {
@@ -135,11 +135,6 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void writeExportElement(LibraryExportElementImpl element) {
-    _write('export ');
-    _writeDirectiveUri(element.uri);
-  }
-
   void writeExtensionElement(ExtensionFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
@@ -167,7 +162,7 @@ class ElementDisplayStringBuilder {
     _write('(');
     _writeType(element.representation.type);
     _write(' ');
-    _write(element.representation.name);
+    _write(element.representation.name2 ?? '<null-name}>');
     _write(')');
 
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
@@ -197,7 +192,10 @@ class ElementDisplayStringBuilder {
     _writeType(type.returnType);
     _write(' Function');
     _writeTypeParameters2(type.typeParameters);
-    _writeFormalParameters(type.parameters, forElement: false);
+    _writeFormalParameters(
+      type.parameters.map((e) => e.asElement).toList(),
+      forElement: false,
+    );
     _writeNullability(type.nullabilitySuffix);
   }
 
@@ -208,11 +206,6 @@ class ElementDisplayStringBuilder {
     _write(' Function');
     _writeTypeParameters(element.typeParameters);
     _writeFormalParameters(element.parameters, forElement: true);
-  }
-
-  void writeImportElement(LibraryImportElementImpl element) {
-    _write('import ');
-    _writeDirectiveUri(element.uri);
   }
 
   void writeInterfaceType(InterfaceType type) {
@@ -234,6 +227,16 @@ class ElementDisplayStringBuilder {
     _write('${element.source.uri}');
   }
 
+  void writeLibraryExport(LibraryExportImpl element) {
+    _write('export ');
+    _writeDirectiveUri(element.uri);
+  }
+
+  void writeLibraryImport(LibraryImportImpl element) {
+    _write('import ');
+    _writeDirectiveUri(element.uri);
+  }
+
   void writeMixinElement(MixinFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
@@ -253,7 +256,7 @@ class ElementDisplayStringBuilder {
     _writeNullability(type.nullabilitySuffix);
   }
 
-  void writePartElement(PartElementImpl element) {
+  void writePartInclude(PartIncludeImpl element) {
     _write('part ');
     _writeDirectiveUri(element.uri);
   }
@@ -623,7 +626,8 @@ class ElementDisplayStringBuilder {
 
     var newTypeParameters = <TypeParameterElementImpl2>[];
     for (var typeParameter in type.typeParameters) {
-      var name = typeParameter.name3!;
+      // The type parameter name can be null in erroneous cases.
+      var name = typeParameter.name3 ?? '';
       for (var counter = 0; !namesToAvoid.add(name); counter++) {
         const unicodeSubscriptZero = 0x2080;
         const unicodeZero = 0x30;
@@ -637,8 +641,10 @@ class ElementDisplayStringBuilder {
         name = typeParameter.name3! + subscript;
       }
 
-      var newTypeParameter = TypeParameterFragmentImpl(name, -1);
-      newTypeParameter.name2 = name;
+      var newTypeParameter = TypeParameterFragmentImpl(
+        name2: name,
+        nameOffset: -1,
+      );
       newTypeParameter.bound = typeParameter.bound;
       newTypeParameters.add(newTypeParameter.asElement2);
     }
@@ -649,7 +655,7 @@ class ElementDisplayStringBuilder {
 
 enum _WriteFormalParameterKind { requiredPositional, optionalPositional, named }
 
-extension on LibraryImportElementImpl {
+extension on LibraryImportImpl {
   String get libraryName {
     if (uri case DirectiveUriWithRelativeUriString uri) {
       return uri.relativeUriString;

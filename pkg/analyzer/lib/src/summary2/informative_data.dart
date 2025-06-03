@@ -102,13 +102,13 @@ class InformativeDataApplier {
     var applyOffsets = ApplyConstantOffsets(unitInfo.libraryConstantOffsets, (
       applier,
     ) {
-      applier.applyToMetadata(unitElement);
       applier.applyToImports(unitElement.libraryImports);
       applier.applyToExports(unitElement.libraryExports);
       applier.applyToParts(unitElement.parts);
     });
 
-    _applyToAccessors(unitElement.accessors, unitInfo.accessors);
+    _applyToAccessors(unitElement.getters, unitInfo.getters);
+    _applyToAccessors(unitElement.setters, unitInfo.setters);
 
     forCorrespondingPairs(
       unitElement.classes
@@ -200,7 +200,7 @@ class InformativeDataApplier {
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
       var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element);
+        applier.applyToMetadata(element.metadata);
         applier.applyToTypeParameters(element.typeParameters);
         applier.applyToFormalParameters(element.parameters);
       });
@@ -228,14 +228,15 @@ class InformativeDataApplier {
     );
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
 
     void applyToMembers() {
       _applyToConstructors(element.constructors, info.constructors);
       _applyToFields(element.fields, info.fields);
-      _applyToAccessors(element.accessors, info.accessors);
+      _applyToAccessors(element.getters, info.getters);
+      _applyToAccessors(element.setters, info.setters);
       _applyToMethods(element.methods, info.methods);
     }
 
@@ -263,7 +264,7 @@ class InformativeDataApplier {
     );
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
 
@@ -311,7 +312,7 @@ class InformativeDataApplier {
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
       var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element);
+        applier.applyToMetadata(element.metadata);
         applier.applyToFormalParameters(element.parameters);
         applier.applyToConstructorInitializers(element);
       });
@@ -340,11 +341,12 @@ class InformativeDataApplier {
     );
     _applyToConstructors(element.constructors, info.constructors);
     _applyToFields(element.fields, info.fields);
-    _applyToAccessors(element.accessors, info.accessors);
+    _applyToAccessors(element.getters, info.getters);
+    _applyToAccessors(element.setters, info.setters);
     _applyToMethods(element.methods, info.methods);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
 
@@ -356,9 +358,9 @@ class InformativeDataApplier {
     }
   }
 
-  void _applyToExports(List<LibraryExportElementImpl> exports, _InfoUnit info) {
+  void _applyToExports(List<LibraryExportImpl> exports, _InfoUnit info) {
     forCorrespondingPairs(exports, info.exports, (element, info) {
-      element.nameOffset = info.nameOffset;
+      element.exportKeywordOffset = info.nameOffset;
       _applyToCombinators(element.combinators, info.combinators);
     });
   }
@@ -376,11 +378,12 @@ class InformativeDataApplier {
       info.typeParameters,
     );
     _applyToFields(element.fields, info.fields);
-    _applyToAccessors(element.accessors, info.accessors);
+    _applyToAccessors(element.getters, info.getters);
+    _applyToAccessors(element.setters, info.setters);
     _applyToMethods(element.methods, info.methods);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
 
@@ -417,7 +420,7 @@ class InformativeDataApplier {
     var fieldApplyOffsets = ApplyConstantOffsets(infoRep.fieldConstantOffsets, (
       applier,
     ) {
-      applier.applyToMetadata(representationField);
+      applier.applyToMetadata(representationField.metadata);
     });
 
     var fieldLinkedData = representationField.linkedData;
@@ -453,11 +456,12 @@ class InformativeDataApplier {
     var restConstructors = element.constructors.skip(1).toList();
     _applyToConstructors(restConstructors, info.constructors);
 
-    _applyToAccessors(element.accessors, info.accessors);
+    _applyToAccessors(element.getters, info.getters);
+    _applyToAccessors(element.setters, info.setters);
     _applyToMethods(element.methods, info.methods);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
 
@@ -480,7 +484,7 @@ class InformativeDataApplier {
       element.documentationComment = info.documentationComment;
 
       var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element);
+        applier.applyToMetadata(element.metadata);
         applier.applyToConstantInitializer(element);
       });
 
@@ -521,7 +525,7 @@ class InformativeDataApplier {
     _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
       applier.applyToFormalParameters(element.parameters);
     });
@@ -575,10 +579,9 @@ class InformativeDataApplier {
     );
   }
 
-  void _applyToImports(List<LibraryImportElementImpl> imports, _InfoUnit info) {
+  void _applyToImports(List<LibraryImportImpl> imports, _InfoUnit info) {
     forCorrespondingPairs(imports, info.imports, (element, info) {
-      element.nameOffset = info.nameOffset;
-
+      element.importKeywordOffset = info.nameOffset;
       if (element.prefix2 case var prefixFragment?) {
         prefixFragment.nameOffset2 = info.prefixOffset2;
         prefixFragment.offset = info.prefixOffset;
@@ -598,7 +601,7 @@ class InformativeDataApplier {
     var applyOffsets = ApplyConstantOffsets(info.libraryConstantOffsets, (
       applier,
     ) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
     });
 
     var linkedData = element.linkedData;
@@ -625,7 +628,7 @@ class InformativeDataApplier {
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
       var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element);
+        applier.applyToMetadata(element.metadata);
         applier.applyToTypeParameters(element.typeParameters);
         applier.applyToFormalParameters(element.parameters);
       });
@@ -653,11 +656,12 @@ class InformativeDataApplier {
     );
     _applyToConstructors(element.constructors, info.constructors);
     _applyToFields(element.fields, info.fields);
-    _applyToAccessors(element.accessors, info.accessors);
+    _applyToAccessors(element.getters, info.getters);
+    _applyToAccessors(element.setters, info.setters);
     _applyToMethods(element.methods, info.methods);
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
 
@@ -679,7 +683,7 @@ class InformativeDataApplier {
     element.documentationComment = info.documentationComment;
 
     var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToConstantInitializer(element);
     });
 
@@ -714,7 +718,7 @@ class InformativeDataApplier {
     List<_InfoTypeParameter>? aliasedTypeParameters,
   }) {
     var applyOffsets = ApplyConstantOffsets(constantOffsets, (applier) {
-      applier.applyToMetadata(element);
+      applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
 
       var aliasedElement = element.aliasedElement;
@@ -754,7 +758,8 @@ class _InfoClassDeclaration {
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoConstructorDeclaration> constructors;
   final List<_InfoFieldDeclaration> fields;
-  final List<_InfoMethodDeclaration> accessors;
+  final List<_InfoMethodDeclaration> getters;
+  final List<_InfoMethodDeclaration> setters;
   final List<_InfoMethodDeclaration> methods;
   final Uint32List constantOffsets;
 
@@ -787,7 +792,8 @@ class _InfoClassDeclaration {
         () => _InfoConstructorDeclaration(reader),
       ),
       fields: reader.readTypedList(() => _InfoFieldDeclaration(reader)),
-      accessors: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      getters: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      setters: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
       methods: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
       constantOffsets: reader.readUInt30List(),
     );
@@ -805,7 +811,8 @@ class _InfoClassDeclaration {
     required this.typeParameters,
     required this.constructors,
     required this.fields,
-    required this.accessors,
+    required this.getters,
+    required this.setters,
     required this.methods,
     required this.constantOffsets,
   });
@@ -922,7 +929,8 @@ class _InfoExtensionTypeDeclaration {
   final _InfoExtensionTypeRepresentation representation;
   final List<_InfoConstructorDeclaration> constructors;
   final List<_InfoFieldDeclaration> fields;
-  final List<_InfoMethodDeclaration> accessors;
+  final List<_InfoMethodDeclaration> getters;
+  final List<_InfoMethodDeclaration> setters;
   final List<_InfoMethodDeclaration> methods;
   final Uint32List constantOffsets;
 
@@ -939,7 +947,8 @@ class _InfoExtensionTypeDeclaration {
         () => _InfoConstructorDeclaration(reader),
       ),
       fields: reader.readTypedList(() => _InfoFieldDeclaration(reader)),
-      accessors: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      getters: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      setters: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
       methods: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
       constantOffsets: reader.readUInt30List(),
     );
@@ -955,7 +964,8 @@ class _InfoExtensionTypeDeclaration {
     required this.representation,
     required this.constructors,
     required this.fields,
-    required this.accessors,
+    required this.getters,
+    required this.setters,
     required this.methods,
     required this.constantOffsets,
   });
@@ -1301,8 +1311,7 @@ class _InformativeDataWriter {
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
       _writeFields(node.members);
-      _writeGettersSetters(node.members);
-      _writeMethods(node.members);
+      _writeGettersSettersMethods(node.members);
       _writeOffsets(
         metadata: node.metadata,
         typeParameters: node.typeParameters,
@@ -1331,8 +1340,7 @@ class _InformativeDataWriter {
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
       _writeEnumFields(node.constants, node.members);
-      _writeGettersSetters(node.members);
-      _writeMethods(node.members);
+      _writeGettersSettersMethods(node.members);
       _writeOffsets(
         metadata: node.metadata,
         enumConstants: node.constants,
@@ -1349,8 +1357,7 @@ class _InformativeDataWriter {
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
       _writeFields(node.members);
-      _writeGettersSetters(node.members);
-      _writeMethods(node.members);
+      _writeGettersSettersMethods(node.members);
       _writeOffsets(
         metadata: node.metadata,
         typeParameters: node.typeParameters,
@@ -1367,8 +1374,7 @@ class _InformativeDataWriter {
       _writeRepresentation(node, node.representation);
       _writeConstructors(node.members);
       _writeFields(node.members);
-      _writeGettersSetters(node.members);
-      _writeMethods(node.members);
+      _writeGettersSettersMethods(node.members);
       _writeOffsets(
         metadata: node.metadata,
         typeParameters: node.typeParameters,
@@ -1378,7 +1384,28 @@ class _InformativeDataWriter {
     sink.writeList2<FunctionDeclaration>(
       unit.declarations
           .whereType<FunctionDeclaration>()
-          .where((e) => e.isGetter || e.isSetter)
+          .where((e) => e.isGetter)
+          .toList(),
+      (node) {
+        sink.writeUInt30(node.offset);
+        sink.writeUInt30(node.length);
+        sink.writeUInt30(node.name.offset);
+        sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
+        _writeDocumentationComment(node);
+        _writeTypeParameters(node.functionExpression.typeParameters);
+        _writeFormalParameters(node.functionExpression.parameters);
+        _writeOffsets(
+          metadata: node.metadata,
+          typeParameters: node.functionExpression.typeParameters,
+          formalParameters: node.functionExpression.parameters,
+        );
+      },
+    );
+
+    sink.writeList2<FunctionDeclaration>(
+      unit.declarations
+          .whereType<FunctionDeclaration>()
+          .where((e) => e.isSetter)
           .toList(),
       (node) {
         sink.writeUInt30(node.offset);
@@ -1463,8 +1490,7 @@ class _InformativeDataWriter {
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
       _writeFields(node.members);
-      _writeGettersSetters(node.members);
-      _writeMethods(node.members);
+      _writeGettersSettersMethods(node.members);
       _writeOffsets(
         metadata: node.metadata,
         typeParameters: node.typeParameters,
@@ -1608,27 +1634,38 @@ class _InformativeDataWriter {
     });
   }
 
-  void _writeGettersSetters(List<ClassMember> members) {
-    sink.writeList<MethodDeclaration>(
-      members
-          .whereType<MethodDeclaration>()
-          .where((e) => e.isGetter || e.isSetter)
-          .toList(),
-      (node) {
-        sink.writeUInt30(node.offset);
-        sink.writeUInt30(node.length);
-        sink.writeUInt30(node.name.offset);
-        sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
-        _writeDocumentationComment(node);
-        _writeTypeParameters(node.typeParameters);
-        _writeFormalParameters(node.parameters);
-        _writeOffsets(
-          metadata: node.metadata,
-          typeParameters: node.typeParameters,
-          formalParameters: node.parameters,
-        );
-      },
-    );
+  void _writeGettersSettersMethods(List<ClassMember> members) {
+    var getters = <MethodDeclaration>[];
+    var setters = <MethodDeclaration>[];
+    var methods = <MethodDeclaration>[];
+    for (var method in members.whereType<MethodDeclaration>()) {
+      if (method.isGetter) {
+        getters.add(method);
+      } else if (method.isSetter) {
+        setters.add(method);
+      } else {
+        methods.add(method);
+      }
+    }
+
+    void writeMethodAny(MethodDeclaration node) {
+      sink.writeUInt30(node.offset);
+      sink.writeUInt30(node.length);
+      sink.writeUInt30(node.name.offset);
+      sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
+      _writeDocumentationComment(node);
+      _writeTypeParameters(node.typeParameters);
+      _writeFormalParameters(node.parameters);
+      _writeOffsets(
+        metadata: node.metadata,
+        typeParameters: node.typeParameters,
+        formalParameters: node.parameters,
+      );
+    }
+
+    sink.writeList(getters, writeMethodAny);
+    sink.writeList(setters, writeMethodAny);
+    sink.writeList(methods, writeMethodAny);
   }
 
   void _writeLibraryName(CompilationUnit unit) {
@@ -1653,29 +1690,6 @@ class _InformativeDataWriter {
       importDirectives: unit.directives.whereType<ImportDirective>(),
       exportDirectives: unit.directives.whereType<ExportDirective>(),
       partDirectives: unit.directives.whereType<PartDirective>(),
-    );
-  }
-
-  void _writeMethods(List<ClassMember> members) {
-    sink.writeList<MethodDeclaration>(
-      members
-          .whereType<MethodDeclaration>()
-          .where((e) => !(e.isGetter || e.isSetter))
-          .toList(),
-      (node) {
-        sink.writeUInt30(node.offset);
-        sink.writeUInt30(node.length);
-        sink.writeUInt30(node.name.offset);
-        sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
-        _writeDocumentationComment(node);
-        _writeTypeParameters(node.typeParameters);
-        _writeFormalParameters(node.parameters);
-        _writeOffsets(
-          metadata: node.metadata,
-          typeParameters: node.typeParameters,
-          formalParameters: node.parameters,
-        );
-      },
     );
   }
 
@@ -1744,7 +1758,7 @@ class _InformativeDataWriter {
       addFormalParameters(aliasedType.parameters);
     }
     enumConstantArguments?.typeArguments?.accept(collector);
-    enumConstantArguments?.argumentList.arguments.accept(collector);
+    enumConstantArguments?.argumentList.accept(collector);
     sink.writeUint30List(collector.offsets);
   }
 
@@ -1876,7 +1890,8 @@ class _InfoUnit {
   final List<_InfoClassDeclaration> enums;
   final List<_InfoClassDeclaration> extensions;
   final List<_InfoExtensionTypeDeclaration> extensionTypes;
-  final List<_InfoMethodDeclaration> accessors;
+  final List<_InfoMethodDeclaration> getters;
+  final List<_InfoMethodDeclaration> setters;
   final List<_InfoFunctionDeclaration> functions;
   final List<_InfoFunctionTypeAlias> functionTypeAliases;
   final List<_InfoGenericTypeAlias> genericTypeAliases;
@@ -1906,7 +1921,8 @@ class _InfoUnit {
       extensionTypes: reader.readTypedList(
         () => _InfoExtensionTypeDeclaration(reader),
       ),
-      accessors: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      getters: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      setters: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
       functions: reader.readTypedList(() => _InfoFunctionDeclaration(reader)),
       functionTypeAliases: reader.readTypedList(
         () => _InfoFunctionTypeAlias(reader),
@@ -1938,7 +1954,8 @@ class _InfoUnit {
     required this.enums,
     required this.extensions,
     required this.extensionTypes,
-    required this.accessors,
+    required this.getters,
+    required this.setters,
     required this.functions,
     required this.functionTypeAliases,
     required this.genericTypeAliases,
@@ -1989,13 +2006,13 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   void applyToEnumConstants(List<FieldFragmentImpl> constants) {
     for (var constant in constants) {
-      applyToMetadata(constant);
+      applyToMetadata(constant.metadata);
     }
   }
 
-  void applyToExports(List<LibraryExportElementImpl> elements) {
+  void applyToExports(List<LibraryExportImpl> elements) {
     for (var element in elements) {
-      applyToMetadata(element);
+      applyToMetadata(element.metadata);
     }
   }
 
@@ -2003,40 +2020,34 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     List<FormalParameterFragmentImpl> formalParameters,
   ) {
     for (var parameter in formalParameters) {
-      applyToMetadata(parameter);
+      applyToMetadata(parameter.metadata);
       applyToFormalParameters(parameter.parameters);
       applyToConstantInitializer(parameter);
     }
   }
 
-  void applyToImports(List<LibraryImportElementImpl> elements) {
+  void applyToImports(List<LibraryImportImpl> elements) {
     for (var element in elements) {
-      applyToMetadata(element);
+      applyToMetadata(element.metadata);
     }
   }
 
-  void applyToMetadata(FragmentImpl element) {
-    for (var annotation in element.metadata) {
+  void applyToMetadata(MetadataImpl metadata) {
+    for (var annotation in metadata.annotations) {
       var node = annotation.annotationAst;
       node.accept(this);
     }
   }
 
-  void applyToPartDirectives(List<PartElementImpl> elements) {
+  void applyToParts(List<PartIncludeImpl> elements) {
     for (var element in elements) {
-      applyToMetadata(element);
-    }
-  }
-
-  void applyToParts(List<PartElementImpl> elements) {
-    for (var element in elements) {
-      applyToMetadata(element);
+      applyToMetadata(element.metadata);
     }
   }
 
   void applyToTypeParameters(List<TypeParameterFragmentImpl> typeParameters) {
     for (var typeParameter in typeParameters) {
-      applyToMetadata(typeParameter);
+      applyToMetadata(typeParameter.metadata);
     }
   }
 
@@ -2085,9 +2096,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpressionImpl) {
       initializer.constructorName.type.typeArguments?.accept(this);
-      for (var argument in initializer.argumentList.arguments) {
-        argument.accept(this);
-      }
+      initializer.argumentList.accept(this);
     }
   }
 }
@@ -2306,7 +2315,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     node.importPrefix?.accept(this);
-    _tokenOrNull(node.name2);
+    _tokenOrNull(node.name);
     node.typeArguments?.accept(this);
     _tokenOrNull(node.question);
   }

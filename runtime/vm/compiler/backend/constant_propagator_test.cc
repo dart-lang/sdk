@@ -307,8 +307,8 @@ void StrictCompareSentinel(Thread* thread,
   {
     BlockBuilder builder(H.flow_graph(), b1);
     auto v_load = builder.AddDefinition(new LoadStaticFieldInstr(
-        field_x, {},
-        /*calls_initializer=*/true, S.GetNextDeoptId()));
+        field_x, {}, SlowPathOnSentinelValue::kCallInitializer,
+        S.GetNextDeoptId()));
     auto v_sentinel = H.flow_graph()->GetConstant(Object::sentinel());
     Value* const left_value =
         non_sentinel_on_left ? new Value(v_load) : new Value(v_sentinel);

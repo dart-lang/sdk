@@ -26,6 +26,13 @@ library;
 //   void extendedMethodDeclaredGetter() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/general/hierarchy/conflict.dart:94:12: Error: Can't declare a member that conflicts with an inherited one.
+//   void set extendedMethodDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/hierarchy/conflict.dart:7:8: Context: This is the inherited member.
+//   void extendedMethodDeclaredSetter() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/general/hierarchy/conflict.dart:95:7: Error: Can't declare a member that conflicts with an inherited one.
 //   int extendedMethodDeclaredField = 0;
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -59,6 +66,13 @@ library;
 //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/conflict.dart:29:8: Context: This is the inherited member.
 //   void mixedInMethodDeclaredGetter() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/hierarchy/conflict.dart:101:12: Error: Can't declare a member that conflicts with an inherited one.
+//   void set mixedInMethodDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/hierarchy/conflict.dart:30:8: Context: This is the inherited member.
+//   void mixedInMethodDeclaredSetter() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/hierarchy/conflict.dart:102:7: Error: Can't declare a member that conflicts with an inherited one.
@@ -96,6 +110,13 @@ library;
 //   void implementedMethodDeclaredGetter() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/general/hierarchy/conflict.dart:108:12: Error: Can't declare a member that conflicts with an inherited one.
+//   void set implementedMethodDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/hierarchy/conflict.dart:53:8: Context: This is the inherited member.
+//   void implementedMethodDeclaredSetter() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/general/hierarchy/conflict.dart:109:7: Error: Can't declare a member that conflicts with an inherited one.
 //   int implementedMethodDeclaredField = 0;
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -123,27 +144,6 @@ library;
 // pkg/front_end/testcases/general/hierarchy/conflict.dart:57:7: Context: This is the inherited member.
 //   int implementedFieldDeclaredMethod = 0;
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/hierarchy/conflict.dart:94:12: Error: Can't declare a member that conflicts with an inherited one.
-//   void set extendedMethodDeclaredSetter(int value) {}
-//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/hierarchy/conflict.dart:7:8: Context: This is the inherited member.
-//   void extendedMethodDeclaredSetter() {}
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/hierarchy/conflict.dart:101:12: Error: Can't declare a member that conflicts with an inherited one.
-//   void set mixedInMethodDeclaredSetter(int value) {}
-//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/hierarchy/conflict.dart:30:8: Context: This is the inherited member.
-//   void mixedInMethodDeclaredSetter() {}
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/hierarchy/conflict.dart:108:12: Error: Can't declare a member that conflicts with an inherited one.
-//   void set implementedMethodDeclaredSetter(int value) {}
-//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/hierarchy/conflict.dart:53:8: Context: This is the inherited member.
-//   void implementedMethodDeclaredSetter() {}
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -268,7 +268,6 @@ abstract class Class extends self::_Class&Super&Mixin implements self::Interface
   method implementedSetterDeclaredMethod() → void {}
   method implementedFieldDeclaredMethod() → void {}
   method declaredMethodAndSetter() → void {}
-  set declaredMethodAndSetter(core::int value) → void {}
 }
 abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class&Super&Mixin
@@ -282,6 +281,8 @@ abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMi
     return super.{self::Mixin::mixedInMethodDeclaredField}();
   synthetic mixin-super-stub get mixedInGetterDeclaredMethod() → core::int
     return super.{self::Mixin::mixedInGetterDeclaredMethod};
+  synthetic mixin-super-stub set mixedInSetterDeclaredMethod(core::int value) → void
+    return super.{self::Mixin::mixedInSetterDeclaredMethod} = value;
   synthetic mixin-super-stub get mixedInFieldDeclaredMethod() → core::int
     return super.{self::Mixin::mixedInFieldDeclaredMethod};
   synthetic mixin-super-stub set mixedInFieldDeclaredMethod(core::int value) → void
@@ -294,12 +295,16 @@ abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMi
     return super.{self::Mixin::mixedInMethodImplementedField}();
   synthetic mixin-super-stub get mixedInGetterImplementedMethod() → core::int
     return super.{self::Mixin::mixedInGetterImplementedMethod};
+  synthetic mixin-super-stub set mixedInSetterImplementedMethod(core::int value) → void
+    return super.{self::Mixin::mixedInSetterImplementedMethod} = value;
   synthetic mixin-super-stub get mixedInFieldImplementedMethod() → core::int
     return super.{self::Mixin::mixedInFieldImplementedMethod};
   synthetic mixin-super-stub set mixedInFieldImplementedMethod(core::int value) → void
     return super.{self::Mixin::mixedInFieldImplementedMethod} = value;
   synthetic mixin-super-stub get extendedMethodMixedInGetter() → core::int
     return super.{self::Mixin::extendedMethodMixedInGetter};
+  synthetic mixin-super-stub set extendedMethodMixedInSetter(core::int value) → void
+    return super.{self::Mixin::extendedMethodMixedInSetter} = value;
   synthetic mixin-super-stub get extendedMethodMixedInField() → core::int
     return super.{self::Mixin::extendedMethodMixedInField};
   synthetic mixin-super-stub set extendedMethodMixedInField(core::int value) → void
@@ -310,11 +315,5 @@ abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMi
     return super.{self::Mixin::extendedSetterMixedInMethod}();
   synthetic mixin-super-stub method extendedFieldMixedInMethod() → void
     return super.{self::Mixin::extendedFieldMixedInMethod}();
-  synthetic mixin-super-stub set mixedInSetterDeclaredMethod(core::int value) → void
-    return super.{self::Mixin::mixedInSetterDeclaredMethod} = value;
-  synthetic mixin-super-stub set mixedInSetterImplementedMethod(core::int value) → void
-    return super.{self::Mixin::mixedInSetterImplementedMethod} = value;
-  synthetic mixin-super-stub set extendedMethodMixedInSetter(core::int value) → void
-    return super.{self::Mixin::extendedMethodMixedInSetter} = value;
 }
 static method main() → dynamic {}

@@ -12,7 +12,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/document_links.dart';
@@ -232,7 +231,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     var element = node.element2;
     if (element is ConstructorElement && element.isSynthetic) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement;
     }
     var name = node.name;
     if (name is PrefixedIdentifier) {
@@ -350,7 +349,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       // For a named constructor, the class name points at the class.
       var classNameTargetElement =
           node.name != null ? namedType.element2 : element;
-      computer._addRegionForElement(namedType.name2, classNameTargetElement);
+      computer._addRegionForElement(namedType.name, classNameTargetElement);
     }
     // <TypeA, TypeB>
     namedType.typeArguments?.accept(this);
@@ -377,7 +376,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     if (node.declaredElement2 case BindPatternVariableElement(:var join2?)) {
-      for (var variable in join2.variables2) {
+      for (var variable in join2.variables) {
         computer._addRegionForElement(node.name, variable);
       }
     } else {
@@ -470,7 +469,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     node.importPrefix?.accept(this);
-    computer._addRegionForElement(node.name2, node.element2);
+    computer._addRegionForElement(node.name, node.element2);
     node.typeArguments?.accept(this);
   }
 
@@ -547,7 +546,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   ) {
     Element? element = node.element;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement;
     }
     // add region
     computer._addRegionForElement(node.thisKeyword, element);
@@ -587,8 +586,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
           fragment,
         );
       }
-    } else if (element case JoinPatternVariableElement(:var variables2)) {
-      for (var variable in variables2) {
+    } else if (element case JoinPatternVariableElement(:var variables)) {
+      for (var variable in variables) {
         computer._addRegionForElement(node, variable);
       }
     } else {
@@ -600,7 +599,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     Element? element = node.element;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement;
     }
     // add region
     computer._addRegionForElement(node.superKeyword, element);

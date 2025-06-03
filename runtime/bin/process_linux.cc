@@ -282,6 +282,33 @@ static bool PathInNamespace(char* realpath,
   return true;
 }
 
+// Linux 5.9, glibc 2.34.
+extern "C" int close_range(unsigned int first, unsigned int last, int flags)
+    __attribute__((weak));
+
+void CloseAllButStdioAndExecControl(int exec_control_fd) {
+#if defined(DART_HOST_OS_ANDROID)
+  if (__builtin_available(android 34, *)) {
+#elif defined(DART_HOST_OS_LINUX)
+  if (&close_range != nullptr) {
+#else
+#error "DART_HOST_OS_LINUX or DART_HOST_OS_ANDROID must be defined"
+#endif
+    close_range(3, exec_control_fd - 1, 0);
+    close_range(exec_control_fd + 1, ~0u, 0);
+  } else {
+    int max_fds = sysconf(_SC_OPEN_MAX);
+    if (max_fds == -1) {
+      max_fds = _POSIX_OPEN_MAX;
+    }
+    for (int fd = 3; fd < max_fds; fd++) {
+      if (fd != exec_control_fd) {
+        close(fd);
+      }
+    }
+  }
+}
+
 class ProcessStarter {
  public:
   ProcessStarter(Namespace* namespc,
@@ -491,14 +518,17 @@ class ProcessStarter {
       if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
         ReportChildError();
       }
+      close(write_out_[0]);
 
       if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
         ReportChildError();
       }
+      close(read_in_[1]);
 
       if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
         ReportChildError();
       }
+      close(read_err_[1]);
     } else {
       ASSERT(mode_ == kInheritStdio);
     }
@@ -644,63 +674,33 @@ class ProcessStarter {
   void SetupDetached() {
     ASSERT(mode_ == kDetached);
 
-    // Close all open file descriptors except for exec_control_[1].
-    int max_fds = sysconf(_SC_OPEN_MAX);
-    if (max_fds == -1) {
-      max_fds = _POSIX_OPEN_MAX;
+    // Connect stdin, stdout and stderr to /dev/null.
+    int fd = TEMP_FAILURE_RETRY(open("/dev/null", O_RDWR));
+    if (TEMP_FAILURE_RETRY(dup2(fd, STDIN_FILENO)) != STDIN_FILENO) {
+      ReportChildError();
     }
-    for (int fd = 0; fd < max_fds; fd++) {
-      if (fd != exec_control_[1]) {
-        close(fd);
-      }
+    if (TEMP_FAILURE_RETRY(dup2(fd, STDOUT_FILENO)) != STDOUT_FILENO) {
+      ReportChildError();
+    }
+    if (TEMP_FAILURE_RETRY(dup2(fd, STDERR_FILENO)) != STDERR_FILENO) {
+      ReportChildError();
     }
 
-    // Re-open stdin, stdout and stderr and connect them to /dev/null.
-    // The loop above should already have closed all of them, so
-    // creating new file descriptors should start at STDIN_FILENO.
-    int fd = TEMP_FAILURE_RETRY(open("/dev/null", O_RDWR));
-    if (fd != STDIN_FILENO) {
-      ReportChildError();
-    }
-    if (TEMP_FAILURE_RETRY(dup2(STDIN_FILENO, STDOUT_FILENO)) !=
-        STDOUT_FILENO) {
-      ReportChildError();
-    }
-    if (TEMP_FAILURE_RETRY(dup2(STDIN_FILENO, STDERR_FILENO)) !=
-        STDERR_FILENO) {
-      ReportChildError();
-    }
+    CloseAllButStdioAndExecControl(exec_control_[1]);
   }
 
   void SetupDetachedWithStdio() {
-    // Close all open file descriptors except for
-    // exec_control_[1], write_out_[0], read_in_[1] and
-    // read_err_[1].
-    int max_fds = sysconf(_SC_OPEN_MAX);
-    if (max_fds == -1) {
-      max_fds = _POSIX_OPEN_MAX;
-    }
-    for (int fd = 0; fd < max_fds; fd++) {
-      if ((fd != exec_control_[1]) && (fd != write_out_[0]) &&
-          (fd != read_in_[1]) && (fd != read_err_[1])) {
-        close(fd);
-      }
-    }
-
     if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
       ReportChildError();
     }
-    close(write_out_[0]);
-
     if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
       ReportChildError();
     }
-    close(read_in_[1]);
-
     if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
       ReportChildError();
     }
-    close(read_err_[1]);
+
+    CloseAllButStdioAndExecControl(exec_control_[1]);
   }
 
   int CleanupAndReturnError() {
@@ -942,6 +942,7 @@ int Process::Exec(Namespace* namespc,
     Utils::StrError(errno, errmsg, errmsg_len);
     return -1;
   }
+
   // TODO(dart:io) Test for the existence of execveat, and use it instead.
   execvp(const_cast<const char*>(realpath),
          const_cast<char* const*>(arguments));

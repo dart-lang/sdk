@@ -15,8 +15,8 @@ import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 /// This enum is exposed through the analyzer API, so it should not be modified
 /// without considering the impact on analyzer clients.
 @AnalyzerPublicApi(
-    message:
-        'exported by package:analyzer/dart/element/nullability_suffix.dart')
+  message: 'exported by package:analyzer/dart/element/nullability_suffix.dart',
+)
 enum NullabilitySuffix {
   /// An indication that the canonical representation of the type under
   /// consideration ends with `?`.  Types having this nullability suffix should
@@ -31,5 +31,5 @@ enum NullabilitySuffix {
 
   /// An indication that the canonical representation of the type under
   /// consideration does not end with either `?` or `*`.
-  none
+  none,
 }

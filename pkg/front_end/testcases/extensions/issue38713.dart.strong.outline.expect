@@ -21,13 +21,10 @@ import "dart:core" as core;
 
 extension C on core::int {
   static field property2 = self::C|property2;
-  get property3 = self::C|get#property3;
   static set property3 = set self::C|property3;
 }
 static field core::int? C|property2;
 static extension-member set C|property3(core::int? x) → void
   ;
-static extension-member method C|get#property3(lowered final core::int #this) → core::int?
-  ;
-static method main() → void
+static method test() → void
   ;

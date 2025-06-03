@@ -12,6 +12,7 @@ import 'package:path/path.dart' as path;
 import 'package:test_runner/src/options.dart';
 
 import '../vm/dart/snapshot_test_helper.dart';
+import '../../tools/dartfuzz/flag_fuzzer.dart';
 
 int crashCounter = 0;
 
@@ -36,7 +37,8 @@ Future<bool> run(
   List<String> args,
   List<PotentialCrash> crashes,
 ) async {
-  print('Running "$executable ${args.join(' ')}"');
+  print('\n\nRunning "$executable ${args.join(' ')}"');
+  final sw = Stopwatch()..start();
   final Process process = await Process.start(
     executable,
     args,
@@ -45,6 +47,7 @@ Future<bool> run(
   forwardStream(process.stdout, stdout);
   forwardStream(process.stderr, stderr);
   final int exitCode = await process.exitCode;
+  print('Completed in ${sw.elapsed}');
   if (exitCode != 0) {
     // Ignore normal exceptions and compile-time errors for the purpose of
     // crashdump reporting.
@@ -141,7 +144,7 @@ void writeUnexpectedCrashesFile(List<PotentialCrash> crashes) {
   File(unexpectedCrashesFile).writeAsStringSync(buffer.toString());
 }
 
-const int tsanShards = 200;
+const int tsanShards = 64;
 
 late final List<TestRunner> configurations;
 
@@ -173,29 +176,42 @@ main(List<String> arguments) async {
   configurations = <TestRunner>[
     JitTestRunner('out/Debug$arch', [
       '--disable-dart-dev',
+      ...someJitRuntimeFlags(),
       'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
     ]),
     JitTestRunner('out/Release$arch', [
       '--disable-dart-dev',
-      '--no-inline-alloc',
-      '--use-slow-path',
-      '--deoptimize-on-runtime-call-every=3',
+      ...someJitRuntimeFlags(),
       'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
     ]),
+    AotTestRunner(
+      'out/Debug$arch',
+      [
+        ...someGenSnapshotFlags(),
+        'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
+      ],
+      [...someAotRuntimeFlags()],
+    ),
+    AotTestRunner(
+      'out/Release$arch',
+      [
+        ...someGenSnapshotFlags(),
+        'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
+      ],
+      [...someAotRuntimeFlags()],
+    ),
+    // TSAN last so the other steps are evenly distributed.
     for (int i = 0; i < tsanShards; ++i)
       JitTestRunner('out/ReleaseTSAN$arch', [
         '--disable-dart-dev',
+        ...someJitRuntimeFlags(),
+        '--no-profiler', // TODO(https://github.com/dart-lang/sdk/issues/60804, https://github.com/dart-lang/sdk/issues/60805)
+        '--no-gc_at_throw', // Too slow under TSAN
         '-Drepeat=4',
         '-Dshard=$i',
         '-Dshards=$tsanShards',
         'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
       ]),
-    AotTestRunner('out/Release$arch', [
-      'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
-    ], []),
-    AotTestRunner('out/Debug$arch', [
-      'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
-    ], []),
   ];
 
   // Tasks will eventually be killed if they do not have any output for some

@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class IsolateRunStateElement extends CustomElement implements Renderable {
   late RenderingScheduler<IsolateRunStateElement> _r;
@@ -40,7 +42,7 @@ class IsolateRunStateElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
     _debugSubscription.cancel();
     _isolateSubscription.cancel();
@@ -49,19 +51,23 @@ class IsolateRunStateElement extends CustomElement implements Renderable {
   void render() {
     switch (_isolate.status!) {
       case M.IsolateStatus.loading:
-        children = <Element>[new SpanElement()..text = 'loading... '];
+        children = <HTMLElement>[
+          new HTMLSpanElement()..textContent = 'loading... '
+        ];
         break;
       case M.IsolateStatus.running:
-        children = <Element>[new SpanElement()..text = 'running '];
+        children = <HTMLElement>[
+          new HTMLSpanElement()..textContent = 'running '
+        ];
         break;
       case M.IsolateStatus.idle:
-        children = <Element>[new SpanElement()..text = 'idle '];
+        children = <HTMLElement>[new HTMLSpanElement()..textContent = 'idle '];
         break;
       case M.IsolateStatus.paused:
-        children = <Element>[
-          new SpanElement()
+        children = <HTMLElement>[
+          new HTMLSpanElement()
             ..title = '${_isolate.pauseEvent!.timestamp}'
-            ..text = 'paused '
+            ..textContent = 'paused '
         ];
         break;
     }

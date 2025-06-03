@@ -20,7 +20,7 @@ library;
 
 import "package:analyzer/error/error.dart";
 
-class CompileTimeErrorCode extends ErrorCode {
+class CompileTimeErrorCode extends DiagnosticCode {
   ///  No parameters.
   static const CompileTimeErrorCode
   ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER = CompileTimeErrorCode(
@@ -4582,6 +4582,7 @@ class CompileTimeErrorCode extends ErrorCode {
         hasPublishedDocs: true,
       );
 
+  ///  The documentation is in `front_end/message.yaml`.
   static const CompileTimeErrorCode
   RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA = CompileTimeErrorCode(
     'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
@@ -5917,6 +5918,20 @@ class CompileTimeErrorCode extends ErrorCode {
       );
 
   ///  Parameters:
+  ///  0: the name of the class being instantiated
+  ///  1: the name of the constructor being invoked
+  static const CompileTimeErrorCode
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR = CompileTimeErrorCode(
+    'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
+    "The constructor '{0}.{1}` doesn't have type parameters.",
+    correctionMessage:
+        "Try removing the type arguments, or adding a class name, followed by "
+        "the type arguments, then the constructor name.",
+    hasPublishedDocs: true,
+    uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR',
+  );
+
+  ///  Parameters:
   ///  0: the number of type parameters that were declared
   ///  1: the number of type arguments provided
   static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM =
@@ -6074,14 +6089,13 @@ class CompileTimeErrorCode extends ErrorCode {
        );
 
   @override
-  DiagnosticSeverity get errorSeverity =>
-      DiagnosticType.COMPILE_TIME_ERROR.severity;
+  DiagnosticSeverity get severity => DiagnosticType.COMPILE_TIME_ERROR.severity;
 
   @override
   DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
 }
 
-class StaticWarningCode extends ErrorCode {
+class StaticWarningCode extends DiagnosticCode {
   ///  No parameters.
   static const StaticWarningCode DEAD_NULL_AWARE_EXPRESSION = StaticWarningCode(
     'DEAD_NULL_AWARE_EXPRESSION',
@@ -6204,13 +6218,13 @@ class StaticWarningCode extends ErrorCode {
        );
 
   @override
-  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.WARNING;
+  DiagnosticSeverity get severity => DiagnosticSeverity.WARNING;
 
   @override
   DiagnosticType get type => DiagnosticType.STATIC_WARNING;
 }
 
-class WarningCode extends ErrorCode {
+class WarningCode extends DiagnosticCode {
   ///  Parameters:
   ///  0: the name of the actual argument type
   ///  1: the name of the expected function return type
@@ -7018,6 +7032,7 @@ class WarningCode extends ErrorCode {
     'INVALID_WIDGET_PREVIEW_APPLICATION',
     "The '@Preview(...)' annotation can only be applied to public, statically "
         "accessible constructors and functions.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -7029,6 +7044,7 @@ class WarningCode extends ErrorCode {
     "'@Preview(...)' can only accept arguments that consist of literals and "
         "public symbols.",
     correctionMessage: "Rename private symbol '{0}' to '{1}'.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -7794,7 +7810,7 @@ class WarningCode extends ErrorCode {
        );
 
   @override
-  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.WARNING;
+  DiagnosticSeverity get severity => DiagnosticSeverity.WARNING;
 
   @override
   DiagnosticType get type => DiagnosticType.STATIC_WARNING;

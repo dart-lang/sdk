@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
+import 'package:web/web.dart';
 
-Element navBar(List<Element> content) {
-  return document.createElement('nav')
-    ..classes = ['nav-bar']
-    ..children = <Element>[
-      new UListElement()..children = content,
-    ];
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+
+HTMLElement navBar(List<HTMLElement> content) {
+  return (document.createElement('nav')
+    ..className = 'nav-bar'
+    ..appendChild(
+      new HTMLUListElement()..appendChildren(content),
+    )) as HTMLElement;
 }

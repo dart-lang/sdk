@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart' // ignore: implementation_imports
     show
         CommentTokenExtension,
@@ -21,7 +22,7 @@ class DocumentIgnores extends LintRule {
     : super(name: LintNames.document_ignores, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.document_ignores;
+  DiagnosticCode get diagnosticCode => LinterLintCode.document_ignores;
 
   @override
   void registerNodeProcessors(

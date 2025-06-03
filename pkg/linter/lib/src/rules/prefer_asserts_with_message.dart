@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,7 +15,8 @@ class PreferAssertsWithMessage extends LintRule {
     : super(name: LintNames.prefer_asserts_with_message, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_asserts_with_message;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.prefer_asserts_with_message;
 
   @override
   void registerNodeProcessors(

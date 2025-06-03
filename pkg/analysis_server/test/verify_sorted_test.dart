@@ -76,7 +76,6 @@ void buildTests({
 
 void buildTestsForAnalysisServer() {
   var excludedPaths = <String>[
-    'test/mock_packages',
     // TODO(brianwilkerson): Fix the generator to sort the generated files and
     //  remove these exclusions.
     'lib/protocol/protocol_constants.dart',

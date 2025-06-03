@@ -47,19 +47,25 @@ Run "${runner!.executableName} help" to see global options.''');
     final args = argResults!;
 
     String? nativeAssets;
-    final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
+    final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
       Directory.current.uri,
     );
-    if (packageConfig != null) {
+    if (packageConfigUri != null) {
+      final packageConfig =
+          await DartNativeAssetsBuilder.loadPackageConfig(packageConfigUri);
+      if (packageConfig == null) {
+        return DartdevCommand.errorExitCode;
+      }
       final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
         Directory.current.uri,
       );
       if (runPackageName != null) {
-        final pubspecUri =
-            await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
+        final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
+            packageConfigUri);
         final builder = DartNativeAssetsBuilder(
           pubspecUri: pubspecUri,
-          packageConfigUri: packageConfig,
+          packageConfigUri: packageConfigUri,
+          packageConfig: packageConfig,
           runPackageName: runPackageName,
           verbose: verbose,
         );
@@ -78,7 +84,7 @@ Run "${runner!.executableName} help" to see global options.''');
           // package:test to explicitly provide the native_assets.yaml path
           // instead of copying to the workspace .dart_tool.
           final expectedPackageTestLocation =
-              packageConfig.resolve('native_assets.yaml');
+              packageConfigUri.resolve('native_assets.yaml');
           if (expectedPackageTestLocation != assetsYamlFileUri) {
             await File.fromUri(assetsYamlFileUri)
                 .copy(expectedPackageTestLocation.toFilePath());

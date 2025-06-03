@@ -60,10 +60,10 @@ class LegacyServerMessageSchedulerTest extends PubPackageAnalysisServerTest {
     await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
     _assertLogContents(testView!, r'''
-Incoming LegacyMessage: analysis.setAnalysisRoots
+Incoming LegacyMessage: legacy:analysis.setAnalysisRoots
 Entering process messages loop
-  Start LegacyMessage: analysis.setAnalysisRoots
-  Complete LegacyMessage: analysis.setAnalysisRoots
+  Start LegacyMessage: legacy:analysis.setAnalysisRoots
+  Complete LegacyMessage: legacy:analysis.setAnalysisRoots
 Exit process messages loop
 ''');
   }
@@ -80,13 +80,13 @@ Exit process messages loop
     await Future.wait(futures);
     await waitForTasksFinished();
     _assertLogContents(testView!, r'''
-Incoming LegacyMessage: analysis.setAnalysisRoots
+Incoming LegacyMessage: legacy:analysis.setAnalysisRoots
 Entering process messages loop
-  Start LegacyMessage: analysis.setAnalysisRoots
-Incoming LegacyMessage: execution.createContext
-  Complete LegacyMessage: analysis.setAnalysisRoots
-  Start LegacyMessage: execution.createContext
-  Complete LegacyMessage: execution.createContext
+  Start LegacyMessage: legacy:analysis.setAnalysisRoots
+Incoming LegacyMessage: legacy:execution.createContext
+  Complete LegacyMessage: legacy:analysis.setAnalysisRoots
+  Start LegacyMessage: legacy:execution.createContext
+  Complete LegacyMessage: legacy:execution.createContext
 Exit process messages loop
 ''');
   }
@@ -147,34 +147,34 @@ void f() {
     }
 
     _assertLogContents(testView!, r'''
-Incoming RequestMessage: initialize
+Incoming RequestMessage: lsp:initialize
 Entering process messages loop
-  Start LspMessage: initialize
-  Complete LspMessage: initialize
+  Start LspMessage: lsp:initialize
+  Complete LspMessage: lsp:initialize
 Exit process messages loop
-Incoming NotificationMessage: initialized
+Incoming NotificationMessage: lsp:initialized
 Entering process messages loop
-  Start LspMessage: initialized
-  Complete LspMessage: initialized
+  Start LspMessage: lsp:initialized
+  Complete LspMessage: lsp:initialized
 Exit process messages loop
-Incoming NotificationMessage: textDocument/didOpen
+Incoming NotificationMessage: lsp:textDocument/didOpen
 Entering process messages loop
-  Start LspMessage: textDocument/didOpen
-  Complete LspMessage: textDocument/didOpen
+  Start LspMessage: lsp:textDocument/didOpen
+  Complete LspMessage: lsp:textDocument/didOpen
 Exit process messages loop
-Incoming RequestMessage: textDocument/codeAction
+Incoming RequestMessage: lsp:textDocument/codeAction
 Entering process messages loop
-  Start LspMessage: textDocument/codeAction
-  Complete LspMessage: textDocument/codeAction
+  Start LspMessage: lsp:textDocument/codeAction
+  Complete LspMessage: lsp:textDocument/codeAction
 Exit process messages loop
-Incoming RequestMessage: workspace/executeCommand
+Incoming RequestMessage: lsp:workspace/executeCommand
 Entering process messages loop
-  Start LspMessage: workspace/executeCommand
-Incoming NotificationMessage: textDocument/didChange
-Canceled in progress request workspace/executeCommand
-  Complete LspMessage: workspace/executeCommand
-  Start LspMessage: textDocument/didChange
-  Complete LspMessage: textDocument/didChange
+  Start LspMessage: lsp:workspace/executeCommand
+Incoming NotificationMessage: lsp:textDocument/didChange
+Canceled in progress request lsp:workspace/executeCommand
+  Complete LspMessage: lsp:workspace/executeCommand
+  Start LspMessage: lsp:textDocument/didChange
+  Complete LspMessage: lsp:textDocument/didChange
 Exit process messages loop
 ''');
   }
@@ -207,34 +207,34 @@ class B {
     await pumpEventQueue(times: 5000);
 
     _assertLogContents(testView!, r'''
-Incoming RequestMessage: initialize
+Incoming RequestMessage: lsp:initialize
 Entering process messages loop
-  Start LspMessage: initialize
-  Complete LspMessage: initialize
+  Start LspMessage: lsp:initialize
+  Complete LspMessage: lsp:initialize
 Exit process messages loop
-Incoming NotificationMessage: initialized
+Incoming NotificationMessage: lsp:initialized
 Entering process messages loop
-  Start LspMessage: initialized
-  Complete LspMessage: initialized
+  Start LspMessage: lsp:initialized
+  Complete LspMessage: lsp:initialized
 Exit process messages loop
-Incoming NotificationMessage: textDocument/didOpen
+Incoming NotificationMessage: lsp:textDocument/didOpen
 Entering process messages loop
-  Start LspMessage: textDocument/didOpen
-  Complete LspMessage: textDocument/didOpen
+  Start LspMessage: lsp:textDocument/didOpen
+  Complete LspMessage: lsp:textDocument/didOpen
 Exit process messages loop
-Incoming RequestMessage: textDocument/completion
+Incoming RequestMessage: lsp:textDocument/completion
 Entering process messages loop
-  Start LspMessage: textDocument/completion
-Incoming RequestMessage: textDocument/completion
-Canceled in progress request textDocument/completion
-Incoming RequestMessage: textDocument/completion
-Canceled in progress request textDocument/completion
-Canceled request on queue textDocument/completion
-  Complete LspMessage: textDocument/completion
-  Start LspMessage: textDocument/completion
-  Complete LspMessage: textDocument/completion
-  Start LspMessage: textDocument/completion
-  Complete LspMessage: textDocument/completion
+  Start LspMessage: lsp:textDocument/completion
+Incoming RequestMessage: lsp:textDocument/completion
+Canceled in progress request lsp:textDocument/completion
+Incoming RequestMessage: lsp:textDocument/completion
+Canceled in progress request lsp:textDocument/completion
+Canceled request on queue lsp:textDocument/completion
+  Complete LspMessage: lsp:textDocument/completion
+  Start LspMessage: lsp:textDocument/completion
+  Complete LspMessage: lsp:textDocument/completion
+  Start LspMessage: lsp:textDocument/completion
+  Complete LspMessage: lsp:textDocument/completion
 Exit process messages loop
 ''');
   }
@@ -244,15 +244,15 @@ Exit process messages loop
     await initialAnalysis;
     await pumpEventQueue(times: 5000);
     _assertLogContents(testView!, r'''
-Incoming RequestMessage: initialize
+Incoming RequestMessage: lsp:initialize
 Entering process messages loop
-  Start LspMessage: initialize
-  Complete LspMessage: initialize
+  Start LspMessage: lsp:initialize
+  Complete LspMessage: lsp:initialize
 Exit process messages loop
-Incoming NotificationMessage: initialized
+Incoming NotificationMessage: lsp:initialized
 Entering process messages loop
-  Start LspMessage: initialized
-  Complete LspMessage: initialized
+  Start LspMessage: lsp:initialized
+  Complete LspMessage: lsp:initialized
 Exit process messages loop
 ''');
   }
@@ -274,23 +274,23 @@ void main() {
     await pumpEventQueue(times: 5000);
 
     _assertLogContents(testView!, r'''
-Incoming RequestMessage: initialize
+Incoming RequestMessage: lsp:initialize
 Entering process messages loop
-  Start LspMessage: initialize
-  Complete LspMessage: initialize
+  Start LspMessage: lsp:initialize
+  Complete LspMessage: lsp:initialize
 Exit process messages loop
-Incoming NotificationMessage: initialized
+Incoming NotificationMessage: lsp:initialized
 Entering process messages loop
-  Start LspMessage: initialized
-  Complete LspMessage: initialized
+  Start LspMessage: lsp:initialized
+  Complete LspMessage: lsp:initialized
 Exit process messages loop
-Incoming RequestMessage: textDocument/documentSymbol
+Incoming RequestMessage: lsp:textDocument/documentSymbol
 Entering process messages loop
-  Start LspMessage: textDocument/documentSymbol
-Incoming RequestMessage: textDocument/documentLink
-  Complete LspMessage: textDocument/documentSymbol
-  Start LspMessage: textDocument/documentLink
-  Complete LspMessage: textDocument/documentLink
+  Start LspMessage: lsp:textDocument/documentSymbol
+Incoming RequestMessage: lsp:textDocument/documentLink
+  Complete LspMessage: lsp:textDocument/documentSymbol
+  Start LspMessage: lsp:textDocument/documentLink
+  Complete LspMessage: lsp:textDocument/documentLink
 Exit process messages loop
 ''');
   }
@@ -325,26 +325,26 @@ void f() {
     await pumpEventQueue(times: 5000);
 
     _assertLogContents(testView!, r'''
-Incoming RequestMessage: initialize
+Incoming RequestMessage: lsp:initialize
 Entering process messages loop
-  Start LspMessage: initialize
-  Complete LspMessage: initialize
+  Start LspMessage: lsp:initialize
+  Complete LspMessage: lsp:initialize
 Exit process messages loop
-Incoming NotificationMessage: initialized
+Incoming NotificationMessage: lsp:initialized
 Entering process messages loop
-  Start LspMessage: initialized
-  Complete LspMessage: initialized
+  Start LspMessage: lsp:initialized
+  Complete LspMessage: lsp:initialized
 Exit process messages loop
-Incoming RequestMessage: textDocument/codeAction
+Incoming RequestMessage: lsp:textDocument/codeAction
 Entering process messages loop
-  Start LspMessage: textDocument/codeAction
-  Complete LspMessage: textDocument/codeAction
+  Start LspMessage: lsp:textDocument/codeAction
+  Complete LspMessage: lsp:textDocument/codeAction
 Exit process messages loop
-Incoming RequestMessage: workspace/executeCommand
+Incoming RequestMessage: lsp:workspace/executeCommand
 Entering process messages loop
-  Start LspMessage: workspace/executeCommand
+  Start LspMessage: lsp:workspace/executeCommand
 Incoming ResponseMessage: ResponseMessage
-  Complete LspMessage: workspace/executeCommand
+  Complete LspMessage: lsp:workspace/executeCommand
 Exit process messages loop
 ''');
   }

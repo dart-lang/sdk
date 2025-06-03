@@ -117,10 +117,10 @@ class ExpressionCompiler {
       }
 
       // Create a mapping from Dart variable names in scope to the corresponding
-      // JS variable names. The Dart variable may have had a suffix of the
+      // JS values. The Dart variable may have had a suffix of the
       // form '$N' added to it where N is either the empty string or an
       // integer >= 0.
-      final dartNameToJsName = <String, String>{};
+      final dartNameToJsValue = <String, String>{};
 
       int nameCompare(String a, String b) {
         final lengthCmp = b.length.compareTo(a.length);
@@ -144,10 +144,16 @@ class ExpressionCompiler {
       const removedSentinel = '';
       const thisJsName = r'$this';
 
+      // Get the available async scopes.
+      final asyncScopeRegexp = RegExp(r'^asyncScope(\$[0-9]*)?$');
+      final asyncScopes = [
+        ...jsNames.where((e) => asyncScopeRegexp.hasMatch(e))
+      ];
+
       for (final dartName in dartNames) {
         if (isExtensionThisName(dartName)) {
           if (jsScope.containsKey(thisJsName)) {
-            dartNameToJsName[dartName] = thisJsName;
+            dartNameToJsValue[dartName] = jsScope[thisJsName]!;
           }
           continue;
         }
@@ -161,7 +167,7 @@ class ExpressionCompiler {
           if (jsName == removedSentinel) continue;
           if (jsName.length < dartName.length) break;
           if (regexp.hasMatch(jsName)) {
-            dartNameToJsName[dartName] = jsName;
+            dartNameToJsValue[dartName] = jsScope[jsName]!;
             jsNames[i] = removedSentinel;
 
             // Remove any additional JS names that match this name as these will
@@ -182,13 +188,52 @@ class ExpressionCompiler {
             break;
           }
         }
+
+        if (asyncScopes.isNotEmpty) {
+          // Look up the value in the available async scopes.
+          //
+          // Creates an expression of the form:
+          // "<dartName>" in asyncScope
+          //   ? asyncScope["<dartName>"]
+          //   : ("<dartName>" in asyncScope1
+          //        ? asyncScope1["<dartName>"]
+          //        : (...))
+          //
+          // Each 'asyncScope' variable represents a single Dart scope and the
+          // keys in it match the names of the available Dart variables.
+          // Each scope object is declared up front but values are not inserted
+          // into it until the Dart scope is actually entered. So only "live"
+          // scopes will contain keys.
+          //
+          // This expression will start at the innermost available scope and
+          // and work its way out until it finds the first live scope that has
+          // a value for the given Dart variable name.
+          //
+          // If the value is not found in any async scope then it defaults to
+          // the nearest matching js value calculated above (which may be
+          // captured from an outer scope).
+          //
+          // If there was no value found then this means that the variable does
+          // not exist in any scope. This can occur if the browser detects the
+          // JS variable is unused and so the browser doesn't capture it. In
+          // this case return a special sentinel value that we can detect and
+          // throw on.
+          final defaultValue = dartNameToJsValue[dartName] ?? 'sentinel';
+          dartNameToJsValue[dartName] = asyncScopes.fold(defaultValue,
+              (p, e) => '"$dartName" in $e ? $e["$dartName"] : ($p)');
+        }
       }
 
-      // remove undefined js variables (this allows us to get a reference error
-      // from chrome on evaluation)
-      dartScope.definitions.removeWhere(
-          (variable, type) => !dartNameToJsName.containsKey(variable));
+      dartScope.definitions.removeWhere((variable, type) =>
+          // Remove undefined js variables (this allows us to get a reference
+          // error from chrome on evaluation).
+          !dartNameToJsValue.containsKey(variable) ||
+          // Remove wildcard method arguments which are lowered to have Dart
+          // names that are invalid for Dart compilations.
+          // Wildcard local variables are not appearing here at this time.
+          isWildcardLoweredFormalParameter(variable));
 
+      // Wildcard type parameters already matched by this existing test.
       dartScope.typeParameters
           .removeWhere((parameter) => !jsScope.containsKey(parameter.name));
 
@@ -197,7 +242,7 @@ class ExpressionCompiler {
       var localJsScope = [
         ...dartScope.typeParameters.map((parameter) => jsScope[parameter.name]),
         ...dartScope.definitions.keys
-            .map((variable) => jsScope[dartNameToJsName[variable]])
+            .map((variable) => dartNameToJsValue[variable])
       ];
 
       _log('Performed scope substitutions for expression');
@@ -234,7 +279,9 @@ class ExpressionCompiler {
       var args = localJsScope.join(',\n    ');
       jsExpression = jsExpression.split('\n').join('\n  ');
       // We check for '_boundMethod' in case tearoffs are returned.
-      var callExpression = '((() => {var output = $jsExpression($args); '
+      var callExpression =
+          '((() => {var sentinel = {}; var output = $jsExpression($args); '
+          'if (output === sentinel) throw Error("Value not found in scope");'
           'return output?._boundMethod || output;})())';
 
       _log('Compiled expression \n$expression to $callExpression');

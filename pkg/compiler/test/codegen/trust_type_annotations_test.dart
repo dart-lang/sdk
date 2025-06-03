@@ -64,19 +64,25 @@ void main() {
     var elementEnvironment = closedWorld.elementEnvironment;
     var domain = closedWorld.abstractValueDomain as CommonMasks;
 
-    ClassEntity classA =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary!, "A")!;
+    ClassEntity classA = elementEnvironment.lookupClass(
+      elementEnvironment.mainLibrary!,
+      "A",
+    )!;
 
     checkReturn(String name, TypeMask type) {
-      MemberEntity element =
-          elementEnvironment.lookupClassMember(classA, PublicName(name))!;
+      MemberEntity element = elementEnvironment.lookupClassMember(
+        classA,
+        PublicName(name),
+      )!;
       var mask = results.resultOfMember(element).returnType as TypeMask;
       Expect.isTrue(type.containsMask(mask, domain));
     }
 
     checkType(String name, TypeMask type) {
-      MemberEntity element =
-          elementEnvironment.lookupClassMember(classA, PublicName(name))!;
+      MemberEntity element = elementEnvironment.lookupClassMember(
+        classA,
+        PublicName(name),
+      )!;
       Expect.isTrue(
         type.containsMask(
           results.resultOfMember(element).type as TypeMask,

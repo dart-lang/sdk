@@ -4,8 +4,6 @@
 
 // Tests that JS interop works with hot restart.
 
-// Requirements=nnbd
-
 @JS()
 library hot_restart_js_interop_test;
 

@@ -998,6 +998,47 @@ void f(ppp) {
     assertHasResult(SearchResultKind.READ, 'ppp();');
   }
 
+  Future<void> test_parameter_generic_declaration() async {
+    addTestFile('''
+void f() {
+  B().m(p: null); // 1
+  B().m(p: null); // 2
+}
+
+class A<T> {
+  void m({T? p}) {} // 3
+}
+
+class B extends A<String> {}
+''');
+    await findElementReferences(search: 'p}) {} // 3', false);
+    expect(searchElement!.kind, ElementKind.PARAMETER);
+    expect(results, hasLength(2));
+    assertHasResult(SearchResultKind.REFERENCE, 'p: null); // 1');
+    assertHasResult(SearchResultKind.REFERENCE, 'p: null); // 2');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/60200')
+  Future<void> test_parameter_generic_invocation() async {
+    addTestFile('''
+void f() {
+  B().m(p: null); // 1
+  B().m(p: null); // 2
+}
+
+class A<T> {
+  void m({T? p}) {} // 3
+}
+
+class B extends A<String> {}
+''');
+    await findElementReferences(search: 'p: null); // 1', false);
+    expect(searchElement!.kind, ElementKind.PARAMETER);
+    expect(results, hasLength(2));
+    assertHasResult(SearchResultKind.REFERENCE, 'p: null); // 1');
+    assertHasResult(SearchResultKind.REFERENCE, 'p: null); // 2');
+  }
+
   @failingTest
   Future<void> test_path_inConstructor_named() async {
     // The path does not contain the first expected element.

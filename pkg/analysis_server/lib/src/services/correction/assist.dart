@@ -106,10 +106,10 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Convert to double quoted string',
   );
-  static const CONVERT_TO_FIELD_PARAMETER = AssistKind(
-    'dart.assist.convert.toConstructorFieldParameter',
+  static const CONVERT_TO_INITIALIZING_FORMAL = AssistKind(
+    'dart.assist.convert.toInitializingFormal',
     DartAssistKindPriority.DEFAULT,
-    'Convert to field formal parameter',
+    'Convert to initializing formal parameter',
   );
   static const CONVERT_TO_FOR_ELEMENT = AssistKind(
     'dart.assist.convert.toForElement',
@@ -360,6 +360,11 @@ abstract final class DartAssistKind {
     'dart.assist.joinVariableDeclaration',
     DartAssistKindPriority.DEFAULT,
     'Join variable declaration',
+  );
+  static const REMOVE_ASYNC = AssistKind(
+    'dart.assist.remove.async',
+    DartAssistKindPriority.DEFAULT,
+    "Remove 'async' modifier",
   );
   static const REMOVE_DIGIT_SEPARATORS = AssistKind(
     'dart.assist.remove.digitSeparators',

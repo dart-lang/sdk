@@ -7,6 +7,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -18,7 +20,7 @@ class UnnecessaryParenthesis extends LintRule {
     : super(name: LintNames.unnecessary_parenthesis, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_parenthesis;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_parenthesis;
 
   @override
   void registerNodeProcessors(
@@ -116,7 +118,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // Parentheses are required to stop null-aware shorting, which then
         // allows an extension getter, which extends a nullable type, to be
         // called on a `null` value.
-        var target = parent.propertyName.element?.enclosingElement2;
+        var target = parent.propertyName.element?.enclosingElement;
         if (target is ExtensionElement &&
             typeSystem.isNullable(target.extendedType)) {
           return;
@@ -131,7 +133,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // Parentheses are required to stop null-aware shorting, which then
         // allows an extension method, which extends a nullable type, to be
         // called on a `null` value.
-        var target = parent.methodName.element?.enclosingElement2;
+        var target = parent.methodName.element?.enclosingElement;
         if (target is ExtensionElement &&
             typeSystem.isNullable(target.extendedType)) {
           return;

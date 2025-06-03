@@ -5,9 +5,9 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Avoid shadowing type parameters.';
 
@@ -19,7 +19,8 @@ class AvoidShadowingTypeParameters extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_shadowing_type_parameters;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_shadowing_type_parameters;
 
   @override
   void registerNodeProcessors(
@@ -40,7 +41,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule, LinterContext context)
-    : _wildCardVariablesEnabled = context.isEnabled(Feature.wildcard_variables);
+    : _wildCardVariablesEnabled = context.isFeatureEnabled(
+        Feature.wildcard_variables,
+      );
 
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {

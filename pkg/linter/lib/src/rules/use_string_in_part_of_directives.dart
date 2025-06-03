@@ -5,10 +5,10 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Use string in part of directives.';
 
@@ -20,7 +20,8 @@ class UseStringInPartOfDirectives extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.use_string_in_part_of_directives;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.use_string_in_part_of_directives;
 
   @override
   void registerNodeProcessors(
@@ -49,6 +50,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on LinterContext {
   bool get hasEnancedPartsFeatureEnabled =>
-      this is LinterContextWithResolvedResults &&
-      isEnabled(Feature.enhanced_parts);
+      this is RuleContextWithResolvedResults &&
+      isFeatureEnabled(Feature.enhanced_parts);
 }

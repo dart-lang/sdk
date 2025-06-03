@@ -5,20 +5,19 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
 class MockLibraryImportElement implements Element, PrefixFragment {
-  final LibraryImportElementImpl import;
+  final LibraryImportImpl import;
 
   MockLibraryImportElement(LibraryImport import)
-    : import = import as LibraryImportElementImpl;
+    : import = import as LibraryImportImpl;
 
   @override
-  LibraryElement get enclosingElement2 => library2;
+  LibraryElement get enclosingElement => library2;
 
   @override
   ElementKind get kind => ElementKind.IMPORT;
@@ -114,13 +113,13 @@ extension Element2Extension on Element {
   /// Whether the element is effectively [internal].
   bool get isInternal {
     if (this case Annotatable annotatable) {
-      if (annotatable.metadata2.hasInternal) {
+      if (annotatable.metadata.hasInternal) {
         return true;
       }
     }
     if (this case PropertyAccessorElement accessor) {
       var variable = accessor.variable3;
-      if (variable != null && variable.metadata2.hasInternal) {
+      if (variable != null && variable.metadata.hasInternal) {
         return true;
       }
     }
@@ -131,18 +130,18 @@ extension Element2Extension on Element {
   bool get isProtected {
     var self = this;
     if (self is PropertyAccessorElement &&
-        self.enclosingElement2 is InterfaceElement) {
-      if (self.metadata2.hasProtected) {
+        self.enclosingElement is InterfaceElement) {
+      if (self.metadata.hasProtected) {
         return true;
       }
       var variable = self.variable3;
-      if (variable != null && variable.metadata2.hasProtected) {
+      if (variable != null && variable.metadata.hasProtected) {
         return true;
       }
     }
     if (self is MethodElement &&
-        self.enclosingElement2 is InterfaceElement &&
-        self.metadata2.hasProtected) {
+        self.enclosingElement is InterfaceElement &&
+        self.metadata.hasProtected) {
       return true;
     }
     return false;
@@ -151,22 +150,22 @@ extension Element2Extension on Element {
   /// Whether the element is effectively [visibleForTesting].
   bool get isVisibleForTesting {
     if (this case Annotatable annotatable) {
-      if (annotatable.metadata2.hasVisibleForTesting) {
+      if (annotatable.metadata.hasVisibleForTesting) {
         return true;
       }
     }
     if (this case PropertyAccessorElement accessor) {
       var variable = accessor.variable3;
-      if (variable != null && variable.metadata2.hasVisibleForTesting) {
+      if (variable != null && variable.metadata.hasVisibleForTesting) {
         return true;
       }
     }
     return false;
   }
 
-  List<ElementAnnotation> get metadata {
+  List<ElementAnnotation> get metadataAnnotations {
     if (this case Annotatable annotatable) {
-      return annotatable.metadata2.annotations;
+      return annotatable.metadata.annotations;
     }
     return [];
   }
@@ -174,10 +173,6 @@ extension Element2Extension on Element {
 
 extension ElementImplExtension on FragmentImpl {
   FragmentImpl? get enclosingElementImpl => enclosingElement3;
-
-  AnnotationImpl annotationAst(int index) {
-    return metadata[index].annotationAst;
-  }
 }
 
 extension ElementOrNullExtension on FragmentImpl? {
@@ -201,17 +196,15 @@ extension ElementOrNullExtension on FragmentImpl? {
       return self.element;
     } else if (self is LabelFragmentImpl) {
       return self.element2;
-    } else if (self is LibraryElementImpl) {
-      return self;
     } else if (self is LocalVariableFragmentImpl) {
       return self.element;
     } else if (self is NeverFragmentImpl) {
       return NeverElementImpl2.instance;
     } else if (self is ParameterMember) {
       return (self as FormalParameterFragment).element;
-    } else if (self is LibraryImportElementImpl ||
-        self is LibraryExportElementImpl ||
-        self is PartElementImpl) {
+    } else if (self is LibraryImportImpl ||
+        self is LibraryExportImpl ||
+        self is PartIncludeImpl) {
       // There is no equivalent in the new element model.
       return null;
     } else {
@@ -260,7 +253,7 @@ extension ExecutableElementOrMemberExtension on ExecutableElementOrMember {
       asElement2.baseElement.firstFragment as ExecutableFragmentImpl;
 
   FragmentImpl get enclosingElementImpl =>
-      asElement2.enclosingElement2!.firstFragment as FragmentImpl;
+      asElement2.enclosingElement!.firstFragment as FragmentImpl;
 }
 
 extension ExtensionElementImpl2Extension on ExtensionElementImpl2 {
@@ -562,7 +555,7 @@ extension TypeAliasElementImplExtension on TypeAliasFragmentImpl {
 
 extension TypeParameterElement2Extension on TypeParameterElement {
   TypeParameterElementImpl2 freshCopy() {
-    var fragment = TypeParameterFragmentImpl(name3 ?? '', -1);
+    var fragment = TypeParameterFragmentImpl(name2: name3, nameOffset: -1);
     fragment.bound = bound;
     return TypeParameterElementImpl2(firstFragment: fragment, name3: name3);
   }

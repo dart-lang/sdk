@@ -5,14 +5,17 @@
 library field_view_element;
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/library_menu.dart';
@@ -98,7 +101,7 @@ class FieldViewElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
@@ -120,24 +123,24 @@ class FieldViewElement extends CustomElement implements Renderable {
     } else {
       header += _field.declaredType!.name!;
     }
-    children = <Element>[
+    setChildren(<HTMLElement>[
       navBar(_createMenu()),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h2()..text = '$header ${field.name}',
-          new HRElement(),
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h2()..textContent = '$header ${field.name}',
+          new HTMLHRElement(),
           new ObjectCommonElement(_isolate, _field, _retainedSizes,
                   _reachableSizes, _references, _retainingPaths, _objects,
                   queue: _r.queue)
               .element,
-          new BRElement(),
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = _createMembers(),
-          new HRElement(),
-          new DivElement()
-            ..children = _field.location == null
+          new HTMLBRElement(),
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(_createMembers()),
+          new HTMLHRElement(),
+          new HTMLDivElement()
+            ..appendChildren(_field.location == null
                 ? const []
                 : [
                     new ScriptInsetElement(_isolate, _field.location!.script!,
@@ -146,13 +149,13 @@ class FieldViewElement extends CustomElement implements Renderable {
                             endPos: field.location!.tokenPos,
                             queue: _r.queue)
                         .element
-                  ],
-        ]
-    ];
+                  ]),
+        ])
+    ]);
   }
 
-  List<Element> _createMenu() {
-    final menu = <Element>[
+  List<HTMLElement> _createMenu() {
+    final menu = <HTMLElement>[
       new NavTopMenuElement(queue: _r.queue).element,
       new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
       new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element
@@ -165,7 +168,7 @@ class FieldViewElement extends CustomElement implements Renderable {
               queue: _r.queue)
           .element);
     }
-    menu.addAll(<Element>[
+    menu.addAll(<HTMLElement>[
       navMenu(_field.name!),
       (new NavRefreshElement(queue: _r.queue)
             ..onRefresh.listen((e) {
@@ -178,78 +181,78 @@ class FieldViewElement extends CustomElement implements Renderable {
     return menu;
   }
 
-  List<Element> _createMembers() {
-    final members = <Element>[
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'owner',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
+  List<HTMLElement> _createMembers() {
+    final members = <HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'owner',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChildren(<HTMLElement>[
               _field.dartOwner == null
-                  ? (new SpanElement()..text = '...')
+                  ? (new HTMLSpanElement()..textContent = '...')
                   : anyRef(_isolate, _field.dartOwner, _objects,
                       queue: _r.queue)
-            ]
-        ],
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'script',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
+            ])
+        ]),
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'script',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChildren(<HTMLElement>[
               new SourceLinkElement(_isolate, field.location!, _scripts,
                       queue: _r.queue)
                   .element
-            ]
-        ]
+            ])
+        ])
     ];
     if (!_field.isStatic!) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
         ..title = 'The types observed for this field at runtime. '
             'Fields that are observed to have a single type at runtime '
             'or to never be null may allow for additional optimization.'
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'observed types',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = _createGuard()
-        ]);
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'observed types',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChildren(_createGuard())
+        ]));
     }
     if (_field.staticValue != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'static value',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'static value',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChildren(<HTMLElement>[
               anyRef(_isolate, _field.staticValue, _objects, queue: _r.queue)
-            ]
-        ]);
+            ])
+        ]));
     }
     return members;
   }
 
-  List<Element> _createGuard() {
-    final guard = <Element>[];
+  List<HTMLElement> _createGuard() {
+    final guard = <HTMLElement>[];
     switch (_field.guardClassKind!) {
       case M.GuardClassKind.unknown:
-        guard.add(new SpanElement()..text = 'none');
+        guard.add(new HTMLSpanElement()..textContent = 'none');
         break;
       case M.GuardClassKind.dynamic:
-        guard.add(new SpanElement()..text = 'various');
+        guard.add(new HTMLSpanElement()..textContent = 'various');
         break;
       case M.GuardClassKind.single:
         guard.add(
@@ -257,8 +260,8 @@ class FieldViewElement extends CustomElement implements Renderable {
                 .element);
         break;
     }
-    guard.add(new SpanElement()
-      ..text =
+    guard.add(new HTMLSpanElement()
+      ..textContent =
           _field.guardNullable! ? '— null observed' : '— null not observed');
     return guard;
   }

@@ -5,7 +5,9 @@
 library curly_block_element;
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
@@ -25,11 +27,11 @@ class CurlyBlockElement extends CustomElement implements Renderable {
 
   late bool _expanded;
   late bool _disabled;
-  Iterable<Element> _content = const [];
+  Iterable<HTMLElement> _content = const [];
 
   bool get expanded => _expanded;
   bool get disabled => _disabled;
-  Iterable<Element> get content => _content;
+  Iterable<HTMLElement> get content => _content;
 
   set expanded(bool value) {
     if (_expanded != value) _onToggle.add(new CurlyBlockToggleEvent(this));
@@ -37,7 +39,7 @@ class CurlyBlockElement extends CustomElement implements Renderable {
   }
 
   set disabled(bool value) => _disabled = _r.checkAndReact(_disabled, value);
-  set content(Iterable<Element> value) {
+  set content(Iterable<HTMLElement> value) {
     _content = value.toList();
     _r.dirty();
   }
@@ -63,7 +65,7 @@ class CurlyBlockElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void toggle() {
@@ -75,24 +77,26 @@ class CurlyBlockElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    List<Element> content = <Element>[new SpanElement()..text = '{'];
-    SpanElement label = new SpanElement()
-      ..classes = disabled ? ['curly-block', 'disabled'] : ['curly-block']
-      ..text = expanded ? '\xa0\xa0⊟\xa0\xa0' : '\xa0\xa0⊞\xa0\xa0';
+    List<HTMLElement> content = <HTMLElement>[
+      new HTMLSpanElement()..textContent = '{'
+    ];
+    HTMLSpanElement label = new HTMLSpanElement()
+      ..className = disabled ? 'curly-block disabled' : 'curly-block'
+      ..textContent = expanded ? '\xa0\xa0⊟\xa0\xa0' : '\xa0\xa0⊞\xa0\xa0';
     if (disabled) {
       content.add(label);
     } else {
-      content.add(new AnchorElement()
+      content.add(new HTMLAnchorElement()
         ..onClick.listen((_) {
           toggle();
         })
-        ..children = <Element>[label]);
+        ..appendChild(label));
     }
     if (expanded) {
-      content.add(new BRElement());
+      content.add(new HTMLBRElement());
       content.addAll(_content);
     }
-    content.add(new SpanElement()..text = '}');
-    children = content;
+    content.add(new HTMLSpanElement()..textContent = '}');
+    setChildren(content);
   }
 }

@@ -2901,8 +2901,12 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;
+  const bool can_call_to_throw =
+      FLAG_experimental_shared_data && !field().is_shared();
   LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+      LocationSummary(zone, kNumInputs, kNumTemps,
+                      can_call_to_throw ? LocationSummary::kCallOnSlowPath
+                                        : LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_temp(0, Location::RequiresRegister());
   return locs;
@@ -2913,6 +2917,14 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register temp = locs()->temp(0).reg();
 
   compiler->used_static_fields().Add(&field());
+
+  if (FLAG_experimental_shared_data && !field().is_shared()) {
+    ThrowErrorSlowPathCode* slow_path = new FieldAccessErrorSlowPath(this);
+    compiler->AddSlowPathCode(slow_path);
+
+    __ LoadIsolate(temp);
+    __ BranchIfZero(temp, slow_path->entry_label());
+  }
 
   __ LoadFromOffset(
       temp, THR,

@@ -7,15 +7,15 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/source.dart' show UriResolver;
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/resolution/context_collection_resolution.dart';
 import 'workspace_test_support.dart';
 
 main() {
@@ -76,7 +76,7 @@ class PackageBuildFileUriResolverTest with ResourceProviderMixin {
     config.add(name: 'test', rootPath: convertPath(testPackageRootPath));
     newPackageConfigJsonFile(
       testPackageRootPath,
-      config.toContent(toUriStr: toUriStr),
+      config.toContent(pathContext: pathContext),
     );
 
     workspace =
@@ -230,7 +230,7 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
     config.add(name: 'project', rootPath: '/workspace');
     newPackageConfigJsonFile(
       workspacePath,
-      config.toContent(toUriStr: toUriStr),
+      config.toContent(pathContext: pathContext),
     );
     workspace =
         PackageConfigWorkspace.find(
@@ -322,7 +322,6 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     newPubspecYamlFile('/workspace/aaa', '*');
 
     PackageConfigWorkspace workspace = _createWorkspace('/workspace/aaa', []);
-    expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace/aaa'));
   }
 
@@ -357,10 +356,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
   void test_find_hasDartToolNoBuild() {
     // Edge case: an empty .dart_tool directory. Don't assume package:build.
     newFolder('/workspace/.dart_tool');
-    PackageConfigWorkspace workspace = _createWorkspace('/workspace', [
-      'project',
-    ]);
-    expect(workspace, isNotNull);
+    _createWorkspace('/workspace', ['project']);
   }
 
   void test_find_hasDartToolNoPackageConfig() {
@@ -574,7 +570,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     for (var name in packageNames) {
       config.add(name: name, rootPath: convertPath('/packages/$name'));
     }
-    newPackageConfigJsonFile(root, config.toContent(toUriStr: toUriStr));
+    newPackageConfigJsonFile(root, config.toContent(pathContext: pathContext));
     return PackageConfigWorkspace.find(
       resourceProvider,
       Packages.empty,
@@ -586,7 +582,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
 @reflectiveTest
 class PubPackageTest extends WorkspacePackageTest {
   late final PackageConfigWorkspace myWorkspace;
-  late final WorkspacePackage myPackage;
+  late final WorkspacePackageImpl myPackage;
 
   String get fooPackageLibPath => '$fooPackageRootPath/lib';
 
@@ -614,7 +610,7 @@ class PubPackageTest extends WorkspacePackageTest {
     config.add(name: 'workspace', rootPath: '/workspace');
     newPackageConfigJsonFile(
       '/workspace',
-      config.toContent(toUriStr: toUriStr),
+      config.toContent(pathContext: pathContext),
     );
     workspace =
         PackageConfigWorkspace.find(
@@ -631,7 +627,7 @@ class PubPackageTest extends WorkspacePackageTest {
     config.add(name: 'foo', rootPath: fooPackageRootPath);
     newPackageConfigJsonFile(
       myPackageRootPath,
-      config.toContent(toUriStr: toUriStr),
+      config.toContent(pathContext: pathContext),
     );
     newFolder(myPackageGeneratedPath);
     myWorkspace =
@@ -710,7 +706,7 @@ class PubPackageTest extends WorkspacePackageTest {
     newFile('/workspace/project/lib/file.dart', '');
 
     var package = findPackage('/workspace/project/lib/file.dart')!;
-    expect(package.root, convertPath('/workspace'));
+    expect(package.root.path, convertPath('/workspace'));
     expect(package.workspace, equals(workspace));
   }
 
@@ -733,7 +729,7 @@ class PubPackageTest extends WorkspacePackageTest {
         myWorkspace.findPackageFor(
           convertPath('$myPackageGeneratedPath/my/lib/a.dart'),
         )!;
-    expect(package.root, convertPath(myPackageRootPath));
+    expect(package.root.path, convertPath(myPackageRootPath));
     expect(package.workspace, myWorkspace);
   }
 
@@ -742,14 +738,14 @@ class PubPackageTest extends WorkspacePackageTest {
         myWorkspace.findPackageFor(
           convertPath('$myPackageGeneratedPath/my/test/a.dart'),
         )!;
-    expect(package.root, convertPath(myPackageRootPath));
+    expect(package.root.path, convertPath(myPackageRootPath));
     expect(package.workspace, myWorkspace);
   }
 
   test_findPackageFor_my_libFile() {
     var package =
         myWorkspace.findPackageFor(convertPath('$myPackageLibPath/a.dart'))!;
-    expect(package.root, convertPath(myPackageRootPath));
+    expect(package.root.path, convertPath(myPackageRootPath));
     expect(package.workspace, myWorkspace);
   }
 
@@ -758,7 +754,7 @@ class PubPackageTest extends WorkspacePackageTest {
         myWorkspace.findPackageFor(
           convertPath('$myPackageRootPath/test/a.dart'),
         )!;
-    expect(package.root, convertPath(myPackageRootPath));
+    expect(package.root.path, convertPath(myPackageRootPath));
     expect(package.workspace, myWorkspace);
   }
 

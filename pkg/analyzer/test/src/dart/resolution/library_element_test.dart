@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

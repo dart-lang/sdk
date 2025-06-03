@@ -13,19 +13,19 @@ main() {
 // accesses and updates.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class1.:[exact=Class1|powerset={N}]*/
+/*member: Class1.:[exact=Class1|powerset={N}{O}{N}]*/
 class Class1 {
   /*member: Class1.method0:[null|powerset={null}]*/
   method0() {}
   /*member: Class1.method1:[null|powerset={null}]*/
   method1() {}
-  /*member: Class1.field0:[null|exact=JSUInt31|powerset={null}{I}]*/
+  /*member: Class1.field0:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
   var field0;
-  /*member: Class1.field1:[null|exact=JSUInt31|powerset={null}{I}]*/
+  /*member: Class1.field1:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
   var field1;
 }
 
-/*member: Class2.:[exact=Class2|powerset={N}]*/
+/*member: Class2.:[exact=Class2|powerset={N}{O}{N}]*/
 class Class2 {
   /*member: Class2.method0:[null|powerset={null}]*/
   method0() {}
@@ -37,69 +37,71 @@ class Class2 {
   var field2;
 }
 
-/*member: _refineUnion:Union([exact=Class1|powerset={N}], [exact=Class2|powerset={N}], powerset: {N})*/
+/*member: _refineUnion:Union([exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {N}{O}{N})*/
 _refineUnion(
-  /*Union(null, [exact=Class1|powerset={N}], [exact=Class2|powerset={N}], powerset: {null}{N})*/ o,
+  /*Union(null, [exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ o,
 ) {
-  o. /*invoke: Union(null, [exact=Class1|powerset={N}], [exact=Class2|powerset={N}], powerset: {null}{N})*/ method0();
-  o. /*invoke: Union([exact=Class1|powerset={N}], [exact=Class2|powerset={N}], powerset: {N})*/ method1();
-  o. /*invoke: Union([exact=Class1|powerset={N}], [exact=Class2|powerset={N}], powerset: {N})*/ method2();
+  o. /*invoke: Union(null, [exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ method0();
+  o. /*invoke: Union([exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ method1();
+  o. /*invoke: Union([exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ method2();
   return o;
 }
 
-/*member: _refineFromMethod:[exact=Class1|powerset={N}]*/
-_refineFromMethod(/*[null|exact=Class1|powerset={null}{N}]*/ o) {
-  o. /*invoke: [null|exact=Class1|powerset={null}{N}]*/ method0();
-  o. /*invoke: [exact=Class1|powerset={N}]*/ method1();
+/*member: _refineFromMethod:[exact=Class1|powerset={N}{O}{N}]*/
+_refineFromMethod(/*[null|exact=Class1|powerset={null}{N}{O}{N}]*/ o) {
+  o. /*invoke: [null|exact=Class1|powerset={null}{N}{O}{N}]*/ method0();
+  o. /*invoke: [exact=Class1|powerset={N}{O}{N}]*/ method1();
   return o;
 }
 
-/*member: _refineFromGetter:[exact=Class2|powerset={N}]*/
-_refineFromGetter(/*[null|exact=Class2|powerset={null}{N}]*/ o) {
-  o. /*[null|exact=Class2|powerset={null}{N}]*/ field0;
-  o. /*[exact=Class2|powerset={N}]*/ field2;
+/*member: _refineFromGetter:[exact=Class2|powerset={N}{O}{N}]*/
+_refineFromGetter(/*[null|exact=Class2|powerset={null}{N}{O}{N}]*/ o) {
+  o. /*[null|exact=Class2|powerset={null}{N}{O}{N}]*/ field0;
+  o. /*[exact=Class2|powerset={N}{O}{N}]*/ field2;
   return o;
 }
 
-/*member: _refineFromSetter:[exact=Class1|powerset={N}]*/
-_refineFromSetter(/*[null|exact=Class1|powerset={null}{N}]*/ o) {
-  o. /*update: [null|exact=Class1|powerset={null}{N}]*/ field0 = 0;
-  o. /*update: [exact=Class1|powerset={N}]*/ field1 = 0;
+/*member: _refineFromSetter:[exact=Class1|powerset={N}{O}{N}]*/
+_refineFromSetter(/*[null|exact=Class1|powerset={null}{N}{O}{N}]*/ o) {
+  o. /*update: [null|exact=Class1|powerset={null}{N}{O}{N}]*/ field0 = 0;
+  o. /*update: [exact=Class1|powerset={N}{O}{N}]*/ field1 = 0;
   return o;
 }
 
-/*member: _noRefinementNullAware:[null|exact=Class1|powerset={null}{N}]*/
-_noRefinementNullAware(/*[null|exact=Class1|powerset={null}{N}]*/ o) {
+/*member: _noRefinementNullAware:[null|exact=Class1|powerset={null}{N}{O}{N}]*/
+_noRefinementNullAware(/*[null|exact=Class1|powerset={null}{N}{O}{N}]*/ o) {
   o
       ?.
-      /*invoke: [exact=Class1|powerset={N}]*/
+      /*invoke: [exact=Class1|powerset={N}{O}{N}]*/
       method1();
   return o;
 }
 
-/*member: _noRefinementNullSelectors:[exact=Class2|powerset={N}]*/
-_noRefinementNullSelectors(/*[null|exact=Class2|powerset={null}{N}]*/ o) {
-  o /*invoke: [null|exact=Class2|powerset={null}{N}]*/ == 2;
-  o. /*[null|exact=Class2|powerset={null}{N}]*/ hashCode;
-  o. /*[null|exact=Class2|powerset={null}{N}]*/ runtimeType;
-  o. /*[null|exact=Class2|powerset={null}{N}]*/ toString;
-  o. /*[null|exact=Class2|powerset={null}{N}]*/ noSuchMethod;
-  o. /*invoke: [null|exact=Class2|powerset={null}{N}]*/ toString();
-  o. /*invoke: [null|exact=Class2|powerset={null}{N}]*/ noSuchMethod(
+/*member: _noRefinementNullSelectors:[exact=Class2|powerset={N}{O}{N}]*/
+_noRefinementNullSelectors(/*[null|exact=Class2|powerset={null}{N}{O}{N}]*/ o) {
+  o /*invoke: [null|exact=Class2|powerset={null}{N}{O}{N}]*/ == 2;
+  o. /*[null|exact=Class2|powerset={null}{N}{O}{N}]*/ hashCode;
+  o. /*[null|exact=Class2|powerset={null}{N}{O}{N}]*/ runtimeType;
+  o. /*[null|exact=Class2|powerset={null}{N}{O}{N}]*/ toString;
+  o. /*[null|exact=Class2|powerset={null}{N}{O}{N}]*/ noSuchMethod;
+  o. /*invoke: [null|exact=Class2|powerset={null}{N}{O}{N}]*/ toString();
+  o. /*invoke: [null|exact=Class2|powerset={null}{N}{O}{N}]*/ noSuchMethod(
     null as dynamic,
   ); // assumed to throw.
-  o. /*[exact=Class2|powerset={N}]*/ toString;
+  o. /*[exact=Class2|powerset={N}{O}{N}]*/ toString;
   return o;
 }
 
-/*member: _noRefinementUpdatedVariable:[null|exact=Class1|powerset={null}{N}]*/
-_noRefinementUpdatedVariable(/*[null|exact=Class1|powerset={null}{N}]*/ o) {
-  (o = o). /*invoke: [null|exact=Class1|powerset={null}{N}]*/ method1();
-  (o = o). /*invoke: [null|exact=Class1|powerset={null}{N}]*/ method0();
+/*member: _noRefinementUpdatedVariable:[null|exact=Class1|powerset={null}{N}{O}{N}]*/
+_noRefinementUpdatedVariable(
+  /*[null|exact=Class1|powerset={null}{N}{O}{N}]*/ o,
+) {
+  (o = o). /*invoke: [null|exact=Class1|powerset={null}{N}{O}{N}]*/ method1();
+  (o = o). /*invoke: [null|exact=Class1|powerset={null}{N}{O}{N}]*/ method0();
   return o;
 }
 
-/*member: _condition:Value([exact=JSBool|powerset={I}], value: false, powerset: {I})*/
+/*member: _condition:Value([exact=JSBool|powerset={I}{O}{N}], value: false, powerset: {I}{O}{N})*/
 @pragma('dart2js:assumeDynamic')
 @pragma('dart2js:noInline')
 get _condition => false;
@@ -123,16 +125,18 @@ refineToClass() {
 // Refine the type of a local variable through a sequence of invocations.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _refineToClosureLocal:[subclass=Closure|powerset={N}]*/
+/*member: _refineToClosureLocal:[subclass=Closure|powerset={N}{O}{N}]*/
 _refineToClosureLocal() {
-  var f = /*[null|powerset={null}]*/ ({/*[exact=JSUInt31|powerset={I}]*/ a}) {};
+  var f = /*[null|powerset={null}]*/
+      ({/*[exact=JSUInt31|powerset={I}{O}{N}]*/ a}) {};
   f(a: 0);
   return f;
 }
 
-/*member: _refineToClosureLocalCall:[subclass=Closure|powerset={N}]*/
+/*member: _refineToClosureLocalCall:[subclass=Closure|powerset={N}{O}{N}]*/
 _refineToClosureLocalCall() {
-  var f = /*[null|powerset={null}]*/ ({/*[exact=JSUInt31|powerset={I}]*/ b}) {};
+  var f = /*[null|powerset={null}]*/
+      ({/*[exact=JSUInt31|powerset={I}{O}{N}]*/ b}) {};
   f.call(b: 0);
   return f;
 }

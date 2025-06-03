@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,7 +18,7 @@ class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.missing_whitespace_between_adjacent_strings;
 
   @override
@@ -70,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   static bool _isRegExpInstanceCreation(AstNode? node) {
     if (node is InstanceCreationExpression) {
       var constructorElement = node.constructorName.element;
-      return constructorElement?.enclosingElement2.name3 == 'RegExp';
+      return constructorElement?.enclosingElement.name3 == 'RegExp';
     }
     return false;
   }

@@ -6,6 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -13,12 +15,12 @@ import '../util/dart_type_utilities.dart';
 const _desc =
     r'Equality operator `==` invocation with references of unrelated types.';
 
-class UnrelatedTypeEqualityChecks extends LintRule {
+class UnrelatedTypeEqualityChecks extends MultiAnalysisRule {
   UnrelatedTypeEqualityChecks()
     : super(name: LintNames.unrelated_type_equality_checks, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.unrelated_type_equality_checks_in_expression,
     LinterLintCode.unrelated_type_equality_checks_in_pattern,
   ];
@@ -35,7 +37,7 @@ class UnrelatedTypeEqualityChecks extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
   final TypeSystem typeSystem;
 
   _Visitor(this.rule, this.typeSystem);
@@ -59,7 +61,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     rule.reportAtToken(
       node.operator,
-      errorCode: LinterLintCode.unrelated_type_equality_checks_in_expression,
+      diagnosticCode:
+          LinterLintCode.unrelated_type_equality_checks_in_expression,
       arguments: [rightType.getDisplayString(), leftType.getDisplayString()],
     );
   }
@@ -75,7 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     rule.reportAtNode(
       node,
-      errorCode: LinterLintCode.unrelated_type_equality_checks_in_pattern,
+      diagnosticCode: LinterLintCode.unrelated_type_equality_checks_in_pattern,
       arguments: [operandType.getDisplayString(), valueType.getDisplayString()],
     );
   }

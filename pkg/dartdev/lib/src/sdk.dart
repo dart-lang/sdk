@@ -102,6 +102,10 @@ class Sdk {
         'dart2wasm_product.snapshot',
       );
 
+  String get dartMCPServerAotSnapshot => _snapshotPathFor(
+        'dart_mcp_server_aot.dart.snapshot',
+      );
+
   String get ddsSnapshot => _snapshotPathFor(
         'dds.dart.snapshot',
       );

@@ -148,7 +148,8 @@ abstract final class Platform {
   /// Whether the operating system is a version of
   /// [Microsoft Windows](https://en.wikipedia.org/wiki/Microsoft_Windows).
   @pragma("vm:platform-const")
-  static final bool isWindows = (operatingSystem == "windows");
+  @pragma("vm:shared")
+  static bool isWindows = (operatingSystem == "windows");
 
   /// Whether the operating system is a version of
   /// [Android](https://en.wikipedia.org/wiki/Android_%28operating_system%29).

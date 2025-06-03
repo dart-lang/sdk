@@ -120,6 +120,13 @@ abstract class ConstructorDeclaration {
       SourceConstructorBuilderImpl constructorBuilder,
       ClassHierarchyBase hierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
+
+  /// Mark the constructor as erroneous.
+  ///
+  /// This is used during the compilation phase to set the appropriate flag on
+  /// the input AST node. The flag helps the verifier to skip apriori erroneous
+  /// members and to avoid reporting cascading errors.
+  void markAsErroneous();
 }
 
 mixin ConstructorDeclarationMixin
@@ -743,6 +750,11 @@ mixin RegularConstructorDeclarationMixin
       }
     }
   }
+
+  @override
+  void markAsErroneous() {
+    _encoding.markAsErroneous();
+  }
 }
 
 class RegularConstructorDeclaration
@@ -1291,6 +1303,11 @@ mixin ExtensionTypeConstructorDeclarationMixin
         }
       }
     }
+  }
+
+  @override
+  void markAsErroneous() {
+    _encoding.markAsErroneous();
   }
 }
 

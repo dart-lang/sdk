@@ -6,7 +6,8 @@ void nullValue(Null x) {
   if (x == null) {
     1;
   } else /*unreachable*/ {
-    /*stmt: unreachable*/ 2;
+    /*stmt: unreachable*/
+    2;
   }
 }
 
@@ -14,7 +15,8 @@ void neverQuestionValue(Never? x) {
   if (x == null) {
     1;
   } else /*unreachable*/ {
-    /*stmt: unreachable*/ 2;
+    /*stmt: unreachable*/
+    2;
   }
 }
 
@@ -35,8 +37,9 @@ void nullableValue(int? x) {
 }
 
 void nonNullableValue(int x) {
-  if (x == null) {
-    // Reachable since the value of x might come from legacy code
+  if (x == null) /*unreachable*/ {
+    // Unreachable since Dart 3.9.
+    /*stmt: unreachable*/
     1;
   } else {
     2;
@@ -68,8 +71,9 @@ void potentiallyNullableTypeVar_nullableBound<T extends Object?>(T x) {
 }
 
 void nonNullableTypeVar<T extends Object>(T x) {
-  if (x == null) {
-    // Reachable since the value of x might come from legacy code
+  if (x == null) /*unreachable*/ {
+    // Unreachable since Dart 3.9.
+    /*stmt: unreachable*/
     1;
   } else {
     2;
@@ -80,6 +84,7 @@ void nullTypeVar<T extends Null>(T x) {
   if (x == null) {
     1;
   } else /*unreachable*/ {
-    /*stmt: unreachable*/ 2;
+    /*stmt: unreachable*/
+    2;
   }
 }

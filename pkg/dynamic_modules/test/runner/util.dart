@@ -58,36 +58,47 @@ String _d8Path = (() {
   } else if (Platform.isMacOS) {
     return 'third_party/d8/macos/$arch/d8';
   } else {
-    throw UnsupportedError('Unsupported platform for running d8: '
-        '${Platform.operatingSystem}');
+    throw UnsupportedError(
+      'Unsupported platform for running d8: '
+      '${Platform.operatingSystem}',
+    );
   }
 })();
 
 Uri d8Uri = repoRoot.resolve(_d8Path);
 Uri dartBin = Uri.file(Platform.resolvedExecutable);
-Uri dartAotBin = dartBin
-    .resolve(Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime');
+Uri dartAotBin = dartBin.resolve(
+  Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
+);
 Uri ddcAotSnapshot = dartBin.resolve('snapshots/dartdevc_aot.dart.snapshot');
-Uri kernelWorkerAotSnapshot =
-    dartBin.resolve('snapshots/kernel_worker_aot.dart.snapshot');
+Uri kernelWorkerAotSnapshot = dartBin.resolve(
+  'snapshots/kernel_worker_aot.dart.snapshot',
+);
 Uri buildRootUri = repoRoot.resolve(buildFolder);
 Uri ddcSdkOutline = buildRootUri.resolve('ddc_outline.dill');
 Uri ddcSdkJs = buildRootUri.resolve('gen/utils/ddc/stable/sdk/ddc/dart_sdk.js');
-Uri ddcPreamblesJs = repoRoot
-    .resolve('sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js');
+Uri ddcPreamblesJs = repoRoot.resolve(
+  'sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js',
+);
 Uri ddcSealNativeObjectJs = repoRoot.resolve(
-    'sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js');
-Uri ddcModuleLoaderJs =
-    repoRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
+  'sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js',
+);
+Uri ddcModuleLoaderJs = repoRoot.resolve(
+  'pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js',
+);
 
-Uri genKernelSnapshot =
-    buildRootUri.resolve('gen/gen_kernel_aot.dart.snapshot');
-Uri genSnapshotBin =
-    buildRootUri.resolve(useProduct ? 'gen_snapshot_product' : 'gen_snapshot');
-Uri dart2bytecodeSnapshot =
-    buildRootUri.resolve('gen/dart2bytecode.dart.snapshot');
-Uri aotRuntimeBin = buildRootUri
-    .resolve(useProduct ? 'dartaotruntime_product' : 'dartaotruntime');
+Uri genKernelSnapshot = buildRootUri.resolve(
+  'gen/gen_kernel_aot.dart.snapshot',
+);
+Uri genSnapshotBin = buildRootUri.resolve(
+  useProduct ? 'gen_snapshot_product' : 'gen_snapshot',
+);
+Uri dart2bytecodeSnapshot = buildRootUri.resolve(
+  'gen/dart2bytecode.dart.snapshot',
+);
+Uri aotRuntimeBin = buildRootUri.resolve(
+  useProduct ? 'dartaotruntime_product' : 'dartaotruntime',
+);
 Uri vmPlatformDill = buildRootUri.resolve('vm_platform_strong.dill');
 
 Uri dart2wasmSnapshot = dartBin.resolve('snapshots/dart2wasm_product.snapshot');
@@ -117,32 +128,41 @@ class TestResultOutcome {
   });
 
   String toRecordJson() => _encoder.convert({
-        'name': '$suiteName/$testName',
-        'configuration': configuration,
-        'suite': suiteName,
-        'test_name': testName,
-        'time_ms': elapsedTime.inMilliseconds,
-        'expected': expectedResult,
-        'result': matchedExpectations ? 'Pass' : 'Fail',
-        'matches': expectedResult == expectedResult,
-      });
+    'name': '$suiteName/$testName',
+    'configuration': configuration,
+    'suite': suiteName,
+    'test_name': testName,
+    'time_ms': elapsedTime.inMilliseconds,
+    'expected': expectedResult,
+    'result': matchedExpectations ? 'Pass' : 'Fail',
+    'matches': expectedResult == expectedResult,
+  });
 
   String toLogJson() => _encoder.convert({
-        'name': '$suiteName/$testName',
-        'configuration': configuration,
-        'result': matchedExpectations ? 'Pass' : 'Fail',
-        'log': testOutput,
-      });
+    'name': '$suiteName/$testName',
+    'configuration': configuration,
+    'result': matchedExpectations ? 'Pass' : 'Fail',
+    'log': testOutput,
+  });
 }
 
 /// Runs [command] with [arguments] in [workingDirectory], and if [verbose] is
 /// `true` then it logs the full command.
-Future<ProcessResult> runProcess(String command, List<String> arguments,
-    String workingDirectory, Logger logger, String message) async {
-  logger
-      .info('command:\n$command ${arguments.join(' ')} from $workingDirectory');
-  final result =
-      await Process.run(command, arguments, workingDirectory: workingDirectory);
+Future<ProcessResult> runProcess(
+  String command,
+  List<String> arguments,
+  String workingDirectory,
+  Logger logger,
+  String message,
+) async {
+  logger.info(
+    'command:\n$command ${arguments.join(' ')} from $workingDirectory',
+  );
+  final result = await Process.run(
+    command,
+    arguments,
+    workingDirectory: workingDirectory,
+  );
   logger.info('Exit code: ${result.exitCode}');
   if (result.exitCode != 0) {
     logger.warning('STDOUT: ${result.stdout}');

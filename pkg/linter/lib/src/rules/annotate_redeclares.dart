@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -15,27 +17,26 @@ class AnnotateRedeclares extends LintRule {
     : super(
         name: LintNames.annotate_redeclares,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.annotate_redeclares;
+  DiagnosticCode get diagnosticCode => LinterLintCode.annotate_redeclares;
 
   @override
   void registerNodeProcessors(
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var visitor = _Visitor(this, context);
+    var visitor = _Visitor(this);
     registry.addExtensionTypeDeclaration(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
 
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule);
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
@@ -49,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parent is! ExtensionTypeDeclaration) return;
 
     var element = node.declaredFragment?.element;
-    if (element == null || element.metadata2.hasRedeclare) return;
+    if (element == null || element.metadata.hasRedeclare) return;
 
     var parentElement = parent.declaredFragment?.element;
     var extensionType = parentElement?.firstFragment.element;
@@ -60,17 +61,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  /// Return `true` if the [member] redeclares a member from a superinterface.
+  /// Returns whether the [member] redeclares a member from a superinterface.
   bool _redeclaresMember(
     ExecutableElement member,
     InterfaceElement extensionType,
   ) {
-    // TODO(pq): unify with similar logic in `redeclare_verifier` and move to inheritanceManager
-    var interface = context.inheritanceManager.getInterface2(extensionType);
     var memberName = member.name3;
-    return memberName != null &&
-        interface.redeclared2.containsKey(
-          Name.forLibrary(member.library2, memberName),
-        );
+    if (memberName == null) return false;
+    var name = Name.forLibrary(member.library2, memberName);
+    return extensionType.getInheritedMember(name) != null;
   }
 }

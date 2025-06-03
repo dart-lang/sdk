@@ -20,7 +20,7 @@ library;
 
 import "package:analyzer/error/error.dart";
 
-class AnalysisOptionsErrorCode extends ErrorCode {
+class AnalysisOptionsErrorCode extends DiagnosticCode {
   ///  An error code indicating that there is a syntactic error in the included
   ///  file.
   ///
@@ -59,13 +59,13 @@ class AnalysisOptionsErrorCode extends ErrorCode {
        );
 
   @override
-  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.ERROR;
+  DiagnosticSeverity get severity => DiagnosticSeverity.ERROR;
 
   @override
   DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
 }
 
-class AnalysisOptionsWarningCode extends ErrorCode {
+class AnalysisOptionsWarningCode extends DiagnosticCode {
   ///  An error code indicating that the given option is deprecated.
   ///
   ///  Parameters:
@@ -323,7 +323,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
        );
 
   @override
-  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.WARNING;
+  DiagnosticSeverity get severity => DiagnosticSeverity.WARNING;
 
   @override
   DiagnosticType get type => DiagnosticType.STATIC_WARNING;

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -18,7 +19,8 @@ class UnnecessaryStringEscapes extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_string_escapes;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.unnecessary_string_escapes;
 
   @override
   void registerNodeProcessors(

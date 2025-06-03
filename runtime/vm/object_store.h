@@ -214,6 +214,8 @@ class ObjectPointerVisitor;
   RW(Code, range_error_stub_without_fpu_regs_stub)                             \
   RW(Code, write_error_stub_with_fpu_regs_stub)                                \
   RW(Code, write_error_stub_without_fpu_regs_stub)                             \
+  RW(Code, field_access_error_stub_with_fpu_regs_stub)                         \
+  RW(Code, field_access_error_stub_without_fpu_regs_stub)                      \
   RW(Code, allocate_mint_with_fpu_regs_stub)                                   \
   RW(Code, allocate_mint_without_fpu_regs_stub)                                \
   RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
@@ -252,6 +254,7 @@ class ObjectPointerVisitor;
   RW(Code, allocate_record3_stub)                                              \
   RW(Code, allocate_record3_named_stub)                                        \
   RW(Code, allocate_unhandled_exception_stub)                                  \
+  RW(Code, check_isolate_field_access_stub)                                    \
   RW(Code, clone_context_stub)                                                 \
   RW(Code, write_barrier_wrappers_stub)                                        \
   RW(Code, array_write_barrier_stub)                                           \
@@ -316,6 +319,10 @@ class ObjectPointerVisitor;
   DO(range_error_stub_without_fpu_regs_stub, RangeErrorSharedWithoutFPURegs)   \
   DO(write_error_stub_with_fpu_regs_stub, WriteErrorSharedWithFPURegs)         \
   DO(write_error_stub_without_fpu_regs_stub, WriteErrorSharedWithoutFPURegs)   \
+  DO(field_access_error_stub_with_fpu_regs_stub,                               \
+     FieldAccessErrorSharedWithFPURegs)                                        \
+  DO(field_access_error_stub_without_fpu_regs_stub,                            \
+     FieldAccessErrorSharedWithoutFPURegs)                                     \
   DO(allocate_mint_with_fpu_regs_stub, AllocateMintSharedWithFPURegs)          \
   DO(allocate_mint_without_fpu_regs_stub, AllocateMintSharedWithoutFPURegs)    \
   DO(stack_overflow_stub_with_fpu_regs_stub, StackOverflowSharedWithFPURegs)   \
@@ -355,8 +362,9 @@ class ObjectPointerVisitor;
   DO(allocate_record3_stub, AllocateRecord3)                                   \
   DO(allocate_record3_named_stub, AllocateRecord3Named)                        \
   DO(allocate_unhandled_exception_stub, AllocateUnhandledException)            \
-  DO(clone_context_stub, CloneContext)                                         \
   DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \
+  DO(clone_context_stub, CloneContext)                                         \
+  DO(check_isolate_field_access_stub, CheckIsolateFieldAccess)                 \
   DO(default_tts_stub, DefaultTypeTest)                                        \
   DO(default_nullable_tts_stub, DefaultNullableTypeTest)                       \
   DO(top_type_tts_stub, TopTypeTypeTest)                                       \

@@ -55,9 +55,9 @@ extension type ExtensionType(core::int it) {
   method tearoff instanceMethod = mai2::ExtensionType|get#instanceMethod;
   operator + = mai2::ExtensionType|+;
   get instanceGetter = mai2::ExtensionType|get#instanceGetter;
+  set instanceSetter = mai2::ExtensionType|set#instanceSetter;
   static method staticMethod = mai2::ExtensionType|staticMethod;
   static get staticGetter = get mai2::ExtensionType|staticGetter;
-  set instanceSetter = mai2::ExtensionType|set#instanceSetter;
   static set staticSetter = set mai2::ExtensionType|staticSetter;
   constructor • = mai2::ExtensionType|constructor#;
   constructor tearoff • = mai2::ExtensionType|constructor#_#new#tearOff;

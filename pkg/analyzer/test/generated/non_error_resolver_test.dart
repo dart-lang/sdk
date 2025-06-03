@@ -1400,7 +1400,7 @@ void test() {
 
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y.enclosingElement2, isNotNull);
+    expect(y.enclosingElement, isNotNull);
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1415,7 +1415,7 @@ void test() {
 
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y.enclosingElement2, isNotNull);
+    expect(y.enclosingElement, isNotNull);
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1480,7 +1480,7 @@ test(C c) => c.method<bool>(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y.enclosingElement2, isNotNull);
+    expect(y.enclosingElement, isNotNull);
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1493,7 +1493,7 @@ bool test(C c) => c.method(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y.enclosingElement2, isNotNull);
+    expect(y.enclosingElement, isNotNull);
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1510,7 +1510,7 @@ void test() {
 
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y.enclosingElement2, isNotNull);
+    expect(y.enclosingElement, isNotNull);
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1527,7 +1527,7 @@ void test() {
 
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y.enclosingElement2, isNotNull);
+    expect(y.enclosingElement, isNotNull);
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 

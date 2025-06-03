@@ -16,6 +16,8 @@ import 'code_generator.dart';
 import 'param_info.dart';
 import 'translator.dart';
 
+const w.ValueType closureContextFieldType = w.RefType.struct(nullable: false);
+
 /// Describes the implementation of a concrete closure, including its vtable
 /// contents.
 class ClosureImplementation {
@@ -346,7 +348,7 @@ class ClosureLayouter extends RecursiveVisitor {
         fields: [
           w.FieldType(w.NumType.i32, mutable: false),
           w.FieldType(w.NumType.i32),
-          w.FieldType(w.RefType.struct(nullable: false)),
+          w.FieldType(closureContextFieldType, mutable: false),
           w.FieldType(w.RefType.def(vtableStruct, nullable: false),
               mutable: false),
           w.FieldType(functionTypeType, mutable: false)
@@ -354,7 +356,7 @@ class ClosureLayouter extends RecursiveVisitor {
         superType: superType);
   }
 
-  w.ValueType get topType => translator.topInfo.nullableType;
+  w.ValueType get topType => translator.topType;
 
   ClosureLayouter(this.translator)
       : procedureAttributeMetadata =
@@ -497,7 +499,7 @@ class ClosureLayouter extends RecursiveVisitor {
     // Add vtable fields for additional entry points relative to the parent.
     for (int paramCount in paramCounts) {
       w.FunctionType entry = translator.typesBuilder.defineFunction([
-        w.RefType.struct(nullable: false),
+        closureContextFieldType,
         ...List.filled(typeCount, typeType),
         ...List.filled(paramCount, topType)
       ], [
@@ -1429,7 +1431,7 @@ class _CaptureFinder extends RecursiveVisitor {
   void _visitLambda(FunctionNode node, [VariableDeclaration? variable]) {
     final module = translator.moduleForReference(member.reference);
     List<w.ValueType> inputs = [
-      w.RefType.struct(nullable: false),
+      closureContextFieldType,
       ...List.filled(node.typeParameters.length, closures.typeType),
       for (VariableDeclaration param in node.positionalParameters)
         translator.translateType(param.type),

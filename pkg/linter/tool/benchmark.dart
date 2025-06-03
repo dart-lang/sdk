@@ -6,10 +6,11 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/util.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:args/args.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/extensions.dart';
@@ -145,7 +146,7 @@ Future<void> runLinter(List<String> args) async {
 
     linterOptions = LinterOptions(enabledRules: enabledRules);
   } else if (ruleNames is Iterable<String> && ruleNames.isNotEmpty) {
-    var rules = <LintRule>[];
+    var rules = <AbstractAnalysisRule>[];
     for (var ruleName in ruleNames) {
       var rule = Registry.ruleRegistry[ruleName];
       if (rule == null) {
@@ -218,7 +219,7 @@ int _maxSeverity(List<DiagnosticInfo> infos) {
   var filteredErrors = infos.expand((i) => i.diagnostics);
   return filteredErrors.fold(
     0,
-    (value, e) => math.max(value, e.errorCode.errorSeverity.ordinal),
+    (value, e) => math.max(value, e.errorCode.severity.ordinal),
   );
 }
 
@@ -266,7 +267,7 @@ extension on String {
 
   /// Whether this path is a Dart file or a Pubspec file.
   bool get isLintable =>
-      isDartFileName(this) || isPubspecFileName(path.basename(this));
+      endsWith('.dart') || path.basename(this) == file_paths.pubspecYaml;
 }
 
 extension on StringSink {

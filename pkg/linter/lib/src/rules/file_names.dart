@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/ascii_utils.dart';
@@ -14,7 +15,7 @@ class FileNames extends LintRule {
   FileNames() : super(name: LintNames.file_names, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.file_names;
+  DiagnosticCode get diagnosticCode => LinterLintCode.file_names;
 
   @override
   void registerNodeProcessors(

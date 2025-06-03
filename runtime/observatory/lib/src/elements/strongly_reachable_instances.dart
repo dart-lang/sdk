@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class StronglyReachableInstancesElement extends CustomElement
     implements Renderable {
@@ -56,12 +59,12 @@ class StronglyReachableInstancesElement extends CustomElement
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   void render() {
-    children = <Element>[
+    children = <HTMLElement>[
       (new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
             ..content = _createContent()
             ..onToggle.listen((e) async {
@@ -80,30 +83,29 @@ class StronglyReachableInstancesElement extends CustomElement
     _r.dirty();
   }
 
-  List<Element> _createContent() {
+  List<HTMLElement> _createContent() {
     if (_result == null) {
-      return [new SpanElement()..text = 'Loading...'];
+      return [new HTMLSpanElement()..textContent = 'Loading...'];
     }
     final content = _result!.instances!
-        .map<Element>((sample) => new DivElement()
-          ..children = <Element>[
-            anyRef(_isolate, sample, _objects, queue: _r.queue)
-          ])
+        .map<HTMLElement>((sample) => new HTMLDivElement()
+          ..appendChild(anyRef(_isolate, sample, _objects, queue: _r.queue)))
         .toList();
-    content.add(new DivElement()
-      ..children = ([]
+    content.add(new HTMLDivElement()
+      ..appendChildren([]
         ..addAll(_createShowMoreButton())
-        ..add(new SpanElement()..text = ' of total ${_result!.count}')));
+        ..add(new HTMLSpanElement()
+          ..textContent = ' of total ${_result!.count}')));
     return content;
   }
 
-  List<Element> _createShowMoreButton() {
+  List<HTMLElement> _createShowMoreButton() {
     final samples = _result!.instances!.toList();
     if (samples.length == _result!.count) {
       return [];
     }
     final count = samples.length;
-    final button = new ButtonElement()..text = 'show next ${count}';
+    final button = new HTMLButtonElement()..textContent = 'show next ${count}';
     button.onClick.listen((_) async {
       button.disabled = true;
       _result = await _stronglyReachableInstances.get(_isolate, _cls,

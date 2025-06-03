@@ -812,7 +812,7 @@ ForElement
         readType: int
         writeElement2: a@37
         writeType: int
-        element: dart:core::<fragment>::@class::num::@method::-#element
+        element: dart:core::@class::num::@method::-
         staticType: int
   rightParenthesis: )
   body: IntegerLiteral

@@ -25,6 +25,7 @@ import 'dynamic_module_kernel_metadata.dart';
 import 'intrinsics.dart' show MemberIntrinsic;
 import 'kernel_nodes.dart';
 import 'modules.dart';
+import 'param_info.dart';
 import 'record_class_generator.dart' show dynamicModulesRecordsLibraryUri;
 import 'reference_extensions.dart';
 import 'target.dart';
@@ -604,7 +605,9 @@ class DynamicModuleInfo {
         // These types do not have directly invokable constructors.
         translator.classInfo[member.enclosingClass]!.struct
             .isSubtypeOf(translator.objectInfo.struct)) {
-      passReference(member.reference);
+      if (!member.enclosingClass.isAnonymousMixin) {
+        passReference(member.reference);
+      }
       passReference(member.initializerReference);
       passReference(member.constructorBodyReference);
     }
@@ -719,25 +722,50 @@ class DynamicModuleInfo {
   }
 
   void Function(w.FunctionBuilder) buildSelectorBranch(
-      Reference target, SelectorInfo mainSelector) {
+      Reference interfaceTarget, SelectorInfo mainSelector) {
     return (w.FunctionBuilder function) {
-      final localSelector = translator.dispatchTable.selectorForTarget(target);
-      final localSignature = localSelector.signature;
+      final localSelector =
+          translator.dispatchTable.selectorForTarget(interfaceTarget);
       final ib = function.body;
 
-      final uncheckedOffset = localSelector.targets(unchecked: true).offset;
-      final checkedOffset = localSelector.targets(unchecked: false).offset;
+      final uncheckedTargets = localSelector.targets(unchecked: true);
+      final checkedTargets = localSelector.targets(unchecked: false);
 
-      if (uncheckedOffset == null && checkedOffset == null) {
+      // Whether we use checked+unchecked (or normal) we'll have the same
+      // class-id ranges - only the actual target `Reference` may be a unchecked
+      // or checked one.
+      assert(uncheckedTargets.targetRanges.length ==
+          checkedTargets.targetRanges.length);
+
+      // NOTE: Keep this in sync with
+      // `code_generator.dart:AstCodeGenerator._virtualCall`.
+      final bool noTarget = checkedTargets.targetRanges.isEmpty;
+      final bool directCall = checkedTargets.targetRanges.length == 1;
+      final callPolymorphicDispatcher =
+          !directCall && checkedTargets.staticDispatchRanges.isNotEmpty;
+      // disabled for dyn overridable selectors atm
+      assert(!callPolymorphicDispatcher);
+
+      if (noTarget) {
+        ib.comment('No targets in local module for ${localSelector.name}');
         ib.unreachable();
         ib.end();
         return;
       }
 
-      final generalizedMainSignature = _getGeneralizedSignature(mainSelector);
+      final w.FunctionType localSignature;
+      final ParameterInfo localParamInfo;
+      if (directCall) {
+        final target = checkedTargets.targetRanges.single.target;
+        localSignature = translator.signatureForDirectCall(target);
+        localParamInfo = translator.paramInfoForDirectCall(target);
+      } else {
+        localSignature = localSelector.signature;
+        localParamInfo = localSelector.paramInfo;
+      }
 
+      final generalizedMainSignature = _getGeneralizedSignature(mainSelector);
       final mainParamInfo = mainSelector.paramInfo;
-      final localParamInfo = localSelector.paramInfo;
 
       assert(mainParamInfo.takesContextOrReceiver ==
           localParamInfo.takesContextOrReceiver);
@@ -799,36 +827,58 @@ class DynamicModuleInfo {
             ib, constant, localSignature.inputs[localsIndex]);
       }
 
-      ib.local_get(ib.locals[function.type.inputs.length - 2]);
-      if (isSubmodule) {
-        translator.callReference(translator.scopeClassId.reference, ib);
-      }
-      if (checkedOffset == uncheckedOffset) {
-        if (checkedOffset != 0) {
-          ib.i32_const(checkedOffset!);
+      if (directCall) {
+        if (!localSelector.useMultipleEntryPoints) {
+          final target = checkedTargets.targetRanges.single.target;
+          ib.invoke(translator.directCallTarget(target));
+        } else {
+          final uncheckedTarget = uncheckedTargets.targetRanges.single.target;
+          final checkedTarget = checkedTargets.targetRanges.single.target;
+          // Check if the invocation is checked or unchecked and use the
+          // appropriate offset.
+          ib.local_get(ib.locals[function.type.inputs.length - 1]);
+          ib.if_(localSignature.inputs, localSignature.outputs);
+          ib.invoke(translator.directCallTarget(uncheckedTarget));
+          ib.else_();
+          ib.invoke(translator.directCallTarget(checkedTarget));
+          ib.end();
+        }
+      } else {
+        ib.local_get(ib.locals[function.type.inputs.length - 2]);
+        if (isSubmodule) {
+          translator.callReference(translator.scopeClassId.reference, ib);
+        }
+
+        ib.comment('Local dispatch table call to "${localSelector.name}"');
+        final uncheckedOffset = uncheckedTargets.offset;
+        final checkedOffset = checkedTargets.offset;
+        if (!localSelector.useMultipleEntryPoints) {
+          if (checkedOffset != 0) {
+            ib.i32_const(checkedOffset!);
+            ib.i32_add();
+          }
+        } else if (checkedOffset != 0 || uncheckedOffset != 0) {
+          // Check if the invocation is checked or unchecked and use the
+          // appropriate offset.
+          ib.local_get(ib.locals[function.type.inputs.length - 1]);
+          ib.if_(const [], const [w.NumType.i32]);
+          if (uncheckedOffset != null) {
+            ib.i32_const(uncheckedOffset);
+          } else {
+            ib.unreachable();
+          }
+          ib.else_();
+          if (checkedOffset != null) {
+            ib.i32_const(checkedOffset);
+          } else {
+            ib.unreachable();
+          }
+          ib.end();
           ib.i32_add();
         }
-      } else if (checkedOffset != 0 || uncheckedOffset != 0) {
-        // Check if the invocation is checked or unchecked and use the
-        // appropriate offset.
-        ib.local_get(ib.locals[function.type.inputs.length - 1]);
-        ib.if_(const [], const [w.NumType.i32]);
-        if (uncheckedOffset != null) {
-          ib.i32_const(uncheckedOffset);
-        } else {
-          ib.unreachable();
-        }
-        ib.else_();
-        if (checkedOffset != null) {
-          ib.i32_const(checkedOffset);
-        } else {
-          ib.unreachable();
-        }
-        ib.end();
-        ib.i32_add();
+        final table = translator.dispatchTable.getWasmTable(ib.module);
+        ib.call_indirect(localSignature, table);
       }
-      final table = translator.dispatchTable.getWasmTable(ib.module);
-      ib.call_indirect(localSignature, table);
       translator.convertType(ib, localSignature.outputs.single,
           generalizedMainSignature.outputs.single);
       ib.end();
@@ -844,7 +894,7 @@ class DynamicModuleInfo {
     // If any input is not a RefType (i.e. it's an unboxed value) then wrap it
     // so the updated signature works.
     if (localSignature.inputs.any((i) => i is! w.RefType)) {
-      final receiverLocal = b.addLocal(translator.topInfo.nullableType);
+      final receiverLocal = b.addLocal(translator.topTypeNonNullable);
       b.local_set(receiverLocal);
       final locals = <w.Local>[];
       for (final input in localSignature.inputs.reversed) {
@@ -860,7 +910,7 @@ class DynamicModuleInfo {
     }
 
     final idLocal = b.addLocal(w.NumType.i32);
-    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+    b.loadClassId(translator, translator.topTypeNonNullable);
     b.local_tee(idLocal);
     b.i32_const(useUncheckedEntry ? 1 : 0);
     b.local_get(idLocal);
@@ -917,8 +967,8 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
   ConstantCanonicalizer(this.translator, this.b, this.valueLocal);
 
   late final _checkerType = translator.typesBuilder.defineFunction([
-    translator.topInfo.nonNullableType,
-    translator.topInfo.nonNullableType,
+    translator.topTypeNonNullable,
+    translator.topTypeNonNullable,
   ], const [
     w.NumType.i32
   ]);
@@ -1138,7 +1188,6 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
   /// values are already canonicalized.
   void _defaultChecker(w.InstructionsBuilder b, ClassInfo classInfo,
       {Set<int>? fieldsToInclude}) {
-    classInfo = classInfo.repr;
     final structType = classInfo.struct;
     final structRefType = classInfo.nonNullableType;
     final castedLocal1 = b.addLocal(structRefType);

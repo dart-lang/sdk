@@ -4,15 +4,40 @@
 * Remove deprecated `RecordType.positionalTypes`.
 * Remove deprecated `RecordType.sortedNamedTypes`.
 * Remove `ElementLocation` class; its values are not returned anymore.
+* Remove deprecated `AnalysisContext.analysisOptions`.
+* `LibraryFragment` is not `Annotatable` anymore.
 * Deprecate `element2.dart` library; import `element.dart`.
 * Deprecate `XyzElement2` classes; use `XyzElement` instead.
 * Deprecate `AnalysisError.correction` field; use
   `AnalysisError.correctionMessage` instead.
-* Deprecate `ErrorType`; use `DiagnosticType` instead.
+* Deprecate `AnalysisError`; use `Diagnostic` instead.
+* Deprecate `ErrorCode`; use `DiagnosticCode` instead.
+* Deprecate `ErrorReporter.atOffset`'s `errorCode` parameter; use
+  `diagnosticCode` instead.
 * Deprecate `ErrorSeverity`; use `DiagnosticSeverity` instead.
+* Deprecate `DiagnosticCode.errorSeverity`; use
+  `DiagnosticCode.diagnosticSeverity` instead.
+* Deprecate `ErrorType`; use `DiagnosticType` instead.
 * Change `ElementDirective` from `sealed` to `abstract`.
   This allows the analyzer to have an internal implementation
   class corresponding to `ElementDirective`.
+* Deprecate `NamedType.name2`, use `name` instead.
+* Deprecate `ClassElement.isXyzIn2`, use `isXyzIn` instead.
+* Deprecate `Element.enclosingElement2`, use `enclosingElement` instead.
+* Deprecate `InstanceElement.fields2`, use `fields` instead.
+* Deprecate `InstanceElement.getters2`, use `getters` instead.
+* Deprecate `InstanceElement.setters2`, use `setters` instead.
+* Deprecate `InstanceElement.methods2`, use `methods` instead.
+* Deprecate `InstanceElement.getField2`, use `getField` instead.
+* Deprecate `InstanceElement.getGetter2`, use `getGetter` instead.
+* Deprecate `InstanceElement.getSetter2`, use `getSetter` instead.
+* Deprecate `InstanceElement.getMethod2`, use `getMethod` instead.
+* Deprecate `InstanceFragment.fields2`, use `fields` instead.
+* Deprecate `InstanceFragment.methods2`, use `methods` instead.
+* Deprecate `InterfaceElement.constructors2`, use `constructors` instead.
+* Deprecate `InterfaceFragment.constructors2`, use `constructors` instead.
+* Deprecate `JoinPatternVariableElement.variables2`, use `variables` instead.
+* Deprecate `Annotatable.metadata2`, use `metadata` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

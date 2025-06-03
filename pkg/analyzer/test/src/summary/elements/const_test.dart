@@ -128,7 +128,7 @@ library
                 readType: int
                 writeElement2: <testLibraryFragment>::@getter::a#element
                 writeType: InvalidType
-                element: dart:core::<fragment>::@class::num::@method::+#element
+                element: dart:core::@class::num::@method::+
                 staticType: int
               rightParenthesis: ) @30
               staticType: int
@@ -198,7 +198,7 @@ library
                   operator: .. @19
                   methodName: SimpleIdentifier
                     token: abs @21
-                    element: dart:core::<fragment>::@class::int::@method::abs#element
+                    element: dart:core::@class::int::@method::abs
                     staticType: int Function()
                   argumentList: ArgumentList
                     leftParenthesis: ( @24
@@ -618,7 +618,7 @@ library
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             DotShorthandConstructorInvocation
-              const: const @38
+              constKeyword: const @38
               period: . @44
               constructorName: SimpleIdentifier
                 token: new @45
@@ -1068,7 +1068,7 @@ library
                 staticType: int
               rightBracket: ] @41
               element: MethodMember
-                baseElement: dart:core::<fragment>::@class::List::@method::[]#element
+                baseElement: dart:core::@class::List::@method::[]
                 substitution: {E: int}
               staticType: int
           getter2: <testLibraryFragment>::@getter::c
@@ -1313,7 +1313,7 @@ library
                       rightParenthesis: ) @37
                     staticInvokeType: int Function()
                     staticType: int
-                  element: dart:core::<fragment>::@class::num::@method::+#element
+                  element: dart:core::@class::num::@method::+
                   staticInvokeType: num Function(num)
                   staticType: int
               getter2: <testLibraryFragment>::@class::C::@getter::f
@@ -1820,7 +1820,7 @@ library
               operator: . @15
               methodName: SimpleIdentifier
                 token: codeUnitAt @16
-                element: dart:core::<fragment>::@class::String::@method::codeUnitAt#element
+                element: dart:core::@class::String::@method::codeUnitAt
                 staticType: int Function(int)
               argumentList: ArgumentList
                 leftParenthesis: ( @26
@@ -1923,7 +1923,7 @@ library
                   rightParenthesis: ) @18
                 staticInvokeType: int Function()
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::+#element
+              element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
           getter2: <testLibraryFragment>::@getter::v
@@ -2029,7 +2029,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 5 @36
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::+#element
+              element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
           getter2: <testLibraryFragment>::@getter::b
@@ -4326,7 +4326,7 @@ library
           methods
             length @23
               reference: <testLibraryFragment>::@class::C::@method::length
-              element: <testLibraryFragment>::@class::C::@method::length#element
+              element: <testLibrary>::@class::C::@method::length
       topLevelVariables
         hasInitializer v @47
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -4340,9 +4340,9 @@ library
               period: . @52
               identifier: SimpleIdentifier
                 token: length @53
-                element: <testLibraryFragment>::@class::C::@method::length#element
+                element: <testLibrary>::@class::C::@method::length
                 staticType: int Function()
-              element: <testLibraryFragment>::@class::C::@method::length#element
+              element: <testLibrary>::@class::C::@method::length
               staticType: int Function()
           getter2: <testLibraryFragment>::@getter::v
       getters
@@ -4358,6 +4358,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static length
+          reference: <testLibrary>::@class::C::@method::length
           firstFragment: <testLibraryFragment>::@class::C::@method::length
           returnType: int
   topLevelVariables
@@ -5173,7 +5174,7 @@ library
                       rightOperand: IntegerLiteral
                         literal: 2 @44
                         staticType: int
-                      element: dart:core::<fragment>::@class::num::@method::+#element
+                      element: dart:core::@class::num::@method::+
                       staticInvokeType: num Function(num)
                       staticType: int
           getters
@@ -5246,7 +5247,7 @@ library
                       rightOperand: IntegerLiteral
                         literal: 2 @45
                         staticType: int
-                      element: dart:core::<fragment>::@class::num::@method::+#element
+                      element: dart:core::@class::num::@method::+
                       staticInvokeType: num Function(num)
                       staticType: int
           getters
@@ -5317,7 +5318,7 @@ library
                       rightOperand: IntegerLiteral
                         literal: 2 @40
                         staticType: int
-                      element: dart:core::<fragment>::@class::num::@method::+#element
+                      element: dart:core::@class::num::@method::+
                       staticInvokeType: num Function(num)
                       staticType: int
             const named @55
@@ -5339,13 +5340,13 @@ library
                       rightOperand: IntegerLiteral
                         literal: 2 @69
                         staticType: int
-                      element: dart:core::<fragment>::@class::num::@method::+#element
+                      element: dart:core::@class::num::@method::+
                       staticInvokeType: num Function(num)
                       staticType: int
           methods
             methodPositional @81
               reference: <testLibraryFragment>::@class::C::@method::methodPositional
-              element: <testLibraryFragment>::@class::C::@method::methodPositional#element
+              element: <testLibrary>::@class::C::@method::methodPositional
               formalParameters
                 default p @99
                   element: <testLibraryFragment>::@class::C::@method::methodPositional::@parameter::p#element
@@ -5358,18 +5359,18 @@ library
                       rightOperand: IntegerLiteral
                         literal: 2 @107
                         staticType: int
-                      element: dart:core::<fragment>::@class::num::@method::+#element
+                      element: dart:core::@class::num::@method::+
                       staticInvokeType: num Function(num)
                       staticType: int
             methodPositionalWithoutDefault @121
               reference: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault
-              element: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault#element
+              element: <testLibrary>::@class::C::@method::methodPositionalWithoutDefault
               formalParameters
                 default p @153
                   element: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault::@parameter::p#element
             methodNamed @167
               reference: <testLibraryFragment>::@class::C::@method::methodNamed
-              element: <testLibraryFragment>::@class::C::@method::methodNamed#element
+              element: <testLibrary>::@class::C::@method::methodNamed
               formalParameters
                 default p @180
                   reference: <testLibraryFragment>::@class::C::@method::methodNamed::@parameter::p
@@ -5383,12 +5384,12 @@ library
                       rightOperand: IntegerLiteral
                         literal: 2 @187
                         staticType: int
-                      element: dart:core::<fragment>::@class::num::@method::+#element
+                      element: dart:core::@class::num::@method::+
                       staticInvokeType: num Function(num)
                       staticType: int
             methodNamedWithoutDefault @201
               reference: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault
-              element: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault#element
+              element: <testLibrary>::@class::C::@method::methodNamedWithoutDefault
               formalParameters
                 default p @228
                   reference: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault::@parameter::p
@@ -5416,6 +5417,7 @@ library
                 expression: expression_1
       methods
         methodPositional
+          reference: <testLibrary>::@class::C::@method::methodPositional
           firstFragment: <testLibraryFragment>::@class::C::@method::methodPositional
           formalParameters
             optionalPositional hasImplicitType p
@@ -5424,12 +5426,14 @@ library
                 expression: expression_2
           returnType: void
         methodPositionalWithoutDefault
+          reference: <testLibrary>::@class::C::@method::methodPositionalWithoutDefault
           firstFragment: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault
           formalParameters
             optionalPositional hasImplicitType p
               type: dynamic
           returnType: void
         methodNamed
+          reference: <testLibrary>::@class::C::@method::methodNamed
           firstFragment: <testLibraryFragment>::@class::C::@method::methodNamed
           formalParameters
             optionalNamed hasImplicitType p
@@ -5440,6 +5444,7 @@ library
                 expression: expression_3
           returnType: void
         methodNamedWithoutDefault
+          reference: <testLibrary>::@class::C::@method::methodNamedWithoutDefault
           firstFragment: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault
           formalParameters
             optionalNamed hasImplicitType p
@@ -5483,7 +5488,7 @@ library
               readType: int
               writeElement2: <testLibraryFragment>::@getter::a#element
               writeType: InvalidType
-              element: dart:core::<fragment>::@class::num::@method::+#element
+              element: dart:core::@class::num::@method::+
               staticType: int
           getter2: <testLibraryFragment>::@getter::b
       getters
@@ -5617,7 +5622,7 @@ library
                 token: a @24
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: int
-              element: dart:core::<fragment>::@class::int::@method::unary-#element
+              element: dart:core::@class::int::@method::unary-
               staticType: int
           getter2: <testLibraryFragment>::@getter::b
       getters
@@ -5684,7 +5689,7 @@ library
                 token: a @28
                 element: package:test/a.dart::<fragment>::@getter::a#element
                 staticType: Object
-              element: package:test/a.dart::<fragment>::@extension::E::@method::unary-#element
+              element: package:test/a.dart::@extension::E::@method::unary-
               staticType: int
           getter2: <testLibraryFragment>::@getter::b
       getters
@@ -5741,7 +5746,7 @@ library
               readType: int
               writeElement2: <testLibraryFragment>::@getter::a#element
               writeType: InvalidType
-              element: dart:core::<fragment>::@class::num::@method::+#element
+              element: dart:core::@class::num::@method::+
               staticType: int
           getter2: <testLibraryFragment>::@getter::b
       getters
@@ -6176,7 +6181,7 @@ library
           methods
             m @23
               reference: <testLibraryFragment>::@class::C::@method::m
-              element: <testLibraryFragment>::@class::C::@method::m#element
+              element: <testLibrary>::@class::C::@method::m
               formalParameters
                 a @29
                   element: <testLibraryFragment>::@class::C::@method::m::@parameter::a#element
@@ -6195,9 +6200,9 @@ library
               period: . @62
               identifier: SimpleIdentifier
                 token: m @63
-                element: <testLibraryFragment>::@class::C::@method::m#element
+                element: <testLibrary>::@class::C::@method::m
                 staticType: int Function(int, String)
-              element: <testLibraryFragment>::@class::C::@method::m#element
+              element: <testLibrary>::@class::C::@method::m
               staticType: int Function(int, String)
           getter2: <testLibraryFragment>::@getter::V
       getters
@@ -6213,6 +6218,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a
@@ -6267,9 +6273,9 @@ library
               period: . @28
               identifier: SimpleIdentifier
                 token: m @29
-                element: package:test/a.dart::<fragment>::@class::C::@method::m#element
+                element: package:test/a.dart::@class::C::@method::m
                 staticType: int Function(int, String)
-              element: package:test/a.dart::<fragment>::@class::C::@method::m#element
+              element: package:test/a.dart::@class::C::@method::m
               staticType: int Function(int, String)
           getter2: <testLibraryFragment>::@getter::V
       getters
@@ -6334,7 +6340,7 @@ library
               operator: . @35
               propertyName: SimpleIdentifier
                 token: m @36
-                element: package:test/a.dart::<fragment>::@class::C::@method::m#element
+                element: package:test/a.dart::@class::C::@method::m
                 staticType: int Function(int, String)
               staticType: int Function(int, String)
           getter2: <testLibraryFragment>::@getter::V
@@ -6388,7 +6394,7 @@ library
           methods
             f @44
               reference: <testLibraryFragment>::@extension::E::@method::f
-              element: <testLibraryFragment>::@extension::E::@method::f#element
+              element: <testLibrary>::@extension::E::@method::f
       topLevelVariables
         hasInitializer x @59
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -6402,9 +6408,9 @@ library
               period: . @64
               identifier: SimpleIdentifier
                 token: f @65
-                element: <testLibraryFragment>::@extension::E::@method::f#element
+                element: <testLibrary>::@extension::E::@method::f
                 staticType: void Function()
-              element: <testLibraryFragment>::@extension::E::@method::f#element
+              element: <testLibrary>::@extension::E::@method::f
               staticType: void Function()
           getter2: <testLibraryFragment>::@getter::x
       getters
@@ -6424,6 +6430,7 @@ library
       firstFragment: <testLibraryFragment>::@extension::E
       methods
         static f
+          reference: <testLibrary>::@extension::E::@method::f
           firstFragment: <testLibraryFragment>::@extension::E::@method::f
           returnType: void
   topLevelVariables
@@ -6692,7 +6699,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @27
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::+#element
+              element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
           getter2: <testLibraryFragment>::@getter::B
@@ -6760,7 +6767,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @31
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::+#element
+              element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
           getter2: <testLibraryFragment>::@getter::B
@@ -6825,7 +6832,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @38
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::+#element
+              element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
           getter2: <testLibraryFragment>::@getter::B
@@ -8015,7 +8022,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @20
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::==#element
+              element: dart:core::@class::num::@method::==
               staticInvokeType: bool Function(Object)
               staticType: bool
           getter2: <testLibraryFragment>::@getter::vEqual
@@ -8063,7 +8070,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @98
                 staticType: int
-              element: dart:core::<fragment>::@class::int::@method::^#element
+              element: dart:core::@class::int::@method::^
               staticInvokeType: int Function(int)
               staticType: int
           getter2: <testLibraryFragment>::@getter::vBitXor
@@ -8079,7 +8086,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @121
                 staticType: int
-              element: dart:core::<fragment>::@class::int::@method::&#element
+              element: dart:core::@class::int::@method::&
               staticInvokeType: int Function(int)
               staticType: int
           getter2: <testLibraryFragment>::@getter::vBitAnd
@@ -8095,7 +8102,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @143
                 staticType: int
-              element: dart:core::<fragment>::@class::int::@method::|#element
+              element: dart:core::@class::int::@method::|
               staticInvokeType: int Function(int)
               staticType: int
           getter2: <testLibraryFragment>::@getter::vBitOr
@@ -8111,7 +8118,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @173
                 staticType: int
-              element: dart:core::<fragment>::@class::int::@method::<<#element
+              element: dart:core::@class::int::@method::<<
               staticInvokeType: int Function(int)
               staticType: int
           getter2: <testLibraryFragment>::@getter::vBitShiftLeft
@@ -8127,7 +8134,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @204
                 staticType: int
-              element: dart:core::<fragment>::@class::int::@method::>>#element
+              element: dart:core::@class::int::@method::>>
               staticInvokeType: int Function(int)
               staticType: int
           getter2: <testLibraryFragment>::@getter::vBitShiftRight
@@ -8143,7 +8150,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @224
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::+#element
+              element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
           getter2: <testLibraryFragment>::@getter::vAdd
@@ -8159,7 +8166,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @249
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::-#element
+              element: dart:core::@class::num::@method::-
               staticInvokeType: num Function(num)
               staticType: int
           getter2: <testLibraryFragment>::@getter::vSubtract
@@ -8175,7 +8182,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @274
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::*#element
+              element: dart:core::@class::num::@method::*
               staticInvokeType: num Function(num)
               staticType: int
           getter2: <testLibraryFragment>::@getter::vMiltiply
@@ -8191,7 +8198,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @297
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::/#element
+              element: dart:core::@class::num::@method::/
               staticInvokeType: double Function(num)
               staticType: double
           getter2: <testLibraryFragment>::@getter::vDivide
@@ -8207,7 +8214,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @326
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::~/#element
+              element: dart:core::@class::num::@method::~/
               staticInvokeType: int Function(num)
               staticType: int
           getter2: <testLibraryFragment>::@getter::vFloorDivide
@@ -8223,7 +8230,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @349
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::%#element
+              element: dart:core::@class::num::@method::%
               staticInvokeType: num Function(num)
               staticType: int
           getter2: <testLibraryFragment>::@getter::vModulo
@@ -8239,7 +8246,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @373
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::>#element
+              element: dart:core::@class::num::@method::>
               staticInvokeType: bool Function(num)
               staticType: bool
           getter2: <testLibraryFragment>::@getter::vGreater
@@ -8255,7 +8262,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @403
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::>=#element
+              element: dart:core::@class::num::@method::>=
               staticInvokeType: bool Function(num)
               staticType: bool
           getter2: <testLibraryFragment>::@getter::vGreaterEqual
@@ -8271,7 +8278,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @424
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::<#element
+              element: dart:core::@class::num::@method::<
               staticInvokeType: bool Function(num)
               staticType: bool
           getter2: <testLibraryFragment>::@getter::vLess
@@ -8287,7 +8294,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @451
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::<=#element
+              element: dart:core::@class::num::@method::<=
               staticInvokeType: bool Function(num)
               staticType: bool
           getter2: <testLibraryFragment>::@getter::vLessEqual
@@ -8575,7 +8582,7 @@ library
                   rightOperand: IntegerLiteral
                     literal: 2 @27
                     staticType: int
-                  element: dart:core::<fragment>::@class::num::@method::==#element
+                  element: dart:core::@class::num::@method::==
                   staticInvokeType: bool Function(Object)
                   staticType: bool
                 rightParenthesis: ) @28
@@ -8636,7 +8643,7 @@ library
                   rightOperand: IntegerLiteral
                     literal: 2 @25
                     staticType: int
-                  element: dart:core::<fragment>::@class::num::@method::==#element
+                  element: dart:core::@class::num::@method::==
                   staticInvokeType: bool Function(Object)
                   staticType: bool
                 rightParenthesis: ) @26
@@ -8782,7 +8789,7 @@ library
               operand: IntegerLiteral
                 literal: 2 @116
                 staticType: int
-              element: dart:core::<fragment>::@class::int::@method::unary-#element
+              element: dart:core::@class::int::@method::unary-
               staticType: int
           getter2: <testLibraryFragment>::@getter::vIntNegative
         hasInitializer vIntLong1 @125
@@ -9098,7 +9105,7 @@ library
               operator: ?. @29
               methodName: SimpleIdentifier
                 token: toString @31
-                element: dart:core::<fragment>::@class::int::@method::toString#element
+                element: dart:core::@class::int::@method::toString
                 staticType: String Function()
               argumentList: ArgumentList
                 leftParenthesis: ( @39
@@ -9174,7 +9181,7 @@ library
                   operator: ?.. @29
                   methodName: SimpleIdentifier
                     token: toString @32
-                    element: dart:core::<fragment>::@class::int::@method::toString#element
+                    element: dart:core::@class::int::@method::toString
                     staticType: String Function()
                   argumentList: ArgumentList
                     leftParenthesis: ( @40
@@ -9322,7 +9329,7 @@ library
                   rightOperand: IntegerLiteral
                     literal: 2 @20
                     staticType: int
-                  element: dart:core::<fragment>::@class::num::@method::+#element
+                  element: dart:core::@class::num::@method::+
                   staticInvokeType: num Function(num)
                   staticType: int
                 rightParenthesis: ) @21
@@ -9331,7 +9338,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 3 @25
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::*#element
+              element: dart:core::@class::num::@method::*
               staticInvokeType: num Function(num)
               staticType: int
           getter2: <testLibraryFragment>::@getter::v1
@@ -9351,12 +9358,12 @@ library
                   rightOperand: IntegerLiteral
                     literal: 2 @49
                     staticType: int
-                  element: dart:core::<fragment>::@class::num::@method::+#element
+                  element: dart:core::@class::num::@method::+
                   staticInvokeType: num Function(num)
                   staticType: int
                 rightParenthesis: ) @50
                 staticType: int
-              element: dart:core::<fragment>::@class::int::@method::unary-#element
+              element: dart:core::@class::int::@method::unary-
               staticType: int
           getter2: <testLibraryFragment>::@getter::v2
         hasInitializer v3 @63
@@ -9372,7 +9379,7 @@ library
                   operator: + @75
                   rightOperand: SimpleStringLiteral
                     literal: 'bbb' @77
-                  element: dart:core::<fragment>::@class::String::@method::+#element
+                  element: dart:core::@class::String::@method::+
                   staticInvokeType: String Function(String)
                   staticType: String
                 rightParenthesis: ) @82
@@ -9458,7 +9465,7 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @23
                 staticType: int
-              element: dart:core::<fragment>::@class::num::@method::==#element
+              element: dart:core::@class::num::@method::==
               staticInvokeType: bool Function(Object)
               staticType: bool
           getter2: <testLibraryFragment>::@getter::vNotEqual
@@ -9483,7 +9490,7 @@ library
               operand: IntegerLiteral
                 literal: 1 @63
                 staticType: int
-              element: dart:core::<fragment>::@class::int::@method::unary-#element
+              element: dart:core::@class::int::@method::unary-
               staticType: int
           getter2: <testLibraryFragment>::@getter::vNegate
         hasInitializer vComplement @72
@@ -9495,7 +9502,7 @@ library
               operand: IntegerLiteral
                 literal: 1 @87
                 staticType: int
-              element: dart:core::<fragment>::@class::int::@method::~#element
+              element: dart:core::@class::int::@method::~
               staticType: int
           getter2: <testLibraryFragment>::@getter::vComplement
       getters
@@ -11054,7 +11061,7 @@ library
               initializer: expression_0
                 SimpleIdentifier
                   token: m @29
-                  element: <testLibraryFragment>::@class::C::@method::m#element
+                  element: <testLibrary>::@class::C::@method::m
                   staticType: dynamic Function()
               getter2: <testLibraryFragment>::@class::C::@getter::a
           constructors
@@ -11069,7 +11076,7 @@ library
           methods
             m @41
               reference: <testLibraryFragment>::@class::C::@method::m
-              element: <testLibraryFragment>::@class::C::@method::m#element
+              element: <testLibrary>::@class::C::@method::m
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -11091,6 +11098,7 @@ library
           returnType: dynamic Function()
       methods
         static m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           returnType: dynamic
 ''');

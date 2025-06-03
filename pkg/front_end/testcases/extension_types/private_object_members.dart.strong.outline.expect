@@ -1,0 +1,40 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type E(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  get _identityHashCode = self::E|get#_identityHashCode;
+  method _instanceOf = self::E|_instanceOf;
+  method tearoff _instanceOf = self::E|get#_instanceOf;
+  method _simpleInstanceOf = self::E|_simpleInstanceOf;
+  method tearoff _simpleInstanceOf = self::E|get#_simpleInstanceOf;
+  method _simpleInstanceOfTrue = self::E|_simpleInstanceOfTrue;
+  method tearoff _simpleInstanceOfTrue = self::E|get#_simpleInstanceOfTrue;
+  method _simpleInstanceOfFalse = self::E|_simpleInstanceOfFalse;
+  method tearoff _simpleInstanceOfFalse = self::E|get#_simpleInstanceOfFalse;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+static extension-type-member method E|constructor#(core::int i) → self::E% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method E|constructor#_#new#tearOff(core::int i) → self::E% /* erasure=core::int, declared=! */
+  return self::E|constructor#(i);
+static extension-type-member method E|get#_identityHashCode(lowered final self::E% /* erasure=core::int, declared=! */ #this) → core::int
+  ;
+static extension-type-member method E|_instanceOf(lowered final self::E% /* erasure=core::int, declared=! */ #this, dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool
+  ;
+static extension-type-member method E|get#_instanceOf(lowered final self::E% /* erasure=core::int, declared=! */ #this) → (dynamic, dynamic, dynamic) → core::bool
+  return (dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool => self::E|_instanceOf(#this, instantiatorTypeArguments, functionTypeArguments, type);
+static extension-type-member method E|_simpleInstanceOf(lowered final self::E% /* erasure=core::int, declared=! */ #this, dynamic type) → core::bool
+  ;
+static extension-type-member method E|get#_simpleInstanceOf(lowered final self::E% /* erasure=core::int, declared=! */ #this) → (dynamic) → core::bool
+  return (dynamic type) → core::bool => self::E|_simpleInstanceOf(#this, type);
+static extension-type-member method E|_simpleInstanceOfTrue(lowered final self::E% /* erasure=core::int, declared=! */ #this, dynamic type) → core::bool
+  ;
+static extension-type-member method E|get#_simpleInstanceOfTrue(lowered final self::E% /* erasure=core::int, declared=! */ #this) → (dynamic) → core::bool
+  return (dynamic type) → core::bool => self::E|_simpleInstanceOfTrue(#this, type);
+static extension-type-member method E|_simpleInstanceOfFalse(lowered final self::E% /* erasure=core::int, declared=! */ #this, dynamic type) → core::bool
+  ;
+static extension-type-member method E|get#_simpleInstanceOfFalse(lowered final self::E% /* erasure=core::int, declared=! */ #this) → (dynamic) → core::bool
+  return (dynamic type) → core::bool => self::E|_simpleInstanceOfFalse(#this, type);

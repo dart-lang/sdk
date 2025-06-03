@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/error_recovery/parse_error_in_try_on_clause.dart:4:8: Error: Expected a type, but got '.'.
+// pkg/front_end/testcases/general/error_recovery/parse_error_in_try_on_clause.dart:8:8: Error: Expected a type, but got '.'.
 //   } on .bar {
 //        ^
 //

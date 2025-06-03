@@ -65,7 +65,8 @@ class Diagnostic {
     required Source source,
     required int offset,
     required int length,
-    required ErrorCode errorCode,
+    // TODO(srawlins): Rename to `diagnosticCode`.
+    required DiagnosticCode errorCode,
     List<Object?> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
     Object? data,
@@ -125,7 +126,7 @@ class Diagnostic {
   int get offset => problemMessage.offset;
 
   Severity get severity {
-    switch (errorCode.errorSeverity) {
+    switch (errorCode.severity) {
       case DiagnosticSeverity.ERROR:
         return Severity.error;
       case DiagnosticSeverity.WARNING:
@@ -133,7 +134,7 @@ class Diagnostic {
       case DiagnosticSeverity.INFO:
         return Severity.info;
       default:
-        throw StateError('Invalid error severity: ${errorCode.errorSeverity}');
+        throw StateError('Invalid error severity: ${errorCode.severity}');
     }
   }
 

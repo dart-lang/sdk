@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -18,6 +20,9 @@ void main() {
     defineReflectiveTests(RemoveNullCheckComparisonBulkTest);
   });
 }
+
+bool _ignoreDeadCode(Diagnostic diagnostic) =>
+    diagnostic.errorCode != WarningCode.DEAD_CODE;
 
 @reflectiveTest
 class RemoveComparisonTest extends FixProcessorTest {
@@ -168,7 +173,7 @@ void f(int x) {
     2,
   ];
 }
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_ifElement_alwaysFalse_hasElse_withComments() async {
@@ -197,7 +202,7 @@ void f(int x) {
     2,
   ];
 }
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_ifElement_alwaysFalse_noElse_insideList() async {
@@ -217,7 +222,7 @@ void f(int x) {
     2,
   ];
 }
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void>
@@ -241,7 +246,7 @@ void f(int x) {
     2,
   ];
 }
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_ifElement_alwaysFalse_noElse_insideSet() async {
@@ -261,7 +266,7 @@ Object f(int x) {
     2,
   };
 }
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_ifElement_alwaysTrue() async {
@@ -304,7 +309,7 @@ void f(int x) {
     2,
   ];
 }
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_ifElement_alwaysTrue_withComments() async {
@@ -351,7 +356,7 @@ void f(int x) {
   2;
   3;
 }
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_ifStatement_alwaysFalse_hasElse_block_empty() async {
@@ -369,7 +374,7 @@ void f(int x) {
   0;
   2;
 }
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_ifStatement_alwaysFalse_hasElse_statement() async {
@@ -389,7 +394,7 @@ void f(int x) {
   2;
   3;
 }
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_ifStatement_alwaysFalse_noElse() async {
@@ -407,7 +412,7 @@ void f(int x) {
   0;
   2;
 }
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_ifStatement_alwaysTrue_hasElse_block() async {
@@ -428,7 +433,7 @@ void f(int x) {
   1;
   3;
 }
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_ifStatement_alwaysTrue_noElse() async {
@@ -745,7 +750,7 @@ class Person {
   }
 }
 ''');
-    await assertNoFix();
+    await assertNoFix(errorFilter: _ignoreDeadCode);
   }
 }
 

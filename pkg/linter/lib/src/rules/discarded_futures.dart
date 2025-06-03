@@ -5,6 +5,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -18,7 +19,7 @@ class DiscardedFutures extends LintRule {
     : super(name: LintNames.discarded_futures, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.discarded_futures;
+  DiagnosticCode get diagnosticCode => LinterLintCode.discarded_futures;
 
   @override
   void registerNodeProcessors(
@@ -49,18 +50,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitExpressionStatement(ExpressionStatement node) {
     var expr = node.expression;
     if (expr is AssignmentExpression) return;
-
-    if (_isEnclosedInAsyncFunctionBody(node)) {
-      return;
-    }
-
-    if (expr case AwaitExpression(:var expression)) {
-      expr = expression;
-    }
-
-    if (expr.isAwaitNotRequired) {
-      return;
-    }
+    if (_isEnclosedInAsyncFunctionBody(node)) return;
+    if (expr is AwaitExpression) return;
+    if (expr.isAwaitNotRequired) return;
 
     var type = expr.staticType;
     if (type == null) {
@@ -102,7 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _isMapPutIfAbsentInvocation(Expression expr) =>
       expr is MethodInvocation &&
       expr.methodName.name == 'putIfAbsent' &&
-      _isMapClass(expr.methodName.element?.enclosingElement2);
+      _isMapClass(expr.methodName.element?.enclosingElement);
 
   void _reportOnExpression(Expression expr) {
     rule.reportAtNode(switch (expr) {

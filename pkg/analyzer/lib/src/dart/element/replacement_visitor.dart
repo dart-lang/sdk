@@ -66,7 +66,7 @@ class ReplacementVisitor
       return null;
     }
 
-    return FunctionTypeBuilder.v2(
+    return FunctionTypeBuilder(
       typeParameters: newTypeParameters ?? type.typeParameters,
       formalParameters: newFormalParameters ?? type.formalParameters,
       returnType: newReturnType ?? type.returnType,
@@ -103,10 +103,10 @@ class ReplacementVisitor
       return null;
     }
 
-    return NamedTypeBuilder.v2(
+    return NamedTypeBuilder(
       linker: type.linker,
       typeSystem: type.typeSystem,
-      element: type.element3,
+      element3: type.element3,
       arguments: newTypeArguments ?? type.arguments,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
     );

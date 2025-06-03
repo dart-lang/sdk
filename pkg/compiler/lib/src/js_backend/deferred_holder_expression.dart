@@ -770,8 +770,9 @@ class DeferredHolderExpressionFinalizerImpl
 
     for (var resource in holderResources) {
       // Our default names are either 'MAIN,' 'PART<N>', or '<NAME>_C'.
-      var holderName =
-          resource.isMainFragment ? mainResourceName : 'part${resource.name}';
+      var holderName = resource.isMainFragment
+          ? mainResourceName
+          : 'part${resource.name}';
       holderName = holderName.toUpperCase();
       var holder = Holder(holderName);
 

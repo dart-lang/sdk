@@ -23,7 +23,7 @@ void main() {
 }
 
 abstract class AbstractChangeBuilderTest {
-  MemoryResourceProvider resourceProvider = MemoryResourceProvider();
+  final resourceProvider = MemoryResourceProvider();
 
   late ChangeBuilderImpl builder;
 
@@ -34,6 +34,23 @@ abstract class AbstractChangeBuilderTest {
 
 @reflectiveTest
 class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
+  Future<void> test_commit_noChanges_afterCommitWithChanges() async {
+    await builder.addGenericFileEdit('/test.txt', (builder) {
+      builder.addSimpleInsertion(0, 'x');
+    });
+    builder.commit();
+    builder.commit();
+
+    var change = builder.sourceChange;
+    expect(change.edits[0].edits, hasLength(1));
+  }
+
+  Future<void> test_commit_noChanges_afterEmptyCommit() async {
+    builder.commit();
+    builder.commit();
+  }
+
+  @Deprecated('Will be removed when `copy` is removed.')
   void test_copy_empty() {
     var copy = builder.copy() as ChangeBuilderImpl;
     expect(identical(copy, builder), isFalse);
@@ -41,6 +58,7 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
     expect(copy.eol, builder.eol);
   }
 
+  @Deprecated('Will be removed when `copy` is removed.')
   Future<void> test_copy_newEdit() async {
     await builder.addGenericFileEdit('/test.txt', (builder) {
       builder.addSimpleInsertion(0, 'x');
@@ -53,6 +71,7 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
     expect(change.edits[0].edits, hasLength(1));
   }
 
+  @Deprecated('Will be removed when `copy` is removed.')
   Future<void> test_copy_newFile() async {
     await builder.addGenericFileEdit('/test1.txt', (builder) {
       builder.addSimpleInsertion(0, 'x');
@@ -65,6 +84,7 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
     expect(change.edits, hasLength(1));
   }
 
+  @Deprecated('Will be removed when `copy` is removed.')
   Future<void> test_copy_newLinkedEditGroup() async {
     await builder.addGenericFileEdit('/test.txt', (builder) {
       builder.addLinkedPosition(SourceRange(1, 2), 'a');
@@ -77,6 +97,7 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
     expect(change.linkedEditGroups, hasLength(1));
   }
 
+  @Deprecated('Will be removed when `copy` is removed.')
   Future<void> test_copy_newLinkedPosition() async {
     await builder.addGenericFileEdit('/test.txt', (builder) {
       builder.addLinkedPosition(SourceRange(1, 2), 'a');
@@ -89,6 +110,7 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
     expect(change.linkedEditGroups[0].positions, hasLength(1));
   }
 
+  @Deprecated('Will be removed when `copy` is removed.')
   Future<void> test_copy_selection() async {
     builder.setSelection(Position('/test.dart', 5));
     var copy = builder.copy() as ChangeBuilderImpl;
@@ -101,6 +123,84 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
     var group = builder.getLinkedEditGroup('a');
     expect(identical(builder.getLinkedEditGroup('b'), group), isFalse);
     expect(identical(builder.getLinkedEditGroup('a'), group), isTrue);
+  }
+
+  Future<void> test_revert_newEdit() async {
+    await builder.addGenericFileEdit('/test.txt', (builder) {
+      builder.addSimpleInsertion(0, 'x');
+    });
+    builder.commit();
+
+    await builder.addGenericFileEdit('/test.txt', (builder) {
+      builder.addSimpleInsertion(10, 'x');
+    });
+    builder.revert();
+
+    var change = builder.sourceChange;
+    expect(change.edits[0].edits, hasLength(1));
+  }
+
+  Future<void> test_revert_newFile() async {
+    await builder.addGenericFileEdit('/test1.txt', (builder) {
+      builder.addSimpleInsertion(0, 'x');
+    });
+    builder.commit();
+    var modificationCount = builder.modificationCount;
+
+    await builder.addGenericFileEdit('/test2.txt', (builder) {
+      builder.addSimpleInsertion(0, 'x');
+    });
+    builder.revert();
+
+    expect(builder.modificationCount, modificationCount);
+    var change = builder.sourceChange;
+    expect(change.edits, hasLength(1));
+  }
+
+  Future<void> test_revert_newLinkedEditGroup() async {
+    await builder.addGenericFileEdit('/test.txt', (builder) {
+      builder.addLinkedPosition(SourceRange(1, 2), 'a');
+    });
+    builder.commit();
+
+    await builder.addGenericFileEdit('/test.txt', (builder) {
+      builder.addLinkedPosition(SourceRange(3, 4), 'b');
+    });
+    builder.revert();
+
+    var change = builder.sourceChange;
+    expect(change.linkedEditGroups, hasLength(1));
+  }
+
+  Future<void> test_revert_newLinkedPosition() async {
+    await builder.addGenericFileEdit('/test.txt', (builder) {
+      builder.addLinkedPosition(SourceRange(1, 2), 'a');
+    });
+    builder.commit();
+
+    await builder.addGenericFileEdit('/test.txt', (builder) {
+      builder.addLinkedPosition(SourceRange(3, 4), 'a');
+    });
+    builder.revert();
+
+    var change = builder.sourceChange;
+    expect(change.linkedEditGroups[0].positions, hasLength(1));
+  }
+
+  void test_revert_nothingToRevert() {
+    // Verify that there is no exception.
+    builder.revert();
+  }
+
+  Future<void> test_revert_selection() async {
+    builder.setSelection(Position('/test.dart', 5));
+    builder.commit();
+
+    builder.setSelection(Position('/test.dart', 10));
+    builder.revert();
+
+    var change = builder.sourceChange;
+    expect(change.selection!.offset, 5);
   }
 
   void test_setSelection() {

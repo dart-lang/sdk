@@ -156,17 +156,16 @@ class InvokeDynamicSpecializer {
     HGetLength length = HGetLength(
       array,
       abstractValueDomain.positiveIntType,
-      isAssignable:
-          abstractValueDomain
-              .isFixedLengthJsIndexable(array.instructionType)
-              .isPotentiallyFalse,
+      isAssignable: abstractValueDomain
+          .isFixedLengthJsIndexable(array.instructionType)
+          .isPotentiallyFalse,
     );
     block.addBefore(indexerNode, length);
 
     AbstractValue type =
         indexArgument.isPositiveInteger(abstractValueDomain).isDefinitelyTrue
-            ? indexArgument.instructionType
-            : abstractValueDomain.positiveIntType;
+        ? indexArgument.instructionType
+        : abstractValueDomain.positiveIntType;
     HBoundsCheck check = HBoundsCheck(indexArgument, length, array, type)
       ..sourceInformation = indexerNode.sourceInformation;
     block.addBefore(indexerNode, check);
@@ -232,8 +231,9 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
         .isDefinitelyTrue) {
       needsMutableCheck = true;
     } else if (receiver.isArray(abstractValueDomain).isDefinitelyTrue) {
-      needsMutableCheck =
-          receiver.isMutableArray(abstractValueDomain).isPotentiallyFalse;
+      needsMutableCheck = receiver
+          .isModifiableArray(abstractValueDomain)
+          .isPotentiallyFalse;
     } else {
       if (receiver.isMutableIndexable(abstractValueDomain).isPotentiallyFalse) {
         return null;
@@ -361,7 +361,7 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     JClosedWorld closedWorld,
     OptimizationTestLog? log,
   ) {
-    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    HInstruction receiver = instruction.getDartReceiver();
     var abstractValueDomain = closedWorld.abstractValueDomain;
     if (receiver.isIndexablePrimitive(abstractValueDomain).isPotentiallyFalse) {
       return null;
@@ -419,7 +419,7 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
     OptimizationTestLog? log,
   ) {
     final abstractValueDomain = closedWorld.abstractValueDomain;
-    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    HInstruction receiver = instruction.getDartReceiver();
     if (receiver.isStringOrNull(abstractValueDomain).isPotentiallyFalse) {
       return null;
     }
@@ -460,9 +460,9 @@ class RemoveLastSpecializer extends InvokeDynamicSpecializer {
     JClosedWorld closedWorld,
     OptimizationTestLog? log,
   ) {
-    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    HInstruction receiver = instruction.getDartReceiver();
     final abstractValueDomain = closedWorld.abstractValueDomain;
-    if (receiver.isExtendableArray(abstractValueDomain).isPotentiallyFalse) {
+    if (receiver.isGrowableArray(abstractValueDomain).isPotentiallyFalse) {
       return null;
     }
 
@@ -876,7 +876,7 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
     // track -0.0 precisely, we have to syntactically filter inputs that cannot
     // generate -0.0.
 
-    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    HInstruction receiver = instruction.getDartReceiver();
     if (inputsArePositiveIntegers(instruction, closedWorld) &&
         !canBeNegativeZero(receiver)) {
       return HRemainder(
@@ -1840,7 +1840,7 @@ class CompareToSpecializer extends InvokeDynamicSpecializer {
     JClosedWorld closedWorld,
     OptimizationTestLog? log,
   ) {
-    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    HInstruction receiver = instruction.getDartReceiver();
     // `compareTo` has no side-effect (other than throwing) and can be GVN'ed
     // for some known types.
     if (receiver
@@ -1890,7 +1890,7 @@ abstract class IdempotentStringOperationSpecializer
     JClosedWorld closedWorld,
     OptimizationTestLog? log,
   ) {
-    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    HInstruction receiver = instruction.getDartReceiver();
     if (receiver
         .isStringOrNull(closedWorld.abstractValueDomain)
         .isDefinitelyTrue) {
@@ -1937,7 +1937,7 @@ class PatternMatchSpecializer extends InvokeDynamicSpecializer {
     JClosedWorld closedWorld,
     OptimizationTestLog? log,
   ) {
-    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    HInstruction receiver = instruction.getDartReceiver();
     HInstruction pattern = instruction.inputs[2];
     if (receiver
             .isStringOrNull(closedWorld.abstractValueDomain)
@@ -1969,7 +1969,7 @@ class RoundSpecializer extends InvokeDynamicSpecializer {
     JClosedWorld closedWorld,
     OptimizationTestLog? log,
   ) {
-    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    HInstruction receiver = instruction.getDartReceiver();
     if (receiver
         .isNumberOrNull(closedWorld.abstractValueDomain)
         .isDefinitelyTrue) {
@@ -1997,7 +1997,7 @@ class ToIntSpecializer extends InvokeDynamicSpecializer {
     JClosedWorld closedWorld,
     OptimizationTestLog? log,
   ) {
-    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    HInstruction receiver = instruction.getDartReceiver();
 
     // We would like to reduce `x.toInt()` to `x`. The web platform considers
     // infinities to be `int` values, but it is too hard to tell if an input is

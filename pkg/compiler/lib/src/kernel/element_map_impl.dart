@@ -292,8 +292,10 @@ class KernelToElementMap implements IrToElementMap {
     if (data.thisType == null) {
       ir.Class node = data.node;
       if (node.typeParameters.isEmpty) {
-        data.thisType =
-            data.rawType = types.interfaceType(cls, const <DartType>[]);
+        data.thisType = data.rawType = types.interfaceType(
+          cls,
+          const <DartType>[],
+        );
       } else {
         data.thisType = types.interfaceType(
           cls,
@@ -370,11 +372,10 @@ class KernelToElementMap implements IrToElementMap {
         Set<InterfaceType> canonicalSupertypes = <InterfaceType>{};
 
         InterfaceType processSupertype(ir.Supertype supertypeNode) {
-          supertypeNode =
-              classHierarchy.getClassAsInstanceOf(
-                node,
-                supertypeNode.classNode,
-              )!;
+          supertypeNode = classHierarchy.getClassAsInstanceOf(
+            node,
+            supertypeNode.classNode,
+          )!;
           InterfaceType supertype = _typeConverter.visitSupertype(
             supertypeNode,
           );
@@ -1001,8 +1002,8 @@ class KernelToElementMap implements IrToElementMap {
       // library.
       // TODO(johnniwinther): Cache more results to avoid redundant lookups?
       cachedMayLookupInMain ??=
-      // Tests permit lookup outside of dart: libraries.
-      allowedNativeTest(elementEnvironment.mainLibrary!.canonicalUri);
+          // Tests permit lookup outside of dart: libraries.
+          allowedNativeTest(elementEnvironment.mainLibrary!.canonicalUri);
       DartType? type;
       if (cachedMayLookupInMain!) {
         type ??= findInLibrary(elementEnvironment.mainLibrary);
@@ -1527,8 +1528,9 @@ class KernelToElementMap implements IrToElementMap {
   NativeBasicData get nativeBasicData {
     var data = _nativeBasicData;
     if (data == null) {
-      data =
-          _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
+      data = _nativeBasicData = nativeBasicDataBuilder.close(
+        elementEnvironment,
+      );
       assert(
         _nativeBasicData != null,
         failedAt(
@@ -1631,13 +1633,12 @@ class KernelToElementMap implements IrToElementMap {
       } else if (node is ir.FunctionExpression) {
         function = node.function;
       }
-      localFunction =
-          localFunctionMap[node] = JLocalFunction(
-            name,
-            memberContext,
-            executableContext,
-            node,
-          );
+      localFunction = localFunctionMap[node] = JLocalFunction(
+        name,
+        memberContext,
+        executableContext,
+        node,
+      );
       int index = 0;
       List<JLocalTypeVariable> typeVariables = <JLocalTypeVariable>[];
       for (ir.TypeParameter typeParameter in function.typeParameters) {

@@ -110,6 +110,7 @@ class C {
       [
         error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 62, 2),
         lint(126, 14),
+        error(WarningCode.DEAD_CODE, 132, 8),
         error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 135, 5),
       ],
     );

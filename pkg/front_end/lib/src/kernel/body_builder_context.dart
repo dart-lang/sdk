@@ -110,7 +110,7 @@ abstract class BodyBuilderContext {
   /// declaration or library.
   ///
   /// If [required] is `true`, an error is thrown if the member is not found.
-  Builder? lookupLocalMember(String name, {bool required = false}) {
+  NamedBuilder? lookupLocalMember(String name, {bool required = false}) {
     return declarationContext.lookupLocalMember(name, required: required);
   }
 
@@ -423,7 +423,7 @@ abstract class BodyBuilderDeclarationContext {
     throw new UnsupportedError('${runtimeType}.lookupSuperConstructor');
   }
 
-  Builder? lookupLocalMember(String name, {bool required = false});
+  NamedBuilder? lookupLocalMember(String name, {bool required = false});
 
   bool get isExtensionTypeDeclaration => false;
 
@@ -460,7 +460,7 @@ mixin _DeclarationBodyBuilderDeclarationContextMixin
   DeclarationBuilder get _declarationBuilder;
 
   @override
-  Builder? lookupLocalMember(String name, {bool required = false}) {
+  NamedBuilder? lookupLocalMember(String name, {bool required = false}) {
     return _declarationBuilder.lookupLocalMember(name, required: required);
   }
 
@@ -639,7 +639,7 @@ class _TopLevelBodyBuilderDeclarationContext
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder? lookupLocalMember(String name, {bool required = false}) {
+  NamedBuilder? lookupLocalMember(String name, {bool required = false}) {
     return _libraryBuilder.lookupLocalMember(name, required: required);
   }
 }

@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -56,11 +57,11 @@ class SnippetTester {
 
   /// Return `true` if the given error is a diagnostic produced by a lint that
   /// is allowed to occur in documentation.
-  bool isAllowedLint(AnalysisError error) {
-    var errorCode = error.errorCode;
+  bool isAllowedLint(Diagnostic diagnostic) {
+    var errorCode = diagnostic.errorCode;
     return errorCode is LintCode &&
         errorCode.name == 'non_constant_identifier_names' &&
-        error.message.contains("'test_");
+        diagnostic.message.contains("'test_");
   }
 
   Future<void> verify() async {
@@ -159,14 +160,14 @@ $snippet
       await context.applyPendingFileChanges();
       var results = await context.currentSession.getErrors(snippetPath);
       if (results is ErrorsResult) {
-        Iterable<AnalysisError> errors = results.errors.where((error) {
+        Iterable<Diagnostic> diagnostics = results.errors.where((error) {
           DiagnosticCode diagnosticCode = error.errorCode;
           // TODO(brianwilkerson): .
           return diagnosticCode != WarningCode.UNUSED_IMPORT &&
               diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
               !isAllowedLint(error);
         });
-        if (errors.isNotEmpty) {
+        if (diagnostics.isNotEmpty) {
           String filePath = provider.pathContext.relative(
             file.path,
             from: docFolder.path,
@@ -179,7 +180,7 @@ $snippet
           output.writeln(snippet);
           output.writeln();
           int importsLength = imports.length + 1; // account for the '\n'.
-          for (var error in errors) {
+          for (var error in diagnostics) {
             writeError(error, importsLength);
           }
         }
@@ -197,13 +198,13 @@ $snippet
     }
   }
 
-  void writeError(AnalysisError error, int prefixLength) {
-    output.write(error.errorCode);
+  void writeError(Diagnostic diagnostic, int prefixLength) {
+    output.write(diagnostic.errorCode);
     output.write(' (');
-    output.write(error.offset - prefixLength);
+    output.write(diagnostic.offset - prefixLength);
     output.write(', ');
-    output.write(error.length);
+    output.write(diagnostic.length);
     output.write(') ');
-    output.writeln(error.message);
+    output.writeln(diagnostic.message);
   }
 }

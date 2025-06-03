@@ -140,30 +140,28 @@ import "dart:core" as core;
 
 extension Extension<T extends core::Object? = dynamic> on core::int {
   get duplicateInstanceGetter = self::Extension|get#duplicateInstanceGetter;
+  set duplicateInstanceSetter = self::Extension|set#duplicateInstanceSetter;
   method duplicateInstanceMethod = self::Extension|duplicateInstanceMethod;
   method tearoff duplicateInstanceMethod = self::Extension|get#duplicateInstanceMethod;
   static field duplicateStaticField = self::Extension|duplicateStaticField;
   static get duplicateStaticGetter = get self::Extension|duplicateStaticGetter;
+  static set duplicateStaticSetter = set self::Extension|duplicateStaticSetter;
   static method duplicateStaticMethod = self::Extension|duplicateStaticMethod;
   get duplicateInstanceGetterPlusSetter = self::Extension|get#duplicateInstanceGetterPlusSetter;
+  set duplicateInstanceGetterPlusSetter = self::Extension|set#duplicateInstanceGetterPlusSetter;
   get duplicateInstanceSetterPlusGetter = self::Extension|get#duplicateInstanceSetterPlusGetter;
+  set duplicateInstanceSetterPlusGetter = self::Extension|set#duplicateInstanceSetterPlusGetter;
   get duplicateInstanceGetterAndSetter = self::Extension|get#duplicateInstanceGetterAndSetter;
+  set duplicateInstanceGetterAndSetter = self::Extension|set#duplicateInstanceGetterAndSetter;
   static get duplicateStaticGetterPlusSetter = get self::Extension|duplicateStaticGetterPlusSetter;
+  static set duplicateStaticGetterPlusSetter = set self::Extension|duplicateStaticGetterPlusSetter;
   static get duplicateStaticSetterPlusGetter = get self::Extension|duplicateStaticSetterPlusGetter;
+  static set duplicateStaticSetterPlusGetter = set self::Extension|duplicateStaticSetterPlusGetter;
   static get duplicateStaticGetterAndSetter = get self::Extension|duplicateStaticGetterAndSetter;
+  static set duplicateStaticGetterAndSetter = set self::Extension|duplicateStaticGetterAndSetter;
   get instanceGetterAndStaticSetter = self::Extension|get#instanceGetterAndStaticSetter;
   static get instanceSetterAndStaticGetter = get self::Extension|instanceSetterAndStaticGetter;
   get instanceGetterAndStaticField = self::Extension|get#instanceGetterAndStaticField;
-  set duplicateInstanceSetter = self::Extension|set#duplicateInstanceSetter;
-  static set duplicateStaticSetter = set self::Extension|duplicateStaticSetter;
-  set duplicateInstanceGetterPlusSetter = self::Extension|set#duplicateInstanceGetterPlusSetter;
-  set duplicateInstanceSetterPlusGetter = self::Extension|set#duplicateInstanceSetterPlusGetter;
-  set duplicateInstanceGetterAndSetter = self::Extension|set#duplicateInstanceGetterAndSetter;
-  static set duplicateStaticGetterPlusSetter = set self::Extension|duplicateStaticGetterPlusSetter;
-  static set duplicateStaticSetterPlusGetter = set self::Extension|duplicateStaticSetterPlusGetter;
-  static set duplicateStaticGetterAndSetter = set self::Extension|duplicateStaticGetterAndSetter;
-  static set instanceGetterAndStaticSetter = set self::Extension|instanceGetterAndStaticSetter;
-  set instanceSetterAndStaticGetter = self::Extension|set#instanceSetterAndStaticGetter;
   set instanceSetterAndStaticField = self::Extension|set#instanceSetterAndStaticField;
 }
 static field core::int Extension|duplicateStaticField;
@@ -207,11 +205,7 @@ static extension-member set Extension|duplicateStaticGetterAndSetter(core::int v
   ;
 static extension-member method Extension|get#instanceGetterAndStaticSetter<T extends core::Object? = dynamic>(lowered final core::int #this) → core::int
   ;
-static extension-member set Extension|instanceGetterAndStaticSetter(core::int value) → void
-  ;
 static extension-member get Extension|instanceSetterAndStaticGetter() → core::int
-  ;
-static extension-member method Extension|set#instanceSetterAndStaticGetter<T extends core::Object? = dynamic>(lowered final core::int #this, core::int value) → void
   ;
 static extension-member method Extension|get#instanceGetterAndStaticField<T extends core::Object? = dynamic>(lowered final core::int #this) → core::int
   ;

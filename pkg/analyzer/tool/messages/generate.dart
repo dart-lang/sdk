@@ -168,7 +168,7 @@ library;
       out.writeln();
       out.writeln('@override');
       out.writeln(
-        'DiagnosticSeverity get errorSeverity => '
+        'DiagnosticSeverity get severity => '
         '${errorClass.severityCode};',
       );
       out.writeln();
@@ -179,7 +179,7 @@ library;
   }
 
   void _generateFastaAnalyzerErrorCodeList() {
-    out.writeln('final fastaAnalyzerErrorCodes = <ErrorCode?>[');
+    out.writeln('final fastaAnalyzerErrorCodes = <DiagnosticCode?>[');
     for (var entry in cfeToAnalyzerErrorCodeTables.indexToInfo) {
       var name = cfeToAnalyzerErrorCodeTables.infoToAnalyzerCode[entry];
       out.writeln('${name == null ? 'null' : 'ParserErrorCode.$name'},');
@@ -248,7 +248,7 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
     out.writeln(
       "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')",
     );
-    out.writeln('const List<ErrorCode> errorCodeValues = [');
+    out.writeln('const List<DiagnosticCode> errorCodeValues = [');
     for (var name in generatedCodes) {
       out.writeln('  $name,');
     }

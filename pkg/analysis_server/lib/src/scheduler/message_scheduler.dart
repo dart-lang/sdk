@@ -29,10 +29,10 @@ final class MessageScheduler {
   static bool allowOverlappingHandlers = true;
 
   /// A listener that can be used to watch the scheduler as it manages messages.
-  final MessageSchedulerListener? _listener;
+  final MessageSchedulerListener? listener;
 
   /// The [AnalysisServer] associated with the scheduler.
-  late final AnalysisServer _server;
+  late final AnalysisServer server;
 
   /// The messages that have been received and are waiting to be handled.
   final ListQueue<ScheduledMessage> _pendingMessages =
@@ -50,13 +50,13 @@ final class MessageScheduler {
 
   /// Initialize a newly created message scheduler.
   ///
-  /// The caller is expected to set the [_server] immediately after creating the
+  /// The caller is expected to set the [server] immediately after creating the
   /// instance. The only reason the server isn't initialized by the constructor
   /// is because the analysis server and the message scheduler can't be created
   /// atomically and it was decided that it was cleaner for the scheduler to
   /// have the nullable reference to the server rather than the other way
   /// around.
-  MessageScheduler({MessageSchedulerListener? listener}) : _listener = listener;
+  MessageScheduler({required this.listener});
 
   /// Add the [message] to the end of the pending messages queue.
   ///
@@ -81,7 +81,7 @@ final class MessageScheduler {
   /// - The incoming [legacy.ANALYSIS_REQUEST_UPDATE_CONTENT] message cancels
   ///   any rename files request that is in progress.
   void add(ScheduledMessage message) {
-    _listener?.addPendingMessage(message);
+    listener?.addPendingMessage(message);
     if (message is LegacyMessage) {
       var request = message.request;
       var method = request.method;
@@ -89,10 +89,10 @@ final class MessageScheduler {
         var id =
             legacy.ServerCancelRequestParams.fromRequest(
               request,
-              clientUriConverter: _server.uriConverter,
+              clientUriConverter: server.uriConverter,
             ).id;
-        _listener?.addActiveMessage(message);
-        (_server as LegacyAnalysisServer).cancelRequest(id);
+        listener?.addActiveMessage(message);
+        (server as LegacyAnalysisServer).cancelRequest(id);
         // The message needs to be added to the queue of pending messages, but
         // it seems like it shouldn't be necessary and that we ought to return
         // at this point. However, doing so causes some tests to timeout.
@@ -107,7 +107,7 @@ final class MessageScheduler {
                   code: lsp.ErrorCodes.ContentModified.toJson(),
                   reason: 'File content was modified',
                 );
-                _listener?.cancelActiveMessage(activeMessage);
+                listener?.cancelActiveMessage(activeMessage);
               }
             }
           }
@@ -121,8 +121,8 @@ final class MessageScheduler {
         // Responses don't go on the queue because there might be an active
         // message that can't complete until the response is received. If the
         // response was added to the queue then this process could deadlock.
-        _listener?.addActiveMessage(message);
-        (_server as LspAnalysisServer).handleMessage(msg, null);
+        listener?.addActiveMessage(message);
+        (server as LspAnalysisServer).handleMessage(msg, null);
         return;
       } else if (msg is lsp.NotificationMessage) {
         var method = msg.method;
@@ -133,7 +133,7 @@ final class MessageScheduler {
           // by removing the request from the queue. It's done this way to allow
           // a response to be sent back to the client saying that the results
           // aren't provided because the request was cancelled.
-          _listener?.addActiveMessage(message);
+          listener?.addActiveMessage(message);
           _processCancellation(msg);
           return;
         } else if (method == lsp.Method.textDocument_didChange) {
@@ -155,7 +155,7 @@ final class MessageScheduler {
               var message = activeMessage.message as lsp.RequestMessage;
               if (message.method == incomingMsgMethod) {
                 activeMessage.cancellationToken?.cancel(reason: reason);
-                _listener?.cancelActiveMessage(activeMessage);
+                listener?.cancelActiveMessage(activeMessage);
               }
             }
           }
@@ -164,7 +164,7 @@ final class MessageScheduler {
               var message = pendingMessage.message as lsp.RequestMessage;
               if (message.method == msg.method) {
                 pendingMessage.cancellationToken?.cancel(reason: reason);
-                _listener?.cancelPendingMessage(pendingMessage);
+                listener?.cancelPendingMessage(pendingMessage);
               }
             }
           }
@@ -180,12 +180,12 @@ final class MessageScheduler {
   /// Dispatch the first message in the queue to be executed.
   void processMessages() async {
     _isProcessing = true;
-    _listener?.startProcessingMessages();
+    listener?.startProcessingMessages();
     try {
       while (_pendingMessages.isNotEmpty) {
         var currentMessage = _pendingMessages.removeFirst();
         _activeMessages.addLast(currentMessage);
-        _listener?.addActiveMessage(currentMessage);
+        listener?.addActiveMessage(currentMessage);
         _completer = Completer<void>();
         unawaited(
           _completer.future.then((_) {
@@ -195,27 +195,27 @@ final class MessageScheduler {
         switch (currentMessage) {
           case LspMessage():
             var lspMessage = currentMessage.message;
-            (_server as LspAnalysisServer).handleMessage(
+            (server as LspAnalysisServer).handleMessage(
               lspMessage,
               cancellationToken: currentMessage.cancellationToken,
               _completer,
             );
           case LegacyMessage():
             var request = currentMessage.request;
-            (_server as LegacyAnalysisServer).handleRequest(
+            (server as LegacyAnalysisServer).handleRequest(
               request,
               _completer,
               currentMessage.cancellationToken,
             );
           case DtdMessage():
-            _server.dtd!.processMessage(
+            server.dtd!.processMessage(
               currentMessage.message,
               currentMessage.performance,
               currentMessage.responseCompleter,
               _completer,
             );
           case WatcherMessage():
-            _server.contextManager.handleWatchEvent(currentMessage.event);
+            server.contextManager.handleWatchEvent(currentMessage.event);
             // Handling a watch event is a synchronous process, so there's
             // nothing to wait for.
             _completer.complete();
@@ -236,24 +236,17 @@ final class MessageScheduler {
         // TODO(pq): if not awaited, consider adding a `then` so we can track
         // when the future completes. But note that we may see some flakiness in
         // tests as message handling gets non-deterministically interleaved.
-        _listener?.messageCompleted(currentMessage);
+        listener?.messageCompleted(currentMessage);
       }
     } catch (error, stackTrace) {
-      _server.instrumentationService.logException(
+      server.instrumentationService.logException(
         FatalException('Failed to process message', error, stackTrace),
         null,
-        _server.crashReportingAttachmentsBuilder.forException(error),
+        server.crashReportingAttachmentsBuilder.forException(error),
       );
     }
     _isProcessing = false;
-    _listener?.endProcessingMessages();
-  }
-
-  /// Set the [AnalysisServer].
-  ///
-  /// Throws an exception if the server has already been set.
-  void setServer(AnalysisServer analysisServer) {
-    _server = analysisServer;
+    listener?.endProcessingMessages();
   }
 
   /// Returns the parameters of a cancellation [message].
@@ -269,7 +262,7 @@ final class MessageScheduler {
           ? cancelJsonHandler.convertParams(paramsJson)
           : null;
     } catch (error, stackTrace) {
-      (_server as LspAnalysisServer).logException(
+      (server as LspAnalysisServer).logException(
         'An error occured while parsing cancel parameters',
         error,
         stackTrace,
@@ -309,7 +302,7 @@ final class MessageScheduler {
   Map<String, Object?>? _getLspOverLegacyParams(legacy.Request request) {
     var params = legacy.LspHandleParams.fromRequest(
       request,
-      clientUriConverter: _server.uriConverter,
+      clientUriConverter: server.uriConverter,
     );
     return params.lspMessage as Map<String, Object?>;
   }
@@ -352,7 +345,7 @@ final class MessageScheduler {
         var request = activeMessage.message as lsp.RequestMessage;
         if (request.id == params.id) {
           activeMessage.cancellationToken?.cancel();
-          _listener?.cancelActiveMessage(activeMessage);
+          listener?.cancelActiveMessage(activeMessage);
           return;
         }
       }
@@ -362,7 +355,7 @@ final class MessageScheduler {
         var request = pendingMessage.message as lsp.RequestMessage;
         if (request.id == params.id) {
           pendingMessage.cancellationToken?.cancel();
-          _listener?.cancelPendingMessage(pendingMessage);
+          listener?.cancelPendingMessage(pendingMessage);
           return;
         }
       }
@@ -410,9 +403,9 @@ final class MessageScheduler {
             code: lsp.ErrorCodes.ContentModified.toJson(),
           );
           if (isActive) {
-            _listener?.cancelActiveMessage(lspMessage);
+            listener?.cancelActiveMessage(lspMessage);
           } else {
-            _listener?.cancelPendingMessage(lspMessage);
+            listener?.cancelPendingMessage(lspMessage);
           }
         }
       }
@@ -428,9 +421,9 @@ final class MessageScheduler {
             code: lsp.ErrorCodes.ContentModified.toJson(),
           );
           if (isActive) {
-            _listener?.cancelActiveMessage(lspMessage);
+            listener?.cancelActiveMessage(lspMessage);
           } else {
-            _listener?.cancelPendingMessage(lspMessage);
+            listener?.cancelPendingMessage(lspMessage);
           }
         }
       }
@@ -461,9 +454,13 @@ final class MessageScheduler {
 
 abstract class MessageSchedulerListener {
   /// Report that the [message] was added to the active message queue.
+  ///
+  /// This implies that the message is no longer on the pending message queue.
   void addActiveMessage(ScheduledMessage message);
 
   /// Report that the [message] was added to the pending message queue.
+  ///
+  /// This is always the first notification for the [message].
   void addPendingMessage(ScheduledMessage message);
 
   /// Report that an active [message] was cancelled.
@@ -476,6 +473,8 @@ abstract class MessageSchedulerListener {
   void endProcessingMessages();
 
   /// Report that the [message] has been completed.
+  ///
+  /// This implies that the message was active and wasn't cancelled.
   void messageCompleted(ScheduledMessage message);
 
   /// Report that the loop that processes messages has started to run.

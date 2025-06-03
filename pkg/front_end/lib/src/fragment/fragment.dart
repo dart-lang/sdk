@@ -18,6 +18,7 @@ import '../base/local_scope.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -105,6 +106,10 @@ sealed class Fragment {
   /// The name is used to group introductory fragments with augmenting fragments
   /// and to group getters, setters, and fields as properties.
   String get name;
+
+  /// Returns a [UriOffsetLength] object that can be used to point to the
+  /// declaration of this fragment.
+  UriOffsetLength get uriOffset;
 
   /// The [Builder] created for this fragment.
   ///

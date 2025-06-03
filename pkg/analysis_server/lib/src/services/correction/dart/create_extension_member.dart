@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -534,21 +533,14 @@ extension on Element? {
     if (element is! InterfaceElement) {
       return false;
     }
-    var inheritanceManager3 = InheritanceManager3();
-    var interface = inheritanceManager3.getInterface2(element);
-    var bracesGetter =
-        interface.map2[Name.forLibrary(
-          element.library2,
-          TokenType.INDEX.lexeme,
-        )];
-    if (bracesGetter != null) {
-      return true;
-    }
-    var bracesSetter =
-        interface.map2[Name.forLibrary(
-          element.library2,
-          TokenType.INDEX_EQ.lexeme,
-        )];
-    return bracesSetter != null;
+    var indexName = Name.forLibrary(element.library2, TokenType.INDEX.lexeme);
+    var indexEqName = Name.forLibrary(
+      element.library2,
+      TokenType.INDEX_EQ.lexeme,
+    );
+    var member =
+        element.getInterfaceMember(indexName) ??
+        element.getInterfaceMember(indexEqName);
+    return member != null;
   }
 }

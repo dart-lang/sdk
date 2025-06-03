@@ -6,7 +6,7 @@ library test;
 //   s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.y*/ y;
 //                                                             ^
 //
-// pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:24:32: Error: A value of type 'String?' can't be assigned to a variable of type 'String' because 'String?' is nullable and 'String' isn't.
+// pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:24:32: Error: A value of type 'String?' can't be assigned to a variable of type 'String'.
 //   s = new B(). /*@target=B.z*/ z;
 //                                ^
 //
@@ -46,7 +46,7 @@ static method foo() → dynamic {
   s = invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:23:61: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.y*/ y;
                                                             ^" in new self::B::•().{self::B::y}{core::int} as{TypeError} core::String;
-  s = invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:24:32: Error: A value of type 'String?' can't be assigned to a variable of type 'String' because 'String?' is nullable and 'String' isn't.
+  s = invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:24:32: Error: A value of type 'String?' can't be assigned to a variable of type 'String'.
   s = new B(). /*@target=B.z*/ z;
                                ^" in let core::String? #t1 = new self::B::•().{self::B::z}{core::String?} in #t1 == null ?{core::String} #t1 as{TypeError} core::String : #t1{core::String};
   s = invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:25:61: Error: A value of type 'int' can't be assigned to a variable of type 'String'.

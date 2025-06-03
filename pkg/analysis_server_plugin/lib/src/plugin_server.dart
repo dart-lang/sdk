@@ -13,6 +13,7 @@ import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/src/registry.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -27,7 +28,6 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -322,7 +322,7 @@ class PluginServer {
     var errorReporter = ErrorReporter(
         listener, unitResult.libraryElement2.firstFragment.source);
 
-    var currentUnit = LintRuleUnitContext(
+    var currentUnit = RuleContextUnit(
       file: unitResult.file,
       content: unitResult.content,
       errorReporter: errorReporter,
@@ -330,7 +330,7 @@ class PluginServer {
     );
     var allUnits = [
       for (var unitResult in libraryResult.units)
-        LintRuleUnitContext(
+        RuleContextUnit(
           file: unitResult.file,
           content: unitResult.content,
           errorReporter: errorReporter,
@@ -340,15 +340,13 @@ class PluginServer {
 
     // TODO(srawlins): Enable timing similar to what the linter package's
     // `benchhmark.dart` script does.
-    var nodeRegistry = NodeLintRegistry(enableTiming: false);
+    var nodeRegistry = RuleVisitorRegistry(enableTiming: false);
 
-    var context = LinterContextWithResolvedResults(
+    var context = RuleContextWithResolvedResults(
       allUnits,
       currentUnit,
       libraryResult.element2.typeProvider,
       libraryResult.element2.typeSystem as TypeSystemImpl,
-      (analysisContext.currentSession as AnalysisSessionImpl)
-          .inheritanceManager,
       // TODO(srawlins): Support 'package' parameter.
       null,
     );
@@ -367,7 +365,7 @@ class PluginServer {
         // `benchhmark.dart` script does.
         rule.registerNodeProcessors(nodeRegistry, context);
       }
-      for (var code in rules.expand((r) => r.lintCodes)) {
+      for (var code in rules.expand((r) => r.diagnosticCodes)) {
         var existingPlugin = pluginCodeMapping[code.name];
         if (existingPlugin == null) {
           pluginCodeMapping[code.name] = configuration.name;
@@ -380,7 +378,7 @@ class PluginServer {
         AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true));
 
     var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
-    var errors = listener.errors.where((e) {
+    var diagnostics = listener.errors.where((e) {
       var pluginName = pluginCodeMapping[e.errorCode.name];
       if (pluginName == null) {
         // If [e] is somehow not mapped, something is wrong; but don't mark it
@@ -392,17 +390,17 @@ class PluginServer {
 
     // The list of the `AnalysisError`s and their associated
     // `protocol.AnalysisError`s.
-    var errorsAndProtocolErrors = [
-      for (var e in errors)
+    var diagnosticsAndProtocolErrors = [
+      for (var diagnostic in diagnostics)
         (
-          diagnostic: e,
+          diagnostic: diagnostic,
           protocolError: protocol.AnalysisError(
-            protocol.AnalysisErrorSeverity.INFO,
+            _severityOf(diagnostic),
             protocol.AnalysisErrorType.STATIC_WARNING,
-            _locationFor(currentUnit.unit, path, e),
-            e.message,
-            e.errorCode.name,
-            correction: e.correctionMessage,
+            _locationFor(currentUnit.unit, path, diagnostic),
+            diagnostic.message,
+            diagnostic.errorCode.name,
+            correction: diagnostic.correctionMessage,
             // TODO(srawlins): Use a valid value here.
             hasFix: true,
           )
@@ -410,9 +408,22 @@ class PluginServer {
     ];
     _recentState[path] = (
       analysisContext: analysisContext,
-      errors: [...errorsAndProtocolErrors],
+      errors: [...diagnosticsAndProtocolErrors],
     );
-    return errorsAndProtocolErrors.map((e) => e.protocolError).toList();
+    return diagnosticsAndProtocolErrors.map((e) => e.protocolError).toList();
+  }
+
+  /// Converts the severity of [diagnostic] into a
+  /// [protocol.AnalysisErrorSeverity].
+  protocol.AnalysisErrorSeverity _severityOf(Diagnostic diagnostic) {
+    try {
+      return protocol.AnalysisErrorSeverity.values
+          .byName(diagnostic.severity.name.toUpperCase());
+    } catch (_) {
+      assert(false, 'Invalid severity: ${diagnostic.severity}');
+      // Return the default severity of `LintCode`.
+      return protocol.AnalysisErrorSeverity.INFO;
+    }
   }
 
   /// Invokes [fn] first for priority analysis contexts, then for the rest.

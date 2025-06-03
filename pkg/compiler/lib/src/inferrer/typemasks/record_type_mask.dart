@@ -40,6 +40,11 @@ class RecordTypeMask extends TypeMask {
       powerset,
       TypeMaskInterceptorProperty.notInterceptor,
     );
+    powerset = _arrayDomain.add(powerset, TypeMaskArrayProperty.other);
+    powerset = _indexableDomain.add(
+      powerset,
+      TypeMaskIndexableProperty.notIndexable,
+    );
     return createRecordWithPowerset(domain, types, shape, powerset);
   }
 
@@ -369,27 +374,27 @@ class RecordTypeMask extends TypeMask {
     if (domain.closedWorld.classHierarchy.hasAnyStrictSubclass(recordClass)) {
       return isNullable
           ? FlatTypeMask.subclass(
-            recordClass,
-            domain,
-            hasLateSentinel: hasLateSentinel,
-          )
+              recordClass,
+              domain,
+              hasLateSentinel: hasLateSentinel,
+            )
           : FlatTypeMask.nonNullSubclass(
-            recordClass,
-            domain,
-            hasLateSentinel: hasLateSentinel,
-          );
+              recordClass,
+              domain,
+              hasLateSentinel: hasLateSentinel,
+            );
     } else {
       return isNullable
           ? FlatTypeMask.exact(
-            recordClass,
-            domain,
-            hasLateSentinel: hasLateSentinel,
-          )
+              recordClass,
+              domain,
+              hasLateSentinel: hasLateSentinel,
+            )
           : FlatTypeMask.nonNullExact(
-            recordClass,
-            domain,
-            hasLateSentinel: hasLateSentinel,
-          );
+              recordClass,
+              domain,
+              hasLateSentinel: hasLateSentinel,
+            );
     }
   }
 

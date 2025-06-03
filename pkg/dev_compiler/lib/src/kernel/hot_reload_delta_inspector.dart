@@ -18,6 +18,14 @@ class HotReloadDeltaInspector {
   /// generation.
   final _rejectionMessages = <String>[];
 
+  /// A set of packages that should not be hot reloaded.
+  ///
+  /// The delta inspector will reject any component that modifies any such
+  /// packages (while allowing them to be introduced).
+  final Set<String> nonHotReloadablePackages;
+
+  HotReloadDeltaInspector({this.nonHotReloadablePackages = const {}});
+
   /// Returns all hot reload rejection errors discovered while comparing [delta]
   /// against the [lastAccepted] version.
   ///
@@ -41,6 +49,12 @@ class HotReloadDeltaInspector {
       if (acceptedLibrary == null) {
         // No previous version of the library to compare with.
         continue;
+      }
+      if (_shouldNotCompileWithHotReload(deltaLibrary.importUri)) {
+        _rejectionMessages
+            .add('Attempting to hot reload a modified library from a package '
+                'marked as non-hot-reloadable: '
+                "Library: '${deltaLibrary.importUri}'");
       }
       var libraryMetadata = metadataRepo.mapping
           .putIfAbsent(deltaLibrary, HotReloadLibraryMetadata.new);
@@ -157,6 +171,16 @@ class HotReloadDeltaInspector {
             null)
           acceptedProcedure.name.text,
     ];
+  }
+
+  /// Returns `true` if the resource at [uri] should not be compiled with hot
+  /// reload.
+  ///
+  /// No 'dart:' libraries will be compiled with hot reload support.
+  bool _shouldNotCompileWithHotReload(Uri uri) {
+    return (uri.isScheme('dart')) ||
+        (uri.isScheme('package') &&
+            nonHotReloadablePackages.contains(uri.pathSegments[0]));
   }
 }
 

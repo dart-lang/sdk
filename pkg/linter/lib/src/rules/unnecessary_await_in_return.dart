@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +17,8 @@ class UnnecessaryAwaitInReturn extends LintRule {
     : super(name: LintNames.unnecessary_await_in_return, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_await_in_return;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.unnecessary_await_in_return;
 
   @override
   void registerNodeProcessors(

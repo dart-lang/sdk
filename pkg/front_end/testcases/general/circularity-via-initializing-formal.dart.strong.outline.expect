@@ -7,7 +7,7 @@ library;
 //   C._circular(this.f);
 //   ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/circularity-via-initializing-formal.dart:11:25: Error: The value 'null' can't be assigned to the parameter type 'C' because 'C' is not nullable.
+// pkg/front_end/testcases/general/circularity-via-initializing-formal.dart:11:25: Error: The argument type 'Null' can't be assigned to the parameter type 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/general/circularity-via-initializing-formal.dart'.
 // var x = new C._circular(null);
 //                         ^

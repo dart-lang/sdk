@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../rules/control_flow_in_finally.dart';
@@ -15,7 +16,7 @@ class ThrowInFinally extends LintRule {
     : super(name: LintNames.throw_in_finally, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.throw_in_finally;
+  DiagnosticCode get diagnosticCode => LinterLintCode.throw_in_finally;
 
   @override
   void registerNodeProcessors(

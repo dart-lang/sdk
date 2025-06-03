@@ -84,6 +84,8 @@ class ElementPrinter {
         _sink.writeln('#element');
       case TopLevelFunctionElementImpl element:
         writelnReference(element.reference);
+      case MethodElementImpl2 element:
+        writelnReference(element.reference);
       case FragmentedElementMixin element:
         var firstFragment = element.firstFragment as FragmentImpl;
         var reference = firstFragment.reference!;
@@ -122,11 +124,6 @@ class ElementPrinter {
         writelnReference(element.reference);
       case MixinElementImpl2 element:
         writelnReference(element.reference);
-      case MethodElement element:
-        var firstFragment = element.firstFragment as FragmentImpl;
-        var reference = firstFragment.reference;
-        writeReference(reference!);
-        _sink.writeln('#element');
       case MultiplyDefinedElementImpl2 multiElement:
         _sink.writeln('multiplyDefinedElement');
         _sink.withIndent(() {
@@ -280,18 +277,18 @@ class ElementPrinter {
           enclosingElement != null
               ? _elementToReferenceString(enclosingElement)
               : 'root';
-      return '$enclosingStr::@parameter::${element.name}';
+      return '$enclosingStr::@parameter::${element.name2 ?? ''}';
     } else if (element is JoinPatternVariableFragmentImpl) {
       return [
         if (!element.isConsistent) 'notConsistent ',
         if (element.isFinal) 'final ',
-        element.name,
+        element.name2 ?? '',
         '[',
         element.variables.map(_elementToReferenceString).join(', '),
         ']',
       ].join();
     } else {
-      return '${element.name}@${element.nameOffset}';
+      return '${element.name2 ?? ''}@${element.nameOffset}';
     }
   }
 
@@ -313,7 +310,7 @@ class ElementPrinter {
       return [
         if (!element.isConsistent) 'notConsistent ',
         if (element.isFinal) 'final ',
-        element.name,
+        element.name2 ?? '',
         '[',
         element.variables.map(_elementToReferenceString).join(', '),
         ']',

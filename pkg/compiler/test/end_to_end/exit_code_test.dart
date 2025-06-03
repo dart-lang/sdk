@@ -212,11 +212,10 @@ Future testExitCode(
     entry.exitFunc = exit;
     entry.compileFunc = compile;
 
-    List<String> args =
-        List<String>.from(options)
-          ..add("--libraries-spec=$sdkLibrariesSpecificationUri")
-          ..add("--platform-binaries=$sdkPlatformBinariesPath")
-          ..add("pkg/compiler/test/end_to_end/data/exit_code_helper.dart");
+    List<String> args = List<String>.from(options)
+      ..add("--libraries-spec=$sdkLibrariesSpecificationUri")
+      ..add("--platform-binaries=$sdkPlatformBinariesPath")
+      ..add("pkg/compiler/test/end_to_end/data/exit_code_helper.dart");
     Future result = entry.internalMain(args);
     return result
         .catchError((e, s) {

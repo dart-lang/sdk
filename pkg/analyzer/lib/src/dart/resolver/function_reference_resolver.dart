@@ -187,7 +187,7 @@ class FunctionReferenceResolver {
     ExecutableElement element, {
     required bool implicitReceiver,
   }) {
-    var enclosingElement = element.enclosingElement2!;
+    var enclosingElement = element.enclosingElement!;
     if (implicitReceiver) {
       if (_resolver.enclosingExtension != null) {
         _resolver.errorReporter.atNode(
@@ -861,10 +861,10 @@ class FunctionReferenceResolver {
     String name = propertyName.name;
     ExecutableElement? element;
     if (propertyName.inSetterContext()) {
-      element = classElement.getSetter2(name);
+      element = classElement.getSetter(name);
     }
-    element ??= classElement.getGetter2(name);
-    element ??= classElement.getMethod2(name);
+    element ??= classElement.getGetter(name);
+    element ??= classElement.getMethod(name);
     if (element != null && element.isAccessibleIn2(_resolver.definingLibrary)) {
       return element;
     }
@@ -904,7 +904,7 @@ class FunctionReferenceResolver {
       question: null,
     );
     typeName.type = instantiatedType;
-    var typeLiteral = TypeLiteralImpl(typeName: typeName);
+    var typeLiteral = TypeLiteralImpl(type: typeName);
     _resolver.replaceExpression(node, typeLiteral);
     typeLiteral.recordStaticType(_typeType, resolver: _resolver);
   }

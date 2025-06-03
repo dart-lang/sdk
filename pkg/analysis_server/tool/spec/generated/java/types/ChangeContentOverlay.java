@@ -48,11 +48,22 @@ public class ChangeContentOverlay {
   private final List<SourceEdit> edits;
 
   /**
+   * An optional version number for the document. Version numbers allow the server to tag edits with
+   * the version of the document they apply to which can avoid applying edits to documents that have
+   * already been updated since the edits were computed.
+   *
+   * If version numbers are supplied with AddContentOverlay and ChangeContentOverlay, they must be
+   * increasing (but not necessarily consecutive) numbers.
+   */
+  private final Integer version;
+
+  /**
    * Constructor for {@link ChangeContentOverlay}.
    */
-  public ChangeContentOverlay(List<SourceEdit> edits) {
+  public ChangeContentOverlay(List<SourceEdit> edits, Integer version) {
     this.type = "change";
     this.edits = edits;
+    this.version = version;
   }
 
   @Override
@@ -60,7 +71,8 @@ public class ChangeContentOverlay {
     if (obj instanceof ChangeContentOverlay other) {
       return
         Objects.equals(other.type, type) &&
-        Objects.equals(other.edits, edits);
+        Objects.equals(other.edits, edits) &&
+        Objects.equals(other.version, version);
     }
     return false;
   }
@@ -68,7 +80,8 @@ public class ChangeContentOverlay {
   public static ChangeContentOverlay fromJson(JsonObject jsonObject) {
     String type = jsonObject.get("type").getAsString();
     List<SourceEdit> edits = SourceEdit.fromJsonArray(jsonObject.get("edits").getAsJsonArray());
-    return new ChangeContentOverlay(edits);
+    Integer version = jsonObject.get("version") == null ? null : jsonObject.get("version").getAsInt();
+    return new ChangeContentOverlay(edits, version);
   }
 
   public static List<ChangeContentOverlay> fromJsonArray(JsonArray jsonArray) {
@@ -93,11 +106,24 @@ public class ChangeContentOverlay {
     return type;
   }
 
+  /**
+   * An optional version number for the document. Version numbers allow the server to tag edits with
+   * the version of the document they apply to which can avoid applying edits to documents that have
+   * already been updated since the edits were computed.
+   *
+   * If version numbers are supplied with AddContentOverlay and ChangeContentOverlay, they must be
+   * increasing (but not necessarily consecutive) numbers.
+   */
+  public Integer getVersion() {
+    return version;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(
       type,
-      edits
+      edits,
+      version
     );
   }
 
@@ -109,6 +135,9 @@ public class ChangeContentOverlay {
       jsonArrayEdits.add(elt.toJson());
     }
     jsonObject.add("edits", jsonArrayEdits);
+    if (version != null) {
+      jsonObject.addProperty("version", version);
+    }
     return jsonObject;
   }
 
@@ -121,6 +150,9 @@ public class ChangeContentOverlay {
     builder.append(", ");
     builder.append("edits=");
     builder.append(edits.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
+    builder.append("version=");
+    builder.append(version);
     builder.append("]");
     return builder.toString();
   }

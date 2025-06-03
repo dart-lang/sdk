@@ -15,10 +15,7 @@ import 'model.dart';
 import 'util.dart';
 import 'target.dart';
 
-enum VmMode {
-  aot,
-  jit,
-}
+enum VmMode { aot, jit }
 
 /// Logic to build and execute dynamic modules using Dart VM (AOT or JIT).
 ///
@@ -68,7 +65,11 @@ class VmExecutor implements TargetExecutor {
   }
 
   Future _buildKernel(
-      String testName, String source, Uri sourceDir, bool isAot) async {
+    String testName,
+    String source,
+    Uri sourceDir,
+    bool isAot,
+  ) async {
     assert(source == 'main.dart');
     var testDir = _tmp.uri.resolve(testName).toFilePath();
     var aotTag = isAot ? "aot" : "no_aot";
@@ -96,8 +97,13 @@ class VmExecutor implements TargetExecutor {
       '$rootScheme:/data/$testName/dynamic_interface.yaml',
       '$rootScheme:/data/$testName/$source',
     ];
-    await runProcess(aotRuntimeBin.toFilePath(), args, testDir, _logger,
-        'kernel $aotTag $testName/$source');
+    await runProcess(
+      aotRuntimeBin.toFilePath(),
+      args,
+      testDir,
+      _logger,
+      'kernel $aotTag $testName/$source',
+    );
   }
 
   @override
@@ -118,38 +124,54 @@ class VmExecutor implements TargetExecutor {
         '--elf=${test.main}.snapshot',
         '${test.main}_aot.dill',
       ];
-      await runProcess(genSnapshotBin.toFilePath(), args, testDir, _logger,
-          'aot snapshot ${test.name}/${test.main}');
+      await runProcess(
+        genSnapshotBin.toFilePath(),
+        args,
+        testDir,
+        _logger,
+        'aot snapshot ${test.name}/${test.main}',
+      );
     }
 
     // The next steps are optional, but done to test trimming of assets used
     // by the bytecode compiler.
 
-    await createTrimmedCopy(TrimOptions(
+    await createTrimmedCopy(
+      TrimOptions(
         inputAppPath: "$testDir/${test.main}_no_aot.dill",
         outputAppPath: "$testDir/${test.main}_no_aot_trimmed.dill",
         inputPlatformPath: vmPlatformDill.toFilePath(),
         outputPlatformPath: "$testDir/${test.main}_platform_trimmed.dill",
-        dynamicInterfaceContents: File.fromUri(test.folder
-                .resolve('../../data/${test.name}/dynamic_interface.yaml'))
-            .readAsStringSync(),
-        dynamicInterfaceUri:
-            Uri.parse('$rootScheme:/data/${test.name}/dynamic_interface.yaml'),
-        requiredDartLibraries:
-            VmTarget(TargetFlags()).extraRequiredLibraries.toSet()));
+        dynamicInterfaceContents: File.fromUri(
+          test.folder.resolve('../../data/${test.name}/dynamic_interface.yaml'),
+        ).readAsStringSync(),
+        dynamicInterfaceUri: Uri.parse(
+          '$rootScheme:/data/${test.name}/dynamic_interface.yaml',
+        ),
+        requiredDartLibraries: VmTarget(
+          TargetFlags(),
+        ).extraRequiredLibraries.toSet(),
+      ),
+    );
 
     void logSizeDiff(String path1, String path2) {
       final originalSize = File(path1).statSync().size;
       final trimmedSize = File(path2).statSync().size;
-      _logger.info('Size difference for $path2: '
-          '$originalSize => $trimmedSize '
-          '(${(trimmedSize * 100 / originalSize).toStringAsFixed(2)}%)');
+      _logger.info(
+        'Size difference for $path2: '
+        '$originalSize => $trimmedSize '
+        '(${(trimmedSize * 100 / originalSize).toStringAsFixed(2)}%)',
+      );
     }
 
-    logSizeDiff(vmPlatformDill.toFilePath(),
-        '$testDir/${test.main}_platform_trimmed.dill');
-    logSizeDiff("$testDir/${test.main}_no_aot.dill",
-        "$testDir/${test.main}_no_aot_trimmed.dill");
+    logSizeDiff(
+      vmPlatformDill.toFilePath(),
+      '$testDir/${test.main}_platform_trimmed.dill',
+    );
+    logSizeDiff(
+      "$testDir/${test.main}_no_aot.dill",
+      "$testDir/${test.main}_no_aot_trimmed.dill",
+    );
   }
 
   @override
@@ -182,8 +204,13 @@ class VmExecutor implements TargetExecutor {
       '$source.bytecode',
       '$rootScheme:/data/${test.name}/$source',
     ];
-    await runProcess(aotRuntimeBin.toFilePath(), args, testDir, _logger,
-        'compile bytecode ${test.name}/$source');
+    await runProcess(
+      aotRuntimeBin.toFilePath(),
+      args,
+      testDir,
+      _logger,
+      'compile bytecode ${test.name}/$source',
+    );
   }
 
   @override
@@ -196,24 +223,27 @@ class VmExecutor implements TargetExecutor {
     // and finally launches the app.
     var testDir = _tmp.uri.resolve('${test.name}/');
     var result = await runProcess(
+      switch (mode) {
+        VmMode.aot => aotRuntimeBin.toFilePath(),
+        VmMode.jit => dartBin.toFilePath(),
+      },
+      [
         switch (mode) {
-          VmMode.aot => aotRuntimeBin.toFilePath(),
-          VmMode.jit => dartBin.toFilePath(),
+          VmMode.aot => '${test.main}.snapshot',
+          VmMode.jit => '${test.main}_no_aot.dill',
         },
-        [
-          switch (mode) {
-            VmMode.aot => '${test.main}.snapshot',
-            VmMode.jit => '${test.main}_no_aot.dill',
-          },
-        ],
-        testDir.toFilePath(),
-        _logger,
-        'executable test ${test.main}.exe');
+      ],
+      testDir.toFilePath(),
+      _logger,
+      'executable test ${test.main}.exe',
+    );
     var stdout = result.stdout as String;
     if (!stdout.contains(helper.successToken)) {
-      _logger.error('Error: test didn\'t complete as expected.\n'
-          'Make sure the test finishes and calls `helper.done()`.\n'
-          'Test output:\n$stdout');
+      _logger.error(
+        'Error: test didn\'t complete as expected.\n'
+        'Make sure the test finishes and calls `helper.done()`.\n'
+        'Test output:\n$stdout',
+      );
       throw Exception('missing helper.done');
     }
   }

@@ -6,9 +6,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/element/element.dart'
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/element/element.dart' // ignore: implementation_imports
     show TypeParameterElementImpl2;
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../util/variance_checker.dart';
@@ -20,11 +21,11 @@ class UnsafeVariance extends LintRule {
     : super(
         name: LintNames.unsafe_variance,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.unsafe_variance;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unsafe_variance;
 
   @override
   void registerNodeProcessors(
@@ -62,7 +63,7 @@ class _UnsafeVarianceChecker extends VarianceChecker {
   }
 
   bool owningDeclarationSupportsVariance(Element element) {
-    var parent = element.enclosingElement2;
+    var parent = element.enclosingElement;
     while (parent != null) {
       switch (parent) {
         case InstanceElement():
@@ -77,7 +78,7 @@ class _UnsafeVarianceChecker extends VarianceChecker {
         case ExecutableElement():
           return false;
       }
-      parent = parent.enclosingElement2;
+      parent = parent.enclosingElement;
     }
     return false;
   }

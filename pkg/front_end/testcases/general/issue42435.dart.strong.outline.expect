@@ -50,18 +50,18 @@ library;
 // class A<X extends A<X>> {}
 //         ^
 //
-// pkg/front_end/testcases/general/issue42435.dart:16:12: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
-// Try providing type arguments to 'A' here.
-//   Function<Z extends A>() foo6 = (() => throw 42)();
-//            ^
-// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
-// class A<X extends A<X>> {}
-//         ^
-//
 // pkg/front_end/testcases/general/issue42435.dart:15:26: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
 // Try providing type arguments to 'A' here.
 //   void set foo5(Function<Z extends A>() a) {}
 //                          ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:16:12: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+//   Function<Z extends A>() foo6 = (() => throw 42)();
+//            ^
 // pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
 // class A<X extends A<X>> {}
 //         ^
@@ -86,6 +86,14 @@ library;
 // Try providing type arguments to 'A' here.
 // Function<Z extends A>() get bar4 => throw 42;
 //          ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:22:24: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+// void set bar5(Function<Z extends A>() a) {}
+//                        ^
 // pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
 // class A<X extends A<X>> {}
 //         ^
@@ -122,14 +130,6 @@ library;
 // class A<X extends A<X>> {}
 //         ^
 //
-// pkg/front_end/testcases/general/issue42435.dart:30:19: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
-// Try providing type arguments to 'A' here.
-//   static Function<Z extends A>() baz6 = (() => throw 42)();
-//                   ^
-// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
-// class A<X extends A<X>> {}
-//         ^
-//
 // pkg/front_end/testcases/general/issue42435.dart:29:26: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
 // Try providing type arguments to 'A' here.
 //   void set baz5(Function<Z extends A>() a) {}
@@ -138,10 +138,10 @@ library;
 // class A<X extends A<X>> {}
 //         ^
 //
-// pkg/front_end/testcases/general/issue42435.dart:22:24: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// pkg/front_end/testcases/general/issue42435.dart:30:19: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
 // Try providing type arguments to 'A' here.
-// void set bar5(Function<Z extends A>() a) {}
-//                        ^
+//   static Function<Z extends A>() baz6 = (() => throw 42)();
+//                   ^
 // pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
 // class A<X extends A<X>> {}
 //         ^
@@ -175,8 +175,8 @@ extension E on core::int {
   method baz3 = self::E|baz3;
   method tearoff baz3 = self::E|get#baz3;
   get baz4 = self::E|get#baz4;
-  static field baz6 = self::E|baz6;
   set baz5 = self::E|set#baz5;
+  static field baz6 = self::E|baz6;
 }
 static field <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic bar6;
 static field <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic E|baz6;

@@ -170,15 +170,12 @@ class A {
   int? _private;
 }
 ''');
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 import 'a.dart';
 class B extends A {
   int? _private;
 }
-''',
-      [error(WarningCode.UNUSED_FIELD, 44, 8)],
-    );
+''');
   }
 
   test_fieldOverridesGetter() async {
@@ -363,11 +360,7 @@ class B extends A {
   int _x = 9;
 }
 ''',
-      [
-        error(WarningCode.UNUSED_FIELD, 16, 2),
-        lint(53, 2),
-        error(WarningCode.UNUSED_FIELD, 53, 2),
-      ],
+      [lint(53, 2)],
     );
   }
 

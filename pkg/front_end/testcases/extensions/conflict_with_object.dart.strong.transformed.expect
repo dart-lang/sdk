@@ -6,6 +6,10 @@ library;
 //   int get noSuchMethod => 42;
 //           ^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/extensions/conflict_with_object.dart:7:12: Error: This extension member conflicts with Object member 'hashCode'.
+//   void set hashCode(int value) {}
+//            ^^^^^^^^
+//
 // pkg/front_end/testcases/extensions/conflict_with_object.dart:8:7: Error: This extension member conflicts with Object member 'runtimeType'.
 //   int runtimeType() => 0;
 //       ^^^^^^^^^^^
@@ -17,10 +21,6 @@ library;
 // pkg/front_end/testcases/extensions/conflict_with_object.dart:10:17: Error: This extension member conflicts with Object member 'toString'.
 //   static String toString() => 'Foo';
 //                 ^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/conflict_with_object.dart:7:12: Error: This extension member conflicts with Object member 'hashCode'.
-//   void set hashCode(int value) {}
-//            ^^^^^^^^
 //
 // pkg/front_end/testcases/extensions/conflict_with_object.dart:27:14: Error: A value of type 'dynamic Function(Invocation)' can't be assigned to a variable of type 'int'.
 //  - 'Invocation' is from 'dart:core'.
@@ -42,11 +42,11 @@ import "dart:core" as core;
 
 extension Extension on core::String {
   get noSuchMethod = self::Extension|get#noSuchMethod;
+  set hashCode = self::Extension|set#hashCode;
   method runtimeType = self::Extension|runtimeType;
   method tearoff runtimeType = self::Extension|get#runtimeType;
   operator == = self::Extension|==;
   static method toString = self::Extension|toString;
-  set hashCode = self::Extension|set#hashCode;
 }
 static extension-member method Extension|get#noSuchMethod(lowered final core::String #this) → core::int
   return 42;

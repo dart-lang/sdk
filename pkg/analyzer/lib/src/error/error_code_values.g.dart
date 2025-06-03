@@ -24,7 +24,7 @@ import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 
 @AnalyzerPublicApi(message: 'exported by lib/error/error.dart')
-const List<ErrorCode> errorCodeValues = [
+const List<DiagnosticCode> errorCodeValues = [
   AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
   AnalysisOptionsErrorCode.PARSE_ERROR,
   AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
@@ -587,6 +587,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
   CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
   CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR,
   CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM,
   CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
   CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,

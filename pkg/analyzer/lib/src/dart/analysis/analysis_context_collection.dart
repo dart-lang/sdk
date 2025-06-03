@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -56,13 +57,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     InfoDeclarationStore? infoDeclarationStore,
-    @Deprecated('Use updateAnalysisOptions3 instead')
-    void Function({
-      required AnalysisOptionsImpl analysisOptions,
-      required ContextRoot contextRoot,
-      required DartSdk sdk,
-    })?
-    updateAnalysisOptions2,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required DartSdk sdk,
@@ -75,17 +69,10 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
 
     performanceLog ??= PerformanceLog(null);
 
-    if (updateAnalysisOptions2 != null && updateAnalysisOptions3 != null) {
-      throw ArgumentError(
-        'Only one of updateAnalysisOptions2 and updateAnalysisOptions3 may be '
-        'given',
-      );
-    }
-
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
       if (drainStreams) {
-        scheduler.events.drain<void>();
+        unawaited(scheduler.events.drain<void>());
       }
       scheduler.start();
     }
@@ -112,20 +99,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     var contextBuilder = ContextBuilderImpl(
       resourceProvider: this.resourceProvider,
     );
-    // While users can use the deprecated `updateAnalysisOptions2` and the new
-    // `updateAnalysisOptions3` parameter, prefer `updateAnalysisOptions3`, but
-    // create a new closure with the signature of the old.
-    var updateAnalysisOptions =
-        updateAnalysisOptions3 != null
-            ? ({
-              required AnalysisOptionsImpl analysisOptions,
-              required ContextRoot? contextRoot,
-              required DartSdk sdk,
-            }) => updateAnalysisOptions3(
-              analysisOptions: analysisOptions,
-              sdk: sdk,
-            )
-            : updateAnalysisOptions2;
+
     for (var root in roots) {
       var context = contextBuilder.createContext(
         byteStore: byteStore,
@@ -141,7 +115,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         sdkPath: sdkPath,
         sdkSummaryPath: sdkSummaryPath,
         scheduler: scheduler,
-        updateAnalysisOptions2: updateAnalysisOptions,
+        updateAnalysisOptions3: updateAnalysisOptions3,
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
         infoDeclarationStore: infoDeclarationStore,

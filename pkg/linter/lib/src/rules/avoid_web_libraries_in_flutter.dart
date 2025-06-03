@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
@@ -36,7 +37,8 @@ class AvoidWebLibrariesInFlutter extends LintRule {
     : super(name: LintNames.avoid_web_libraries_in_flutter, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_web_libraries_in_flutter;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_web_libraries_in_flutter;
 
   bool hasFlutterDep(File? pubspec) {
     if (pubspec == null) {
@@ -88,7 +90,7 @@ class AvoidWebLibrariesInFlutter extends LintRule {
 
     var root = context.package?.root;
     if (root != null) {
-      if (hasFlutter(root)) {
+      if (hasFlutter(root.path)) {
         var visitor = _Visitor(this);
         registry.addImportDirective(this, visitor);
       }

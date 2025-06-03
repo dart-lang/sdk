@@ -5,26 +5,25 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 final _manager = LspRefactorManager._();
 
 /// A base class for refactoring commands that need to create Refactorings from
 /// client-supplied arguments.
 abstract class AbstractRefactorCommandHandler
-    extends SimpleEditCommandHandler<LspAnalysisServer>
+    extends SimpleEditCommandHandler<AnalysisServer>
     with PositionalArgCommandHandler {
   AbstractRefactorCommandHandler(super.server);
 

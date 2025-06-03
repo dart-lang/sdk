@@ -18,12 +18,12 @@ class A1 extends core::Object {
 }
 extension A2 on self::A1 {
   get instanceProperty = self::A2|get#instanceProperty;
+  set instanceProperty = self::A2|set#instanceProperty;
   operator + = self::A2|+;
   operator - = self::A2|-;
   operator unary- = self::A2|unary-;
   static field staticField = self::A2|staticField;
   static get staticProperty = get self::A2|staticProperty;
-  set instanceProperty = self::A2|set#instanceProperty;
   static set staticProperty = set self::A2|staticProperty;
 }
 static field core::int A2|staticField;

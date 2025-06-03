@@ -4,12 +4,15 @@
 
 library error_view_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 
@@ -44,27 +47,28 @@ class ErrorViewElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   void render() {
-    children = <Element>[
-      navBar(<Element>[
+    setChildren(<HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered']
-        ..children = <Element>[
-          new HeadingElement.h1()
-            ..text = 'Error: ${_kindToString(_error.kind)}',
-          new BRElement(),
-          new DivElement()
-            ..classes = ['well']
-            ..children = <Element>[new PreElement()..text = error.message]
-        ],
-    ];
+      new HTMLDivElement()
+        ..className = 'content-centered'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h1()
+            ..textContent = 'Error: ${_kindToString(_error.kind)}',
+          new HTMLBRElement(),
+          new HTMLDivElement()
+            ..className = 'well'
+            ..appendChild(
+                new HTMLPreElement.pre()..textContent = error.message ?? '')
+        ]),
+    ]);
   }
 
   static String _kindToString(M.ErrorKind? kind) {

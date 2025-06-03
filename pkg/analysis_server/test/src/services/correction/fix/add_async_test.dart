@@ -549,48 +549,6 @@ Future<void> g() async { }
 ''');
   }
 
-  Future<void> test_discardedFuture_awaited() async {
-    await resolveTestCode('''
-void f() {
-  // ignore: await_in_wrong_context
-  await g();
-}
-
-Future<void> g() async { }
-''');
-    await assertHasFix('''
-Future<void> f() async {
-  // ignore: await_in_wrong_context
-  await g();
-}
-
-Future<void> g() async { }
-''');
-  }
-
-  Future<void> test_discardedFuture_awaited_method() async {
-    await resolveTestCode('''
-class C {
-  void f() {
-    // ignore: await_in_wrong_context
-    await g();
-  }
-
-  Future<void> g() async { }
-}
-''');
-    await assertHasFix('''
-class C {
-  Future<void> f() async {
-    // ignore: await_in_wrong_context
-    await g();
-  }
-
-  Future<void> g() async { }
-}
-''');
-  }
-
   Future<void> test_discardedFuture_method() async {
     await resolveTestCode('''
 class C {

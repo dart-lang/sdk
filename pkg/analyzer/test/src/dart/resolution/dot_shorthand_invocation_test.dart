@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -54,7 +55,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -84,7 +85,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C<dynamic> Function<U>(U)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -131,7 +132,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -175,7 +176,7 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -233,7 +234,7 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -260,7 +261,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -291,7 +292,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -322,7 +323,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -357,7 +358,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: instances
-    element: <testLibraryFragment>::@class::C::@method::instances#element
+    element: <testLibrary>::@class::C::@method::instances
     staticType: List<C> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -441,7 +442,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: one
-    element: <testLibraryFragment>::@extensionType::C::@method::one#element
+    element: <testLibrary>::@extensionType::C::@method::one
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -473,7 +474,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -505,7 +506,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@method::member#element
+    element: <testLibrary>::@class::C::@method::member
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -544,7 +545,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: mixinOne
-    element: <testLibraryFragment>::@mixin::CMixin::@method::mixinOne#element
+    element: <testLibrary>::@mixin::CMixin::@method::mixinOne
     staticType: CMixin Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -575,7 +576,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: memberType
-    element: <testLibraryFragment>::@class::C::@method::memberType#element
+    element: <testLibrary>::@class::C::@method::memberType
     staticType: C<U> Function<U, V>(U)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -595,7 +596,7 @@ DotShorthandInvocation
               period: .
               memberName: SimpleIdentifier
                 token: member
-                element: <testLibraryFragment>::@class::C::@method::member#element
+                element: <testLibrary>::@class::C::@method::member
                 staticType: C<int> Function()
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -619,6 +620,66 @@ DotShorthandInvocation
 ''');
   }
 
+  test_postfixOperator() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  static C member() => C(1);
+  int x;
+  C(this.x);
+}
+
+void main() {
+  C c = .member()++;
+  print(c);
+}
+''',
+      [
+        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 87, 6),
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 95, 2),
+      ],
+    );
+  }
+
+  test_prefixOperator() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  static C member() => C(1);
+  int x;
+  C(this.x);
+}
+
+void main() {
+  C c = ++.member();
+  print(c);
+}
+''',
+      [
+        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 89, 6),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 96, 1),
+      ],
+    );
+  }
+
+  test_requiredParameters_missing() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  static C member({required int x}) => C(x);
+  int x;
+  C(this.x);
+}
+
+void main() {
+  C c = .member();
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 103, 6)],
+    );
+  }
+
   test_typeParameters_inference() async {
     await assertNoErrorsInCode(r'''
 class C<T> {
@@ -637,7 +698,7 @@ DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@method::foo#element
+    element: <testLibrary>::@class::C::@method::foo
     staticType: C<X> Function<X>(X)
   argumentList: ArgumentList
     leftParenthesis: (

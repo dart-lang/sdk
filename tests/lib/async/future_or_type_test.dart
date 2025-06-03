@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // In strong mode, `FutureOr` should be a valid type in most locations.
-// Requirements=nnbd-strong
 
 import 'dart:async';
 import 'package:expect/expect.dart';

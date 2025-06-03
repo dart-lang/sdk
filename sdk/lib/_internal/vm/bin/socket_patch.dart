@@ -894,7 +894,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       Object? connectionResult;
       if (address.type == InternetAddressType.unix) {
         if (source == null) {
-          connectionResult = socket.nativeCreateUnixDomainConnect(
+          connectionResult = socket._nativeCreateUnixDomainConnect(
             address.address,
             _Namespace._namespace,
           );
@@ -910,7 +910,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
               address: address,
             );
           }
-          connectionResult = socket.nativeCreateUnixDomainBindConnect(
+          connectionResult = socket._nativeCreateUnixDomainBindConnect(
             address.address,
             source.address,
             _Namespace._namespace,
@@ -924,7 +924,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       } else {
         final address_ = address as _InternetAddress;
         if (source == null && sourcePort == 0) {
-          connectionResult = socket.nativeCreateConnect(
+          connectionResult = socket._nativeCreateConnect(
             address_._in_addr,
             port,
             address_._scope_id,
@@ -948,7 +948,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
               address: address,
             );
           }
-          connectionResult = socket.nativeCreateBindConnect(
+          connectionResult = socket._nativeCreateBindConnect(
             address_._in_addr,
             port,
             source._in_addr,
@@ -1062,7 +1062,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
           // the SO_ERROR option at level SOL_SOCKET to determine whether
           // connect() completed successfully (SO_ERROR is zero) or
           // unsuccessfully.
-          final osError = socket.nativeGetError();
+          final osError = socket._nativeGetError();
           if (osError != null) {
             socket.close();
             error ??= osError;
@@ -1200,14 +1200,14 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       if (FileSystemEntity.isLinkSync(path)) {
         path = Link(path).targetSync();
       }
-      result = socket.nativeCreateUnixDomainBindListen(
+      result = socket._nativeCreateUnixDomainBindListen(
         path,
         backlog,
         shared,
         _Namespace._namespace,
       );
     } else {
-      result = socket.nativeCreateBindListen(
+      result = socket._nativeCreateBindListen(
         address._in_addr,
         port,
         backlog,
@@ -1242,7 +1242,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     final address = await _resolveHost(host);
 
     var socket = _NativeSocket.datagram(address);
-    var result = socket.nativeCreateBindDatagram(
+    var result = socket._nativeCreateBindDatagram(
       address._in_addr,
       port,
       reuseAddress,
@@ -1277,13 +1277,13 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   _NativeSocket._watchCommon(int id, int type)
     : typeFlags = typeNormalSocket | type {
     isClosedWrite = true;
-    nativeSetSocketId(id, typeFlags);
+    _nativeSetSocketId(id, typeFlags);
   }
 
-  _NativeSocket.watchSignal(int id)
+  _NativeSocket._watchSignal(int id)
     : this._watchCommon(id, typeInternalSignalSocket);
 
-  _NativeSocket.watch(int id) : this._watchCommon(id, typeInternalSocket);
+  _NativeSocket._watch(int id) : this._watchCommon(id, typeInternalSocket);
 
   bool get isListening => (typeFlags & typeListeningSocket) != 0;
   bool get isPipe => (typeFlags & typePipe) != 0;
@@ -1303,8 +1303,8 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     try {
       Uint8List? list;
       if (count != null) {
-        list = nativeRead(count);
-        available = nativeAvailable();
+        list = _nativeRead(count);
+        available = _nativeAvailable();
       } else {
         // If count is null, read as many bytes as possible.
         // Loop here to ensure bytes that arrived while this read was
@@ -1312,12 +1312,12 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
         BytesBuilder builder = BytesBuilder(copy: false);
         do {
           assert(available > 0);
-          list = nativeRead(available);
+          list = _nativeRead(available);
           if (list == null) {
             break;
           }
           builder.add(list);
-          available = nativeAvailable();
+          available = _nativeAvailable();
           const MAX_BUFFER_SIZE = 4 * 1024 * 1024;
           if (builder.length > MAX_BUFFER_SIZE) {
             // Don't consume too many bytes, otherwise we risk running
@@ -1333,7 +1333,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       }
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          nativeGetSocketId(),
+          _nativeGetSocketId(),
           _SocketProfileType.readBytes,
           list?.length,
         );
@@ -1348,15 +1348,15 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   Datagram? receive() {
     if (isClosing || isClosed) return null;
     try {
-      Datagram? result = nativeRecvFrom();
+      Datagram? result = _nativeRecvFrom();
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          nativeGetSocketId(),
+          _nativeGetSocketId(),
           _SocketProfileType.readBytes,
           result?.data.length,
         );
       }
-      _availableDatagram = nativeAvailableDatagram();
+      _availableDatagram = _nativeAvailableDatagram();
       return result;
     } catch (e) {
       reportError(e, StackTrace.current, "Receive failed");
@@ -1370,11 +1370,11 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     }
     if (isClosing || isClosed) return null;
     try {
-      final bytesCount = count ?? nativeAvailable();
+      final bytesCount = count ?? _nativeAvailable();
       // Returned messagesData is a list of triples (level, type, uint8list)
       // followed by uint8list with raw data.
       // This is kept at this level to minimize dart api use in native method.
-      final List<dynamic> messagesData = nativeReceiveMessage(bytesCount);
+      final List<dynamic> messagesData = _nativeReceiveMessage(bytesCount);
       final messages = <SocketControlMessage>[];
       if (messagesData.isNotEmpty) {
         final triplesCount = (messagesData.length - 1) / 3;
@@ -1392,10 +1392,10 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
         messagesData[messagesData.length - 1] as Uint8List,
         messages,
       );
-      available = nativeAvailable();
+      available = _nativeAvailable();
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          nativeGetSocketId(),
+          _nativeGetSocketId(),
           _SocketProfileType.readBytes,
           bytesCount,
         );
@@ -1447,12 +1447,12 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       );
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          nativeGetSocketId(),
+          _nativeGetSocketId(),
           _SocketProfileType.writeBytes,
           bufferAndStart.buffer.length - bufferAndStart.start,
         );
       }
-      int result = nativeWrite(
+      int result = _nativeWrite(
         bufferAndStart.buffer,
         bufferAndStart.start,
         bytes,
@@ -1497,12 +1497,12 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       );
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          nativeGetSocketId(),
+          _nativeGetSocketId(),
           _SocketProfileType.writeBytes,
           bufferAndStart.buffer.length - bufferAndStart.start,
         );
       }
-      int result = nativeSendTo(
+      int result = _nativeSendTo(
         bufferAndStart.buffer,
         bufferAndStart.start,
         bytes,
@@ -1541,7 +1541,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       );
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          nativeGetSocketId(),
+          _nativeGetSocketId(),
           _SocketProfileType.writeBytes,
           bufferAndStart.buffer.length - bufferAndStart.start,
         );
@@ -1555,7 +1555,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
         messages.add(controlMessage.data);
       }
 
-      return nativeSendMessage(
+      return _nativeSendMessage(
         bufferAndStart.buffer,
         bufferAndStart.start,
         bytes,
@@ -1575,7 +1575,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     tokens++;
     returnTokens(listeningTokenBatchSize);
     var socket = _NativeSocket.normal(address);
-    if (nativeAccept(socket) != true) return null;
+    if (_nativeAccept(socket) != true) return null;
     socket.localPort = localPort;
     return socket;
   }
@@ -1584,7 +1584,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     if (localAddress.type == InternetAddressType.unix) return 0;
     if (localPort != 0) return localPort;
     if (isClosing || isClosed) throw const SocketException.closed();
-    var result = nativeGetPort();
+    var result = _nativeGetPort();
     if (result is OSError) {
       throw result;
     }
@@ -1594,14 +1594,14 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   int get remotePort {
     if (localAddress.type == InternetAddressType.unix) return 0;
     if (isClosing || isClosed) throw const SocketException.closed();
-    return nativeGetRemotePeer()[1];
+    return _nativeGetRemotePeer()[1];
   }
 
   InternetAddress get address => localAddress;
 
   InternetAddress get remoteAddress {
     if (isClosing || isClosed) throw const SocketException.closed();
-    var result = nativeGetRemotePeer();
+    var result = _nativeGetRemotePeer();
     var addr = result[0] as List<Object?>;
     var type = InternetAddressType._from(addr[0] as int);
     if (type == InternetAddressType.unix) {
@@ -1705,9 +1705,9 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
               }
             } else {
               if (isUdp) {
-                _availableDatagram = nativeAvailableDatagram();
+                _availableDatagram = _nativeAvailableDatagram();
               } else {
-                available = nativeAvailable();
+                available = _nativeAvailable();
               }
               issueReadEvent();
               continue;
@@ -1727,7 +1727,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
             continue;
           case errorEvent:
             if (!isClosing) {
-              final osError = nativeGetError();
+              final osError = _nativeGetError();
               if (osError != null) {
                 reportError(osError, null, osError.message);
               } else {
@@ -1777,7 +1777,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       // Return in batches.
       if (tokens == tokenBatchSize) {
         assert(tokens < (1 << firstCommand));
-        sendToEventHandler((1 << returnTokenCommand) | tokens);
+        _sendToEventHandler((1 << returnTokenCommand) | tokens);
         tokens = 0;
       }
     }
@@ -1807,13 +1807,13 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       int flags = 1 << setEventMaskCommand;
       if (!isClosedRead) flags |= 1 << readEvent;
       if (!isClosedWrite) flags |= 1 << writeEvent;
-      sendToEventHandler(flags);
+      _sendToEventHandler(flags);
     }
   }
 
   Future close() {
     if (!isClosing && !isClosed) {
-      sendToEventHandler(1 << closeCommand);
+      _sendToEventHandler(1 << closeCommand);
       isClosing = true;
     }
     return closeCompleter.future;
@@ -1842,7 +1842,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       if (closedReadEventSent) {
         close();
       } else {
-        sendToEventHandler(1 << shutdownWriteCommand);
+        _sendToEventHandler(1 << shutdownWriteCommand);
       }
       isClosedWrite = true;
     }
@@ -1853,7 +1853,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       if (isClosedWrite) {
         close();
       } else {
-        sendToEventHandler(1 << shutdownReadCommand);
+        _sendToEventHandler(1 << shutdownReadCommand);
       }
       isClosedRead = true;
       // Make sure to dispatch a closedRead event. Shutdown is only complete
@@ -1862,7 +1862,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     }
   }
 
-  void sendToEventHandler(int data) {
+  void _sendToEventHandler(int data) {
     int fullData = (typeFlags & typeTypeMask) | data;
     assert(!isClosing);
     connectToEventHandler();
@@ -1943,7 +1943,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   dynamic getOption(SocketOption option) {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(option, "option");
-    var result = nativeGetOption(option._value, address.type._value);
+    var result = _nativeGetOption(option._value, address.type._value);
     if (result is OSError) throw result;
     return result;
   }
@@ -1951,7 +1951,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   bool setOption(SocketOption option, value) {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(option, "option");
-    nativeSetOption(option._value, address.type._value, value);
+    _nativeSetOption(option._value, address.type._value, value);
     return true;
   }
 
@@ -1959,7 +1959,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(option, "option");
     ArgumentError.checkNotNull(option.value, "option.value");
-    nativeGetRawOption(option.level, option.option, option.value);
+    _nativeGetRawOption(option.level, option.option, option.value);
     return option.value;
   }
 
@@ -1967,7 +1967,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(option, "option");
     ArgumentError.checkNotNull(option.value, "option.value");
-    nativeSetRawOption(option.level, option.option, option.value);
+    _nativeSetRawOption(option.level, option.option, option.value);
   }
 
   InternetAddress? multicastAddress(
@@ -2002,7 +2002,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     final interfaceAddr =
         multicastAddress(addr, interface) as _InternetAddress?;
     var interfaceIndex = interface == null ? 0 : interface.index;
-    nativeJoinMulticast(
+    _nativeJoinMulticast(
       (addr as _InternetAddress)._in_addr,
       interfaceAddr?._in_addr,
       interfaceIndex,
@@ -2013,7 +2013,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     final interfaceAddr =
         multicastAddress(addr, interface) as _InternetAddress?;
     var interfaceIndex = interface == null ? 0 : interface.index;
-    nativeLeaveMulticast(
+    _nativeLeaveMulticast(
       (addr as _InternetAddress)._in_addr,
       interfaceAddr?._in_addr,
       interfaceIndex,
@@ -2021,27 +2021,27 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   }
 
   bool hasPendingWrite() {
-    return Platform.isWindows && nativeHasPendingWrite();
+    return Platform.isWindows && _nativeHasPendingWrite();
   }
 
   @pragma("vm:external-name", "Socket_SetSocketId")
-  external void nativeSetSocketId(int id, int typeFlags);
+  external void _nativeSetSocketId(int id, int typeFlags);
   @pragma("vm:external-name", "Socket_Available")
-  external int nativeAvailable();
+  external int _nativeAvailable();
   @pragma("vm:external-name", "Socket_AvailableDatagram")
-  external bool nativeAvailableDatagram();
+  external bool _nativeAvailableDatagram();
   @pragma("vm:external-name", "Socket_Read")
-  external Uint8List? nativeRead(int len);
+  external Uint8List? _nativeRead(int len);
   @pragma("vm:external-name", "Socket_RecvFrom")
-  external Datagram? nativeRecvFrom();
+  external Datagram? _nativeRecvFrom();
   @pragma("vm:external-name", "Socket_ReceiveMessage")
-  external List<dynamic> nativeReceiveMessage(int len);
+  external List<dynamic> _nativeReceiveMessage(int len);
   @pragma("vm:external-name", "Socket_WriteList")
-  external int nativeWrite(List<int> buffer, int offset, int bytes);
+  external int _nativeWrite(List<int> buffer, int offset, int bytes);
   @pragma("vm:external-name", "Socket_HasPendingWrite")
-  external bool nativeHasPendingWrite();
+  external bool _nativeHasPendingWrite();
   @pragma("vm:external-name", "Socket_SendTo")
-  external int nativeSendTo(
+  external int _nativeSendTo(
     List<int> buffer,
     int offset,
     int bytes,
@@ -2049,18 +2049,18 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     int port,
   );
   @pragma("vm:external-name", "Socket_SendMessage")
-  external nativeSendMessage(
+  external _nativeSendMessage(
     List<int> buffer,
     int offset,
     int bytes,
     List<dynamic> controlMessages,
   );
   @pragma("vm:external-name", "Socket_CreateConnect")
-  external nativeCreateConnect(Uint8List addr, int port, int scope_id);
+  external _nativeCreateConnect(Uint8List addr, int port, int scope_id);
   @pragma("vm:external-name", "Socket_CreateUnixDomainConnect")
-  external nativeCreateUnixDomainConnect(String addr, _Namespace namespace);
+  external _nativeCreateUnixDomainConnect(String addr, _Namespace namespace);
   @pragma("vm:external-name", "Socket_CreateBindConnect")
-  external nativeCreateBindConnect(
+  external _nativeCreateBindConnect(
     Uint8List addr,
     int port,
     Uint8List sourceAddr,
@@ -2068,7 +2068,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     int scope_id,
   );
   @pragma("vm:external-name", "Socket_CreateUnixDomainBindConnect")
-  external nativeCreateUnixDomainBindConnect(
+  external _nativeCreateUnixDomainBindConnect(
     String addr,
     String sourceAddr,
     _Namespace namespace,
@@ -2076,7 +2076,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   @pragma("vm:external-name", "SocketBase_IsBindError")
   external bool isBindError(int errorNumber);
   @pragma("vm:external-name", "ServerSocket_CreateBindListen")
-  external nativeCreateBindListen(
+  external _nativeCreateBindListen(
     Uint8List addr,
     int port,
     int backlog,
@@ -2085,14 +2085,14 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     int scope_id,
   );
   @pragma("vm:external-name", "ServerSocket_CreateUnixDomainBindListen")
-  external nativeCreateUnixDomainBindListen(
+  external _nativeCreateUnixDomainBindListen(
     String addr,
     int backlog,
     bool shared,
     _Namespace namespace,
   );
   @pragma("vm:external-name", "Socket_CreateBindDatagram")
-  external nativeCreateBindDatagram(
+  external _nativeCreateBindDatagram(
     Uint8List addr,
     int port,
     bool reuseAddress,
@@ -2100,33 +2100,33 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     int ttl,
   );
   @pragma("vm:external-name", "ServerSocket_Accept")
-  external bool nativeAccept(_NativeSocket socket);
+  external bool _nativeAccept(_NativeSocket socket);
   @pragma("vm:external-name", "Socket_GetPort")
-  external dynamic nativeGetPort();
+  external dynamic _nativeGetPort();
   @pragma("vm:external-name", "Socket_GetRemotePeer")
-  external List nativeGetRemotePeer();
+  external List _nativeGetRemotePeer();
   @pragma("vm:external-name", "Socket_GetSocketId")
-  external int nativeGetSocketId();
+  external int _nativeGetSocketId();
   @pragma("vm:external-name", "Socket_GetFD")
   external int get fd;
   @pragma("vm:external-name", "Socket_GetError")
-  external OSError? nativeGetError();
+  external OSError? _nativeGetError();
   @pragma("vm:external-name", "Socket_GetOption")
-  external nativeGetOption(int option, int protocol);
+  external _nativeGetOption(int option, int protocol);
   @pragma("vm:external-name", "Socket_GetRawOption")
-  external void nativeGetRawOption(int level, int option, Uint8List data);
+  external void _nativeGetRawOption(int level, int option, Uint8List data);
   @pragma("vm:external-name", "Socket_SetOption")
-  external void nativeSetOption(int option, int protocol, value);
+  external void _nativeSetOption(int option, int protocol, value);
   @pragma("vm:external-name", "Socket_SetRawOption")
-  external void nativeSetRawOption(int level, int option, Uint8List data);
+  external void _nativeSetRawOption(int level, int option, Uint8List data);
   @pragma("vm:external-name", "Socket_JoinMulticast")
-  external void nativeJoinMulticast(
+  external void _nativeJoinMulticast(
     Uint8List addr,
     Uint8List? interfaceAddr,
     int interfaceIndex,
   );
   @pragma("vm:external-name", "Socket_LeaveMulticast")
-  external void nativeLeaveMulticast(
+  external void _nativeLeaveMulticast(
     Uint8List addr,
     Uint8List? interfaceAddr,
     int interfaceIndex,
@@ -2185,7 +2185,7 @@ class _RawServerSocket extends Stream<RawSocket>
           if (socket == null) return;
           if (!const bool.fromEnvironment("dart.vm.product")) {
             _SocketProfile.collectNewSocket(
-              socket.nativeGetSocketId(),
+              socket._nativeGetSocketId(),
               _tcpSocket,
               socket.address,
               socket.port,
@@ -2274,7 +2274,7 @@ class _RawSocket extends Stream<RawSocketEvent>
     ).then((socket) {
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectNewSocket(
-          socket.nativeGetSocketId(),
+          socket._nativeGetSocketId(),
           _tcpSocket,
           socket.address,
           port,
@@ -2301,7 +2301,7 @@ class _RawSocket extends Stream<RawSocketEvent>
       ) {
         if (!const bool.fromEnvironment("dart.vm.product")) {
           _SocketProfile.collectNewSocket(
-            nativeSocket.nativeGetSocketId(),
+            nativeSocket._nativeGetSocketId(),
             _tcpSocket,
             nativeSocket.address,
             port,
@@ -2410,7 +2410,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   Future<RawSocket> close() => _socket.close().then<RawSocket>((_) {
     if (!const bool.fromEnvironment("dart.vm.product")) {
       _SocketProfile.collectStatistic(
-        _socket.nativeGetSocketId(),
+        _socket._nativeGetSocketId(),
         _SocketProfileType.endTime,
       );
     }
@@ -3033,7 +3033,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
     ).then((socket) {
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectNewSocket(
-          socket.nativeGetSocketId(),
+          socket._nativeGetSocketId(),
           _udpSocket,
           socket.address,
           port,
@@ -3060,7 +3060,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
   Future close() => _socket.close().then<RawDatagramSocket>((_) {
     if (!const bool.fromEnvironment("dart.vm.product")) {
       _SocketProfile.collectStatistic(
-        _socket.nativeGetSocketId(),
+        _socket._nativeGetSocketId(),
         _SocketProfileType.endTime,
       );
     }
@@ -3263,7 +3263,7 @@ class _ResourceHandleImpl implements ResourceHandle {
         ? _InternetAddress.fromString(hostname, type: InternetAddressType.unix)
         : _InternetAddress(type, hostname, null, rawAddr);
     final nativeSocket = _NativeSocket.normal(internetAddress);
-    nativeSocket.nativeSetSocketId(fd, _NativeSocket.typeInternalSocket);
+    nativeSocket._nativeSetSocketId(fd, _NativeSocket.typeInternalSocket);
     return _RawSocket(nativeSocket);
   }
 

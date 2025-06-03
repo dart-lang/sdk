@@ -190,9 +190,9 @@ class ModelEmitter {
     );
   }
 
-  js.Expression constantListGenerator(js.Expression array) {
+  js.Expression constantListGenerator(js.Expression array, js.Expression rti) {
     // TODO(floitsch): remove hard-coded name.
-    return js.js('makeConstList(#)', [array]);
+    return js.js('makeConstList(#, #)', [array, rti]);
   }
 
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {

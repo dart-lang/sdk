@@ -322,14 +322,12 @@ class GenericListView<D> extends View {
 
   void _decelStart() {
     final scroll = scroller!;
-    num currentTarget =
-        scroll.verticalEnabled
-            ? scroll.currentTarget.y
-            : scroll.currentTarget.x;
-    num current =
-        scroll.verticalEnabled
-            ? scroll.contentOffset.y
-            : scroll.contentOffset.x;
+    num currentTarget = scroll.verticalEnabled
+        ? scroll.currentTarget.y
+        : scroll.currentTarget.x;
+    num current = scroll.verticalEnabled
+        ? scroll.contentOffset.y
+        : scroll.contentOffset.x;
     int targetIndex = _layout.getSnapIndex(currentTarget, _viewLength);
     if (current != currentTarget) {
       // The user is throwing rather than statically releasing.
@@ -404,10 +402,9 @@ class GenericListView<D> extends View {
       _pages.current.value = _layout.getPage(targetInterval.start, _viewLength);
     }
     if (_pages != null) {
-      _pages.length.value =
-          _data.isNotEmpty
-              ? _layout.getPage(_data.length - 1, _viewLength) + 1
-              : 0;
+      _pages.length.value = _data.isNotEmpty
+          ? _layout.getPage(_data.length - 1, _viewLength) + 1
+          : 0;
     }
 
     if (!_removeClippedViews) {
@@ -677,8 +674,9 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
 
   @override
   int getLength(int viewLength) {
-    int itemLength =
-        (_vertical ? itemViewFactory.height : itemViewFactory.width)!;
+    int itemLength = (_vertical
+        ? itemViewFactory.height
+        : itemViewFactory.width)!;
     if (viewLength == null || viewLength == 0) {
       return itemLength * _data.length;
     } else if (_paginate) {
@@ -886,10 +884,9 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     if (index >= _itemOffsets.length) {
       int offset = _itemOffsets[_itemOffsets.length - 1];
       for (int i = _itemOffsets.length; i <= index; i++) {
-        int length =
-            _vertical
-                ? itemViewFactory.getHeight(_data[i - 1])
-                : itemViewFactory.getWidth(_data[i - 1]);
+        int length = _vertical
+            ? itemViewFactory.getHeight(_data[i - 1])
+            : itemViewFactory.getWidth(_data[i - 1]);
         offset += length;
         _itemOffsets.add(offset);
         _lengths.add(length);

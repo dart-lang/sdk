@@ -7,16 +7,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
+import 'dart:js_interop';
 import 'dart:math' as Math;
 import 'dart:typed_data';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/object_graph.dart';
 import 'package:observatory/src/elements/containers/virtual_tree.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -496,12 +500,12 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    final content = <Element>[
-      navBar(<Element>[
+    final content = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -535,7 +539,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
       // Loaded
       content.addAll(_createReport());
     }
-    children = content;
+    setChildren(content);
   }
 
   _refresh() {
@@ -544,9 +548,10 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   }
 
   _save() {
-    var blob = new Blob(_snapshotA!.chunks, 'application/octet-stream');
-    var blobUrl = Url.createObjectUrl(blob);
-    var link = new AnchorElement();
+    final blob = Blob(_snapshotA!.chunks as JSArray<JSAny>,
+        BlobPropertyBag(type: 'application/octet-stream'));
+    var blobUrl = URL.createObjectURL(blob);
+    var link = new HTMLAnchorElement();
     link.href = blobUrl;
     var now = new DateTime.now();
     link.download = 'dart-heap-${now.year}-${now.month}-${now.day}.bin';
@@ -554,19 +559,20 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   }
 
   _load() {
-    var input = new InputElement();
+    var input = new HTMLInputElement();
     input.type = 'file';
     input.multiple = false;
-    input.onChange.listen((event) {
-      var file = input.files![0];
-      var reader = new FileReader();
-      reader.onLoad.listen((event) async {
-        var snapshotReader = new SnapshotReader();
-        _snapshotLoading(snapshotReader);
-        snapshotReader.add(reader.result as Uint8List);
-        snapshotReader.close();
-      });
-      reader.readAsArrayBuffer(file);
+    input.onChange.listen((_) {
+      File file = input.files!.item(0) as File;
+      final reader = FileReader();
+      reader
+        ..onLoadEnd.first.then((_) async {
+          final snapshotReader = new SnapshotReader();
+          _snapshotLoading(snapshotReader);
+          snapshotReader.add((reader.result as ByteBuffer).asUint8List());
+          snapshotReader.close();
+        })
+        ..readAsArrayBuffer(file);
     });
     input.click();
   }
@@ -592,39 +598,39 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  static List<Element> _createStatusMessage(String message,
+  static List<HTMLElement> _createStatusMessage(String message,
       {String description = '', double progress = 0.0}) {
     return [
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['statusBox', 'shadow', 'center']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['statusMessage']
-                ..text = message,
-              new DivElement()
-                ..classes = ['statusDescription']
-                ..text = description,
-              new DivElement()
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'statusBox shadow center'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'statusMessage'
+                ..textContent = message,
+              new HTMLDivElement()
+                ..className = 'statusDescription'
+                ..textContent = description,
+              new HTMLDivElement()
                 ..style.background = '#0489c3'
                 ..style.width = '$progress%'
                 ..style.height = '15px'
                 ..style.borderRadius = '4px'
-            ]
-        ]
+            ])
+        ])
     ];
   }
 
   VirtualTreeElement? _tree;
 
-  void _createTreeMap<T>(List<HtmlElement> report, TreeMap<T> treemap, T root) {
-    final content = new DivElement();
+  void _createTreeMap<T>(List<HTMLElement> report, TreeMap<T> treemap, T root) {
+    final content = new HTMLDivElement();
     content.style.border = '1px solid black';
     content.style.width = '100%';
     content.style.height = '100%';
-    content.text = 'Performing layout...';
+    content.textContent = 'Performing layout...';
     Timer.run(() {
       // Generate the treemap after the content div has been added to the
       // document so that we can ask the browser how much space is
@@ -635,57 +641,58 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     final text =
         'Double-click a tile to zoom in. Double-click the outermost tile to zoom out. Right-click a tile to inspect its objects.';
     report.addAll([
-      new DivElement()
-        ..classes = ['content-centered-big', 'explanation']
-        ..text = text,
-      new DivElement()
-        ..classes = ['content-centered-big']
+      new HTMLDivElement()
+        ..className = 'content-centered-big explanation'
+        ..textContent = text,
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
         ..style.width = '100%'
         ..style.height = '100%'
-        ..children = [content]
+        ..appendChild(content)
     ]);
   }
 
-  List<Element> _createReport() {
-    var report = <HtmlElement>[
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'Snapshot A',
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..children = _createSnapshotSelectA()
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'Snapshot B',
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..children = _createSnapshotSelectB()
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = (_snapshotA == _snapshotB) ? 'View ' : 'Compare ',
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..children = _createModeSelect()
-                ]
-            ]
-        ],
+  List<HTMLElement> _createReport() {
+    var report = <HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'Snapshot A',
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..appendChildren(_createSnapshotSelectA())
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'Snapshot B',
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..appendChildren(_createSnapshotSelectB())
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent =
+                        (_snapshotA == _snapshotB) ? 'View ' : 'Compare ',
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..appendChildren(_createModeSelect())
+                ])
+            ])
+        ]),
     ];
     switch (_mode) {
       case HeapSnapshotTreeMode.dominatorTree:
@@ -705,9 +712,9 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
             'garbage, all its children in the dominator tree become '
             'garbage as well.';
         report.addAll([
-          new DivElement()
-            ..classes = ['content-centered-big', 'explanation']
-            ..text = text,
+          new HTMLDivElement()
+            ..className = 'content-centered-big explanation'
+            ..textContent = text,
           _tree!.element
         ]);
         break;
@@ -726,9 +733,9 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         final text = 'A heap dominator tree, where siblings with the same class'
             ' have been merged into a single node.';
         report.addAll([
-          new DivElement()
-            ..classes = ['content-centered-big', 'explanation']
-            ..text = text,
+          new HTMLDivElement()
+            ..className = 'content-centered-big explanation'
+            ..textContent = text,
           _tree!.element
         ]);
         break;
@@ -742,9 +749,9 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         final text = 'A heap dominator tree, where siblings with the same class'
             ' have been merged into a single node.';
         report.addAll([
-          new DivElement()
-            ..classes = ['content-centered-big', 'explanation']
-            ..text = text,
+          new HTMLDivElement()
+            ..className = 'content-centered-big explanation'
+            ..textContent = text,
           _tree!.element
         ]);
         break;
@@ -776,9 +783,9 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
             'references Y. In particular, objects "own" the space of any '
             'unshared lists or maps they reference.';
         report.addAll([
-          new DivElement()
-            ..classes = ['content-centered-big', 'explanation']
-            ..text = text,
+          new HTMLDivElement()
+            ..className = 'content-centered-big explanation'
+            ..textContent = text,
           _tree!.element
         ]);
         break;
@@ -796,9 +803,9 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
             'references Y. In particular, objects "own" the space of any '
             'unshared lists or maps they reference.';
         report.addAll([
-          new DivElement()
-            ..classes = ['content-centered-big', 'explanation']
-            ..text = text,
+          new HTMLDivElement()
+            ..className = 'content-centered-big explanation'
+            ..textContent = text,
           _tree!.element
         ]);
         break;
@@ -823,9 +830,9 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         }
         final text = '';
         report.addAll([
-          new DivElement()
-            ..classes = ['content-centered-big', 'explanation']
-            ..text = text,
+          new HTMLDivElement()
+            ..className = 'content-centered-big explanation'
+            ..textContent = text,
           _tree!.element
         ]);
         break;
@@ -841,9 +848,9 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         }
         final text = '';
         report.addAll([
-          new DivElement()
-            ..classes = ['content-centered-big', 'explanation']
-            ..text = text,
+          new HTMLDivElement()
+            ..className = 'content-centered-big explanation'
+            ..textContent = text,
           _tree!.element
         ]);
         break;
@@ -875,216 +882,214 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         _createTreeMap(
             report, new ClassesShallowDiffTreeMap(this, items), null);
         break;
-      default:
-        break;
     }
     return report;
   }
 
-  static HtmlElement _createDominator(toggle) {
-    return new DivElement()
-      ..classes = ['tree-item']
-      ..children = <Element>[
-        new SpanElement()
-          ..classes = ['percentage']
+  static HTMLElement _createDominator(toggle) {
+    return new HTMLDivElement()
+      ..className = 'tree-item'
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()
+          ..className = 'percentage'
           ..title = 'percentage of heap being retained',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'retained size',
-        new SpanElement()..classes = ['lines'],
-        new ButtonElement()
-          ..classes = ['expander']
+        new HTMLSpanElement()..className = 'lines',
+        new HTMLButtonElement()
+          ..className = 'expander'
           ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
-        new SpanElement()..classes = ['name'],
-        new AnchorElement()
-          ..classes = ['link']
-          ..text = "[inspect]",
-        new AnchorElement()
-          ..classes = ['link']
-          ..text = "[incoming]",
-        new AnchorElement()
-          ..classes = ['link']
-          ..text = "[dominator-map]",
-      ];
+        new HTMLSpanElement()..className = 'name',
+        new HTMLAnchorElement()
+          ..className = 'link'
+          ..textContent = "[inspect]",
+        new HTMLAnchorElement()
+          ..className = 'link'
+          ..textContent = "[incoming]",
+        new HTMLAnchorElement()
+          ..className = 'link'
+          ..textContent = "[dominator-map]",
+      ]);
   }
 
-  static HtmlElement _createSuccessor(toggle) {
-    return new DivElement()
-      ..classes = ['tree-item']
-      ..children = <Element>[
-        new SpanElement()..classes = ['lines'],
-        new ButtonElement()
-          ..classes = ['expander']
+  static HTMLElement _createSuccessor(toggle) {
+    return new HTMLDivElement()
+      ..className = 'tree-item'
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()..className = 'lines',
+        new HTMLButtonElement()
+          ..className = 'expander'
           ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'retained size',
-        new SpanElement()
-          ..classes = ['edge']
+        new HTMLSpanElement()
+          ..className = 'edge'
           ..title = 'name of outgoing field',
-        new SpanElement()..classes = ['name'],
-        new AnchorElement()
-          ..classes = ['link']
-          ..text = "[incoming]",
-        new AnchorElement()
-          ..classes = ['link']
-          ..text = "[dominator-tree]",
-        new AnchorElement()
-          ..classes = ['link']
-          ..text = "[dominator-map]",
-      ];
+        new HTMLSpanElement()..className = 'name',
+        new HTMLAnchorElement()
+          ..className = 'link'
+          ..textContent = "[incoming]",
+        new HTMLAnchorElement()
+          ..className = 'link'
+          ..textContent = "[dominator-tree]",
+        new HTMLAnchorElement()
+          ..className = 'link'
+          ..textContent = "[dominator-map]",
+      ]);
   }
 
-  static HtmlElement _createPredecessor(toggle) {
-    return new DivElement()
-      ..classes = ['tree-item']
-      ..children = <Element>[
-        new SpanElement()..classes = ['lines'],
-        new ButtonElement()
-          ..classes = ['expander']
+  static HTMLElement _createPredecessor(toggle) {
+    return new HTMLDivElement()
+      ..className = 'tree-item'
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()..className = 'lines',
+        new HTMLButtonElement()
+          ..className = 'expander'
           ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'retained size',
-        new SpanElement()
-          ..classes = ['edge']
+        new HTMLSpanElement()
+          ..className = 'edge'
           ..title = 'name of incoming field',
-        new SpanElement()..classes = ['name'],
-        new SpanElement()
-          ..classes = ['link']
-          ..text = "[inspect]",
-        new AnchorElement()
-          ..classes = ['link']
-          ..text = "[dominator-tree]",
-        new AnchorElement()
-          ..classes = ['link']
-          ..text = "[dominator-map]",
-      ];
+        new HTMLSpanElement()..className = 'name',
+        new HTMLSpanElement()
+          ..className = 'link'
+          ..textContent = "[inspect]",
+        new HTMLAnchorElement()
+          ..className = 'link'
+          ..textContent = "[dominator-tree]",
+        new HTMLAnchorElement()
+          ..className = 'link'
+          ..textContent = "[dominator-map]",
+      ]);
   }
 
-  static HtmlElement _createMergedDominator(toggle) {
-    return new DivElement()
-      ..classes = ['tree-item']
-      ..children = <Element>[
-        new SpanElement()
-          ..classes = ['percentage']
+  static HTMLElement _createMergedDominator(toggle) {
+    return new HTMLDivElement()
+      ..className = 'tree-item'
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()
+          ..className = 'percentage'
           ..title = 'percentage of heap being retained',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'retained size',
-        new SpanElement()..classes = ['lines'],
-        new ButtonElement()
-          ..classes = ['expander']
+        new HTMLSpanElement()..className = 'lines',
+        new HTMLButtonElement()
+          ..className = 'expander'
           ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
-        new SpanElement()..classes = ['name']
-      ];
+        new HTMLSpanElement()..className = 'name'
+      ]);
   }
 
-  static HtmlElement _createMergedDominatorDiff(toggle) {
-    return new DivElement()
-      ..classes = ['tree-item']
-      ..children = <Element>[
-        new SpanElement()
-          ..classes = ['percentage']
+  static HTMLElement _createMergedDominatorDiff(toggle) {
+    return new HTMLDivElement()
+      ..className = 'tree-item'
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()
+          ..className = 'percentage'
           ..title = 'percentage of heap being retained',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'retained size A',
-        new SpanElement()
-          ..classes = ['percentage']
+        new HTMLSpanElement()
+          ..className = 'percentage'
           ..title = 'percentage of heap being retained',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'retained size B',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'retained size change',
-        new SpanElement()..classes = ['lines'],
-        new ButtonElement()
-          ..classes = ['expander']
+        new HTMLSpanElement()..className = 'lines',
+        new HTMLButtonElement()
+          ..className = 'expander'
           ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
-        new SpanElement()..classes = ['name']
-      ];
+        new HTMLSpanElement()..className = 'name'
+      ]);
   }
 
-  static HtmlElement _createOwnership(toggle) {
-    return new DivElement()
-      ..classes = ['tree-item']
-      ..children = <Element>[
-        new SpanElement()
-          ..classes = ['percentage']
+  static HTMLElement _createOwnership(toggle) {
+    return new HTMLDivElement()
+      ..className = 'tree-item'
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()
+          ..className = 'percentage'
           ..title = 'percentage of heap owned',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'owned size',
-        new SpanElement()..classes = ['name']
-      ];
+        new HTMLSpanElement()..className = 'name'
+      ]);
   }
 
-  static HtmlElement _createOwnershipDiff(toggle) {
-    return new DivElement()
-      ..classes = ['tree-item']
-      ..children = <Element>[
-        new SpanElement()
-          ..classes = ['percentage']
+  static HTMLElement _createOwnershipDiff(toggle) {
+    return new HTMLDivElement()
+      ..className = 'tree-item'
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()
+          ..className = 'percentage'
           ..title = 'percentage of heap owned A',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'owned size A',
-        new SpanElement()
-          ..classes = ['percentage']
+        new HTMLSpanElement()
+          ..className = 'percentage'
           ..title = 'percentage of heap owned B',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'owned size B',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'owned size change',
-        new SpanElement()..classes = ['name']
-      ];
+        new HTMLSpanElement()..className = 'name'
+      ]);
   }
 
-  static HtmlElement _createClass(toggle) {
-    return new DivElement()
-      ..classes = ['tree-item']
-      ..children = <Element>[
-        new SpanElement()
-          ..classes = ['percentage']
+  static HTMLElement _createClass(toggle) {
+    return new HTMLDivElement()
+      ..className = 'tree-item'
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()
+          ..className = 'percentage'
           ..title = 'percentage of heap owned',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'shallow size',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'instance count',
-        new SpanElement()..classes = ['name']
-      ];
+        new HTMLSpanElement()..className = 'name'
+      ]);
   }
 
-  static HtmlElement _createClassDiff(toggle) {
-    return new DivElement()
-      ..classes = ['tree-item']
-      ..children = <Element>[
-        new SpanElement()
-          ..classes = ['size']
+  static HTMLElement _createClassDiff(toggle) {
+    return new HTMLDivElement()
+      ..className = 'tree-item'
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'shallow size A',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'instance count A',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'shallow size B',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'instance count B',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'shallow size diff',
-        new SpanElement()
-          ..classes = ['size']
+        new HTMLSpanElement()
+          ..className = 'size'
           ..title = 'instance count diff',
-        new SpanElement()..classes = ['name']
-      ];
+        new HTMLSpanElement()..className = 'name'
+      ]);
   }
 
   static const int kMaxChildren = 100;
@@ -1145,184 +1150,215 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     return const [];
   }
 
-  void _updateDominator(HtmlElement element, nodeDynamic, int depth) {
+  void _updateDominator(HTMLElement element, nodeDynamic, int depth) {
     SnapshotObject node = nodeDynamic;
-    element.children[0].text = Utils.formatPercentNormalized(
-        node.retainedSize * 1.0 / _snapshotA!.size);
-    element.children[1].text = Utils.formatSize(node.retainedSize);
-    _updateLines(element.children[2].children, depth);
+    (element.children.item(0) as HTMLElement).textContent =
+        Utils.formatPercentNormalized(
+            node.retainedSize * 1.0 / _snapshotA!.size);
+    (element.children.item(1) as HTMLElement).textContent =
+        Utils.formatSize(node.retainedSize);
+    _updateLines(element.children.item(2) as HTMLElement, depth);
     if (_getChildrenDominator(node).isNotEmpty) {
-      element.children[3].text = _tree!.isExpanded(node) ? '▼' : '►';
+      (element.children.item(3) as HTMLElement).textContent =
+          _tree!.isExpanded(node) ? '▼' : '►';
     } else {
-      element.children[3].text = '';
+      (element.children.item(3) as HTMLElement).textContent = '';
     }
-    element.children[4].text = node.description;
-    element.children[5].onClick.listen((_) {
+    (element.children.item(4) as HTMLElement).textContent = node.description;
+    (element.children.item(5) as HTMLElement).onClick.listen((_) {
       selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.successors;
       _r.dirty();
     });
-    element.children[6].onClick.listen((_) {
+    (element.children.item(6) as HTMLElement).onClick.listen((_) {
       selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.predecessors;
       _r.dirty();
     });
-    element.children[7].onClick.listen((_) {
+    (element.children.item(7) as HTMLElement).onClick.listen((_) {
       selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.dominatorTreeMap;
       _r.dirty();
     });
   }
 
-  void _updateSuccessor(HtmlElement element, nodeDynamic, int depth) {
+  void _updateSuccessor(HTMLElement element, nodeDynamic, int depth) {
     SnapshotObject node = nodeDynamic;
-    _updateLines(element.children[0].children, depth);
+    _updateLines(element.children.item(0) as HTMLElement, depth);
     if (_getChildrenSuccessor(node).isNotEmpty) {
-      element.children[1].text = _tree!.isExpanded(node) ? '▼' : '►';
+      (element.children.item(1) as HTMLElement).textContent =
+          _tree!.isExpanded(node) ? '▼' : '►';
     } else {
-      element.children[1].text = '';
+      (element.children.item(1) as HTMLElement).textContent = '';
     }
-    element.children[2].text = Utils.formatSize(node.retainedSize);
-    element.children[3].text = node.label;
-    element.children[4].text = node.description;
-    element.children[5].onClick.listen((_) {
+    (element.children.item(2) as HTMLElement).textContent =
+        Utils.formatSize(node.retainedSize);
+    (element.children.item(3) as HTMLElement).textContent = node.label;
+    (element.children.item(4) as HTMLElement).textContent = node.description;
+    (element.children.item(5) as HTMLElement).onClick.listen((_) {
       selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.predecessors;
       _r.dirty();
     });
-    element.children[6].onClick.listen((_) {
+    (element.children.item(6) as HTMLElement).onClick.listen((_) {
       selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.dominatorTree;
       _r.dirty();
     });
-    element.children[7].onClick.listen((_) {
+    (element.children.item(7) as HTMLElement).onClick.listen((_) {
       selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.dominatorTreeMap;
       _r.dirty();
     });
   }
 
-  void _updatePredecessor(HtmlElement element, nodeDynamic, int depth) {
+  void _updatePredecessor(HTMLElement element, nodeDynamic, int depth) {
     SnapshotObject node = nodeDynamic;
-    _updateLines(element.children[0].children, depth);
+    _updateLines(element.children.item(0) as HTMLElement, depth);
     if (_getChildrenSuccessor(node).isNotEmpty) {
-      element.children[1].text = _tree!.isExpanded(node) ? '▼' : '►';
+      (element.children.item(1) as HTMLElement).textContent =
+          _tree!.isExpanded(node) ? '▼' : '►';
     } else {
-      element.children[1].text = '';
+      (element.children.item(1) as HTMLElement).textContent = '';
     }
-    element.children[2].text = Utils.formatSize(node.retainedSize);
-    element.children[3].text = node.label;
-    element.children[4].text = node.description;
-    element.children[5].onClick.listen((_) {
+    (element.children.item(2) as HTMLElement).textContent =
+        Utils.formatSize(node.retainedSize);
+    (element.children.item(3) as HTMLElement).textContent = node.label;
+    (element.children.item(4) as HTMLElement).textContent = node.description;
+    (element.children.item(5) as HTMLElement).onClick.listen((_) {
       selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.successors;
       _r.dirty();
     });
-    element.children[6].onClick.listen((_) {
+    (element.children.item(6) as HTMLElement).onClick.listen((_) {
       selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.dominatorTree;
       _r.dirty();
     });
-    element.children[7].onClick.listen((_) {
+    (element.children.item(7) as HTMLElement).onClick.listen((_) {
       selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.dominatorTreeMap;
       _r.dirty();
     });
   }
 
-  void _updateMergedDominator(HtmlElement element, nodeDynamic, int depth) {
+  void _updateMergedDominator(HTMLElement element, nodeDynamic, int depth) {
     SnapshotMergedDominator node = nodeDynamic;
-    element.children[0].text = Utils.formatPercentNormalized(
-        node.retainedSize * 1.0 / _snapshotA!.size);
-    element.children[1].text = Utils.formatSize(node.retainedSize);
-    _updateLines(element.children[2].children, depth);
+    (element.children.item(0) as HTMLElement).textContent =
+        Utils.formatPercentNormalized(
+            node.retainedSize * 1.0 / _snapshotA!.size);
+    (element.children.item(1) as HTMLElement).textContent =
+        Utils.formatSize(node.retainedSize);
+    _updateLines(element.children.item(2) as HTMLElement, depth);
     if (_getChildrenMergedDominator(node).isNotEmpty) {
-      element.children[3].text = _tree!.isExpanded(node) ? '▼' : '►';
+      (element.children.item(3) as HTMLElement).textContent =
+          _tree!.isExpanded(node) ? '▼' : '►';
     } else {
-      element.children[3].text = '';
+      (element.children.item(3) as HTMLElement).textContent = '';
     }
-    element.children[4]
-      ..text = '${node.instanceCount} instances of ${node.klass.name}';
+    (element.children.item(4) as HTMLElement)
+      ..textContent = '${node.instanceCount} instances of ${node.klass.name}';
   }
 
-  void _updateMergedDominatorDiff(HtmlElement element, nodeDynamic, int depth) {
+  void _updateMergedDominatorDiff(HTMLElement element, nodeDynamic, int depth) {
     MergedDominatorDiff node = nodeDynamic;
-    element.children[0].text = Utils.formatPercentNormalized(
-        node.retainedSizeA * 1.0 / _snapshotA!.size);
-    element.children[1].text = Utils.formatSize(node.retainedSizeA);
-    element.children[2].text = Utils.formatPercentNormalized(
-        node.retainedSizeB * 1.0 / _snapshotB!.size);
-    element.children[3].text = Utils.formatSize(node.retainedSizeB);
-    element.children[4].text = (node.retainedSizeDiff > 0 ? '+' : '') +
-        Utils.formatSize(node.retainedSizeDiff);
-    element.children[4].style.color =
+    (element.children.item(0) as HTMLElement).textContent =
+        Utils.formatPercentNormalized(
+            node.retainedSizeA * 1.0 / _snapshotA!.size);
+    (element.children.item(1) as HTMLElement).textContent =
+        Utils.formatSize(node.retainedSizeA);
+    (element.children.item(2) as HTMLElement).textContent =
+        Utils.formatPercentNormalized(
+            node.retainedSizeB * 1.0 / _snapshotB!.size);
+    (element.children.item(3) as HTMLElement).textContent =
+        Utils.formatSize(node.retainedSizeB);
+    (element.children.item(4) as HTMLElement).textContent =
+        (node.retainedSizeDiff > 0 ? '+' : '') +
+            Utils.formatSize(node.retainedSizeDiff);
+    (element.children.item(4) as HTMLElement).style.color =
         node.retainedSizeDiff > 0 ? "red" : "green";
-    _updateLines(element.children[5].children, depth);
+    _updateLines(element.children.item(5) as HTMLElement, depth);
     if (_getChildrenMergedDominatorDiff(node).isNotEmpty) {
-      element.children[6].text = _tree!.isExpanded(node) ? '▼' : '►';
+      (element.children.item(6) as HTMLElement).textContent =
+          _tree!.isExpanded(node) ? '▼' : '►';
     } else {
-      element.children[6].text = '';
+      (element.children.item(6) as HTMLElement).textContent = '';
     }
-    element.children[7]
-      ..text =
+    (element.children.item(7) as HTMLElement)
+      ..textContent =
           '${node.instanceCountA} → ${node.instanceCountB} instances of ${node.name}';
   }
 
-  void _updateOwnership(HtmlElement element, nodeDynamic, int depth) {
+  void _updateOwnership(HTMLElement element, nodeDynamic, int depth) {
     SnapshotClass node = nodeDynamic;
-    element.children[0].text =
+    (element.children.item(0) as HTMLElement).textContent =
         Utils.formatPercentNormalized(node.ownedSize * 1.0 / _snapshotA!.size);
-    element.children[1].text = Utils.formatSize(node.ownedSize);
-    element.children[2].text = node.name;
+    (element.children.item(1) as HTMLElement).textContent =
+        Utils.formatSize(node.ownedSize);
+    (element.children.item(2) as HTMLElement).textContent = node.name;
   }
 
-  void _updateOwnershipDiff(HtmlElement element, nodeDynamic, int depth) {
+  void _updateOwnershipDiff(HTMLElement element, nodeDynamic, int depth) {
     SnapshotClassDiff node = nodeDynamic;
-    element.children[0].text =
+    (element.children.item(0) as HTMLElement).textContent =
         Utils.formatPercentNormalized(node.ownedSizeA * 1.0 / _snapshotA!.size);
-    element.children[1].text = Utils.formatSize(node.ownedSizeA);
-    element.children[2].text =
+    (element.children.item(1) as HTMLElement).textContent =
+        Utils.formatSize(node.ownedSizeA);
+    (element.children.item(2) as HTMLElement).textContent =
         Utils.formatPercentNormalized(node.ownedSizeB * 1.0 / _snapshotB!.size);
-    element.children[3].text = Utils.formatSize(node.ownedSizeB);
-    element.children[4].text = (node.ownedSizeDiff > 0 ? "+" : "") +
-        Utils.formatSize(node.ownedSizeDiff);
-    element.children[4].style.color = node.ownedSizeDiff > 0 ? "red" : "green";
-    element.children[5].text = node.name;
+    (element.children.item(3) as HTMLElement).textContent =
+        Utils.formatSize(node.ownedSizeB);
+    (element.children.item(4) as HTMLElement).textContent =
+        (node.ownedSizeDiff > 0 ? "+" : "") +
+            Utils.formatSize(node.ownedSizeDiff);
+    (element.children.item(4) as HTMLElement).style.color =
+        node.ownedSizeDiff > 0 ? "red" : "green";
+    (element.children.item(5) as HTMLElement).textContent = node.name;
   }
 
-  void _updateClass(HtmlElement element, nodeDynamic, int depth) {
+  void _updateClass(HTMLElement element, nodeDynamic, int depth) {
     SnapshotClass node = nodeDynamic;
-    element.children[0].text = Utils.formatPercentNormalized(
-        node.shallowSize * 1.0 / _snapshotA!.size);
-    element.children[1].text = Utils.formatSize(node.shallowSize);
-    element.children[2].text = node.instanceCount.toString();
-    element.children[3].text = node.name;
+    (element.children.item(0) as HTMLElement).textContent =
+        Utils.formatPercentNormalized(
+            node.shallowSize * 1.0 / _snapshotA!.size);
+    (element.children.item(1) as HTMLElement).textContent =
+        Utils.formatSize(node.shallowSize);
+    (element.children.item(2) as HTMLElement).textContent =
+        node.instanceCount.toString();
+    (element.children.item(3) as HTMLElement).textContent = node.name;
   }
 
-  void _updateClassDiff(HtmlElement element, nodeDynamic, int depth) {
+  void _updateClassDiff(HTMLElement element, nodeDynamic, int depth) {
     SnapshotClassDiff node = nodeDynamic;
-    element.children[0].text = Utils.formatSize(node.shallowSizeA);
-    element.children[1].text = node.instanceCountA.toString();
-    element.children[2].text = Utils.formatSize(node.shallowSizeB);
-    element.children[3].text = node.instanceCountB.toString();
-    element.children[4].text = (node.shallowSizeDiff > 0 ? "+" : "") +
-        Utils.formatSize(node.shallowSizeDiff);
-    element.children[4].style.color =
+    (element.children.item(0) as HTMLElement).textContent =
+        Utils.formatSize(node.shallowSizeA);
+    (element.children.item(1) as HTMLElement).textContent =
+        node.instanceCountA.toString();
+    (element.children.item(2) as HTMLElement).textContent =
+        Utils.formatSize(node.shallowSizeB);
+    (element.children.item(3) as HTMLElement).textContent =
+        node.instanceCountB.toString();
+    (element.children.item(4) as HTMLElement).textContent =
+        (node.shallowSizeDiff > 0 ? "+" : "") +
+            Utils.formatSize(node.shallowSizeDiff);
+    (element.children.item(4) as HTMLElement).style.color =
         node.shallowSizeDiff > 0 ? "red" : "green";
-    element.children[5].text = (node.instanceCountDiff > 0 ? "+" : "") +
-        node.instanceCountDiff.toString();
-    element.children[5].style.color =
+    (element.children.item(5) as HTMLElement).textContent =
+        (node.instanceCountDiff > 0 ? "+" : "") +
+            node.instanceCountDiff.toString();
+    (element.children.item(5) as HTMLElement).style.color =
         node.instanceCountDiff > 0 ? "red" : "green";
-    element.children[6].text = node.name;
+    (element.children.item(6) as HTMLElement).textContent = node.name;
   }
 
-  static _updateLines(List<Element> lines, int n) {
+  static _updateLines(HTMLElement element, int n) {
     n = Math.max(0, n);
-    while (lines.length > n) {
-      lines.removeLast();
+    while (element.childNodes.length > n) {
+      element
+          .removeChild(element.childNodes.item(element.childNodes.length - 1)!);
     }
-    while (lines.length < n) {
-      lines.add(new SpanElement());
+    while (element.childNodes.length < n) {
+      element.appendChild(new HTMLSpanElement());
     }
   }
 
@@ -1357,22 +1393,21 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     }
   }
 
-  List<Element> _createModeSelect() {
-    var s;
+  List<HTMLElement> _createModeSelect() {
     var modes = _snapshotA == _snapshotB ? viewModes : diffModes;
     if (!modes.contains(_mode)) {
       _mode = modes[0];
       _r.dirty();
     }
+    final s = HTMLSelectElement()
+      ..className = 'analysis-select'
+      ..value = modeToString(_mode)
+      ..appendChildren(modes.map((mode) => HTMLOptionElement()
+        ..value = modeToString(mode)
+        ..selected = _mode == mode
+        ..textContent = modeToString(mode)));
     return [
-      s = new SelectElement()
-        ..classes = ['analysis-select']
-        ..value = modeToString(_mode)
-        ..children = modes.map((mode) {
-          return new OptionElement(
-              value: modeToString(mode), selected: _mode == mode)
-            ..text = modeToString(mode);
-        }).toList(growable: false)
+      s
         ..onChange.listen((_) {
           _mode = modes[s.selectedIndex];
           _r.dirty();
@@ -1387,18 +1422,18 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         Utils.formatSize(snapshot.capacity + snapshot.externalSize);
   }
 
-  List<Element> _createSnapshotSelectA() {
-    var s;
+  List<HTMLElement> _createSnapshotSelectA() {
+    final s = new HTMLSelectElement()
+      ..className = 'analysis-select'
+      ..value = snapshotToString(_snapshotA)
+      ..appendChildren(_loadedSnapshots.map((snapshot) {
+        return HTMLOptionElement()
+          ..value = snapshotToString(snapshot)
+          ..selected = _snapshotA == snapshot
+          ..textContent = snapshotToString(snapshot);
+      }));
     return [
-      s = new SelectElement()
-        ..classes = ['analysis-select']
-        ..value = snapshotToString(_snapshotA)
-        ..children = _loadedSnapshots.map((snapshot) {
-          return new OptionElement(
-              value: snapshotToString(snapshot),
-              selected: _snapshotA == snapshot)
-            ..text = snapshotToString(snapshot);
-        }).toList(growable: false)
+      s
         ..onChange.listen((_) {
           _snapshotA = _loadedSnapshots[s.selectedIndex];
           selection = null;
@@ -1409,18 +1444,16 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     ];
   }
 
-  List<Element> _createSnapshotSelectB() {
+  List<HTMLElement> _createSnapshotSelectB() {
     var s;
     return [
-      s = new SelectElement()
-        ..classes = ['analysis-select']
+      s = new HTMLSelectElement()
+        ..className = 'analysis-select'
         ..value = snapshotToString(_snapshotB)
-        ..children = _loadedSnapshots.map((snapshot) {
-          return new OptionElement(
-              value: snapshotToString(snapshot),
-              selected: _snapshotB == snapshot)
-            ..text = snapshotToString(snapshot);
-        }).toList(growable: false)
+        ..appendChildren(_loadedSnapshots.map((snapshot) => HTMLOptionElement()
+          ..value = snapshotToString(snapshot)
+          ..selected = _snapshotB == snapshot
+          ..textContent = snapshotToString(snapshot)))
         ..onChange.listen((_) {
           _snapshotB = _loadedSnapshots[s.selectedIndex];
           selection = null;

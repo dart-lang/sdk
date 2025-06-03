@@ -185,7 +185,7 @@ final class ConstructorSuggestion extends ExecutableSuggestion
 
   @override
   String get completion {
-    var enclosingClass = element.enclosingElement2;
+    var enclosingClass = element.enclosingElement;
 
     var className = enclosingClass.displayName;
 
@@ -238,7 +238,7 @@ final class EnumConstantSuggestion extends ImportableSuggestion
   @override
   String get completion {
     if (includeEnumName) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       return '$completionPrefix${enclosingElement.displayName}.${element.displayName}';
     } else {
       return element.displayName;
@@ -347,7 +347,7 @@ final class FieldSuggestion extends CandidateSuggestion with MemberSuggestion {
       if (isInDeclaration) {
         return '$constantName';
       }
-      var enumName = element.enclosingElement2.displayName;
+      var enumName = element.enclosingElement.displayName;
       return '$enumName.$constantName';
     }
     return element.displayName;
@@ -423,7 +423,7 @@ final class GetterSuggestion extends ImportableSuggestion
   /// The enclosing element must be either a class, or extension; otherwise
   /// we either fail with assertion, or return `null`.
   String? get _enclosingClassOrExtensionName {
-    var enclosing = element.enclosingElement2;
+    var enclosing = element.enclosingElement;
     if (enclosing is InterfaceElement) {
       return enclosing.displayName;
     } else if (enclosing is ExtensionElement) {
@@ -687,7 +687,7 @@ mixin MemberSuggestion implements ElementBasedSuggestion {
     var inheritanceDistance = 0.0;
     var element = this.element;
     if (!(element is FieldElement && element.isEnumConstant)) {
-      var declaringClass = element.enclosingElement2;
+      var declaringClass = element.enclosingElement;
       var referencingInterface = this.referencingInterface;
       if (referencingInterface != null && declaringClass is InterfaceElement) {
         inheritanceDistance = featureComputer.inheritanceDistanceFeature(
@@ -1037,7 +1037,7 @@ final class SetterSuggestion extends ImportableSuggestion
   /// The enclosing element must be either a class, or extension; otherwise
   /// we either fail with assertion, or return `null`.
   String? get _enclosingClassOrExtensionName {
-    var enclosing = element.enclosingElement2;
+    var enclosing = element.enclosingElement;
     if (enclosing is InterfaceElement) {
       return enclosing.displayName;
     } else if (enclosing is ExtensionElement) {
@@ -1074,7 +1074,7 @@ final class StaticFieldSuggestion extends ImportableSuggestion
 
   @override
   String get completion {
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     return '$completionPrefix${enclosingElement.displayName}.${element.displayName}';
   }
 }

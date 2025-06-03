@@ -9,8 +9,8 @@ import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 
-/// Information about all the classes derived from `ErrorCode` that are code
-/// generated based on the contents of the analyzer and front end
+/// Information about all the classes derived from `DiagnosticCode` that are
+/// code-generated based on the contents of the analyzer and front end
 /// `messages.yaml` files.
 const List<ErrorClassInfo> errorClasses = [
   ErrorClassInfo(
@@ -172,6 +172,9 @@ Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeAnalyzerMessagesYaml(
           st,
         );
       }
+      if (errorCodeInfo.hasPublishedDocs == null) {
+        problem('Missing hasPublishedDocs for $className.$errorName');
+      }
 
       if (errorCodeInfo case AliasErrorCodeInfo(:var aliasFor)) {
         var aliasForPath = aliasFor.split('.');
@@ -215,7 +218,11 @@ Map<String, FrontEndErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
     if (errorValue is! Map<Object?, Object?>) {
       problem('value associated with error $errorName is not a map');
     }
-    result[errorName] = FrontEndErrorCodeInfo.fromYaml(errorValue);
+    try {
+      result[errorName] = FrontEndErrorCodeInfo.fromYaml(errorValue);
+    } catch (e, st) {
+      Error.throwWithStackTrace('while processing $errorName, $e', st);
+    }
   }
   return result;
 }
@@ -432,7 +439,7 @@ class ErrorClassInfo {
     this.includeCfeMessages = false,
     required this.name,
     this.severity,
-    this.superclass = 'ErrorCode',
+    this.superclass = 'DiagnosticCode',
     required this.type,
   });
 
@@ -468,9 +475,11 @@ abstract class ErrorCodeInfo {
   /// If present, user-facing documentation for the error.
   final String? documentation;
 
-  /// `true` if diagnostics with this code have documentation for them that has
+  /// Whether diagnostics with this code have documentation for them that has
   /// been published.
-  final bool hasPublishedDocs;
+  ///
+  /// `null` if the YAML doesn't contain this information.
+  final bool? hasPublishedDocs;
 
   /// Indicates whether this error is caused by an unresolved identifier.
   final bool isUnresolvedIdentifier;
@@ -494,7 +503,7 @@ abstract class ErrorCodeInfo {
   ErrorCodeInfo({
     this.comment,
     this.documentation,
-    this.hasPublishedDocs = false,
+    this.hasPublishedDocs,
     this.isUnresolvedIdentifier = false,
     this.sharedName,
     required this.problemMessage,
@@ -511,7 +520,7 @@ abstract class ErrorCodeInfo {
         correctionMessage: yaml['correctionMessage'] as String?,
         deprecatedMessage: yaml['deprecatedMessage'] as String?,
         documentation: yaml['documentation'] as String?,
-        hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
+        hasPublishedDocs: yaml['hasPublishedDocs'] as bool?,
         isUnresolvedIdentifier:
             yaml['isUnresolvedIdentifier'] as bool? ?? false,
         problemMessage: yaml['problemMessage'] as String? ?? '',
@@ -545,16 +554,19 @@ abstract class ErrorCodeInfo {
   }
 
   /// Generates a dart declaration for this error code, suitable for inclusion
-  /// in the error class [className].  [errorCode] is the name of the error code
-  /// to be generated.
+  /// in the error class [className].
+  ///
+  /// [diagnosticCode] is the name of the error code to be generated.
   String toAnalyzerCode(
     String className,
-    String errorCode, {
+    String diagnosticCode, {
     String? sharedNameReference,
   }) {
     var out = StringBuffer();
     out.writeln('$className(');
-    out.writeln('${sharedNameReference ?? "'${sharedName ?? errorCode}'"},');
+    out.writeln(
+      '${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
+    );
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
     var placeholderToIndexMap = computePlaceholderToIndexMap();
     var messageAsCode = convertTemplate(placeholderToIndexMap, problemMessage);
@@ -571,14 +583,14 @@ abstract class ErrorCodeInfo {
       var codeLines = _splitText(code, maxWidth: maxWidth);
       out.writeln('${codeLines.map(json.encode).join('\n')},');
     }
-    if (hasPublishedDocs) {
+    if (hasPublishedDocs ?? false) {
       out.writeln('hasPublishedDocs:true,');
     }
     if (isUnresolvedIdentifier) {
       out.writeln('isUnresolvedIdentifier:true,');
     }
     if (sharedName != null) {
-      out.writeln("uniqueName: '$errorCode',");
+      out.writeln("uniqueName: '$diagnosticCode',");
     }
     out.write(');');
     return out.toString();
@@ -603,7 +615,7 @@ abstract class ErrorCodeInfo {
     'problemMessage': problemMessage,
     if (correctionMessage != null) 'correctionMessage': correctionMessage,
     if (isUnresolvedIdentifier) 'isUnresolvedIdentifier': true,
-    if (hasPublishedDocs) 'hasPublishedDocs': true,
+    if (hasPublishedDocs ?? false) 'hasPublishedDocs': true,
     if (comment != null) 'comment': comment,
     if (documentation != null) 'documentation': documentation,
   };

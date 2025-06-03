@@ -10,12 +10,18 @@ String s = "";
 use(e) {}
 
 listLiteral() {
-  /*<dynamic>*/ [];
-  /*<num>*/ [n];
-  /*<num>*/ [n, i];
-  /*<num>*/ [n, i, d];
-  /*<String>*/ [s];
-  /*<Object>*/ [n, i, d, s];
+  /*<dynamic>*/
+  [];
+  /*<num>*/
+  [n];
+  /*<num>*/
+  [n, i];
+  /*<num>*/
+  [n, i, d];
+  /*<String>*/
+  [s];
+  /*<Object>*/
+  [n, i, d, s];
 }
 
 setLiteral() {

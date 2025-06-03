@@ -112,7 +112,7 @@ List<T> mapEngineErrors<T>(
   T Function(
     engine.AnalysisResultWithErrors result,
     engine.Diagnostic diagnostic, [
-    engine.DiagnosticSeverity errorSeverity,
+    engine.DiagnosticSeverity severity,
   ])
   constructor,
 ) {
@@ -173,7 +173,7 @@ AnalysisError newAnalysisError_fromEngine(
   }
 
   // Default to the error's severity if none is specified.
-  diagnosticSeverity ??= errorCode.errorSeverity;
+  diagnosticSeverity ??= errorCode.severity;
 
   // done
   var severity = AnalysisErrorSeverity.values.byName(diagnosticSeverity.name);
@@ -215,11 +215,22 @@ DiagnosticMessage newDiagnosticMessage(
   var offset = message.offset;
   var length = message.length;
 
-  var startLocation = result.lineInfo.getLocation(offset);
+  var lineInfo = result.lineInfo;
+  if (result.path != message.filePath) {
+    var messageResult = result.session.getFile(message.filePath);
+    // If we can't get a result for the file then we will return bogus start and
+    // end positions, but that's probably better than not returning the
+    // diagnostic.
+    if (messageResult is engine.FileResult) {
+      lineInfo = messageResult.lineInfo;
+    }
+  }
+
+  var startLocation = lineInfo.getLocation(offset);
   var startLine = startLocation.lineNumber;
   var startColumn = startLocation.columnNumber;
 
-  var endLocation = result.lineInfo.getLocation(offset + length);
+  var endLocation = lineInfo.getLocation(offset + length);
   var endLine = endLocation.lineNumber;
   var endColumn = endLocation.columnNumber;
 
@@ -243,7 +254,7 @@ Location? newLocation_fromElement(engine.Element? element) {
     return null;
   }
   if (element is engine.FormalParameterElement &&
-      element.enclosingElement2 == null) {
+      element.enclosingElement == null) {
     return null;
   }
   var fragment = element.firstFragment;
@@ -300,7 +311,7 @@ Location newLocation_fromUnit(
 /// Construct based on an element from the analyzer engine.
 OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
   var element = convertElement(member);
-  var className = member.enclosingElement2!.displayName;
+  var className = member.enclosingElement!.displayName;
   return OverriddenMember(element, className);
 }
 

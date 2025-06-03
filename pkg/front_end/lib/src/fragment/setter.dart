@@ -60,6 +60,10 @@ class SetterFragment implements Fragment, FunctionFragment {
   SourcePropertyBuilder? _builder;
   SetterFragmentDeclaration? _declaration;
 
+  @override
+  late final UriOffsetLength uriOffset =
+      new UriOffsetLength(fileUri, nameOffset, name.length);
+
   SetterFragment({
     required this.name,
     required this.fileUri,
@@ -121,6 +125,13 @@ class _SetterFunctionBodyBuildingContext
   _SetterFunctionBodyBuildingContext(this._fragment);
 
   @override
+  InferenceDataForTesting? get inferenceDataForTesting => _fragment
+      .builder
+      .dataForTesting
+      // Coverage-ignore(suite): Not run.
+      ?.inferenceData;
+
+  @override
   MemberKind get memberKind => _fragment.isTopLevel
       ? MemberKind.TopLevelMethod
       : (_fragment.modifiers.isStatic
@@ -131,9 +142,11 @@ class _SetterFunctionBodyBuildingContext
   bool get shouldBuild => true;
 
   @override
-  LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
-    return _fragment.declaration.createFormalParameterScope(typeParameterScope);
-  }
+  List<TypeParameter>? get thisTypeParameters =>
+      _fragment.declaration.thisTypeParameters;
+
+  @override
+  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
   LookupScope get typeParameterScope {
@@ -141,21 +154,12 @@ class _SetterFunctionBodyBuildingContext
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext() {
-    return _fragment.declaration.createBodyBuilderContext(_fragment.builder);
+  LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
+    return _fragment.declaration.createFormalParameterScope(typeParameterScope);
   }
 
   @override
-  InferenceDataForTesting? get inferenceDataForTesting => _fragment
-      .builder
-      .dataForTesting
-      // Coverage-ignore(suite): Not run.
-      ?.inferenceData;
-
-  @override
-  List<TypeParameter>? get thisTypeParameters =>
-      _fragment.declaration.thisTypeParameters;
-
-  @override
-  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
+  BodyBuilderContext createBodyBuilderContext() {
+    return _fragment.declaration.createBodyBuilderContext(_fragment.builder);
+  }
 }

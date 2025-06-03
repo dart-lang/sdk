@@ -78,11 +78,11 @@ class JsToFrontendMap {
 
   DartType? toBackendType(DartType? type, {bool allowFreeVariables = false}) =>
       type == null
-          ? null
-          : _TypeConverter(
-            _backend.types,
-            allowFreeVariables: allowFreeVariables,
-          ).visit(type, toBackendEntity);
+      ? null
+      : _TypeConverter(
+          _backend.types,
+          allowFreeVariables: allowFreeVariables,
+        ).visit(type, toBackendEntity);
 
   void registerClosureData(ClosureData closureData) {
     assert(_closureData == null, "Closure data has already been registered.");
@@ -360,10 +360,9 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     List<ConstantValue> values = _handleValues(constant.values);
     final constantIndex = constant.indexObject;
-    final indexObject =
-        constantIndex == null
-            ? null
-            : visitJavaScriptObject(constantIndex, null);
+    final indexObject = constantIndex == null
+        ? null
+        : visitJavaScriptObject(constantIndex, null);
     if (identical(values, constant.values) &&
         identical(indexObject, constant.indexObject) &&
         type == constant.type) {
@@ -385,10 +384,9 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     final keyList = visitList(constant.keyList, null);
     final valueList = visitList(constant.valueList, null);
     final constantIndex = constant.indexObject;
-    final indexObject =
-        constantIndex == null
-            ? null
-            : visitJavaScriptObject(constantIndex, null);
+    final indexObject = constantIndex == null
+        ? null
+        : visitJavaScriptObject(constantIndex, null);
     if (identical(keyList, constant.keyList) &&
         identical(valueList, constant.valueList) &&
         identical(indexObject, constant.indexObject) &&

@@ -6,6 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +17,7 @@ class VoidChecks extends LintRule {
   VoidChecks() : super(name: LintNames.void_checks, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.void_checks;
+  DiagnosticCode get diagnosticCode => LinterLintCode.void_checks;
 
   @override
   void registerNodeProcessors(

@@ -6,10 +6,11 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Use super-initializer parameters where possible.';
 
@@ -23,16 +24,16 @@ Set<FormalParameterElement> _referencedParameters(
   return collector.foundParameters;
 }
 
-class UseSuperParameters extends LintRule {
+class UseSuperParameters extends MultiAnalysisRule {
   UseSuperParameters()
     : super(
         name: LintNames.use_super_parameters,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.use_super_parameters_multiple,
     LinterLintCode.use_super_parameters_single,
   ];
@@ -42,7 +43,7 @@ class UseSuperParameters extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    if (!context.isEnabled(Feature.super_parameters)) return;
+    if (!context.isFeatureEnabled(Feature.super_parameters)) return;
 
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
@@ -63,7 +64,7 @@ class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LinterContext context;
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule, this.context);
 
@@ -257,14 +258,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         target.offset,
         target.length,
-        errorCode: LinterLintCode.use_super_parameters_multiple,
+        diagnosticCode: LinterLintCode.use_super_parameters_multiple,
         arguments: [msg],
       );
     } else {
       rule.reportAtOffset(
         target.offset,
         target.length,
-        errorCode: LinterLintCode.use_super_parameters_single,
+        diagnosticCode: LinterLintCode.use_super_parameters_single,
         arguments: [identifiers.first],
       );
     }

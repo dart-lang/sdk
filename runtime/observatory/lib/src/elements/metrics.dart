@@ -5,12 +5,15 @@
 library metrics;
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/metric/details.dart';
 import 'package:observatory/src/elements/metric/graph.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
@@ -66,12 +69,12 @@ class MetricsPageElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    children = <Element>[
-      navBar(<Element>[
+    children = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -84,47 +87,47 @@ class MetricsPageElement extends CustomElement implements Renderable {
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h2()..text = 'Metrics',
-          new HRElement(),
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'Metric',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..children = _available == null
-                        ? [new SpanElement()..text = 'Loading..']
-                        : _createMetricSelect()
-                ]
-            ],
-          new HRElement(),
-          new DivElement()
-            ..children = _selected == null
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h2()..textContent = 'Metrics',
+          new HTMLHRElement(),
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'Metric',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..appendChildren(_available == null
+                        ? [new HTMLSpanElement()..textContent = 'Loading..']
+                        : _createMetricSelect())
+                ])
+            ]),
+          new HTMLHRElement(),
+          new HTMLDivElement()
+            ..appendChildren(_selected == null
                 ? const []
                 : [
                     new MetricDetailsElement(_isolate, _selected!, _metrics,
                             queue: _r.queue)
                         .element
-                  ],
-          new HRElement(),
-          new DivElement()
-            ..classes = ['graph']
-            ..children = _selected == null
+                  ]),
+          new HTMLHRElement(),
+          new HTMLDivElement()
+            ..className = 'graph'
+            ..appendChildren(_selected == null
                 ? const []
                 : [
                     new MetricGraphElement(_isolate, _selected!, _metrics,
                             queue: _r.queue)
                         .element
-                  ]
-        ],
+                  ])
+        ]),
     ];
   }
 
@@ -136,16 +139,15 @@ class MetricsPageElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  List<Element> _createMetricSelect() {
-    var s;
+  List<HTMLElement> _createMetricSelect() {
+    final s = new HTMLSelectElement()
+      ..value = _selected!.name!
+      ..appendChildren(_available!.map((metric) => HTMLOptionElement()
+        ..value = metric.name!
+        ..selected = _selected == metric
+        ..textContent = metric.name!));
     return [
-      s = new SelectElement()
-        ..value = _selected!.name!
-        ..children = _available!.map((metric) {
-          return new OptionElement(
-              value: metric.name!, selected: _selected == metric)
-            ..text = metric.name!;
-        }).toList(growable: false)
+      s
         ..onChange.listen((_) {
           _selected = _available![s.selectedIndex];
           _r.dirty();

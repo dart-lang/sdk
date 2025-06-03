@@ -395,7 +395,8 @@ class _RecordClassGenerator {
         Procedure(
           Name('toString', library),
           ProcedureKind.Method,
-          FunctionNode(ReturnStatement(stringExpression)),
+          FunctionNode(ReturnStatement(stringExpression),
+              returnType: coreTypes.stringNonNullableRawType),
           fileUri: library.fileUri,
         ),
         coreTypes);
@@ -421,10 +422,11 @@ class _RecordClassGenerator {
       statements.add(IfStatement(
         Not(InstanceInvocation(
           InstanceAccessKind.Instance,
-          (InstanceInvocation(InstanceAccessKind.Instance, ThisExpression(),
-              getRti.name, Arguments([]),
+          (InstanceGet(
+              InstanceAccessKind.Instance, ThisExpression(), getRti.name,
               interfaceTarget: getRti,
-              functionType: getRti.computeSignatureOrFunctionType())),
+              resultType: InterfaceType(
+                  recordRuntimeTypeClass, Nullability.nonNullable))),
           checkInstance.name,
           Arguments([VariableGet(parameter)]),
           interfaceTarget: checkInstance,

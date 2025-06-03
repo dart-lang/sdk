@@ -34,7 +34,7 @@ class GetterSetterTypesVerifier {
       return;
     }
 
-    for (var getter in element.getters2) {
+    for (var getter in element.getters) {
       _checkLocalGetter(getter);
     }
   }
@@ -48,7 +48,7 @@ class GetterSetterTypesVerifier {
     }
 
     checkInterface(element, interface);
-    checkStaticGetters(element.getters2);
+    checkStaticGetters(element.getters);
   }
 
   void checkInterface(InterfaceElementImpl2 element, Interface interface) {
@@ -71,28 +71,28 @@ class GetterSetterTypesVerifier {
           var setterType = setter.formalParameters[0].type;
           if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
             Element errorElement;
-            if (getter.enclosingElement2 == element) {
+            if (getter.enclosingElement == element) {
               if (element is ExtensionTypeElementImpl2 &&
                   element.representation2.getter2 == getter) {
                 errorElement = setter;
               } else {
                 errorElement = getter;
               }
-            } else if (setter.enclosingElement2 == element) {
+            } else if (setter.enclosingElement == element) {
               errorElement = setter;
             } else {
               errorElement = element;
             }
 
             var getterName = getter.displayName;
-            if (getter.enclosingElement2 != element) {
-              var getterClassName = getter.enclosingElement2!.displayName;
+            if (getter.enclosingElement != element) {
+              var getterClassName = getter.enclosingElement!.displayName;
               getterName = '$getterClassName.$getterName';
             }
 
             var setterName = setter.displayName;
-            if (setter.enclosingElement2 != element) {
-              var setterClassName = setter.enclosingElement2!.displayName;
+            if (setter.enclosingElement != element) {
+              var setterClassName = setter.enclosingElement!.displayName;
               setterName = '$setterClassName.$setterName';
             }
 

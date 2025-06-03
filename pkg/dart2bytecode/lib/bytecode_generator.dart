@@ -1503,7 +1503,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   /// Generates is-test for the value at TOS.
   void _genInstanceOf(DartType type) {
-    if (typeEnvironment.isTop(type)) {
+    if (_isTopType(type)) {
       asm.emitDrop1();
       asm.emitPushTrue();
       return;
@@ -2227,7 +2227,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     final DartType bound = (forwardingTypeParameterBounds != null)
         ? forwardingTypeParameterBounds[typeParam]!
         : typeParam.bound;
-    if (typeEnvironment.isTop(bound)) {
+    if (_isTopType(bound)) {
       return false;
     }
     return true;
@@ -2244,7 +2244,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     final DartType type = (forwardingParameterTypes != null)
         ? forwardingParameterTypes[param]!
         : param.type;
-    if (typeEnvironment.isTop(type)) {
+    if (_isTopType(type)) {
       return false;
     }
     return true;
@@ -2289,6 +2289,16 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitAssertSubtype();
   }
 
+  bool _isTopType(DartType type) => switch (type) {
+        DynamicType() => true,
+        VoidType() => true,
+        InterfaceType() => type.classNode == coreTypes.objectClass &&
+            type.nullability == Nullability.nullable,
+        FutureOrType() => _isTopType(type.typeArgument),
+        ExtensionType() => _isTopType(type.extensionTypeErasure),
+        _ => false,
+      };
+
   void _genArgumentTypeCheck(VariableDeclaration variable,
       Map<VariableDeclaration, DartType>? forwardingParameterTypes) {
     final DartType type = (forwardingParameterTypes != null)
@@ -2300,7 +2310,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   void _genAssertAssignable(DartType type, {String? name, String? message}) {
-    assert(!typeEnvironment.isTop(type));
+    assert(!_isTopType(type));
     asm.emitPushConstant(cp.addType(type));
     _genPushInstantiatorAndFunctionTypeArguments([type]);
     asm.emitPushConstant(
@@ -2723,7 +2733,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     _generateNode(node.operand);
 
     final type = node.type;
-    if (typeEnvironment.isTop(type)) {
+    if (_isTopType(type) || node.isUnchecked) {
       return;
     }
 

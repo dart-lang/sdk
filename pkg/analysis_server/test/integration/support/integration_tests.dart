@@ -8,17 +8,17 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
-import 'package:analyzer_utilities/testing/test_support.dart';
+import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
+import '../../constants.dart';
 import '../../support/configuration_files.dart';
 import '../../support/sdk_paths.dart';
 import 'integration_test_methods.dart';
@@ -102,6 +102,9 @@ typedef MismatchDescriber =
 typedef NotificationProcessor =
     void Function(String event, Map<Object?, Object?> params);
 
+/// Type of callbacks used to process reverse-requests.
+typedef ReverseRequestProcessor = void Function(Request request);
+
 /// Base class for analysis server integration tests.
 abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
     with MockPackagesMixin, ConfigurationFilesMixin {
@@ -140,6 +143,9 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
 
   String dartSdkPath = path.dirname(path.dirname(Platform.resolvedExecutable));
 
+  StreamController<Request> serverToClientRequestsController =
+      StreamController<Request>.broadcast();
+
   /// Return a future which will complete when a 'server.status' notification is
   /// received from the server with 'analyzing' set to false.
   ///
@@ -166,6 +172,9 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
   @override
   String get packagesRootPath => packagesDirectory.path;
 
+  Stream<Request> get serverToClientRequests =>
+      serverToClientRequestsController.stream;
+
   @override
   String get testPackageRootPath => sourceDirectory.path;
 
@@ -173,6 +182,10 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
   /// already been exchanged with the server, they are printed out immediately.
   void debugStdio() {
     server.debugStdio();
+  }
+
+  void dispatchReverseRequest(Request request) {
+    serverToClientRequestsController.add(request);
   }
 
   /// If there was a set of errors (might be empty) received for the file
@@ -232,7 +245,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
       fail('${params.message}\n${params.stackTrace}');
     });
     await startServer();
-    server.listenToOutput(dispatchNotification);
+    server.listenToOutput(dispatchNotification, dispatchReverseRequest);
     unawaited(
       server.exitCode.then((_) {
         skipShutdown = true;
@@ -512,7 +525,7 @@ class Server {
   final List<String> _recordedStdio = <String>[];
 
   /// True if we are currently printing out messages exchanged with the server.
-  bool _debuggingStdio = false;
+  bool _debuggingStdio = debugPrintCommunication;
 
   /// True if we've received bad data from the server, and we are aborting the
   /// test.
@@ -558,8 +571,19 @@ class Server {
   }
 
   /// Start listening to output from the server, and deliver notifications to
-  /// [notificationProcessor].
-  void listenToOutput(NotificationProcessor notificationProcessor) {
+  /// [notificationProcessor] and reverse requests to [reverseRequestProcessor].
+  void listenToOutput(
+    NotificationProcessor notificationProcessor, [
+    ReverseRequestProcessor? reverseRequestProcessor,
+  ]) {
+    // Provide a default implementation of the reverse request processor that
+    // just throws because there are many tests that don't use reverse-requests.
+    reverseRequestProcessor ??=
+        (_) =>
+            throw UnimplementedError(
+              "A reverse request was received but the test did not provide 'reverseRequestProcessor'",
+            );
+
     _process.stdout.transform(utf8.decoder).transform(LineSplitter()).listen((
       String line,
     ) {
@@ -596,7 +620,17 @@ class Server {
         return;
       }
       outOfTestExpect(message, isMap);
-      if (message.containsKey('id')) {
+      if (message.containsKey('id') && message.containsKey('method')) {
+        // Message is a reverse-request from the server.
+        outOfTestExpect(message['id'], isString);
+        var id = message['id'] as String;
+        outOfTestExpect(message['method'], isString);
+        var method = message['method'] as String;
+        reverseRequestProcessor!(
+          Request(id, method, message['params'] as Map<String, Object?>?),
+        );
+      } else if (message.containsKey('id')) {
+        // Message is a response to an outstanding request.
         outOfTestExpect(message['id'], isString);
         var id = message['id'] as String;
         var completer = _pendingCommands[id];
@@ -656,10 +690,15 @@ class Server {
     }
     var completer = Completer<Map<String, Object?>?>();
     _pendingCommands[id] = completer;
-    var line = json.encode(command);
+    sendRaw(command);
+    return completer.future;
+  }
+
+  /// Send a raw object to the server.
+  void sendRaw(Map<String, Object?> data) {
+    var line = json.encode(data);
     _recordStdio('==> $line');
     _process.stdin.add(utf8.encode('$line\n'));
-    return completer.future;
   }
 
   /// Start the server. If [profileServer] is `true`, the server will be started

@@ -11,7 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -55,9 +55,9 @@ class ConstantsDataComputer extends DataComputer<String> {
     TestConfig config,
     TestingData testingData,
     Id id,
-    List<AnalysisError> errors,
+    List<Diagnostic> diagnostics,
   ) {
-    var errorCodes = errors
+    var errorCodes = diagnostics
         .map((e) => e.errorCode)
         .where(
           (errorCode) =>

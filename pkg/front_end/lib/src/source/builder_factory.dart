@@ -124,8 +124,11 @@ abstract class BuilderFactory {
   void beginExtensionOrExtensionTypeHeader();
 
   /// Registers that this builder is preparing for an extension declaration with
-  /// the given [name] and [typeParameters] located [charOffset].
-  void beginExtensionDeclaration(String? name, int charOffset,
+  /// the given [name] and [typeParameters] located at [nameOrExtensionOffset].
+  ///
+  /// If the extension is unnamed, [nameOrExtensionOffset] is the offset of the
+  /// `extension` keyword. Otherwise it is the offset of the extension name.
+  void beginExtensionDeclaration(String? name, int nameOrExtensionOffset,
       List<TypeParameterFragment>? typeParameters);
 
   void beginExtensionBody();
@@ -254,7 +257,6 @@ abstract class BuilderFactory {
       required List<TypeParameterFragment>? typeParameters,
       required TypeBuilder onType,
       required int startOffset,
-      required int nameOrExtensionOffset,
       required int endOffset});
 
   void addExtensionTypeDeclaration(

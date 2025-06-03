@@ -17,7 +17,8 @@ condition_notTrue(bool c) {
     v2 = 0;
     v1;
   }
-  /*unassigned*/ v2;
+  /*unassigned*/
+  v2;
 }
 
 true_break_afterAssignment(bool c) {
@@ -41,7 +42,8 @@ true_break_beforeAssignment(bool c) {
     v2 = 0;
     v2;
   }
-  /*unassigned*/ v1;
+  /*unassigned*/
+  v1;
 }
 
 true_break_if(bool c) {
@@ -85,7 +87,8 @@ true_break_if3(bool c) {
     }
     v1;
   }
-  /*unassigned*/ v2;
+  /*unassigned*/
+  v2;
 }
 
 true_breakOuterFromInner(bool c) {
@@ -103,7 +106,8 @@ true_breakOuterFromInner(bool c) {
     v2;
   }
   v1;
-  /*unassigned*/ v3;
+  /*unassigned*/
+  v3;
 }
 
 true_continue(bool c) {
@@ -112,7 +116,8 @@ true_continue(bool c) {
     if (c) continue;
     v = 0;
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 true_noBreak(bool c) {
@@ -121,5 +126,6 @@ true_noBreak(bool c) {
     // No assignment, but not break.
     // So, we don't exit the loop.
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }

@@ -48,6 +48,7 @@ linter:
     - test_types_in_equals
     - throw_in_finally
     - unawaited_futures # pedantic
+    - unnecessary_async
     - unnecessary_breaks
     - unnecessary_final
     - unnecessary_ignore

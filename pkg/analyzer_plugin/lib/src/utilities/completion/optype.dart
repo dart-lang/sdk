@@ -1215,7 +1215,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     if (identical(entity, nameToken) ||
         // In addition to the standard case,
         // handle the exceptional case where the parser considers the would-be

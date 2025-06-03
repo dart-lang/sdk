@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -296,6 +297,57 @@ DotShorthandPropertyAccess
 ''');
   }
 
+  test_equality_nullAssert() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int x;
+  C(this.x);
+  static C? nullable = C(1);
+}
+
+main() {
+  print(C(1) == .nullable!);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: nullable
+    element: <testLibraryFragment>::@class::C::@getter::nullable#element
+    staticType: C?
+  staticType: C?
+''');
+  }
+
+  test_equality_nullAssert_chain() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int x;
+  C(this.x);
+  static C? nullable = C(1);
+  C? member = C(1);
+}
+
+main() {
+  print(C(1) == .nullable!.member!);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: nullable
+    element: <testLibraryFragment>::@class::C::@getter::nullable#element
+    staticType: C?
+  staticType: C?
+''');
+  }
+
   test_equality_pattern() async {
     await assertNoErrorsInCode('''
 enum Color { red, blue }
@@ -370,7 +422,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER, 48, 4)],
+      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER, 49, 3)],
     );
   }
 
@@ -424,7 +476,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@method::foo#element
+    element: <testLibrary>::@class::C::@method::foo
     staticType: String Function<X>()
   staticType: String Function<X>()
 ''');
@@ -512,7 +564,127 @@ DotShorthandPropertyAccess
 ''');
   }
 
-  test_object_new() async {
+  test_postfixOperator() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  static C get member => C(1);
+  int x;
+  C(this.x);
+}
+
+void main() {
+  C c = .member++;
+  print(c);
+}
+''',
+      [
+        error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 88, 7),
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 95, 2),
+      ],
+    );
+  }
+
+  test_prefixOperator() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  static C get member => C(1);
+  int x;
+  C(this.x);
+}
+
+void main() {
+  C c = ++.member;
+  print(c);
+}
+''',
+      [
+        error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 90, 7),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 91, 6),
+      ],
+    );
+  }
+
+  test_tearOff_constructor() async {
+    await assertNoErrorsInCode(r'''
+class C1 {
+  C1.id();
+
+  @override
+  bool operator ==(Object other) => identical(C1.id, other);
+}
+
+main() {
+  bool x = C1.id() == .id;
+  print(x);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: id
+    element: <testLibraryFragment>::@class::C1::@constructor::id#element
+    staticType: C1 Function()
+  correspondingParameter: <testLibraryFragment>::@class::C1::@method::==::@parameter::other#element
+  staticType: C1 Function()
+''');
+  }
+
+  test_tearOff_constructor_abstract() async {
+    await assertErrorsInCode(
+      r'''
+Function fn() {
+  return .new;
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode
+              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          25,
+          4,
+        ),
+      ],
+    );
+  }
+
+  test_tearOff_constructor_generic() async {
+    await assertNoErrorsInCode(r'''
+class C<T> {
+  T t;
+  C(this.t);
+  C.id(this.t);
+}
+
+void main() {
+  Object? o = C<int>(0);
+  if (o is C<int>) {
+    o = .new;
+    if (o is Function) {
+       o(1).t;
+    }
+  }
+}
+''');
+
+    var dotShorthand = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(dotShorthand, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: new
+    element: <testLibraryFragment>::@class::C::@constructor::new#element
+    staticType: C<T> Function(T)
+  correspondingParameter: <null>
+  staticType: C<T> Function(T)
+''');
+  }
+
+  test_tearOff_constructor_new() async {
     await assertNoErrorsInCode('''
 void main() {
   Object o = .new;

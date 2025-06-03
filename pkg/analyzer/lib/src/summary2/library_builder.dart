@@ -143,13 +143,13 @@ class LibraryBuilder {
       if (classFragment.isMixinApplication) continue;
       if (classFragment.constructors.isNotEmpty) continue;
 
-      var constructor = ConstructorFragmentImpl('', -1)..isSynthetic = true;
+      var constructor = ConstructorFragmentImpl(name2: 'new', nameOffset: -1)
+        ..isSynthetic = true;
       var containerRef = classFragment.reference!.getChild('@constructor');
       var reference = containerRef.getChild('new');
       reference.element = constructor;
       constructor.reference = reference;
       constructor.typeName = classFragment.name2;
-      constructor.name2 = 'new';
 
       classFragment.constructors = [constructor].toFixedList();
     }
@@ -196,7 +196,7 @@ class LibraryBuilder {
 
   void buildEnumSyntheticConstructors() {
     bool hasConstructor(EnumFragmentImpl fragment) {
-      for (var constructor in fragment.element.constructors2) {
+      for (var constructor in fragment.element.constructors) {
         if (constructor.isGenerative || constructor.name3 == 'new') {
           return true;
         }
@@ -209,7 +209,7 @@ class LibraryBuilder {
       if (hasConstructor(enumFragment)) continue;
 
       var constructor =
-          ConstructorFragmentImpl('', -1)
+          ConstructorFragmentImpl(name2: 'new', nameOffset: -1)
             ..isConst = true
             ..isSynthetic = true;
       var containerRef = enumFragment.reference!.getChild('@constructor');
@@ -217,7 +217,6 @@ class LibraryBuilder {
       reference.element = constructor;
       constructor.reference = reference;
       constructor.typeName = enumFragment.name2;
-      constructor.name2 = 'new';
 
       enumFragment.constructors =
           [...enumFragment.constructors, constructor].toFixedList();
@@ -260,6 +259,9 @@ class LibraryBuilder {
   }
 
   void declare(String name, Reference reference) {
+    // If the element name is missing, don't attempt adding it.
+    assert(name.isNotEmpty);
+
     _declaredReferences[name] = reference;
   }
 
@@ -269,7 +271,7 @@ class LibraryBuilder {
       if (classFragment is! ClassFragmentImpl) continue;
       if (classFragment.isMixinApplication) continue;
       if (classFragment.isAugmentation) continue;
-      var hasConst = classFragment.element.constructors2.any((e) => e.isConst);
+      var hasConst = classFragment.element.constructors.any((e) => e.isConst);
       if (hasConst) {
         withConstConstructors.add(classFragment);
       }
@@ -300,7 +302,7 @@ class LibraryBuilder {
       for (var constructor in interfaceFragment.constructors) {
         for (var parameter in constructor.parameters) {
           if (parameter is FieldFormalParameterFragmentImpl) {
-            parameter.field = element.getField2(parameter.name)?.asElement;
+            parameter.field = element.getField(parameter.name2 ?? '')?.asElement;
           }
         }
       }
@@ -350,7 +352,6 @@ class LibraryBuilder {
           if (element.superclassConstraints.isEmpty) {
             shouldResetClassHierarchies = true;
             interfaceFragment.superclassConstraints = [objectType];
-            element.superclassConstraints = [objectType];
           }
       }
     }
@@ -427,7 +428,7 @@ class LibraryBuilder {
         }).toFixedList();
   }
 
-  LibraryExportElementImpl _buildLibraryExport(LibraryExportState state) {
+  LibraryExportImpl _buildLibraryExport(LibraryExportState state) {
     var combinators = _buildCombinators(state.unlinked.combinators);
 
     DirectiveUri uri;
@@ -488,14 +489,14 @@ class LibraryBuilder {
         }
     }
 
-    return LibraryExportElementImpl(
+    return LibraryExportImpl(
       combinators: combinators,
       exportKeywordOffset: state.unlinked.exportKeywordOffset,
       uri: uri,
     );
   }
 
-  LibraryImportElementImpl _buildLibraryImport({
+  LibraryImportImpl _buildLibraryImport({
     required LibraryFragmentImpl containerUnit,
     required LibraryImportState state,
   }) {
@@ -568,12 +569,13 @@ class LibraryBuilder {
         }
     }
 
-    return LibraryImportElementImpl(
+    return LibraryImportImpl(
+      isSynthetic: state.isSyntheticDartCore,
       combinators: combinators,
       importKeywordOffset: state.unlinked.importKeywordOffset,
       prefix2: prefixFragment,
       uri: uri,
-    )..isSynthetic = state.isSyntheticDartCore;
+    );
   }
 
   PrefixFragmentImpl _buildLibraryImportPrefixFragment({
@@ -607,7 +609,7 @@ class LibraryBuilder {
     return fragment;
   }
 
-  PartElementImpl _buildPartInclude({
+  PartIncludeImpl _buildPartInclude({
     required LibraryElementImpl containerLibrary,
     required LibraryFragmentImpl containerUnit,
     required file_state.PartIncludeState state,
@@ -680,7 +682,7 @@ class LibraryBuilder {
         }
     }
 
-    return PartElementImpl(uri: directiveUri);
+    return PartIncludeImpl(uri: directiveUri);
   }
 
   /// We want to have stable references for `loadLibrary` function. But we
@@ -756,7 +758,7 @@ class LibraryBuilder {
     );
     libraryElement.isSynthetic = !libraryFile.exists;
     libraryElement.languageVersion = libraryUnitNode.languageVersion;
-    _bindReference(libraryReference, libraryElement);
+    libraryElement.reference = libraryReference;
     libraryReference.element2 = libraryElement;
 
     var unitContainerRef = libraryReference.getChild('@fragment');
@@ -922,7 +924,7 @@ class _FieldPromotability
     ClassInfo<InterfaceElementImpl2> classInfo,
     InterfaceElementImpl2 class_,
   ) {
-    for (var field in class_.fields2) {
+    for (var field in class_.fields) {
       if (field.isStatic || field.isSynthetic) {
         continue;
       }
@@ -943,7 +945,7 @@ class _FieldPromotability
       }
     }
 
-    for (var getter in class_.getters2) {
+    for (var getter in class_.getters) {
       if (getter.isStatic || getter.isSynthetic) {
         continue;
       }

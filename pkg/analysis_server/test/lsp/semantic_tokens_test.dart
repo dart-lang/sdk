@@ -12,7 +12,7 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:analyzer_utilities/test/experiments/experiments.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1199,6 +1199,40 @@ void f() async {
     await _initializeAndVerifyTokens(content, expected);
   }
 
+  Future<void> test_label() async {
+    var content = '''
+void f() {
+myLabel:
+  while (true) {
+    break myLabel;
+  }
+}
+''';
+
+    var expected = [
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('myLabel', CustomSemanticTokenTypes.label, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('while', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
+      _Token('true', CustomSemanticTokenTypes.boolean),
+      _Token('break', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
+      _Token('myLabel', CustomSemanticTokenTypes.label),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
   Future<void> test_lastLine_code() async {
     var content = 'String? bar;';
 
@@ -1453,6 +1487,34 @@ f({String? a, dynamic b}) {
         CustomSemanticTokenModifiers.label,
       ]),
       _Token('b', SemanticTokenTypes.parameter),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_namedRecordFields_extension() async {
+    var content = '''
+extension on ({int field,}) {
+  get other => field + this.field;
+}
+''';
+
+    var expected = [
+      _Token('extension', SemanticTokenTypes.keyword),
+      _Token('on', SemanticTokenTypes.keyword),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('get', SemanticTokenTypes.keyword),
+      _Token('other', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('field', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('this', SemanticTokenTypes.keyword),
+      _Token('field', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -1813,6 +1875,34 @@ void f() {
     await _initializeAndVerifyTokens(content, expected);
   }
 
+  Future<void> test_positionalRecordFields_extension() async {
+    var content = r'''
+extension on (int field, double,) {
+  get other => $1 + $2;
+}
+''';
+
+    var expected = [
+      _Token('extension', SemanticTokenTypes.keyword),
+      _Token('on', SemanticTokenTypes.keyword),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('double', SemanticTokenTypes.class_),
+      _Token('get', SemanticTokenTypes.keyword),
+      _Token('other', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token(r'$1', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token(r'$2', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
   Future<void> test_range() async {
     var content = '''
 /// class docs
@@ -2039,9 +2129,10 @@ multi
     // The 9's in these strings are not part of the escapes (they make the
     // strings too long).
     var content = r'''
-const string1 = 'it\'s escaped\\\n';
+const string1 = 'it\'s escaped\\\n\$';
 const string2 = 'hex \x12\x1299';
 const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
+const string4 = "\"";
 ''';
 
     var expected = [
@@ -2058,6 +2149,9 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
         CustomSemanticTokenModifiers.escape,
       ]),
       _Token(r'\n', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token(r'\$', SemanticTokenTypes.string, [
         CustomSemanticTokenModifiers.escape,
       ]),
       _Token(r"'", SemanticTokenTypes.string),
@@ -2092,6 +2186,94 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
       ]),
       // The 99 makes this invalid so i's not an escape
       _Token(r"\u{12345699}'", SemanticTokenTypes.string),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('string4', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('"', SemanticTokenTypes.string),
+      _Token(r'\"', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token('"', SemanticTokenTypes.string),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_strings_escape_interpolation1() async {
+    var content = r'''
+const value = 1;
+const string1 = 'it\'s $value escaped\\\n';
+''';
+
+    var expected = [
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('value', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('string1', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token("'it", SemanticTokenTypes.string),
+      _Token(r"\'", SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token('s ', SemanticTokenTypes.string),
+      _Token(r'$', CustomSemanticTokenTypes.source, [
+        CustomSemanticTokenModifiers.interpolation,
+      ]),
+      _Token('value', SemanticTokenTypes.property),
+      _Token(' escaped', SemanticTokenTypes.string),
+      _Token(r'\\', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token(r'\n', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token(r"'", SemanticTokenTypes.string),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_strings_escape_interpolation2() async {
+    var content = r'''
+const value = 1;
+const string1 = 'it\'s ${value} escaped\\\n';
+''';
+
+    var expected = [
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('value', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('string1', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token("'it", SemanticTokenTypes.string),
+      _Token(r"\'", SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token('s ', SemanticTokenTypes.string),
+      _Token(r'${', CustomSemanticTokenTypes.source, [
+        CustomSemanticTokenModifiers.interpolation,
+      ]),
+      _Token('value', SemanticTokenTypes.property),
+      _Token('}', CustomSemanticTokenTypes.source, [
+        CustomSemanticTokenModifiers.interpolation,
+      ]),
+      _Token(' escaped', SemanticTokenTypes.string),
+      _Token(r'\\', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token(r'\n', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token(r"'", SemanticTokenTypes.string),
     ];
 
     await _initializeAndVerifyTokens(content, expected);

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -16,7 +17,7 @@ class AvoidDynamicCalls extends LintRule {
     : super(name: LintNames.avoid_dynamic_calls, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_dynamic_calls;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_dynamic_calls;
 
   @override
   void registerNodeProcessors(

@@ -669,6 +669,7 @@ class AstBuilder extends StackListener {
     var typeParameter = TypeParameterImpl(
       comment: comment,
       metadata: metadata,
+      varianceKeyword: null,
       name: name.token,
       extendsKeyword: null,
       bound: null,
@@ -936,7 +937,7 @@ class AstBuilder extends StackListener {
         token,
         token,
       );
-      SimpleIdentifierImpl identifier = SimpleIdentifierImpl(token);
+      SimpleIdentifierImpl identifier = SimpleIdentifierImpl(token: token);
       push(
         PropertyAccessImpl(
           target: receiver,
@@ -1055,7 +1056,7 @@ class AstBuilder extends StackListener {
         }
         push(
           FunctionExpressionInvocationImpl(
-            function: SimpleIdentifierImpl(assertKeyword),
+            function: SimpleIdentifierImpl(token: assertKeyword),
             typeArguments: null,
             argumentList: ArgumentListImpl(
               leftParenthesis: leftParenthesis,
@@ -1393,7 +1394,7 @@ class AstBuilder extends StackListener {
         covariantKeyword: covariantKeyword,
         externalKeyword: externalToken,
         staticKeyword: staticToken,
-        fieldList: variableList,
+        fields: variableList,
         semicolon: semicolon,
       ),
     );
@@ -1620,7 +1621,6 @@ class AstBuilder extends StackListener {
     }
 
     var dotShorthand = pop() as DotShorthandInvocationImpl;
-    // TODO(kallentu): Report error if there are type arguments here.
     push(
       DotShorthandConstructorInvocationImpl(
         constKeyword: token,
@@ -1901,7 +1901,7 @@ class AstBuilder extends StackListener {
           fieldMetadata: [],
           fieldType: NamedTypeImpl(
             importPrefix: null,
-            name2: typeName,
+            name: typeName,
             question: null,
             typeArguments: null,
           ),
@@ -1945,6 +1945,8 @@ class AstBuilder extends StackListener {
     reportErrorIfSuper(initializer);
     push(
       VariableDeclarationImpl(
+        comment: null,
+        metadata: [],
         name: name.token,
         equals: equals,
         initializer: initializer,
@@ -2477,6 +2479,8 @@ class AstBuilder extends StackListener {
       variable = node;
     } else if (node is SimpleIdentifierImpl) {
       variable = VariableDeclarationImpl(
+        comment: null,
+        metadata: [],
         name: node.token,
         equals: null,
         initializer: null,
@@ -2594,7 +2598,7 @@ class AstBuilder extends StackListener {
         comment: comment,
         metadata: metadata,
         libraryKeyword: libraryKeyword,
-        name: name,
+        name2: name,
         semicolon: semicolon,
       ),
     );
@@ -2899,7 +2903,7 @@ class AstBuilder extends StackListener {
       );
       superclass = NamedTypeImpl(
         importPrefix: null,
-        name2: nameToken,
+        name: nameToken,
         typeArguments: null,
         question: null,
       );
@@ -3014,7 +3018,7 @@ class AstBuilder extends StackListener {
         metadata: metadata,
         partKeyword: partKeyword,
         uri: uri,
-        configurations: configurations,
+        configurations: configurations ?? [],
         semicolon: semicolon,
       ),
     );
@@ -3113,7 +3117,7 @@ class AstBuilder extends StackListener {
           );
           fieldType = NamedTypeImpl(
             importPrefix: null,
-            name2: typeNameToken,
+            name: typeNameToken,
             typeArguments: null,
             question: null,
           );
@@ -3153,7 +3157,7 @@ class AstBuilder extends StackListener {
       );
       fieldType = NamedTypeImpl(
         importPrefix: null,
-        name2: typeNameToken,
+        name: typeNameToken,
         typeArguments: null,
         question: null,
       );
@@ -3198,7 +3202,7 @@ class AstBuilder extends StackListener {
 
       var expression = fields.firstOrNull;
       expression ??= SimpleIdentifierImpl(
-        parser.rewriter.insertSyntheticIdentifier(leftParenthesis),
+        token: parser.rewriter.insertSyntheticIdentifier(leftParenthesis),
       );
 
       push(
@@ -3251,7 +3255,7 @@ class AstBuilder extends StackListener {
       push(
         NamedTypeImpl(
           importPrefix: null,
-          name2: parser.rewriter.insertSyntheticIdentifier(leftBracket),
+          name: parser.rewriter.insertSyntheticIdentifier(leftBracket),
           typeArguments: null,
           question: questionMark,
         ),
@@ -3634,7 +3638,7 @@ class AstBuilder extends StackListener {
         metadata: metadata,
         augmentKeyword: augmentToken,
         externalKeyword: externalToken,
-        variableList: variableList,
+        variables: variableList,
         semicolon: semicolon,
       ),
     );
@@ -3851,6 +3855,8 @@ class AstBuilder extends StackListener {
     // TODO(ahe): Don't push initializers, instead install them.
     push(
       VariableDeclarationImpl(
+        comment: null,
+        metadata: [],
         name: identifier.token,
         equals: equals,
         initializer: initializer,
@@ -3881,15 +3887,15 @@ class AstBuilder extends StackListener {
             // x.^
             // await y.foo();
             {
-              var awaitToken = type.name2;
+              var awaitToken = type.name;
               if (awaitToken.type == Keyword.AWAIT) {
                 push(
                   ExpressionStatementImpl(
                     expression: PrefixedIdentifierImpl(
-                      prefix: SimpleIdentifierImpl(importPrefix.name),
+                      prefix: SimpleIdentifierImpl(token: importPrefix.name),
                       period: importPrefix.period,
                       identifier: SimpleIdentifierImpl(
-                        parser.rewriter.insertSyntheticIdentifier(
+                        token: parser.rewriter.insertSyntheticIdentifier(
                           importPrefix.period,
                         ),
                       ),
@@ -3911,17 +3917,17 @@ class AstBuilder extends StackListener {
                 // We see `x.foo await;`, where `;` is synthetic.
                 // It is followed by `y.bar()`.
                 // Insert a new `;`, and (unfortunately) drop `await;`.
-                type.name2.setNext(semicolon.next!);
+                type.name.setNext(semicolon.next!);
                 var semicolon2 = parser.rewriter.insertSyntheticToken(
-                  type.name2,
+                  type.name,
                   TokenType.SEMICOLON,
                 );
                 push(
                   ExpressionStatementImpl(
                     expression: PrefixedIdentifierImpl(
-                      prefix: SimpleIdentifierImpl(importPrefix.name),
+                      prefix: SimpleIdentifierImpl(token: importPrefix.name),
                       period: importPrefix.period,
-                      identifier: SimpleIdentifierImpl(type.name2),
+                      identifier: SimpleIdentifierImpl(token: type.name),
                     ),
                     semicolon: semicolon2,
                   ),
@@ -3936,7 +3942,7 @@ class AstBuilder extends StackListener {
 
     push(
       VariableDeclarationStatementImpl(
-        variableList: VariableDeclarationListImpl(
+        variables: VariableDeclarationListImpl(
           comment: comment,
           metadata: metadata,
           lateKeyword: modifiers?.lateToken,
@@ -4660,7 +4666,7 @@ class AstBuilder extends StackListener {
     if (patternKeyword != null) {
       var metadata = pop() as List<AnnotationImpl>?;
       forLoopParts = ForEachPartsWithPatternImpl(
-        metadata: metadata,
+        metadata: metadata ?? [],
         keyword: patternKeyword,
         pattern: variableOrDeclaration as DartPatternImpl,
         inKeyword: inKeyword,
@@ -4685,7 +4691,9 @@ class AstBuilder extends StackListener {
         if (!leftParenthesis.next!.isIdentifier) {
           parser.rewriter.insertSyntheticIdentifier(leftParenthesis);
         }
-        variableOrDeclaration = SimpleIdentifierImpl(leftParenthesis.next!);
+        variableOrDeclaration = SimpleIdentifierImpl(
+          token: leftParenthesis.next!,
+        );
       }
       forLoopParts = ForEachPartsWithIdentifierImpl(
         identifier: variableOrDeclaration,
@@ -4733,7 +4741,7 @@ class AstBuilder extends StackListener {
     ForPartsImpl forLoopParts;
     if (initializerPart is VariableDeclarationStatementImpl) {
       forLoopParts = ForPartsWithDeclarationsImpl(
-        variableList: initializerPart.variables,
+        variables: initializerPart.variables,
         leftSeparator: leftSeparator,
         condition: condition,
         rightSeparator: rightSeparator,
@@ -4793,7 +4801,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    var identifier = SimpleIdentifierImpl(token);
+    var identifier = SimpleIdentifierImpl(token: token);
     if (context.inLibraryOrPartOfDeclaration) {
       if (!context.isContinuation) {
         push([identifier]);
@@ -4889,7 +4897,8 @@ class AstBuilder extends StackListener {
       var receiver = pop() as CascadeExpressionImpl;
       var token = peek() as Token;
       push(receiver);
-      var expression = IndexExpressionImpl.forCascade(
+      var expression = IndexExpressionImpl(
+        target: null,
         period: token,
         question: question,
         leftBracket: leftBracket,
@@ -4900,8 +4909,9 @@ class AstBuilder extends StackListener {
       push(expression);
     } else {
       push(
-        IndexExpressionImpl.forTarget(
+        IndexExpressionImpl(
           target: target,
+          period: null,
           question: question,
           leftBracket: leftBracket,
           index: index,
@@ -4956,7 +4966,7 @@ class AstBuilder extends StackListener {
     assert(optional('operator', operatorKeyword));
     debugEvent("InvalidOperatorName");
 
-    push(_OperatorName(operatorKeyword, SimpleIdentifierImpl(token)));
+    push(_OperatorName(operatorKeyword, SimpleIdentifierImpl(token: token)));
   }
 
   @override
@@ -5301,7 +5311,7 @@ class AstBuilder extends StackListener {
         nameCandidate,
         ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED,
       );
-      name = SimpleIdentifierImpl(nameCandidate.augmentedKeyword);
+      name = SimpleIdentifierImpl(token: nameCandidate.augmentedKeyword);
     } else {
       name = nameCandidate as SimpleIdentifierImpl;
     }
@@ -5379,6 +5389,8 @@ class AstBuilder extends StackListener {
     var name = pop() as SimpleIdentifierImpl;
     push(
       VariableDeclarationImpl(
+        comment: null,
+        metadata: [],
         name: name.token,
         equals: null,
         initializer: null,
@@ -5416,7 +5428,7 @@ class AstBuilder extends StackListener {
     debugEvent("NoTypeNameInConstructorReference");
     var builder = _classLikeBuilder as _EnumDeclarationBuilder;
 
-    push(SimpleIdentifierImpl(builder.name));
+    push(SimpleIdentifierImpl(token: builder.name));
   }
 
   @override
@@ -5479,14 +5491,14 @@ class AstBuilder extends StackListener {
           name: firstIdentifierToken,
           period: dot,
         ),
-        name2: secondIdentifierToken,
+        name: secondIdentifierToken,
         typeArguments: typeArguments,
         question: null,
       );
     } else {
       namedType = NamedTypeImpl(
         importPrefix: null,
-        name2: firstIdentifierToken,
+        name: firstIdentifierToken,
         typeArguments: typeArguments,
         question: null,
       );
@@ -5523,7 +5535,7 @@ class AstBuilder extends StackListener {
     assert(token.type.isUserDefinableOperator);
     debugEvent("OperatorName");
 
-    push(_OperatorName(operatorKeyword, SimpleIdentifierImpl(token)));
+    push(_OperatorName(operatorKeyword, SimpleIdentifierImpl(token: token)));
   }
 
   @override
@@ -5915,7 +5927,7 @@ class AstBuilder extends StackListener {
         nameCandidate,
         ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED,
       );
-      name = SimpleIdentifierImpl(nameCandidate.augmentedKeyword);
+      name = SimpleIdentifierImpl(token: nameCandidate.augmentedKeyword);
     } else {
       name = nameCandidate as IdentifierImpl;
     }
@@ -6216,7 +6228,7 @@ class AstBuilder extends StackListener {
       externalKeyword: modifiers?.externalKeyword,
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: null,
-      returnType: SimpleIdentifierImpl(prefixOrName.token),
+      returnType: SimpleIdentifierImpl(token: prefixOrName.token),
       period: period,
       name: nameOrNull?.token,
       parameters: parameters,
@@ -6293,12 +6305,12 @@ class AstBuilder extends StackListener {
       externalKeyword: modifiers?.externalKeyword,
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: factoryKeyword,
-      returnType: SimpleIdentifierImpl(returnType.token),
+      returnType: SimpleIdentifierImpl(token: returnType.token),
       period: period,
       name: nameToken,
       parameters: parameters,
       separator: separator,
-      initializers: null,
+      initializers: [],
       redirectedConstructor: redirectedConstructor,
       body: body,
     );
@@ -6405,7 +6417,9 @@ class AstBuilder extends StackListener {
   }
 
   SimpleIdentifierImpl _tmpSimpleIdentifier() {
-    return SimpleIdentifierImpl(StringToken(TokenType.STRING, '__tmp', -1));
+    return SimpleIdentifierImpl(
+      token: StringToken(TokenType.STRING, '__tmp', -1),
+    );
   }
 
   ParameterKind _toAnalyzerParameterKind(FormalParameterKind type) {

@@ -449,6 +449,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   final Procedure _assertInteropMethod;
 
+  // The direct `_as` methods for primitive types.
+  final Member _asBool;
+  final Member _asDouble;
+  final Member _asInt;
+  final Member _asNum;
+  final Member _asObject;
+  final Member _asString;
+  final Member _asBoolQ;
+  final Member _asDoubleQ;
+  final Member _asIntQ;
+  final Member _asNumQ;
+  final Member _asStringQ;
+
   final DevCompilerConstants _constants;
 
   final NullableInference _nullableInference;
@@ -552,7 +565,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             ExtensionIndex(_coreTypes, _staticTypeContext.typeEnvironment),
         _inlineTester = BasicInlineTester(_constants),
         _rtiLibrary = sdk.getLibrary('dart:_rti'),
-        _rtiClass = sdk.getClass('dart:_rti', 'Rti');
+        _rtiClass = sdk.getClass('dart:_rti', 'Rti'),
+        _asBool = sdk.getTopLevelMember('dart:_rti', '_asBool'),
+        _asDouble = sdk.getTopLevelMember('dart:_rti', '_asDouble'),
+        _asInt = sdk.getTopLevelMember('dart:_rti', '_asInt'),
+        _asNum = sdk.getTopLevelMember('dart:_rti', '_asNum'),
+        _asObject = sdk.getTopLevelMember('dart:_rti', '_asObject'),
+        _asString = sdk.getTopLevelMember('dart:_rti', '_asString'),
+        _asBoolQ = sdk.getTopLevelMember('dart:_rti', '_asBoolQ'),
+        _asDoubleQ = sdk.getTopLevelMember('dart:_rti', '_asDoubleQ'),
+        _asIntQ = sdk.getTopLevelMember('dart:_rti', '_asIntQ'),
+        _asNumQ = sdk.getTopLevelMember('dart:_rti', '_asNumQ'),
+        _asStringQ = sdk.getTopLevelMember('dart:_rti', '_asStringQ');
 
   /// The library for dart:core in the SDK.
   Library get _coreLibrary => _coreTypes.coreLibrary;
@@ -927,6 +951,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitLibraryProcedures(library);
       _emitTopLevelFields(library.fields);
     }
+    // Creating a function and setting the library object as the prototype
+    // serves as a signal to V8 that the members of the library should get
+    // optimized for fast lookup.
+    // Do not remove without testing for performance regressions.
+    _moduleItems.add(js.statement(
+        '(function() {}).prototype = #', [_libraries[_currentLibrary!]]));
     _staticTypeContext.leaveLibrary(_currentLibrary!);
     _currentLibrary = null;
   }
@@ -3341,11 +3371,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         DDCTypeEnvironment environment, String recipe) {
       switch (environment) {
         case EmptyTypeEnvironment():
-          return js
-              .call('#._Universe.eval(#._theUniverse(), "$recipe", true)', [
-            _emitLibraryName(_rtiLibrary),
-            _emitLibraryName(_rtiLibrary),
-          ]);
+          // Cache ground types in the type table for fast lookup. The table will
+          // lazily lookup the RTI object on first access and then replace the
+          // lazy getter with the initialized RTI object.
+          return _typeTable.nameType(
+              type,
+              js.call('#._Universe.eval(#, "$recipe", true)', [
+                _emitLibraryName(_rtiLibrary),
+                _runtimeCall('typeUniverse'),
+              ]));
         case BindingTypeEnvironment():
           js_ast.Expression env;
           if (environment.isSingleTypeParameter) {
@@ -4908,7 +4942,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_isTemporaryVariable(v)) {
       var name = _debuggerFriendlyTemporaryVariableName(v);
       name ??= 't\$${_tempVariables.length}';
-      return _tempVariables.putIfAbsent(v, () => _emitScopedId(name!));
+      return _tempVariables.putIfAbsent(
+          v, () => _emitScopedId(name!, needsCapture: true));
     }
     var name = v.name!;
     if (isLateLoweredLocal(v)) {
@@ -5047,13 +5082,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitDynamicSet(DynamicSet node) {
-    return _emitPropertySet(node.receiver, null, node.value, node.name.text);
+    return _runtimeCall('dput$_replSuffix(#, #, #)', [
+      _visitExpression(node.receiver),
+      _emitMemberName(node.name.text),
+      _visitExpression(node.value)
+    ]);
   }
 
   @override
   js_ast.Expression visitInstanceSet(InstanceSet node) {
-    return _emitPropertySet(
-        node.receiver, node.interfaceTarget, node.value, node.name.text);
+    var target = node.interfaceTarget;
+    var value = isJsMember(target) ? _assertInterop(node.value) : node.value;
+    return js.call('#.# = #', [
+      _visitExpression(node.receiver),
+      _emitMemberName(node.name.text, member: target),
+      _visitExpression(value)
+    ]);
   }
 
   /// True when the result of evaluating [e] is not known to have the Object
@@ -5142,24 +5186,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   // _emitMemberName would be a nice place to handle it, but we don't have
   // access to the target expression there (needed for `dart.replNameLookup`).
   String get _replSuffix => _options.replCompile ? 'Repl' : '';
-
-  js_ast.Expression _emitPropertySet(Expression receiver, Member? member,
-      Expression value, String memberName) {
-    var jsName = _emitMemberName(memberName, member: member);
-
-    if (member != null && isJsMember(member)) {
-      value = _assertInterop(value);
-    }
-
-    var jsReceiver = _visitExpression(receiver);
-    var jsValue = _visitExpression(value);
-
-    if (member == null) {
-      return _runtimeCall(
-          'dput$_replSuffix(#, #, #)', [jsReceiver, jsName, jsValue]);
-    }
-    return js.call('#.# = #', [jsReceiver, jsName, jsValue]);
-  }
 
   @override
   js_ast.Expression visitAbstractSuperPropertyGet(
@@ -6961,80 +6987,96 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var fromExpr = node.operand;
     var jsFrom = _visitExpression(fromExpr);
     if (node.isUnchecked) return jsFrom;
-    var to = node.type.extensionTypeErasure;
-    var from = fromExpr.getStaticType(_staticTypeContext).extensionTypeErasure;
-
-    // If the check was put here by static analysis to ensure soundness, we
-    // can't skip it. For example, one could implement covariant generic caller
-    // side checks like this:
-    //
-    //      typedef F<T>(T t);
-    //      class C<T> {
-    //        F<T> f;
-    //        add(T t) {
-    //          // required check `t as T`
-    //        }
-    //      }
-    //      main() {
-    //        C<Object> c = new C<int>()..f = (int x) => x.isEven;
-    //        c.f('hi'); // required check `c.f as F<Object>`
-    //        c.add('hi);
-    //      }
-    //
-    var isTypeError = node.isTypeError;
-    if (!isTypeError &&
-        _types.isSubtypeOf(from, to, SubtypeCheckMode.withNullabilities)) {
-      return jsFrom;
-    }
-
-    if (!isTypeError &&
-        DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
-            .areEqual(from, to) &&
-        _mustBeNonNullable(to)) {
-      // If the underlying type is the same, we only need a null check.
-      return _runtimeCall('nullCast(#, #)', [jsFrom, _emitType(to)]);
-    }
-
-    // All Dart number types map to a JS double.  We can specialize these
-    // cases.
-    if (_typeRep.isNumber(from) && _typeRep.isNumber(to)) {
-      // If `to` is some form of `num`, it should have been filtered above.
-
-      // * -> double? : no-op
-      if (to == _coreTypes.doubleNullableRawType) {
-        return jsFrom;
-      }
-
-      // * -> double : null check
-      if (to == _coreTypes.doubleNonNullableRawType) {
-        if (from.nullability == Nullability.nonNullable) {
-          return jsFrom;
-        }
-        return _runtimeCall('nullCast(#, #)', [jsFrom, _emitType(to)]);
-      }
-
-      // * -> int : asInt check
-      if (to == _coreTypes.intNonNullableRawType) {
-        return _runtimeCall('asInt(#)', [jsFrom]);
-      }
-
-      // * -> int? : asNullableInt check
-      if (to == _coreTypes.intNullableRawType) {
-        return _runtimeCall('asNullableInt(#)', [jsFrom]);
-      }
-    }
-
-    return _emitCast(jsFrom, to);
+    return _emitCast(jsFrom, node.type,
+        fromStaticType: fromExpr.getStaticType(_staticTypeContext),
+        isTypeError: node.isTypeError);
   }
 
-  js_ast.Expression _emitCast(js_ast.Expression expr, DartType type) {
-    var normalizedType = type.extensionTypeErasure;
-    if (_types.isTop(normalizedType)) return expr;
+  js_ast.Expression _emitCast(js_ast.Expression value, DartType toType,
+      {DartType? fromStaticType, bool isTypeError = false}) {
+    toType = toType.extensionTypeErasure;
+    if (_types.isTop(toType)) return value;
+    if (fromStaticType != null) {
+      fromStaticType = fromStaticType.extensionTypeErasure;
+      // If the check was put here by static analysis to ensure soundness, we
+      // can't skip it. For example, one could implement covariant generic
+      // caller side checks like this:
+      //
+      //      typedef F<T>(T t);
+      //      class C<T> {
+      //        F<T> f;
+      //        add(T t) {
+      //          // required check `t as T`
+      //        }
+      //      }
+      //      main() {
+      //        C<Object> c = new C<int>()..f = (int x) => x.isEven;
+      //        c.f('hi'); // required check `c.f as F<Object>`
+      //        c.add('hi);
+      //      }
+      //
+      if (!isTypeError &&
+          _types.isSubtypeOf(
+              fromStaticType, toType, SubtypeCheckMode.withNullabilities)) {
+        return value;
+      }
+      if (!isTypeError &&
+          _mustBeNonNullable(toType) &&
+          DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
+              .areEqual(fromStaticType, toType)) {
+        // If the underlying type is the same, we only need a null check.
+        return _runtimeCall('nullCast(#, #)', [value, _emitType(toType)]);
+      }
+      // All Dart number types map to a JavaScript Number. We can specialize
+      // these cases.
+      if (_typeRep.isNumber(fromStaticType) && _typeRep.isNumber(toType)) {
+        // If `toType` is some form of `num`, it should have been filtered
+        // above.
+        if (toType == _coreTypes.doubleNullableRawType) {
+          // Any number/nullability -> double? : no-op
+          return value;
+        }
+        if (toType == _coreTypes.doubleNonNullableRawType) {
+          if (fromStaticType.nullability == Nullability.nonNullable) {
+            // Any non-nullable number -> double : no-op
+            return value;
+          }
+          // Any number/nullability -> double : null check
+          return _runtimeCall('nullCast(#, #)', [value, _emitType(toType)]);
+        }
+      }
+    }
+    var directMethod = _directCastMethod(toType);
+    if (directMethod != null) {
+      return js.call('#(#)', [_emitTopLevelName(directMethod), value]);
+    }
     return js.call('#.#(#)', [
-      _emitType(normalizedType),
+      _emitType(toType),
       _emitMemberName(js_ast.FixedNames.rtiAsField, memberClass: _rtiClass),
-      expr
+      value
     ]);
+  }
+
+  /// Returns the direct `_as` method when [type] is a primitive type otherwise,
+  /// `null`.
+  Member? _directCastMethod(DartType type) {
+    if (type is InterfaceType && type.typeArguments.isEmpty) {
+      if (type.nullability == Nullability.nonNullable) {
+        if (type == _types.coreTypes.boolNonNullableRawType) return _asBool;
+        if (type == _types.coreTypes.doubleNonNullableRawType) return _asDouble;
+        if (type == _types.coreTypes.intNonNullableRawType) return _asInt;
+        if (type == _types.coreTypes.numNonNullableRawType) return _asNum;
+        if (type == _types.coreTypes.objectNonNullableRawType) return _asObject;
+        if (type == _types.coreTypes.stringNonNullableRawType) return _asString;
+      } else if (type.nullability == Nullability.nullable) {
+        if (type == _types.coreTypes.boolNullableRawType) return _asBoolQ;
+        if (type == _types.coreTypes.doubleNullableRawType) return _asDoubleQ;
+        if (type == _types.coreTypes.intNullableRawType) return _asIntQ;
+        if (type == _types.coreTypes.numNullableRawType) return _asNumQ;
+        if (type == _types.coreTypes.stringNullableRawType) return _asStringQ;
+      }
+    }
+    return null;
   }
 
   @override

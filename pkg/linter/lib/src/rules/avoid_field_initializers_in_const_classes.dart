@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -19,7 +20,7 @@ class AvoidFieldInitializersInConstClasses extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.avoid_field_initializers_in_const_classes;
 
   @override
@@ -69,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (element == null) return;
 
       // no lint if several constructors
-      if (element.constructors2.length > 1) return;
+      if (element.constructors.length > 1) return;
 
       var visitor = HasParameterReferenceVisitor(
         declaration.parameters.parameterFragments,
@@ -92,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var declaredElement = parent.declaredFragment?.element;
       if (declaredElement == null) return;
 
-      if (declaredElement.constructors2.every((e) => !e.isConst)) {
+      if (declaredElement.constructors.every((e) => !e.isConst)) {
         return;
       }
       for (var variable in node.fields.variables) {

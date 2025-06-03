@@ -134,6 +134,7 @@ vm_service/test/deferred_import_reload_test: SkipByDesign # Hot reload is disabl
 vm_service/test/developer_extension_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/developer_service_get_isolate_id_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/developer_service_get_object_id_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/dot_shorthands_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/enhanced_enum_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/eval_*test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/evaluate_*test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -145,6 +146,7 @@ vm_service/test/get_allocation_traces_test: SkipByDesign # Debugger is disabled 
 vm_service/test/get_instances_as_*: SkipByDesign # Debugger is disabled in AOT mode
 vm_service/test/get_instances_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_object_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/get_queued_microtasks_rpc_test: SkipByDesign # In AOT mode, the debugger is disabled, and there's no other way to pause the testee at a point when the microtask queue is non-empty.
 vm_service/test/get_source_report_const_coverage_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_source_report_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_source_report_with_mixin_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -239,6 +241,7 @@ analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Slow
 analyzer_plugin/test/src/utilities/completion/optype_test: Slow, Pass
 dartdev/test/*: Slow, Pass
 dds/test/dap/integration/*: Slow, Pass
+test_runner/test/update_error_cmdline_test: Slow, Pass
 
 [ $runtime != vm ]
 dart2js_info/test/*: SkipByDesign # Only meant to run on vm

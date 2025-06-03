@@ -125,6 +125,16 @@ char* StringUtilsWin::WideToUtf8(wchar_t* wide,
   return utf8;
 }
 
+void StringUtilsWin::WideToUtf8(const wchar_t* wide, char** utf8) {
+  // The parameter -1 ensures WideCharToMultiByte will include the terminating
+  // NUL byte in the length.
+  intptr_t len = -1;
+  int utf8_len =
+      WideCharToMultiByte(CP_UTF8, 0, wide, len, nullptr, 0, nullptr, nullptr);
+  *utf8 = reinterpret_cast<char*>(malloc(utf8_len * sizeof(*utf8)));
+  WideCharToMultiByte(CP_UTF8, 0, wide, len, *utf8, utf8_len, nullptr, nullptr);
+}
+
 wchar_t* StringUtilsWin::Utf8ToWide(char* utf8,
                                     intptr_t len,
                                     intptr_t* result_len) {
@@ -139,6 +149,15 @@ wchar_t* StringUtilsWin::Utf8ToWide(char* utf8,
     *result_len = wide_len;
   }
   return wide;
+}
+
+void StringUtilsWin::Utf8ToWide(const char* utf8, wchar_t** wide) {
+  // The parameter -1 ensures MultiByteToWideChar will include the terminating
+  // NUL byte in the length.
+  intptr_t len = -1;
+  intptr_t wide_len = MultiByteToWideChar(CP_UTF8, 0, utf8, len, nullptr, 0);
+  *wide = reinterpret_cast<wchar_t*>(malloc(wide_len * sizeof(*wide)));
+  MultiByteToWideChar(CP_UTF8, 0, utf8, len, *wide, wide_len);
 }
 
 const char* StringUtils::Utf8ToConsoleString(const char* utf8,

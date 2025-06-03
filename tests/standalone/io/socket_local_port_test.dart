@@ -7,76 +7,86 @@ import "dart:io";
 
 import "package:expect/expect.dart";
 
-Future testCustomPortIPv4() async {
+Future testCustomPortIPv4() {
   String clientAddress = "127.0.0.1";
   int customLocalPort = 50988;
   String serverAddress = clientAddress;
   int port = 50989;
 
-  testCustomPort(serverAddress, port, clientAddress, customLocalPort);
+  return testCustomPort(serverAddress, port, clientAddress, customLocalPort);
 }
 
-Future testCustomPortIPv6() async {
+Future testCustomPortIPv6() {
   String clientAddress = "::1";
   int customLocalPort = 50988;
   String serverAddress = clientAddress;
   int port = 50989;
 
-  testCustomPort(serverAddress, port, clientAddress, customLocalPort);
+  return testCustomPort(serverAddress, port, clientAddress, customLocalPort);
 }
 
-Future testCustomPortIPv4NoSourceAddress() async {
+Future testCustomPortIPv4NoSourceAddress() {
   String expectedClientAddress = "127.0.0.1";
   int customLocalPort = 50988;
   String serverAddress = expectedClientAddress;
   int port = 50989;
 
-  testCustomPort(serverAddress, port, expectedClientAddress, customLocalPort);
+  return testCustomPort(
+    serverAddress,
+    port,
+    expectedClientAddress,
+    customLocalPort,
+  );
 }
 
-Future testCustomPortIPv6NoSourceAddress() async {
+Future testCustomPortIPv6NoSourceAddress() {
   String expectedClientAddress = "::1";
   int customLocalPort = 50988;
   String serverAddress = expectedClientAddress;
   int port = 50989;
 
-  testCustomPort(serverAddress, port, expectedClientAddress, customLocalPort);
+  return testCustomPort(
+    serverAddress,
+    port,
+    expectedClientAddress,
+    customLocalPort,
+  );
 }
 
-Future testNoCustomPortIPv4() async {
+Future testNoCustomPortIPv4() {
   String host = "127.0.0.1";
   String clientAddress = host;
   int serverPort = 39998;
 
-  await testNoCustomPortNoSourceAddress(host, serverPort, clientAddress);
+  return testNoCustomPortNoSourceAddress(host, serverPort, clientAddress);
 }
 
-Future testNoCustomPortIPv6() async {
+Future testNoCustomPortIPv6() {
   String host = "::1";
   String clientAddress = host;
   int serverPort = 39998;
 
-  await testNoCustomPortNoSourceAddress(host, serverPort, clientAddress);
+  return testNoCustomPortNoSourceAddress(host, serverPort, clientAddress);
 }
 
-Future testNoCustomPortNoSourceAddressIPv4() async {
+Future testNoCustomPortNoSourceAddressIPv4() {
   String host = "127.0.0.1";
   String expectedAddress = host;
   int serverPort = 39998;
 
-  await testNoCustomPortNoSourceAddress(host, serverPort, expectedAddress);
+  return testNoCustomPortNoSourceAddress(host, serverPort, expectedAddress);
 }
 
-Future testNoCustomPortNoSourceAddressIPv6() async {
+Future testNoCustomPortNoSourceAddressIPv6() {
   String host = "::1";
   String expectedAddress = host;
   int serverPort = 39998;
 
-  await testNoCustomPortNoSourceAddress(host, serverPort, expectedAddress);
+  return testNoCustomPortNoSourceAddress(host, serverPort, expectedAddress);
 }
 
 // Core functionality
-void testCustomPort(
+Future testCustomPort(
   String host,
   int port,
   String sourceAddress,
@@ -97,7 +107,7 @@ void testCustomPort(
     sourcePort: sourcePort,
   );
   s.destroy();
-  server.close();
+  await server.close();
 }
 
 Future testCustomPortNoSourceAddress(
@@ -119,29 +129,34 @@ Future testCustomPortNoSourceAddress(
 
   Socket s = await Socket.connect(host, port, sourcePort: sourcePort);
   s.destroy();
-  server.close();
+  await server.close();
 
   return completer.future;
 }
 
 Future testNoCustomPort(String host, int port, String sourceAddress) async {
-  Completer completer = new Completer();
+  Completer serverCompleter = new Completer();
+  Completer clientCompleter = new Completer();
   var server = await ServerSocket.bind(host, port);
-  Socket.connect(host, port, sourceAddress: sourceAddress).then((clientSocket) {
-    server.listen((client) {
+  Socket.connect(host, port, sourceAddress: sourceAddress).then((
+    clientSocket,
+  ) async {
+    server.listen((client) async {
       Expect.equals(server.port, port);
       Expect.equals(client.remotePort, clientSocket.port);
       Expect.equals(client.address.address, sourceAddress);
 
       client.destroy();
-      completer.complete();
+      clientCompleter.complete();
     });
 
     clientSocket.destroy();
-    server.close();
+    await server.close();
+    serverCompleter.complete();
   });
 
-  return completer.future;
+  await serverCompleter.future;
+  await clientCompleter.future;
 }
 
 Future testNoCustomPortNoSourceAddress(
@@ -152,13 +167,13 @@ Future testNoCustomPortNoSourceAddress(
   Completer completer = new Completer();
   var server = await ServerSocket.bind(host, port);
   Socket.connect(host, port).then((clientSocket) {
-    server.listen((client) {
+    server.listen((client) async {
       Expect.equals(server.port, port);
       Expect.equals(client.remotePort, clientSocket.port);
       Expect.equals(client.address.address, expectedAddress);
       clientSocket.destroy();
       client.destroy();
-      server.close();
+      await server.close();
       completer.complete();
     });
   });

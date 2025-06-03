@@ -141,7 +141,7 @@ class MissingDependencyValidator {
   /// Report an error for the given node.
   void _reportErrorForNode(
     YamlNode node,
-    ErrorCode errorCode, [
+    DiagnosticCode diagnosticCode, [
     List<Object>? arguments,
     List<DiagnosticMessage>? messages,
     Object? data,
@@ -150,7 +150,7 @@ class MissingDependencyValidator {
     reporter.atOffset(
       offset: span.start.offset,
       length: span.length,
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: messages,
       data: data,

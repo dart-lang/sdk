@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -738,7 +737,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeReference(Element element) {
-    if (element.enclosingElement2 is LibraryElement) {
+    if (element.enclosingElement is LibraryElement) {
       _writeLibraryReference(element);
     }
     write(element.displayName);
@@ -1022,11 +1021,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       var importPrefix = namedType.importPrefix;
       // `new ClassName()`.
       if (importPrefix == null) {
-        return namedType.name2.lexeme;
+        return namedType.name.lexeme;
       }
       // `new prefix.ClassName()`.
       if (importPrefix.element2 is PrefixElement) {
-        return namedType.name2.lexeme;
+        return namedType.name.lexeme;
       }
       // `new ClassName.constructorName()`.
       return importPrefix.name.lexeme;
@@ -1166,10 +1165,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
       var element = type.element3;
-      var enclosing = element.enclosingElement2;
+      var enclosing = element.enclosingElement;
       while (enclosing is GenericFunctionTypeElement ||
           enclosing is FormalParameterElement) {
-        enclosing = enclosing!.enclosingElement2;
+        enclosing = enclosing!.enclosingElement;
       }
       if (enclosing == _enclosingExecutable ||
           enclosing == _enclosingClass ||
@@ -1449,11 +1448,16 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   /// A mapping from libraries that need to be imported in order to make visible
   /// the names used in generated code, to information about these imports.
-  Map<Uri, _LibraryImport> librariesToImport = {};
+  final Map<Uri, _LibraryImport> _librariesToImport = {};
 
   /// A mapping of elements to pending imports that will be added to make them
   /// visible in the generated code.
   final Map<Element, _LibraryImport> _elementLibrariesToImport = {};
+
+  /// The data used to revert any changes made since the last time [commit] was
+  /// called.
+  final _DartFileEditBuilderRevertData _revertData =
+      _DartFileEditBuilderRevertData();
 
   /// Initializes a newly created builder to build a source file edit within the
   /// change being built by the given [changeBuilder].
@@ -1467,10 +1471,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   bool get hasEdits =>
-      super.hasEdits || librariesToImport.isNotEmpty || fileHeader != null;
+      super.hasEdits || _librariesToImport.isNotEmpty || fileHeader != null;
 
   @override
-  List<Uri> get requiredImports => librariesToImport.keys.toList();
+  List<Uri> get requiredImports => _librariesToImport.keys.toList();
 
   CodeStyleOptions get _codeStyleOptions => resolvedUnit.session.analysisContext
       .getAnalysisOptionsForFile(resolvedUnit.file)
@@ -1497,12 +1501,46 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
-  void convertFunctionFromSyncToAsync({
-    required FunctionBody? body,
+  void commit() {
+    super.commit();
+
+    _revertData._addedLibrariesToImport.clear();
+  }
+
+  @override
+  void convertFunctionFromAsyncToSync({
+    required FunctionBody body,
     required TypeSystem typeSystem,
     required TypeProvider typeProvider,
   }) {
-    if (body == null || body.keyword != null) {
+    if (body.keyword?.lexeme != Keyword.ASYNC.lexeme || body.star != null) {
+      throw ArgumentError(
+        'The function must have an asynchronous, non-generator body.',
+      );
+    }
+    var keyword = body.keyword!;
+    if (body is! EmptyFunctionBody) {
+      addDeletion(
+        range.startOffsetEndOffset(
+          keyword.offset,
+          keyword.end + (_isFusedWithPreviousToken(keyword.next!) ? 0 : 1),
+        ),
+      );
+    }
+    _replaceReturnTypeWithFutureArgument(
+      node: body,
+      typeSystem: typeSystem,
+      typeProvider: typeProvider,
+    );
+  }
+
+  @override
+  void convertFunctionFromSyncToAsync({
+    required FunctionBody body,
+    required TypeSystem typeSystem,
+    required TypeProvider typeProvider,
+  }) {
+    if (body.keyword != null) {
       throw ArgumentError(
           'The function must have a synchronous, non-generator body.');
     }
@@ -1521,6 +1559,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     );
   }
 
+  @Deprecated('Copying change builders is expensive. Internal users of this '
+      'method now use `commit` and `revert` instead.')
   @override
   DartFileEditBuilderImpl copyWith(ChangeBuilderImpl changeBuilder,
       {Map<DartFileEditBuilderImpl, DartFileEditBuilderImpl> editBuilderMap =
@@ -1530,8 +1570,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         createEditsForImports: _createEditsForImports);
     copy.fileEdit.edits.addAll(fileEdit.edits);
     copy.importPrefixGenerator = importPrefixGenerator;
-    for (var entry in librariesToImport.entries) {
-      copy.librariesToImport[entry.key] = entry.value;
+    for (var entry in _librariesToImport.entries) {
+      copy._librariesToImport[entry.key] = entry.value;
     }
     for (var entry in _elementLibrariesToImport.entries) {
       copy._elementLibrariesToImport[entry.key] = entry.value;
@@ -1547,8 +1587,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void finalize() {
-    if (_createEditsForImports && librariesToImport.isNotEmpty) {
-      _addLibraryImports(librariesToImport.values);
+    if (_createEditsForImports && _librariesToImport.isNotEmpty) {
+      _addLibraryImports(_librariesToImport.values);
     }
     var header = fileHeader;
     if (header != null) {
@@ -1727,7 +1767,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
 
     // Queued change.
-    var importChange = (libraryChangeBuilder ?? this).librariesToImport[uri];
+    var importChange = (libraryChangeBuilder ?? this)._librariesToImport[uri];
     return importChange != null;
   }
 
@@ -1888,6 +1928,43 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         builder.write('void');
       }
     });
+  }
+
+  @override
+  void replaceTypeWithFutureArgument({
+    required TypeAnnotation? typeAnnotation,
+    required TypeSystem typeSystem,
+    required TypeProvider typeProvider,
+  }) {
+    if (typeAnnotation == null) {
+      return;
+    }
+
+    //
+    // Check whether the type needs to be replaced.
+    //
+    var type = typeAnnotation.type;
+    if (type == null || !type.isDartAsyncFuture && !type.isDartAsyncFutureOr) {
+      return;
+    }
+
+    addReplacement(range.node(typeAnnotation), (builder) {
+      var valueType = typeSystem.flatten(type);
+      if (!builder.writeType(valueType)) {
+        builder.write('void');
+      }
+    });
+  }
+
+  @override
+  void revert() {
+    super.revert();
+
+    for (var uri in _revertData._addedLibrariesToImport) {
+      _librariesToImport.remove(uri);
+    }
+
+    _revertData._addedLibrariesToImport.clear();
   }
 
   /// Adds edits ensure that all the [imports] are imported into the library.
@@ -2375,7 +2452,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     bool forceAbsolute = false,
     bool forceRelative = false,
   }) {
-    var import = (libraryChangeBuilder ?? this).librariesToImport[uri];
+    var import = (libraryChangeBuilder ?? this)._librariesToImport[uri];
     var existingShownNames = <List<String>>[];
     var existingHiddenNames = <List<String>>[];
 
@@ -2432,7 +2509,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       if (showName != null) {
         import._ensureShown(showName, useShow: useShow);
       }
-      (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
+      (libraryChangeBuilder ?? this)._librariesToImport[uri] = import;
+      _revertData._addedLibrariesToImport.add(uri);
     }
     return import;
   }
@@ -2480,7 +2558,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // And finally, remove the remaining candidates from the set of libraries to
     // be imported.
     (libraryChangeBuilder ?? this)
-        .librariesToImport
+        ._librariesToImport
         .removeWhere((_, import) => candidatesToRemove.contains(import));
   }
 
@@ -2509,6 +2587,40 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         return;
       } else if (node is MethodDeclaration) {
         replaceTypeWithFuture(
+          typeAnnotation: node.returnType,
+          typeSystem: typeSystem,
+          typeProvider: typeProvider,
+        );
+        return;
+      }
+    }
+  }
+
+  /// Creates an edit to replace the return type of the innermost function
+  /// containing the given [node] with the `Future` type parameter.
+  ///
+  /// The [typeSystem] is used to check the current return type, because if it
+  /// is not a `Future`, no edit will be added.
+  void _replaceReturnTypeWithFutureArgument({
+    required AstNode? node,
+    required TypeSystem typeSystem,
+    required TypeProvider typeProvider,
+  }) {
+    while (node != null) {
+      node = node.parent;
+      if (node is FunctionDeclaration) {
+        replaceTypeWithFutureArgument(
+          typeAnnotation: node.returnType,
+          typeSystem: typeSystem,
+          typeProvider: typeProvider,
+        );
+        return;
+      } else if (node is FunctionExpression &&
+          node.parent is! FunctionDeclaration) {
+        // Closures don't have a return type.
+        return;
+      } else if (node is MethodDeclaration) {
+        replaceTypeWithFutureArgument(
           typeAnnotation: node.returnType,
           typeSystem: typeSystem,
           typeProvider: typeProvider,
@@ -2561,14 +2673,23 @@ class ImportLibraryElementResultImpl implements ImportLibraryElementResult {
   ImportLibraryElementResultImpl(this.prefix);
 }
 
+class _DartFileEditBuilderRevertData {
+  final List<Uri> _addedLibrariesToImport = [];
+}
+
 class _EnclosingElementFinder {
   ClassElement? enclosingClass;
   ExecutableElement? enclosingExecutable;
 
   _EnclosingElementFinder();
 
-  void find(AstNode? target, int offset) {
-    var node = NodeLocator2(offset).searchWithin(target);
+  void find(CompilationUnit target, int offset) {
+    var node = target.nodeCovering(offset: offset);
+    if (node != null && offset == node.end) {
+      // If the offset is just outside the node, then the element declared by
+      // the node isn't actually enclosing the offset.
+      node = node.parent;
+    }
     while (node != null) {
       if (node is ClassDeclaration) {
         enclosingClass = node.declaredFragment?.element;

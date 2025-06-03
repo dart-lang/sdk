@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../util/variance_checker.dart';
@@ -16,11 +18,11 @@ class AvoidFutureOrVoid extends LintRule {
     : super(
         name: LintNames.avoid_futureor_void,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_futureor_void;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_futureor_void;
 
   @override
   void registerNodeProcessors(

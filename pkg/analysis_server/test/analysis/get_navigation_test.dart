@@ -466,6 +466,25 @@ void f(A a) {
     }
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/60200')
+  Future<void> test_parameter_generic() async {
+    addTestFile('''
+void f() {
+  B().m(p: null);
+}
+
+class A<T> {
+  void m({T? p}) {}
+}
+
+class B extends A<String> {}
+''');
+    await waitForTasksFinished();
+    await _getNavigation(search: 'p: null');
+    assertHasRegion('p: null');
+    assertHasTarget('p}) {}');
+  }
+
   Future<void> test_parameter_wildcard() async {
     addTestFile('''
 var _ = 0;

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,7 @@ class MatchingSuperParameters extends LintRule {
     : super(name: LintNames.matching_super_parameters, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.matching_super_parameters;
+  DiagnosticCode get diagnosticCode => LinterLintCode.matching_super_parameters;
 
   @override
   void registerNodeProcessors(

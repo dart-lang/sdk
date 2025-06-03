@@ -11,7 +11,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartFileEditBuilderImpl, DartLinkedEditBuilderImpl;
@@ -1297,7 +1297,7 @@ import 'a.dart';
     addSource(path, content);
 
     var aElement = await _getClassElement(aPath, 'A');
-    var fooElement = aElement.methods2[0];
+    var fooElement = aElement.methods[0];
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -2609,6 +2609,26 @@ import 'z.dart';
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
     expect(edits[0].replacement, equalsIgnoringWhitespace('Future<String>'));
+  }
+
+  Future<void> test_revert_librariesToImport() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '');
+    await resolveFile(path);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('dart:math'));
+    });
+    builder.commit();
+
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('dart:io'));
+    });
+    builder.revert();
+
+    var change = builder.sourceChange;
+    expect(change.edits[0].edits[0].replacement, 'import \'dart:math\';\n');
   }
 }
 

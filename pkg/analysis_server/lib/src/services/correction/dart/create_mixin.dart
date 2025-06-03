@@ -39,7 +39,7 @@ class CreateMixin extends ResolvedCorrectionProducer {
           return;
         }
       }
-      _mixinName = node.name2.lexeme;
+      _mixinName = node.name.lexeme;
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;
       switch (parent) {

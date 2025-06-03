@@ -14,13 +14,15 @@ class C {
 /*member: method_invocation_unreachable:doesNotComplete*/
 void method_invocation_unreachable() {
   C?.staticMethod(throw '');
-  /*stmt: unreachable*/ 0;
+  /*stmt: unreachable*/
+  0;
 }
 
 /*member: property_get_unreachable:doesNotComplete*/
 void property_get_unreachable() {
   C?.staticGetter.remainder(throw '');
-  /*stmt: unreachable*/ 0;
+  /*stmt: unreachable*/
+  0;
 }
 
 /*member: property_get_invocation_unreachable:doesNotComplete*/
@@ -29,11 +31,13 @@ void property_get_invocation_unreachable() {
   // invocation but the analyzer rewrites it as a property access followed by a
   // function expression invocation.
   C?.staticInvokableGetter(throw '');
-  /*stmt: unreachable*/ 0;
+  /*stmt: unreachable*/
+  0;
 }
 
 /*member: property_set_unreachable:doesNotComplete*/
 void property_set_unreachable() {
   C?.staticSetter = throw '';
-  /*stmt: unreachable*/ 0;
+  /*stmt: unreachable*/
+  0;
 }

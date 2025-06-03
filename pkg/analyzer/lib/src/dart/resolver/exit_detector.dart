@@ -715,7 +715,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   static bool _elementExits(Element? element) {
     if (element is ExecutableElement) {
       var declaration = element.baseElement;
-      return declaration.metadata2.hasAlwaysThrows ||
+      return declaration.metadata.hasAlwaysThrows ||
           identical(declaration.returnType, NeverTypeImpl.instance);
     }
 

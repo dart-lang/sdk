@@ -8,14 +8,14 @@ import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DartUriResolverTest);
-    defineReflectiveTests(ErrorSeverityTest);
+    defineReflectiveTests(DiagnosticSeverityTest);
     defineReflectiveTests(ResolveRelativeUriTest);
   });
 }
@@ -74,7 +74,7 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
 }
 
 @reflectiveTest
-class ErrorSeverityTest {
+class DiagnosticSeverityTest {
   test_max_error_error() async {
     expect(
       DiagnosticSeverity.ERROR.max(DiagnosticSeverity.ERROR),

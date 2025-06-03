@@ -50,15 +50,15 @@ class VariableScope {
   }
 
   VariableScope.deepCopyOf(VariableScope other)
-    : variables =
-          other.variables == null
-              ? null
-              : Map<Local, TypeInformation>.from(other.variables!),
+    : variables = other.variables == null
+          ? null
+          : Map<Local, TypeInformation>.from(other.variables!),
       tryBlock = other.tryBlock,
       copyOf = other.copyOf ?? other,
       _level = other._level,
-      parent =
-          other.parent == null ? null : VariableScope.deepCopyOf(other.parent!);
+      parent = other.parent == null
+          ? null
+          : VariableScope.deepCopyOf(other.parent!);
 
   /// `true` if this scope is for a try block.
   bool get isTry => tryBlock != null;
@@ -224,8 +224,9 @@ class FieldInitializationScope {
     if (isThisExposed) return this;
     if (isIndefinite) return this;
 
-    FieldInitializationScope otherScope =
-        elseScope.fields == null ? this : elseScope;
+    FieldInitializationScope otherScope = elseScope.fields == null
+        ? this
+        : elseScope;
 
     thenScope.forEach((FieldEntity field, TypeInformation type) {
       final otherType = otherScope.readField(field);
@@ -400,8 +401,9 @@ class LocalsHandler {
       final myType = _locals[local];
       if (myType == null) return; // Variable is only defined in [other].
       if (type == myType) return;
-      _locals[local] =
-          inPlace ? type : inferrer.types.allocateDiamondPhi(myType, type);
+      _locals[local] = inPlace
+          ? type
+          : inferrer.types.allocateDiamondPhi(myType, type);
     });
     return this;
   }
@@ -493,10 +495,9 @@ class LocalsHandler {
     // Use a separate locals handler to perform the merge in, so that Phi
     // creation does not invalidate previous type knowledge while we might
     // still look it up.
-    VariableScope merged =
-        tryBlock != null
-            ? VariableScope.tryBlock(tryBlock, parent: _locals)
-            : VariableScope(parent: _locals);
+    VariableScope merged = tryBlock != null
+        ? VariableScope.tryBlock(tryBlock, parent: _locals)
+        : VariableScope(parent: _locals);
     Map<Local, int> seenLocals = {};
     // Merge all other handlers.
     for (LocalsHandler handler in handlers) {

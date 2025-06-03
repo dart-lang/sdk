@@ -22,8 +22,8 @@ extension Extension on core::String {
   static method staticMethod = self2::Extension|staticMethod;
   static method genericStaticMethod = self2::Extension|genericStaticMethod;
   get instanceProperty = self2::Extension|get#instanceProperty;
-  static get staticProperty = get self2::Extension|staticProperty;
   set instanceProperty = self2::Extension|set#instanceProperty;
+  static get staticProperty = get self2::Extension|staticProperty;
   static set staticProperty = set self2::Extension|staticProperty;
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
@@ -35,8 +35,8 @@ extension GenericExtension<T extends core::Object? = dynamic> on T% {
   static method staticMethod = self2::GenericExtension|staticMethod;
   static method genericStaticMethod = self2::GenericExtension|genericStaticMethod;
   get instanceProperty = self2::GenericExtension|get#instanceProperty;
-  static get staticProperty = get self2::GenericExtension|staticProperty;
   set instanceProperty = self2::GenericExtension|set#instanceProperty;
+  static get staticProperty = get self2::GenericExtension|staticProperty;
   static set staticProperty = set self2::GenericExtension|staticProperty;
 }
 @_in::patch

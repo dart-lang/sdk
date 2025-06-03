@@ -1129,6 +1129,13 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       void makeVtable() {
         declareAndAddRefFunc(dynamicCallEntry);
         assert(!instantiationOfTearOffRepresentation.isGeneric);
+
+        if (translator.dynamicModuleSupportEnabled) {
+          // Dynamic modules only use the dynamic call entry.
+          b.struct_new(instantiationOfTearOffRepresentation.vtableStruct);
+          return;
+        }
+
         for (int posArgCount = 0;
             posArgCount <= positionalCount;
             posArgCount++) {
@@ -1168,8 +1175,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitSymbolConstant(SymbolConstant constant) {
     ClassInfo info = translator.classInfo[translator.symbolClass]!;
     translator.functions.recordClassAllocation(info.classId);
-    w.RefType stringType = translator
-        .classInfo[translator.coreTypes.stringClass]!.repr.nonNullableType;
+    w.RefType stringType = translator.stringType;
     final String symbolStringValue = constants.minifySymbol(constant.name);
     StringConstant nameConstant = StringConstant(symbolStringValue);
     bool lazy = ensureConstant(nameConstant)?.isLazy ?? false;
@@ -1198,8 +1204,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         (b) {
       b.pushObjectHeaderFields(translator, recordClassInfo);
       for (Constant argument in arguments) {
-        constants.instantiateConstant(
-            b, argument, translator.topInfo.nullableType);
+        constants.instantiateConstant(b, argument, translator.topType);
       }
       b.struct_new(recordClassInfo.struct);
     });

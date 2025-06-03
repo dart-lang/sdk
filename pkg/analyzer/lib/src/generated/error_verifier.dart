@@ -20,7 +20,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
-import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -56,6 +55,49 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
+
+/// Check that none of the type [parameters] references itself in its bound.
+///
+/// See [CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
+void checkForTypeParameterBoundRecursion(
+  ErrorReporter errorReporter,
+  List<TypeParameter> parameters,
+) {
+  Map<TypeParameterElement, TypeParameter>? elementToNode;
+  for (var parameter in parameters) {
+    if (parameter.bound != null) {
+      if (elementToNode == null) {
+        elementToNode = {};
+        for (var parameter in parameters) {
+          elementToNode[parameter.declaredFragment!.element] = parameter;
+        }
+      }
+
+      TypeParameter? current = parameter;
+      for (var step = 0; current != null; step++) {
+        var boundNode = current.bound;
+        if (boundNode is NamedType) {
+          var boundType = boundNode.typeOrThrow;
+          boundType = boundType.extensionTypeErasure;
+          current = elementToNode[boundType.element3];
+        } else {
+          current = null;
+        }
+        if (step == parameters.length) {
+          var element = parameter.declaredFragment!.element;
+          // This error can only occur if there is a bound, so we can safely
+          // assume `element.bound` is non-`null`.
+          errorReporter.atToken(
+            parameter.name,
+            CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+            arguments: [element.displayName, element.bound!],
+          );
+          break;
+        }
+      }
+    }
+  }
+}
 
 class EnclosingExecutableContext {
   final ExecutableElement2OrMember? element;
@@ -105,7 +147,7 @@ class EnclosingExecutableContext {
   }
 
   bool get isClosure => switch (element) {
-    LocalFunctionElement(:var displayName) => displayName.isEmpty,
+    LocalFunctionElement(:var name3) => name3 == null,
     _ => false,
   };
 
@@ -502,7 +544,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         library: _currentLibrary,
         errorReporter: errorReporter,
-      ).checkStaticGetters(augmented.getters2);
+      ).checkStaticGetters(augmented.getters);
 
       super.visitClassDeclaration(node);
     } finally {
@@ -628,7 +670,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitConstructorReference(covariant ConstructorReferenceImpl node) {
     _typeArgumentsVerifier.checkConstructorReference(node);
-    _checkForInvalidGenerativeConstructorReference(node.constructorName);
+    _checkForInvalidGenerativeConstructorReference(
+      node.constructorName,
+      node.constructorName.element,
+    );
   }
 
   @override
@@ -650,14 +695,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
-    if (node.isConst) {
-      _checkForConstWithNonConst(
-        node,
-        node.constructorName.element as ConstructorElement?,
-        node.constKeyword,
+    var constructorElement = node.constructorName.element;
+    if (constructorElement is ConstructorElement?) {
+      if (node.isConst) {
+        _checkForConstWithNonConst(node, constructorElement, node.constKeyword);
+      }
+      _checkForInvalidGenerativeConstructorReference(
+        node.constructorName,
+        constructorElement,
       );
     }
+    _requiredParametersVerifier.visitDotShorthandConstructorInvocation(node);
     super.visitDotShorthandConstructorInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    _requiredParametersVerifier.visitDotShorthandInvocation(node);
+    super.visitDotShorthandInvocation(node);
   }
 
   @override
@@ -720,7 +775,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         library: _currentLibrary,
         errorReporter: errorReporter,
-      ).checkStaticGetters(declaredElement.getters2);
+      ).checkStaticGetters(declaredElement.getters);
 
       super.visitEnumDeclaration(node);
     } finally {
@@ -925,7 +980,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
-    if (element.enclosingElement2 is! LibraryElement) {
+    if (element.enclosingElement is! LibraryElement) {
       _hiddenElements!.declare(element);
     }
 
@@ -1089,7 +1144,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
       _checkForConstOrNewWithAbstractClass(node, namedType, type);
-      _checkForInvalidGenerativeConstructorReference(constructorName);
+      _checkForInvalidGenerativeConstructorReference(
+        constructorName,
+        constructorName.element,
+      );
       _checkForConstOrNewWithMixin(node, namedType, type);
       _requiredParametersVerifier.visitInstanceCreationExpression(node);
       _constArgumentsVerifier.visitInstanceCreationExpression(node);
@@ -1253,9 +1311,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitNamedType(covariant NamedTypeImpl node) {
-    _checkForAmbiguousImport(name: node.name2, element: node.element2);
+    _checkForAmbiguousImport(name: node.name, element: node.element2);
     _checkForTypeParameterReferencedByStatic(
-      name: node.name2,
+      name: node.name,
       element: node.element2,
     );
     _typeArgumentsVerifier.checkNamedType(node);
@@ -1890,7 +1948,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.AMBIGUOUS_EXPORT].
   void _checkForAmbiguousExport(
     ExportDirectiveImpl directive,
-    LibraryExportElementImpl libraryExport,
+    LibraryExportImpl libraryExport,
     LibraryElementImpl? exportedLibrary,
   ) {
     if (exportedLibrary == null) {
@@ -1979,7 +2037,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         errorReporter.atNode(
           highlightedNode,
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
-          arguments: [variable.name3!, variable.enclosingElement2.displayName],
+          arguments: [variable.name3!, variable.enclosingElement.displayName],
         );
       } else {
         errorReporter.atNode(
@@ -2118,15 +2176,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   /// Verify that the given [token] is not a keyword, and generates the
-  /// given [errorCode] on the identifier if it is a keyword.
+  /// given [code] on the identifier if it is a keyword.
   ///
   /// See [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME],
   /// [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME],
   /// [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME], and
   /// [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME].
-  void _checkForBuiltInIdentifierAsName(Token token, ErrorCode errorCode) {
+  void _checkForBuiltInIdentifierAsName(Token token, DiagnosticCode code) {
     if (token.type.isKeyword && token.keyword?.isPseudo != true) {
-      errorReporter.atToken(token, errorCode, arguments: [token.lexeme]);
+      errorReporter.atToken(token, code, arguments: [token.lexeme]);
     }
   }
 
@@ -2178,7 +2236,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         continue;
       }
 
-      String name = method.name;
+      String name = method.name2 ?? '';
 
       // find inherited property accessors
       var getter =
@@ -2198,7 +2256,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             arguments: [
               enclosingClass.displayName,
               name,
-              inherited.asElement2.enclosingElement2!.displayName,
+              inherited.asElement2.enclosingElement!.displayName,
             ],
           );
         }
@@ -2226,7 +2284,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.asElement2.enclosingElement2.displayName,
+            inherited.asElement2.enclosingElement.displayName,
           ],
         );
       }
@@ -2263,7 +2321,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.asElement2.enclosingElement2!.displayName,
+            inherited.asElement2.enclosingElement!.displayName,
           ],
         );
         conflictingDeclaredNames.add(name);
@@ -2278,7 +2336,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.asElement2.enclosingElement2!.displayName,
+            inherited.asElement2.enclosingElement!.displayName,
           ],
         );
         conflictingDeclaredNames.add(name);
@@ -2312,8 +2370,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 filePath: method.source.fullName,
                 message:
                     formatList("The method is inherited from the {0} '{1}'.", [
-                      method.asElement2.enclosingElement2!.kind.displayName,
-                      method.asElement2.enclosingElement2!.name3,
+                      method.asElement2.enclosingElement!.kind.displayName,
+                      method.asElement2.enclosingElement!.name3,
                     ]),
                 offset: method.nameOffset,
                 length: method.nameLength,
@@ -2323,8 +2381,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 filePath: setter.source.fullName,
                 message:
                     formatList("The setter is inherited from the {0} '{1}'.", [
-                      setter.asElement2.enclosingElement2.kind.displayName,
-                      setter.asElement2.enclosingElement2.name3,
+                      setter.asElement2.enclosingElement.kind.displayName,
+                      setter.asElement2.enclosingElement.name3,
                     ]),
                 offset: setter.nameOffset,
                 length: setter.nameLength,
@@ -2356,9 +2414,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       // check members
       if (enclosingClass.getNamedConstructor2(name) != null ||
-          enclosingClass.getMethod2(name) != null ||
-          enclosingClass.getGetter2(name) != null ||
-          enclosingClass.getSetter2(name) != null) {
+          enclosingClass.getMethod(name) != null ||
+          enclosingClass.getGetter(name) != null ||
+          enclosingClass.getSetter(name) != null) {
         var code =
             enclosingClass is MixinElement
                 ? CompileTimeErrorCode
@@ -2374,9 +2432,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     EnumFragmentImpl fragment,
   ) {
     for (var typeParameter in fragment.typeParameters) {
-      var name = typeParameter.name;
+      var name = typeParameter.name2 ?? '';
       // name is same as the name of the enclosing enum
-      if (fragment.name == name) {
+      if (fragment.name2 == name) {
         errorReporter.atElement2(
           typeParameter.asElement2,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM,
@@ -2385,9 +2443,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       // check members
       var element = fragment.element;
-      if (element.getMethod2(name) != null ||
-          element.getGetter2(name) != null ||
-          element.getSetter2(name) != null) {
+      if (element.getMethod(name) != null ||
+          element.getGetter(name) != null ||
+          element.getSetter(name) != null) {
         errorReporter.atElement2(
           typeParameter.asElement2,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM,
@@ -2403,9 +2461,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var typeParameter in fragment.typeParameters) {
       if (typeParameter.isWildcardVariable) continue;
 
-      var name = typeParameter.name;
+      var name = typeParameter.name2 ?? '';
       // name is same as the name of the enclosing class
-      if (fragment.name == name) {
+      if (fragment.name2 == name) {
         errorReporter.atElement2(
           typeParameter.asElement2,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
@@ -2415,9 +2473,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // check members
       var element = fragment.element;
       if (element.getNamedConstructor2(name) != null ||
-          element.getMethod2(name) != null ||
-          element.getGetter2(name) != null ||
-          element.getSetter2(name) != null) {
+          element.getMethod(name) != null ||
+          element.getGetter(name) != null ||
+          element.getSetter(name) != null) {
         errorReporter.atElement2(
           typeParameter.asElement2,
           CompileTimeErrorCode
@@ -2447,9 +2505,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
       // check members
-      if (_enclosingExtension!.getMethod2(name) != null ||
-          _enclosingExtension!.getGetter2(name) != null ||
-          _enclosingExtension!.getSetter2(name) != null) {
+      if (_enclosingExtension!.getMethod(name) != null ||
+          _enclosingExtension!.getGetter(name) != null ||
+          _enclosingExtension!.getSetter(name) != null) {
         errorReporter.atElement2(
           typeParameter,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
@@ -2632,7 +2690,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var instanceFields = <FieldElement>[];
     for (var mixin in enclosingClass.mixins) {
       instanceFields.addAll(
-        mixin.element3.fields2.where((field) {
+        mixin.element3.fields.where((field) {
           if (field.isStatic) {
             return false;
           }
@@ -2655,12 +2713,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.atNode(
         constructor.returnType,
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-        arguments: ["'${field.enclosingElement2.name3}.${field.name3}'"],
+        arguments: ["'${field.enclosingElement.name3}.${field.name3}'"],
       );
       return true;
     } else if (instanceFields.length > 1) {
       var fieldNames = instanceFields
-          .map((field) => "'${field.enclosingElement2.name3}.${field.name3}'")
+          .map((field) => "'${field.enclosingElement.name3}.${field.name3}'")
           .join(', ');
       errorReporter.atNode(
         constructor.returnType,
@@ -2700,7 +2758,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     errorReporter.atNode(
       errorNode,
       CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
-      arguments: [element.enclosingElement2.displayName],
+      arguments: [element.enclosingElement.displayName],
     );
     return true;
   }
@@ -2719,7 +2777,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // check if there is non-final field
-    var classElement = constructorElement.enclosingElement2;
+    var classElement = constructorElement.enclosingElement;
     if (classElement is! ClassElement || !classElement.hasNonFinalField) {
       return;
     }
@@ -2773,21 +2831,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     var element = type.element3;
     if (element is ClassElement && element.isAbstract) {
-      var element = expression.constructorName.element;
-      if (element != null && !element.isFactory) {
-        bool isImplicit =
-            (expression as InstanceCreationExpressionImpl).isImplicit;
-        if (!isImplicit) {
-          errorReporter.atNode(
-            namedType,
-            CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
-          );
-        } else {
-          errorReporter.atNode(
-            namedType,
-            CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
-          );
-        }
+      var constructorElement = expression.constructorName.element;
+      if (constructorElement != null && !constructorElement.isFactory) {
+        errorReporter.atNode(
+          namedType,
+          CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
+        );
       }
     }
   }
@@ -3171,13 +3220,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.MIXIN_DEFERRED_CLASS].
   bool _checkForExtendsOrImplementsDeferredClass(
     NamedType namedType,
-    ErrorCode errorCode,
+    DiagnosticCode code,
   ) {
     if (namedType.isSynthetic) {
       return false;
     }
     if (namedType.isDeferred) {
-      errorReporter.atNode(namedType, errorCode);
+      errorReporter.atNode(namedType, code);
       return true;
     }
     return false;
@@ -3192,7 +3241,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   // else.
   bool _checkForExtendsOrImplementsDisallowedClass(
     NamedType namedType,
-    ErrorCode errorCode,
+    DiagnosticCode code,
   ) {
     if (namedType.isSynthetic) {
       return false;
@@ -3308,7 +3357,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var contextMessages =
           candidates.map<DiagnosticMessage>((executable) {
             var nonSynthetic = executable.nonSynthetic2;
-            var container = executable.enclosingElement2 as InterfaceElement;
+            var container = executable.enclosingElement as InterfaceElement;
             return DiagnosticMessageImpl(
               filePath:
                   executable.firstFragment.libraryFragment.source.fullName,
@@ -3484,7 +3533,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     if (fragment is InterfaceFragmentImpl) {
       var element = fragment.element;
-      for (var constructor in element.constructors2) {
+      for (var constructor in element.constructors) {
         if (constructor.isGenerative && !constructor.isSynthetic) {
           return;
         }
@@ -3707,7 +3756,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // OK, instance member
         return;
       }
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is ExtensionElement) {
         if (target is ExtensionOverride) {
           // OK, target is an extension override
@@ -3825,18 +3874,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForInvalidGenerativeConstructorReference(ConstructorName node) {
-    var constructorElement = node.element;
+  /// Verify that we're not using an enum constructor anywhere other than to
+  /// create an enum constant or as a target of constructor redirection.
+  void _checkForInvalidGenerativeConstructorReference(
+    AstNode node,
+    ConstructorElement? constructorElement,
+  ) {
     if (constructorElement != null &&
         constructorElement.isGenerative &&
-        constructorElement.enclosingElement2 is EnumElement) {
+        constructorElement.enclosingElement is EnumElement) {
       if (_currentLibrary.featureSet.isEnabled(Feature.enhanced_enums)) {
         errorReporter.atNode(
           node,
           CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
         );
       } else {
-        errorReporter.atNode(node.type, CompileTimeErrorCode.INSTANTIATE_ENUM);
+        errorReporter.atNode(node, CompileTimeErrorCode.INSTANTIATE_ENUM);
       }
     }
   }
@@ -3869,7 +3922,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // not a class member
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement &&
         enclosingElement is! ExtensionElement) {
       return;
@@ -3952,7 +4005,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var hasGenerativeConstConstructor = enclosingClass.constructors2.any(
+    var hasGenerativeConstConstructor = enclosingClass.constructors.any(
       (c) => c.isConst && !c.isFactory,
     );
     if (!hasGenerativeConstConstructor) return;
@@ -4108,7 +4161,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var enumElement = expressionType.element3;
       if (enumElement is EnumElement) {
         var constantNames =
-            enumElement.fields2
+            enumElement.fields
                 .where((field) => field.isEnumConstant)
                 .map((field) => field.name3)
                 .toSet();
@@ -4146,7 +4199,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           errorReporter.atOffset(
             offset: offset,
             length: end - offset,
-            errorCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+            diagnosticCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
             arguments: [constantName!],
           );
         }
@@ -4157,7 +4210,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           errorReporter.atOffset(
             offset: offset,
             length: end - offset,
-            errorCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+            diagnosticCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
             arguments: ['null'],
           );
         }
@@ -4174,7 +4227,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     NamedType mixinName,
     InterfaceElement mixinElement,
   ) {
-    for (var constructor in mixinElement.constructors2) {
+    for (var constructor in mixinElement.constructors) {
       if (!constructor.isSynthetic && !constructor.isFactory) {
         errorReporter.atNode(
           mixinName,
@@ -4291,7 +4344,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // This error can only occur if [mixinName] resolved to an actual mixin,
         // so we can safely rely on `mixinName.type` being non-`null`.
         errorReporter.atToken(
-          mixinName.name2,
+          mixinName.name,
           CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
           arguments: [mixinName.type!, superType, constraint],
         );
@@ -4404,11 +4457,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           errorReporter.atNode(
             namedType,
             CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
-            arguments: [name, namedType.name2.lexeme, conflictingName],
+            arguments: [name, namedType.name.lexeme, conflictingName],
           );
           return true;
         }
-        names[name] = namedType.name2.lexeme;
+        names[name] = namedType.name.lexeme;
         var inheritedMember = _inheritanceManager.getMember4(
           declaredSupertype.element3,
           Name(library.uri, name),
@@ -4426,8 +4479,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
             arguments: [
               name,
-              namedType.name2.lexeme,
-              inheritedMember.enclosingElement2!.name3!,
+              namedType.name.lexeme,
+              inheritedMember.enclosingElement!.name3!,
             ],
           );
           return true;
@@ -4531,7 +4584,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT].
   void _checkForNoDefaultSuperConstructorImplicit(ClassFragmentImpl fragment) {
     // do nothing if there is explicit constructor
-    var constructors = fragment.element.constructors2;
+    var constructors = fragment.element.constructors;
     if (!constructors[0].isSynthetic) {
       return;
     }
@@ -4549,8 +4602,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           fragment.asElement2,
           CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
           arguments: [
-            superElement.name3!,
-            fragment.name,
+            superElement.name3 ?? '',
+            fragment.name2 ?? '',
             superUnnamedConstructor,
           ],
         );
@@ -4577,7 +4630,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superType == null) {
       return false;
     }
-    if (_enclosingClass!.constructors2.every(
+    if (_enclosingClass!.constructors.every(
       (constructor) => constructor.isFactory,
     )) {
       // A class with no generative constructors *can* be extended if the
@@ -4585,11 +4638,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return false;
     }
     var superElement = superType.element3;
-    if (superElement.constructors2.isEmpty) {
+    if (superElement.constructors.isEmpty) {
       // Exclude empty constructor set, which indicates other errors occurred.
       return false;
     }
-    if (superElement.constructors2.every(
+    if (superElement.constructors.every(
       (constructor) => constructor.isFactory,
     )) {
       // For `E extends Exception`, etc., this will never work, because it has
@@ -5015,7 +5068,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       redirectedElement,
       redirectedConstructor,
     );
-    var redirectedClass = redirectedElement?.enclosingElement2;
+    var redirectedClass = redirectedElement?.enclosingElement;
     if (redirectedClass is ClassElement &&
         redirectedClass.isAbstract &&
         redirectedElement != null &&
@@ -5031,7 +5084,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         arguments: [constructorStrName, redirectedClass.name3!],
       );
     }
-    _checkForInvalidGenerativeConstructorReference(redirectedConstructor);
+    _checkForInvalidGenerativeConstructorReference(
+      redirectedConstructor,
+      redirectedElement,
+    );
   }
 
   /// Check whether the redirecting constructor, [element], is const, and
@@ -5075,7 +5131,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForRepeatedType(
     Set<InstanceElement> accumulatedElements,
     List<NamedType>? namedTypes,
-    ErrorCode errorCode,
+    DiagnosticCode code,
   ) {
     if (namedTypes == null) {
       return;
@@ -5087,11 +5143,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var element = type.element3;
         var added = accumulatedElements.add(element);
         if (!added) {
-          errorReporter.atNode(
-            namedType,
-            errorCode,
-            arguments: [element.name3!],
-          );
+          errorReporter.atNode(namedType, code, arguments: [element.name3!]);
         }
       }
     }
@@ -5290,40 +5342,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
   void _checkForTypeParameterBoundRecursion(List<TypeParameter> parameters) {
-    Map<TypeParameterElement, TypeParameter>? elementToNode;
-    for (var parameter in parameters) {
-      if (parameter.bound != null) {
-        if (elementToNode == null) {
-          elementToNode = {};
-          for (var parameter in parameters) {
-            elementToNode[parameter.declaredFragment!.element] = parameter;
-          }
-        }
-
-        TypeParameter? current = parameter;
-        for (var step = 0; current != null; step++) {
-          var boundNode = current.bound;
-          if (boundNode is NamedType) {
-            var boundType = boundNode.typeOrThrow;
-            boundType = boundType.extensionTypeErasure;
-            current = elementToNode[boundType.element3];
-          } else {
-            current = null;
-          }
-          if (step == parameters.length) {
-            var element = parameter.declaredFragment!.element;
-            // This error can only occur if there is a bound, so we can safely
-            // assume `element.bound` is non-`null`.
-            errorReporter.atToken(
-              parameter.name,
-              CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-              arguments: [element.displayName, element.bound!],
-            );
-            break;
-          }
-        }
-      }
-    }
+    checkForTypeParameterBoundRecursion(errorReporter, parameters);
   }
 
   void _checkForTypeParameterReferencedByStatic({
@@ -5332,7 +5351,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }) {
     if (_enclosingExecutable.inStaticMethod || _isInStaticVariableDeclaration) {
       if (element is TypeParameterElement &&
-          element.enclosingElement2 is InstanceElement) {
+          element.enclosingElement is InstanceElement) {
         // The class's type parameters are not in scope for static methods.
         // However all other type parameters are legal (e.g. the static method's
         // type parameters, or a local function's type parameters).
@@ -5387,7 +5406,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     var superElement = superType.element3;
 
-    if (superElement.constructors2.every(
+    if (superElement.constructors.every(
       (constructor) => constructor.isFactory,
     )) {
       // Already reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
@@ -5423,7 +5442,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             .map((parameter) => parameter.name3)
             .toSet();
 
-    void reportError(ErrorCode errorCode, List<Object> arguments) {
+    void reportError(DiagnosticCode code, List<Object> arguments) {
       Identifier returnType = constructor.returnType;
       var name = constructor.name;
       int offset = returnType.offset;
@@ -5431,7 +5450,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.atOffset(
         offset: offset,
         length: length,
-        errorCode: errorCode,
+        diagnosticCode: code,
         arguments: arguments,
       );
     }
@@ -5472,35 +5491,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    ErrorCode errorCode;
+    DiagnosticCode code;
     Token endToken = operator;
     List<Object> arguments = const [];
     if (operator.type == TokenType.QUESTION) {
       if (nullAwareElementOrMapEntryKind == null) {
-        errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+        code = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
         endToken = operator.next!;
         arguments = ['?[', '['];
       } else {
         switch (nullAwareElementOrMapEntryKind) {
           case _NullAwareElementOrMapEntryKind.element:
-            errorCode = StaticWarningCode.INVALID_NULL_AWARE_ELEMENT;
+            code = StaticWarningCode.INVALID_NULL_AWARE_ELEMENT;
           case _NullAwareElementOrMapEntryKind.mapEntryKey:
-            errorCode = StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY;
+            code = StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY;
           case _NullAwareElementOrMapEntryKind.mapEntryValue:
-            errorCode = StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE;
+            code = StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE;
         }
       }
     } else if (operator.type == TokenType.QUESTION_PERIOD) {
-      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      code = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
       arguments = [operator.lexeme, '.'];
     } else if (operator.type == TokenType.QUESTION_PERIOD_PERIOD) {
-      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      code = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
       arguments = [operator.lexeme, '..'];
     } else if (operator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
-      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      code = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
       arguments = [operator.lexeme, '...'];
     } else if (operator.type == TokenType.BANG) {
-      errorCode = StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION;
+      code = StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION;
     } else {
       return;
     }
@@ -5548,7 +5567,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           errorReporter.atOffset(
             offset: operator.offset,
             length: endToken.end - operator.offset,
-            errorCode: errorCode,
+            diagnosticCode: code,
             arguments: arguments,
           );
         }
@@ -5557,7 +5576,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (typeSystem.isStrictlyNonNullable(targetType)) {
-      if (errorCode == StaticWarningCode.INVALID_NULL_AWARE_OPERATOR) {
+      if (code == StaticWarningCode.INVALID_NULL_AWARE_OPERATOR) {
         var previousOperator = previousShortCircuitingOperator(target);
         if (previousOperator != null) {
           errorReporter.reportError(
@@ -5575,7 +5594,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.atOffset(
         offset: operator.offset,
         length: endToken.end - operator.offset,
-        errorCode: errorCode,
+        diagnosticCode: code,
         arguments: arguments,
       );
     }
@@ -5599,7 +5618,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement == null) {
       return;
     }
@@ -5899,7 +5918,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 CompileTimeErrorCode
                     .WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
                 arguments: [
-                  typeParameter.name,
+                  typeParameter.name2 ?? '',
                   typeParameter.variance.keyword,
                   superVariance.keyword,
                   superInterface,
@@ -5910,7 +5929,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 typeParameter.asElement2,
                 CompileTimeErrorCode
                     .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-                arguments: [typeParameter.name, superInterface],
+                arguments: [typeParameter.name2 ?? '', superInterface],
               );
             }
           }
@@ -5952,7 +5971,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
         arguments: [
           typeParameter.variance.keyword,
-          typeParameter.name,
+          typeParameter.name2 ?? '',
           variance.keyword,
         ],
       );
@@ -6137,7 +6156,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             if (typeSystem.isPotentiallyNonNullable(type)) {
               var parameterName = _parameterName(parameter);
               var errorTarget = parameterName ?? parameter;
-              if (parameterElement.metadata2.hasRequired) {
+              if (parameterElement.metadata.hasRequired) {
                 errorReporter.atEntity(
                   errorTarget,
                   CompileTimeErrorCode
@@ -6355,7 +6374,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.atOffset(
         offset: offset,
         length: length,
-        errorCode: WarningCode.MULTIPLE_COMBINATORS,
+        diagnosticCode: WarningCode.MULTIPLE_COMBINATORS,
       );
     }
   }
@@ -6517,7 +6536,6 @@ class LibraryVerificationContext {
   final duplicationDefinitionContext = DuplicationDefinitionContext();
   final LibraryFileKind libraryKind;
   final ConstructorFieldsVerifier constructorFieldsVerifier;
-  final Map<FileState, FileAnalysis> files;
 
   /// A table mapping names to the exported elements.
   final Map<String, Element> _exportedElements = {};
@@ -6534,7 +6552,6 @@ class LibraryVerificationContext {
   LibraryVerificationContext({
     required this.libraryKind,
     required this.constructorFieldsVerifier,
-    required this.files,
   });
 
   bool libraryCycleContains(Uri uri) {

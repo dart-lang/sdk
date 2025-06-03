@@ -96,7 +96,7 @@ class HttpAnalysisServer {
 
   /// Attach a listener to a newly created HTTP server.
   void _handleServer(HttpServer httpServer) {
-    httpServer.listen((HttpRequest request) async {
+    httpServer.listen((HttpRequest request) {
       if (WebSocketTransformer.isUpgradeRequest(request) &&
           // For WebSockets, verify we're same origin (since the browser would
           // not).

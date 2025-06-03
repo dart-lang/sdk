@@ -80,7 +80,7 @@ class IdentifierHelper {
   /// Adds any suggestions for a variable with the given [type].
   void addVariable(TypeAnnotation? type) {
     if (type is NamedType) {
-      addSuggestionsFromTypeName(type.name2.lexeme);
+      addSuggestionsFromTypeName(type.name.lexeme);
     }
   }
 

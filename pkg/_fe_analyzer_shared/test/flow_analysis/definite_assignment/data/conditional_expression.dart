@@ -17,11 +17,13 @@ in_condition() {
 in_else(bool c) {
   late int v;
   c ? (v = 0) : 2;
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 in_then(bool c) {
   late int v;
   c ? (v = 0) : 2;
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }

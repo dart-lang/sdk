@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -17,7 +16,7 @@ class ClassHierarchy {
     return _getHierarchy(element).errors;
   }
 
-  List<InterfaceType> implementedInterfaces(InterfaceElementImpl2 element) {
+  List<InterfaceTypeImpl> implementedInterfaces(InterfaceElementImpl2 element) {
     return _getHierarchy(element).interfaces;
   }
 
@@ -45,7 +44,7 @@ class ClassHierarchy {
 
     hierarchy = _Hierarchy(
       errors: const <ClassHierarchyError>[],
-      interfaces: const <InterfaceType>[],
+      interfaces: const <InterfaceTypeImpl>[],
     );
     _map[element] = hierarchy;
 
@@ -82,7 +81,7 @@ class ClassHierarchy {
     }
 
     var errors = <ClassHierarchyError>[];
-    var interfaces = <InterfaceType>[];
+    var interfaces = <InterfaceTypeImpl>[];
     for (var collector in interfacesMerger._map.values) {
       var error = collector._error;
       if (error != null) {
@@ -111,8 +110,8 @@ abstract class ClassHierarchyError {}
 /// In opted-in libraries NNBD_TOP_MERGE of NORM of the interfaces must be
 /// successful.
 class IncompatibleInterfacesClassHierarchyError extends ClassHierarchyError {
-  final InterfaceType first;
-  final InterfaceType second;
+  final InterfaceTypeImpl first;
+  final InterfaceTypeImpl second;
 
   IncompatibleInterfacesClassHierarchyError(this.first, this.second);
 }
@@ -175,12 +174,11 @@ class _ClassInterfaceType {
       } else if (type == _singleType) {
         return;
       } else {
-        _currentResult =
-            _typeSystem.normalize(_singleType!) as InterfaceTypeImpl;
+        _currentResult = _typeSystem.normalizeInterfaceType(_singleType!);
       }
     }
 
-    var normType = _typeSystem.normalize(type) as InterfaceTypeImpl;
+    var normType = _typeSystem.normalizeInterfaceType(type);
     try {
       _currentResult = _merge(_currentResult!, normType);
     } catch (e) {
@@ -208,7 +206,7 @@ class _ClassInterfaceType {
 
 class _Hierarchy {
   List<ClassHierarchyError> errors;
-  List<InterfaceType> interfaces;
+  List<InterfaceTypeImpl> interfaces;
 
   _Hierarchy({required this.errors, required this.interfaces});
 }

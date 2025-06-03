@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,6 +19,52 @@ main() {
 @reflectiveTest
 class DotShorthandConstructorInvocationResolutionTest
     extends PubPackageResolutionTest {
+  test_abstract_instantiation() async {
+    await assertErrorsInCode(
+      r'''
+Function getFunction() {
+  return .new();
+}
+''',
+      [error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 34, 6)],
+    );
+  }
+
+  test_abstract_instantiation_factory() async {
+    await assertNoErrorsInCode(r'''
+void main() async {
+  var iter = [1, 2];
+  await for (var x in .fromIterable(iter)) {
+    print(x);
+  }
+}
+''');
+
+    var node = findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: fromIterable
+    element: ConstructorMember
+      baseElement: dart:async::@fragment::dart:async/stream.dart::@class::Stream::@constructor::fromIterable#element
+      substitution: {T: int}
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: iter
+        correspondingParameter: ParameterMember
+          baseElement: dart:async::@fragment::dart:async/stream.dart::@class::Stream::@constructor::fromIterable::@parameter::data#element
+          substitution: {T: int}
+        element: iter@26
+        staticType: List<int>
+    rightParenthesis: )
+  staticType: Stream<int>
+''');
+  }
+
   test_chain_method() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -102,7 +149,7 @@ class CAssert {
     var node = findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
-  const: const
+  constKeyword: const
   period: .
   constructorName: SimpleIdentifier
     token: named
@@ -170,7 +217,7 @@ void main() {
     var node = findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
-  const: const
+  constKeyword: const
   period: .
   constructorName: SimpleIdentifier
     token: named
@@ -295,6 +342,30 @@ DotShorthandConstructorInvocation
 ''');
   }
 
+  test_enum_constructor() async {
+    await assertErrorsInCode(
+      r'''
+enum E {
+  v.named();
+
+  const E.named();
+}
+
+void f() {
+  E e = .named();
+  print(e);
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          65,
+          5,
+        ),
+      ],
+    );
+  }
+
   test_equality() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -381,7 +452,7 @@ void main() {
     var identifier = findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(identifier, r'''
 DotShorthandConstructorInvocation
-  const: const
+  constKeyword: const
   period: .
   constructorName: SimpleIdentifier
     token: named
@@ -430,7 +501,7 @@ DotShorthandConstructorInvocation
         period: .
         memberName: SimpleIdentifier
           token: member
-          element: <testLibraryFragment>::@class::C::@method::member#element
+          element: <testLibrary>::@class::C::@method::member
           staticType: C<dynamic> Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -518,5 +589,114 @@ DotShorthandConstructorInvocation
     rightParenthesis: )
   staticType: C
 ''');
+  }
+
+  test_postfixOperator() async {
+    await assertErrorsInCode(
+      r'''
+class C {}
+
+void main() {
+  C c = .new()++;
+  print(c);
+}
+''',
+      [
+        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 35, 3),
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 40, 2),
+      ],
+    );
+  }
+
+  test_prefixOperator() async {
+    await assertErrorsInCode(
+      r'''
+class C {}
+
+void main() {
+  C c = ++.new();
+  print(c);
+}
+''',
+      [
+        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 37, 3),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 41, 1),
+      ],
+    );
+  }
+
+  test_requiredParameters_missing() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  int x;
+  C({required this.x});
+}
+
+void main() {
+  C c = .new();
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 69, 3)],
+    );
+  }
+
+  test_typeParameters() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C();
+}
+
+void main() {
+  C c = .new<int>();
+  print(c);
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode
+              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR,
+          46,
+          5,
+        ),
+      ],
+    );
+  }
+
+  test_typeParameters_const() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  const C();
+}
+
+void main() {
+  C c = const .new<int>();
+  print(c);
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode
+              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR,
+          58,
+          5,
+        ),
+      ],
+    );
+  }
+
+  test_typeParameters_missingContext() async {
+    await assertErrorsInCode(
+      r'''
+void main() {
+  var c = const .new<int>();
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 24, 17)],
+    );
   }
 }

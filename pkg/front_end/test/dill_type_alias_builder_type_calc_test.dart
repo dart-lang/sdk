@@ -39,14 +39,16 @@ void main() {}
   ];
   for (LibraryBuilder builder in builders) {
     if (builder is! DillLibraryBuilder) continue;
-    builder.libraryNameSpace.forEachLocalMember((name, member) {
-      if (member is! DillTypeAliasBuilder) return;
+    Iterator<DillTypeAliasBuilder> iterator =
+        builder.filteredMembersIterator(includeDuplicates: false);
+    while (iterator.moveNext()) {
+      DillTypeAliasBuilder member = iterator.current;
       try {
         member.type;
       } catch (e) {
         failures.add(member);
       }
-    });
+    }
   }
 
   if (failures.isNotEmpty) {

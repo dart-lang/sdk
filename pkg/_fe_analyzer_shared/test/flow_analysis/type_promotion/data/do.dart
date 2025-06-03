@@ -6,7 +6,8 @@ void condition_isNotType(Object x) {
   do {
     x;
   } while (x is! String);
-  /*String*/ x;
+  /*String*/
+  x;
 }
 
 void condition_isType(Object x) {
@@ -19,9 +20,11 @@ void condition_isType(Object x) {
 void outerIsType(bool b, Object x) {
   if (x is String) {
     do {
-      /*String*/ x;
+      /*String*/
+      x;
     } while (b);
-    /*String*/ x;
+    /*String*/
+    x;
   }
 }
 

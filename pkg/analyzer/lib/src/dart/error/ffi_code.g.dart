@@ -20,7 +20,7 @@ library;
 
 import "package:analyzer/error/error.dart";
 
-class FfiCode extends ErrorCode {
+class FfiCode extends DiagnosticCode {
   ///  No parameters.
   static const FfiCode ABI_SPECIFIC_INTEGER_INVALID = FfiCode(
     'ABI_SPECIFIC_INTEGER_INVALID',
@@ -536,8 +536,7 @@ class FfiCode extends ErrorCode {
        );
 
   @override
-  DiagnosticSeverity get errorSeverity =>
-      DiagnosticType.COMPILE_TIME_ERROR.severity;
+  DiagnosticSeverity get severity => DiagnosticType.COMPILE_TIME_ERROR.severity;
 
   @override
   DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;

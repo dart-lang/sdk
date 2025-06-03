@@ -133,6 +133,9 @@ class Driver implements ServerStarter {
   /// A directory to analyze in order to train an analysis server snapshot.
   static const String TRAIN_USING = 'train-using';
 
+  /// Flag to not use a (Evicting)FileByteStore.
+  static const String DISABLE_FILE_BYTE_STORE = 'disable-file-byte-store';
+
   /// The builder for attachments that should be included into crash reports.
   CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder =
       CrashReportingAttachmentsBuilder.empty;
@@ -421,6 +424,9 @@ class Driver implements ServerStarter {
         'analysis_server_',
       );
       analysisServerOptions.cacheFolder = tempDriverDir.path;
+      analysisServerOptions.disableFileByteStore = results.flag(
+        DISABLE_FILE_BYTE_STORE,
+      );
 
       var devServer = DevAnalysisServer(socketServer);
       devServer.initServer();
@@ -650,6 +656,7 @@ class Driver implements ServerStarter {
       USE_LSP,
       'use-new-relevance',
       'use-fasta-parser',
+      DISABLE_FILE_BYTE_STORE,
     ];
     return knownArguments
         .where((argument) => results.wasParsed(argument))
@@ -840,6 +847,12 @@ class Driver implements ServerStarter {
       help:
           'Pass in a directory to analyze for purposes of training an '
           'analysis server snapshot.  Disables analytics.',
+      hide: true,
+    );
+    parser.addFlag(
+      DISABLE_FILE_BYTE_STORE,
+      help:
+          'Disable use of (Evicting)FileByteStore. Intended for benchmarking.',
       hide: true,
     );
     parser.addFlag(

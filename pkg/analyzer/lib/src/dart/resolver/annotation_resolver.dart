@@ -74,7 +74,7 @@ class AnnotationResolver {
   ) {
     ExecutableElement? getter;
     if (getterName != null) {
-      getter = classElement.getGetter2(getterName.name);
+      getter = classElement.getGetter(getterName.name);
       // Recovery, try to find a constructor.
       getter ??= classElement.getNamedConstructor2(getterName.name);
     } else {
@@ -157,7 +157,7 @@ class AnnotationResolver {
   ) {
     ExecutableElement? getter;
     if (getterName != null) {
-      getter = extensionElement.getGetter2(getterName.name);
+      getter = extensionElement.getGetter(getterName.name);
     }
 
     getterName?.element = getter;
@@ -448,7 +448,7 @@ class AnnotationResolver {
     if (aliasedType is InterfaceType) {
       var classElement = aliasedType.element3;
       if (getterName != null) {
-        getter = classElement.getGetter2(getterName.name);
+        getter = classElement.getGetter(getterName.name);
       }
     }
 

@@ -11,13 +11,13 @@ import '../base/export.dart';
 import '../base/loader.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
+import '../base/scope.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/property_builder.dart';
 import '../codes/cfe_codes.dart'
@@ -40,7 +40,7 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
   DillCompilationUnitImpl(this._dillLibraryBuilder);
 
   @override
-  void addExporter(CompilationUnit exporter,
+  void addExporter(SourceCompilationUnit exporter,
       List<CombinatorBuilder>? combinators, int charOffset) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
@@ -97,9 +97,9 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
 }
 
 class DillLibraryBuilder extends LibraryBuilderImpl {
-  late final DillLibraryNameSpace _nameSpace;
+  final DillLibraryNameSpace _nameSpace = new DillLibraryNameSpace();
 
-  late final DillExportNameSpace _exportScope;
+  final DillExportNameSpace _exportNameSpace = new DillExportNameSpace();
 
   @override
   final Library library;
@@ -127,16 +127,20 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   bool mayImplementRestrictedTypes = false;
 
-  DillLibraryBuilder(this.library, this.loader) : super(library.fileUri) {
-    _nameSpace = new DillLibraryNameSpace(this);
-    _exportScope = new DillExportNameSpace(this);
+  final List<NamedBuilder> _memberBuilders = [];
+
+  DillLibraryBuilder(this.library, this.loader) : super(library.fileUri);
+  @override
+  NameSpace get libraryNameSpace {
+    ensureLoaded();
+    return _nameSpace;
   }
 
   @override
-  NameSpace get libraryNameSpace => _nameSpace;
-
-  @override
-  NameSpace get exportNameSpace => _exportScope;
+  ComputedNameSpace get exportNameSpace {
+    ensureLoaded();
+    return _exportNameSpace;
+  }
 
   @override
   List<Export> get exporters => mainCompilationUnit.exporters;
@@ -183,7 +187,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     nonTearOffs.forEach(_addMember);
-    library.procedures.forEach(_addMember);
     for (Typedef typedef in library.typedefs) {
       addTypedef(typedef, tearOffs[typedef.name]);
     }
@@ -268,10 +271,16 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     _addBuilder(extensionTypeDeclaration.name, extensionTypeDeclarationBuilder);
   }
 
+  bool _isPrivateFromOtherLibrary(Member member) {
+    Name name = member.name;
+    return name.isPrivate && name.libraryReference != library.reference;
+  }
+
   void _addMember(Member member) {
     if (member.isExtensionMember || member.isExtensionTypeMember) {
       return null;
     }
+
     String name = member.name.text;
     if (name == unserializableExportName) {
       Field field = member as Field;
@@ -290,6 +299,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       unserializableExports =
           json != null ? new Map<String, String>.from(json) : null;
     } else {
+      if (_isPrivateFromOtherLibrary(member)) return;
       if (member is Field) {
         _addBuilder(name, new DillFieldBuilder(member, this));
       } else if (member is Procedure) {
@@ -319,28 +329,28 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  Builder? _addBuilder(String? name, Builder declaration) {
-    if (name == null || name.isEmpty) return null;
+  void _addBuilder(String? name, NamedBuilder declaration) {
+    if (name == null || name.isEmpty) return;
 
     bool isSetter = isMappedAsSetter(declaration);
     if (isSetter) {
-      libraryNameSpace.addLocalMember(name, declaration as MemberBuilder,
+      _nameSpace.addLocalMember(name, declaration as MemberBuilder,
           setter: true);
     } else {
-      libraryNameSpace.addLocalMember(name, declaration, setter: false);
+      _nameSpace.addLocalMember(name, declaration, setter: false);
     }
     if (declaration is ExtensionBuilder) {
-      libraryNameSpace.addExtension(declaration);
+      _nameSpace.addExtension(declaration);
     }
+    _memberBuilders.add(declaration);
     if (!name.startsWith("_") && !name.contains('#')) {
       if (isSetter) {
-        exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
+        _exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
             setter: true);
       } else {
-        exportNameSpace.addLocalMember(name, declaration, setter: false);
+        _exportNameSpace.addLocalMember(name, declaration, setter: false);
       }
     }
-    return declaration;
   }
 
   void addTypedef(Typedef typedef, Map<Name, Procedure>? tearOffs) {
@@ -365,7 +375,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   void finalizeExports() {
     unserializableExports?.forEach((String name, String messageText) {
-      Builder declaration;
+      NamedBuilder declaration;
       if (messageText == exportDynamicSentinel) {
         assert(
             name == 'dynamic', "Unexpected export name for 'dynamic': '$name'");
@@ -385,14 +395,14 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         declaration =
             new InvalidTypeDeclarationBuilder(name, message.withoutLocation());
       }
-      exportNameSpace.addLocalMember(name, declaration, setter: false);
+      _exportNameSpace.addLocalMember(name, declaration, setter: false);
     });
 
-    Map<Reference, Builder>? sourceBuildersMap =
+    Map<Reference, NamedBuilder>? sourceBuildersMap =
         loader.currentSourceLoader?.buildersCreatedWithReferences;
     for (Reference reference in library.additionalExports) {
       NamedNode node = reference.node as NamedNode;
-      Builder? declaration = sourceBuildersMap?[reference];
+      NamedBuilder? declaration = sourceBuildersMap?[reference];
       String name;
       if (declaration != null) {
         // Coverage-ignore-block(suite): Not run.
@@ -406,9 +416,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         }
 
         if (isMappedAsSetter(declaration)) {
-          exportNameSpace.addLocalMember(name, declaration, setter: true);
+          _exportNameSpace.addLocalMember(name, declaration, setter: true);
         } else {
-          exportNameSpace.addLocalMember(name, declaration, setter: false);
+          _exportNameSpace.addLocalMember(name, declaration, setter: false);
         }
       } else {
         Uri libraryUri;
@@ -448,12 +458,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         if (isSetter) {
           declaration =
               library.exportNameSpace.lookupLocalMember(name)!.setable!;
-          exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
-              setter: true);
+          _exportNameSpace.addLocalMember(name, declaration, setter: true);
         } else {
           declaration =
               library.exportNameSpace.lookupLocalMember(name)!.getable!;
-          exportNameSpace.addLocalMember(name, declaration, setter: false);
+          _exportNameSpace.addLocalMember(name, declaration, setter: false);
         }
       }
 
@@ -475,15 +484,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Iterator<T> fullMemberIterator<T extends Builder>() {
-    return libraryNameSpace.filteredIterator<T>(includeDuplicates: false);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NameIterator<T> fullMemberNameIterator<T extends Builder>() {
-    return libraryNameSpace.filteredNameIterator(includeDuplicates: false);
+  Iterator<T> filteredMembersIterator<T extends NamedBuilder>(
+      {required bool includeDuplicates}) {
+    ensureLoaded();
+    return new FilteredIterator<T>(_memberBuilders.iterator,
+        includeDuplicates: includeDuplicates);
   }
 
   @override
@@ -493,8 +498,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   /// builders in the export scope. The replacement maps from old LibraryBuilder
   /// to map, mapping from name to new (replacement) builder.
   void patchUpExportScope(
-      Map<LibraryBuilder, Map<String, Builder>> replacementMap,
-      Map<LibraryBuilder, Map<String, Builder>> replacementMapSetters) {
-    _exportScope.patchUpScope(replacementMap, replacementMapSetters);
+      Map<LibraryBuilder, NameSpace> replacementNameSpaceMap) {
+    _exportNameSpace.patchUpScope(replacementNameSpaceMap);
   }
 }

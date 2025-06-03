@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -72,7 +73,7 @@ class CascadeInvocations extends LintRule {
     : super(name: LintNames.cascade_invocations, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.cascade_invocations;
+  DiagnosticCode get diagnosticCode => LinterLintCode.cascade_invocations;
 
   @override
   void registerNodeProcessors(

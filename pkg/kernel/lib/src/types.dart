@@ -58,14 +58,14 @@ class Types with StandardBounds {
   ///    `performNullabilityAwareSubtypeCheck`.
   /// 3. Comment out the call to `_performNullabilityAwareSubtypeCheck` below.
   // ignore:unused_element
-  bool _collect_performNullabilityAwareSubtypeCheck(
-      DartType subtype, DartType supertype, SubtypeCheckMode mode) {
+  IsSubtypeOf _collect_performNullabilityAwareSubtypeCheck(
+      DartType subtype, DartType supertype) {
     IsSubtypeOf result = const IsSubtypeOf.always();
-    //result = _performNullabilityAwareSubtypeCheck(subtype, supertype, mode);
-    bool booleanResult = _isSubtypeFromMode(result, mode);
+    // result = _performNullabilityAwareSubtypeCheck(subtype, supertype);
+    bool booleanResult = result.isSubtypeWhenUsingNullabilities();
     (typeChecksForTesting ??= <Object>[])
         .add([subtype, supertype, booleanResult]);
-    return booleanResult;
+    return result;
   }
 
   IsSubtypeOf performNullabilityAwareSubtypeCheck(DartType s, DartType t) {

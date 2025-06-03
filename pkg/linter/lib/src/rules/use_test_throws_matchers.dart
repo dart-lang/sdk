@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,7 @@ class UseTestThrowsMatchers extends LintRule {
     : super(name: LintNames.use_test_throws_matchers, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_test_throws_matchers;
+  DiagnosticCode get diagnosticCode => LinterLintCode.use_test_throws_matchers;
 
   @override
   void registerNodeProcessors(

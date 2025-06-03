@@ -16,6 +16,17 @@ enum DirectiveUriKind {
   withNothing,
 }
 
+enum ElementTag {
+  null_,
+  dynamic_,
+  never_,
+  multiplyDefined,
+  memberWithTypeArguments,
+  elementImpl,
+  // TODO(scheglov): remove once we untangle Element2 from Fragment in storage.
+  viaFragment,
+}
+
 enum ImportElementPrefixKind { isDeferred, isNotDeferred, isNull }
 
 class Tag {

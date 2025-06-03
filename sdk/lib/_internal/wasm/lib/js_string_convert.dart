@@ -36,7 +36,7 @@ JSStringImpl? _useTextDecoder(
   // back on unintercepted decoder. The fallback will either succeed in
   // decoding, or report the problem better than `TextDecoder`.
   try {
-    return JSStringImpl(
+    return JSStringImpl.fromRefUnchecked(
       js.JS<WasmExternRef?>(
         '(decoder, codeUnits) => decoder.decode(codeUnits)',
         decoder,

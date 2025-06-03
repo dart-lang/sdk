@@ -20,8 +20,6 @@ import 'package:test/test.dart';
 import '../../../../abstract_single_unit.dart';
 import '../../../../utils/test_instrumentation_service.dart';
 
-export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-
 /// A base class defining support for writing assist processor tests.
 abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   late int _offset;

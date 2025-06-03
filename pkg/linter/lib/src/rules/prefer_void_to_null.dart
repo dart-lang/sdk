@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -17,7 +18,7 @@ class PreferVoidToNull extends LintRule {
     : super(name: LintNames.prefer_void_to_null, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_void_to_null;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_void_to_null;
 
   @override
   void registerNodeProcessors(
@@ -44,9 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Make sure we're checking a return type.
     if (parent.returnType?.offset != node.offset) return false;
 
-    var member = context.inheritanceManager.overriddenMember(
-      parent.declaredFragment?.element,
-    );
+    var member = parent.declaredFragment?.element.overriddenMember;
     if (member == null) return false;
 
     var returnType = member.returnType;
@@ -122,6 +121,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (declaration?.isAugmentation ?? false) return;
     }
 
-    rule.reportAtToken(node.name2);
+    rule.reportAtToken(node.name);
   }
 }

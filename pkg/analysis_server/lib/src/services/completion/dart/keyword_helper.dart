@@ -585,13 +585,6 @@ class KeywordHelper {
   /// beginning of a statement. The [node] provides context to determine which
   /// keywords to include.
   void addStatementKeywords(AstNode node) {
-    if (node.inAsyncMethodOrFunction) {
-      addKeyword(Keyword.AWAIT);
-    } else if (node.inAsyncStarOrSyncStarMethodOrFunction) {
-      addKeyword(Keyword.AWAIT);
-      addKeyword(Keyword.YIELD);
-      addKeywordAndText(Keyword.YIELD, '*');
-    }
     if (node.inLoop) {
       addKeyword(Keyword.BREAK);
       addKeyword(Keyword.CONTINUE);

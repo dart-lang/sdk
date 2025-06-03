@@ -22,6 +22,10 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
 
   SourceExtensionTypeDeclarationBuilder? _builder;
 
+  @override
+  late final UriOffsetLength uriOffset =
+      new UriOffsetLength(fileUri, nameOffset, name.length);
+
   ExtensionTypeFragment(
       {required this.name,
       required super.fileUri,
@@ -31,9 +35,6 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
       required super.typeParameterScope,
       required super.nominalParameterNameSpace,
       required super.enclosingCompilationUnit});
-
-  @override
-  int get fileOffset => nameOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -54,14 +55,14 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
       modifiers.isAugment;
 
   @override
+  DeclarationFragmentKind get kind =>
+      DeclarationFragmentKind.extensionTypeDeclaration;
+
+  @override
   void addPrimaryConstructorField(PrimaryConstructorFieldFragment fragment) {
     primaryConstructorFields.add(fragment);
   }
 
   @override
-  DeclarationFragmentKind get kind =>
-      DeclarationFragmentKind.extensionTypeDeclaration;
-
-  @override
-  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
+  String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
 }

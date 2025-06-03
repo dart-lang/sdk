@@ -85,7 +85,6 @@ class StoreBuffer;
 class StubCode;
 class ThreadRegistry;
 class UserTag;
-class WeakTable;
 
 class IsolateVisitor {
  public:
@@ -745,6 +744,16 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     initial_field_table_ = field_table;
   }
 
+  FieldTable* sentinel_field_table() const {
+    return sentinel_field_table_.get();
+  }
+  std::shared_ptr<FieldTable> sentinel_field_table_shareable() {
+    return sentinel_field_table_;
+  }
+  void set_sentinel_field_table(std::shared_ptr<FieldTable> field_table) {
+    sentinel_field_table_ = field_table;
+  }
+
   FieldTable* shared_initial_field_table() const {
     return shared_initial_field_table_.get();
   }
@@ -900,6 +909,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t dispatch_table_snapshot_size_ = 0;
   ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> initial_field_table_;
+  std::shared_ptr<FieldTable> sentinel_field_table_;
   std::shared_ptr<FieldTable> shared_initial_field_table_;
   std::shared_ptr<FieldTable> shared_field_table_;
   AtomicBitFieldContainer<uint32_t> isolate_group_flags_;
@@ -1273,6 +1283,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
       const Function& trampoline,
       const Closure& target,
       bool keep_isolate_alive);
+  FfiCallbackMetadata::Trampoline CreateIsolateGroupSharedFfiCallback(
+      Zone* zone,
+      const Function& trampoline,
+      const Closure& target);
   void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
   void UpdateNativeCallableKeepIsolateAliveCounter(intptr_t delta);
   bool HasOpenNativeCallables();
@@ -1284,7 +1298,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void CloseReceivePort(const ReceivePort& receive_port);
 
   // Visible for testing.
-  FfiCallbackMetadata::Metadata* ffi_callback_list_head() {
+  FfiCallbackMetadata::MetadataEntry* ffi_callback_list_head() {
     return ffi_callback_list_head_;
   }
 
@@ -1446,14 +1460,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   }
   static bool IsVMInternalIsolate(const Isolate* isolate);
 
-  // The weak table used in the snapshot writer for the purpose of fast message
-  // sending.
-  WeakTable* forward_table_new() { return forward_table_new_.get(); }
-  void set_forward_table_new(WeakTable* table);
-
-  WeakTable* forward_table_old() { return forward_table_old_.get(); }
-  void set_forward_table_old(WeakTable* table);
-
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
 
@@ -1468,10 +1474,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void init_loaded_prefixes_set_storage();
   bool IsPrefixLoaded(const LibraryPrefix& prefix) const;
   void SetPrefixIsLoaded(const LibraryPrefix& prefix);
-
-  MallocGrowableArray<ObjectPtr>* pointers_to_verify_at_exit() {
-    return &pointers_to_verify_at_exit_;
-  }
 
   bool SetOwnerThread(ThreadId expected_old_owner, ThreadId new_owner);
 
@@ -1658,7 +1660,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   Mutex mutex_;  // Protects compiler stats.
   IsolateMessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
-  FfiCallbackMetadata::Metadata* ffi_callback_list_head_ = nullptr;
+  FfiCallbackMetadata::MetadataEntry* ffi_callback_list_head_ = nullptr;
   intptr_t ffi_callback_keep_alive_counter_ = 0;
   RelaxedAtomic<ThreadId> owner_thread_ = OSThread::kInvalidThreadId;
 
@@ -1673,10 +1675,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // destroyed while there are child isolates in the midst of a spawn.
   Monitor spawn_count_monitor_;
   intptr_t spawn_count_ = 0;
-
-  // Used during message sending of messages between isolates.
-  std::unique_ptr<WeakTable> forward_table_new_;
-  std::unique_ptr<WeakTable> forward_table_old_;
 
   // Signals whether the isolate can receive messages (e.g. KillAllIsolates can
   // send a kill message).
@@ -1718,8 +1716,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   static intptr_t pending_shutdowns_;
 
   ArrayPtr loaded_prefixes_set_storage_;
-
-  MallocGrowableArray<ObjectPtr> pointers_to_verify_at_exit_;
 
   bool is_system_isolate_ = false;
 

@@ -44,6 +44,12 @@ abstract class JavaScriptPrintingContext {
   /// Callback after printing the last character representing [node].
   void exitNode(Node node) {}
 
+  // Callback before branching the flow of code in an expression.
+  void expressionBranch() {}
+
+  // Callback after returning to the original flow of code in an expression.
+  void expressionJoin() {}
+
   late Printer printer;
 }
 
@@ -757,11 +763,13 @@ class Printer implements NodeVisitor {
     // The then part is allowed to have an 'in'.
     visitNestedExpression(cond.then, ASSIGNMENT,
         newInForInit: false, newAtStatementBegin: false);
+    context.expressionBranch();
     spaceOut();
     out(':');
     spaceOut();
     visitNestedExpression(cond.otherwise, ASSIGNMENT,
         newInForInit: inForInit, newAtStatementBegin: false);
+    context.expressionJoin();
   }
 
   @override

@@ -57,9 +57,9 @@ List<Diagnostic> validatePubspec({
     validator(ctx);
   }
   if (analysisOptions != null && analysisOptions.lint) {
-    var visitors = <LintRule, PubspecVisitor>{};
+    var visitors = <AbstractAnalysisRule, PubspecVisitor>{};
     for (var linter in analysisOptions.lintRules) {
-      var visitor = linter.getPubspecVisitor();
+      var visitor = linter.pubspecVisitor;
       if (visitor != null) {
         visitors[linter] = visitor;
       }
@@ -159,7 +159,7 @@ final class PubspecValidationContext {
   /// Report an error for the given node.
   void reportErrorForNode(
     YamlNode node,
-    ErrorCode errorCode, [
+    DiagnosticCode diagnosticCode, [
     List<Object>? arguments,
     List<DiagnosticMessage>? messages,
     Object? data,
@@ -168,7 +168,7 @@ final class PubspecValidationContext {
     reporter.atOffset(
       offset: span.start.offset,
       length: span.length,
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: messages,
       data: data,

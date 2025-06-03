@@ -29,7 +29,7 @@ library;
 //   factory Link.create4({int i}) = LinkFactory.create;
 //                                   ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:14:12: Error: The value 'null' can't be returned from a function with return type 'LinkFactory' because 'LinkFactory' is not nullable.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:14:12: Error: A value of type 'Null' can't be returned from a function with return type 'LinkFactory'.
 //  - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
 //     return null;
 //            ^
@@ -81,7 +81,7 @@ abstract class Link<T extends core::Object? = dynamic> extends core::Object {
 }
 class LinkFactory extends core::Object {
   static factory create() → self::LinkFactory {
-    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:14:12: Error: The value 'null' can't be returned from a function with return type 'LinkFactory' because 'LinkFactory' is not nullable.
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:14:12: Error: A value of type 'Null' can't be returned from a function with return type 'LinkFactory'.
  - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
     return null;
            ^" in let Null #t1 = null in #t1 == null ?{self::LinkFactory} #t1 as{TypeError} self::LinkFactory : #t1{self::LinkFactory};

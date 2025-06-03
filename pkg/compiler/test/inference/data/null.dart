@@ -22,86 +22,94 @@ main() {
   ifThenNotNullGradualCheck2(null, 0);
 }
 
-/*member: ifThenNullCheck:[exact=JSUInt31|powerset={I}]*/
-ifThenNullCheck(int? /*[null|exact=JSUInt31|powerset={null}{I}]*/ value) {
-  if (value /*invoke: [null|subclass=JSInt|powerset={null}{I}]*/ == null) {
+/*member: ifThenNullCheck:[exact=JSUInt31|powerset={I}{O}{N}]*/
+ifThenNullCheck(int? /*[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/ value) {
+  if (value /*invoke: [null|subclass=JSInt|powerset={null}{I}{O}{N}]*/ ==
+      null) {
     return 0;
   }
   return value;
 }
 
-/*member: ifThenElseNullCheck:[exact=JSUInt31|powerset={I}]*/
-ifThenElseNullCheck(int? /*[null|exact=JSUInt31|powerset={null}{I}]*/ value) {
-  if (value /*invoke: [null|subclass=JSInt|powerset={null}{I}]*/ == null) {
+/*member: ifThenElseNullCheck:[exact=JSUInt31|powerset={I}{O}{N}]*/
+ifThenElseNullCheck(
+  int? /*[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/ value,
+) {
+  if (value /*invoke: [null|subclass=JSInt|powerset={null}{I}{O}{N}]*/ ==
+      null) {
     return 0;
   } else {
     return value;
   }
 }
 
-/*member: ifNotThenNullCheck:[exact=JSUInt31|powerset={I}]*/
-ifNotThenNullCheck(int? /*[null|exact=JSUInt31|powerset={null}{I}]*/ value) {
-  if (value /*invoke: [null|subclass=JSInt|powerset={null}{I}]*/ != null) {
+/*member: ifNotThenNullCheck:[exact=JSUInt31|powerset={I}{O}{N}]*/
+ifNotThenNullCheck(
+  int? /*[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/ value,
+) {
+  if (value /*invoke: [null|subclass=JSInt|powerset={null}{I}{O}{N}]*/ !=
+      null) {
     return value;
   }
   return 0;
 }
 
-/*member: ifNotThenElseNullCheck:[exact=JSUInt31|powerset={I}]*/
+/*member: ifNotThenElseNullCheck:[exact=JSUInt31|powerset={I}{O}{N}]*/
 ifNotThenElseNullCheck(
-  int? /*[null|exact=JSUInt31|powerset={null}{I}]*/ value,
+  int? /*[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/ value,
 ) {
-  if (value /*invoke: [null|subclass=JSInt|powerset={null}{I}]*/ != null) {
+  if (value /*invoke: [null|subclass=JSInt|powerset={null}{I}{O}{N}]*/ !=
+      null) {
     return value;
   } else {
     return 0;
   }
 }
 
-/*member: ifThenNotNullComplexCheck:[exact=JSUInt31|powerset={I}]*/
+/*member: ifThenNotNullComplexCheck:[exact=JSUInt31|powerset={I}{O}{N}]*/
 ifThenNotNullComplexCheck(
-  int? /*[null|exact=JSUInt31|powerset={null}{I}]*/ a,
-  int? /*[null|exact=JSUInt31|powerset={null}{I}]*/ b,
+  int? /*[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/ a,
+  int? /*[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/ b,
 ) {
-  if (a /*invoke: [null|subclass=JSInt|powerset={null}{I}]*/ != null &&
-      a /*invoke: [exact=JSUInt31|powerset={I}]*/ != b) {
+  if (a /*invoke: [null|subclass=JSInt|powerset={null}{I}{O}{N}]*/ != null &&
+      a /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/ != b) {
     return a;
   }
   return 0;
 }
 
-/*member: ifThenElseNotNullComplexCheck:[null|exact=JSUInt31|powerset={null}{I}]*/
+/*member: ifThenElseNotNullComplexCheck:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
 ifThenElseNotNullComplexCheck(
-  int? /*[null|exact=JSUInt31|powerset={null}{I}]*/ a,
-  int? /*[null|exact=JSUInt31|powerset={null}{I}]*/ b,
+  int? /*[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/ a,
+  int? /*[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/ b,
 ) {
-  if (a /*invoke: [null|subclass=JSInt|powerset={null}{I}]*/ != null &&
-      a /*invoke: [exact=JSUInt31|powerset={I}]*/ != b) {
+  if (a /*invoke: [null|subclass=JSInt|powerset={null}{I}{O}{N}]*/ != null &&
+      a /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/ != b) {
     return a;
   }
   return a;
 }
 
-/*member: ifThenNotNullGradualCheck1:[exact=JSUInt31|powerset={I}]*/
+/*member: ifThenNotNullGradualCheck1:[exact=JSUInt31|powerset={I}{O}{N}]*/
 ifThenNotNullGradualCheck1(
-  int? /*[null|exact=JSUInt31|powerset={null}{I}]*/ a,
-  int /*[exact=JSUInt31|powerset={I}]*/ b,
+  int? /*[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/ a,
+  int /*[exact=JSUInt31|powerset={I}{O}{N}]*/ b,
 ) {
-  if (a /*invoke: [null|exact=JSUInt31|powerset={null}{I}]*/ != b) {
-    if (a /*invoke: [null|subclass=JSInt|powerset={null}{I}]*/ != null) {
+  if (a /*invoke: [null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/ != b) {
+    if (a /*invoke: [null|subclass=JSInt|powerset={null}{I}{O}{N}]*/ != null) {
       return a;
     }
   }
   return 0;
 }
 
-/*member: ifThenNotNullGradualCheck2:[exact=JSUInt31|powerset={I}]*/
+/*member: ifThenNotNullGradualCheck2:[exact=JSUInt31|powerset={I}{O}{N}]*/
 ifThenNotNullGradualCheck2(
-  int? /*[null|exact=JSUInt31|powerset={null}{I}]*/ a,
-  int /*[exact=JSUInt31|powerset={I}]*/ b,
+  int? /*[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/ a,
+  int /*[exact=JSUInt31|powerset={I}{O}{N}]*/ b,
 ) {
-  if (a /*invoke: [null|subclass=JSInt|powerset={null}{I}]*/ != null) {
-    if (a /*invoke: [exact=JSUInt31|powerset={I}]*/ != b) {
+  if (a /*invoke: [null|subclass=JSInt|powerset={null}{I}{O}{N}]*/ != null) {
+    if (a /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/ != b) {
       return a;
     }
   }

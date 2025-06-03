@@ -5,7 +5,8 @@
 void isType() {
   void g(Object x) {
     if (x is String) {
-      /*String*/ x;
+      /*String*/
+      x;
     }
   }
 }
@@ -13,7 +14,8 @@ void isType() {
 void isType_mutatedInClosure() {
   void g(Object x) {
     if (x is String) {
-      /*String*/ x;
+      /*String*/
+      x;
     }
     x = 42;
   }
@@ -22,7 +24,8 @@ void isType_mutatedInClosure() {
 void isType_mutatedInclosure2() {
   void g(Object x) {
     if (x is String) {
-      /*String*/ x;
+      /*String*/
+      x;
     }
 
     void h() {
@@ -37,7 +40,8 @@ void isType_mutatedInclosure2() {
 
 void outerIsType_assignedOutside(Object x, void Function() g) {
   if (x is String) {
-    /*String*/ x;
+    /*String*/
+    x;
 
     g = () {
       x;

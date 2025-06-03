@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -20,7 +21,7 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.unnecessary_null_aware_operator_on_extension_on_nullable;
 
   @override
@@ -51,8 +52,8 @@ class _Visitor extends SimpleAstVisitor<void> {
               ? node
                   .thisOrAncestorOfType<AssignmentExpression>()
                   ?.writeElement2
-                  ?.enclosingElement2
-              : node.element?.enclosingElement2,
+                  ?.enclosingElement
+              : node.element?.enclosingElement,
         )) {
       rule.reportAtToken(question);
     }
@@ -63,9 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var operator = node.operator;
     if (operator == null) return;
     if (node.isNullAware &&
-        _isExtensionOnNullableType(
-          node.methodName.element?.enclosingElement2,
-        )) {
+        _isExtensionOnNullableType(node.methodName.element?.enclosingElement)) {
       rule.reportAtToken(operator);
     }
   }
@@ -78,8 +77,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
       if (_isExtensionOnNullableType(
         realParent is AssignmentExpression
-            ? realParent.writeElement2?.enclosingElement2
-            : node.propertyName.element?.enclosingElement2,
+            ? realParent.writeElement2?.enclosingElement
+            : node.propertyName.element?.enclosingElement,
       )) {
         rule.reportAtToken(node.operator);
       }

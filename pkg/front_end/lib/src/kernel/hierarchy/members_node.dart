@@ -18,14 +18,13 @@ import '../../base/messages.dart'
         messageInheritedMembersConflict,
         messageInheritedMembersConflictCause1,
         messageInheritedMembersConflictCause2,
-        messageStaticAndInstanceConflict,
-        messageStaticAndInstanceConflictCause,
         templateCantInferReturnTypeDueToNoCombinedSignature,
         templateCantInferTypeDueToNoCombinedSignature,
         templateCantInferTypesDueToNoCombinedSignature,
         templateInstanceAndSynthesizedStaticConflict,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
@@ -45,11 +44,10 @@ abstract class MembersNodeBuilder {
   DeclarationBuilder get declarationBuilder;
 
   List<LocatedMessage> _inheritedConflictContext(ClassMember a, ClassMember b) {
-    int length = a.fullNameForErrors.length;
     // TODO(ahe): Delete this method when it isn't used by [InterfaceResolver].
-    int compare = "${a.fileUri}".compareTo("${b.fileUri}");
+    int compare = "${a.uriOffset.fileUri}".compareTo("${b.uriOffset.fileUri}");
     if (compare == 0) {
-      compare = a.charOffset.compareTo(b.charOffset);
+      compare = a.uriOffset.fileOffset.compareTo(b.uriOffset.fileOffset);
     }
     ClassMember first;
     ClassMember second;
@@ -61,15 +59,12 @@ abstract class MembersNodeBuilder {
       second = a;
     }
     return <LocatedMessage>[
-      messageInheritedMembersConflictCause1.withLocation(
-          first.fileUri, first.charOffset, length),
-      messageInheritedMembersConflictCause2.withLocation(
-          second.fileUri, second.charOffset, length),
+      messageInheritedMembersConflictCause1.withLocation2(first.uriOffset),
+      messageInheritedMembersConflictCause2.withLocation2(second.uriOffset),
     ];
   }
 
   void reportInheritanceConflict(ClassMember a, ClassMember b) {
-    String name = a.fullNameForErrors;
     while (a.hasDeclarations) {
       a = a.declarations.first;
     }
@@ -78,28 +73,25 @@ abstract class MembersNodeBuilder {
     }
     if (a.declarationBuilder != b.declarationBuilder) {
       if (a.declarationBuilder == declarationBuilder) {
-        declarationBuilder.addProblem(
-            messageDeclaredMemberConflictsWithInheritedMember,
-            a.charOffset,
-            name.length,
+        declarationBuilder.libraryBuilder.addProblem2(
+            messageDeclaredMemberConflictsWithInheritedMember, a.uriOffset,
             context: <LocatedMessage>[
               messageDeclaredMemberConflictsWithInheritedMemberCause
-                  .withLocation(b.fileUri, b.charOffset, name.length)
+                  .withLocation2(b.uriOffset)
             ]);
       } else if (b.declarationBuilder == declarationBuilder) {
-        declarationBuilder.addProblem(
-            messageDeclaredMemberConflictsWithInheritedMember,
-            b.charOffset,
-            name.length,
+        declarationBuilder.libraryBuilder.addProblem2(
+            messageDeclaredMemberConflictsWithInheritedMember, b.uriOffset,
             context: <LocatedMessage>[
               messageDeclaredMemberConflictsWithInheritedMemberCause
-                  .withLocation(a.fileUri, a.charOffset, name.length)
+                  .withLocation2(a.uriOffset)
             ]);
       } else {
-        declarationBuilder.addProblem(
+        declarationBuilder.libraryBuilder.addProblem(
             messageInheritedMembersConflict,
             declarationBuilder.fileOffset,
             declarationBuilder.fullNameForErrors.length,
+            declarationBuilder.fileUri,
             context: _inheritedConflictContext(a, b));
       }
     } else if (a.isStatic != b.isStatic) {
@@ -112,25 +104,13 @@ abstract class MembersNodeBuilder {
         staticMember = b;
         instanceMember = a;
       }
-      if (!staticMember.isSynthesized) {
-        declarationBuilder.libraryBuilder.addProblem(
-            messageStaticAndInstanceConflict,
-            staticMember.charOffset,
-            name.length,
-            staticMember.fileUri,
-            context: <LocatedMessage>[
-              messageStaticAndInstanceConflictCause.withLocation(
-                  instanceMember.fileUri,
-                  instanceMember.charOffset,
-                  name.length)
-            ]);
-      } else {
-        declarationBuilder.libraryBuilder.addProblem(
+      if (staticMember.isSynthesized) {
+        // TODO(johnniwinther): Move this to the creation of the shared
+        // property builder.
+        declarationBuilder.libraryBuilder.addProblem2(
             templateInstanceAndSynthesizedStaticConflict
                 .withArguments(staticMember.name.text),
-            instanceMember.charOffset,
-            name.length,
-            instanceMember.fileUri);
+            instanceMember.uriOffset);
       }
     }
   }
@@ -599,7 +579,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     Map<Name, _Tuple> memberMap = {};
 
     Iterator<MemberBuilder> iterator =
-        classBuilder.fullMemberIterator<MemberBuilder>();
+        classBuilder.filteredMembersIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       MemberBuilder memberBuilder = iterator.current;
       for (ClassMember classMember in memberBuilder.localMembers) {
@@ -611,7 +591,6 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         if (tuple == null) {
           memberMap[name] = new _Tuple.declareMember(classMember);
         } else {
-          // Coverage-ignore-block(suite): Not run.
           tuple.declaredMember = classMember;
         }
         if (name == noSuchMethodName &&
@@ -645,7 +624,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true);
       if (mixin is ClassBuilder) {
         Iterator<MemberBuilder> iterator =
-            mixin.fullMemberIterator<MemberBuilder>();
+            mixin.filteredMembersIterator(includeDuplicates: false);
         while (iterator.moveNext()) {
           MemberBuilder memberBuilder = iterator.current;
           if (memberBuilder.isStatic) {
@@ -1041,8 +1020,10 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     for (ClassMember declaration in unfoldDeclarations(abstractMembers)) {
       if (classBuilder.isEnum &&
           declaration.declarationBuilder == classBuilder) {
-        classBuilder.addProblem(messageEnumAbstractMember,
-            declaration.charOffset, declaration.name.text.length);
+        classBuilder.libraryBuilder.addProblem2(
+          messageEnumAbstractMember,
+          declaration.uriOffset,
+        );
       } else {
         String name = declaration.fullNameForErrors;
         String className = declaration.declarationBuilder.fullNameForErrors;
@@ -1050,8 +1031,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
             declaration.isSetter ? "$className.$name=" : "$className.$name";
         contextMap[displayName] = templateMissingImplementationCause
             .withArguments(displayName)
-            .withLocation(
-                declaration.fileUri, declaration.charOffset, name.length);
+            .withLocation2(declaration.uriOffset);
       }
     }
     if (contextMap.isEmpty) return;
@@ -1060,11 +1040,12 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     for (int i = 0; i < names.length; i++) {
       context.add(contextMap[names[i]]!);
     }
-    classBuilder.addProblem(
+    classBuilder.libraryBuilder.addProblem(
         templateMissingImplementationNotAbstract.withArguments(
             classBuilder.fullNameForErrors, names),
         classBuilder.fileOffset,
         classBuilder.fullNameForErrors.length,
+        classBuilder.fileUri,
         context: context);
   }
 }
@@ -1265,7 +1246,6 @@ class _Tuple {
 
   ClassMember? get declaredMember => _declaredGetable;
 
-  // Coverage-ignore(suite): Not run.
   void set declaredMember(ClassMember? value) {
     assert(!value!.forSetter);
     assert(
@@ -2828,8 +2808,7 @@ void reportCantInferParameterType(ProblemReporting problemReporting,
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
         return messageDeclaredMemberConflictsWithOverriddenMembersCause
-            .withLocation(overriddenMember.fileUri, overriddenMember.charOffset,
-                overriddenMember.fullNameForErrors.length);
+            .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
       // overridden both as getters and setters.
@@ -2853,8 +2832,7 @@ void reportCantInferTypes(
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
         return messageDeclaredMemberConflictsWithOverriddenMembersCause
-            .withLocation(overriddenMember.fileUri, overriddenMember.charOffset,
-                overriddenMember.fullNameForErrors.length);
+            .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
       // overridden both as getters and setters.
@@ -2878,8 +2856,7 @@ void reportCantInferReturnType(
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
         return messageDeclaredMemberConflictsWithOverriddenMembersCause
-            .withLocation(overriddenMember.fileUri, overriddenMember.charOffset,
-                overriddenMember.fullNameForErrors.length);
+            .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
       // overridden both as getters and setters.
@@ -2903,8 +2880,7 @@ void reportCantInferFieldType(
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
         return messageDeclaredMemberConflictsWithOverriddenMembersCause
-            .withLocation(overriddenMember.fileUri, overriddenMember.charOffset,
-                overriddenMember.fullNameForErrors.length);
+            .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
       // overridden both as getters and setters.

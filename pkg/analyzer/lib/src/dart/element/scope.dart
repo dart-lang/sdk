@@ -93,9 +93,9 @@ class EnclosedScope with _GettersAndSetters implements Scope {
 /// The scope defined by an extension.
 class ExtensionScope extends EnclosedScope {
   ExtensionScope(super.parent, ExtensionElement element) {
-    element.getters2.forEach(_addGetter);
-    element.setters2.forEach(_addSetter);
-    element.methods2.forEach(_addGetter);
+    element.getters.forEach(_addGetter);
+    element.setters.forEach(_addSetter);
+    element.methods.forEach(_addGetter);
   }
 }
 
@@ -120,7 +120,7 @@ class ImportsTracking {
   ImportsTracking({required this.map});
 
   /// The elements that are used from [import].
-  Set<Element> elementsOf(LibraryImportElementImpl import) {
+  Set<Element> elementsOf(LibraryImportImpl import) {
     return trackerOf(import)?.importToUsedElements[import] ?? {};
   }
 
@@ -130,7 +130,7 @@ class ImportsTracking {
     }
   }
 
-  ImportsTrackingOfPrefix? trackerOf(LibraryImportElementImpl import) {
+  ImportsTrackingOfPrefix? trackerOf(LibraryImportImpl import) {
     var prefix = import.prefix2?.element;
     return map[prefix];
   }
@@ -141,17 +141,16 @@ class ImportsTrackingOfPrefix {
 
   /// Key: an element.
   /// Value: the imports that provide the element.
-  final Map<Element, List<LibraryImportElementImpl>> _elementImports = {};
+  final Map<Element, List<LibraryImportImpl>> _elementImports = {};
 
   /// Key: an import.
   /// Value: used elements imported from the import.
-  final Map<LibraryImportElementImpl, Set<Element>> importToUsedElements = {};
+  final Map<LibraryImportImpl, Set<Element>> importToUsedElements = {};
 
   /// Key: an import.
   /// Value: used elements imported from the import.
   /// Excludes elements from deprecated exports.
-  final Map<LibraryImportElementImpl, Set<Element>> importToAccessedElements2 =
-      {};
+  final Map<LibraryImportImpl, Set<Element>> importToAccessedElements2 = {};
 
   /// Usually it is an error to use an import prefix without `.identifier`
   /// after it, but we allow this in comment references. This makes the
@@ -166,13 +165,13 @@ class ImportsTrackingOfPrefix {
   }
 
   /// The elements that are used from [import].
-  Set<Element> elementsOf(LibraryImportElementImpl import) {
+  Set<Element> elementsOf(LibraryImportImpl import) {
     return importToUsedElements[import] ?? {};
   }
 
   /// The subset of [elementsOf], excludes elements that are from deprecated
   /// exports inside the imported library.
-  Set<Element> elementsOf2(LibraryImportElementImpl import) {
+  Set<Element> elementsOf2(LibraryImportImpl import) {
     var result = importToAccessedElements2[import];
     if (result != null) {
       return result;
@@ -265,9 +264,9 @@ class ImportsTrackingOfPrefix {
 /// The scope defined by an instance element.
 class InstanceScope extends EnclosedScope {
   InstanceScope(super.parent, InstanceElement element) {
-    element.getters2.forEach(_addGetter);
-    element.setters2.forEach(_addSetter);
-    element.methods2.forEach(_addGetter);
+    element.getters.forEach(_addGetter);
+    element.setters.forEach(_addSetter);
+    element.methods.forEach(_addGetter);
   }
 }
 
@@ -492,7 +491,7 @@ class PrefixScope implements Scope {
   final LibraryFragmentImpl libraryFragment;
   final PrefixScope? parent;
 
-  final List<LibraryImportElementImpl> _importElements = [];
+  final List<LibraryImportImpl> _importElements = [];
   final List<LibraryElementImpl> _importedLibraries = [];
 
   final Map<String, Element> _getters = {};
@@ -507,7 +506,7 @@ class PrefixScope implements Scope {
   PrefixScope({
     required this.libraryFragment,
     required this.parent,
-    required List<LibraryImportElementImpl> libraryImports,
+    required List<LibraryImportImpl> libraryImports,
     required PrefixElement? prefix,
   }) {
     var elementFactory = libraryElement.session.elementFactory;
@@ -564,12 +563,10 @@ class PrefixScope implements Scope {
     }
 
     if (globalResultRequirements case var resultRequirements?) {
-      for (var importedLibrary in _importedLibraries) {
-        resultRequirements.notifyRequest(
-          importedLibrary: importedLibrary,
-          nameStr: id,
-        );
-      }
+      resultRequirements.record_importPrefixScope_lookup(
+        importedLibraries: _importedLibraries,
+        id: id,
+      );
     }
 
     var getter = _getters[id];

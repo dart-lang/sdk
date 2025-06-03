@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// Information about the arguments and parameters for an invocation.
 typedef EditableInvocationInfo =
@@ -58,7 +57,7 @@ mixin EditableArgumentsMixin {
 
     String? widgetName, widgetDocumentation;
     if (invocation is InstanceCreationExpression) {
-      widgetName = invocation.constructorName.type.name2.lexeme;
+      widgetName = invocation.constructorName.type.name.lexeme;
 
       if (invocation.constructorName.element case var element?) {
         widgetDocumentation = getDocumentation(result, element);
@@ -165,7 +164,7 @@ mixin EditableArgumentsMixin {
 
   /// Returns the name of an enum constant prefixed with the enum name.
   static String? getQualifiedEnumConstantName(FieldElement enumConstant) {
-    var enumName = enumConstant.enclosingElement2.name3;
+    var enumName = enumConstant.enclosingElement.name3;
     var name = enumConstant.name3;
     return enumName != null && name != null ? '$enumName.$name' : null;
   }
@@ -183,14 +182,14 @@ extension on InvocationExpressionImpl {
     // We only support @widgetFactory on extension methods.
     var element = switch (function) {
       Identifier(:var element)
-          when element?.enclosingElement2 is ExtensionElement =>
+          when element?.enclosingElement is ExtensionElement =>
         element,
       _ => null,
     };
 
     return switch (element) {
-      FragmentedAnnotatableElementMixin(:var metadata2) =>
-        metadata2.hasWidgetFactory,
+      FragmentedAnnotatableElementMixin(:var metadata) =>
+        metadata.hasWidgetFactory,
       _ => false,
     };
   }

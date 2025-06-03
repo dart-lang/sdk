@@ -5,14 +5,14 @@
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -333,7 +333,7 @@ analyzer:
   test_locateRoots_multiple_dirAndNestedDir_outerIsBlaze_innerConfigurationFiles() {
     var outerRootFolder = newFolder('/outer');
     newFile('$outerRootFolder/${file_paths.blazeWorkspaceMarker}', '');
-    newBlazeBuildFile('$outerRootFolder', '');
+    newBazelBuildFile('$outerRootFolder', '');
     var innerRootFolder = newFolder('/outer/examples/inner');
     var innerOptionsFile = newAnalysisOptionsYamlFile('$innerRootFolder', '');
     var innerPackagesFile = newPackageConfigJsonFile('$innerRootFolder', '');
@@ -528,8 +528,8 @@ analyzer:
 
     newFile('$workspacePath1/${file_paths.blazeWorkspaceMarker}', '');
     newFile('$workspacePath2/${file_paths.blazeWorkspaceMarker}', '');
-    newBlazeBuildFile(pkgPath1, '');
-    newBlazeBuildFile(pkgPath2, '');
+    newBazelBuildFile(pkgPath1, '');
+    newBazelBuildFile(pkgPath2, '');
 
     var folder1 = newFolder('$pkgPath1/lib/folder1');
     var folder2 = newFolder('$pkgPath2/lib/folder2');
@@ -740,8 +740,8 @@ analyzer:
 
     newFile('$workspacePath1/${file_paths.blazeWorkspaceMarker}', '');
     newFile('$workspacePath2/${file_paths.blazeWorkspaceMarker}', '');
-    newBlazeBuildFile(pkgPath1, '');
-    newBlazeBuildFile(pkgPath2, '');
+    newBazelBuildFile(pkgPath1, '');
+    newBazelBuildFile(pkgPath2, '');
 
     var file1 = newFile('$pkgPath1/lib/file1.dart', '');
     var file2 = newFile('$pkgPath2/lib/file2.dart', '');
@@ -774,8 +774,8 @@ analyzer:
     var barPath = '$workspacePath/bar';
 
     newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
-    newBlazeBuildFile(fooPath, '');
-    newBlazeBuildFile(barPath, '');
+    newBazelBuildFile(fooPath, '');
+    newBazelBuildFile(barPath, '');
 
     var fooFile = newFile('$fooPath/lib/foo.dart', '');
     var barFile = newFile('$barPath/lib/bar.dart', '');
@@ -1251,7 +1251,7 @@ ${getFolder(outPath).path}
         PackageConfigFileBuilder()..add(name: 'flutter', rootPath: flutterPath);
     var packagesFile = newPackageConfigJsonFile(
       rootFolder.path,
-      packageConfigFileBuilder.toContent(toUriStr: toUriStr),
+      packageConfigFileBuilder.toContent(pathContext: pathContext),
     );
 
     var roots = contextLocator.locateRoots(includedPaths: [rootFolder.path]);
@@ -1663,7 +1663,7 @@ ${getFolder(outPath).path}
     var myPackage = getFolder(myPackagePath);
 
     newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
-    var buildFile = newBlazeBuildFile(myPackagePath, '');
+    var buildFile = newBazelBuildFile(myPackagePath, '');
     var pubspecYamlFile = newPubspecYamlFile(myPackagePath, '');
     var myFile = newFile('$myPackagePath/lib/my.dart', '');
 
@@ -1783,10 +1783,10 @@ ${getFolder(outPath).path}
     expect(root.packagesFile, packagesFile);
     var path = convertPath('${package1.path}/lib/a.dart');
     var package = root.workspace.findPackageFor(path);
-    expect(package?.root, package1.path);
+    expect(package?.root.path, package1.path);
     path = convertPath('${package2.path}/lib/a.dart');
     package = root.workspace.findPackageFor(path);
-    expect(package?.root, package2.path);
+    expect(package?.root.path, package2.path);
   }
 
   void _assertAnalyzed(ContextRoot root, List<String> posixPathList) {

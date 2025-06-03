@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.39.0</version>
+  <version>1.40.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -78,7 +78,7 @@
   is the 'clientRequestTime' field, which is a number indicating
   the time at which the client made the request (milliseconds
   since epoch). Providing clientRequestTime helps us track
-  how responsive analysis server is to client requests
+  how responsive the analysis server is to client requests
   and better address any issues that occur.
 </p>
 <p>
@@ -142,6 +142,10 @@
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.40.0</h4>
+<ul>
+  <li>Added an optional <tt>version</tt> field to <tt>AddContentOverlay</tt> and <tt>ChangeContentOverlay</tt> to allow clients/servers to have a way to identify specific versions of documents.</li>
+</ul>
 <h4>1.39.0</h4>
 <ul>
   <li>Added a new <tt>lspCapabilities</tt> field to the <tt>setClientCapabilities</tt> parameters to allow clients to provide their LSP capabilities. These capabilities can indicate that a client can support <tt>lsp.handle</tt> requests in the server-to-client direction.</li>
@@ -701,7 +705,7 @@
   </request>
   <request method="getHover">
     <p>
-      Return the hover information associate with the given
+      Return the hover information associated with the given
       location. If some or all of the hover information is not
       available at the time this request is processed the
       information will be omitted from the response.
@@ -1039,14 +1043,14 @@
       analysis roots is automatically updated, but the set of
       requested analysis roots is unchanged. This means that if
       the client sets an analysis root before the root becomes
-      visible to server in the filesystem, there is no error; once
-      the server sees the root in the filesystem it will start
-      analyzing it. Similarly, server will stop analyzing files
+      visible to the server in the filesystem, there is no error;
+      once the server sees the root in the filesystem it will start
+      analyzing it. Similarly, the server will stop analyzing files
       that are removed from the file system but they will remain
       in the set of requested roots.
     </p>
     <p>
-      If an included path represents a file, then server will look
+      If an included path represents a file, then the server will look
       in the directory containing the file for a pubspec.yaml
       file. If none is found, then the parents of the directory
       will be searched until such a file is found or the root of
@@ -1220,7 +1224,7 @@
       previously updated but not included in this update remain
       unchanged. This effectively represents an overlay of the
       filesystem. The files whose content is overridden are
-      therefore seen by server as being files with the given
+      therefore seen by the server as being files with the given
       content, even if the files do not exist on the filesystem or
       if the file path represents the path to a directory on the
       filesystem.
@@ -1311,7 +1315,7 @@
         <p>
           Closing labels relevant to the file. Each item
           represents a useful label associated with some range
-          with may be useful to display to the user within the editor
+          which may be useful to display to the user within the editor
           at the end of the range to indicate what construct is closed
           at that location. Closing labels include constructor/method
           calls and List arguments that span multiple lines.
@@ -1468,7 +1472,7 @@
           <ref>ImplementedMember</ref>
         </list>
         <p>
-          The member defined in the file that are implemented or overridden.
+          The members defined in the file that are implemented or overridden.
         </p>
       </field>
     </params>
@@ -1833,8 +1837,8 @@
         <p>
           The <tt>completion</tt> from the selected
           <tt>CompletionSuggestion</tt>.  It could be a name of a class, or a
-          name of a constructor in form "typeName.constructorName()", or an
-          enumeration constant in form "enumName.constantName", etc.
+          name of a constructor in the form "typeName.constructorName()", or an
+          enumeration constant in the form "enumName.constantName", etc.
         </p>
       </field>
       <field name="libraryUri">
@@ -2822,7 +2826,7 @@
       <field name="edit">
         <ref>SourceFileEdit</ref>
         <p>
-          The file edit that is to be applied to the given file to effect
+          The file edit that is to be applied to the given file to affect
           the sorting.
         </p>
       </field>
@@ -2858,7 +2862,7 @@
       <field name="edit">
         <ref>SourceFileEdit</ref>
         <p>
-          The file edit that is to be applied to the given file to effect
+          The file edit that is to be applied to the given file to affect
           the organizing.
         </p>
       </field>
@@ -2991,7 +2995,7 @@
           <ref>CompletionSuggestion</ref>
         </list>
         <p>
-          The completion suggestions. In contrast to usual completion request,
+          The completion suggestions. In contrast to usual completion requests,
           suggestions for private elements also will be provided.
         </p>
         <p>

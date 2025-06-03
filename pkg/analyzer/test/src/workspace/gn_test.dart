@@ -4,8 +4,8 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/gn.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -87,7 +87,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     var package = workspace.findPackageFor(targetFile.path)!;
-    expect(package.root, convertPath('/ws/some/code'));
+    expect(package.root.path, convertPath('/ws/some/code'));
     expect(package.workspace, equals(workspace));
   }
 

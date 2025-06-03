@@ -478,12 +478,12 @@ class ClosureDataBuilder {
             KernelCapturedScope signatureCapturedScope =
                 KernelCapturedScope.forSignature(capturedScope);
             _updateScopeBasedOnRtiNeed(signatureCapturedScope, rtiNeed, member);
-            _capturedScopeForSignatureMap[closureClassInfo
-                .signatureMethod!] = JsCapturedScope.from(
-              {},
-              signatureCapturedScope,
-              member.enclosingClass,
-            );
+            _capturedScopeForSignatureMap[closureClassInfo.signatureMethod!] =
+                JsCapturedScope.from(
+                  {},
+                  signatureCapturedScope,
+                  member.enclosingClass,
+                );
           }
         }
         callMethods.add(closureClassInfo.callMethod!);
@@ -633,8 +633,8 @@ class JsScopeInfo extends ScopeInfo {
 
   factory JsScopeInfo.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
-        source.readTreeNodes<ir.VariableDeclaration>();
+    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync = source
+        .readTreeNodes<ir.VariableDeclaration>();
     Local? thisLocal = source.readLocalOrNull();
     Map<ir.VariableDeclaration, JContextField> boxedVariables = source
         .readTreeNodeMap<ir.VariableDeclaration, JContextField>(
@@ -679,8 +679,9 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
     super.boxedVariables,
     super.capturedScope,
     super.enclosingClass,
-  ) : contextBox =
-          boxedVariables.isNotEmpty ? boxedVariables.values.first.box : null,
+  ) : contextBox = boxedVariables.isNotEmpty
+          ? boxedVariables.values.first.box
+          : null,
       super.from();
 
   @override
@@ -688,8 +689,8 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
 
   factory JsCapturedScope.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
-        source.readTreeNodes<ir.VariableDeclaration>();
+    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync = source
+        .readTreeNodes<ir.VariableDeclaration>();
     Local? thisLocal = source.readLocalOrNull();
     Map<ir.VariableDeclaration, JContextField> boxedVariables = source
         .readTreeNodeMap<ir.VariableDeclaration, JContextField>(
@@ -744,16 +745,16 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
 
   factory JsCapturedLoopScope.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
-        source.readTreeNodes<ir.VariableDeclaration>();
+    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync = source
+        .readTreeNodes<ir.VariableDeclaration>();
     Local? thisLocal = source.readLocalOrNull();
     Map<ir.VariableDeclaration, JContextField> boxedVariables = source
         .readTreeNodeMap<ir.VariableDeclaration, JContextField>(
           () => source.readMember() as JContextField,
         );
     Local? context = source.readLocalOrNull();
-    List<ir.VariableDeclaration> boxedLoopVariables =
-        source.readTreeNodes<ir.VariableDeclaration>();
+    List<ir.VariableDeclaration> boxedLoopVariables = source
+        .readTreeNodes<ir.VariableDeclaration>();
     source.end(tag);
     return JsCapturedLoopScope.internal(
       localsUsedInTryOrSync,
@@ -844,8 +845,8 @@ class JsClosureClassInfo extends JsScopeInfo
 
   factory JsClosureClassInfo.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
-        source.readTreeNodes<ir.VariableDeclaration>();
+    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync = source
+        .readTreeNodes<ir.VariableDeclaration>();
     Local? thisLocal = source.readLocalOrNull();
     Map<ir.VariableDeclaration, JContextField> boxedVariables = source
         .readTreeNodeMap<ir.VariableDeclaration, JContextField>(

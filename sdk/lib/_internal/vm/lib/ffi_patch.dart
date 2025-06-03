@@ -193,6 +193,11 @@ external Pointer<NS> _createNativeCallableIsolateLocal<
   NS extends NativeFunction
 >(dynamic trampoline, dynamic target, bool keepIsolateAlive);
 
+@pragma("vm:external-name", "Ffi_createNativeCallableIsolateGroupShared")
+external Pointer<NS> _createNativeCallableIsolateGroupShared<
+  NS extends NativeFunction
+>(dynamic trampoline, dynamic target);
+
 @pragma("vm:external-name", "Ffi_deleteNativeCallable")
 external void _deleteNativeCallable<NS extends NativeFunction>(
   Pointer<NS> pointer,
@@ -206,6 +211,19 @@ external void _updateNativeCallableKeepIsolateAliveCounter<
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_nativeIsolateLocalCallbackFunction")
 external dynamic _nativeIsolateLocalCallbackFunction<NS extends Function>(
+  dynamic exceptionalReturn,
+);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_nativeIsolateGroupSharedCallbackFunction")
+external dynamic _nativeIsolateGroupSharedCallbackFunction<NS extends Function>(
+  Function target,
+  dynamic exceptionalReturn,
+);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_nativeIsolateGroupSharedClosureFunction")
+external dynamic _nativeIsolateGroupSharedClosureFunction<NS extends Function>(
   dynamic exceptionalReturn,
 );
 
@@ -327,6 +345,31 @@ final class _NativeCallableListener<T extends Function>
 
   @override
   bool get _keepIsolateAlive => _port.keepIsolateAlive;
+}
+
+final class _NativeCallableIsolateGroupShared<T extends Function>
+    extends _NativeCallableBase<T> {
+  bool _isKeepingIsolateAlive = true;
+
+  _NativeCallableIsolateGroupShared(super._pointer) {
+    _updateNativeCallableKeepIsolateAliveCounter(1);
+  }
+
+  @override
+  void _close() {
+    _keepIsolateAlive = false;
+  }
+
+  @override
+  void set _keepIsolateAlive(bool value) {
+    if (_isKeepingIsolateAlive != value) {
+      _isKeepingIsolateAlive = value;
+      _updateNativeCallableKeepIsolateAliveCounter(value ? 1 : -1);
+    }
+  }
+
+  @override
+  bool get _keepIsolateAlive => _isKeepingIsolateAlive;
 }
 
 @patch
@@ -1883,14 +1926,22 @@ class Native<T> {
   _get_ffi_native_resolver<T extends NativeFunction>();
 
   // Resolver for FFI Native C function pointers.
+  //
+  // TODO(dartbug.com/60699): Once the referenced issue is fixed, this can be
+  // restored back to use of a field with initializer.
   @pragma('vm:entry-point')
-  static final _ffi_resolver =
-      _get_ffi_native_resolver<
-            NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>
-          >()
-          .asFunction<int Function(Object, Object, int)>();
+  @pragma('vm:shared')
+  static int Function(Object, Object, int)? _ffi_resolver = null;
 
   @pragma('vm:entry-point')
-  static int _ffi_resolver_function(Object a, Object s, int n) =>
-      _ffi_resolver(a, s, n);
+  static int _ffi_resolver_function(Object a, Object s, int n) {
+    if (_ffi_resolver == null) {
+      _ffi_resolver =
+          _get_ffi_native_resolver<
+                NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>
+              >()
+              .asFunction<int Function(Object, Object, int)>();
+    }
+    return _ffi_resolver!(a, s, n);
+  }
 }

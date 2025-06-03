@@ -259,7 +259,7 @@ class BaseTextBuffer;
   OBJECT_SERVICE_SUPPORT(object)                                               \
   friend class Object;
 
-extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
+extern "C" void DLRT_ExitSafepoint();
 
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
   OBJECT_IMPLEMENTATION(object, super);                                        \
@@ -270,7 +270,7 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
   SNAPSHOT_SUPPORT(object)                                                     \
   friend class StackFrame;                                                     \
   friend class Thread;                                                         \
-  friend void DFLRT_ExitSafepoint(NativeArguments __unusable_);
+  friend void DLRT_ExitSafepoint();
 
 // This macro is used to denote types that do not have a sub-type.
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, rettype, super)        \
@@ -299,7 +299,7 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
   friend class Object;                                                         \
   friend class StackFrame;                                                     \
   friend class Thread;                                                         \
-  friend void DFLRT_ExitSafepoint(NativeArguments __unusable_);
+  friend void DLRT_ExitSafepoint();
 
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION(object, super)                        \
   FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, object, super)
@@ -2990,7 +2990,9 @@ struct NameFormattingParams {
 
 enum class FfiCallbackKind : uint8_t {
   kIsolateLocalStaticCallback,
+  kIsolateGroupSharedStaticCallback,
   kIsolateLocalClosureCallback,
+  kIsolateGroupSharedClosureCallback,
   kAsyncCallback,
 };
 
@@ -5440,11 +5442,6 @@ class Library : public Object {
 
   void CheckReload(const Library& replacement,
                    ProgramReloadContext* context) const;
-
-  // Returns a closure of top level function 'name' in the exported namespace
-  // of this library. If a top level function 'name' does not exist we look
-  // for a top level getter 'name' that returns a closure.
-  ObjectPtr GetFunctionClosure(const String& name) const;
 
   // Ensures that all top-level functions and variables (fields) are loaded.
   void EnsureTopLevelClassIsFinalized() const;

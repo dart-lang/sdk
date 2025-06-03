@@ -27,7 +27,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.18.0';
+const String vmServiceVersion = '4.19.0';
 
 /// @optional
 const String optional = 'optional';
@@ -151,6 +151,7 @@ final _typeFactories = <String, Function>{
   'MapAssociation': MapAssociation.parse,
   'MemoryUsage': MemoryUsage.parse,
   'Message': Message.parse,
+  'Microtask': Microtask.parse,
   'NativeFunction': NativeFunction.parse,
   '@Null': NullValRef.parse,
   'Null': NullVal.parse,
@@ -165,6 +166,7 @@ final _typeFactories = <String, Function>{
   'Protocol': Protocol.parse,
   'ProcessMemoryUsage': ProcessMemoryUsage.parse,
   'ProcessMemoryItem': ProcessMemoryItem.parse,
+  'QueuedMicrotasks': QueuedMicrotasks.parse,
   'ReloadReport': ReloadReport.parse,
   'RetainingObject': RetainingObject.parse,
   'RetainingPath': RetainingPath.parse,
@@ -226,6 +228,7 @@ final _methodReturnTypes = <String, List<String>>{
   'getPorts': const ['PortList'],
   'getRetainingPath': const ['RetainingPath'],
   'getProcessMemoryUsage': const ['ProcessMemoryUsage'],
+  'getQueuedMicrotasks': const ['QueuedMicrotasks'],
   'getStack': const ['Stack'],
   'getSupportedProtocols': const ['ProtocolList'],
   'getSourceReport': const ['SourceReport'],
@@ -1255,6 +1258,28 @@ class VmService {
   Future<ProcessMemoryUsage> getProcessMemoryUsage() =>
       _call('getProcessMemoryUsage');
 
+  /// The `getQueuedMicrotasks` RPC returns a snapshot containing information
+  /// about the microtasks that were queued in the specified isolate when the
+  /// snapshot was taken.
+  ///
+  /// If the VM was not started with the flag `--profile-microtasks`, this RPC
+  /// will return [RPCError] 100 "Feature is disabled".
+  ///
+  /// If an exception has gone unhandled in the specified isolate, this RPC will
+  /// return [RPCError] 115 "Cannot get queued microtasks".
+  ///
+  /// If custom `dart:async` `Zone`s are used to redirect microtasks to be
+  /// queued elsewhere than the root `dart:async` `Zone`'s microtask queue,
+  /// information about those redirected microtasks will not be returned by this
+  /// function.
+  ///
+  /// If `isolateId` refers to an isolate that has exited, then the `Collected`
+  /// [Sentinel] will be returned.
+  ///
+  /// See [QueuedMicrotasks].
+  Future<QueuedMicrotasks> getQueuedMicrotasks(String isolateId) =>
+      _call('getQueuedMicrotasks', {'isolateId': isolateId});
+
   /// The `getStack` RPC is used to retrieve the current execution stack and
   /// message queue for an isolate. The isolate does not need to be paused.
   ///
@@ -2149,6 +2174,11 @@ enum RPCErrorKind {
       code: 114,
       message:
           'Invalid timeline request for the current timeline configuration'),
+
+  /// Information about the microtasks queued in the specified isolate cannot be
+  /// retrieved.
+  kCannotGetQueuedMicrotasks(
+      code: 115, message: 'Cannot get queued microtasks'),
 
   /// The custom stream does not exist.
   kCustomStreamDoesNotExist(code: 130, message: 'Custom stream does not exist'),
@@ -6654,6 +6684,51 @@ class Message extends Response {
       'size: $size]';
 }
 
+/// A `Microtask` represents a Dart microtask.
+///
+/// See [QueuedMicrotasks].
+class Microtask extends Response {
+  static Microtask? parse(Map<String, dynamic>? json) =>
+      json == null ? null : Microtask._fromJson(json);
+
+  /// The numeric ID for this microtask.
+  ///
+  /// This ID uniquely identifies a microtask within an isolate.
+  int? id;
+
+  /// A stack trace that was collected when this microtask was enqueued.
+  String? stackTrace;
+
+  Microtask({
+    this.id,
+    this.stackTrace,
+  });
+
+  Microtask._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    id = json['id'] ?? -1;
+    stackTrace = json['stackTrace'] ?? '';
+  }
+
+  @override
+  String get type => 'Microtask';
+
+  @override
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'id': id ?? -1,
+        'stackTrace': stackTrace ?? '',
+      };
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  bool operator ==(Object other) => other is Microtask && id == other.id;
+
+  @override
+  String toString() => '[Microtask id: $id, stackTrace: $stackTrace]';
+}
+
 /// A `NativeFunction` object is used to represent native functions in profiler
 /// samples. See [CpuSamples];
 class NativeFunction {
@@ -7300,6 +7375,51 @@ class ProcessMemoryItem {
   @override
   String toString() => '[ProcessMemoryItem ' //
       'name: $name, description: $description, size: $size, children: $children]';
+}
+
+/// A `QueuedMicrotasks` object is a snapshot containing information about the
+/// microtasks that were queued in a certain isolate at a certain time.
+///
+/// See [VmService.getQueuedMicrotasks] and [Microtask].
+class QueuedMicrotasks extends Response {
+  static QueuedMicrotasks? parse(Map<String, dynamic>? json) =>
+      json == null ? null : QueuedMicrotasks._fromJson(json);
+
+  /// The time at which this snapshot of the microtask queue was taken,
+  /// represented as microseconds since the "Unix epoch".
+  int? timestamp;
+
+  /// The microtasks that were in the queue when this snapshot was taken. The
+  /// microtask at the front of the queue (i.e. the one that will run earliest)
+  /// is the one at index 0 of this list.
+  List<Microtask>? microtasks;
+
+  QueuedMicrotasks({
+    this.timestamp,
+    this.microtasks,
+  });
+
+  QueuedMicrotasks._fromJson(Map<String, dynamic> json)
+      : super._fromJson(json) {
+    timestamp = json['timestamp'] ?? -1;
+    microtasks = List<Microtask>.from(
+        createServiceObject(json['microtasks'], const ['Microtask']) as List? ??
+            []);
+  }
+
+  @override
+  String get type => 'QueuedMicrotasks';
+
+  @override
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'timestamp': timestamp ?? -1,
+        'microtasks': microtasks?.map((f) => f.toJson()).toList(),
+      };
+
+  @override
+  String toString() =>
+      '[QueuedMicrotasks timestamp: $timestamp, microtasks: $microtasks]';
 }
 
 class ReloadReport extends Response {

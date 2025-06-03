@@ -31,7 +31,7 @@ class AnalyzerConverter {
     analyzer.DiagnosticSeverity? severity,
   }) {
     var errorCode = diagnostic.errorCode;
-    severity ??= errorCode.errorSeverity;
+    severity ??= errorCode.severity;
     var offset = diagnostic.offset;
     var startLine = -1;
     var startColumn = -1;
@@ -136,7 +136,7 @@ class AnalyzerConverter {
       Element.makeFlags(
         isPrivate: element.isPrivate,
         isDeprecated: (element is analyzer.Annotatable) &&
-            (element as analyzer.Annotatable).metadata2.hasDeprecated,
+            (element as analyzer.Annotatable).metadata.hasDeprecated,
         isAbstract: _isAbstract(element),
         isConst: _isConst(element),
         isFinal: _isFinal(element),
@@ -199,7 +199,7 @@ class AnalyzerConverter {
       return null;
     }
     if (element is analyzer.FormalParameterElement &&
-        element.enclosingElement2 == null) {
+        element.enclosingElement == null) {
       return null;
     }
     var fragment = element.firstFragment;
@@ -257,7 +257,7 @@ class AnalyzerConverter {
       }
       if (parameter.isRequiredNamed) {
         sb.write('required ');
-      } else if (parameter.metadata2.hasDeprecated) {
+      } else if (parameter.metadata.hasDeprecated) {
         sb.write('@required ');
       }
       parameter.appendToWithoutDelimiters2(sb);
@@ -374,12 +374,12 @@ class AnalyzerConverter {
     analyzer.FormalParameterElement e1,
     analyzer.FormalParameterElement e2,
   ) {
-    var rank1 = (e1.isRequiredNamed || e1.metadata2.hasRequired)
+    var rank1 = (e1.isRequiredNamed || e1.metadata.hasRequired)
         ? 0
         : !e1.isNamed
             ? -1
             : 1;
-    var rank2 = (e2.isRequiredNamed || e2.metadata2.hasRequired)
+    var rank2 = (e2.isRequiredNamed || e2.metadata.hasRequired)
         ? 0
         : !e2.isNamed
             ? -1

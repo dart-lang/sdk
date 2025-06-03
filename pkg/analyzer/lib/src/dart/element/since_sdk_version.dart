@@ -31,7 +31,7 @@ class SinceSdkVersionComputer {
 
     if (element is LibraryElement) {
       return specified;
-    } else if (element.enclosingElement2 case HasSinceSdkVersion hasSince?) {
+    } else if (element.enclosingElement case HasSinceSdkVersion hasSince?) {
       var enclosing = hasSince.sinceSdkVersion;
       return specified.maxWith(enclosing);
     } else {
@@ -57,7 +57,7 @@ class SinceSdkVersionComputer {
   /// Returns the maximal specified `@Since()` version, `null` if none.
   static Version? _specifiedVersion(Annotatable element) {
     var annotations =
-        element.metadata2.annotations.cast<ElementAnnotationImpl>();
+        element.metadata.annotations.cast<ElementAnnotationImpl>();
     Version? result;
     for (var annotation in annotations) {
       if (annotation.isDartInternalSince) {

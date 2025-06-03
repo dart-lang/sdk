@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -28,13 +29,13 @@ String _relative(String file) {
   return file.startsWith(path.current) ? path.relative(file) : file;
 }
 
-/// Returns the given error's severity.
-DiagnosticSeverity _severityIdentity(AnalysisError error) =>
-    error.errorCode.errorSeverity;
+/// Returns the given diagnostic's severity.
+DiagnosticSeverity _severityIdentity(Diagnostic diagnostic) =>
+    diagnostic.errorCode.severity;
 
-/// Returns desired severity for the given [error] (or `null` if it's to be
+/// Returns desired severity for the given [diagnostic] (or `null` if it's to be
 /// suppressed).
-typedef SeverityProcessor = DiagnosticSeverity? Function(AnalysisError error);
+typedef SeverityProcessor = DiagnosticSeverity? Function(Diagnostic diagnostic);
 
 /// Analysis statistics counter.
 class AnalysisStats {
@@ -103,7 +104,7 @@ class AnalysisStats {
   }
 }
 
-/// An [AnalysisError] with line and column information.
+/// A [Diagnostic] with line and column information.
 class CLIError implements Comparable<CLIError> {
   final String severity;
   final String sourcePath;
@@ -174,7 +175,7 @@ class ContextMessage {
   ContextMessage(this.filePath, this.message, this.line, this.column);
 }
 
-/// Helper for formatting [AnalysisError]s.
+/// Helper for formatting [Diagnostic]s.
 ///
 /// The two format options are a user consumable format and a machine consumable
 /// format.
@@ -194,34 +195,34 @@ abstract class ErrorFormatter {
   /// Call to write any batched up errors from [formatErrors].
   void flush();
 
-  Future<void> formatError(
-    Map<AnalysisError, ErrorsResult> errorToLine,
-    AnalysisError error,
+  Future<void> formatDiagnostic(
+    Map<Diagnostic, ErrorsResult> errorToLine,
+    Diagnostic error,
   );
 
   Future<void> formatErrors(List<ErrorsResult> results) async {
     stats.unfilteredCount += results.length;
 
-    var errors = <AnalysisError>[];
-    var errorToLine = <AnalysisError, ErrorsResult>{};
+    var diagnostics = <Diagnostic>[];
+    var diagnosticToLine = <Diagnostic, ErrorsResult>{};
     for (var result in results) {
       for (var error in result.errors) {
         if (_computeSeverity(error) != null) {
-          errors.add(error);
-          errorToLine[error] = result;
+          diagnostics.add(error);
+          diagnosticToLine[error] = result;
         }
       }
     }
 
-    for (var error in errors) {
-      await formatError(errorToLine, error);
+    for (var error in diagnostics) {
+      await formatDiagnostic(diagnosticToLine, error);
     }
   }
 
-  /// Compute the severity for this [error] or `null` if this error should be
-  /// filtered.
-  DiagnosticSeverity? _computeSeverity(AnalysisError error) =>
-      _severityProcessor(error);
+  /// Compute the severity for this [diagnostic] or `null` if this error should
+  /// be filtered.
+  DiagnosticSeverity? _computeSeverity(Diagnostic diagnostic) =>
+      _severityProcessor(diagnostic);
 }
 
 class HumanErrorFormatter extends ErrorFormatter {
@@ -287,9 +288,9 @@ class HumanErrorFormatter extends ErrorFormatter {
   }
 
   @override
-  Future<void> formatError(
-    Map<AnalysisError, ErrorsResult> errorToLine,
-    AnalysisError error,
+  Future<void> formatDiagnostic(
+    Map<Diagnostic, ErrorsResult> errorToLine,
+    Diagnostic error,
   ) async {
     var source = error.source;
     var result = errorToLine[error]!;
@@ -369,9 +370,9 @@ class JsonErrorFormatter extends ErrorFormatter {
   void flush() {}
 
   @override
-  Future<void> formatError(
-    Map<AnalysisError, ErrorsResult> errorToLine,
-    AnalysisError error,
+  Future<void> formatDiagnostic(
+    Map<Diagnostic, ErrorsResult> errorToLine,
+    Diagnostic error,
   ) async {
     throw UnsupportedError('Cannot format a single error');
   }
@@ -461,7 +462,7 @@ class MachineErrorFormatter extends ErrorFormatter {
   static final int _slashCodeUnit = '\\'.codeUnitAt(0);
   static final int _newline = '\n'.codeUnitAt(0);
   static final int _return = '\r'.codeUnitAt(0);
-  final Set<AnalysisError> _seenErrors = <AnalysisError>{};
+  final Set<Diagnostic> _seenDiagnostics = <Diagnostic>{};
 
   MachineErrorFormatter(
     super.out,
@@ -474,12 +475,12 @@ class MachineErrorFormatter extends ErrorFormatter {
   void flush() {}
 
   @override
-  Future<void> formatError(
-    Map<AnalysisError, ErrorsResult> errorToLine,
-    AnalysisError error,
+  Future<void> formatDiagnostic(
+    Map<Diagnostic, ErrorsResult> errorToLine,
+    Diagnostic error,
   ) async {
     // Ensure we don't over-report (#36062).
-    if (!_seenErrors.add(error)) {
+    if (!_seenDiagnostics.add(error)) {
       return;
     }
     var source = error.source;

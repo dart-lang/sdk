@@ -141,23 +141,22 @@ mixin KernelNodes {
   // async support classes
   late final Class asyncSuspendStateClass =
       index.getClass("dart:async", "_AsyncSuspendState");
-  late final Procedure makeAsyncCompleter =
-      index.getTopLevelProcedure("dart:async", "_makeAsyncCompleter");
-  late final Field completerFuture =
-      index.getField("dart:async", "_Completer", "future");
-  late final Procedure completerComplete =
-      index.getProcedure("dart:async", "_AsyncCompleter", "complete");
-  late final Procedure completerCompleteErrorWithCurrentStack =
-      index.getProcedure(
-          "dart:async", "_AsyncCompleter", "_completeErrorWithCurrentStack");
-  late final Procedure completerCompleteError =
-      index.getProcedure("dart:async", "_Completer", "completeError");
   late final Procedure awaitHelper =
       index.getTopLevelProcedure("dart:async", "_awaitHelper");
   late final Procedure awaitHelperWithTypeCheck =
       index.getTopLevelProcedure("dart:async", "_awaitHelperWithTypeCheck");
   late final Procedure newAsyncSuspendState =
       index.getTopLevelProcedure("dart:async", "_newAsyncSuspendState");
+
+  late final Procedure asyncSuspendStateComplete =
+      index.getProcedure("dart:async", "_AsyncSuspendState", "_complete");
+  late final Procedure asyncSuspendStateCompleteError =
+      index.getProcedure("dart:async", "_AsyncSuspendState", "_completeError");
+  late final Procedure asyncSuspendStateCompleteErrorWithCurrentStack =
+      index.getProcedure(
+          "dart:async", "_AsyncSuspendState", "_completeErrorWithCurrentStack");
+  late final Procedure makeFuture =
+      index.getTopLevelProcedure("dart:async", "_makeFuture");
 
   // dart:ffi classes
   late final Class ffiPointerClass = index.getClass("dart:ffi", "Pointer");

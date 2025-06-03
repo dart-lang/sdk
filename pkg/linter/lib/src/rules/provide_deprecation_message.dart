@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,7 +15,8 @@ class ProvideDeprecationMessage extends LintRule {
     : super(name: LintNames.provide_deprecation_message, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.provide_deprecation_message;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.provide_deprecation_message;
 
   @override
   void registerNodeProcessors(

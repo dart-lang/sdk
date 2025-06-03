@@ -12,6 +12,7 @@
 #include "vm/allocation.h"
 #include "vm/globals.h"
 #include "vm/intrusive_dlist.h"
+#include "vm/lockers.h"
 #include "vm/os_thread.h"
 
 namespace dart {
@@ -76,10 +77,16 @@ class ThreadPool {
   static void RequestShutdown(ThreadPool* pool,
                               std::function<void(void)>&& shutdown_complete);
 
-  // Exposed for unit test in thread_pool_test.cc
-  uint64_t workers_started() const { return count_idle_ + count_running_; }
-  // Exposed for unit test in thread_pool_test.cc
-  bool has_pending_dead_worker() const { return last_dead_worker_ != nullptr; }
+#if defined(TESTING)
+  uint64_t workers_started() const {
+    MutexLocker ml(&pool_mutex_);
+    return count_idle_ + count_running_;
+  }
+  bool has_pending_dead_worker() const {
+    MutexLocker ml(&pool_mutex_);
+    return last_dead_worker_ != nullptr;
+  }
+#endif
 
  protected:
   class Worker : public IntrusiveDListEntry<Worker> {
@@ -149,7 +156,7 @@ class ThreadPool {
 
   void DeleteLastDeadWorker();
 
-  Mutex pool_mutex_;
+  mutable Mutex pool_mutex_;
   bool shutting_down_ = false;
   uint64_t count_running_ = 0;
   uint64_t count_idle_ = 0;

@@ -58,7 +58,7 @@ class Todo {
  * The error code indicating a marker in code for work that needs to be finished
  * or revisited.
  */
-class TodoCode extends ErrorCode {
+class TodoCode extends DiagnosticCode {
   /**
    * A standard TODO comment marked as TODO.
    */
@@ -86,7 +86,7 @@ class TodoCode extends ErrorCode {
     : super(problemMessage: "{0}", name: name, uniqueName: 'TodoCode.$name');
 
   @override
-  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.INFO;
+  DiagnosticSeverity get severity => DiagnosticSeverity.INFO;
 
   @override
   DiagnosticType get type => DiagnosticType.TODO;

@@ -81,7 +81,9 @@ class TypesBuilder {
 
   /// Build types for all type annotations, and set types for declarations.
   void build(NodesToBuildType nodes) {
-    DefaultTypesBuilder(_linker).build(nodes.declarations);
+    DefaultTypesBuilder(
+      getTypeParameterNode: _linker.getLinkingNode2,
+    ).build(nodes.declarations);
 
     for (var builder in nodes.typeBuilders) {
       builder.build();
@@ -269,9 +271,11 @@ class TypesBuilder {
     }
   }
 
-  List<ParameterElementMixin> _formalParameters(FormalParameterList node) {
+  List<FormalParameterElementMixin> _formalParameters(
+    FormalParameterList node,
+  ) {
     return node.parameters.asImpl.map((parameter) {
-      return parameter.declaredFragment!;
+      return parameter.declaredFragment!.element;
     }).toFixedList();
   }
 
@@ -369,15 +373,15 @@ class TypesBuilder {
     InstanceFragmentImpl fragment, {
     WithClause? withClause,
   }) {
-    var element = fragment.element;
-
     if (fragment is InterfaceFragmentImpl) {
       _toInferMixins[fragment] = _ToInferMixins(fragment, withClause);
     }
 
-    if (fragment is MixinFragmentImpl && element is MixinElementImpl2) {
-      element.superclassConstraints.addAll(fragment.superclassConstraints);
-    }
+    // TODO(scheglov): restore?
+    // var element = fragment.element;
+    // if (fragment is MixinFragmentImpl && element is MixinElementImpl2) {
+    //   element.superclassConstraints.addAll(fragment.superclassConstraints);
+    // }
   }
 
   /// The [FunctionType] to use when a function type is expected for a type

@@ -9,6 +9,7 @@ import 'package:kernel/type_environment.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/metadata_builder.dart';
@@ -32,6 +33,8 @@ import 'encoding.dart';
 /// If a method is augmented, it will have multiple
 /// [MethodDeclaration]s on a single [SourceMethodBuilder].
 abstract class MethodDeclaration {
+  UriOffsetLength get uriOffset;
+
   Uri get fileUri;
 
   Procedure get invokeTarget;
@@ -85,6 +88,9 @@ class MethodDeclarationImpl
   MethodDeclarationImpl(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   Uri get fileUri => _fragment.fileUri;

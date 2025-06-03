@@ -52,7 +52,7 @@ String? verifyErrorFixStatus() {
   registerLintRules();
   registerBuiltInFixGenerators();
   var lintRuleCodes = {
-    for (var rule in Registry.ruleRegistry.rules) ...rule.lintCodes,
+    for (var rule in Registry.ruleRegistry.rules) ...rule.diagnosticCodes,
   };
   var lintRuleNames = {for (var lintCode in lintRuleCodes) lintCode.uniqueName};
 

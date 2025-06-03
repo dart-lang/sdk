@@ -16019,31 +16019,6 @@ FunctionPtr Library::GetFunction(const Library& lib,
   return func.ptr();
 }
 
-ObjectPtr Library::GetFunctionClosure(const String& name) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Function& func = Function::Handle(zone, LookupFunctionAllowPrivate(name));
-  if (func.IsNull()) {
-    // Check whether the function is reexported into the library.
-    const Object& obj = Object::Handle(zone, LookupReExport(name));
-    if (obj.IsFunction()) {
-      func ^= obj.ptr();
-    } else {
-      // Check if there is a getter of 'name', in which case invoke it
-      // and return the result.
-      const String& getter_name = String::Handle(zone, Field::GetterName(name));
-      func = LookupFunctionAllowPrivate(getter_name);
-      if (func.IsNull()) {
-        return Closure::null();
-      }
-      // Invoke the getter and return the result.
-      return DartEntry::InvokeFunction(func, Object::empty_array());
-    }
-  }
-  func = func.ImplicitClosureFunction();
-  return func.ImplicitStaticClosure();
-}
-
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
 void Library::CheckFunctionFingerprints() {
   Library& lib = Library::Handle();
@@ -26820,7 +26795,7 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
   // Only print the relocated address of the call when we know the saved
   // debugging information (if any) will have the same relocated address.
   // Also only print 'virt' fields for isolate addresses.
-  if (!vm && image.compiled_to_elf()) {
+  if (!vm && image.compiled_to_shared_object()) {
     const uword relocated_section_start =
         image.instructions_relocated_address();
     buffer->Printf(" virt %" Pp "", relocated_section_start + offset);
@@ -27028,10 +27003,10 @@ const char* StackTrace::ToCString() const {
 #else
     const char kUsingSimulator[] = "no";
 #endif
-    buffer.Printf("os: %s arch: %s comp: %s sim: %s\n",
-                  kHostOperatingSystemName, kTargetArchitectureName,
-                  kCompressedPointers, kUsingSimulator);
-    WriteImageBuildId(&buffer, "build_id: ", isolate_instructions);
+    buffer.Printf("os: %s arch: %s comp: %s sim: %s", kHostOperatingSystemName,
+                  kTargetArchitectureName, kCompressedPointers,
+                  kUsingSimulator);
+    WriteImageBuildId(&buffer, "\nbuild_id: ", isolate_instructions);
     buffer.AddString("\n");
     if (!loading_units.IsNull()) {
       const intptr_t unit_count = loading_units.Length();

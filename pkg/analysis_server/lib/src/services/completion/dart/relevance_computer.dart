@@ -209,7 +209,7 @@ class RelevanceComputer {
         );
       case NamedArgumentSuggestion():
         var parameter = suggestion.parameter;
-        if (parameter.isRequiredNamed || parameter.metadata2.hasRequired) {
+        if (parameter.isRequiredNamed || parameter.metadata.hasRequired) {
           return Relevance.requiredNamedArgument;
         } else {
           return Relevance.namedArgument;
@@ -426,7 +426,7 @@ class RelevanceComputer {
     NeverType neverType,
     bool isNotImportedLibrary,
   ) {
-    var enclosingClass = element.enclosingElement2;
+    var enclosingClass = element.enclosingElement;
     var returnType = instantiateInstanceElement(enclosingClass, neverType);
     return computeTopLevelRelevance(
       element,

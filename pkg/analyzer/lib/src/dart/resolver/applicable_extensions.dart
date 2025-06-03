@@ -136,7 +136,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
       if (baseName.name == '[]') {
         ExecutableElement? getter;
         ExecutableElement? setter;
-        for (var method in extension.methods2) {
+        for (var method in extension.methods) {
           if (method.name3 == '[]') {
             getter = method;
           } else if (method.name3 == '[]=') {
@@ -155,7 +155,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
           );
         }
       } else {
-        for (var field in extension.fields2) {
+        for (var field in extension.fields) {
           if (field.isStatic) {
             continue;
           }
@@ -173,7 +173,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
             break;
           }
         }
-        for (var method in extension.methods2) {
+        for (var method in extension.methods) {
           if (method.isStatic) {
             continue;
           }

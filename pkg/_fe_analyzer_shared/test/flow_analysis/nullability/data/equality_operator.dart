@@ -8,13 +8,15 @@ void var_eq_null(int? x) {
   if (x == null) {
     x;
   } else {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   }
 }
 
 void var_notEq_null(int? x) {
   if (x != null) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -24,13 +26,15 @@ void null_eq_var(int? x) {
   if (null == x) {
     x;
   } else {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   }
 }
 
 void null_notEq_var(int? x) {
   if (null != x) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }

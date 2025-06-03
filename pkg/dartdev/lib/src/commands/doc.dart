@@ -112,7 +112,7 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
     final packageBuilder = PubPackageBuilder(
         config, pubPackageMetaProvider, packageConfigProvider);
     final dartdoc = config.generateDocs
-        ? await Dartdoc.fromContext(config, packageBuilder)
+        ? Dartdoc.fromContext(config, packageBuilder)
         : Dartdoc.withEmptyGenerator(config, packageBuilder);
     dartdoc.executeGuarded();
     return 0;

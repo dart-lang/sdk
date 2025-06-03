@@ -30,7 +30,7 @@ final class DtdMessage extends ScheduledMessage {
   });
 
   @override
-  String toString() => message.method.toString();
+  String get id => 'dtd:${message.method}';
 }
 
 /// Represents a message in the Legacy protocol format.
@@ -45,7 +45,7 @@ final class LegacyMessage extends ScheduledMessage {
   LegacyMessage({required this.request, this.cancellationToken});
 
   @override
-  String toString() => request.method;
+  String get id => 'legacy:${request.method}';
 }
 
 /// Represents a message in the LSP protocol format.
@@ -59,18 +59,18 @@ final class LspMessage extends ScheduledMessage {
 
   LspMessage({required this.message, this.cancellationToken});
 
-  bool get isRequest => message is lsp.RequestMessage;
-
   @override
-  String toString() {
+  String get id {
     var msg = message;
     return switch (msg) {
-      RequestMessage() => msg.method.toString(),
-      NotificationMessage() => msg.method.toString(),
-      ResponseMessage() => 'ResponseMessage',
-      Message() => 'Message',
+      RequestMessage() => 'lsp:${msg.method}',
+      NotificationMessage() => 'lsp:${msg.method}',
+      ResponseMessage() => 'lsp:ResponseMessage',
+      Message() => 'lsp:Message',
     };
   }
+
+  bool get isRequest => message is lsp.RequestMessage;
 }
 
 /// A message from a client.
@@ -78,7 +78,13 @@ final class LspMessage extends ScheduledMessage {
 /// The message can be either a request, a notification, or a response.
 ///
 /// The client can be an IDE, a command-line tool, or DTD.
-sealed class ScheduledMessage {}
+sealed class ScheduledMessage {
+  /// An identifier that identifies this particular kind of message.
+  String get id;
+
+  @override
+  String toString() => id;
+}
 
 /// Represents a message from the file watcher.
 ///
@@ -90,5 +96,5 @@ final class WatcherMessage extends ScheduledMessage {
   WatcherMessage(this.event);
 
   @override
-  String toString() => '${event.type} ${event.path}';
+  String get id => 'watch:${event.type} ${event.path}';
 }

@@ -41,8 +41,8 @@ class ReportFormatter {
   /// Override to influence diagnostic sorting.
   int compare(Diagnostic diagnostic1, Diagnostic diagnostic2) {
     // Severity.
-    var compare = diagnostic2.errorCode.errorSeverity.compareTo(
-      diagnostic1.errorCode.errorSeverity,
+    var compare = diagnostic2.errorCode.severity.compareTo(
+      diagnostic1.errorCode.severity,
     );
     if (compare != 0) {
       return compare;

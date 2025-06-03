@@ -300,6 +300,7 @@ namespace dart {
   V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
   V(Ffi_createNativeCallableListener, 2)                                       \
   V(Ffi_createNativeCallableIsolateLocal, 3)                                   \
+  V(Ffi_createNativeCallableIsolateGroupShared, 2)                             \
   V(Ffi_deleteNativeCallable, 1)                                               \
   V(Ffi_updateNativeCallableKeepIsolateAliveCounter, 1)                        \
   V(Ffi_dl_open, 1)                                                            \
@@ -373,7 +374,7 @@ namespace dart {
   V(ConditionVariable_Initialize, void, (Dart_Handle))                         \
   V(ConditionVariable_Notify, void, (Dart_Handle))                             \
   V(ConditionVariable_NotifyAll, void, (Dart_Handle))                          \
-  V(ConditionVariable_Wait, void, (Dart_Handle, Dart_Handle))                  \
+  V(ConditionVariable_Wait, void, (Dart_Handle, Dart_Handle, intptr_t))        \
   V(FinalizerEntry_SetExternalSize, void, (Dart_Handle, intptr_t))             \
   V(IsolateGroup_runSync, Dart_Handle, (Dart_Handle))                          \
   V(Mutex_Initialize, void, (Dart_Handle))                                     \

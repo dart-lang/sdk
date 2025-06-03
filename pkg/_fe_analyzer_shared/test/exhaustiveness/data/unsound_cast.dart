@@ -23,11 +23,10 @@ method(S s) => /*
  error=non-exhaustive:A();B();C(),
  subtypes={A,B,C},
  type=S
-*/
-    switch (s) {
-      X() as A /*space=X?*/ => 0,
-      Y() as B /*space=Y?*/ => 1,
-    };
+*/ switch (s) {
+  X() as A /*space=X?*/ => 0,
+  Y() as B /*space=Y?*/ => 1,
+};
 
 test() {
   method(Z());

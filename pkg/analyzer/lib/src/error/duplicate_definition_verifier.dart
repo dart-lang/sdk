@@ -405,16 +405,13 @@ class MemberDuplicateDefinitionVerifier {
           if (member.augmentKeyword != null) {
             continue;
           }
-          if (member.returnType.name != firstFragment.name) {
+          if (member.returnType.name != firstFragment.name2) {
             // [member] is erroneous; do not count it as a possible duplicate.
             continue;
           }
-          var name = member.name?.lexeme ?? '';
-          if (name == 'new') {
-            name = '';
-          }
+          var name = member.name?.lexeme ?? 'new';
           if (!constructorNames.add(name)) {
-            if (name.isEmpty) {
+            if (name == 'new') {
               _errorReporter.atConstructorDeclaration(
                 member,
                 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
@@ -485,7 +482,7 @@ class MemberDuplicateDefinitionVerifier {
             if (instanceGetters.containsKey(name) ||
                 instanceSetters.containsKey(name)) {
               if (firstFragment is InterfaceFragmentImpl) {
-                String className = firstFragment.name;
+                String className = firstFragment.name2 ?? '';
                 _errorReporter.atToken(
                   identifier,
                   CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
@@ -502,7 +499,7 @@ class MemberDuplicateDefinitionVerifier {
           if (instanceGetters.containsKey(name) ||
               instanceSetters.containsKey(name)) {
             if (firstFragment is InterfaceFragmentImpl) {
-              String className = firstFragment.name;
+              String className = firstFragment.name2 ?? '';
               _errorReporter.atToken(
                 identifier,
                 CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
@@ -521,7 +518,13 @@ class MemberDuplicateDefinitionVerifier {
     required Map<String, FragmentImpl> staticSetters,
   }) {
     for (var constructor in interfaceElement.constructors) {
-      var name = constructor.name;
+      var name = constructor.name2;
+
+      // It is already an error to declare a member named 'new'.
+      if (name == 'new') {
+        continue;
+      }
+
       var staticMember = staticGetters[name] ?? staticSetters[name];
       if (staticMember is PropertyAccessorFragmentImpl) {
         CompileTimeErrorCode errorCode;
@@ -597,7 +600,7 @@ class MemberDuplicateDefinitionVerifier {
     }
 
     var name = switch (element) {
-      MethodFragmentImpl() => element.name,
+      MethodFragmentImpl() => element.element.lookupName ?? '',
       _ => identifier.lexeme,
     };
 
@@ -640,7 +643,7 @@ class MemberDuplicateDefinitionVerifier {
   void _checkEnum(EnumDeclarationImpl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
-    var declarationName = firstFragment.name;
+    var declarationName = firstFragment.name2;
 
     var elementContext = _getElementContext(firstFragment);
     var staticGetters = elementContext.staticGetters;
@@ -717,7 +720,10 @@ class MemberDuplicateDefinitionVerifier {
   void _checkEnumStatic(EnumDeclarationImpl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
-    var declarationName = firstFragment.name;
+    var declarationName = firstFragment.name2;
+    if (declarationName == null) {
+      return;
+    }
 
     for (var accessor in fragment.accessors) {
       if (accessor.source != _currentUnit.source) {
@@ -804,11 +810,13 @@ class MemberDuplicateDefinitionVerifier {
   void _checkExtensionType(ExtensionTypeDeclarationImpl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
-    var primaryConstructorName = firstFragment.constructors.first.name;
+    var primaryConstructorName = firstFragment.constructors.first.name2;
     var representationGetter = firstFragment.representation.getter!;
-    _getElementContext(firstFragment)
-      ..constructorNames.add(primaryConstructorName)
-      ..instanceGetters[representationGetter.name] = representationGetter;
+    var elementContext = _getElementContext(firstFragment);
+    elementContext.constructorNames.add(primaryConstructorName);
+    if (representationGetter.name2 case var getterName?) {
+      elementContext.instanceGetters[getterName] = representationGetter;
+    }
 
     _checkClassMembers(firstFragment, node.members);
   }

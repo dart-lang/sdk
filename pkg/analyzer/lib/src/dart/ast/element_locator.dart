@@ -89,6 +89,23 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    return node.constructorName.element;
+  }
+
+  @override
+  Element? visitDotShorthandInvocation(DotShorthandInvocation node) {
+    return node.memberName.element;
+  }
+
+  @override
+  Element? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    return node.propertyName.element;
+  }
+
+  @override
   Element? visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     return node.declaredFragment?.element;
   }

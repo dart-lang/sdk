@@ -471,7 +471,7 @@ class ManifestValidator {
     ErrorReporter reporter,
     XmlElement node,
     String? key,
-    ErrorCode errorCode, [
+    DiagnosticCode diagnosticCode, [
     List<Object>? arguments,
   ]) {
     var span =
@@ -479,7 +479,7 @@ class ManifestValidator {
     reporter.atOffset(
       offset: span.start.offset,
       length: span.length,
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       arguments: arguments,
     );
   }

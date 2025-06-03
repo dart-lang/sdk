@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,7 +18,7 @@ class AlwaysPutRequiredNamedParametersFirst extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.always_put_required_named_parameters_first;
 
   @override
@@ -41,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var param in node.parameters.where((p) => p.isNamed)) {
       var element = param.declaredFragment?.element;
       if (element != null &&
-          (element.metadata2.hasRequired || element.isRequiredNamed)) {
+          (element.metadata.hasRequired || element.isRequiredNamed)) {
         if (nonRequiredSeen) {
           var name = param.name;
           if (name != null) {

@@ -148,8 +148,8 @@ class Trimmer extends RecursiveVisitor {
   final bool Function(Library) isExtendable;
 
   /// Whether we are within a mixin declaration in an extendable library, and
-  /// hence method bodies need to be preserved.
-  bool preserveMethodBodies = false;
+  /// hence member bodies need to be preserved.
+  bool preserveMemberBodies = false;
 
   Trimmer(this.librariesToClear, this.isExtendable);
 
@@ -181,10 +181,10 @@ class Trimmer extends RecursiveVisitor {
 
   @override
   void visitClass(Class node) {
-    preserveMethodBodies = isExtendable(node.enclosingLibrary) &&
+    preserveMemberBodies = isExtendable(node.enclosingLibrary) &&
         (node.isMixinClass || node.isMixinDeclaration);
     super.visitClass(node);
-    preserveMethodBodies = false;
+    preserveMemberBodies = false;
   }
 
   @override
@@ -204,7 +204,7 @@ class Trimmer extends RecursiveVisitor {
   void visitProcedure(Procedure node) {
     // Preserve method bodies of mixin declarations, these are copied when
     // mixins are applied in subtypes.
-    if (!preserveMethodBodies) {
+    if (!preserveMemberBodies) {
       node.function.body = null;
     }
   }
@@ -213,6 +213,7 @@ class Trimmer extends RecursiveVisitor {
   void visitField(Field node) {
     // Constant initializers are necessary for constant evaluation
     if (node.isConst) return;
+    if (!node.isStatic && node.enclosingClass!.hasConstConstructor) return;
 
     // Unfortunately a `null` initializer may be misinterpreted by the CFE or
     // the compiler. Ideally the kernel representation should have a sentinel
@@ -224,7 +225,11 @@ class Trimmer extends RecursiveVisitor {
     if (node.isLate && node.isFinal) return;
     if (node.isStatic) return;
 
-    node.initializer = null;
+    // Preserve field initializers in mixin declarations, these are copied when
+    // mixins are applied in subtypes.
+    if (!preserveMemberBodies) {
+      node.initializer = null;
+    }
   }
 }
 

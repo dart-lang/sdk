@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
-import 'code_generator.dart' show MacroAssembler;
+import 'code_generator.dart' show CallTarget, CodeGenerator, MacroAssembler;
 import 'dispatch_table.dart';
 import 'reference_extensions.dart';
 import 'translator.dart';
@@ -18,34 +18,59 @@ class DynamicForwarders {
   final Translator translator;
   final w.ModuleBuilder callingModule;
 
-  final Map<String, Forwarder> _getterForwarderOfName = {};
-  final Map<String, Forwarder> _setterForwarderOfName = {};
-  final Map<String, Forwarder> _methodForwarderOfName = {};
+  final Map<String, CallTarget> _getterForwarderOfName = {};
+  final Map<String, CallTarget> _setterForwarderOfName = {};
+  final Map<String, CallTarget> _methodForwarderOfName = {};
 
   DynamicForwarders(this.translator, this.callingModule);
 
-  Forwarder getDynamicGetForwarder(String memberName) =>
-      _getterForwarderOfName[memberName] ??= Forwarder._(
-          translator, _ForwarderKind.Getter, memberName, callingModule)
-        .._generateCode(translator);
+  CallTarget getDynamicGetForwarder(String memberName) =>
+      _getterForwarderOfName[memberName] ??= _DynamicForwarderCallTarget(
+          translator, _ForwarderKind.Getter, memberName, callingModule);
 
-  Forwarder getDynamicSetForwarder(String memberName) =>
-      _setterForwarderOfName[memberName] ??= Forwarder._(
-          translator, _ForwarderKind.Setter, memberName, callingModule)
-        .._generateCode(translator);
+  CallTarget getDynamicSetForwarder(String memberName) =>
+      _setterForwarderOfName[memberName] ??= _DynamicForwarderCallTarget(
+          translator, _ForwarderKind.Setter, memberName, callingModule);
 
-  Forwarder getDynamicInvocationForwarder(String memberName) {
+  CallTarget getDynamicInvocationForwarder(String memberName) {
     // Add Wasm function to the map before generating the forwarder code, to
     // allow recursive calls in the "call" forwarder.
     var forwarder = _methodForwarderOfName[memberName];
     if (forwarder == null) {
-      forwarder = Forwarder._(
+      forwarder = _DynamicForwarderCallTarget(
           translator, _ForwarderKind.Method, memberName, callingModule);
       _methodForwarderOfName[memberName] = forwarder;
-      forwarder._generateCode(translator);
     }
     return forwarder;
   }
+}
+
+class _DynamicForwarderCallTarget extends CallTarget {
+  final Translator translator;
+  final _ForwarderKind _kind;
+  final String memberName;
+  final w.ModuleBuilder callingModule;
+
+  _DynamicForwarderCallTarget(
+      this.translator, this._kind, this.memberName, this.callingModule)
+      : assert(!translator.isDynamicSubmodule ||
+            (memberName == 'call' && _kind == _ForwarderKind.Method)),
+        super(_kind.functionType(translator));
+
+  @override
+  String get name => 'Dynamic $_kind forwarder for "$memberName"';
+
+  @override
+  bool get supportsInlining => false;
+
+  @override
+  late final w.BaseFunction function = (() {
+    final function = callingModule.functions.define(signature, name);
+    final forwarder =
+        _DynamicForwarderCodeGenerator(translator, _kind, memberName, function);
+    translator.compilationQueue.add(CompilationTask(function, forwarder));
+    return function;
+  })();
 }
 
 /// A function that "forwards" a dynamic get, set, or invocation to the right
@@ -67,21 +92,19 @@ class DynamicForwarders {
 /// A forwarder calls `noSuchMethod` on the receiver when a matching member is
 /// not found, or the passed arguments do not match the expected parameters of
 /// the member.
-class Forwarder {
+class _DynamicForwarderCodeGenerator extends CodeGenerator {
+  final Translator translator;
   final _ForwarderKind _kind;
-
   final String memberName;
-
   final w.FunctionBuilder function;
 
-  Forwarder._(Translator translator, this._kind, this.memberName,
-      w.ModuleBuilder module)
-      : function = module.functions.define(_kind.functionType(translator),
-            "$_kind forwarder for '$memberName'"),
-        assert(!translator.isDynamicSubmodule ||
-            (memberName == 'call' && _kind == _ForwarderKind.Getter));
+  _DynamicForwarderCodeGenerator(
+      this.translator, this._kind, this.memberName, this.function);
 
-  void _generateCode(Translator translator) {
+  @override
+  void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
+      w.Label? returnLabel) {
+    assert(returnLabel == null); // no inlining support atm.
     switch (_kind) {
       case _ForwarderKind.Getter:
         _generateGetterCode(translator);
@@ -113,7 +136,7 @@ class Forwarder {
 
     final b = function.body;
     b.local_get(receiverLocal);
-    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+    b.loadClassId(translator, receiverLocal.type);
     b.classIdSearch(ranges, outputs, (Reference target) {
       final targetMember = target.asMember;
       final Reference targetReference;
@@ -161,7 +184,7 @@ class Forwarder {
 
     final b = function.body;
     b.local_get(receiverLocal);
-    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+    b.loadClassId(translator, receiverLocal.type);
     b.classIdSearch(ranges, [positionalArgLocal.type], (Reference target) {
       final Member targetMember = target.asMember;
       b.local_get(receiverLocal);
@@ -214,7 +237,7 @@ class Forwarder {
         final targetMemberParamInfo = translator.paramInfoForDirectCall(target);
 
         b.local_get(receiverLocal);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.loadClassId(translator, receiverLocal.type);
         b.local_set(classIdLocal);
 
         final classIdNoMatch = b.block();
@@ -327,7 +350,7 @@ class Forwarder {
             b.local_get(adjustedPositionalArgsLocal);
             b.i32_const(optionalParamIdx);
             translator.constants
-                .instantiateConstant(b, param, translator.topInfo.nullableType);
+                .instantiateConstant(b, param, translator.topType);
             b.array_set(translator.nullableObjectArrayType);
             b.end();
           }
@@ -435,13 +458,13 @@ class Forwarder {
                 translator.constants.instantiateConstant(
                     b,
                     (functionNodeDefaultValue as ConstantExpression).constant,
-                    translator.topInfo.nullableType);
+                    translator.topType);
               } else {
                 // Not used by the member
                 translator.constants.instantiateConstant(
                   b,
                   paramInfoDefaultValue!,
-                  translator.topInfo.nullableType,
+                  translator.topType,
                 );
               }
               b.array_set(translator.nullableObjectArrayType);
@@ -480,7 +503,7 @@ class Forwarder {
       }
     }
 
-    final getterValueLocal = b.addLocal(translator.topInfo.nullableType);
+    final getterValueLocal = b.addLocal(translator.topType);
     void handleGetterSelector(SelectorInfo selector) {
       for (final (:range, :target)
           in selector.targets(unchecked: false).targetRanges) {
@@ -493,7 +516,7 @@ class Forwarder {
           }
 
           b.local_get(receiverLocal);
-          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+          b.loadClassId(translator, receiverLocal.type);
           b.i32_const(classId);
           b.i32_eq();
           b.if_();
@@ -516,8 +539,8 @@ class Forwarder {
           translator.convertType(
               b, receiverLocal.type, targetFunction.type.inputs.first);
           translator.callFunction(targetFunction, b);
-          translator.convertType(b, targetFunction.type.outputs.single,
-              translator.topInfo.nullableType);
+          translator.convertType(
+              b, targetFunction.type.outputs.single, translator.topType);
           b.local_tee(getterValueLocal);
 
           // Throw `NoSuchMethodError` if the value is null
@@ -527,7 +550,7 @@ class Forwarder {
           b.local_tee(receiverLocal);
 
           // Invoke "call" if the value is not a closure
-          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+          b.loadClassId(translator, receiverLocal.type);
           b.i32_const(
               (translator.closureInfo.classId as AbsoluteClassId).value);
           b.i32_ne();
@@ -759,10 +782,26 @@ void generateNoSuchMethodCall(
   translator.functions.recordSelectorUse(noSuchMethodSelector, false);
   final signature = noSuchMethodSelector.signature;
 
+  final targetRanges =
+      noSuchMethodSelector.targets(unchecked: false).targetRanges;
+  final staticDispatchRanges =
+      noSuchMethodSelector.targets(unchecked: false).staticDispatchRanges;
+
+  // NOTE: Keep this in sync with
+  // `code_generator.dart:AstCodeGenerator._virtualCall`.
+  final bool directCall =
+      targetRanges.length == 1 && staticDispatchRanges.length == 1;
+  final callPolymorphicDispatcher =
+      !directCall && staticDispatchRanges.isNotEmpty;
+
   final noSuchMethodParamInfo = noSuchMethodSelector.paramInfo;
   final noSuchMethodWasmFunctionType = signature;
 
   pushReceiver();
+  if (callPolymorphicDispatcher) {
+    b.loadClassId(translator, translator.topTypeNonNullable);
+    pushReceiver();
+  }
   pushInvocationObject();
 
   final invocationFactory = translator.functions
@@ -794,11 +833,19 @@ void generateNoSuchMethodCall(
 
   assert(wasmArgIdx == noSuchMethodWasmFunctionType.inputs.length);
 
-  // Get class id for virtual call
-  pushReceiver();
-  translator.callDispatchTable(b, noSuchMethodSelector,
-      interfaceTarget: translator.objectNoSuchMethod.reference,
-      useUncheckedEntry: false);
+  if (directCall) {
+    translator.callReference(targetRanges[0].target, b);
+  } else if (callPolymorphicDispatcher) {
+    b.invoke(translator
+        .getPolymorphicDispatchersForModule(b.module)
+        .getPolymorphicDispatcher(noSuchMethodSelector,
+            useUncheckedEntry: false));
+  } else {
+    pushReceiver();
+    translator.callDispatchTable(b, noSuchMethodSelector,
+        interfaceTarget: translator.objectNoSuchMethod.reference,
+        useUncheckedEntry: false);
+  }
 }
 
 class ClassIdRange {

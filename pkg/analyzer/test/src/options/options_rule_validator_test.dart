@@ -23,14 +23,15 @@ main() {
 }
 
 class DeprecatedLint extends TestLintRule {
-  DeprecatedLint() : super(name: 'deprecated_lint', state: State.deprecated());
+  DeprecatedLint()
+    : super(name: 'deprecated_lint', state: RuleState.deprecated());
 }
 
 class DeprecatedLintWithReplacement extends TestLintRule {
   DeprecatedLintWithReplacement()
     : super(
         name: 'deprecated_lint_with_replacement',
-        state: State.deprecated(replacedBy: 'replacing_lint'),
+        state: RuleState.deprecated(replacedBy: 'replacing_lint'),
       );
 }
 
@@ -38,33 +39,33 @@ class DeprecatedSince3Lint extends TestLintRule {
   DeprecatedSince3Lint()
     : super(
         name: 'deprecated_since_3_lint',
-        state: State.deprecated(since: dart3),
+        state: RuleState.deprecated(since: dart3),
       );
 }
 
 @reflectiveTest
 class OptionsRuleValidatorIncludedFileTest extends AbstractAnalysisOptionsTest
     with OptionsRuleValidatorTestMixin {
-  test_deprecated_rule_inInclude_ok() {
+  Future<void> test_deprecated_rule_inInclude_ok() async {
     newFile('/included.yaml', '''
 linter:
   rules:
     - deprecated_lint
 ''');
 
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 include: included.yaml
 ''', []);
   }
 
-  test_removed_rule_inInclude_ok() {
+  Future<void> test_removed_rule_inInclude_ok() async {
     newFile('/included.yaml', '''
 linter:
   rules:
     - removed_in_2_12_lint
 ''');
 
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 include: included.yaml
 ''', []);
   }
@@ -301,7 +302,7 @@ class RemovedIn2_12Lint extends TestLintRule {
   RemovedIn2_12Lint()
     : super(
         name: 'removed_in_2_12_lint',
-        state: State.removed(since: dart2_12),
+        state: RuleState.removed(since: dart2_12),
       );
 }
 
@@ -309,7 +310,7 @@ class ReplacedLint extends TestLintRule {
   ReplacedLint()
     : super(
         name: 'replaced_lint',
-        state: State.removed(since: dart3, replacedBy: 'replacing_lint'),
+        state: RuleState.removed(since: dart3, replacedBy: 'replacing_lint'),
       );
 }
 
@@ -332,7 +333,7 @@ class RulePos extends TestLintRule {
 }
 
 class StableLint extends TestLintRule {
-  StableLint() : super(name: 'stable_lint', state: State.stable());
+  StableLint() : super(name: 'stable_lint', state: RuleState.stable());
 }
 
 abstract class TestLintRule extends LintRule {
@@ -345,5 +346,5 @@ abstract class TestLintRule extends LintRule {
   TestLintRule({required super.name, super.state}) : super(description: '');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 }

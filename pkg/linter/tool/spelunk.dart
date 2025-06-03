@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/lint/util.dart' show FileSpelunker;
+import 'dart:io';
+
+import 'package:analyzer/src/lint/util.dart' show Spelunker;
 import 'package:args/args.dart';
 
 /// AST Spelunker
@@ -11,6 +13,7 @@ void main(List<String> args) {
 
   var options = parser.parse(args);
   for (var path in options.rest) {
-    FileSpelunker(path).spelunk();
+    var source = File(path).readAsStringSync();
+    Spelunker(source).spelunk();
   }
 }

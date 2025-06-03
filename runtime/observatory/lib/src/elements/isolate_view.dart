@@ -5,14 +5,17 @@
 library isolate_view_element;
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/eval_box.dart';
 import 'package:observatory/src/elements/function_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/isolate/location.dart';
 import 'package:observatory/src/elements/isolate/run_state.dart';
@@ -96,15 +99,15 @@ class IsolateViewElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
     _subscription.cancel();
   }
 
   void render() {
     final uptime = new DateTime.now().difference(_isolate.startTime!);
     final libraries = _isolate.libraries!.toList();
-    children = <Element>[
-      navBar(<Element>[
+    children = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -125,32 +128,33 @@ class IsolateViewElement extends CustomElement implements Renderable {
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h2()..text = 'Isolate ${_isolate.name}',
-          new BRElement(),
-          new DivElement()
-            ..classes = ['flex-row']
-            ..children = <Element>[
-              new DivElement()..style.flex = '1',
-              new DivElement()
-                ..children = <Element>[
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h2()..textContent = 'Isolate ${_isolate.name}',
+          new HTMLBRElement(),
+          new HTMLDivElement()
+            ..className = 'flex-row'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()..style.flex = '1',
+              new HTMLDivElement()
+                ..appendChildren(<HTMLElement>[
                   new IsolateRunStateElement(_isolate, _events, queue: _r.queue)
                       .element,
                   new IsolateLocationElement(_isolate, _events, _scripts,
                           queue: _r.queue)
                       .element,
-                  new SpanElement()..text = ' [',
-                  new AnchorElement(href: Uris.debugger(_isolate))
-                    ..text = 'debug',
-                  new SpanElement()..text = ']'
-                ]
-            ],
-          new DivElement()
-            ..children = _function != null
+                  new HTMLSpanElement()..textContent = ' [',
+                  new HTMLAnchorElement()
+                    ..href = Uris.debugger(_isolate)
+                    ..textContent = 'debug',
+                  new HTMLSpanElement()..textContent = ']'
+                ])
+            ]),
+          new HTMLDivElement()
+            ..appendChildren(_function != null
                 ? [
-                    new BRElement(),
+                    new HTMLBRElement(),
                     (new SourceInsetElement(_isolate, _function!.location!,
                             _scripts, _objects, _events,
                             currentPos: M
@@ -158,141 +162,142 @@ class IsolateViewElement extends CustomElement implements Renderable {
                                 .location!
                                 .tokenPos,
                             queue: _r.queue)
-                          ..classes = ['header_inset'])
+                          ..className = 'header_inset')
                         .element
                   ]
-                : const [],
-          new HRElement(),
+                : const []),
+          new HTMLHRElement(),
           new IsolateSharedSummaryElement(_isolate, _events, queue: _r.queue)
               .element,
-          new HRElement(),
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'started at',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '${_isolate.startTime}'
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'uptime',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '$uptime'
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'root library',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..children = <Element>[
+          new HTMLHRElement(),
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'started at',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..textContent = '${_isolate.startTime}'
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'uptime',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..textContent = '$uptime'
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'root library',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..appendChildren(<HTMLElement>[
                       _isolate.rootLibrary == null
-                          ? (new SpanElement()..text = 'loading...')
+                          ? (new HTMLSpanElement()..textContent = 'loading...')
                           : new LibraryRefElement(
                                   _isolate, _isolate.rootLibrary!,
                                   queue: _r.queue)
                               .element
-                    ]
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = _isolate.entry != null
+                    ])
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(_isolate.entry != null
                     ? [
-                        new DivElement()
-                          ..classes = ['memberName']
-                          ..text = 'entry',
-                        new DivElement()
-                          ..classes = ['memberValue']
-                          ..children = <Element>[
+                        new HTMLDivElement()
+                          ..className = 'memberName'
+                          ..textContent = 'entry',
+                        new HTMLDivElement()
+                          ..className = 'memberValue'
+                          ..appendChildren(<HTMLElement>[
                             new FunctionRefElement(_isolate, _isolate.entry!,
                                     queue: _r.queue)
                                 .element
-                          ]
+                          ])
                       ]
-                    : const [],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'isolate id',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '${_isolate.number}'
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'service protocol extensions',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '${_isolate.extensionRPCs}'
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'object store',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..children = <Element>[
-                      new AnchorElement(href: Uris.objectStore(_isolate))
-                        ..text = 'object store'
-                    ]
-                ],
-              new BRElement(),
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'libraries (${libraries.length})',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..children = <Element>[
+                    : const []),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'isolate id',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..textContent = '${_isolate.number}'
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'service protocol extensions',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..textContent = '${_isolate.extensionRPCs}'
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'object store',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..appendChildren(<HTMLElement>[
+                      HTMLAnchorElement()
+                        ..href = Uris.objectStore(_isolate)
+                        ..textContent = 'object store'
+                    ])
+                ]),
+              new HTMLBRElement(),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'libraries (${libraries.length})',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..appendChildren(<HTMLElement>[
                       (new CurlyBlockElement(queue: _r.queue)
                             ..content = libraries
-                                .map<Element>((l) => new DivElement()
-                                  ..children = <Element>[
+                                .map<HTMLElement>((l) => new HTMLDivElement()
+                                  ..appendChildren(<HTMLElement>[
                                     new LibraryRefElement(_isolate, l,
                                             queue: _r.queue)
                                         .element
-                                  ])
+                                  ]))
                                 .toList())
                           .element
-                    ]
-                ],
-            ],
-          new HRElement(),
+                    ])
+                ]),
+            ]),
+          new HTMLHRElement(),
           new EvalBoxElement(_isolate, _isolate.rootLibrary!, _objects, _eval,
                   queue: _r.queue)
               .element,
-          new DivElement()
-            ..children = _rootScript != null
+          new HTMLDivElement()
+            ..appendChildren(_rootScript != null
                 ? [
-                    new HRElement(),
+                    new HTMLHRElement(),
                     new ScriptInsetElement(
                             _isolate, _rootScript!, _scripts, _objects, _events,
                             queue: _r.queue)
                         .element
                   ]
-                : const [],
-        ]
+                : const []),
+        ])
     ];
   }
 

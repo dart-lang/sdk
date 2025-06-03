@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:meta/meta_meta.dart';
@@ -18,7 +19,7 @@ class LibraryAnnotations extends LintRule {
     : super(name: LintNames.library_annotations, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.library_annotations;
+  DiagnosticCode get diagnosticCode => LinterLintCode.library_annotations;
 
   @override
   void registerNodeProcessors(
@@ -89,7 +90,7 @@ extension on ElementAnnotation {
   }) {
     var element = element2;
     return element is ConstructorElement &&
-        element.enclosingElement2.name3 == className &&
+        element.enclosingElement.name3 == className &&
         element.library2.name3 == libraryName;
   }
 }

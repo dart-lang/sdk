@@ -327,18 +327,110 @@ class ReadStream : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(ReadStream);
 };
 
+// Base class for streams that write bytes to some backing store. Generally,
+// BaseWriteStream is a more appropriate superclass of new WriteStreams since
+// it offers more functionality (e.g., Printf).
+struct AbstractWriteStream : public ValueObject {
+  AbstractWriteStream() {}
+  virtual ~AbstractWriteStream() {}
+
+  virtual intptr_t Position() const = 0;
+  virtual intptr_t Align(intptr_t alignment, intptr_t offset = 0) = 0;
+  virtual void WriteBytes(const void* addr, intptr_t len) = 0;
+  virtual void WriteByte(uint8_t value) = 0;
+
+ private:
+  using C = LEB128Constants;
+
+ public:
+  template <typename T>
+  C::only_if_unsigned<T, void> WriteLEB128(T value) {
+    T remainder = value;
+    bool is_last_part;
+    do {
+      uint8_t part = static_cast<uint8_t>(remainder & C::kDataByteMask);
+      remainder >>= C::kDataBitsPerByte;
+      // For unsigned types, we're done when the remainder has no bits set.
+      is_last_part = remainder == static_cast<T>(0);
+      if (!is_last_part) {
+        // Mark this part as a non-final part for this value.
+        part |= C::kMoreDataMask;
+      }
+      WriteByte(part);
+    } while (!is_last_part);
+  }
+
+  template <typename T>
+  C::only_if_signed<T, void> WriteLEB128(T value) {
+    // If we're trying to LEB128 encode a negative value, chances are we should
+    // be using SLEB128 instead.
+    ASSERT(value >= 0);
+    return WriteLEB128(bit_cast<typename std::make_unsigned<T>::type>(value));
+  }
+
+  template <typename T>
+  C::only_if_signed<T, void> WriteSLEB128(T value) {
+    constexpr intptr_t kBitsPerT = kBitsPerByte * sizeof(T);
+    using Unsigned = typename std::make_unsigned<T>::type;
+    // Record whether the original value was negative.
+    const bool is_negative = value < 0;
+    T remainder = value;
+    bool is_last_part;
+    do {
+      uint8_t part = static_cast<uint8_t>(remainder & C::kDataByteMask);
+      remainder >>= C::kDataBitsPerByte;
+      // For signed types, we're done when either:
+      // - the remainder has all bits set and the part's sign bit is set
+      //   for negative values, or
+      // - the remainder has no bits set and the part's sign bit is unset for
+      //   non-negative values.
+      // If the remainder matches but the sign bit does not, we need one more
+      // part to set the sign bit correctly when decoding.
+      if (is_negative) {
+        // Right shifts of negative values in C are not guaranteed to be
+        // arithmetic. For negative values, set the [kDataBitsPerByte] most
+        // significant bits after shifting to ensure the value stays negative.
+        constexpr intptr_t preserved_bits = kBitsPerT - C::kDataBitsPerByte;
+        // The sign extension mask is the inverse of the preserved bits mask.
+        constexpr T sign_extend =
+            ~static_cast<T>((static_cast<Unsigned>(1) << preserved_bits) - 1);
+        // Sign extend for negative values just in case a non-arithmetic right
+        // shift is used by the compiler.
+        remainder |= sign_extend;
+        ASSERT(remainder < 0);  // Remainder should still be negative.
+        is_last_part =
+            remainder == ~static_cast<T>(0) && (part & C::kSignMask) != 0;
+      } else {
+        ASSERT(remainder >= 0);  // Remainder should still be non-negative.
+        is_last_part =
+            (remainder == static_cast<T>(0) && (part & C::kSignMask) == 0);
+      }
+      if (!is_last_part) {
+        // Mark this part as a non-final part for this value.
+        part |= C::kMoreDataMask;
+      }
+      WriteByte(part);
+    } while (!is_last_part);
+  }
+
+  template <typename T>
+  C::only_if_unsigned<T, void> WriteSLEB128(T value) {
+    return WriteSLEB128(bit_cast<typename std::make_signed<T>::type>(value));
+  }
+};
+
 // Base class for streams that writing various types into a buffer, possibly
 // flushing data out periodically to a more permanent store.
-class BaseWriteStream : public ValueObject {
+class BaseWriteStream : public AbstractWriteStream {
  public:
   explicit BaseWriteStream(intptr_t initial_size)
       : initial_size_(Utils::RoundUpToPowerOfTwo(initial_size)) {}
-  virtual ~BaseWriteStream() {}
 
   DART_FORCE_INLINE intptr_t bytes_written() const { return Position(); }
   virtual intptr_t Position() const { return current_ - buffer_; }
+  intptr_t initial_size() const { return initial_size_; }
 
-  intptr_t Align(intptr_t alignment, intptr_t offset = 0) {
+  virtual intptr_t Align(intptr_t alignment, intptr_t offset = 0) {
     const intptr_t position_before = Position();
     const intptr_t position_after =
         Utils::RoundUp(position_before, alignment, offset);
@@ -474,91 +566,12 @@ class BaseWriteStream : public ValueObject {
     WriteBytes(&value, sizeof(value));
   }
 
-  DART_FORCE_INLINE void WriteByte(uint8_t value) {
+  DART_FORCE_INLINE virtual void WriteByte(uint8_t value) {
     EnsureSpace(1);
     *current_++ = value;
   }
 
   void WriteString(const char* cstr) { WriteBytes(cstr, strlen(cstr)); }
-
- private:
-  using C = LEB128Constants;
-
- public:
-  template <typename T>
-  C::only_if_unsigned<T, void> WriteLEB128(T value) {
-    T remainder = value;
-    bool is_last_part;
-    do {
-      uint8_t part = static_cast<uint8_t>(remainder & C::kDataByteMask);
-      remainder >>= C::kDataBitsPerByte;
-      // For unsigned types, we're done when the remainder has no bits set.
-      is_last_part = remainder == static_cast<T>(0);
-      if (!is_last_part) {
-        // Mark this part as a non-final part for this value.
-        part |= C::kMoreDataMask;
-      }
-      WriteByte(part);
-    } while (!is_last_part);
-  }
-
-  template <typename T>
-  C::only_if_signed<T, void> WriteLEB128(T value) {
-    // If we're trying to LEB128 encode a negative value, chances are we should
-    // be using SLEB128 instead.
-    ASSERT(value >= 0);
-    return WriteLEB128(bit_cast<typename std::make_unsigned<T>::type>(value));
-  }
-
-  template <typename T>
-  C::only_if_signed<T, void> WriteSLEB128(T value) {
-    constexpr intptr_t kBitsPerT = kBitsPerByte * sizeof(T);
-    using Unsigned = typename std::make_unsigned<T>::type;
-    // Record whether the original value was negative.
-    const bool is_negative = value < 0;
-    T remainder = value;
-    bool is_last_part;
-    do {
-      uint8_t part = static_cast<uint8_t>(remainder & C::kDataByteMask);
-      remainder >>= C::kDataBitsPerByte;
-      // For signed types, we're done when either:
-      // - the remainder has all bits set and the part's sign bit is set
-      //   for negative values, or
-      // - the remainder has no bits set and the part's sign bit is unset for
-      //   non-negative values.
-      // If the remainder matches but the sign bit does not, we need one more
-      // part to set the sign bit correctly when decoding.
-      if (is_negative) {
-        // Right shifts of negative values in C are not guaranteed to be
-        // arithmetic. For negative values, set the [kDataBitsPerByte] most
-        // significant bits after shifting to ensure the value stays negative.
-        constexpr intptr_t preserved_bits = kBitsPerT - C::kDataBitsPerByte;
-        // The sign extension mask is the inverse of the preserved bits mask.
-        constexpr T sign_extend =
-            ~static_cast<T>((static_cast<Unsigned>(1) << preserved_bits) - 1);
-        // Sign extend for negative values just in case a non-arithmetic right
-        // shift is used by the compiler.
-        remainder |= sign_extend;
-        ASSERT(remainder < 0);  // Remainder should still be negative.
-        is_last_part =
-            remainder == ~static_cast<T>(0) && (part & C::kSignMask) != 0;
-      } else {
-        ASSERT(remainder >= 0);  // Remainder should still be non-negative.
-        is_last_part =
-            (remainder == static_cast<T>(0) && (part & C::kSignMask) == 0);
-      }
-      if (!is_last_part) {
-        // Mark this part as a non-final part for this value.
-        part |= C::kMoreDataMask;
-      }
-      WriteByte(part);
-    } while (!is_last_part);
-  }
-
-  template <typename T>
-  C::only_if_unsigned<T, void> WriteSLEB128(T value) {
-    return WriteSLEB128(bit_cast<typename std::make_signed<T>::type>(value));
-  }
 
  protected:
   void EnsureSpace(intptr_t size_needed) {

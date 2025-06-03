@@ -57,7 +57,7 @@ ConstructorElement? _getActualConstructorElement(
 ) {
   var seenConstructors = <ConstructorElement?>{};
   while (constructor is ConstructorElementImpl2 && constructor.isSynthetic) {
-    var enclosing = constructor.enclosingElement2;
+    var enclosing = constructor.enclosingElement;
     if (enclosing is ClassElementImpl2 && enclosing.isMixinApplication) {
       var superInvocation =
           constructor.constantInitializers
@@ -162,7 +162,7 @@ MockLibraryImportElement? _getMockImportElement(
   Element element,
   Map<LibraryImport, Set<Element>> importElementsMap,
 ) {
-  if (element.enclosingElement2 is! LibraryElement) {
+  if (element.enclosingElement is! LibraryElement) {
     return null;
   }
   var usedLibrary = element.library2;
@@ -348,7 +348,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     var fragment = node.declaredFragment;
     if (fragment?.element == element) {
-      if (fragment!.name.isEmpty) {
+      if (fragment!.name2 == 'new') {
         references.add(
           MatchInfo(
             fragment.nameOffset + fragment.nameLength,
@@ -388,7 +388,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         length = 0;
       }
       references.add(MatchInfo(offset, length, kind));
-    } else if (e != null && e.enclosingElement2 == element) {
+    } else if (e != null && e.enclosingElement == element) {
       kind = MatchKind.REFERENCE;
       offset = node.offset;
       length = element.name3?.length ?? 0;
@@ -422,7 +422,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   void visitNamedType(NamedType node) {
     if (node.element2 == element) {
       references.add(
-        MatchInfo(node.name2.offset, node.name2.length, MatchKind.REFERENCE),
+        MatchInfo(node.name.offset, node.name.length, MatchKind.REFERENCE),
       );
     }
 

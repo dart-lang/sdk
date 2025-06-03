@@ -381,7 +381,8 @@ Future testFunctionSubtyping() async {
   await TypeEnvironment.create(
     createMethods(
       functionTypesData,
-      additionalData: """
+      additionalData:
+          """
   main() {
     ${createUses(functionTypesData)}
   }
@@ -395,7 +396,8 @@ Future testTypedefSubtyping() async {
   await TypeEnvironment.create(
     createTypedefs(
       functionTypesData,
-      additionalData: """
+      additionalData:
+          """
   main() {
     ${createUses(functionTypesData)}
   }
@@ -490,7 +492,8 @@ Future testFunctionSubtypingOptional() async {
   await TypeEnvironment.create(
     createMethods(
       optionalFunctionTypesData,
-      additionalData: """
+      additionalData:
+          """
   main() {
     ${createUses(optionalFunctionTypesData)}
   }
@@ -504,7 +507,8 @@ Future testTypedefSubtypingOptional() async {
   await TypeEnvironment.create(
     createTypedefs(
       optionalFunctionTypesData,
-      additionalData: """
+      additionalData:
+          """
   main() {
     ${createUses(optionalFunctionTypesData)}
   }
@@ -580,7 +584,8 @@ Future testFunctionSubtypingNamed() async {
   await TypeEnvironment.create(
     createMethods(
       namedFunctionTypesData,
-      additionalData: """
+      additionalData:
+          """
   main() {
     ${createUses(namedFunctionTypesData)}
   }
@@ -594,7 +599,8 @@ Future testTypedefSubtypingNamed() async {
   await TypeEnvironment.create(
     createTypedefs(
       namedFunctionTypesData,
-      additionalData: """
+      additionalData:
+          """
   main() {
     ${createUses(namedFunctionTypesData)}
   }

@@ -12,3 +12,6 @@ can-be-overridden:
   - library: 'shared/shared.dart'
     class: 'B'
     member: 'foo'
+
+callable:
+  - library: 'dart:core'

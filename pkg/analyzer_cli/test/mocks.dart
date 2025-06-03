@@ -9,7 +9,22 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer_cli/src/options.dart';
 
-class MockAnalysisError implements AnalysisError {
+class MockCommandLineOptions implements CommandLineOptions {
+  bool enableTypeChecks = false;
+  @override
+  bool jsonFormat = false;
+  @override
+  bool machineFormat = false;
+  @override
+  bool verbose = false;
+  @override
+  bool color = false;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockDiagnostic implements Diagnostic {
   @override
   MockSource source;
 
@@ -25,7 +40,7 @@ class MockAnalysisError implements AnalysisError {
   @override
   int length = 3;
 
-  MockAnalysisError(this.source, this.errorCode, this.offset, this.message);
+  MockDiagnostic(this.source, this.errorCode, this.offset, this.message);
 
   @override
   List<DiagnosticMessage> get contextMessages => const [];
@@ -52,27 +67,12 @@ class MockAnalysisError implements AnalysisError {
   Severity get severity => Severity.error;
 }
 
-class MockCommandLineOptions implements CommandLineOptions {
-  bool enableTypeChecks = false;
-  @override
-  bool jsonFormat = false;
-  @override
-  bool machineFormat = false;
-  @override
-  bool verbose = false;
-  @override
-  bool color = false;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class MockErrorCode implements ErrorCode {
+class MockErrorCode implements DiagnosticCode {
   @override
   DiagnosticType type;
 
   @override
-  DiagnosticSeverity errorSeverity;
+  DiagnosticSeverity severity;
 
   @override
   String name;
@@ -80,7 +80,7 @@ class MockErrorCode implements ErrorCode {
   @override
   String? url;
 
-  MockErrorCode(this.type, this.errorSeverity, this.name);
+  MockErrorCode(this.type, this.severity, this.name);
 
   @override
   String get correctionMessage {

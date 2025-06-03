@@ -49,6 +49,7 @@ group("runtime") {
     "runtime/vm:kernel_platform_files($host_toolchain)",
     "samples/embedder:kernel",
     "samples/ffi/http:fake_http",
+    "samples/ffi/httpIG:fake_httpIG",
     "utils/dartdev:dartdev",
     "utils/kernel-service:kernel-service",
   ]
@@ -488,5 +489,11 @@ if (is_fuchsia) {
     foreach(binary, test_binaries) {
       deps += [ ":${binary}_test_component" ]
     }
+  }
+}
+
+if (is_linux) {
+  group("debian_package") {
+    public_deps = [ "tools/debian_package" ]
   }
 }

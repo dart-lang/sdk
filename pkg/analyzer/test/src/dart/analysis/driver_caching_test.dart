@@ -6,11 +6,12 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer_utilities/testing/test_support.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -51,7 +52,7 @@ int b = a;
 ''');
 
     // `strict-cast: false`, so no errors.
-    assertErrorsInList(await _computeTestFileErrors(), []);
+    assertErrorsInList(await _computeTestFileDiagnostics(), []);
 
     // Configure `strict-casts: true`.
     await disposeAnalysisContextCollection();
@@ -60,7 +61,7 @@ int b = a;
     );
 
     // `strict-cast: true`, so has errors.
-    assertErrorsInList(await _computeTestFileErrors(), [
+    assertErrorsInList(await _computeTestFileDiagnostics(), [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 1),
     ]);
   }
@@ -273,7 +274,7 @@ import 'package:aaa/a.dart';
 
     // We don't have a dependency on `package:aaa`, so there is a lint.
     _assertHasLintReported(
-      await _computeTestFileErrors(),
+      await _computeTestFileDiagnostics(),
       'depend_on_referenced_packages',
     );
 
@@ -290,7 +291,7 @@ import 'package:aaa/a.dart';
     );
 
     // With dependency on `package:aaa` added, no lint is reported.
-    expect(await _computeTestFileErrors(), isEmpty);
+    expect(await _computeTestFileDiagnostics(), isEmpty);
 
     // Lints don't affect summaries, nothing should be linked.
     _assertNoLinkedCycles();
@@ -343,9 +344,9 @@ void f() {
     }
   }
 
-  void _assertHasLintReported(List<AnalysisError> errors, String name) {
+  void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {
     var matching =
-        errors.where((element) {
+        diagnostics.where((element) {
           var errorCode = element.errorCode;
           return errorCode is LintCode && errorCode.name == name;
         }).toList();
@@ -358,11 +359,11 @@ void f() {
 
   /// Note that we intentionally use this method, we don't want to use
   /// [resolveFile] instead. Resolving a file will force to produce its
-  /// resolved AST, and as a result to recompute the errors.
+  /// resolved AST, and as a result to recompute the diagnostics.
   ///
-  /// But this method is used to check returning errors from the cache, or
+  /// But this method is used to check returning diagnostics from the cache, or
   /// recomputing when the cache key is expected to be different.
-  Future<List<AnalysisError>> _computeTestFileErrors() async {
+  Future<List<Diagnostic>> _computeTestFileDiagnostics() async {
     var errorsResult =
         await contextFor(testFile).currentSession.getErrors(testFile.path)
             as ErrorsResult;

@@ -471,6 +471,24 @@ bool Options::ProcessObserveOption(const char* arg,
 #endif  // !defined(PRODUCT)
 }
 
+bool Options::ProcessProfileMicrotasksOption(const char* arg,
+                                             CommandLineOptions* vm_options) {
+#if !defined(PRODUCT)
+  constexpr const char* kProfileMicrotasksFlagAsCstr = "--profile-microtasks";
+  constexpr const char* kAlternativeProfileMicrotasksFlagAsCstr =
+      "--profile_microtasks";
+  if (strncmp(kProfileMicrotasksFlagAsCstr, arg,
+              strlen(kProfileMicrotasksFlagAsCstr)) == 0 ||
+      strncmp(kAlternativeProfileMicrotasksFlagAsCstr, arg,
+              strlen(kAlternativeProfileMicrotasksFlagAsCstr)) == 0) {
+    profile_microtasks_ = true;
+    vm_options->AddArgument(kProfileMicrotasksFlagAsCstr);
+    return true;
+  }
+#endif  // !defined(PRODUCT)
+  return false;
+}
+
 // Explicitly handle VM flags that can be parsed by DartDev's run command.
 bool Options::ProcessVMDebuggingOptions(const char* arg,
                                         CommandLineOptions* vm_options) {

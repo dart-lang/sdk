@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -17,7 +18,7 @@ class UseNamedConstants extends LintRule {
     : super(name: LintNames.use_named_constants, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_named_constants;
+  DiagnosticCode get diagnosticCode => LinterLintCode.use_named_constants;
 
   @override
   void registerNodeProcessors(
@@ -53,13 +54,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         //   static const a = A();
         //   static const b = A();
         // }
-        if (nodeField?.enclosingElement2 == element) return;
+        if (nodeField?.enclosingElement == element) return;
 
         var library =
             (node.root as CompilationUnit).declaredFragment?.element.library2;
         if (library == null) return;
         var value = node.computeConstantValue().value;
-        for (var field in element.fields2.where(
+        for (var field in element.fields.where(
           (e) => e.isStatic && e.isConst,
         )) {
           if (field.isAccessibleIn2(library) &&

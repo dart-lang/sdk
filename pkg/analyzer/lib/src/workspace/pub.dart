@@ -180,7 +180,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
   /// The contents of the package config file.
   late final String? _packageConfigContent;
 
-  final Map<String, WorkspacePackage> _workspacePackages = {};
+  final Map<String, WorkspacePackageImpl> _workspacePackages = {};
 
   factory PackageConfigWorkspace(
     ResourceProvider provider, //Packages packages,
@@ -211,7 +211,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     _packageConfigContent = packageConfigFile.readAsStringSync();
   }
 
-  Iterable<WorkspacePackage> get allPackages =>
+  Iterable<WorkspacePackageImpl> get allPackages =>
       _workspacePackages.values.toSet();
 
   @override
@@ -289,7 +289,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     try {
       var package = findPackageFor(filePath);
       if (package is PubPackage) {
-        var relativePath = context.relative(filePath, from: package.root);
+        var relativePath = context.relative(filePath, from: package.root.path);
         var file = builtFile(relativePath, package._name ?? '');
         if (file!.exists) {
           return file;
@@ -305,7 +305,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
   /// can be for a source file or a generated file. Generated files are located
   /// in the '.dart_tool/build/generated' folder of the containing package.
   @override
-  WorkspacePackage? findPackageFor(String filePath) {
+  WorkspacePackageImpl? findPackageFor(String filePath) {
     var pathContext = provider.pathContext;
     // Must be in this workspace.
     if (!pathContext.isWithin(root, filePath)) {
@@ -328,7 +328,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
         if (_isInThirdPartyDart(pubspec)) {
           return null;
         }
-        var package = PubPackage(current.path, this, pubspec);
+        var package = PubPackage(current, this, pubspec);
         for (var path in paths) {
           _workspacePackages[path] = package;
         }
@@ -336,7 +336,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
         return package;
       }
       if (current.path == root) {
-        var package = BasicWorkspacePackage(root, this);
+        var package = BasicWorkspacePackage(current, this);
         for (var path in paths) {
           _workspacePackages[path] = package;
         }
@@ -402,7 +402,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
 /// Separate from [Packages] or package maps, this class is designed to simply
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a [PackageConfigWorkspace].
-class PubPackage extends WorkspacePackage {
+class PubPackage extends WorkspacePackageImpl {
   static const List<String> _generatedPathParts = [
     file_paths.dotDartTool,
     file_paths.packageBuild,
@@ -410,14 +410,11 @@ class PubPackage extends WorkspacePackage {
   ];
 
   @override
-  final String root;
+  final Folder root;
 
   final String? _name;
 
   final String? pubspecContent;
-
-  // TODO(scheglov): remove when we are done migrating
-  final String? analyzerUseNewElementsContent;
 
   final Pubspec? pubspec;
 
@@ -432,7 +429,7 @@ class PubPackage extends WorkspacePackage {
   final PackageConfigWorkspace workspace;
 
   factory PubPackage(
-    String root,
+    Folder root,
     PackageConfigWorkspace workspace,
     File pubspecFile,
   ) {
@@ -446,11 +443,6 @@ class PubPackage extends WorkspacePackage {
       pubspecFile,
       pubspec,
       packageName,
-      analyzerUseNewElementsContent: _fileContentOrNull(
-        pubspecFile.parent.getChildAssumingFile(
-          'analyzer_use_new_elements.txt',
-        ),
-      ),
     );
   }
 
@@ -460,9 +452,8 @@ class PubPackage extends WorkspacePackage {
     this.pubspecContent,
     this.pubspecFile,
     this.pubspec,
-    this._name, {
-    required this.analyzerUseNewElementsContent,
-  });
+    this._name,
+  );
 
   /// The version range for the SDK specified for this package , or `null` if
   /// it is ill-formatted or not set.
@@ -502,9 +493,7 @@ class PubPackage extends WorkspacePackage {
 
   @override
   bool isInTestDirectory(File file) {
-    var resourceProvider = workspace.provider;
-    var packageRoot = resourceProvider.getFolder(root);
-    return packageRoot.getChildAssumingFolder('test').contains(file.path);
+    return root.getChildAssumingFolder('test').contains(file.path);
   }
 
   @override
@@ -521,24 +510,26 @@ class PubPackage extends WorkspacePackage {
   bool sourceIsInPublicApi(Source source) {
     var filePath = filePathFromSource(source);
     if (filePath == null) return false;
-    var libFolder = workspace.provider.pathContext.join(root, 'lib');
-    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+    var libFolder = root.getChildAssumingFolder('lib');
+    if (libFolder.contains(filePath)) {
       // A file in "$root/lib" is public iff it is not in "$root/lib/src".
-      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
-      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+      var libSrcFolder = libFolder.getChildAssumingFolder('src');
+      return !libSrcFolder.contains(filePath);
     }
 
-    libFolder = workspace.provider.pathContext.joinAll([
-      root,
-      ..._generatedPathParts,
-      'test',
-      'lib',
-    ]);
-    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+    Folder intermediateFolder = root;
+    for (String part in _generatedPathParts) {
+      intermediateFolder = intermediateFolder.getChildAssumingFolder(part);
+    }
+    libFolder = intermediateFolder
+        .getChildAssumingFolder('test')
+        .getChildAssumingFolder('lib');
+
+    if (libFolder.contains(filePath)) {
       // A file in "$generated/lib" is public iff it is not in
       // "$generated/lib/src".
-      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
-      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+      var libSrcFolder = libFolder.getChildAssumingFolder('src');
+      return !libSrcFolder.contains(filePath);
     }
     return false;
   }

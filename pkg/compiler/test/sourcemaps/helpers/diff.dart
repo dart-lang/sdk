@@ -204,15 +204,17 @@ void align(
       if (element2inList1 != null) {
         if (element1inList2 != null) {
           if (element1inList2.length > 1 && element2inList1.length > 1) {
-            choice =
-                element2inList1.from < element1inList2.from ? ALIGN2 : ALIGN1;
+            choice = element2inList1.from < element1inList2.from
+                ? ALIGN2
+                : ALIGN1;
           } else if (element2inList1.length > 1) {
             choice = ALIGN2;
           } else if (element1inList2.length > 1) {
             choice = ALIGN1;
           } else {
-            choice =
-                element2inList1.from < element1inList2.from ? ALIGN2 : ALIGN1;
+            choice = element2inList1.from < element1inList2.from
+                ? ALIGN2
+                : ALIGN1;
           }
         } else {
           choice = ALIGN2;
@@ -287,10 +289,9 @@ class DiffCreator {
     List<HtmlPart> parts = <HtmlPart>[];
     for (CodeSource codeSource in codeSources) {
       //parts.addAll(codeLinesFromCodeSource(codeSource));
-      String className =
-          mainSources.contains(codeSource)
-              ? ClassNames.originalDart
-              : ClassNames.inlinedDart;
+      String className = mainSources.contains(codeSource)
+          ? ClassNames.originalDart
+          : ClassNames.inlinedDart;
       parts.add(
         new TagPart(
           'div',
@@ -732,8 +733,9 @@ class DiffCreator {
         CodeLineAnnotation codeLineAnnotation = annotation.data;
 
         for (CodeLocation location in codeLineAnnotation.codeLocations) {
-          SourceFile sourceFile =
-              sourceFileManager.getSourceFile(location.uri)!;
+          SourceFile sourceFile = sourceFileManager.getSourceFile(
+            location.uri,
+          )!;
           int line = sourceFile.getLocation(location.offset).line - 1;
           if (currentUri != location.uri) {
             restart(jsCodeLine, location, line);
@@ -846,12 +848,12 @@ class CodeLineAnnotation {
     return CodeLineAnnotation(
       annotationId: json['id'],
       annotationType: AnnotationType.values[json['annotationType']],
-      codeLocations:
-          json['codeLocations']
-              .map((j) => CodeLocation.fromJson(j, strategy))
-              .toList(),
-      codeSources:
-          json['codeSources'].map((j) => CodeSource.fromJson(j)).toList(),
+      codeLocations: json['codeLocations']
+          .map((j) => CodeLocation.fromJson(j, strategy))
+          .toList(),
+      codeSources: json['codeSources']
+          .map((j) => CodeSource.fromJson(j))
+          .toList(),
       stepInfo: json['stepInfo'],
       sourceMappingIndex: json['sourceMappingIndex'],
     );

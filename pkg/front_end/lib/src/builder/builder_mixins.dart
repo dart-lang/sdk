@@ -8,7 +8,6 @@ import 'package:kernel/class_hierarchy.dart';
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/problems.dart';
-import '../base/scope.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
@@ -53,20 +52,16 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
         hasExplicitTypeArguments: hasExplicitTypeArguments);
   }
 
-  void forEach(void f(String name, Builder builder)) {
-    nameSpace.filteredNameIterator(includeDuplicates: false).forEach(f);
-  }
-
   @override
   InterfaceType? get thisType => null;
 
   @override
-  Builder? lookupLocalMember(String name,
+  NamedBuilder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
     // TODO(johnniwinther): Support augmented on extensions/extension type
     //  declarations.
     LookupResult? result = nameSpace.lookupLocalMember(name);
-    Builder? builder = setter ? result?.setable : result?.getable;
+    NamedBuilder? builder = setter ? result?.setable : result?.getable;
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(
@@ -77,9 +72,9 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
     return builder;
   }
 
-  Builder? lookupLocalMemberByName(Name name,
+  MemberBuilder? lookupLocalMemberByName(Name name,
       {bool setter = false, bool required = false}) {
-    Builder? builder =
+    NamedBuilder? builder =
         lookupLocalMember(name.text, setter: setter, required: required);
     if (builder == null && setter) {
       // When looking up setters, we include assignable fields.
@@ -99,13 +94,8 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
       } else if (builder.isDuplicate) {
         // Duplicates are not visible in the instance scope.
         builder = null;
-      } else if (builder is MemberBuilder && builder.isConflictingSetter) {
-        // Conflicting setters are not visible in the instance scope.
-        // TODO(johnniwinther): Should we return an [AmbiguousBuilder] here and
-        // above?
-        builder = null;
       }
     }
-    return builder;
+    return builder as MemberBuilder?;
   }
 }

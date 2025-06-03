@@ -12,7 +12,8 @@ main() {
   testDir('pkg/_fe_analyzer_shared/test/constants/data');
   testDir('pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables/data');
   testDir(
-      'pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment/data');
+    'pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment/data',
+  );
   testDir('pkg/_fe_analyzer_shared/test/flow_analysis/nullability/data');
   testDir('pkg/_fe_analyzer_shared/test/flow_analysis/reachability/data');
   testDir('pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion/data');
@@ -28,8 +29,10 @@ void expectStringEquals(String value1, String value2) {
 
 void testDir(String dataDirPath) {
   Directory dataDir = Directory(dataDirPath);
-  MarkerOptions markerOptions =
-      MarkerOptions.fromDataDir(dataDir, shouldFindScript: false);
+  MarkerOptions markerOptions = MarkerOptions.fromDataDir(
+    dataDir,
+    shouldFindScript: false,
+  );
   String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
   List<FileSystemEntity> entities =
@@ -37,26 +40,32 @@ void testDir(String dataDirPath) {
   for (FileSystemEntity entity in entities) {
     print('----------------------------------------------------------------');
 
-    TestData testData = computeTestData(entity,
-        supportedMarkers: markerOptions.supportedMarkers,
-        createTestUri: (Uri uri, String name) => Uri.parse('memory:$name'),
-        onFailure: (String message) => throw message);
+    TestData testData = computeTestData(
+      entity,
+      supportedMarkers: markerOptions.supportedMarkers,
+      createTestUri: (Uri uri, String name) => Uri.parse('memory:$name'),
+      onFailure: (String message) => throw message,
+    );
     print('Test: ${testData.testFileUri}');
     testData.code.forEach((Uri uri, AnnotatedCode code) {
       expectStringEquals(code.annotatedCode, code.toText());
     });
 
     Map<Uri, List<Annotation>> annotationsPerUri = computeAnnotationsPerUri(
-        testData.code,
-        testData.expectedMaps,
-        testData.entryPoint,
-        const {},
-        const StringDataInterpreter());
+      testData.code,
+      testData.expectedMaps,
+      testData.entryPoint,
+      const {},
+      const StringDataInterpreter(),
+    );
 
     annotationsPerUri.forEach((Uri uri, List<Annotation> annotations) {
       AnnotatedCode original = testData.code[uri]!;
       AnnotatedCode generated = new AnnotatedCode(
-          original.annotatedCode, original.sourceCode, annotations);
+        original.annotatedCode,
+        original.sourceCode,
+        annotations,
+      );
       expectStringEquals(generated.annotatedCode, generated.toText());
     });
   }

@@ -18,7 +18,7 @@ class FindElement2 extends _FindElementBase {
   @override
   LibraryFragment get libraryFragment => unit.declaredFragment!;
 
-  LibraryExportElementImpl export(String targetUri) {
+  LibraryExportImpl export(String targetUri) {
     LibraryExport? result;
 
     for (var export in libraryFragment.libraryExports2) {
@@ -32,7 +32,7 @@ class FindElement2 extends _FindElementBase {
     }
 
     if (result != null) {
-      return result as LibraryExportElementImpl;
+      return result as LibraryExportImpl;
     }
     throw StateError('Not found: $targetUri');
   }
@@ -50,10 +50,7 @@ class FindElement2 extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  LibraryImportElementImpl import(
-    String targetUri, {
-    bool mustBeUnique = true,
-  }) {
+  LibraryImportImpl import(String targetUri, {bool mustBeUnique = true}) {
     LibraryImport? importElement;
 
     for (var libraryFragment in libraryFragment.withEnclosing2) {
@@ -70,7 +67,7 @@ class FindElement2 extends _FindElementBase {
     }
 
     if (importElement != null) {
-      return importElement as LibraryImportElementImpl;
+      return importElement as LibraryImportImpl;
     }
     throw StateError('Not found: $targetUri');
   }
@@ -187,10 +184,10 @@ class FindElement2 extends _FindElementBase {
 
     void findInClasses(List<InterfaceElement> classes) {
       for (var class_ in classes) {
-        findInExecutables(class_.getters2);
-        findInExecutables(class_.setters2);
-        findInExecutables(class_.constructors2);
-        findInExecutables(class_.methods2);
+        findInExecutables(class_.getters);
+        findInExecutables(class_.setters);
+        findInExecutables(class_.constructors);
+        findInExecutables(class_.methods);
       }
     }
 
@@ -204,9 +201,9 @@ class FindElement2 extends _FindElementBase {
     findInClasses(libraryElement.mixins);
 
     for (var extension_ in libraryElement.extensions) {
-      findInExecutables(extension_.getters2);
-      findInExecutables(extension_.setters2);
-      findInExecutables(extension_.methods2);
+      findInExecutables(extension_.getters);
+      findInExecutables(extension_.setters);
+      findInExecutables(extension_.methods);
     }
 
     for (var alias in libraryElement.typeAliases) {
@@ -364,19 +361,19 @@ abstract class _FindElementBase {
 
     for (var class_ in libraryElement.classes) {
       if (of == null || class_.name3 == of) {
-        findIn(class_.constructors2);
+        findIn(class_.constructors);
       }
     }
 
     for (var enum_ in libraryElement.enums) {
       if (of == null || enum_.name3 == of) {
-        findIn(enum_.constructors2);
+        findIn(enum_.constructors);
       }
     }
 
     for (var extensionType in libraryElement.extensionTypes) {
       if (of == null || extensionType.name3 == of) {
-        findIn(extensionType.constructors2);
+        findIn(extensionType.constructors);
       }
     }
 
@@ -416,24 +413,24 @@ abstract class _FindElementBase {
   FieldElement field(String name, {String? of}) {
     return _findInClassesLike(
       className: of,
-      fromClass: (element) => element.fields2.named(name),
-      fromExtension: (element) => element.fields2.named(name),
+      fromClass: (element) => element.fields.named(name),
+      fromExtension: (element) => element.fields.named(name),
     );
   }
 
   GetterElement getter(String name, {String? of}) {
     return _findInClassesLike(
       className: of,
-      fromClass: (element) => element.getters2.named(name),
-      fromExtension: (element) => element.getters2.named(name),
+      fromClass: (element) => element.getters.named(name),
+      fromExtension: (element) => element.getters.named(name),
     );
   }
 
   MethodElement method(String name, {String? of}) {
     return _findInClassesLike(
       className: of,
-      fromClass: (element) => element.methods2.named(name),
-      fromExtension: (element) => element.methods2.named(name),
+      fromClass: (element) => element.methods.named(name),
+      fromExtension: (element) => element.methods.named(name),
     );
   }
 
@@ -450,7 +447,7 @@ abstract class _FindElementBase {
     FormalParameterElement? result;
 
     for (var class_ in libraryElement.classes) {
-      for (var constructor in class_.constructors2) {
+      for (var constructor in class_.constructors) {
         for (var formalParameter in constructor.formalParameters) {
           if (formalParameter.name3 == name) {
             if (result != null) {
@@ -471,8 +468,8 @@ abstract class _FindElementBase {
   SetterElement setter(String name, {String? of}) {
     return _findInClassesLike(
       className: of,
-      fromClass: (element) => element.setters2.named(name),
-      fromExtension: (element) => element.setters2.named(name),
+      fromClass: (element) => element.setters.named(name),
+      fromExtension: (element) => element.setters.named(name),
     );
   }
 
@@ -515,7 +512,7 @@ abstract class _FindElementBase {
     return _findInClassesLike(
       className: name,
       fromClass:
-          (e) => e.constructors2.firstWhereOrNull((element) {
+          (e) => e.constructors.firstWhereOrNull((element) {
             return element.name3 == 'new';
           }),
       fromExtension: (_) => null,

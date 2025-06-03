@@ -20,7 +20,7 @@ library;
 
 import "package:analyzer/error/error.dart";
 
-class PubspecWarningCode extends ErrorCode {
+class PubspecWarningCode extends DiagnosticCode {
   ///  Parameters:
   ///  0: the path to the asset directory as given in the file.
   static const PubspecWarningCode ASSET_DIRECTORY_DOES_NOT_EXIST =
@@ -262,7 +262,7 @@ class PubspecWarningCode extends ErrorCode {
        );
 
   @override
-  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.WARNING;
+  DiagnosticSeverity get severity => DiagnosticSeverity.WARNING;
 
   @override
   DiagnosticType get type => DiagnosticType.STATIC_WARNING;

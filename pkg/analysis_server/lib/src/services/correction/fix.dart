@@ -157,10 +157,10 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Add cast everywhere in file',
   );
-  static const ADD_FIELD_FORMAL_PARAMETERS = FixKind(
-    'dart.fix.add.fieldFormalParameters',
+  static const ADD_INITIALIZING_FORMAL_PARAMETERS = FixKind(
+    'dart.fix.add.initializingFormalParameters',
     70,
-    'Add final field formal parameters',
+    'Add final initializing formal parameters',
   );
   static const ADD_KEY_TO_CONSTRUCTORS = FixKind(
     'dart.fix.add.keyToConstructors',
@@ -1176,6 +1176,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Remove unnecessary assignments everywhere in file',
   );
+  static const REMOVE_ASYNC = FixKind(
+    'dart.fix.remove.async',
+    DartFixKindPriority.standard,
+    "Remove 'async' modifier",
+  );
   static const REMOVE_AWAIT = FixKind(
     'dart.fix.remove.await',
     DartFixKindPriority.standard,
@@ -1549,6 +1554,16 @@ abstract final class DartFixKind {
     'dart.fix.remove.comparison.multi',
     DartFixKindPriority.inFile,
     'Remove type check everywhere in file',
+  );
+  static const REMOVE_UNAWAITED = FixKind(
+    'dart.fix.remove.unawaited',
+    DartFixKindPriority.standard,
+    "Remove 'unawaited' call",
+  );
+  static const REMOVE_UNAWAITED_MULTI = FixKind(
+    'dart.fix.remove.unawaited.multi',
+    DartFixKindPriority.standard,
+    "Remove 'unawaited' call in file",
   );
   static const REMOVE_UNEXPECTED_UNDERSCORES = FixKind(
     'dart.fix.remove.unexpectedUnderscores',

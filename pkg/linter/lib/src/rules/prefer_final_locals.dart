@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -18,10 +19,10 @@ class PreferFinalLocals extends LintRule {
     : super(name: LintNames.prefer_final_locals, description: _desc);
 
   @override
-  List<String> get incompatibleRules => const [LintNames.unnecessary_final];
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_final_locals;
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_final_locals;
+  List<String> get incompatibleRules => const [LintNames.unnecessary_final];
 
   @override
   void registerNodeProcessors(

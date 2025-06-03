@@ -73,27 +73,27 @@ it might look something like this:
 void printMembers(LibraryElement libraryElement) {
   for (ClassElement classElement in libraryElement.classes) {
     print(classElement.name3);
-    for (ConstructorElement constructorElement in classElement.constructors2) {
+    for (ConstructorElement constructorElement in classElement.constructors) {
       if (!constructorElement.isSynthetic) {
         print('  ${constructorElement.displayName}');
       }
     }
-    for (FieldElement fieldElement in classElement.fields2) {
+    for (FieldElement fieldElement in classElement.fields) {
       if (!fieldElement.isSynthetic) {
         print('  ${fieldElement.name3}');
       }
     }
-    for (GetterElement getterElement in classElement.getters2) {
+    for (GetterElement getterElement in classElement.getters) {
       if (!getterElement.isSynthetic) {
         print('  ${getterElement.name3}');
       }
     }
-    for (SetterElement setterElement in classElement.setters2) {
+    for (SetterElement setterElement in classElement.setters) {
       if (!setterElement.isSynthetic) {
         print('  ${setterElement.name3}');
       }
     }
-    for (MethodElement methodElement in classElement.methods2) {
+    for (MethodElement methodElement in classElement.methods) {
       if (!methodElement.isSynthetic) {
         print('  ${methodElement.name3}');
       }

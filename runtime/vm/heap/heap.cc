@@ -943,23 +943,21 @@ void Heap::ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object) {
     }
   }
 
-  isolate_group()->ForEachIsolate(
-      [&](Isolate* isolate) {
-        auto before_table = before_object->IsImmediateOrOldObject()
-                                ? isolate->forward_table_old()
-                                : isolate->forward_table_new();
-        if (before_table != nullptr) {
-          intptr_t entry = before_table->RemoveValueExclusive(before_object);
-          if (entry != 0) {
-            auto after_table = after_object->IsImmediateOrOldObject()
-                                   ? isolate->forward_table_old()
-                                   : isolate->forward_table_new();
-            ASSERT(after_table != nullptr);
-            after_table->SetValueExclusive(after_object, entry);
-          }
-        }
-      },
-      /*at_safepoint=*/true);
+  isolate_group()->thread_registry()->ForEachThread([&](Thread* thread) {
+    auto before_table = before_object->IsImmediateOrOldObject()
+                            ? thread->forward_table_old()
+                            : thread->forward_table_new();
+    if (before_table != nullptr) {
+      intptr_t entry = before_table->RemoveValueExclusive(before_object);
+      if (entry != 0) {
+        auto after_table = after_object->IsImmediateOrOldObject()
+                               ? thread->forward_table_old()
+                               : thread->forward_table_new();
+        ASSERT(after_table != nullptr);
+        after_table->SetValueExclusive(after_object, entry);
+      }
+    }
+  });
 }
 
 void Heap::ForwardWeakTables(ObjectPointerVisitor* visitor) {
@@ -972,12 +970,10 @@ void Heap::ForwardWeakTables(ObjectPointerVisitor* visitor) {
 
   // Isolates might have forwarding tables (used for during snapshotting in
   // isolate communication).
-  isolate_group()->ForEachIsolate(
-      [&](Isolate* isolate) {
-        auto table_old = isolate->forward_table_old();
-        if (table_old != nullptr) table_old->Forward(visitor);
-      },
-      /*at_safepoint=*/true);
+  isolate_group()->thread_registry()->ForEachThread([&](Thread* thread) {
+    auto table_old = thread->forward_table_old();
+    if (table_old != nullptr) table_old->Forward(visitor);
+  });
 }
 
 #ifndef PRODUCT
@@ -1002,6 +998,19 @@ void Heap::PrintMemoryUsageJSON(JSONObject* jsobj) const {
 }
 #endif  // PRODUCT
 
+static void RecordRSS() {
+#if defined(SUPPORT_TIMELINE)
+  TimelineEvent* event = Timeline::GetGCStream()->StartEvent();
+  if (event != nullptr) {
+    event->Counter("RSS");
+    event->SetNumArguments(1);
+    event->FormatArgument(0, "value", "%" Pd, OS::CurrentRSS());
+    event->ClearIsolateGroupId();  // This value is per-process.
+    event->Complete();
+  }
+#endif
+}
+
 void Heap::RecordBeforeGC(GCType type, GCReason reason) {
   stats_.num_++;
   stats_.type_ = type;
@@ -1010,6 +1019,7 @@ void Heap::RecordBeforeGC(GCType type, GCReason reason) {
   stats_.before_.new_ = new_space_.GetCurrentUsage();
   stats_.before_.old_ = old_space_.GetCurrentUsage();
   stats_.before_.store_buffer_ = isolate_group_->store_buffer()->Size();
+  RecordRSS();
 }
 
 void Heap::RecordAfterGC(GCType type) {
@@ -1025,6 +1035,7 @@ void Heap::RecordAfterGC(GCType type) {
   stats_.after_.new_ = new_space_.GetCurrentUsage();
   stats_.after_.old_ = old_space_.GetCurrentUsage();
   stats_.after_.store_buffer_ = isolate_group_->store_buffer()->Size();
+  RecordRSS();
 #ifndef PRODUCT
   // For now we'll emit the same GC events on all isolates.
   if (Service::gc_stream.enabled()) {

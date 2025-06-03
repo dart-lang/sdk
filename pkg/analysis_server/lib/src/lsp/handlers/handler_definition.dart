@@ -225,7 +225,7 @@ class DefinitionHandler
     // the parameters / representation type but we want the whole declaration
     // for the code range because otherwise previews will just show `(int a)`
     // which is not what the user expects.
-    if (codeFragment.element.enclosingElement2
+    if (codeFragment.element.enclosingElement
         case ExtensionTypeElement enclosingElement
         when enclosingElement.primaryConstructor2 == codeFragment.element) {
       codeFragment = codeFragment.enclosingFragment;

@@ -101,6 +101,8 @@ class FindNode {
   FunctionTypedFormalParameter get singleFunctionTypedFormalParameter =>
       _single();
 
+  GenericFunctionType get singleGenericFunctionType => _single();
+
   GenericTypeAlias get singleGenericTypeAlias => _single();
 
   GuardedPattern get singleGuardedPattern => _single();

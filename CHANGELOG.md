@@ -1,6 +1,26 @@
 ## 3.9.0
 
+**Released on:** Unreleased
+
+### Language
+
+Dart 3.9 assumes null safety when computing type promotion, reachability, and
+definite assignment. This makes these features produce more accurate results for
+modern Dart programs. As a result of this change, more dead_code warnings may be
+produced. To take advantage of these improvements, set your package's [SDK
+constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
+
+[language version]: https://dart.dev/guides/language/evolution
+
 ### Tools
+
+#### Analyzer
+
+- Add the [`switch_on_type`][] lint rule.
+- Add the [`unnecessary_unawaited`][] lint rule.
+
+[`switch_on_type`]: http://dart.dev/lints/switch_on_type
+[`unnecessary_unawaited`]: http://dart.dev/lints/unnecessary_unawaited
 
 #### Dart Development Compiler (dartdevc)
 
@@ -28,9 +48,36 @@
   Container<dynamic>().value('Invocation with missing runtime checks!');
   ```
 
+#### Pub
+
+- Git dependencies can now be version-solved based on git tags.
+
+  Use a `tag_pattern` in the descriptor and a version constraint, and all
+  commits matching the pattern will be considered during resolution. For
+  example:
+
+  ```yaml
+  dependencies:
+    my_dependency:
+      git:
+        url: https://github.com/example/my_dependency
+        tag_pattern: v{{version}}
+      version: ^2.0.1
+  ```
+
+## 3.8.1
+
+**Released on:** 2025-05-28
+
+This is a patch release that:
+
+- Fixes an issue in DDC with late variables being incorrectly captured within async function bodies (issue [#430800])
+
+[#430800]: https://dart-review.googlesource.com/c/sdk/+/430800
+
 ## 3.8.0
 
-**Released on:** Unreleased
+**Released on:** 2025-05-20
 
 ### Language
 
@@ -42,28 +89,31 @@ or greater (`sdk: '^3.8.0'`).
 
 [null-aware elements]: https://github.com/dart-lang/language/issues/323
 
-The null-aware elements language feature enables a simple syntax for
-including an element into a collection only if the element is not
-null. The syntax is available for list elements, set elements, map
-keys, and map values as described in the
-[null-aware elements specification](https://github.com/dart-lang/language/blob/main/accepted/future-releases/0323-null-aware-elements/feature-specification.md).
-
-The following is an example of a list literal written in both styles,
-without the null-aware elements language feature and with it:
+Null-aware elements make it easier to omit a value from a collection literal if
+it's `null`. The syntax works in list literals, set literals, and map literals.
+For map literals, both null-aware keys and values are supported. Here is an
+example a list literal written in both styles, without the null-aware elements
+language feature and with it:
 
 ```dart
-var listWithoutNullAwareElements = [
-  if (promotableNullableValue != null) promotableNullableValue,
-  if (nullable.value != null) nullable.value!,
-  if (nullable.value case var value?) value,
+String? lunch = isTuesday ? 'tacos!' : null;
+
+var withoutNullAwareElements = [
+  if (lunch != null) lunch,
+  if (lunch.length != null) lunch.length!,
+  if (lunch.length case var length?) length,
 ];
 
-var listWithNullAwareElements = [
-  ?promotableNullableValue,
-  ?nullable.value,
-  ?nullable.value,
+var withNullAwareElements = [
+  ?lunch,
+  ?lunch.length,
+  ?lunch.length,
 ];
 ```
+
+Full details are in the [feature specification][null-aware elements].
+
+[null-aware elements]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/0323-null-aware-elements/feature-specification.md
 
 ### Libraries
 
@@ -73,8 +123,8 @@ var listWithNullAwareElements = [
 
 #### `dart:io`
 
-- Added support `HttpClientBearerCredentials`.
-- Update `Stdout.supportsAnsiEscapes` and `Stdin.supportsAnsiEscapes` to
+- Added `HttpClientBearerCredentials`.
+- Updated `Stdout.supportsAnsiEscapes` and `Stdin.supportsAnsiEscapes` to
   return `true` for `TERM` containing `tmux` values.
 
 #### `dart:html`
@@ -82,10 +132,10 @@ var listWithNullAwareElements = [
 - **Breaking change**: Native classes in `dart:html`, like `HtmlElement`, can no
   longer be extended. Long ago, to support custom elements, element classes
   exposed a `.created` constructor that adhered to the v0.5 spec of web
-  components. On this release, those constructors has been removed and with that
-  change, the classes can no longer be extended. In a future change, they may be
-  marked as interface classes as well.  This is a follow up from an earlier
-  breaking change in 3.0.0 that removed the `registerElement` APIs. See
+  components. On this release, those constructors have been removed and with
+  that change, the classes can no longer be extended. In a future change, they
+  may be marked as interface classes as well. This is a follow up from an
+  earlier breaking change in 3.0.0 that removed the `registerElement` APIs. See
   [#53264](https://github.com/dart-lang/sdk/issues/53264) for details.
 
 #### `dart:ffi`
@@ -116,33 +166,32 @@ var listWithNullAwareElements = [
 - Add a quick fix to create an extension method to resolve an "undefined method
   invocation" error.
 - Renaming a closure parameter is now possible.
-- Renaming a field now adjusts implicit 'this' references in order to avoid
+- Renaming a field now adjusts implicit `this` references in order to avoid
   name collisions.
 - Renaming a field formal parameter now properly renames known super-parameters
   in subclasses in other libraries.
 - Renaming a method parameter now properly renames across the type hierarchy.
 - The "encapsulate field" quick assist now works on final fields.
 - The "inline method" refactoring now properly handles inner closures.
-- The quick fix that adds names to a `show` combinator or removes names from a
-  'hide' combinator can now add or remove multiple names simultaneously, in
-  order to resolve as many "undefined" errors as possible.
+- The quick fix that adds names to a `show` clause or removes names from a
+  `hide` clause can now add or remove multiple names simultaneously, in order to
+  resolve as many "undefined" errors as possible.
 - The "remove const" quick fix now operates on more types of code.
 - The "add missing required argument" quick fix can now add multiple missing
   required arguments.
 - Add a new warning that reports an import or export directive with multiple
-  'show' or 'hide' combinators, which are never necessary.
+  `show` or `hide` clauses, which are never necessary.
 - Add a quick fix for this warning.
 - Add LSP document links for lint rules in analysis options files.
 - Add LSP document links for dependency packages in pubspec files.
 - Fix various issues around patterns, like highlighting, navigation, and
   autocompletion.
+- Add the [`use_null_aware_elements`][] lint rule.
 - Add the experimental [`unnecessary_ignore`][] lint rule.
-- Add the [`switch_on_runtimetype`][] lint rule that reports when a switch
-  statement or switch expression uses an expression's `runtimeType` as its
-  switch variable.
 - (Thanks [@FMorschel](https://github.com/FMorschel) for many of the above
   enhancements!)
 
+[`use_null_aware_elements`]: http://dart.dev/lints/use_null_aware_elements
 [`unnecessary_ignore`]: http://dart.dev/lints/unnecessary_ignore
 
 #### Dart Development Compiler (dartdevc)
@@ -159,6 +208,12 @@ disallowed.
 
 Removed the `--experiment-new-rti` and `--use-old-rti` flags.
 
+#### Dart Native Compiler
+
+Added [cross-compilation][] for the Linux x64 and Linux ARM64 target platforms.
+
+[cross-compilation]: https://dart.dev/tools/dart-compile#cross-compilation-exe
+
 #### Dart format
 
 In 3.7.0, we released a largely rewritten formatter supporting a new
@@ -167,7 +222,7 @@ reports and made a number of fixes in response to that.
 
 [tall style]: https://github.com/dart-lang/dart_style/issues/1253
 
-### Features
+##### Features
 
 Some users strongly prefer the old behavior where a trailing comma will be
 preserved by the formatter and force the surrounding construct to split. That
@@ -182,12 +237,12 @@ formatter:
 This is similar to how trailing commas work in the old short style formatter
 applied to code before language version 3.7.
 
-### Bug fixes
+##### Bug fixes
 
 * Don't add a trailing comma in lists that don't allow it, even when there is
   a trailing comment (#1639).
 
-### Style changes
+##### Style changes
 
 The following style changes are language versioned and only affect code whose
 language version is 3.8 or later. Dart code at 3.7 or earlier is formatted the
@@ -327,6 +382,45 @@ same as it was before.
     labelColor: Colors.white70,
   );
   ```
+
+## 3.7.3
+
+**Released on:** 2025-04-16
+
+This is a patch release that:
+
+- Fixes a performance regression in the analysis server (issue [#60335]).
+
+[#60335]: https://github.com/dart-lang/sdk/issues/60335
+
+## 3.7.2
+
+**Released on:** 2025-03-12
+
+This is a patch release that:
+
+ - Fixes a bug in dart2wasm that imports a `js-string` builtin function with a
+   non-nullable parameter type where it must use a nullable one (issue [#59899]).
+
+[#59899]: https://github.com/dart-lang/sdk/issues/59899
+
+## 3.7.1
+
+**Released on:** 2025-02-26
+
+This is a patch release that:
+
+ - Fixes a bug in the DevTools network profiler that was causing network
+   traffic to be dropped (issue [#8888]).
+ - Fixes a bug in DDC that prevents code from compiling when it includes
+   factory constructors containing generic local functions (issue [#160338]).
+ - Fixes a bug in the CFE that didn't correctly mark wildcard variables
+   in formal parameters, causing the wildcard variables to appear in
+   variable lists while debugging (issue [#60121]).
+
+[#8888]: https://github.com/flutter/devtools/issues/8888
+[#160338]: https://github.com/flutter/flutter/issues/160338
+[#60121]: https://github.com/dart-lang/sdk/issues/60121
 
 ## 3.7.0
 

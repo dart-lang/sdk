@@ -634,9 +634,17 @@ Fragment BaseFlowGraphBuilder::StoreFieldGuarded(
 
 Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field,
                                                bool calls_initializer) {
+  const bool check_access =
+      (dart::FLAG_experimental_shared_data && !field.is_shared());
+  const auto slow_path =
+      calls_initializer
+          ? SlowPathOnSentinelValue::kCallInitializer
+          : (check_access ? SlowPathOnSentinelValue::kThrowAccessError
+                          : SlowPathOnSentinelValue::kDoNothing);
   LoadStaticFieldInstr* load = new (Z) LoadStaticFieldInstr(
-      field, InstructionSource(), calls_initializer,
-      calls_initializer ? GetNextDeoptId() : DeoptId::kNone);
+      field, InstructionSource(), slow_path,
+      slow_path != SlowPathOnSentinelValue::kDoNothing ? GetNextDeoptId()
+                                                       : DeoptId::kNone);
   Push(load);
   return Fragment(load);
 }
@@ -674,7 +682,8 @@ Fragment BaseFlowGraphBuilder::Utf8Scan() {
 Fragment BaseFlowGraphBuilder::StoreStaticField(TokenPosition position,
                                                 const Field& field) {
   return Fragment(new (Z) StoreStaticFieldInstr(MayCloneField(Z, field), Pop(),
-                                                InstructionSource(position)));
+                                                InstructionSource(position),
+                                                GetNextDeoptId()));
 }
 
 Fragment BaseFlowGraphBuilder::StoreIndexed(classid_t class_id) {

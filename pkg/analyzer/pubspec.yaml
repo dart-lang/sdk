@@ -28,6 +28,7 @@ dependencies:
 # best practice for packages is to specify their compatible version ranges.
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
+  analysis_server_client: any
   analyzer_testing: any
   analyzer_utilities: any
   args: any

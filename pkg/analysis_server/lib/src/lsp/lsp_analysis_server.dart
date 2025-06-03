@@ -47,10 +47,8 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
-import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
 /// that listens on a [LspServerCommunicationChannel] for LSP messages and
@@ -76,15 +74,6 @@ class LspAnalysisServer extends AnalysisServer {
   /// The channel from which messages are received and to which responses should
   /// be sent.
   final LspServerCommunicationChannel channel;
-
-  /// The versions of each document known to the server (keyed by path), used to
-  /// send back to the client for server-initiated edits so that the client can
-  /// ensure they have a matching version of the document before applying them.
-  ///
-  /// Handlers should prefer to use the `getVersionedDocumentIdentifier` method
-  /// which will return a null-versioned identifier if the document version is
-  /// not known.
-  final Map<String, VersionedTextDocumentIdentifier> documentVersions = {};
 
   /// The message handler for the server based on the current state
   /// (uninitialized, initializing, initialized, etc.).
@@ -274,8 +263,6 @@ class LspAnalysisServer extends AnalysisServer {
     };
   }
 
-  path.Context get pathContext => resourceProvider.pathContext;
-
   @override
   set pluginManager(PluginManager value) {
     if (AnalysisServer.supportsPlugins) {
@@ -388,28 +375,6 @@ class LspAnalysisServer extends AnalysisServer {
     // Don't await this because it involves sending requests to the client (for
     // config) that should not stop/delay initialization.
     unawaited(capabilitiesComputer.performDynamicRegistration());
-  }
-
-  /// Gets the current version number of a document.
-  @override
-  int? getDocumentVersion(String path) => documentVersions[path]?.version;
-
-  /// Gets the current identifier/version of a document known to the server,
-  /// returning an [OptionalVersionedTextDocumentIdentifier] with a version of
-  /// `null` if the document version is not known.
-  ///
-  /// Prefer using [HandlerHelperMixin.extractDocumentVersion] when you
-  /// already have a [TextDocumentIdentifier] from the client because it is
-  /// guaranteed to be what the client expected and not just the current version
-  /// the server has.
-  @override
-  OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
-    String path,
-  ) {
-    return OptionalVersionedTextDocumentIdentifier(
-      uri: uriConverter.toClientUri(path),
-      version: getDocumentVersion(path),
-    );
   }
 
   @override
@@ -543,6 +508,7 @@ class LspAnalysisServer extends AnalysisServer {
               clientCapabilities: editorClientCapabilities,
               timeSinceRequest: message.timeSinceRequest,
               completer: completer,
+              isTrustedCaller: true,
             );
 
             if (message is RequestMessage) {
@@ -1133,12 +1099,14 @@ class LspAnalysisServer extends AnalysisServer {
     var packages = <String>{};
     var additionalFiles = <String>[];
     for (var file in openFiles) {
-      var package = roots
-          .where((root) => root.isAnalyzed(file))
-          .map((root) => root.workspace.findPackageFor(file)?.root)
-          .firstWhereOrNull((p) => p != null);
-      if (package != null && !resourceProvider.getFolder(package).isRoot) {
-        packages.add(package);
+      var package =
+          roots
+              .where((root) => root.isAnalyzed(file))
+              .map((root) => root.workspace.findPackageFor(file)?.root)
+              .nonNulls
+              .firstOrNull;
+      if (package != null && !package.isRoot) {
+        packages.add(package.path);
       } else {
         additionalFiles.add(file);
       }

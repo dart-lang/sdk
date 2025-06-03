@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:linter/src/rules/use_build_context_synchronously.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -27,9 +28,11 @@ class AsyncStateTest extends PubPackageResolutionTest {
 
   FindNode get findNode => FindNode(result.content, result.unit);
 
+  String get testFilePath => convertPath('$testPackageLibPath/$testFileName');
+
   Future<void> resolveCode(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
+    newFile(testFilePath, code);
+    result = await resolveFile(testFilePath);
   }
 
   test_adjacentStrings_referenceAfter_awaitInString() async {

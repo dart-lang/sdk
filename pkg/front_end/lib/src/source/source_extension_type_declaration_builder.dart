@@ -13,6 +13,7 @@ import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
+import '../base/scope.dart';
 import '../builder/augmentation_iterator.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -21,7 +22,6 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
@@ -67,6 +67,8 @@ class SourceExtensionTypeDeclarationBuilder
   final DeclarationNameSpaceBuilder _nameSpaceBuilder;
 
   late final DeclarationNameSpace _nameSpace;
+  late final List<SourceMemberBuilder> _constructorBuilders;
+  late final List<SourceMemberBuilder> _memberBuilders;
 
   @override
   final List<SourceNominalParameterBuilder>? typeParameters;
@@ -117,6 +119,26 @@ class SourceExtensionTypeDeclarationBuilder
   }
 
   @override
+  Iterator<SourceMemberBuilder> get unfilteredMembersIterator =>
+      _memberBuilders.iterator;
+
+  @override
+  Iterator<T> filteredMembersIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_memberBuilders.iterator,
+          includeDuplicates: includeDuplicates);
+
+  @override
+  Iterator<SourceMemberBuilder> get unfilteredConstructorsIterator =>
+      _constructorBuilders.iterator;
+
+  @override
+  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_constructorBuilders.iterator,
+          includeDuplicates: includeDuplicates);
+
+  @override
   int resolveConstructors(SourceLibraryBuilder library) {
     int count = 0;
     if (constructorReferences.isNotEmpty) {
@@ -126,17 +148,13 @@ class SourceExtensionTypeDeclarationBuilder
       count += constructorReferences.length;
     }
     if (count > 0) {
-      Iterator<MemberBuilder> iterator =
-          nameSpace.filteredConstructorIterator(includeDuplicates: true);
+      Iterator<SourceFactoryBuilder> iterator =
+          filteredConstructorsIterator(includeDuplicates: true);
       while (iterator.moveNext()) {
-        MemberBuilder declaration = iterator.current;
-        if (declaration.declarationBuilder != this) {
-          unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
-              fileOffset, fileUri);
-        }
-        if (declaration is SourceFactoryBuilder) {
-          declaration.resolveRedirectingFactory();
-        }
+        SourceFactoryBuilder factoryBuilder = iterator.current;
+        assert(factoryBuilder.declarationBuilder == this,
+            "Unexpected builder $factoryBuilder in $this.");
+        factoryBuilder.resolveRedirectingFactory();
       }
     }
     return count;
@@ -154,6 +172,8 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
+    _constructorBuilders = [];
+    _memberBuilders = [];
     _nameSpace = _nameSpaceBuilder.buildNameSpace(
         loader: libraryBuilder.loader,
         problemReporting: libraryBuilder,
@@ -162,7 +182,9 @@ class SourceExtensionTypeDeclarationBuilder
         indexedLibrary: libraryBuilder.indexedLibrary,
         indexedContainer: indexedContainer,
         containerType: ContainerType.ExtensionType,
-        containerName: new ClassName(name));
+        containerName: new ClassName(name),
+        constructorBuilders: _constructorBuilders,
+        memberBuilders: _memberBuilders);
   }
 
   @override
@@ -614,11 +636,12 @@ class SourceExtensionTypeDeclarationBuilder
       if (duplicationProblems != null) {
         for (var MapEntry(key: typeDeclaration, value: (:count, :offset))
             in duplicationProblems.entries) {
-          addProblem(
+          libraryBuilder.addProblem(
               templateImplementsRepeated.withArguments(
                   typeDeclaration.name, count),
               offset,
-              noLength);
+              noLength,
+              fileUri);
         }
       }
     }
@@ -694,8 +717,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
     Iterator<SourceFactoryBuilder> iterator =
-        nameSpace.filteredConstructorIterator<SourceFactoryBuilder>(
-            includeDuplicates: true);
+        filteredConstructorsIterator(includeDuplicates: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
     }
@@ -720,14 +742,14 @@ class SourceExtensionTypeDeclarationBuilder
     }
 
     Iterator<SourceMemberBuilder> iterator =
-        nameSpace.filteredIterator(includeDuplicates: false);
+        filteredMembersIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       iterator.current
           .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
     }
 
     Iterator<SourceMemberBuilder> constructorIterator =
-        nameSpace.filteredConstructorIterator(includeDuplicates: false);
+        filteredConstructorsIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
       constructorIterator.current
           .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
@@ -748,6 +770,7 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionSetter:
       case BuiltMemberKind.ExtensionOperator:
       case BuiltMemberKind.ExtensionField:
+      case BuiltMemberKind.LateBackingField:
       case BuiltMemberKind.LateIsSetField:
       case BuiltMemberKind.ExtensionTypeConstructor:
       case BuiltMemberKind.ExtensionTypeFactory:
@@ -778,6 +801,7 @@ class SourceExtensionTypeDeclarationBuilder
       Reference? tearOffReference) {
     String name = memberBuilder.name;
     ExtensionTypeMemberKind kind;
+    bool isInternalImplementation = false;
     switch (memberKind) {
       case BuiltMemberKind.Constructor:
       case BuiltMemberKind.RedirectingFactory:
@@ -793,7 +817,11 @@ class SourceExtensionTypeDeclarationBuilder
         unhandled("$memberBuilder(${memberBuilder.runtimeType}):${memberKind}",
             "buildMembers", memberBuilder.fileOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
+        kind = ExtensionTypeMemberKind.Field;
+        break;
+      case BuiltMemberKind.LateBackingField:
       case BuiltMemberKind.LateIsSetField:
+        isInternalImplementation = true;
         kind = ExtensionTypeMemberKind.Field;
         break;
       case BuiltMemberKind.ExtensionTypeConstructor:
@@ -826,6 +854,7 @@ class SourceExtensionTypeDeclarationBuilder
             memberReference: memberReference,
             tearOffReference: tearOffReference,
             isStatic: memberBuilder.isStatic,
+            isInternalImplementation: isInternalImplementation,
             kind: kind));
   }
 
@@ -847,23 +876,6 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   DartType get declaredRepresentationType =>
       _extensionTypeDeclaration.declaredRepresentationType;
-
-  @override
-  Iterator<T> fullMemberIterator<T extends Builder>() =>
-      nameSpace.filteredIterator<T>(includeDuplicates: false);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      nameSpace.filteredNameIterator<T>(includeDuplicates: false);
-
-  @override
-  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
-
-  @override
-  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorNameIterator<T>(includeDuplicates: false);
 
   BodyBuilderContext createBodyBuilderContext() {
     return new ExtensionTypeBodyBuilderContext(this);

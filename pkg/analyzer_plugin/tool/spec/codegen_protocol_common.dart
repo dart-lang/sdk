@@ -45,6 +45,8 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
   void emitImports() {
     writeln("import 'dart:convert' hide JsonDecoder;");
     writeln();
+    writeln("import 'package:collection/collection.dart' show QueueList;");
+    writeln();
     if (forClient) {
       writeln(
           "import 'package:analysis_server_client/src/protocol/protocol_internal.dart';");

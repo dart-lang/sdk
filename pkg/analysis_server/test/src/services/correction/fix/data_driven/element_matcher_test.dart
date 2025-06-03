@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

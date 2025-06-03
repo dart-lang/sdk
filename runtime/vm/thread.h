@@ -10,6 +10,7 @@
 #endif
 
 #include <setjmp.h>
+#include <memory>
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
@@ -71,6 +72,7 @@ class TimelineStream;
 class TypeArguments;
 class TypeParameter;
 class TypeUsageInfo;
+class WeakTable;
 class Zone;
 
 namespace bytecode {
@@ -140,6 +142,10 @@ class Thread;
     StubCode::WriteErrorSharedWithoutFPURegs().ptr(), nullptr)                 \
   V(CodePtr, write_error_shared_with_fpu_regs_stub_,                           \
     StubCode::WriteErrorSharedWithFPURegs().ptr(), nullptr)                    \
+  V(CodePtr, field_access_error_shared_without_fpu_regs_stub_,                 \
+    StubCode::FieldAccessErrorSharedWithoutFPURegs().ptr(), nullptr)           \
+  V(CodePtr, field_access_error_shared_with_fpu_regs_stub_,                    \
+    StubCode::FieldAccessErrorSharedWithFPURegs().ptr(), nullptr)              \
   V(CodePtr, allocate_mint_with_fpu_regs_stub_,                                \
     StubCode::AllocateMintSharedWithFPURegs().ptr(), nullptr)                  \
   V(CodePtr, allocate_mint_without_fpu_regs_stub_,                             \
@@ -360,9 +366,9 @@ class MutatorThreadVisitor {
 
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
-// a thread is allocated by EnsureInit before entering an isolate, and destroyed
-// automatically when the underlying OS thread exits. NOTE: On Windows, CleanUp
-// must currently be called manually (issue 23474).
+// a thread is allocated by ThreadRegistry::GetFromFreelistLocked either
+// before entering an isolate or entering an isolate group, and destroyed
+// automatically when the underlying OS thread exits.
 class Thread : public ThreadState {
  public:
   // The kind of task this thread is performing. Sampled by the profiler.
@@ -377,6 +383,7 @@ class Thread : public ThreadState {
     kSampleBlockTask,
     kIncrementalCompactorTask,
     kSpawnTask,
+    kIsolateGroupSharedCallbackTask,
   };
 
   ~Thread();
@@ -588,7 +595,11 @@ class Thread : public ThreadState {
   bool HasDartMutatorStack() const {
     // The thread with dart mutator task might be temporarily
     // occupied by a gc task.
-    return IsDartMutatorThread() || scheduled_dart_mutator_isolate_ != nullptr;
+    return IsDartMutatorThread()
+           // mutator thread with isolate
+           || scheduled_dart_mutator_isolate_ != nullptr
+           // mutator thread without isolate
+           || top_exit_frame_info_ != 0;
   }
 
   // Returns the dart mutator [Isolate] this thread belongs to or nullptr.
@@ -1332,6 +1343,17 @@ class Thread : public ThreadState {
     ASSERT(value == nullptr || deopt_context_ == nullptr);
     deopt_context_ = value;
   }
+  // The weak table used in the snapshot writer for the purpose of fast message
+  // sending.
+  WeakTable* forward_table_new() { return forward_table_new_.get(); }
+  void set_forward_table_new(WeakTable* table);
+
+  WeakTable* forward_table_old() { return forward_table_old_.get(); }
+  void set_forward_table_old(WeakTable* table);
+
+  MallocGrowableArray<ObjectPtr>* pointers_to_verify_at_exit() {
+    return &pointers_to_verify_at_exit_;
+  }
 
  private:
   template <class T>
@@ -1596,6 +1618,12 @@ class Thread : public ThreadState {
 #endif
 
   DeoptContext* deopt_context_ = nullptr;
+
+  // Used during message sending of messages between isolates.
+  std::unique_ptr<WeakTable> forward_table_new_;
+  std::unique_ptr<WeakTable> forward_table_old_;
+
+  MallocGrowableArray<ObjectPtr> pointers_to_verify_at_exit_;
 
   explicit Thread(bool is_vm_isolate);
 

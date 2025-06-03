@@ -1,0 +1,5 @@
+import 'main_lib.dart';
+
+main() {}
+
+throws(void Function() f) {}

@@ -25,6 +25,7 @@
 #include "vm/instructions.h"
 #include "vm/interpreter.h"
 #include "vm/kernel_isolate.h"
+#include "vm/log.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/object_store.h"
@@ -116,6 +117,89 @@ DEFINE_FLAG(bool, gc_at_throw, false, "Run evacuating GC at throw and rethrow");
 DECLARE_FLAG(int, reload_every);
 DECLARE_FLAG(bool, reload_every_optimized);
 DECLARE_FLAG(bool, reload_every_back_off);
+
+uword RuntimeEntry::GetEntryPoint() const {
+  // Compute the effective address. When running under the simulator,
+  // this is a redirection address that forces the simulator to call
+  // into the runtime system.
+  uword entry = reinterpret_cast<uword>(function());
+#if defined(USING_SIMULATOR)
+  // Redirection to leaf runtime calls supports a maximum of 4 arguments passed
+  // in registers (maximum 2 double arguments for leaf float runtime calls).
+  ASSERT(argument_count() >= 0);
+  ASSERT(!is_leaf() || (!is_float() && (argument_count() <= 4)) ||
+         (argument_count() <= 2));
+  Simulator::CallKind call_kind =
+      is_leaf() ? (is_float() ? Simulator::kLeafFloatRuntimeCall
+                              : Simulator::kLeafRuntimeCall)
+                : Simulator::kRuntimeCall;
+  entry =
+      Simulator::RedirectExternalReference(entry, call_kind, argument_count());
+#endif
+  return entry;
+}
+
+#ifdef DEBUG
+#define TRACE_RUNTIME_CALL(format, name)                                       \
+  if (FLAG_trace_runtime_calls) {                                              \
+    THR_Print("Runtime call: " format "\n", name);                             \
+  }
+#else
+#define TRACE_RUNTIME_CALL(format, name)                                       \
+  do {                                                                         \
+  } while (0)
+#endif
+
+#if defined(USING_SIMULATOR)
+#define CHECK_SIMULATOR_STACK_OVERFLOW()                                       \
+  if (!OSThread::Current()->HasStackHeadroom()) {                              \
+    Exceptions::ThrowStackOverflow();                                          \
+  }
+#else
+#define CHECK_SIMULATOR_STACK_OVERFLOW()
+#endif  // defined(USING_SIMULATOR)
+
+void OnEveryRuntimeEntryCall(Thread* thread,
+                             const char* runtime_call_name,
+                             bool can_lazy_deopt);
+
+#define DEFINE_RUNTIME_ENTRY_IMPL(name, argument_count, can_lazy_deopt)        \
+  extern void DRT_##name(NativeArguments arguments);                           \
+  extern const RuntimeEntry k##name##RuntimeEntry(                             \
+      "DRT_" #name, reinterpret_cast<const void*>(DRT_##name), argument_count, \
+      false, false, can_lazy_deopt);                                           \
+  static void DRT_Helper##name(Isolate* isolate, Thread* thread, Zone* zone,   \
+                               NativeArguments arguments);                     \
+  extern "C" void DRT_##name(NativeArguments arguments) {                      \
+    CHECK_STACK_ALIGNMENT;                                                     \
+    /* Tell MemorySanitizer 'arguments' is initialized by generated code. */   \
+    MSAN_UNPOISON(&arguments, sizeof(arguments));                              \
+    ASSERT(arguments.ArgCount() == argument_count);                            \
+    TRACE_RUNTIME_CALL("%s", "" #name);                                        \
+    {                                                                          \
+      Thread* thread = arguments.thread();                                     \
+      ASSERT(thread == Thread::Current());                                     \
+      RuntimeCallDeoptScope runtime_call_deopt_scope(                          \
+          thread, can_lazy_deopt ? RuntimeCallDeoptAbility::kCanLazyDeopt      \
+                                 : RuntimeCallDeoptAbility::kCannotLazyDeopt); \
+      Isolate* isolate = thread->isolate();                                    \
+      TransitionGeneratedToVM transition(thread);                              \
+      StackZone zone(thread);                                                  \
+      CHECK_SIMULATOR_STACK_OVERFLOW();                                        \
+      if (FLAG_deoptimize_on_runtime_call_every > 0) {                         \
+        OnEveryRuntimeEntryCall(thread, "" #name, can_lazy_deopt);             \
+      }                                                                        \
+      DRT_Helper##name(isolate, thread, zone.GetZone(), arguments);            \
+    }                                                                          \
+  }                                                                            \
+  static void DRT_Helper##name(Isolate* isolate, Thread* thread, Zone* zone,   \
+                               NativeArguments arguments)
+
+#define DEFINE_RUNTIME_ENTRY(name, argument_count)                             \
+  DEFINE_RUNTIME_ENTRY_IMPL(name, argument_count, /*can_lazy_deopt=*/true)
+
+#define DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(name, argument_count)               \
+  DEFINE_RUNTIME_ENTRY_IMPL(name, argument_count, /*can_lazy_deopt=*/false)
 
 DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   const Instance& length = Instance::CheckedHandle(zone, arguments.ArgAt(0));
@@ -231,10 +315,7 @@ static void NullErrorHelper(Zone* zone,
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
 }
 
-static void DoThrowNullError(Isolate* isolate,
-                             Thread* thread,
-                             Zone* zone,
-                             bool is_param) {
+static void DoThrowNullError(Thread* thread, Zone* zone, bool is_param) {
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   const StackFrame* caller_frame = iterator.NextFrame();
@@ -244,7 +325,7 @@ static void DoThrowNullError(Isolate* isolate,
   const uword pc_offset = caller_frame->pc() - code.PayloadStart();
 
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
 
   const CodeSourceMap& map =
@@ -266,7 +347,7 @@ static void DoThrowNullError(Isolate* isolate,
 }
 
 DEFINE_RUNTIME_ENTRY(NullError, 0) {
-  DoThrowNullError(isolate, thread, zone, /*is_param=*/false);
+  DoThrowNullError(thread, zone, /*is_param=*/false);
 }
 
 // Collects information about pointers within the top |kMaxSlotsCollected|
@@ -315,7 +396,7 @@ DEFINE_RUNTIME_ENTRY(DispatchTableNullError, 1) {
     RELEASE_ASSERT(caller_frame->IsDartFrame());
     ReportImpossibleNullError(cid.Value(), caller_frame, thread);
   }
-  DoThrowNullError(isolate, thread, zone, /*is_param=*/false);
+  DoThrowNullError(thread, zone, /*is_param=*/false);
 }
 
 DEFINE_RUNTIME_ENTRY(NullErrorWithSelector, 1) {
@@ -328,7 +409,7 @@ DEFINE_RUNTIME_ENTRY(NullCastError, 0) {
 }
 
 DEFINE_RUNTIME_ENTRY(ArgumentNullError, 0) {
-  DoThrowNullError(isolate, thread, zone, /*is_param=*/true);
+  DoThrowNullError(thread, zone, /*is_param=*/true);
 }
 
 DEFINE_RUNTIME_ENTRY(ArgumentError, 1) {
@@ -423,7 +504,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateDouble, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(
       Object::Handle(zone, Double::New(0.0, SpaceForRuntimeAllocation())));
@@ -453,7 +534,7 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxFloat64x2, 0) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(
       zone, Integer::New(kMaxInt64, SpaceForRuntimeAllocation())));
@@ -462,7 +543,7 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat32x4, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(
       zone, Float32x4::New(0.0, 0.0, 0.0, 0.0, SpaceForRuntimeAllocation())));
@@ -471,7 +552,7 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat32x4, 0) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat64x2, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(
       zone, Float64x2::New(0.0, 0.0, SpaceForRuntimeAllocation())));
@@ -480,7 +561,7 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat64x2, 0) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateInt32x4, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(
       zone, Int32x4::New(0, 0, 0, 0, SpaceForRuntimeAllocation())));
@@ -567,11 +648,9 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
   RuntimeAllocationEpilogue(thread);
 }
 
-DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
-                          EnsureRememberedAndMarkingDeferred,
-                          2,
-                          uword /*ObjectPtr*/ object_in,
-                          Thread* thread) {
+extern "C" uword /*ObjectPtr*/ DLRT_EnsureRememberedAndMarkingDeferred(
+    uword /*ObjectPtr*/ object_in,
+    Thread* thread) {
   ObjectPtr object = static_cast<ObjectPtr>(object_in);
 
   // If we eliminate the generational write barrier when writing into an object,
@@ -607,7 +686,30 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
 
   return static_cast<uword>(object);
 }
-END_LEAF_RUNTIME_ENTRY
+DEFINE_LEAF_RUNTIME_ENTRY(EnsureRememberedAndMarkingDeferred,
+                          2,
+                          DLRT_EnsureRememberedAndMarkingDeferred);
+
+extern "C" void DLRT_StoreBufferBlockProcess(Thread* thread) {
+  thread->StoreBufferBlockProcess(StoreBuffer::kCheckThreshold);
+}
+DEFINE_LEAF_RUNTIME_ENTRY(StoreBufferBlockProcess,
+                          1,
+                          DLRT_StoreBufferBlockProcess);
+
+extern "C" void DLRT_OldMarkingStackBlockProcess(Thread* thread) {
+  thread->OldMarkingStackBlockProcess();
+}
+DEFINE_LEAF_RUNTIME_ENTRY(OldMarkingStackBlockProcess,
+                          1,
+                          DLRT_OldMarkingStackBlockProcess);
+
+extern "C" void DLRT_NewMarkingStackBlockProcess(Thread* thread) {
+  thread->NewMarkingStackBlockProcess();
+}
+DEFINE_LEAF_RUNTIME_ENTRY(NewMarkingStackBlockProcess,
+                          1,
+                          DLRT_NewMarkingStackBlockProcess);
 
 // Instantiate type.
 // Arg0: uninstantiated type.
@@ -966,6 +1068,24 @@ DEFINE_RUNTIME_ENTRY(AdjustArgumentsDesciptorForImplicitClosure, 3) {
   const auto& result = Array::Handle(
       zone, ArgumentsDescriptor::NewBoxed(type_args_len, num_arguments,
                                           optional_arguments_names));
+  arguments.SetReturn(result);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
+// Converts type arguments passed to a constructor tear-off
+// into an instance type arguments.
+// Arg0: class to allocate
+// Arg1: type arguments
+// Return value: instance type arguments
+DEFINE_RUNTIME_ENTRY(ConvertToInstanceTypeArguments, 2) {
+#if defined(DART_DYNAMIC_MODULES)
+  const auto& cls = Class::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& type_args =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
+  const auto& result = TypeArguments::Handle(
+      zone, cls.GetInstanceTypeArguments(thread, type_args));
   arguments.SetReturn(result);
 #else
   UNREACHABLE();
@@ -1564,7 +1684,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       // Ensure we do have a STC (lazily create it if not) and all threads use
       // the same STC.
       {
-        SafepointMutexLocker ml(isolate->group()->subtype_test_cache_mutex());
+        SafepointMutexLocker ml(
+            thread->isolate_group()->subtype_test_cache_mutex());
         cache ^= pool.ObjectAt<std::memory_order_acquire>(stc_pool_idx);
         if (cache.IsNull()) {
           resolve_dst_name();
@@ -1600,10 +1721,10 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 
 DEFINE_RUNTIME_ENTRY(Throw, 1) {
   if (FLAG_gc_at_throw) {
-    isolate->group()->heap()->CollectGarbage(thread, GCType::kEvacuate,
-                                             GCReason::kDebugging);
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging,
-                                                /*compact=*/true);
+    thread->isolate_group()->heap()->CollectGarbage(thread, GCType::kEvacuate,
+                                                    GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging,
+                                                       /*compact=*/true);
   }
 
   const Instance& exception = Instance::CheckedHandle(zone, arguments.ArgAt(0));
@@ -1612,10 +1733,10 @@ DEFINE_RUNTIME_ENTRY(Throw, 1) {
 
 DEFINE_RUNTIME_ENTRY(ReThrow, 3) {
   if (FLAG_gc_at_throw) {
-    isolate->group()->heap()->CollectGarbage(thread, GCType::kEvacuate,
-                                             GCReason::kDebugging);
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging,
-                                                /*compact=*/true);
+    thread->isolate_group()->heap()->CollectGarbage(thread, GCType::kEvacuate,
+                                                    GCReason::kDebugging);
+    thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging,
+                                                       /*compact=*/true);
   }
 
   const Instance& exception = Instance::CheckedHandle(zone, arguments.ArgAt(0));
@@ -1682,8 +1803,8 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   ASSERT(caller_frame != nullptr);
   Code& orig_stub = Code::Handle(zone);
   if (!caller_frame->is_interpreted()) {
-    orig_stub =
-        isolate->group()->debugger()->GetPatchedStubAddress(caller_frame->pc());
+    orig_stub = thread->isolate_group()->debugger()->GetPatchedStubAddress(
+        caller_frame->pc());
   }
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
@@ -2015,11 +2136,9 @@ class SavedUnlinkedCallMapKeyEqualsTraits : public AllStatic {
 using UnlinkedCallMap = UnorderedHashMap<SavedUnlinkedCallMapKeyEqualsTraits>;
 
 static void SaveUnlinkedCall(Zone* zone,
-                             Isolate* isolate,
+                             IsolateGroup* isolate_group,
                              uword frame_pc,
                              const UnlinkedCall& unlinked_call) {
-  IsolateGroup* isolate_group = isolate->group();
-
   SafepointMutexLocker ml(isolate_group->unlinked_call_map_mutex());
   if (isolate_group->saved_unlinked_calls() == Array::null()) {
     const auto& initial_map =
@@ -2040,10 +2159,8 @@ static void SaveUnlinkedCall(Zone* zone,
 }
 
 static UnlinkedCallPtr LoadUnlinkedCall(Zone* zone,
-                                        Isolate* isolate,
+                                        IsolateGroup* isolate_group,
                                         uword pc) {
-  IsolateGroup* isolate_group = isolate->group();
-
   SafepointMutexLocker ml(isolate_group->unlinked_call_map_mutex());
   ASSERT(isolate_group->saved_unlinked_calls() != Array::null());
   UnlinkedCallMap unlinked_call_map(zone,
@@ -2109,7 +2226,7 @@ class PatchableCallHandler {
                        StackFrame* caller_frame,
                        const Code& caller_code,
                        const Function& caller_function)
-      : isolate_(thread->isolate()),
+      : isolate_group_(thread->isolate_group()),
         thread_(thread),
         zone_(thread->zone()),
         caller_arguments_(caller_arguments),
@@ -2190,7 +2307,7 @@ class PatchableCallHandler {
   ICDataPtr NewICData();
   ICDataPtr NewICDataWithTarget(intptr_t cid, const Function& target);
 
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   Thread* thread_;
   Zone* zone_;
   const GrowableArray<const Instance*>& caller_arguments_;
@@ -2271,8 +2388,8 @@ bool PatchableCallHandler::CanExtendSingleTargetRange(
     *upper = receiver().GetClassId();
   }
 
-  return IsSingleTarget(isolate_->group(), zone_, unchecked_lower,
-                        unchecked_upper, target_function, name);
+  return IsSingleTarget(isolate_group_, zone_, unchecked_lower, unchecked_upper,
+                        target_function, name);
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
@@ -2288,8 +2405,8 @@ void PatchableCallHandler::DoMonomorphicMissAOT(
     old_expected_cid = MonomorphicSmiableCall::Cast(old_data).expected_cid();
   }
   const bool is_monomorphic_hit = old_expected_cid == receiver().GetClassId();
-  const auto& old_receiver_class = Class::Handle(
-      zone_, isolate_->group()->class_table()->At(old_expected_cid));
+  const auto& old_receiver_class =
+      Class::Handle(zone_, isolate_group_->class_table()->At(old_expected_cid));
   const auto& old_target = Function::Handle(
       zone_, Resolve(thread_, zone_, caller_arguments_, old_receiver_class,
                      name_, args_descriptor_));
@@ -2656,7 +2773,8 @@ FunctionPtr PatchableCallHandler::ResolveTargetFunction(const Object& data) {
       //
       // In JIT mode we always use ICData from the call site, which has the
       // correct name/args-descriptor.
-      SaveUnlinkedCall(zone_, isolate_, caller_frame_->pc(), unlinked_call);
+      SaveUnlinkedCall(zone_, isolate_group_, caller_frame_->pc(),
+                       unlinked_call);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
       name_ = unlinked_call.target_name();
@@ -2670,7 +2788,7 @@ FunctionPtr PatchableCallHandler::ResolveTargetFunction(const Object& data) {
       FALL_THROUGH;
     case kSingleTargetCacheCid: {
       const auto& unlinked_call = UnlinkedCall::Handle(
-          zone_, LoadUnlinkedCall(zone_, isolate_, caller_frame_->pc()));
+          zone_, LoadUnlinkedCall(zone_, isolate_group_, caller_frame_->pc()));
       name_ = unlinked_call.target_name();
       args_descriptor_ = unlinked_call.arguments_descriptor();
       break;
@@ -2717,7 +2835,7 @@ void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
   //
   // Mutators are only stopped if we actually need to patch a patchable call.
   // We may not do that if we e.g. just add one more check to an ICData.
-  SafepointMutexLocker ml(thread_->isolate_group()->patchable_call_mutex());
+  SafepointMutexLocker ml(isolate_group_->patchable_call_mutex());
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   data =
@@ -3465,6 +3583,27 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
       ic_data.NumberOfChecks(), function.ToFullyQualifiedCString());
 }
 
+// Compile a function. Should call only if the function has not been compiled.
+//   Arg0: function object.
+DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
+  ASSERT(thread->IsDartMutatorThread());
+
+  {
+    // Another isolate's mutator thread may have created [function] and
+    // published it via an ICData, MegamorphicCache etc. Entering the lock below
+    // is an acquire operation that pairs with the release operation when the
+    // other isolate exited the lock, ensuring the initializing stores for
+    // [function] are visible in the current thread.
+    SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+  }
+
+  // After the barrier, since this will read the object's header.
+  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+
+  // Will throw if compilation failed (e.g. with compile-time error).
+  function.EnsureHasCode();
+}
+
 // This is called from function that needs to be optimized.
 // The requesting function can be already optimized (reoptimization).
 // Returns the Code object where to continue execution.
@@ -3801,7 +3940,7 @@ static void CopySavedRegisters(uword saved_registers_address,
 }
 #endif
 
-DEFINE_LEAF_RUNTIME_ENTRY(bool, TryDoubleAsInteger, 1, Thread* thread) {
+extern "C" bool DLRT_TryDoubleAsInteger(Thread* thread) {
   double value = thread->unboxed_double_runtime_arg();
   int64_t int_value = static_cast<int64_t>(value);
   double converted_double = static_cast<double>(int_value);
@@ -3811,18 +3950,15 @@ DEFINE_LEAF_RUNTIME_ENTRY(bool, TryDoubleAsInteger, 1, Thread* thread) {
   thread->set_unboxed_int64_runtime_arg(int_value);
   return true;
 }
-END_LEAF_RUNTIME_ENTRY
+DEFINE_LEAF_RUNTIME_ENTRY(TryDoubleAsInteger, 1, DLRT_TryDoubleAsInteger);
 
 // Copies saved registers and caller's frame into temporary buffers.
 // Returns the stack size of unoptimized frame.
 // The calling code must be optimized, but its function may not have
 // have optimized code if the code is OSR code, or if the code was invalidated
 // through class loading/finalization or field guard.
-DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
-                          DeoptimizeCopyFrame,
-                          2,
-                          uword saved_registers_address,
-                          uword is_lazy_deopt) {
+extern "C" intptr_t DLRT_DeoptimizeCopyFrame(uword saved_registers_address,
+                                             uword is_lazy_deopt) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Thread* thread = Thread::Current();
   StackZone zone(thread);
@@ -3888,11 +4024,11 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
   return 0;
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
-END_LEAF_RUNTIME_ENTRY
+DEFINE_LEAF_RUNTIME_ENTRY(DeoptimizeCopyFrame, 2, DLRT_DeoptimizeCopyFrame);
 
 // The stack has been adjusted to fit all values for unoptimized frame.
 // Fill the unoptimized frame.
-DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
+extern "C" void DLRT_DeoptimizeFillFrame(uword last_fp) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Thread* thread = Thread::Current();
   StackZone zone(thread);
@@ -3928,7 +4064,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
   UNREACHABLE();
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
-END_LEAF_RUNTIME_ENTRY
+DEFINE_LEAF_RUNTIME_ENTRY(DeoptimizeFillFrame, 1, DLRT_DeoptimizeFillFrame);
 
 // This is the last step in the deoptimization, GC can occur.
 // Returns number of bytes to remove from the expression stack of the
@@ -4093,6 +4229,12 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   arguments.SetReturn(result);
 }
 
+DEFINE_RUNTIME_ENTRY(StaticFieldAccessedWithoutIsolateError, 1) {
+  const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
+  Exceptions::ThrowStaticFieldAccessedWithoutIsolate(
+      String::Handle(field.name()));
+}
+
 DEFINE_RUNTIME_ENTRY(LateFieldAlreadyInitializedError, 1) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   Exceptions::ThrowLateFieldAlreadyInitialized(String::Handle(field.name()));
@@ -4116,13 +4258,13 @@ DEFINE_RUNTIME_ENTRY(NotLoaded, 0) {
 }
 
 DEFINE_RUNTIME_ENTRY(FfiAsyncCallbackSend, 1) {
-  Dart_Port target_port = Thread::Current()->unboxed_int64_runtime_arg();
+  Dart_Port target_port = thread->unboxed_int64_runtime_arg();
   TRACE_RUNTIME_CALL("FfiAsyncCallbackSend %p", (void*)target_port);
   const Object& message = Object::Handle(zone, arguments.ArgAt(0));
   const Array& msg_array = Array::Handle(zone, Array::New(3));
   msg_array.SetAt(0, message);
   PersistentHandle* handle =
-      isolate->group()->api_state()->AllocatePersistentHandle();
+      thread->isolate_group()->api_state()->AllocatePersistentHandle();
   handle->set_ptr(msg_array);
   PortMap::PostMessage(
       Message::New(target_port, handle, Message::kNormalPriority));
@@ -4133,90 +4275,73 @@ typedef double (*UnaryMathCFunction)(double x);
 typedef double (*BinaryMathCFunction)(double x, double y);
 typedef void* (*MemMoveCFunction)(void* dest, const void* src, size_t n);
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcPow,
-                              /*argument_count=*/2,
-                              /*is_float=*/true,
-                              static_cast<BinaryMathCFunction>(pow));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcPow,
+                                /*argument_count=*/2,
+                                static_cast<BinaryMathCFunction>(pow));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(DartModulo,
-                              /*argument_count=*/2,
-                              /*is_float=*/true,
-                              static_cast<BinaryMathCFunction>(DartModulo));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(DartModulo,
+                                /*argument_count=*/2,
+                                static_cast<BinaryMathCFunction>(DartModulo));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcFmod,
-                              2,
-                              /*is_float=*/true,
-                              static_cast<BinaryMathCFunction>(fmod_ieee));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcFmod,
+                                /*argument_count=*/2,
+                                static_cast<BinaryMathCFunction>(fmod_ieee));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcAtan2,
-                              2,
-                              /*is_float=*/true,
-                              static_cast<BinaryMathCFunction>(atan2_ieee));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcAtan2,
+                                /*argument_count=*/2,
+                                static_cast<BinaryMathCFunction>(atan2_ieee));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcFloor,
-                              /*argument_count=*/1,
-                              /*is_float=*/true,
-                              static_cast<UnaryMathCFunction>(floor));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcFloor,
+                                /*argument_count=*/1,
+                                static_cast<UnaryMathCFunction>(floor));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcCeil,
-                              /*argument_count=*/1,
-                              /*is_float=*/true,
-                              static_cast<UnaryMathCFunction>(ceil));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcCeil,
+                                /*argument_count=*/1,
+                                static_cast<UnaryMathCFunction>(ceil));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcTrunc,
-                              /*argument_count=*/1,
-                              /*is_float=*/true,
-                              static_cast<UnaryMathCFunction>(trunc));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcTrunc,
+                                /*argument_count=*/1,
+                                static_cast<UnaryMathCFunction>(trunc));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcRound,
-                              /*argument_count=*/1,
-                              /*is_float=*/true,
-                              static_cast<UnaryMathCFunction>(round));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcRound,
+                                /*argument_count=*/1,
+                                static_cast<UnaryMathCFunction>(round));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcCos,
-                              /*argument_count=*/1,
-                              /*is_float=*/true,
-                              static_cast<UnaryMathCFunction>(cos));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcCos,
+                                /*argument_count=*/1,
+                                static_cast<UnaryMathCFunction>(cos));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcSin,
-                              /*argument_count=*/1,
-                              /*is_float=*/true,
-                              static_cast<UnaryMathCFunction>(sin));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcSin,
+                                /*argument_count=*/1,
+                                static_cast<UnaryMathCFunction>(sin));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcAsin,
-                              /*argument_count=*/1,
-                              /*is_float=*/true,
-                              static_cast<UnaryMathCFunction>(asin));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcAsin,
+                                /*argument_count=*/1,
+                                static_cast<UnaryMathCFunction>(asin));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcAcos,
-                              /*argument_count=*/1,
-                              /*is_float=*/true,
-                              static_cast<UnaryMathCFunction>(acos));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcAcos,
+                                /*argument_count=*/1,
+                                static_cast<UnaryMathCFunction>(acos));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcTan,
-                              /*argument_count=*/1,
-                              /*is_float=*/true,
-                              static_cast<UnaryMathCFunction>(tan));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcTan,
+                                /*argument_count=*/1,
+                                static_cast<UnaryMathCFunction>(tan));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcAtan,
-                              /*argument_count=*/1,
-                              /*is_float=*/true,
-                              static_cast<UnaryMathCFunction>(atan));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcAtan,
+                                /*argument_count=*/1,
+                                static_cast<UnaryMathCFunction>(atan));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcExp,
-                              /*argument_count=*/1,
-                              /*is_float=*/true,
-                              static_cast<UnaryMathCFunction>(exp));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcExp,
+                                /*argument_count=*/1,
+                                static_cast<UnaryMathCFunction>(exp));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcLog,
-                              /*argument_count=*/1,
-                              /*is_float=*/true,
-                              static_cast<UnaryMathCFunction>(log));
+DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(LibcLog,
+                                /*argument_count=*/1,
+                                static_cast<UnaryMathCFunction>(log));
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(MemoryMove,
-                              /*argument_count=*/3,
-                              /*is_float=*/false,
-                              static_cast<MemMoveCFunction>(memmove));
+DEFINE_LEAF_RUNTIME_ENTRY(MemoryMove,
+                          /*argument_count=*/3,
+                          static_cast<MemMoveCFunction>(memmove));
 
 #if defined(DART_DYNAMIC_MODULES)
 // Interpret a function call. Should be called only for non-jitted functions.
@@ -4332,7 +4457,7 @@ DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 3) {
 #endif  // defined(DART_DYNAMIC_MODULES)
 }
 
-extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
+extern "C" void DLRT_EnterSafepoint() {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("%s", "EnterSafepoint");
   Thread* thread = Thread::Current();
@@ -4341,15 +4466,14 @@ extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
   thread->EnterSafepointToNative();
   TRACE_RUNTIME_CALL("%s", "EnterSafepoint done");
 }
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(EnterSafepoint,
-                              /*argument_count=*/0,
-                              /*is_float=*/false,
-                              DFLRT_EnterSafepoint);
+DEFINE_LEAF_RUNTIME_ENTRY(EnterSafepoint,
+                          /*argument_count=*/0,
+                          DLRT_EnterSafepoint);
 
-extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
+extern "C" void DLRT_ExitSafepoint() {
   CHECK_STACK_ALIGNMENT;
-  TRACE_RUNTIME_CALL("%s", "ExitSafepoint");
   Thread* thread = Thread::Current();
+  TRACE_RUNTIME_CALL("ExitSafepoint thread %p", thread);
   ASSERT(thread->top_exit_frame_info() != 0);
 
   if (thread->is_unwind_in_progress()) {
@@ -4370,10 +4494,9 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
 
   TRACE_RUNTIME_CALL("%s", "ExitSafepoint done");
 }
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint,
-                              /*argument_count=*/0,
-                              /*is_float=*/false,
-                              DFLRT_ExitSafepoint);
+DEFINE_LEAF_RUNTIME_ENTRY(ExitSafepoint,
+                          /*argument_count=*/0,
+                          DLRT_ExitSafepoint);
 
 // This is called by a native callback trampoline
 // (see StubCodeCompiler::GenerateFfiCallbackTrampolineStub). Not registered as
@@ -4394,7 +4517,7 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     return nullptr;
   }
 
-  Thread* const current_thread = Thread::Current();
+  Thread* current_thread = Thread::Current();
   auto* fcm = FfiCallbackMetadata::Instance();
   auto metadata = fcm->LookupMetadataForTrampoline(trampoline);
 
@@ -4454,30 +4577,57 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   if (!metadata.IsLive()) {
     FATAL("Callback invoked after it has been deleted.");
   }
-  Isolate* target_isolate = metadata.target_isolate();
-  *out_entry_point = metadata.target_entry_point();
-  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
-  if (current_thread == nullptr) {
-    FATAL("Cannot invoke native callback outside an isolate.");
-  }
-  if (current_thread->no_callback_scope_depth() != 0) {
-    FATAL("Cannot invoke native callback when API callbacks are prohibited.");
-  }
-  if (current_thread->is_unwind_in_progress()) {
-    FATAL("Cannot invoke native callback while unwind error propagates.");
-  }
-  if (!current_thread->IsDartMutatorThread()) {
-    FATAL("Native callbacks must be invoked on the mutator thread.");
-  }
-  if (current_thread->isolate() != target_isolate) {
-    FATAL("Cannot invoke native callback from a different isolate.");
-  }
-  if (current_thread->execution_state() != Thread::kThreadInNative) {
-    FATAL("Cannot invoke native callback from a leaf call.");
+  if (metadata.is_isolate_group_shared()) {
+    *out_entry_point = metadata.target_entry_point();
+    *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
+  } else {
+    Isolate* target_isolate = metadata.target_isolate();
+    *out_entry_point = metadata.target_entry_point();
+    *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
+    if (current_thread == nullptr) {
+      FATAL("Cannot invoke native callback outside an isolate.");
+    }
+    if (current_thread->no_callback_scope_depth() != 0) {
+      FATAL("Cannot invoke native callback when API callbacks are prohibited.");
+    }
+    if (current_thread->is_unwind_in_progress()) {
+      FATAL("Cannot invoke native callback while unwind error propagates.");
+    }
+    if (!current_thread->IsDartMutatorThread()) {
+      FATAL("Native callbacks must be invoked on the mutator thread.");
+    }
+    if (current_thread->isolate() != target_isolate) {
+      FATAL("Cannot invoke native callback from a different isolate.");
+    }
+    if (current_thread->execution_state() != Thread::kThreadInNative) {
+      FATAL("Cannot invoke native callback from a leaf call.");
+    }
   }
 
-  current_thread->ExitSafepointFromNative();
-  current_thread->set_execution_state(Thread::kThreadInVM);
+  if (current_thread != nullptr) {
+    current_thread->ExitSafepointFromNative();
+    current_thread->set_execution_state(Thread::kThreadInVM);
+  }
+
+  if (metadata.is_isolate_group_shared()) {
+    Isolate* current_isolate =
+        current_thread != nullptr ? current_thread->isolate() : nullptr;
+
+    if (current_thread != nullptr) {
+      Thread::ExitIsolate(/*isolate_shutdown=*/false);
+    }
+    Thread::EnterIsolateGroupAsMutator(metadata.target_isolate_group(),
+                                       /*bypass_safepoint=*/false);
+    auto new_thread = Thread::Current();
+    new_thread->set_execution_state(Thread::kThreadInVM);
+    // We need to go back to current thread after we come back from
+    // the callback.
+    new_thread->set_unboxed_int64_runtime_arg(
+        reinterpret_cast<intptr_t>(current_thread));
+    new_thread->set_unboxed_int64_runtime_second_arg(
+        reinterpret_cast<intptr_t>(current_isolate));
+    current_thread = new_thread;
+  }
 
   current_thread->set_unboxed_int64_runtime_arg(metadata.context());
 
@@ -4487,6 +4637,21 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata trampoline_type %p",
                      (void*)*out_trampoline_type);
   return current_thread;
+}
+
+extern "C" void DLRT_ExitIsolateGroupSharedIsolate() {
+  TRACE_RUNTIME_CALL("ExitIsolateGroupSharedIsolate%s", "");
+  Thread* thread = Thread::Current();
+  ASSERT(thread != nullptr);
+  Isolate* source_isolate =
+      reinterpret_cast<Isolate*>(thread->unboxed_int64_runtime_second_arg());
+  // Need to accommodate ExitIsolateGroupAsHelper assumptions.
+  thread->set_execution_state(Thread::kThreadInVM);
+  Thread::ExitIsolateGroupAsMutator(/*bypass_safepoint=*/false);
+  if (source_isolate != nullptr) {
+    Thread::EnterIsolate(source_isolate);
+    Thread::Current()->EnterSafepoint();
+  }
 }
 
 extern "C" void DLRT_ExitTemporaryIsolate() {
@@ -4521,10 +4686,9 @@ extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread) {
   TRACE_RUNTIME_CALL("EnterHandleScope returning %p", return_value);
   return return_value;
 }
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(EnterHandleScope,
-                              /*argument_count=*/1,
-                              /*is_float=*/false,
-                              DLRT_EnterHandleScope);
+DEFINE_LEAF_RUNTIME_ENTRY(EnterHandleScope,
+                          /*argument_count=*/1,
+                          DLRT_EnterHandleScope);
 
 extern "C" void DLRT_ExitHandleScope(Thread* thread) {
   CHECK_STACK_ALIGNMENT;
@@ -4532,10 +4696,9 @@ extern "C" void DLRT_ExitHandleScope(Thread* thread) {
   thread->ExitApiScope();
   TRACE_RUNTIME_CALL("ExitHandleScope %s", "done");
 }
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitHandleScope,
-                              /*argument_count=*/1,
-                              /*is_float=*/false,
-                              DLRT_ExitHandleScope);
+DEFINE_LEAF_RUNTIME_ENTRY(ExitHandleScope,
+                          /*argument_count=*/1,
+                          DLRT_ExitHandleScope);
 
 extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope) {
   CHECK_STACK_ALIGNMENT;
@@ -4546,11 +4709,9 @@ extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope) {
   TRACE_RUNTIME_CALL("AllocateHandle returning %p", return_value);
   return return_value;
 }
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(AllocateHandle,
-                              /*argument_count=*/1,
-                              /*is_float=*/false,
-                              DLRT_AllocateHandle);
+DEFINE_LEAF_RUNTIME_ENTRY(AllocateHandle,
+                          /*argument_count=*/1,
+                          DLRT_AllocateHandle);
 
 // Enables reusing `Dart_PropagateError` from `FfiCallInstr`.
 // `Dart_PropagateError` requires the native state and transitions into the VM.
@@ -4572,10 +4733,9 @@ extern "C" void DLRT_PropagateError(Dart_Handle handle) {
 }
 
 // Not a leaf-function, throws error.
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(PropagateError,
-                              /*argument_count=*/1,
-                              /*is_float=*/false,
-                              DLRT_PropagateError);
+DEFINE_LEAF_RUNTIME_ENTRY(PropagateError,
+                          /*argument_count=*/1,
+                          DLRT_PropagateError);
 
 #if !defined(USING_MEMORY_SANITIZER)
 extern "C" void __msan_unpoison(const volatile void*, size_t) {
@@ -4598,24 +4758,9 @@ extern "C" void __tsan_release(void* addr) {
 // These runtime entries are defined even when not using MSAN / TSAN to keep
 // offsets on Thread consistent.
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(MsanUnpoison,
-                              /*argument_count=*/2,
-                              /*is_float=*/false,
-                              __msan_unpoison);
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(MsanUnpoisonParam,
-                              /*argument_count=*/1,
-                              /*is_float=*/false,
-                              __msan_unpoison_param);
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(TsanLoadAcquire,
-                              /*argument_count=*/1,
-                              /*is_float=*/false,
-                              __tsan_acquire);
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(TsanStoreRelease,
-                              /*argument_count=*/1,
-                              /*is_float=*/false,
-                              __tsan_release);
+DEFINE_LEAF_RUNTIME_ENTRY(MsanUnpoison, 2, __msan_unpoison);
+DEFINE_LEAF_RUNTIME_ENTRY(MsanUnpoisonParam, 1, __msan_unpoison_param);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanLoadAcquire, 1, __tsan_acquire);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanStoreRelease, 1, __tsan_release);
 
 }  // namespace dart

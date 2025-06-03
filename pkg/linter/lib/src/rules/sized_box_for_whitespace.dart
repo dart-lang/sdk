@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
@@ -15,7 +16,7 @@ class SizedBoxForWhitespace extends LintRule {
     : super(name: LintNames.sized_box_for_whitespace, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.sized_box_for_whitespace;
+  DiagnosticCode get diagnosticCode => LinterLintCode.sized_box_for_whitespace;
 
   @override
   void registerNodeProcessors(

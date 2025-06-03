@@ -618,7 +618,7 @@ class LinterLintCode extends LintCode {
     "'Future'-returning calls in a non-'async' function.",
     correctionMessage:
         "Try converting the enclosing function to be 'async' and then 'await' "
-        "the future.",
+        "the future, or wrap the expression in 'unawaited'.",
   );
 
   static const LintCode do_not_use_environment = LinterLintCode(
@@ -1542,6 +1542,13 @@ class LinterLintCode extends LintCode {
         uniqueName: 'strict_top_level_inference_split_to_types',
       );
 
+  static const LintCode switch_on_type = LinterLintCode(
+    LintNames.switch_on_type,
+    "Avoid switch statements on a 'Type'.",
+    correctionMessage: "Try using pattern matching on a variable instead.",
+    hasPublishedDocs: true,
+  );
+
   static const LintCode test_types_in_equals = LinterLintCode(
     LintNames.test_types_in_equals,
     "Missing type test for '{0}' in '=='.",
@@ -1834,6 +1841,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try removing the use of 'unawaited', as the unawaited element is "
         "annotated with '@awaitNotRequired'.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode unnecessary_underscores = LinterLintCode(

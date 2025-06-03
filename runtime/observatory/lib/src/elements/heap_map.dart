@@ -5,14 +5,18 @@
 library heap_map_element;
 
 import 'dart:async';
-import 'dart:html';
 import 'dart:math';
+import 'dart:typed_data';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -57,11 +61,11 @@ class HeapMapElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
-  CanvasElement? _canvas;
-  dynamic _fragmentationData;
+  HTMLCanvasElement? _canvas;
+  ImageData? _fragmentationData;
   int? _pageHeight;
   final _classIdToColor = {};
   final _colorToClassId = {};
@@ -79,7 +83,7 @@ class HeapMapElement extends CustomElement implements Renderable {
 
   void render() {
     if (_canvas == null) {
-      _canvas = new CanvasElement()
+      _canvas = new HTMLCanvasElement()
         ..width = 1
         ..height = 1
         ..onMouseMove.listen(_handleMouseMove);
@@ -88,8 +92,8 @@ class HeapMapElement extends CustomElement implements Renderable {
     // Set hover text to describe the object under the cursor.
     _canvas!.title = _status;
 
-    children = <Element>[
-      navBar(<Element>[
+    setChildren(<HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -108,16 +112,16 @@ class HeapMapElement extends CustomElement implements Renderable {
             .element,
         (new NavNotifyElement(_notifications, queue: _r.queue)).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h2()..text = _status,
-          new HRElement(),
-        ],
-      new DivElement()
-        ..classes = ['flex-row']
-        ..children = <Element>[_canvas!]
-    ];
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h2()..textContent = _status,
+          new HTMLHRElement(),
+        ]),
+      new HTMLDivElement()
+        ..className = 'flex-row'
+        ..appendChild(_canvas!)
+    ]);
   }
 
   // Encode color as single integer, to enable using it as a map key.
@@ -160,7 +164,7 @@ class HeapMapElement extends CustomElement implements Renderable {
   }
 
   String _classNameAt(Point<num> point) {
-    var color = new PixelReference(_fragmentationData, point).color;
+    var color = new PixelReference(_fragmentationData!, point).color;
     return _classIdToName[_colorToClassId[_packColor(color)]];
   }
 
@@ -168,8 +172,8 @@ class HeapMapElement extends CustomElement implements Renderable {
     if (_fragmentation == null || _canvas == null) {
       return null;
     }
-    var pagePixels = _pageHeight! * _fragmentationData.width;
-    var index = new PixelReference(_fragmentationData, point).index;
+    var pagePixels = _pageHeight! * _fragmentationData!.width;
+    var index = new PixelReference(_fragmentationData!, point).index;
     var pageIndex = index ~/ pagePixels;
     num pageOffset = index % pagePixels;
     var pages = _fragmentation!['pages'];
@@ -196,14 +200,14 @@ class HeapMapElement extends CustomElement implements Renderable {
   }
 
   void _handleMouseMove(MouseEvent event) {
-    var info = _objectAt(event.offset);
+    var info = _objectAt(Point(event.offsetX, event.offsetY));
     if (info == null) {
       _status = '';
       _r.dirty();
       return;
     }
     var addressString = '${info.size}B @ 0x${info.address.toRadixString(16)}';
-    var className = _classNameAt(event.offset);
+    var className = _classNameAt(Point(event.offsetX, event.offsetY));
     _status = (className == '') ? '-' : '$className $addressString';
     _r.dirty();
   }
@@ -214,16 +218,17 @@ class HeapMapElement extends CustomElement implements Renderable {
     }
     _updateClassList(
         _fragmentation!['classList'], _fragmentation!['freeClassId']);
-    var pages = _fragmentation!['pages'];
-    var width = max(_canvas!.parent!.client.width, 1) as int;
+    final pages = _fragmentation!['pages'];
+    final int width = max(_canvas!.parentElement!.clientWidth, 1);
     _pageHeight = _PAGE_SEPARATION_HEIGHT +
         (_fragmentation!['pageSizeBytes'] as int) ~/
             (_fragmentation!['unitSizeBytes'] as int) ~/
             width;
-    var height = min(_pageHeight! * pages.length, _MAX_CANVAS_HEIGHT) as int;
-    _fragmentationData = _canvas!.context2D.createImageData(width, height);
-    _canvas!.width = _fragmentationData.width;
-    _canvas!.height = _fragmentationData.height;
+    final height = min(_pageHeight! * pages.length, _MAX_CANVAS_HEIGHT) as int;
+    _fragmentationData =
+        _canvas!.context2D.createImageData(width as dynamic, height);
+    _canvas!.width = _fragmentationData!.width;
+    _canvas!.height = _fragmentationData!.height;
     _renderPages(0);
   }
 
@@ -235,10 +240,10 @@ class HeapMapElement extends CustomElement implements Renderable {
     _r.dirty();
     var startY = (startPage * _pageHeight!).round();
     var endY = startY + _pageHeight!.round();
-    if (startPage >= pages.length || endY > _fragmentationData.height) {
+    if (startPage >= pages.length || endY > _fragmentationData!.height) {
       return;
     }
-    var pixel = new PixelReference(_fragmentationData, new Point(0, startY));
+    var pixel = new PixelReference(_fragmentationData!, new Point(0, startY));
     var objects = pages[startPage]['objects'];
     for (var i = 0; i < objects.length; i += 2) {
       var count = objects[i];
@@ -254,7 +259,7 @@ class HeapMapElement extends CustomElement implements Renderable {
       pixel = pixel.next();
     }
     _canvas!.context2D.putImageData(
-        _fragmentationData, 0, 0, 0, startY, _fragmentationData.width, endY);
+        _fragmentationData!, 0, 0, 0, startY, _fragmentationData!.width, endY);
     // Continue with the next page, asynchronously.
     new Future(() {
       _renderPages(startPage + 1);
@@ -278,24 +283,26 @@ class HeapMapElement extends CustomElement implements Renderable {
 
 // A reference to a particular pixel of ImageData.
 class PixelReference {
-  final _data;
-  var _dataIndex;
+  final ImageData _data;
+  final int _dataIndex;
   static const NUM_COLOR_COMPONENTS = 4;
 
   PixelReference(ImageData data, Point<num> point)
       : _data = data,
-        _dataIndex = (point.y * data.width + point.x) * NUM_COLOR_COMPONENTS;
+        _dataIndex =
+            (point.y * data.width + point.x) * NUM_COLOR_COMPONENTS as int;
 
   PixelReference._fromDataIndex(this._data, this._dataIndex);
 
   Point<num> get point => new Point(index % _data.width, index ~/ _data.width);
 
   void set color(Iterable<int> color) {
-    _data.data.setRange(_dataIndex, _dataIndex + NUM_COLOR_COMPONENTS, color);
+    (_data.data as Uint8ClampedList)
+        .setRange(_dataIndex, _dataIndex + NUM_COLOR_COMPONENTS, color);
   }
 
-  Iterable<int> get color =>
-      _data.data.getRange(_dataIndex, _dataIndex + NUM_COLOR_COMPONENTS);
+  Iterable<int> get color => (_data.data as Uint8ClampedList)
+      .getRange(_dataIndex, _dataIndex + NUM_COLOR_COMPONENTS);
 
   // Returns the next pixel in row-major order.
   PixelReference next() => new PixelReference._fromDataIndex(

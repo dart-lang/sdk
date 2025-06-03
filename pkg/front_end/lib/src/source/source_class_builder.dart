@@ -26,6 +26,7 @@ import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled, unimplemented;
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/augmentation_iterator.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
@@ -33,7 +34,6 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/method_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
@@ -114,7 +114,9 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   final DeclarationNameSpaceBuilder nameSpaceBuilder;
 
-  late final DeclarationNameSpace _nameSpace;
+  late final MutableDeclarationNameSpace _nameSpace;
+  late final List<SourceMemberBuilder> _constructorBuilders;
+  late final List<SourceMemberBuilder> _memberBuilders;
 
   @override
   List<SourceNominalParameterBuilder>? typeParameters;
@@ -129,21 +131,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   TypeBuilder? _mixedInTypeBuilder;
 
   final IndexedClass? indexedClass;
-
-  bool? _isConflictingAugmentationMember;
-
-  /// Returns `true` if this class is a class declared in an augmentation
-  /// library that conflicts with a declaration in the origin library.
-  bool get isConflictingAugmentationMember {
-    return _isConflictingAugmentationMember ??= false;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  void set isConflictingAugmentationMember(bool value) {
-    assert(_isConflictingAugmentationMember == null,
-        '$this.isConflictingAugmentationMember has already been fixed.');
-    _isConflictingAugmentationMember = value;
-  }
 
   final ClassDeclaration _introductory;
   List<ClassDeclaration> _augmentations;
@@ -178,23 +165,56 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
+  Iterator<SourceMemberBuilder> get unfilteredMembersIterator =>
+      _memberBuilders.iterator;
+
+  @override
+  Iterator<T> filteredMembersIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_memberBuilders.iterator,
+          includeDuplicates: includeDuplicates);
+
+  @override
+  Iterator<SourceMemberBuilder> get unfilteredConstructorsIterator =>
+      _constructorBuilders.iterator;
+
+  @override
+  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_constructorBuilders.iterator,
+          includeDuplicates: includeDuplicates);
+
+  void addMemberInternal(SourceMemberBuilder memberBuilder,
+      {required bool addToNameSpace}) {
+    if (addToNameSpace) {
+      _nameSpace.addLocalMember(memberBuilder.name, memberBuilder,
+          setter: false);
+    }
+    _memberBuilders.add(memberBuilder);
+  }
+
+  void addConstructorInternal(SourceMemberBuilder constructorBuilder,
+      {required bool addToNameSpace}) {
+    if (addToNameSpace) {
+      _nameSpace.addConstructor(constructorBuilder.name, constructorBuilder);
+    }
+    _constructorBuilders.add(constructorBuilder);
+  }
+
+  @override
   int resolveConstructors(SourceLibraryBuilder libraryBuilder) {
     int count = _introductory.resolveConstructorReferences(libraryBuilder);
     for (ClassDeclaration augmentation in _augmentations) {
       count += augmentation.resolveConstructorReferences(libraryBuilder);
     }
     if (count > 0) {
-      Iterator<MemberBuilder> iterator =
-          nameSpace.filteredConstructorIterator(includeDuplicates: true);
+      Iterator<SourceFactoryBuilder> iterator =
+          filteredConstructorsIterator(includeDuplicates: true);
       while (iterator.moveNext()) {
-        MemberBuilder declaration = iterator.current;
-        if (declaration.declarationBuilder != this) {
-          unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
-              fileOffset, fileUri);
-        }
-        if (declaration is SourceFactoryBuilder) {
-          declaration.resolveRedirectingFactory();
-        }
+        SourceFactoryBuilder factoryBuilder = iterator.current;
+        assert(factoryBuilder.declarationBuilder == this,
+            "Unexpected builder $factoryBuilder in $this.");
+        factoryBuilder.resolveRedirectingFactory();
       }
     }
     return count;
@@ -244,6 +264,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
+    _constructorBuilders = [];
+    _memberBuilders = [];
     _nameSpace = nameSpaceBuilder.buildNameSpace(
         loader: libraryBuilder.loader,
         problemReporting: libraryBuilder,
@@ -252,7 +274,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         indexedLibrary: libraryBuilder.indexedLibrary,
         indexedContainer: indexedClass,
         containerType: ContainerType.Class,
-        containerName: new ClassName(name));
+        containerName: new ClassName(name),
+        constructorBuilders: _constructorBuilders,
+        memberBuilders: _memberBuilders);
   }
 
   bool _hasComputedSupertypes = false;
@@ -315,8 +339,11 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     // TODO(johnniwinther): Update the message for when a class depends on
     // a cycle but does not depend on itself.
-    addProblem(templateCyclicClassHierarchy.withArguments(fullNameForErrors),
-        fileOffset, noLength);
+    libraryBuilder.addProblem(
+        templateCyclicClassHierarchy.withArguments(fullNameForErrors),
+        fileOffset,
+        noLength,
+        fileUri);
   }
 
   // Coverage-ignore(suite): Not run.
@@ -325,14 +352,17 @@ class SourceClassBuilder extends ClassBuilderImpl
   void checkObjectSupertypes() {
     if (_supertypeBuilder != null) {
       _supertypeBuilder = null;
-      addProblem(messageObjectExtends, fileOffset, noLength);
+      libraryBuilder.addProblem(
+          messageObjectExtends, fileOffset, noLength, fileUri);
     }
     if (_interfaceBuilders != null) {
-      addProblem(messageObjectImplements, fileOffset, noLength);
+      libraryBuilder.addProblem(
+          messageObjectImplements, fileOffset, noLength, fileUri);
       _interfaceBuilders = null;
     }
     if (_mixedInTypeBuilder != null) {
-      addProblem(messageObjectMixesIn, fileOffset, noLength);
+      libraryBuilder.addProblem(
+          messageObjectMixesIn, fileOffset, noLength, fileUri);
       _mixedInTypeBuilder = null;
     }
   }
@@ -362,40 +392,23 @@ class SourceClassBuilder extends ClassBuilderImpl
   SourceLibraryBuilder get parent => libraryBuilder;
 
   Class build(LibraryBuilder coreLibrary) {
-    void buildBuilders(Builder declaration) {
-      if (declaration.parent != this) {
-        // Coverage-ignore-block(suite): Not run.
-        if (declaration.parent != this) {
-          if (fileUri != declaration.parent?.fileUri) {
-            unexpected("$fileUri", "${declaration.parent?.fileUri}", fileOffset,
-                fileUri);
-          } else {
-            unexpected(
-                fullNameForErrors,
-                declaration.parent?.fullNameForErrors ?? '',
-                fileOffset,
-                fileUri);
-          }
+    void buildBuilders(SourceMemberBuilder memberBuilder) {
+      assert(memberBuilder.parent == this,
+          "Unexpected member $memberBuilder from outside $this.");
+      memberBuilder.buildOutlineNodes((
+          {required Member member,
+          Member? tearOff,
+          required BuiltMemberKind kind}) {
+        _addMemberToClass(memberBuilder, member);
+        if (tearOff != null) {
+          _addMemberToClass(memberBuilder, tearOff);
         }
-      } else if (declaration is SourceMemberBuilder) {
-        SourceMemberBuilder memberBuilder = declaration;
-        memberBuilder.buildOutlineNodes((
-            {required Member member,
-            Member? tearOff,
-            required BuiltMemberKind kind}) {
-          _addMemberToClass(declaration, member);
-          if (tearOff != null) {
-            _addMemberToClass(declaration, tearOff);
-          }
-        });
-      } else {
-        unhandled("${declaration.runtimeType}", "buildBuilders",
-            declaration.fileOffset, declaration.fileUri);
-      }
+      });
     }
 
-    nameSpace.unfilteredIterator.forEach(buildBuilders);
-    nameSpace.unfilteredConstructorIterator.forEach(buildBuilders);
+    _memberBuilders.forEach(buildBuilders);
+    _constructorBuilders.forEach(buildBuilders);
+
     if (_supertypeBuilder != null) {
       _supertypeBuilder = _checkSupertype(_supertypeBuilder!);
     }
@@ -535,28 +548,9 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    nameSpace
-        .filteredConstructorIterator(includeDuplicates: false)
-        .forEach(build);
-    nameSpace.filteredIterator(includeDuplicates: false).forEach(build);
+    filteredConstructorsIterator(includeDuplicates: false).forEach(build);
+    filteredMembersIterator(includeDuplicates: false).forEach(build);
   }
-
-  @override
-  Iterator<T> fullMemberIterator<T extends Builder>() =>
-      nameSpace.filteredIterator<T>(includeDuplicates: false);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      nameSpace.filteredNameIterator<T>(includeDuplicates: false);
-
-  @override
-  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
-
-  @override
-  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorNameIterator<T>(includeDuplicates: false);
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
@@ -767,14 +761,17 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       }
       if (!cls.isAbstract && !cls.isEnum && hasEnumSuperinterface) {
-        addProblem(templateEnumSupertypeOfNonAbstractClass.withArguments(name),
-            fileOffset, noLength);
+        libraryBuilder.addProblem(
+            templateEnumSupertypeOfNonAbstractClass.withArguments(name),
+            fileOffset,
+            noLength,
+            fileUri);
       }
 
       if (hasEnumSuperinterface && cls != underscoreEnumClass) {
         // Instance members named `values` are restricted.
         LookupResult? result = nameSpace.lookupLocalMember("values");
-        Builder? customValuesDeclaration = result?.getable;
+        NamedBuilder? customValuesDeclaration = result?.getable;
         if (customValuesDeclaration != null &&
             !customValuesDeclaration.isStatic) {
           // Retrieve the earliest declaration for error reporting.
@@ -782,11 +779,21 @@ class SourceClassBuilder extends ClassBuilderImpl
             // Coverage-ignore-block(suite): Not run.
             customValuesDeclaration = customValuesDeclaration?.next;
           }
+          Uri fileUri = customValuesDeclaration!.fileUri!;
+          int fileOffset = customValuesDeclaration.fileOffset;
+          int length = customValuesDeclaration.fullNameForErrors.length;
+          if (customValuesDeclaration is PropertyBuilder) {
+            UriOffsetLength uriOffset =
+                customValuesDeclaration.getterUriOffset!;
+            fileUri = uriOffset.fileUri;
+            fileOffset = uriOffset.fileOffset;
+            length = uriOffset.length;
+          }
           libraryBuilder.addProblem(
               templateEnumImplementerContainsValuesDeclaration
                   .withArguments(this.name),
-              customValuesDeclaration!.fileOffset,
-              customValuesDeclaration.fullNameForErrors.length,
+              fileOffset,
+              length,
               fileUri);
         }
         customValuesDeclaration = result?.setable;
@@ -797,11 +804,21 @@ class SourceClassBuilder extends ClassBuilderImpl
             // Coverage-ignore-block(suite): Not run.
             customValuesDeclaration = customValuesDeclaration?.next;
           }
+          Uri fileUri = customValuesDeclaration!.fileUri!;
+          int fileOffset = customValuesDeclaration.fileOffset;
+          int length = customValuesDeclaration.fullNameForErrors.length;
+          if (customValuesDeclaration is PropertyBuilder) {
+            UriOffsetLength uriOffset =
+                customValuesDeclaration.setterUriOffset!;
+            fileUri = uriOffset.fileUri;
+            fileOffset = uriOffset.fileOffset;
+            length = uriOffset.length;
+          }
           libraryBuilder.addProblem(
               templateEnumImplementerContainsValuesDeclaration
                   .withArguments(this.name),
-              customValuesDeclaration!.fileOffset,
-              customValuesDeclaration.fullNameForErrors.length,
+              fileOffset,
+              length,
               fileUri);
         }
         if (superclassDeclaringConcreteValues != null) {
@@ -851,12 +868,15 @@ class SourceClassBuilder extends ClassBuilderImpl
       int nameLength = target.typeName!.nameLength;
       if (aliasBuilder is TypeAliasBuilder) {
         // Coverage-ignore-block(suite): Not run.
-        addProblem(message, nameOffset, nameLength, context: [
-          messageTypedefCause.withLocation(
-              aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
-        ]);
+        libraryBuilder.addProblem(
+            message, nameOffset, nameLength, target.fileUri,
+            context: [
+              messageTypedefCause.withLocation(
+                  aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
+            ]);
       } else {
-        addProblem(message, nameOffset, nameLength);
+        libraryBuilder.addProblem(
+            message, nameOffset, nameLength, target.fileUri);
       }
     }
 
@@ -878,7 +898,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (cls.isMixinClass) {
       // Check that the class does not have a constructor.
       Iterator<SourceMemberBuilder> constructorIterator =
-          fullConstructorIterator<SourceMemberBuilder>();
+          filteredConstructorsIterator(includeDuplicates: false);
       while (constructorIterator.moveNext()) {
         SourceMemberBuilder constructor = constructorIterator.current;
         // Assumes the constructor isn't synthetic since
@@ -889,11 +909,12 @@ class SourceClassBuilder extends ClassBuilderImpl
           if (constructor.isRedirecting ||
               constructor.hasParameters ||
               constructor.isExternal) {
-            addProblem(
+            libraryBuilder.addProblem(
                 templateIllegalMixinDueToConstructors
                     .withArguments(fullNameForErrors),
                 constructor.fileOffset,
-                noLength);
+                noLength,
+                constructor.fileUri);
           }
         }
       }
@@ -901,8 +922,12 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (superClass != null &&
           superClassType != null &&
           superClass.cls != objectClass) {
-        addProblem(templateMixinInheritsFromNotObject.withArguments(name),
-            superClassType.charOffset ?? TreeNode.noOffset, noLength);
+        libraryBuilder.addProblem(
+            templateMixinInheritsFromNotObject.withArguments(name),
+            superClassType.charOffset ?? TreeNode.noOffset,
+            noLength,
+            superClassType.fileUri ?? // Coverage-ignore(suite): Not run.
+                fileUri);
       }
     }
     if (classHierarchyNode.isMixinApplication) {
@@ -914,11 +939,14 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (mixinSuperClassNode != null &&
           mixinSuperClassNode.classBuilder.cls != objectClass &&
           !mixedInNode.classBuilder.cls.isMixinDeclaration) {
-        addProblem(
-            templateMixinInheritsFromNotObject
-                .withArguments(mixedInNode.classBuilder.name),
-            _mixedInTypeBuilder!.charOffset ?? TreeNode.noOffset,
-            noLength);
+        libraryBuilder.addProblem(
+          templateMixinInheritsFromNotObject
+              .withArguments(mixedInNode.classBuilder.name),
+          _mixedInTypeBuilder!.charOffset ?? TreeNode.noOffset,
+          noLength,
+          _mixedInTypeBuilder!.fileUri ?? // Coverage-ignore(suite): Not run.
+              fileUri,
+        );
       }
     }
 
@@ -935,15 +963,19 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (unaliasedDeclaration is ClassBuilder) {
         ClassBuilder interface = unaliasedDeclaration;
         if (superClass == interface) {
-          addProblem(templateImplementsSuperClass.withArguments(interface.name),
-              this.fileOffset, noLength);
+          libraryBuilder.addProblem(
+              templateImplementsSuperClass.withArguments(interface.name),
+              this.fileOffset,
+              noLength,
+              this.fileUri);
         } else if (interface.cls.name == "FutureOr" &&
             // Coverage-ignore(suite): Not run.
             interface.cls.enclosingLibrary.importUri.isScheme("dart") &&
             // Coverage-ignore(suite): Not run.
             interface.cls.enclosingLibrary.importUri.path == "async") {
           // Coverage-ignore-block(suite): Not run.
-          addProblem(messageImplementsFutureOr, this.fileOffset, noLength);
+          libraryBuilder.addProblem(messageImplementsFutureOr, this.fileOffset,
+              noLength, this.fileUri);
         } else if (implemented.contains(interface)) {
           // Aggregate repetitions.
           problems ??= <ClassBuilder, int>{};
@@ -964,11 +996,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     if (problems != null) {
       problems.forEach((ClassBuilder interface, int repetitions) {
-        addProblem(
+        libraryBuilder.addProblem(
             templateImplementsRepeated.withArguments(
                 interface.name, repetitions),
             problemsOffsets![interface]!,
-            noLength);
+            noLength,
+            fileUri);
       });
     }
   }
@@ -1000,7 +1033,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
     Iterator<SourceFactoryBuilder> iterator =
-        nameSpace.filteredConstructorIterator(includeDuplicates: true);
+        filteredConstructorsIterator(includeDuplicates: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
     }
@@ -1213,15 +1246,14 @@ class SourceClassBuilder extends ClassBuilderImpl
         inErrorRecovery: hasErrors);
 
     Iterator<SourceMemberBuilder> iterator =
-        nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
-            includeDuplicates: false);
+        filteredConstructorsIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       count += iterator.current
           .computeDefaultTypes(context, inErrorRecovery: hasErrors);
     }
 
     Iterator<SourceMemberBuilder> memberIterator =
-        fullMemberIterator<SourceMemberBuilder>();
+        filteredMembersIterator(includeDuplicates: false);
     while (memberIterator.moveNext()) {
       count += memberIterator.current
           .computeDefaultTypes(context, inErrorRecovery: hasErrors);
@@ -1231,7 +1263,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
     Iterator<SourceMemberBuilder> memberIterator =
-        fullMemberIterator<SourceMemberBuilder>();
+        filteredMembersIterator(includeDuplicates: false);
     while (memberIterator.moveNext()) {
       SourceMemberBuilder builder = memberIterator.current;
       builder.checkVariance(this, typeEnvironment);
@@ -1239,7 +1271,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     Iterator<SourceMemberBuilder> constructorIterator =
-        fullConstructorIterator<SourceMemberBuilder>();
+        filteredConstructorsIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
       SourceMemberBuilder builder = constructorIterator.current;
       builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
@@ -1249,8 +1281,11 @@ class SourceClassBuilder extends ClassBuilderImpl
   void addSyntheticConstructor(
       SyntheticSourceConstructorBuilder constructorBuilder) {
     String name = constructorBuilder.name;
-    constructorBuilder.next = nameSpace.lookupConstructor(name);
-    nameSpace.addConstructor(name, constructorBuilder);
+    assert(
+        nameSpace.lookupConstructor(name) == null,
+        "Unexpected existing constructor when adding synthetic constructor "
+        "$constructorBuilder to $this.");
+    addConstructorInternal(constructorBuilder, addToNameSpace: true);
     // Synthetic constructors are created after the component has been built
     // so we need to add the constructor to the class.
     cls.addConstructor(constructorBuilder.invokeTarget);
@@ -1267,45 +1302,29 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     int count = 0;
 
-    void buildMembers(Builder builder) {
-      if (builder.parent != this) {
-        return;
-      }
-      if (builder is SourceMemberBuilder) {
-        count += builder.buildBodyNodes(
-            // Coverage-ignore(suite): Not run.
-            (
-                {required Member member,
-                Member? tearOff,
-                required BuiltMemberKind kind}) {
-          _addMemberToClass(builder, member);
-          if (tearOff != null) {
-            _addMemberToClass(builder, tearOff);
-          }
-        });
-      }
+    void buildMembers(SourceMemberBuilder builder) {
+      assert(builder.parent == this, "Unexpected member $builder in this.");
+      count += builder.buildBodyNodes(
+          // Coverage-ignore(suite): Not run.
+          (
+              {required Member member,
+              Member? tearOff,
+              required BuiltMemberKind kind}) {
+        _addMemberToClass(builder, member);
+        if (tearOff != null) {
+          _addMemberToClass(builder, tearOff);
+        }
+      });
     }
 
-    nameSpace.filteredIterator(includeDuplicates: true).forEach(buildMembers);
-    nameSpace
-        .filteredConstructorIterator(includeDuplicates: true)
-        .forEach(buildMembers);
+    unfilteredMembersIterator.forEach(buildMembers);
+    unfilteredConstructorsIterator.forEach(buildMembers);
     return count;
   }
 
   void _addMemberToClass(SourceMemberBuilder memberBuilder, Member member) {
     member.parent = cls;
-    if (!memberBuilder.isDuplicate && !memberBuilder.isConflictingSetter) {
-      if (memberBuilder.isConflictingAugmentationMember) {
-        // Coverage-ignore-block(suite): Not run.
-        if (member is Field && member.isStatic ||
-            member is Procedure && member.isStatic) {
-          member.name = new Name('${member.name}', member.name.library);
-        } else {
-          return;
-        }
-      }
-
+    if (!memberBuilder.isDuplicate) {
       if (member is Procedure) {
         cls.addProcedure(member);
       } else if (member is Field) {

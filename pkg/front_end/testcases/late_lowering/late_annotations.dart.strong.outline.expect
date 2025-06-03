@@ -76,13 +76,13 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
   static get finalStaticFieldWithInitializer() → core::int;
 }
 extension Extension on self::A {
-  static field extensionStaticField = self::_#Extension|extensionStaticField;
+  static impl field extensionStaticField = self::_#Extension|extensionStaticField;
   static get extensionStaticField = get self::Extension|extensionStaticField;
   static set extensionStaticField = set self::Extension|extensionStaticField;
-  static field finalExtensionStaticField = self::_#Extension|finalExtensionStaticField;
+  static impl field finalExtensionStaticField = self::_#Extension|finalExtensionStaticField;
   static get finalExtensionStaticField = get self::Extension|finalExtensionStaticField;
   static set finalExtensionStaticField = set self::Extension|finalExtensionStaticField;
-  static field finalExtensionStaticFieldWithInitializer = self::_#Extension|finalExtensionStaticFieldWithInitializer;
+  static impl field finalExtensionStaticFieldWithInitializer = self::_#Extension|finalExtensionStaticFieldWithInitializer;
   static get finalExtensionStaticFieldWithInitializer = get self::Extension|finalExtensionStaticFieldWithInitializer;
 }
 static field core::int? _#topLevelField;

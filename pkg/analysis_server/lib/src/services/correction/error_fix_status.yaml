@@ -44,10 +44,10 @@
 #   issue created for it.
 #
 # Stats:
-# -  58 "needsEvaluation"
-# - 308 "needsFix"
-# - 470 "hasFix"
-# - 514 "noFix"
+# -  62 "needsEvaluation"
+# - 302 "needsFix"
+# - 500 "hasFix"
+# - 498 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -730,18 +730,18 @@ CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER:
 CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR:
   status: needsFix
   notes: |-
-    Replace the field formal parameter with a normal parameter.
+    Replace the initializing formal parameter with a normal parameter.
 CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
   status: needsFix
   notes: |-
-    Replace the field formal parameter with a normal parameter and add an
-    assignment to the field in the method.
+    Replace the initializing formal parameter with a normal parameter and
+    add an assignment to the field in the method.
 CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR:
   status: needsFix
   notes: |-
-    Replace the field formal parameter with a normal parameter.
+    Replace the initializing formal parameter with a normal parameter.
 CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
@@ -765,7 +765,7 @@ CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS:
 CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE:
   status: noFix
 CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE:
   status: noFix
 CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND:
@@ -1671,6 +1671,8 @@ CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
   since: 2.15
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR:
   status: hasFix
+CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR:
+  status: needsEvaluation
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
   status: noFix
   since: 2.17
@@ -1866,8 +1868,6 @@ LintCode.analyzer_public_api_bad_type:
 LintCode.analyzer_public_api_exports_non_public_name:
   status: noFix
 LintCode.analyzer_public_api_impl_in_public_api:
-  status: noFix
-LintCode.analyzer_use_new_elements:
   status: noFix
 LintCode.annotate_overrides:
   status: hasFix
@@ -2394,6 +2394,8 @@ LintCode.strict_top_level_inference_split_to_types:
     Conceivably for variable declarations we can search some space (like the
     library or the compilation unit) for what values are assigned, and suggest
     the LUB of those value(s)' type(s).
+LintCode.switch_on_type:
+  status: noFix
 LintCode.test_types_in_equals:
   status: noFix
 LintCode.throw_in_finally:
@@ -2413,9 +2415,7 @@ LintCode.unintended_html_in_doc_comment:
   notes: |-
     The fix is to encode the angle brackets.
 LintCode.unnecessary_async:
-  status: needsFix
-  notes: |-
-    And probably also quick assist that works even if returns `Future`.
+  status: hasFix
 LintCode.unnecessary_await_in_return:
   status: hasFix
 LintCode.unnecessary_brace_in_string_interps:
@@ -2479,9 +2479,7 @@ LintCode.unnecessary_this:
 LintCode.unnecessary_to_list_in_spreads:
   status: hasFix
 LintCode.unnecessary_unawaited:
-  status: needsFix
-  notes: |-
-    A fix can be made to remove the 'unawaited' call.
+  status: hasFix
 LintCode.unnecessary_underscores:
   status: hasFix  
 LintCode.unreachable_from_main:

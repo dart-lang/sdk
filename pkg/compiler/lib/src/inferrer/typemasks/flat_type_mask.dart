@@ -105,10 +105,9 @@ class FlatTypeMask extends TypeMask {
     CommonMasks domain, {
     bool hasLateSentinel = false,
   }) {
-    final powerset =
-        hasLateSentinel
-            ? _specialValueDomain.fromValue(TypeMaskSpecialValue.lateSentinel)
-            : Bitset.empty();
+    final powerset = hasLateSentinel
+        ? _specialValueDomain.fromValue(TypeMaskSpecialValue.lateSentinel)
+        : Bitset.empty();
 
     return FlatTypeMask._emptyOrSpecial(domain, powerset);
   }
@@ -117,10 +116,9 @@ class FlatTypeMask extends TypeMask {
     CommonMasks domain, {
     bool hasLateSentinel = false,
   }) {
-    final powerset =
-        hasLateSentinel
-            ? _specialValueDomain.allValues
-            : _specialValueDomain.fromValue(TypeMaskSpecialValue.null_);
+    final powerset = hasLateSentinel
+        ? _specialValueDomain.allValues
+        : _specialValueDomain.fromValue(TypeMaskSpecialValue.null_);
 
     return FlatTypeMask._emptyOrSpecial(domain, powerset);
   }
@@ -180,8 +178,9 @@ class FlatTypeMask extends TypeMask {
 
     final probe = domain._powersetCache[base];
     final powerset = switch (kind) {
-      FlatTypeMaskKind.empty =>
-        throw StateError('Unexpected empty kind with base $base'),
+      FlatTypeMaskKind.empty => throw StateError(
+        'Unexpected empty kind with base $base',
+      ),
       FlatTypeMaskKind.exact => probe.exact,
       FlatTypeMaskKind.subclass => probe.subclass,
       FlatTypeMaskKind.subtype => probe.subtype,
@@ -266,10 +265,9 @@ class FlatTypeMask extends TypeMask {
   @override
   Bitset get powerset => _getPowerset(_flags);
 
-  ClassQuery get _classQuery =>
-      isExact
-          ? ClassQuery.exact
-          : (isSubclass ? ClassQuery.subclass : ClassQuery.subtype);
+  ClassQuery get _classQuery => isExact
+      ? ClassQuery.exact
+      : (isSubclass ? ClassQuery.subclass : ClassQuery.subtype);
 
   @override
   bool get isEmpty =>
@@ -551,11 +549,11 @@ class FlatTypeMask extends TypeMask {
         // If we weaken the constraint on this type, we have to make sure that
         // the result is normalized.
         : FlatTypeMask.normalized(
-          base!,
-          combinedKind,
-          combinedPowerset,
-          domain,
-        );
+            base!,
+            combinedKind,
+            combinedPowerset,
+            domain,
+          );
   }
 
   @override
@@ -594,9 +592,9 @@ class FlatTypeMask extends TypeMask {
         return includeNull
             ? TypeMask.empty(domain, hasLateSentinel: includeLateSentinel)
             : TypeMask.nonNullEmpty(
-              domain,
-              hasLateSentinel: includeLateSentinel,
-            );
+                domain,
+                hasLateSentinel: includeLateSentinel,
+              );
       case SimpleSubclassResult.exact1:
         assert(isExact);
         return withPowerset(powerset, domain);
@@ -620,22 +618,22 @@ class FlatTypeMask extends TypeMask {
           return includeNull
               ? TypeMask.empty(domain, hasLateSentinel: includeLateSentinel)
               : TypeMask.nonNullEmpty(
-                domain,
-                hasLateSentinel: includeLateSentinel,
-              );
+                  domain,
+                  hasLateSentinel: includeLateSentinel,
+                );
         } else if (classes.length == 1) {
           ClassEntity cls = classes.first;
           return includeNull
               ? TypeMask.subclass(
-                cls,
-                domain,
-                hasLateSentinel: includeLateSentinel,
-              )
+                  cls,
+                  domain,
+                  hasLateSentinel: includeLateSentinel,
+                )
               : TypeMask.nonNullSubclass(
-                cls,
-                domain,
-                hasLateSentinel: includeLateSentinel,
-              );
+                  cls,
+                  domain,
+                  hasLateSentinel: includeLateSentinel,
+                );
         }
 
         List<FlatTypeMask> masks = List.from(
@@ -692,10 +690,9 @@ class FlatTypeMask extends TypeMask {
     assert(a.isSubclass || a.isSubtype);
     assert(b.isSubtype);
     final aBase = a.base!;
-    var elements =
-        a.isSubclass
-            ? closedWorld.classHierarchy.strictSubclassesOf(aBase)
-            : closedWorld.classHierarchy.strictSubtypesOf(aBase);
+    var elements = a.isSubclass
+        ? closedWorld.classHierarchy.strictSubclassesOf(aBase)
+        : closedWorld.classHierarchy.strictSubtypesOf(aBase);
     for (var element in elements) {
       if (closedWorld.classHierarchy.isSubtypeOf(element, b.base!)) {
         return false;
@@ -847,8 +844,7 @@ class FlatTypeMask extends TypeMask {
   bool operator ==(var other) {
     if (identical(this, other)) return true;
     if (other is! FlatTypeMask) return false;
-    FlatTypeMask otherMask = other;
-    return (_flags == otherMask._flags) && (base == otherMask.base);
+    return (_flags == other._flags) && (base == other.base);
   }
 
   @override
@@ -876,33 +872,87 @@ class FlatTypeMask extends TypeMask {
 typedef _CachedPowersets = ({Bitset exact, Bitset subclass, Bitset subtype});
 
 class _PowersetCache {
-  final ClassHierarchy _classHierarchy;
+  final JClosedWorld _closedWorld;
   final Set<ClassEntity> _interceptorCone;
+  final Set<ClassEntity> _indexableCone;
+  final Set<ClassEntity> _mutableIndexableCone;
   final Map<ClassEntity, _CachedPowersets> _cache = {};
 
-  _PowersetCache(JClosedWorld closedWorld)
-    : _classHierarchy = closedWorld.classHierarchy,
-      _interceptorCone =
-          closedWorld.classHierarchy
-              .subclassesOf(closedWorld.commonElements.jsInterceptorClass)
-              .toSet();
+  _PowersetCache(this._closedWorld)
+    : _interceptorCone = _closedWorld.classHierarchy
+          .subclassesOf(_closedWorld.commonElements.jsInterceptorClass)
+          .toSet(),
+      _indexableCone = _closedWorld.classHierarchy
+          .subtypesOf(_closedWorld.commonElements.jsIndexableClass)
+          .toSet(),
+      _mutableIndexableCone = _closedWorld.classHierarchy
+          .subtypesOf(_closedWorld.commonElements.jsMutableIndexableClass)
+          .toSet();
 
-  _CachedPowersets operator [](ClassEntity cls) => _cache.putIfAbsent(cls, () {
-    var exactPowerset = Bitset.empty();
-    exactPowerset = _interceptorDomain.add(
-      exactPowerset,
+  Bitset _computeExactPowerset(ClassEntity cls) {
+    var powerset = Bitset.empty();
+    if (!_closedWorld.classHierarchy.isExplicitlyInstantiated(cls)) {
+      return powerset;
+    }
+
+    powerset = _interceptorDomain.add(
+      powerset,
       _interceptorCone.contains(cls)
           ? TypeMaskInterceptorProperty.interceptor
           : TypeMaskInterceptorProperty.notInterceptor,
     );
 
+    // TODO(sra): Set any other [TypeMaskArrayProperty] bits.
+    if (cls == _closedWorld.commonElements.jsExtendableArrayClass) {
+      powerset = _arrayDomain.add(powerset, TypeMaskArrayProperty.growable);
+    } else if (cls == _closedWorld.commonElements.jsFixedArrayClass) {
+      powerset = _arrayDomain.add(powerset, TypeMaskArrayProperty.fixedLength);
+    } else if (cls == _closedWorld.commonElements.jsUnmodifiableArrayClass) {
+      powerset = _arrayDomain.add(powerset, TypeMaskArrayProperty.unmodifiable);
+    } else if (cls == _closedWorld.commonElements.jsArrayClass) {
+      powerset = _arrayDomain.addAll(powerset, const [
+        TypeMaskArrayProperty.growable,
+        TypeMaskArrayProperty.fixedLength,
+        TypeMaskArrayProperty.unmodifiable,
+      ]);
+    } else {
+      powerset = _arrayDomain.add(powerset, TypeMaskArrayProperty.other);
+    }
+
+    // The order of these checks is important since `JSMutableIndexable` is a
+    // subclass of `JSIndexable`.
+    if (_mutableIndexableCone.contains(cls)) {
+      powerset = _indexableDomain.add(
+        powerset,
+        TypeMaskIndexableProperty.mutableIndexable,
+      );
+    } else if (_indexableCone.contains(cls)) {
+      powerset = _indexableDomain.add(
+        powerset,
+        TypeMaskIndexableProperty.indexable,
+      );
+    } else {
+      powerset = _indexableDomain.add(
+        powerset,
+        TypeMaskIndexableProperty.notIndexable,
+      );
+    }
+
+    return powerset;
+  }
+
+  _CachedPowersets operator [](ClassEntity cls) => _cache.putIfAbsent(cls, () {
+    final exactPowerset = _computeExactPowerset(cls);
+
     var subclassPowerset = exactPowerset;
-    for (final subclass in _classHierarchy.strictSubclassesOf(cls)) {
+    for (final subclass in _closedWorld.classHierarchy.strictSubclassesOf(
+      cls,
+    )) {
       subclassPowerset = subclassPowerset.union(this[subclass].subclass);
     }
 
     var subtypePowerset = exactPowerset;
-    for (final subtype in _classHierarchy.strictSubtypesOf(cls)) {
+    for (final subtype in _closedWorld.classHierarchy.strictSubtypesOf(cls)) {
       subtypePowerset = subtypePowerset.union(this[subtype].subtype);
     }
 

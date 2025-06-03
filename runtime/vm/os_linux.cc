@@ -521,6 +521,23 @@ int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
+uintptr_t OS::CurrentRSS() {
+  // The second value in /proc/self/statm is the current RSS in pages.
+  // It is not possible to use getrusage() because the interested fields are not
+  // implemented by the linux kernel.
+  FILE* statm = fopen("/proc/self/statm", "r");
+  if (statm == nullptr) {
+    return 0;
+  }
+  int64_t current_rss_pages = 0;
+  int matches = fscanf(statm, "%*s%" Pd64 "", &current_rss_pages);
+  fclose(statm);
+  if (matches != 1) {
+    return 0;
+  }
+  return current_rss_pages * getpagesize();
+}
+
 void OS::Sleep(int64_t millis) {
   int64_t micros = millis * kMicrosecondsPerMillisecond;
   SleepMicros(micros);

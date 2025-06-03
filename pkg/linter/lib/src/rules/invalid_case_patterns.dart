@@ -6,9 +6,11 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/token.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Use case expressions that are valid in Dart 3.0.';
 
@@ -17,13 +19,13 @@ class InvalidCasePatterns extends LintRule {
     : super(
         name: LintNames.invalid_case_patterns,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   // TODO(pq): update to add specific messages w/ specific corrections
   // https://github.com/dart-lang/linter/issues/4172
   @override
-  LintCode get lintCode => LinterLintCode.invalid_case_patterns;
+  DiagnosticCode get diagnosticCode => LinterLintCode.invalid_case_patterns;
 
   @override
   void registerNodeProcessors(
@@ -32,7 +34,7 @@ class InvalidCasePatterns extends LintRule {
   ) {
     // This lint rule is only meant for code which does not have 'patterns'
     // enabled.
-    if (context.isEnabled(Feature.patterns)) return;
+    if (context.isFeatureEnabled(Feature.patterns)) return;
 
     var visitor = _Visitor(this);
     registry.addSwitchCase(this, visitor);

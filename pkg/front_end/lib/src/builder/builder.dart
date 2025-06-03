@@ -3,11 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 abstract class Builder {
-  /// Used when multiple things with the same name are declared within the same
-  /// parent. Only used for top-level and class-member declarations, not for
-  /// block scopes.
-  Builder? next;
-
   Builder? get parent;
 
   Uri? get fileUri;
@@ -196,6 +191,15 @@ abstract class Builder {
   bool get isTopLevel;
 
   bool get isTypeParameter;
+}
+
+abstract class NamedBuilder implements Builder {
+  String get name;
+
+  /// Used when multiple things with the same name are declared within the same
+  /// parent. Only used for top-level and class-member declarations, not for
+  /// block scopes.
+  NamedBuilder? next;
 
   /// Return `true` if this builder is a duplicate of another with the same
   /// name. This is `false` for the builder first declared amongst duplicates.
@@ -203,9 +207,6 @@ abstract class Builder {
 }
 
 abstract class BuilderImpl implements Builder {
-  @override
-  Builder? next;
-
   BuilderImpl();
 
   @override
@@ -252,12 +253,17 @@ abstract class BuilderImpl implements Builder {
 
   @override
   bool get isTypeParameter => false;
+}
+
+abstract class NamedBuilderImpl extends BuilderImpl implements NamedBuilder {
+  @override
+  NamedBuilder? next;
 
   @override
   bool get isDuplicate => next != null;
 }
 
-extension BuilderExtension on Builder {
+extension BuilderExtension on NamedBuilder {
   /// Returns the 'duplicate index' for this builder, which is the number of
   /// builders declared prior this.
   ///
@@ -265,7 +271,7 @@ extension BuilderExtension on Builder {
   int get duplicateIndex {
     if (next != null) {
       int count = 0;
-      Builder? current = next;
+      NamedBuilder? current = next;
       while (current != null) {
         count++;
         current = current.next;

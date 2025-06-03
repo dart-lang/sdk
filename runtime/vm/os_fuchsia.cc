@@ -488,6 +488,18 @@ int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_CONF);
 }
 
+uintptr_t OS::CurrentRSS() {
+  zx_info_task_stats_t task_stats;
+  zx_handle_t process = zx_process_self();
+  zx_status_t status =
+      zx_object_get_info(process, ZX_INFO_TASK_STATS, &task_stats,
+                         sizeof(task_stats), nullptr, nullptr);
+  if (status != ZX_OK) {
+    return 0;
+  }
+  return task_stats.mem_private_bytes + task_stats.mem_shared_bytes;
+}
+
 void OS::Sleep(int64_t millis) {
   SleepMicros(millis * kMicrosecondsPerMillisecond);
 }

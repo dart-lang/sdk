@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -25,23 +26,23 @@ class UseToAndAsIfApplicable extends LintRule {
     : super(name: LintNames.use_to_and_as_if_applicable, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_to_and_as_if_applicable;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.use_to_and_as_if_applicable;
 
   @override
   void registerNodeProcessors(
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var visitor = _Visitor(this, context.inheritanceManager);
+    var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule, this.inheritanceManager);
+  _Visitor(this.rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
@@ -51,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         nodeParameters.parameters.isEmpty &&
         !_isVoid(node.returnType) &&
         !_beginsWithAsOrTo(node.name.lexeme) &&
-        !node.hasInheritedMethod(inheritanceManager) &&
+        !node.hasInheritedMethod &&
         _checkBody(node.body)) {
       rule.reportAtToken(node.name);
     }

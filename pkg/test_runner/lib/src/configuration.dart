@@ -109,7 +109,6 @@ class TestConfiguration {
   Mode get mode => configuration.mode;
   Runtime get runtime => configuration.runtime;
   System get system => configuration.system;
-  NnbdMode get nnbdMode => configuration.nnbdMode;
   Sanitizer get sanitizer => configuration.sanitizer;
 
   // Boolean getters
@@ -122,7 +121,7 @@ class TestConfiguration {
   bool get isSimulator => architecture.isSimulator;
   bool get useAnalyzerCfe => configuration.useAnalyzerCfe;
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
-  bool get useElf => configuration.useElf;
+  GenSnapshotFormat? get genSnapshotFormat => configuration.genSnapshotFormat;
   bool get useSdk => configuration.useSdk;
   bool get enableAsserts => configuration.enableAsserts;
   bool get useQemu => configuration.useQemu;
@@ -408,23 +407,15 @@ class TestConfiguration {
 
   /// The set of [Feature]s supported by this configuration.
   Set<Feature> get supportedFeatures {
-    // The analyzer should parse all tests that don't require legacy support.
+    // The analyzer should handle all tests.
     if (compiler == Compiler.dart2analyzer) {
-      return {...Feature.all.where((f) => !Feature.legacy.contains(f))};
+      return {...Feature.all};
     }
 
     var isDart2jsProduction = dart2jsOptions.contains('-O3');
     var isOptimizedDart2Wasm = dart2wasmOptions.contains('-O1');
     var isJsCompiler = compiler == Compiler.dart2js || compiler == Compiler.ddc;
     return {
-      // The supported NNBD features depending on the `nnbdMode`.
-      if (NnbdMode.legacy == configuration.nnbdMode)
-        Feature.nnbdLegacy
-      else
-        Feature.nnbd,
-      if (NnbdMode.weak == configuration.nnbdMode) Feature.nnbdWeak,
-      if (NnbdMode.strong == configuration.nnbdMode) Feature.nnbdStrong,
-
       // The configurations with the following builder tags and configurations
       // with the `minified` flag set to `true` will obfuscate `Type.toString`
       // strings.
@@ -472,6 +463,11 @@ class TestConfiguration {
             architecture == Architecture.riscv64)) {
       print("Warning: Android only supports the following architectures: "
           "ia32/x64/x64c/arm/arm64/arm64c/arm_x64/riscv64.");
+      isValid = false;
+    }
+
+    if (compiler == Compiler.dartkp && genSnapshotFormat == null) {
+      print("Error: gen_snapshot output format must be specified in AOT mode.");
       isValid = false;
     }
 

@@ -45,7 +45,12 @@ void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit,
       index++;
     }
   }
-  edits.insert(index, sourceEdit);
+  if (index == 0 && edits is Queue) {
+    var q = edits as Queue;
+    q.addFirst(sourceEdit);
+  } else {
+    edits.insert(index, sourceEdit);
+  }
 }
 
 /// Adds [edit] to the [FileEdit] for the given [file].

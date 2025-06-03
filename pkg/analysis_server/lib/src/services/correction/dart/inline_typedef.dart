@@ -154,7 +154,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    if (node.name2.lexeme == typeName) {
+    if (node.name.lexeme == typeName) {
       reference ??= node;
       count++;
     }

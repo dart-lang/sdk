@@ -31,7 +31,8 @@ testClasses() async {
   }) async {
     CompilationResult result = await runCompiler(
       memorySourceFiles: {
-        'main.dart': """
+        'main.dart':
+            """
 import 'package:js/js.dart';
 
 @JS()

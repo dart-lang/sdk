@@ -6,89 +6,7 @@ part of 'declaration_builders.dart';
 
 const Uri? noUri = null;
 
-abstract class ClassMemberAccess {
-  /// [Iterator] for all constructors declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting constructor are _not_ included.
-  ///
-  /// For instance:
-  ///
-  ///     class Class {
-  ///       Class(); // declared, so it is included
-  ///       Class.named(); // declared, so it is included
-  ///       Class.named(); // duplicate, so it is *not* included
-  ///     }
-  ///
-  ///     augment class Class {
-  ///       augment Class(); // augmenting, so it is *not* included
-  ///       Class.extra(); // declared, so it is included
-  ///     }
-  ///
-  Iterator<T> fullConstructorIterator<T extends MemberBuilder>();
-
-  /// [NameIterator] for all constructors declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting constructors are _not_ included.
-  ///
-  /// For instance:
-  ///
-  ///     class Class {
-  ///       Class(); // declared, so it is included
-  ///       Class.named(); // declared, so it is included
-  ///       Class.named(); // duplicate, so it is *not* included
-  ///     }
-  ///
-  ///     augment class Class {
-  ///       augment Class(); // augmenting, so it is *not* included
-  ///       Class.extra(); // declared, so it is included
-  ///     }
-  ///
-  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>();
-
-  /// [Iterator] for all members declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting members are _not_ included.
-  ///
-  /// For instance:
-  ///
-  ///     class Class {
-  ///       method() {} // Declared, so it is included.
-  ///       method2() {} // Declared, so it is included.
-  ///       method2() {} // Duplicate, so it is *not* included.
-  ///     }
-  ///
-  ///     augment class Class {
-  ///       augment method() {} // Augmenting, so it is *not* included.
-  ///       extra() {} // Declared, so it is included.
-  ///     }
-  ///
-  Iterator<T> fullMemberIterator<T extends Builder>();
-
-  /// [NameIterator] for all members declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting members are _not_ included.
-  ///
-  /// For instance:
-  ///
-  ///     class Class {
-  ///       method() {} // Declared, so it is included.
-  ///       method2() {} // Declared, so it is included.
-  ///       method2() {} // Duplicate, so it is *not* included.
-  ///     }
-  ///
-  ///     augment class Class {
-  ///       augment method() {} // Augmenting, so it is *not* included.
-  ///       extra() {} // Declared, so it is included.
-  ///     }
-  ///
-  NameIterator<T> fullMemberNameIterator<T extends Builder>();
-}
-
-abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
+abstract class ClassBuilder implements DeclarationBuilder {
   /// The type in the `extends` clause of a class declaration.
   ///
   /// Currently this also holds the synthesized super class for a mixin
@@ -193,10 +111,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  Builder? lookupLocalMember(String name,
+  NamedBuilder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
     LookupResult? result = nameSpace.lookupLocalMember(name);
-    Builder? builder = setter ? result?.setable : result?.getable;
+    NamedBuilder? builder = setter ? result?.setable : result?.getable;
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

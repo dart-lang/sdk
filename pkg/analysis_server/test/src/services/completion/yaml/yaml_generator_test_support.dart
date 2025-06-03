@@ -4,8 +4,8 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
 abstract class YamlGeneratorTest with ResourceProviderMixin {

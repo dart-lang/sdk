@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'dart:async';
+
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/apply_code_action.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/fix_all.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/fix_all_in_workspace.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/log_action.dart';
@@ -38,6 +41,12 @@ class ExecuteCommandHandler
         Commands.organizeImports: OrganizeImportsCommandHandler(server),
         Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
         Commands.logAction: LogActionCommandHandler(server),
+        Commands.applyCodeAction: ApplyCodeActionCommandHandler(server),
+        Commands.performRefactor: PerformRefactorCommandHandler(server),
+        Commands.validateRefactor: ValidateRefactorCommandHandler(server),
+        // Add commands for each of the refactorings.
+        for (var entry in RefactoringProcessor.generators.entries)
+          entry.key: RefactorCommandHandler(server, entry.key, entry.value),
 
         // Commands that currently require an underlying LSP server.
         if (server is LspAnalysisServer) ...{
@@ -45,11 +54,6 @@ class ExecuteCommandHandler
           Commands.fixAllInWorkspace: FixAllInWorkspaceCommandHandler(server),
           Commands.previewFixAllInWorkspace:
               PreviewFixAllInWorkspaceCommandHandler(server),
-          Commands.performRefactor: PerformRefactorCommandHandler(server),
-          Commands.validateRefactor: ValidateRefactorCommandHandler(server),
-          // Add commands for each of the refactorings.
-          for (var entry in RefactoringProcessor.generators.entries)
-            entry.key: RefactorCommandHandler(server, entry.key, entry.value),
         },
       } {
     server.executeCommandHandler = this;
@@ -63,10 +67,9 @@ class ExecuteCommandHandler
       ExecuteCommandParams.jsonHandler;
 
   @override
-  // TODO(dantup): This will need to be relaxed to support calling over DTD,
-  //  but at that point we must also add this flag to Commands so that we can
-  //  control which commands require trusted callers.
-  bool get requiresTrustedCaller => true;
+  /// This handler does not require a trusted caller, however some of the
+  /// commands might (which are checked on the handler during execution).
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<Object?>> handle(
@@ -79,6 +82,13 @@ class ExecuteCommandHandler
       return error(
         ServerErrorCodes.UnknownCommand,
         '${params.command} is not a valid command identifier',
+      );
+    }
+
+    if (handler.requiresTrustedCaller && !message.isTrustedCaller) {
+      return error(
+        ServerErrorCodes.UnknownCommand,
+        '${params.command} can only be called by the owning process',
       );
     }
 

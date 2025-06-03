@@ -17,6 +17,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../base/modifiers.dart' show Modifiers;
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -67,7 +68,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   late final NamedTypeBuilder selfType;
 
-  SourceConstructorBuilderImpl? synthesizedDefaultConstructorBuilder;
+  SourceConstructorBuilderImpl? _synthesizedDefaultConstructorBuilder;
 
   late final _EnumValuesFieldDeclaration _enumValuesFieldDeclaration;
 
@@ -137,12 +138,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
     super.buildScopes(coreLibrary);
     _createSynthesizedMembers(coreLibrary);
 
-    Iterator<MemberBuilder> constructorIterator =
-        nameSpace.filteredConstructorIterator(includeDuplicates: false);
+    Iterator<ConstructorBuilder> constructorIterator =
+        filteredConstructorsIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
-      MemberBuilder constructorBuilder = constructorIterator.current;
-      if (constructorBuilder is ConstructorBuilder &&
-          !constructorBuilder.isConst) {
+      ConstructorBuilder constructorBuilder = constructorIterator.current;
+      if (!constructorBuilder.isConst) {
         libraryBuilder.addProblem(messageEnumNonConstConstructor,
             constructorBuilder.fileOffset, noLength, fileUri);
       }
@@ -201,11 +201,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
           new Name("_enumToString", coreLibrary.library));
     }
 
-    FieldReference valuesReferences = new FieldReference(
+    PropertyReferences valuesReferences = new PropertyReferences(
         "values", staticFieldNameScheme, indexedClass,
-        fieldIsLateWithLowering: false, isExternal: false);
+        fieldIsLateWithLowering: false);
 
-    Builder? customValuesDeclaration =
+    NamedBuilder? customValuesDeclaration =
         nameSpace.lookupLocalMember("values")?.getable;
     if (customValuesDeclaration != null) {
       // Retrieve the earliest declaration for error reporting.
@@ -224,9 +224,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
       "hashCode",
       "=="
     ]) {
-      Builder? customIndexDeclaration =
+      NamedBuilder? customIndexDeclaration =
           nameSpace.lookupLocalMember(restrictedInstanceMemberName)?.getable;
-      Builder? invalidDeclaration;
+      NamedBuilder? invalidDeclaration;
       if (customIndexDeclaration is PropertyBuilder &&
           !customIndexDeclaration.hasAbstractGetter &&
           !customIndexDeclaration.isEnumElement) {
@@ -251,9 +251,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
     }
 
     _enumValuesFieldDeclaration =
-        new _EnumValuesFieldDeclaration(this, valuesReferences, listType);
+        new _EnumValuesFieldDeclaration(this, listType);
 
-    SourcePropertyBuilder valuesBuilder = new SourcePropertyBuilder.forField(
+    SourcePropertyBuilder valuesBuilder = new SourcePropertyBuilder(
         fileUri: fileUri,
         fileOffset: fileOffset,
         name: "values",
@@ -262,18 +262,20 @@ class SourceEnumBuilder extends SourceClassBuilder {
         nameScheme: staticFieldNameScheme,
         fieldDeclaration: _enumValuesFieldDeclaration,
         getterDeclaration: _enumValuesFieldDeclaration,
+        getterAugmentations: const [],
         setterDeclaration: null,
-        modifiers:
-            Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
-        references: valuesReferences);
+        setterAugmentations: const [],
+        references: valuesReferences,
+        isStatic: true);
     _enumValuesFieldDeclaration.builder = valuesBuilder;
 
     if (customValuesDeclaration != null) {
       customValuesDeclaration.next = valuesBuilder;
       nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
           valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
+      addMemberInternal(valuesBuilder, addToNameSpace: false);
     } else {
-      nameSpace.addLocalMember("values", valuesBuilder, setter: false);
+      addMemberInternal(valuesBuilder, addToNameSpace: true);
       nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
           valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
     }
@@ -281,7 +283,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // The default constructor is added if no generative or unnamed factory
     // constructors are declared.
     bool needsSynthesizedDefaultConstructor = true;
-    Iterator<MemberBuilder> iterator = nameSpace.unfilteredConstructorIterator;
+    Iterator<MemberBuilder> iterator = unfilteredConstructorsIterator;
     while (iterator.moveNext()) {
       MemberBuilder constructorBuilder = iterator.current;
       if (constructorBuilder is! FactoryBuilder ||
@@ -322,29 +324,30 @@ class SourceEnumBuilder extends SourceClassBuilder {
               fileUri: fileUri,
               fileOffset: fileOffset,
               lookupScope: _introductory.compilationUnitScope);
-      synthesizedDefaultConstructorBuilder = new SourceConstructorBuilderImpl(
-          modifiers: Modifiers.Const,
-          name: "",
-          libraryBuilder: libraryBuilder,
-          declarationBuilder: this,
-          fileUri: fileUri,
-          fileOffset: fileOffset,
-          constructorReference: constructorReference,
-          tearOffReference: tearOffReference,
-          nameScheme: new NameScheme(
-              isInstanceMember: false,
-              containerName: new ClassName(name),
-              containerType: ContainerType.Class,
-              libraryName: libraryName),
-          introductory: constructorDeclaration);
-      synthesizedDefaultConstructorBuilder!
-          .registerInitializedField(valuesBuilder);
-      nameSpace.addConstructor("", synthesizedDefaultConstructorBuilder!);
+      SourceConstructorBuilderImpl constructorBuilder =
+          _synthesizedDefaultConstructorBuilder =
+              new SourceConstructorBuilderImpl(
+                  modifiers: Modifiers.Const,
+                  name: "",
+                  libraryBuilder: libraryBuilder,
+                  declarationBuilder: this,
+                  fileUri: fileUri,
+                  fileOffset: fileOffset,
+                  constructorReference: constructorReference,
+                  tearOffReference: tearOffReference,
+                  nameScheme: new NameScheme(
+                      isInstanceMember: false,
+                      containerName: new ClassName(name),
+                      containerType: ContainerType.Class,
+                      libraryName: libraryName),
+                  introductory: constructorDeclaration);
+      constructorBuilder.registerInitializedField(valuesBuilder);
+      addConstructorInternal(constructorBuilder, addToNameSpace: true);
       nameSpaceBuilder.checkTypeParameterConflict(
           libraryBuilder,
-          synthesizedDefaultConstructorBuilder!.name,
-          synthesizedDefaultConstructorBuilder!,
-          synthesizedDefaultConstructorBuilder!.fileUri);
+          _synthesizedDefaultConstructorBuilder!.name,
+          _synthesizedDefaultConstructorBuilder!,
+          _synthesizedDefaultConstructorBuilder!.fileUri);
     }
 
     SourceMethodBuilder toStringBuilder = new SourceMethodBuilder(
@@ -366,8 +369,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         modifiers: Modifiers.empty,
         reference: toStringReference,
         tearOffReference: null);
-    nameSpace.addLocalMember(toStringBuilder.name, toStringBuilder,
-        setter: false);
+    addMemberInternal(toStringBuilder, addToNameSpace: true);
     nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
         toStringBuilder.name, toStringBuilder, toStringBuilder.fileUri);
 
@@ -409,9 +411,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // they are processed via the pipeline for constructor parsing and
     // building.
     if (identical(this.supertypeBuilder, _underscoreEnumTypeBuilder)) {
-      if (synthesizedDefaultConstructorBuilder != null) {
+      if (_synthesizedDefaultConstructorBuilder != null) {
         Constructor constructor =
-            synthesizedDefaultConstructorBuilder!.invokeTarget as Constructor;
+            _synthesizedDefaultConstructorBuilder!.invokeTarget as Constructor;
         ClassBuilder objectClass = objectType.declaration as ClassBuilder;
         ClassBuilder enumClass =
             _underscoreEnumTypeBuilder.declaration as ClassBuilder;
@@ -438,7 +440,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   constructor.function, libraryBuilder.library))
             ..parent = constructor);
         }
-        synthesizedDefaultConstructorBuilder = null;
+        _synthesizedDefaultConstructorBuilder = null;
       }
     }
 
@@ -478,6 +480,9 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
       {required Uri fileUri, required int fileOffset})
       : _fileUri = fileUri,
         _fileOffset = fileOffset;
+
+  @override
+  UriOffsetLength get uriOffset => new UriOffset(_fileUri, _fileOffset);
 
   @override
   void buildOutlineExpressions(
@@ -599,7 +604,6 @@ class _EnumValuesFieldDeclaration
   static const String name = "values";
 
   final SourceEnumBuilder _sourceEnumBuilder;
-  final FieldReference fieldReference;
 
   SourcePropertyBuilder? _builder;
 
@@ -609,8 +613,11 @@ class _EnumValuesFieldDeclaration
 
   final TypeBuilder _typeBuilder;
 
-  _EnumValuesFieldDeclaration(
-      this._sourceEnumBuilder, this.fieldReference, this._typeBuilder);
+  _EnumValuesFieldDeclaration(this._sourceEnumBuilder, this._typeBuilder);
+
+  @override
+  UriOffsetLength get uriOffset =>
+      new UriOffset(_sourceEnumBuilder.fileUri, _sourceEnumBuilder.fileOffset);
 
   SourcePropertyBuilder get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
@@ -621,6 +628,10 @@ class _EnumValuesFieldDeclaration
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void createFieldEncoding(SourcePropertyBuilder builder) {}
 
   @override
   Initializer buildErroneousInitializer(Expression effect, Expression value,
@@ -669,8 +680,11 @@ class _EnumValuesFieldDeclaration
   }
 
   @override
-  void buildFieldOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
+  void buildFieldOutlineNode(
+      SourceLibraryBuilder libraryBuilder,
+      NameScheme nameScheme,
+      BuildNodesCallback f,
+      PropertyReferences references,
       {required List<TypeParameter>? classTypeParameters}) {
     fieldType = _typeBuilder.build(libraryBuilder, TypeUse.fieldType);
     _field = new Field.immutable(dummyName,
@@ -680,7 +694,7 @@ class _EnumValuesFieldDeclaration
         isStatic: true,
         fileUri: builder.fileUri,
         fieldReference: references.fieldReference,
-        getterReference: references.fieldGetterReference,
+        getterReference: references.getterReference,
         isEnumElement: false)
       ..fileOffset = builder.fileOffset
       ..fileEndOffset = builder.fileOffset;
@@ -717,6 +731,7 @@ class _EnumValuesFieldDeclaration
   bool get hasInitializer => true;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasSetter => false;
 
   @override
@@ -740,7 +755,12 @@ class _EnumValuesFieldDeclaration
   bool get isLate => false;
 
   @override
-  List<ClassMember> get localMembers => [new _EnumValuesClassMember(builder)];
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => true;
+
+  @override
+  List<ClassMember> get localMembers =>
+      [new _EnumValuesClassMember(builder, uriOffset)];
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -770,7 +790,6 @@ class _EnumValuesFieldDeclaration
   FieldQuality get fieldQuality => FieldQuality.Concrete;
 
   @override
-  // Coverage-ignore(suite): Not run.
   GetterQuality get getterQuality => GetterQuality.Implicit;
 
   @override
@@ -836,15 +855,15 @@ class _EnumValuesFieldDeclaration
 class _EnumValuesClassMember implements ClassMember {
   final SourcePropertyBuilder _builder;
 
+  @override
+  final UriOffsetLength uriOffset;
+
   Covariance? _covariance;
 
-  _EnumValuesClassMember(this._builder);
+  _EnumValuesClassMember(this._builder, this.uriOffset);
 
   @override
   bool get forSetter => false;
-
-  @override
-  int get charOffset => _builder.fileOffset;
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -856,16 +875,13 @@ class _EnumValuesClassMember implements ClassMember {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Uri get fileUri => _builder.fileUri;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   String get fullName {
     String className = declarationBuilder.fullNameForErrors;
     return "${className}.${fullNameForErrors}";
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullNameForErrors => _builder.fullNameForErrors;
 
   @override

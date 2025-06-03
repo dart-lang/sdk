@@ -527,9 +527,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: dart:foo::<fragment>::@class::A::@method::foo#element
+    element: dart:foo::@class::A::@method::foo
     staticType: void Function()
-  element: dart:foo::<fragment>::@class::A::@method::foo#element
+  element: dart:foo::@class::A::@method::foo
   staticType: void Function()
 ''');
   }
@@ -570,7 +570,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: dart:foo::<fragment>::@class::A::@method::foo#element
+    element: dart:foo::@class::A::@method::foo
     staticType: void Function()
   staticType: void Function()
 ''');

@@ -1,0 +1,58 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type E1(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor • = self::E1|constructor#;
+  constructor tearoff • = self::E1|constructor#_#new#tearOff;
+  constructor hashCode = self::E1|constructor#hashCode;
+  constructor tearoff hashCode = self::E1|constructor#_#hashCode#tearOff;
+  constructor runtimeType = self::E1|constructor#runtimeType;
+  constructor tearoff runtimeType = self::E1|constructor#_#runtimeType#tearOff;
+  constructor toString = self::E1|constructor#toString;
+  constructor tearoff toString = self::E1|constructor#_#toString#tearOff;
+}
+extension type E2(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor • = self::E2|constructor#;
+  constructor tearoff • = self::E2|constructor#_#new#tearOff;
+  static redirecting-factory hashCode = self::E2|constructor#hashCode;
+  static redirecting-factory tearoff hashCode = self::E2|constructor#_#hashCode#tearOff;
+  static redirecting-factory runtimeType = self::E2|constructor#runtimeType;
+  static redirecting-factory tearoff runtimeType = self::E2|constructor#_#runtimeType#tearOff;
+  static redirecting-factory toString = self::E2|constructor#toString;
+  static redirecting-factory tearoff toString = self::E2|constructor#_#toString#tearOff;
+}
+static extension-type-member method E1|constructor#(core::int i) → self::E1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method E1|constructor#_#new#tearOff(core::int i) → self::E1% /* erasure=core::int, declared=! */
+  return self::E1|constructor#(i);
+static extension-type-member method E1|constructor#hashCode(core::int i) → self::E1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method E1|constructor#_#hashCode#tearOff(core::int i) → self::E1% /* erasure=core::int, declared=! */
+  return self::E1|constructor#hashCode(i);
+static extension-type-member method E1|constructor#runtimeType(core::int i) → self::E1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method E1|constructor#_#runtimeType#tearOff(core::int i) → self::E1% /* erasure=core::int, declared=! */
+  return self::E1|constructor#runtimeType(i);
+static extension-type-member method E1|constructor#toString(core::int i) → self::E1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method E1|constructor#_#toString#tearOff(core::int i) → self::E1% /* erasure=core::int, declared=! */
+  return self::E1|constructor#toString(i);
+static extension-type-member method E2|constructor#(core::int i) → self::E2% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method E2|constructor#_#new#tearOff(core::int i) → self::E2% /* erasure=core::int, declared=! */
+  return self::E2|constructor#(i);
+static extension-type-member method E2|constructor#hashCode(core::int i) → self::E2% /* erasure=core::int, declared=! */ /* redirection-target: self::E2|constructor# */
+  return self::E2|constructor#(i);
+static extension-type-member synthetic method E2|constructor#_#hashCode#tearOff(core::int i) → self::E2% /* erasure=core::int, declared=! */
+  return self::E2|constructor#(i);
+static extension-type-member method E2|constructor#runtimeType(core::int i) → self::E2% /* erasure=core::int, declared=! */ /* redirection-target: self::E2|constructor# */
+  return self::E2|constructor#(i);
+static extension-type-member synthetic method E2|constructor#_#runtimeType#tearOff(core::int i) → self::E2% /* erasure=core::int, declared=! */
+  return self::E2|constructor#(i);
+static extension-type-member method E2|constructor#toString(core::int i) → self::E2% /* erasure=core::int, declared=! */ /* redirection-target: self::E2|constructor# */
+  return self::E2|constructor#(i);
+static extension-type-member synthetic method E2|constructor#_#toString#tearOff(core::int i) → self::E2% /* erasure=core::int, declared=! */
+  return self::E2|constructor#(i);

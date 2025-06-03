@@ -97,7 +97,7 @@ Future<void> main() async {
         indexedLibrary: null,
         forAugmentationLibrary: false,
         augmentationRoot: null,
-        nameOrigin: null,
+        resolveInLibrary: null,
         referenceIsPartOwner: null,
         forPatchLibrary: false,
         isAugmenting: false,
@@ -116,7 +116,7 @@ Future<void> main() async {
         isUnsupported: false,
         isAugmentation: false,
         isPatch: false,
-        importNameSpace: new NameSpaceImpl(),
+        importNameSpace: new ComputedMutableNameSpace(),
         libraryNameSpaceBuilder: new LibraryNameSpaceBuilder());
     libraryBuilder.compilationUnit.markLanguageVersionFinal();
     LoadLibraryBuilder loadLibraryBuilder = new LoadLibraryBuilder(

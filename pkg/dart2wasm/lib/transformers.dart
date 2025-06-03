@@ -72,6 +72,55 @@ class _WasmTransformer extends Transformer {
 
   CoreTypes get coreTypes => env.coreTypes;
 
+  /// Maps error handling function, constructor, factory references to functions
+  /// that, when minifying, throw errors without details, saving binary space.
+  ///
+  /// Calls to these error handling function etc. references are transformed
+  /// when they are introduced by the front-end, as indicated by
+  /// [Throw.forErrorHandling].
+  late final Map<Reference, Procedure> _errorHandlingFunctions = {
+    coreTypes.index
+            .getConstructor('dart:_internal', 'LateError', 'fieldADI')
+            .reference:
+        coreTypes.index.getTopLevelProcedure(
+            'dart:_error_utils', '_throwLateErrorFieldADI'),
+    coreTypes.index
+            .getConstructor('dart:_internal', 'LateError', 'localADI')
+            .reference:
+        coreTypes.index.getTopLevelProcedure(
+            'dart:_error_utils', '_throwLateErrorLocalADI'),
+    coreTypes.index
+            .getConstructor('dart:_internal', 'LateError', 'fieldNI')
+            .reference:
+        coreTypes.index.getTopLevelProcedure(
+            'dart:_error_utils', '_throwLateErrorFieldNI'),
+    coreTypes.index
+            .getConstructor('dart:_internal', 'LateError', 'localNI')
+            .reference:
+        coreTypes.index.getTopLevelProcedure(
+            'dart:_error_utils', '_throwLateErrorLocalNI'),
+    coreTypes.index
+            .getConstructor('dart:_internal', 'LateError', 'fieldAI')
+            .reference:
+        coreTypes.index.getTopLevelProcedure(
+            'dart:_error_utils', '_throwLateErrorFieldAI'),
+    coreTypes.index
+            .getConstructor('dart:_internal', 'LateError', 'localAI')
+            .reference:
+        coreTypes.index.getTopLevelProcedure(
+            'dart:_error_utils', '_throwLateErrorLocalAI'),
+    coreTypes.index
+            .getProcedure('dart:core', 'NoSuchMethodError', 'withInvocation')
+            .reference:
+        coreTypes.index.getTopLevelProcedure(
+            'dart:_error_utils', '_throwNoSuchMethodErrorWithInvocation'),
+    coreTypes.index
+            .getConstructor('dart:_internal', 'ReachabilityError', '')
+            .reference:
+        coreTypes.index.getTopLevelProcedure(
+            'dart:_error_utils', '_throwReachabilityError'),
+  };
+
   _WasmTransformer(CoreTypes coreTypes, ClassHierarchy hierarchy)
       : env = TypeEnvironment(coreTypes, hierarchy),
         _nonNullableTypeType = coreTypes.index
@@ -811,6 +860,28 @@ class _WasmTransformer extends Transformer {
           StringLiteral('${import.enclosingLibrary.importUri}'),
           StringLiteral(import.name!)
         ]));
+  }
+
+  @override
+  TreeNode visitThrow(Throw node) {
+    node.transformChildren(this);
+    if (node.forErrorHandling) {
+      final expression = node.expression;
+      if (expression is ConstructorInvocation) {
+        final throwFunction =
+            _errorHandlingFunctions[expression.targetReference];
+        if (throwFunction != null) {
+          return StaticInvocation(throwFunction, expression.arguments);
+        }
+      } else if (expression is StaticInvocation) {
+        final throwFunction =
+            _errorHandlingFunctions[expression.targetReference];
+        if (throwFunction != null) {
+          return StaticInvocation(throwFunction, expression.arguments);
+        }
+      }
+    }
+    return node;
   }
 }
 

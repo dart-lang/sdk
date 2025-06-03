@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,7 +18,8 @@ class PreferAdjacentStringConcatenation extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_adjacent_string_concatenation;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.prefer_adjacent_string_concatenation;
 
   @override
   void registerNodeProcessors(

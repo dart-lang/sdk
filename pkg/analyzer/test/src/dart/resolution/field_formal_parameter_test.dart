@@ -74,6 +74,7 @@ FieldFormalParameter
       TypeParameter
         name: U
         declaredElement: U@45
+          defaultType: null
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
@@ -115,9 +116,11 @@ FieldFormalParameter
       TypeParameter
         name: T
         declaredElement: T@54
+          defaultType: null
       TypeParameter
         name: U
         declaredElement: U@57
+          defaultType: null
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (

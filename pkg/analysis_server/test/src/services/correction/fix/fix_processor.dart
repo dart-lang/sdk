@@ -16,15 +16,13 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:analyzer_utilities/test/experiments/experiments.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../../abstract_context.dart';
 import '../../../../abstract_single_unit.dart';
 import '../../../../utils/test_instrumentation_service.dart';
-
-export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
 typedef ErrorFilter = bool Function(Diagnostic diagnostic);
 

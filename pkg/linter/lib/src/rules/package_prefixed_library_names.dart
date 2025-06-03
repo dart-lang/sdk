@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -20,7 +21,8 @@ class PackagePrefixedLibraryNames extends LintRule {
     : super(name: LintNames.package_prefixed_library_names, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.package_prefixed_library_names;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.package_prefixed_library_names;
 
   @override
   void registerNodeProcessors(

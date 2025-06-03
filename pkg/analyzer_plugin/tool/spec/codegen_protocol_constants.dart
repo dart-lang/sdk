@@ -10,14 +10,14 @@ import 'from_html.dart';
 
 final GeneratedFile target = GeneratedFile(
     'lib/protocol/protocol_constants.dart', (String pkgPath) async {
-  var visitor = CodegenVisitor(readApi(pkgPath));
+  var visitor = _CodegenVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
 /// A visitor that produces Dart code defining constants associated with the
 /// API.
-class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
-  CodegenVisitor(super.api) {
+class _CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
+  _CodegenVisitor(super.api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.docCommentStartMarker = null;
     codeGeneratorSettings.docCommentLineLeader = '/// ';

@@ -19,10 +19,6 @@ import 'package:meta/meta.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AnalysisContext {
-  /// The analysis options used to control the way the code is analyzed.
-  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
-  AnalysisOptions get analysisOptions;
-
   /// Return the context root from which this context was created.
   ContextRoot get contextRoot;
 

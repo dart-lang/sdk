@@ -16,6 +16,7 @@ import 'use_flag_test_helper.dart';
 const int headerSize = 8;
 final int compressedWordSize =
     sizeOf<Pointer>() == 8 && !Platform.executable.contains('64C') ? 8 : 4;
+const int wordSize = 8; // analyze_snapshot is not supported on arm32
 
 // Used to ensure we don't have multiple equivalent calls to test.
 final _seenDescriptions = <String>{};
@@ -83,7 +84,7 @@ Future<void> testAOT(
     if (useAsm) {
       final assemblyPath = path.join(tempDir, 'test.S');
 
-      await run(genSnapshot, <String>[
+      await (disassemble ? runSilent : run)(genSnapshot, <String>[
         '--snapshot-kind=app-aot-assembly',
         '--assembly=$assemblyPath',
         ...commonSnapshotArgs,
@@ -91,7 +92,7 @@ Future<void> testAOT(
 
       await assembleSnapshot(assemblyPath, snapshotPath);
     } else {
-      await run(genSnapshot, <String>[
+      await (disassemble ? runSilent : run)(genSnapshot, <String>[
         '--snapshot-kind=app-aot-elf',
         '--elf=$snapshotPath',
         ...commonSnapshotArgs,
@@ -213,14 +214,17 @@ Future<void> testAOT(
             .key];
     final baseFieldIds = baseClass['fields'];
     final baseFields = [for (final int id in baseFieldIds) objects[id]];
-    final baseSlots = baseClass['instance_slots'];
+    final baseSlots = baseClass['instance_slots']
+        .map<Map>((e) => e as Map)
+        .toList();
     final subFieldIds = subClass['fields'];
     final subFields = [for (final int id in subFieldIds) objects[id]];
     final subSlots = subClass['instance_slots'];
 
     // We have:
     //   class Base {
-    //     static int baseS = int.parse('1');
+    //     static int baseS0 = int.parse('1');
+    //     static int baseS1 = int.parse('2');
     //     int base0;
     //     double base1;
     //     Object? base2;
@@ -229,10 +233,17 @@ Future<void> testAOT(
     //   }
     //
     // This static field is never tree shaken.
-    expectField(baseFields[0], name: 'baseS', flags: ['static']);
+    expectField(baseFields[0], name: 'baseS0', flags: ['static']);
+    expectField(baseFields[1], name: 'baseS1', flags: ['static']);
+
+    // Neighboring static fields should always be one word away
+    final int staticFieldOffset0 = baseFields[0]["static_field_offset"];
+    final int staticFieldOffset1 = baseFields[1]["static_field_offset"];
+    Expect.equals(staticFieldOffset1 - staticFieldOffset0, wordSize);
+
     if (isProduct) {
       // Most [Field] objests are tree shaken.
-      Expect.equals(1, baseFields.length);
+      Expect.equals(2, baseFields.length);
 
       int slotOffset = 0;
       slotOffset += expectUnknown8Bytes(
@@ -246,7 +257,7 @@ Future<void> testAOT(
         offsetBytes: 8,
       );
       slotOffset += expectUnknownReference(
-        baseSlots.skip(slotOffset),
+        baseSlots[slotOffset],
         offsetReferences: 0,
         offsetBytes: 16,
       );
@@ -262,28 +273,28 @@ Future<void> testAOT(
       );
     } else {
       // We don't tree shake [Field] objects in non-product builds.
-      Expect.equals(6, baseFields.length);
+      Expect.equals(7, baseFields.length);
       expectField(
-        baseFields[1],
+        baseFields[2],
         name: 'base0',
         isReference: false,
         unboxedType: 'int',
       );
       expectField(
-        baseFields[2],
+        baseFields[3],
         name: 'base1',
         isReference: false,
         unboxedType: 'double',
       );
-      expectField(baseFields[3], name: 'base2');
+      expectField(baseFields[4], name: 'base2');
       expectField(
-        baseFields[4],
+        baseFields[5],
         name: 'base3',
         isReference: false,
         unboxedType: 'Float32x4',
       );
       expectField(
-        baseFields[5],
+        baseFields[6],
         name: 'base4',
         isReference: false,
         unboxedType: 'Float64x2',
@@ -294,34 +305,34 @@ Future<void> testAOT(
         offsetReferences: 0,
         offsetBytes: 0,
         isReference: false,
-        fieldId: baseFieldIds[1],
+        fieldId: baseFieldIds[2],
       );
       slotOffset += expectInstanceSlot(
         baseSlots[slotOffset],
         offsetReferences: 0,
         offsetBytes: 8,
         isReference: false,
-        fieldId: baseFieldIds[2],
+        fieldId: baseFieldIds[3],
       );
       slotOffset += expectInstanceSlot(
         baseSlots[slotOffset],
         offsetReferences: 0,
         offsetBytes: 16,
-        fieldId: baseFieldIds[3],
+        fieldId: baseFieldIds[4],
       );
       slotOffset += expectInstanceSlot(
         baseSlots[slotOffset],
         offsetReferences: 1,
         offsetBytes: 16,
         isReference: false,
-        fieldId: baseFieldIds[4],
+        fieldId: baseFieldIds[5],
       );
       slotOffset += expectInstanceSlot(
         baseSlots[slotOffset],
         offsetReferences: 1,
         offsetBytes: 32,
         isReference: false,
-        fieldId: baseFieldIds[5],
+        fieldId: baseFieldIds[6],
       );
     }
     // We have:
@@ -559,8 +570,10 @@ main() async {
     // Test unstripped ELF generation that is then externally stripped.
     await Future.wait([testAOT(aotDillPath, stripUtil: true)]);
 
-    // Dont test assembled snapshot for simulated platforms
-    if (!buildDir.endsWith("SIMARM64") && !buildDir.endsWith("SIMARM64C")) {
+    // Dont test assembled snapshot for simulated platforms or macos
+    if (!buildDir.endsWith("SIMARM64") &&
+        !buildDir.endsWith("SIMARM64C") &&
+        !Platform.isMacOS) {
       await Future.wait([
         // Test unstripped assembly generation that is then externally stripped.
         testAOT(aotDillPath, useAsm: true),

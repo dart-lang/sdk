@@ -89,6 +89,7 @@ void f() {
 ''',
       [
         _notAssignedError(22, 1),
+        error(WarningCode.DEAD_CODE, 28, 2),
         error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
       ],
     );
@@ -104,6 +105,7 @@ void f() {
 ''',
       [
         _notAssignedError(22, 1),
+        error(WarningCode.DEAD_CODE, 28, 2),
         error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
         _notAssignedError(28, 1),
       ],
@@ -129,7 +131,10 @@ void f() {
   v;
 }
 ''',
-      [error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1)],
+      [
+        error(WarningCode.DEAD_CODE, 30, 4),
+        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1),
+      ],
     );
   }
 
@@ -143,6 +148,7 @@ void f(int a) {
 }
 ''',
       [
+        error(WarningCode.DEAD_CODE, 29, 10),
         error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 32, 7),
         _notAssignedError(43, 1),
       ],

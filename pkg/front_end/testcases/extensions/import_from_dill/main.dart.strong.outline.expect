@@ -12,15 +12,15 @@ import "dart:core" as core;
 
 extension Extension on core::int {
   get instanceProperty = self2::Extension|get#instanceProperty;
+  set instanceProperty = self2::Extension|set#instanceProperty;
   method instanceMethod = self2::Extension|instanceMethod;
   method tearoff instanceMethod = self2::Extension|get#instanceMethod;
   static field staticField = self2::Extension|staticField;
   static field staticFinalField = self2::Extension|staticFinalField;
   static field staticConstField = self2::Extension|staticConstField;
   static get staticProperty = get self2::Extension|staticProperty;
-  static method staticMethod = self2::Extension|staticMethod;
-  set instanceProperty = self2::Extension|set#instanceProperty;
   static set staticProperty = set self2::Extension|staticProperty;
+  static method staticMethod = self2::Extension|staticMethod;
 }
 static field core::int Extension|staticField;
 static final field core::int Extension|staticFinalField;

@@ -28,9 +28,9 @@ extension type ExtensionType(core::int it) {
   method tearoff instanceMethod = self2::ExtensionType|get#instanceMethod;
   operator + = self2::ExtensionType|+;
   get instanceGetter = self2::ExtensionType|get#instanceGetter;
+  set instanceSetter = self2::ExtensionType|set#instanceSetter;
   static method staticMethod = self2::ExtensionType|staticMethod;
   static get staticGetter = get self2::ExtensionType|staticGetter;
-  set instanceSetter = self2::ExtensionType|set#instanceSetter;
   static set staticSetter = set self2::ExtensionType|staticSetter;
   constructor • = self2::ExtensionType|constructor#;
   constructor tearoff • = self2::ExtensionType|constructor#_#new#tearOff;

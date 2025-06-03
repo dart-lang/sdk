@@ -45,22 +45,22 @@ class NamedTypeBuilder extends TypeBuilder {
   /// and set for the [node].
   TypeImpl? _type;
 
-  NamedTypeBuilder(
-    this.linker,
-    this.typeSystem,
-    this.element3,
-    this.arguments,
-    this.nullabilitySuffix, {
+  NamedTypeBuilder({
+    required this.linker,
+    required this.typeSystem,
+    required this.element3,
+    required this.arguments,
+    required this.nullabilitySuffix,
     this.node,
   });
 
-  factory NamedTypeBuilder.of(
-    Linker linker,
-    TypeSystemImpl typeSystem,
-    NamedTypeImpl node,
-    Element element,
-    NullabilitySuffix nullabilitySuffix,
-  ) {
+  factory NamedTypeBuilder.of({
+    required Linker linker,
+    required TypeSystemImpl typeSystem,
+    required NamedTypeImpl node,
+    required Element element,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
     List<TypeImpl> arguments;
     var argumentList = node.typeArguments;
     if (argumentList != null) {
@@ -70,29 +70,11 @@ class NamedTypeBuilder extends TypeBuilder {
     }
 
     return NamedTypeBuilder(
-      linker,
-      typeSystem,
-      element,
-      arguments,
-      nullabilitySuffix,
-      node: node,
-    );
-  }
-
-  factory NamedTypeBuilder.v2({
-    required Linker linker,
-    required TypeSystemImpl typeSystem,
-    required Element element,
-    required List<TypeImpl> arguments,
-    required NullabilitySuffix nullabilitySuffix,
-    NamedTypeImpl? node,
-  }) {
-    return NamedTypeBuilder(
-      linker,
-      typeSystem,
-      element,
-      arguments,
-      nullabilitySuffix,
+      linker: linker,
+      typeSystem: typeSystem,
+      element3: element,
+      arguments: arguments,
+      nullabilitySuffix: nullabilitySuffix,
       node: node,
     );
   }
@@ -171,11 +153,11 @@ class NamedTypeBuilder extends TypeBuilder {
     }
 
     return NamedTypeBuilder(
-      linker,
-      typeSystem,
-      element3,
-      arguments,
-      nullabilitySuffix,
+      linker: linker,
+      typeSystem: typeSystem,
+      element3: element3,
+      arguments: arguments,
+      nullabilitySuffix: nullabilitySuffix,
       node: node,
     );
   }

@@ -5,13 +5,16 @@
 library objectpool_view;
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -82,12 +85,12 @@ class ObjectPoolViewElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    children = <Element>[
-      navBar(<Element>[
+    children = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -101,44 +104,50 @@ class ObjectPoolViewElement extends CustomElement implements Renderable {
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h2()..text = 'ObjectPool',
-          new HRElement(),
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h2()..textContent = 'ObjectPool',
+          new HTMLHRElement(),
           new ObjectCommonElement(_isolate, _pool, _retainedSizes,
                   _reachableSizes, _references, _retainingPaths, _objects,
                   queue: _r.queue)
               .element,
-          new HRElement(),
-          new HeadingElement.h3()..text = 'entries (${_pool.entries!.length})',
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = _pool.entries!
-                .map<Element>((entry) => new DivElement()
-                  ..classes = ['memberItem']
-                  ..children = <Element>[
-                    new DivElement()
-                      ..classes = ['memberName', 'hexadecimal']
-                      ..text = '[PP+0x${entry.offset.toRadixString(16)}]',
-                    new DivElement()
-                      ..classes = ['memberName']
-                      ..children = _createEntry(entry)
-                  ])
-                .toList(),
-        ]
+          new HTMLHRElement(),
+          new HTMLHeadingElement.h3()
+            ..textContent = 'entries (${_pool.entries!.length})',
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(
+                _pool.entries!.map<HTMLElement>((entry) => new HTMLDivElement()
+                  ..className = 'memberItem'
+                  ..appendChildren(<HTMLElement>[
+                    new HTMLDivElement()
+                      ..className = 'memberName hexadecimal'
+                      ..textContent =
+                          '[PP+0x${entry.offset.toRadixString(16)}]',
+                    new HTMLDivElement()
+                      ..className = 'memberName'
+                      ..appendChildren(_createEntry(entry))
+                  ]))),
+        ])
     ];
   }
 
-  List<Element> _createEntry(M.ObjectPoolEntry entry) {
+  List<HTMLElement> _createEntry(M.ObjectPoolEntry entry) {
     switch (entry.kind) {
       case M.ObjectPoolEntryKind.nativeEntryData:
       case M.ObjectPoolEntryKind.object:
         return [anyRef(_isolate, entry.asObject, _objects, queue: _r.queue)];
       case M.ObjectPoolEntryKind.immediate:
-        return [new SpanElement()..text = 'Immediate ${entry.asImmediate!}'];
+        return [
+          new HTMLSpanElement()..textContent = 'Immediate ${entry.asImmediate!}'
+        ];
       case M.ObjectPoolEntryKind.nativeEntry:
-        return [new SpanElement()..text = 'NativeEntry ${entry.asImmediate!}'];
+        return [
+          new HTMLSpanElement()
+            ..textContent = 'NativeEntry ${entry.asImmediate!}'
+        ];
     }
   }
 }

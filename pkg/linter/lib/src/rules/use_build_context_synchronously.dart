@@ -6,10 +6,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/resolver/exit_detector.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/lint/constants.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/resolver/exit_detector.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -918,16 +918,16 @@ class ProtectedFunction {
   });
 }
 
-class UseBuildContextSynchronously extends LintRule {
+class UseBuildContextSynchronously extends MultiAnalysisRule {
   UseBuildContextSynchronously()
     : super(
         name: LintNames.use_build_context_synchronously,
         description: _desc,
-        state: State.stable(since: Version(3, 2, 0)),
+        state: RuleState.stable(since: Version(3, 2, 0)),
       );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.use_build_context_synchronously_async_use,
     LinterLintCode.use_build_context_synchronously_wrong_mounted,
   ];
@@ -937,8 +937,7 @@ class UseBuildContextSynchronously extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var unit = context.definingUnit.unit;
-    if (!unit.inTestDir) {
+    if (!context.isInTestDirectory) {
       var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);
       registry.addInstanceCreationExpression(this, visitor);
@@ -1100,7 +1099,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     ProtectedFunction('dart.async', 'Future', 'wait', named: ['cleanUp']),
   ];
 
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -1124,7 +1123,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             asyncStateTracker.hasUnrelatedMountedCheck
                 ? LinterLintCode.use_build_context_synchronously_wrong_mounted
                 : LinterLintCode.use_build_context_synchronously_async_use;
-        rule.reportAtNode(node, errorCode: errorCode);
+        rule.reportAtNode(node, diagnosticCode: errorCode);
         return;
       }
 
@@ -1268,7 +1267,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (callback == argument.expression) {
         rule.reportAtNode(
           errorNode,
-          errorCode: LinterLintCode.use_build_context_synchronously_async_use,
+          diagnosticCode:
+              LinterLintCode.use_build_context_synchronously_async_use,
         );
       }
     }
@@ -1287,7 +1287,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           callback == positionalArguments[position]) {
         rule.reportAtNode(
           errorNode,
-          errorCode: LinterLintCode.use_build_context_synchronously_async_use,
+          diagnosticCode:
+              LinterLintCode.use_build_context_synchronously_async_use,
         );
       }
     }
@@ -1457,12 +1458,12 @@ extension ElementExtension on Element {
     var self = this;
 
     if (self is PropertyAccessorElement) {
-      var enclosingElement = self.enclosingElement2;
+      var enclosingElement = self.enclosingElement;
       if (enclosingElement is InterfaceElement && isState(enclosingElement)) {
         // The BuildContext object is the field on Flutter's State class.
         // This object can only be guarded by async gaps with a mounted
         // check on the State.
-        return enclosingElement.lookUpGetter2(
+        return enclosingElement.lookUpGetter(
           name: 'mounted',
           library: enclosingElement.library2,
         );
@@ -1476,7 +1477,7 @@ extension ElementExtension on Element {
           _ => null,
         }?.element3;
     if (buildContextElement is InterfaceElement) {
-      return buildContextElement.lookUpGetter2(
+      return buildContextElement.lookUpGetter(
         name: 'mounted',
         library: buildContextElement.library2,
       );

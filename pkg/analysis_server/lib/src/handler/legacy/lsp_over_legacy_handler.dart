@@ -69,6 +69,7 @@ class LspOverLegacyHandler extends LegacyHandler {
       performance: performance,
       clientCapabilities: server.editorClientCapabilities,
       timeSinceRequest: request.timeSinceRequest,
+      isTrustedCaller: true,
     );
 
     ErrorOr<Object?> result;

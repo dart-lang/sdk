@@ -134,6 +134,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_annotation.d
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_assignment.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_async.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_break.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_character.dart';
@@ -178,6 +179,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_this_express
 import 'package:analysis_server/src/services/correction/dart/remove_to_list.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unawaited.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unexpected_underscores.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_final.dart';
@@ -488,6 +490,7 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
     ConvertToWildcardPattern.new,
   ],
   LinterLintCode.unawaited_futures: [AddAwait.unawaited, WrapInUnawaited.new],
+  LinterLintCode.unnecessary_async: [RemoveAsync.unnecessary],
   LinterLintCode.unnecessary_await_in_return: [RemoveAwait.new],
   LinterLintCode.unnecessary_brace_in_string_interps: [
     RemoveInterpolationBraces.new,
@@ -528,6 +531,7 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
   ],
   LinterLintCode.unnecessary_to_list_in_spreads: [RemoveToList.new],
   LinterLintCode.unnecessary_this: [RemoveThisExpression.new],
+  LinterLintCode.unnecessary_unawaited: [RemoveUnawaited.new],
   LinterLintCode.unnecessary_underscores: [ConvertToWildcardVariable.new],
   LinterLintCode.unreachable_from_main: [RemoveUnusedElement.new],
   LinterLintCode.use_colored_box: [ReplaceContainerWithColoredBox.new],
@@ -692,10 +696,14 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
     AddFieldFormalParameters.new,
   ],
+  CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE: [AddAwait.forIn],
   CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE: [
     ReplaceReturnTypeStream.new,
   ],
-  CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE: [ReplaceReturnTypeFuture.new],
+  CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE: [
+    ReplaceReturnTypeFuture.new,
+    RemoveAsync.new,
+  ],
   CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE: [
     ReplaceReturnTypeIterable.new,
   ],

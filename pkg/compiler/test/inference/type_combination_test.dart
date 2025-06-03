@@ -14,8 +14,6 @@ import 'package:compiler/src/util/memory_compiler.dart';
 
 late TypeMask nullType;
 late TypeMask objectType;
-late TypeMask interceptedObjectType;
-late TypeMask nonInterceptedObjectType;
 late TypeMask jsBoolean;
 late TypeMask jsNumber;
 late TypeMask jsInteger;
@@ -26,7 +24,6 @@ late TypeMask jsIntegerOrNull;
 late TypeMask jsNumNotIntOrNull;
 late TypeMask emptyType;
 late TypeMask dynamicType;
-late TypeMask interceptedType;
 
 var patternClass;
 late TypeMask nonPrimitive1;
@@ -55,62 +52,57 @@ late TypeMask jsInterceptorOrNull;
 late TypeMask jsInterceptorOrComparableOrNull;
 late TypeMask jsTrustedGetRuntimeTypeOrNull;
 
-class Pair {
-  final first;
-  final second;
-  Pair(this.first, this.second);
-  @override
-  int get hashCode => first.hashCode * 47 + second.hashCode;
-  @override
-  bool operator ==(other) =>
-      other is Pair &&
-      identical(first, other.first) &&
-      identical(second, other.second);
-}
+typedef Operator = TypeMask Function(TypeMask, TypeMask);
+typedef Predicate = bool Function(TypeMask);
 
 class RuleSet {
-  final name;
-  final operate;
-  final Set typesSeen = {};
-  final Set pairsSeen = {};
+  final String name;
+  final Operator operate;
+  final CommonMasks masks;
+  final Set<TypeMask> typesSeen = {};
+  final Set<(TypeMask, TypeMask)> pairsSeen = {};
 
-  RuleSet(this.name, this.operate);
+  RuleSet(this.name, this.operate, this.masks);
 
-  void rule(type1, type2, result) {
+  void rule(TypeMask type1, TypeMask type2, TypeMask result) {
     typesSeen
       ..add(type1)
       ..add(type2);
-    var pair1 = Pair(type1, type2);
-    var pair2 = Pair(type2, type1);
+    final pair1 = (type1, type2);
+    final pair2 = (type2, type1);
     if (pairsSeen.contains(pair1)) {
-      Expect.isFalse(true, 'Redundant rule ($type1, $type2, ...)');
+      Expect.fail('Redundant rule ($type1, $type2, ...)');
     }
     pairsSeen
       ..add(pair1)
       ..add(pair2);
 
-    var r1 = operate(type1, type2);
-    var r2 = operate(type2, type1);
-    Expect.equals(result, r1, "Unexpected result of $name($type1,$type2)");
-    Expect.equals(r1, r2, 'Symmetry violation of $name($type1,$type2)');
+    final r1 = operate(type1, type2);
+    final r2 = operate(type2, type1);
+    Expect.equals(
+      result.withOnlySpecialValuesForTesting(masks),
+      r1.withOnlySpecialValuesForTesting(masks),
+      "Unexpected result of $name($type1, $type2)",
+    );
+    Expect.equals(r1, r2, 'Symmetry violation of $name($type1, $type2)');
   }
 
-  void check(type1, type2, predicate) {
+  void check(TypeMask type1, TypeMask type2, Predicate predicate) {
     typesSeen
       ..add(type1)
       ..add(type2);
-    var pair = Pair(type1, type2);
-    pairsSeen..add(pair);
-    var result = operate(type1, type2);
+    final pair = (type1, type2);
+    pairsSeen.add(pair);
+    final result = operate(type1, type2);
     Expect.isTrue(predicate(result));
   }
 
   void validateCoverage() {
-    for (var type1 in typesSeen) {
-      for (var type2 in typesSeen) {
-        var pair = Pair(type1, type2);
+    for (final type1 in typesSeen) {
+      for (final type2 in typesSeen) {
+        final pair = (type1, type2);
         if (!pairsSeen.contains(pair)) {
-          Expect.isTrue(false, 'Missing rule: $name($type1, $type2)');
+          Expect.fail('Missing rule: $name($type1, $type2)');
         }
       }
     }
@@ -121,10 +113,13 @@ void testUnion(JClosedWorld closedWorld) {
   final commonMasks = closedWorld.abstractValueDomain as CommonMasks;
   RuleSet ruleSet = RuleSet(
     'union',
-    (t1, t2) => simplify(t1.union(t2, commonMasks), commonMasks),
+    (t1, t2) => simplify(t1.union(t2, commonMasks), commonMasks) as TypeMask,
+    commonMasks,
   );
-  rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
-  check(type1, type2, predicate) => ruleSet.check(type1, type2, predicate);
+  rule(TypeMask type1, TypeMask type2, TypeMask result) =>
+      ruleSet.rule(type1, type2, result);
+  check(TypeMask type1, TypeMask type2, Predicate predicate) =>
+      ruleSet.check(type1, type2, predicate);
 
   rule(emptyType, emptyType, emptyType);
   rule(emptyType, dynamicType, dynamicType);
@@ -177,7 +172,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsBoolean, jsNumber, jsInterceptor);
   rule(jsBoolean, jsInteger, jsTrustedGetRuntimeType);
   rule(jsBoolean, jsNumNotInt, jsTrustedGetRuntimeType);
-  rule(jsBoolean, jsIndexable, interceptedObjectType);
+  rule(jsBoolean, jsIndexable, objectType);
   rule(jsBoolean, jsString, jsTrustedGetRuntimeType);
   rule(jsBoolean, jsReadableArray, jsInterceptor);
   rule(jsBoolean, jsMutableArray, jsInterceptor);
@@ -198,7 +193,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsNumber, jsNumber, jsNumber);
   rule(jsNumber, jsInteger, jsNumber);
   rule(jsNumber, jsNumNotInt, jsNumber);
-  rule(jsNumber, jsIndexable, interceptedObjectType);
+  rule(jsNumber, jsIndexable, objectType);
   rule(jsNumber, jsString, jsInterceptorOrComparable);
   rule(jsNumber, jsReadableArray, jsInterceptor);
   rule(jsNumber, jsMutableArray, jsInterceptor);
@@ -218,7 +213,7 @@ void testUnion(JClosedWorld closedWorld) {
 
   rule(jsInteger, jsInteger, jsInteger);
   rule(jsInteger, jsNumNotInt, jsNumber);
-  rule(jsInteger, jsIndexable, interceptedObjectType);
+  rule(jsInteger, jsIndexable, objectType);
   rule(jsInteger, jsString, jsInterceptorOrComparable);
   rule(jsInteger, jsReadableArray, jsInterceptor);
   rule(jsInteger, jsMutableArray, jsInterceptor);
@@ -237,7 +232,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsInteger, jsFixedArray, jsInterceptor);
 
   rule(jsNumNotInt, jsNumNotInt, jsNumNotInt);
-  rule(jsNumNotInt, jsIndexable, interceptedObjectType);
+  rule(jsNumNotInt, jsIndexable, objectType);
   rule(jsNumNotInt, jsString, jsInterceptorOrComparable);
   rule(jsNumNotInt, jsReadableArray, jsInterceptor);
   rule(jsNumNotInt, jsMutableArray, jsInterceptor);
@@ -265,10 +260,10 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsIndexable, nonPrimitive2, objectType);
   rule(jsIndexable, potentialArray, dynamicType);
   rule(jsIndexable, potentialString, dynamicType);
-  rule(jsIndexable, jsBooleanOrNull, interceptedType);
-  rule(jsIndexable, jsNumberOrNull, interceptedType);
-  rule(jsIndexable, jsIntegerOrNull, interceptedType);
-  rule(jsIndexable, jsNumNotIntOrNull, interceptedType);
+  rule(jsIndexable, jsBooleanOrNull, dynamicType);
+  rule(jsIndexable, jsNumberOrNull, dynamicType);
+  rule(jsIndexable, jsIntegerOrNull, dynamicType);
+  rule(jsIndexable, jsNumNotIntOrNull, dynamicType);
   rule(jsIndexable, jsStringOrNull, jsIndexableOrNull);
   rule(jsIndexable, nullType, jsIndexableOrNull);
   rule(jsIndexable, jsFixedArray, jsIndexable);
@@ -349,7 +344,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsUnmodifiableArray, jsFixedArray, jsReadableArray);
 
   rule(nonPrimitive1, nonPrimitive1, nonPrimitive1);
-  rule(nonPrimitive1, nonPrimitive2, nonInterceptedObjectType);
+  rule(nonPrimitive1, nonPrimitive2, objectType);
   rule(nonPrimitive1, potentialArray, dynamicType);
   rule(nonPrimitive1, potentialString, dynamicType);
   rule(nonPrimitive1, jsBooleanOrNull, dynamicType);
@@ -451,9 +446,11 @@ void testIntersection(JClosedWorld closedWorld) {
   final commonMasks = closedWorld.abstractValueDomain as CommonMasks;
   RuleSet ruleSet = RuleSet(
     'intersection',
-    (t1, t2) => t1.intersection(t2, closedWorld.abstractValueDomain),
+    (t1, t2) => t1.intersection(t2, commonMasks),
+    commonMasks,
   );
-  rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
+  rule(TypeMask type1, TypeMask type2, TypeMask result) =>
+      ruleSet.rule(type1, type2, result);
 
   rule(emptyType, emptyType, emptyType);
   rule(emptyType, dynamicType, emptyType);
@@ -807,8 +804,8 @@ runTests() async {
     }
     ''',
     },
-    beforeRun:
-        (compiler) => compiler.stopAfterGlobalTypeInferenceForTesting = true,
+    beforeRun: (compiler) =>
+        compiler.stopAfterGlobalTypeInferenceForTesting = true,
   );
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler!;
@@ -822,11 +819,10 @@ runTests() async {
   LibraryEntity coreLibrary = commonElements.coreLibrary;
   patternClass = elementEnvironment.lookupClass(coreLibrary, 'Pattern');
 
-  final trustedGetRuntimeTypeInterface =
-      elementEnvironment.lookupClass(
-        commonElements.jsHelperLibrary!,
-        'TrustedGetRuntimeType',
-      )!;
+  final trustedGetRuntimeTypeInterface = elementEnvironment.lookupClass(
+    commonElements.jsHelperLibrary!,
+    'TrustedGetRuntimeType',
+  )!;
 
   nonPrimitive1 = TypeMask.nonNullSubtype(
     closedWorld.commonElements.mapClass,
@@ -844,15 +840,9 @@ runTests() async {
   jsInterceptor = TypeMask.nonNullSubclass(
     closedWorld.commonElements.jsInterceptorClass,
     commonMasks,
-  ).withoutInterceptorProperty(
-    TypeMaskInterceptorProperty.notInterceptor,
-    commonMasks,
   );
   jsTrustedGetRuntimeType = TypeMask.nonNullSubtype(
     trustedGetRuntimeTypeInterface,
-    commonMasks,
-  ).withoutInterceptorProperty(
-    TypeMaskInterceptorProperty.notInterceptor,
     commonMasks,
   );
   jsArrayOrNull = TypeMask.subclass(
@@ -898,29 +888,17 @@ runTests() async {
   jsIndexableOrNull = TypeMask.subtype(
     closedWorld.commonElements.jsIndexableClass,
     commonMasks,
-  ).withoutInterceptorProperty(
-    TypeMaskInterceptorProperty.notInterceptor,
-    commonMasks,
   );
   jsIndexable = TypeMask.nonNullSubtype(
     closedWorld.commonElements.jsIndexableClass,
-    commonMasks,
-  ).withoutInterceptorProperty(
-    TypeMaskInterceptorProperty.notInterceptor,
     commonMasks,
   );
   jsInterceptorOrNull = TypeMask.subclass(
     closedWorld.commonElements.jsInterceptorClass,
     commonMasks,
-  ).withoutInterceptorProperty(
-    TypeMaskInterceptorProperty.notInterceptor,
-    commonMasks,
   );
   jsTrustedGetRuntimeTypeOrNull = TypeMask.subtype(
     trustedGetRuntimeTypeInterface,
-    commonMasks,
-  ).withoutInterceptorProperty(
-    TypeMaskInterceptorProperty.notInterceptor,
     commonMasks,
   );
   jsStringOrNull = TypeMask.exact(
@@ -968,37 +946,19 @@ runTests() async {
     closedWorld.commonElements.objectClass,
     commonMasks,
   );
-  interceptedObjectType = objectType.withoutInterceptorProperty(
-    TypeMaskInterceptorProperty.notInterceptor,
-    commonMasks,
-  );
-  nonInterceptedObjectType = objectType.withoutInterceptorProperty(
-    TypeMaskInterceptorProperty.interceptor,
-    commonMasks,
-  );
   emptyType = TypeMask.nonNullEmpty(commonMasks);
   dynamicType = TypeMask.subclass(
     closedWorld.commonElements.objectClass,
-    commonMasks,
-  );
-  interceptedType = dynamicType.withoutInterceptorProperty(
-    TypeMaskInterceptorProperty.notInterceptor,
     commonMasks,
   );
 
   jsInterceptorOrComparable = interceptorOrComparable(
     closedWorld,
     nullable: false,
-  ).withoutInterceptorProperty(
-    TypeMaskInterceptorProperty.notInterceptor,
-    commonMasks,
   );
   jsInterceptorOrComparableOrNull = interceptorOrComparable(
     closedWorld,
     nullable: true,
-  ).withoutInterceptorProperty(
-    TypeMaskInterceptorProperty.notInterceptor,
-    commonMasks,
   );
 
   Expect.notEquals(

@@ -134,7 +134,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           InterfaceElementImpl2
         >,
         // TODO(paulberry): not yet used.
-        NullShortingMixin<Null, ExpressionImpl, SharedTypeView> {
+        NullShortingMixin<
+          Null,
+          ExpressionImpl,
+          PromotableElementImpl2,
+          SharedTypeView
+        > {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite], [pushRewrite], and [replaceExpression] will be printed.
   static const bool _debugRewriteStack = false;
@@ -579,9 +584,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
 
-      ErrorCode errorCode;
+      DiagnosticCode diagnosticCode;
       if (typeSystem.isPotentiallyNonNullable(returnType)) {
-        errorCode = CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY;
+        diagnosticCode = CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY;
       } else {
         var returnTypeBase = typeSystem.futureOrBase(returnType);
         if (returnTypeBase is DynamicType ||
@@ -591,23 +596,27 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             returnTypeBase.isDartCoreNull) {
           return;
         } else {
-          errorCode = WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
+          diagnosticCode = WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
         }
       }
       if (errorNode is ConstructorDeclaration) {
         errorReporter.atConstructorDeclaration(
           errorNode,
-          errorCode,
+          diagnosticCode,
           arguments: [returnType],
         );
       } else if (errorNode is BlockFunctionBody) {
         errorReporter.atToken(
           errorNode.block.leftBracket,
-          errorCode,
+          diagnosticCode,
           arguments: [returnType],
         );
       } else if (errorNode is Token) {
-        errorReporter.atToken(errorNode, errorCode, arguments: [returnType]);
+        errorReporter.atToken(
+          errorNode,
+          diagnosticCode,
+          arguments: [returnType],
+        );
       }
     }
   }
@@ -1446,10 +1455,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (node is IndexExpressionImpl) {
       var target = node.target;
       if (target != null) {
-        analyzeExpression(
-          target,
-          SharedTypeSchemaView(UnknownInferredType.instance),
-        );
+        if (isDotShorthand(node)) {
+          // Recovery.
+          // It's a compile-time error to use postfix or prefix operators with
+          // dot shorthands. We provide an unknown type since this shouldn't be
+          // valid code, but we want to prevent any crashes.
+          pushDotShorthandContext(target, operations.unknownType);
+        }
+        analyzeExpression(target, operations.unknownType);
         popRewrite();
       }
 
@@ -2314,7 +2327,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // to be visited in the context of the constructor field initializer node.
     //
     var fieldName = node.fieldName;
-    var fieldElement = enclosingClass!.getField2(fieldName.name);
+    var fieldElement = enclosingClass!.getField(fieldName.name);
     fieldName.element = fieldElement;
     var fieldType = fieldElement?.type ?? UnknownInferredType.instance;
     var expression = node.expression;
@@ -2511,7 +2524,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     checkUnreachableNode(node);
-    var result = _propertyElementResolver.resolveDotShorthand(node);
+    var result = _propertyElementResolver.resolveDotShorthand(
+      node,
+      contextType: contextType,
+    );
     _resolvePropertyAccessRhs_common(
       result,
       node,
@@ -3092,7 +3108,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitImplicitCallReference(covariant ImplicitCallReferenceImpl node) {
+  void visitImplicitCallReference(
+    covariant ImplicitCallReferenceImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
     checkUnreachableNode(node);
     analyzeExpression(
       node.expression,
@@ -3272,7 +3291,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {}
+  void visitLibraryIdentifier(
+    LibraryIdentifier node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {}
 
   @override
   void visitListLiteral(
@@ -3617,19 +3639,27 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitPostfixExpression(
-    PostfixExpression node, {
+    covariant PostfixExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
     checkUnreachableNode(node);
-    _postfixExpressionResolver.resolve(
-      node as PostfixExpressionImpl,
-      contextType: contextType,
-    );
+    _postfixExpressionResolver.resolve(node, contextType: contextType);
     _insertImplicitCallReference(
       insertGenericFunctionInstantiation(node, contextType: contextType),
       contextType: contextType,
     );
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4435,7 +4465,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     DartType type;
     if (element is MethodElement) {
       type = element.type;
-    } else if (element is ConstructorElementImpl2) {
+    } else if (element is ConstructorElementMixin2) {
       type = element.type;
     } else if (element is GetterElement) {
       type = resolverResult.getType!;
@@ -4602,7 +4632,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         unnamedParameterCount++;
       } else {
         namedParameters ??= {};
-        namedParameters[parameter.name3!] = parameter;
+        namedParameters[parameter.name3 ?? ''] = parameter;
       }
     }
     int unnamedIndex = 0;
@@ -4689,19 +4719,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     } else if (positionalArgumentCount > unnamedParameterCount &&
         noBlankArguments) {
-      ErrorCode errorCode;
+      DiagnosticCode diagnosticCode;
       int namedParameterCount = namedParameters?.length ?? 0;
       int namedArgumentCount = usedNames?.length ?? 0;
       if (namedParameterCount > namedArgumentCount) {
-        errorCode =
+        diagnosticCode =
             CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED;
       } else {
-        errorCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
+        diagnosticCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
       }
       if (firstUnresolvedArgument != null) {
         errorReporter?.atNode(
           firstUnresolvedArgument,
-          errorCode,
+          diagnosticCode,
           arguments: [unnamedParameterCount, positionalArgumentCount],
         );
       }
@@ -4738,7 +4768,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var constructorName = nameNode.constructorName;
       name =
           constructorName.name?.name ??
-          '${constructorName.type.name2.lexeme}.new';
+          '${constructorName.type.name.lexeme}.new';
     } else if (nameNode is RedirectingConstructorInvocation) {
       name = nameNode.constructorName?.name;
       if (name == null) {
@@ -4777,6 +4807,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           nameNodeName is PrefixedIdentifier
               ? nameNodeName.identifier.name
               : '${nameNodeName.name}.new';
+    } else if (nameNode is DotShorthandConstructorInvocation) {
+      name = nameNode.constructorName.name;
     } else if (nameNode is DotShorthandInvocation) {
       name = nameNode.memberName.name;
     } else {
@@ -4789,21 +4821,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       arguments.add(requiredParameterCount);
       arguments.add(actualArgumentCount);
     }
-    ErrorCode errorCode;
+    DiagnosticCode diagnosticCode;
     if (name == null) {
-      errorCode =
+      diagnosticCode =
           isPlural
               ? CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL
               : CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR;
     } else {
-      errorCode =
+      diagnosticCode =
           isPlural
               ? CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL
               : CompileTimeErrorCode
                   .NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR;
       arguments.add(name);
     }
-    errorReporter.atToken(token, errorCode, arguments: arguments);
+    errorReporter.atToken(token, diagnosticCode, arguments: arguments);
   }
 }
 
@@ -6001,7 +6033,7 @@ class _WhyNotPromotedVisitor
           addConflictMessage(
             conflictingElement: field,
             kind: 'non-promotable field',
-            enclosingElement: field.enclosingElement2,
+            enclosingElement: field.enclosingElement,
             link: NonPromotionDocumentationLink.conflictingNonPromotableField,
           );
         }
@@ -6009,7 +6041,7 @@ class _WhyNotPromotedVisitor
           addConflictMessage(
             conflictingElement: getter,
             kind: 'getter',
-            enclosingElement: getter.enclosingElement2,
+            enclosingElement: getter.enclosingElement,
             link: NonPromotionDocumentationLink.conflictingGetter,
           );
         }

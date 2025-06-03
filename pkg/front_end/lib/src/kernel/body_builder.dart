@@ -806,8 +806,8 @@ class BodyBuilder extends StackListenerImpl
       (declaredInCurrentGuard ??= {}).add(variable);
     }
     String variableName = variable.name!;
-    List<int>? previousOffsets =
-        scope.declare(variableName, new VariableBuilderImpl(variable, uri));
+    List<int>? previousOffsets = scope.declare(
+        variableName, new VariableBuilderImpl(variableName, variable, uri));
     if (previousOffsets != null && previousOffsets.isNotEmpty) {
       // This case is different from the above error. In this case, the problem
       // is using `x` before it's declared: `{ var x; { print(x); var x;
@@ -1242,6 +1242,9 @@ class BodyBuilder extends StackListenerImpl
                 originParameter.type,
                 parameter.hasDeclaredInitializer);
             originParameter.initializer = initializer..parent = originParameter;
+            if (initializer is InvalidExpression) {
+              originParameter.isErroneouslyInitialized = true;
+            }
             parameter.initializerWasInferred = true;
           }
           VariableDeclaration? tearOffParameter =
@@ -3362,7 +3365,11 @@ class BodyBuilder extends StackListenerImpl
         }
         assert(getable.isStatic || getable.isTopLevel,
             "Unexpected getable: $getable");
-        assert(setable == null || setable.isStatic || setable.isTopLevel,
+        assert(
+            setable == null ||
+                setable.isStatic ||
+                // Coverage-ignore(suite): Not run.
+                setable.isTopLevel,
             "Unexpected setable: $setable");
 
         if (mustBeConst &&
@@ -3433,7 +3440,10 @@ class BodyBuilder extends StackListenerImpl
               unresolvedReadKind: UnresolvedKind.Unknown);
         }
       } else if (setable is MemberBuilder) {
-        assert(setable.isStatic || setable.isTopLevel,
+        assert(
+            setable.isStatic ||
+                // Coverage-ignore(suite): Not run.
+                setable.isTopLevel,
             "Unexpected setable: $setable");
         return new StaticAccessGenerator.fromBuilder(
             this, name, nameToken, null, setable);
@@ -9138,7 +9148,7 @@ class BodyBuilder extends StackListenerImpl
     if (isWildcardLoweredFormalParameter(name)) {
       name = '_';
     }
-    Builder? builder = _context.lookupLocalMember(name);
+    NamedBuilder? builder = _context.lookupLocalMember(name);
     if (builder?.next != null) {
       // Duplicated name, already reported.
       while (builder != null) {

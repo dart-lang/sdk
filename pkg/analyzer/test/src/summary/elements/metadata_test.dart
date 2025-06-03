@@ -213,8 +213,8 @@ class C {
 }
 ''');
     // Check metadata without asking any other properties.
-    var x = library.getClass2('C')!.getField2('x')!;
-    expect(x.metadata2.annotations, hasLength(1));
+    var x = library.getClass2('C')!.getField('x')!;
+    expect(x.metadata.annotations, hasLength(1));
     // Check details.
     checkElementText(library, r'''
 library
@@ -354,7 +354,7 @@ library
           methods
             bar @77
               reference: <testLibraryFragment>::@class::C::@method::bar
-              element: <testLibraryFragment>::@class::C::@method::bar#element
+              element: <testLibrary>::@class::C::@method::bar
               metadata
                 Annotation
                   atSign: @ @65
@@ -407,6 +407,7 @@ library
           returnType: int
       methods
         bar
+          reference: <testLibrary>::@class::C::@method::bar
           firstFragment: <testLibraryFragment>::@class::C::@method::bar
           metadata
             Annotation
@@ -1628,7 +1629,13 @@ library
 
   test_metadata_exportDirective() async {
     newFile('$testPackageLibPath/foo.dart', '');
-    var library = await buildLibrary('@a export "foo.dart"; const a = null;');
+
+    var library = await buildLibrary('''
+@a
+export 'foo.dart';
+const a = 0;
+''');
+
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1658,9 +1665,9 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            NullLiteral
-              literal: null @32
-              staticType: Null
+            IntegerLiteral
+              literal: 0 @32
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -1670,7 +1677,7 @@ library
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
-      type: dynamic
+      type: int
       constantInitializer
         fragment: <testLibraryFragment>::@topLevelVariable::a
         expression: expression_0
@@ -1678,7 +1685,7 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
-      returnType: dynamic
+      returnType: int
 ''');
   }
 
@@ -2518,6 +2525,68 @@ library
 ''');
   }
 
+  test_metadata_importDirective() async {
+    newFile('$testPackageLibPath/foo.dart', '');
+
+    var library = await buildLibrary('''
+@a
+import 'foo.dart';
+const a = 0;
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  metadata
+    Annotation
+      atSign: @ @0
+      name: SimpleIdentifier
+        token: a @1
+        element: <testLibraryFragment>::@getter::a#element
+        staticType: null
+      element2: <testLibraryFragment>::@getter::a#element
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/foo.dart
+          metadata
+            Annotation
+              atSign: @ @0
+              name: SimpleIdentifier
+                token: a @1
+                element: <testLibraryFragment>::@getter::a#element
+                staticType: null
+              element2: <testLibraryFragment>::@getter::a#element
+      topLevelVariables
+        hasInitializer a @28
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @32
+              staticType: int
+          getter2: <testLibraryFragment>::@getter::a
+      getters
+        synthetic get a
+          reference: <testLibraryFragment>::@getter::a
+          element: <testLibraryFragment>::@getter::a#element
+  topLevelVariables
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
+      getter: <testLibraryFragment>::@getter::a#element
+  getters
+    synthetic static get a
+      firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int
+''');
+  }
+
   test_metadata_inAliasedElement_formalParameter() async {
     var library = await buildLibrary('''
 const a = 42;
@@ -2715,6 +2784,14 @@ part 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
+  metadata
+    Annotation
+      atSign: @ @0
+      name: SimpleIdentifier
+        token: deprecated @1
+        element: dart:core::<fragment>::@getter::deprecated#element
+        staticType: null
+      element2: dart:core::<fragment>::@getter::deprecated#element
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2747,6 +2824,14 @@ part 'dart:math';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
+  metadata
+    Annotation
+      atSign: @ @0
+      name: SimpleIdentifier
+        token: deprecated @1
+        element: dart:core::<fragment>::@getter::deprecated#element
+        staticType: null
+      element2: dart:core::<fragment>::@getter::deprecated#element
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2927,7 +3012,7 @@ library
           methods
             m @54
               reference: <testLibraryFragment>::@class::C::@method::m
-              element: <testLibraryFragment>::@class::C::@method::m#element
+              element: <testLibrary>::@class::C::@method::m
               metadata
                 Annotation
                   atSign: @ @44
@@ -2976,6 +3061,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           metadata
             Annotation
@@ -3043,7 +3129,7 @@ library
           methods
             m @54
               reference: <testLibraryFragment>::@mixin::M::@method::m
-              element: <testLibraryFragment>::@mixin::M::@method::m#element
+              element: <testLibrary>::@mixin::M::@method::m
               metadata
                 Annotation
                   atSign: @ @44
@@ -3091,6 +3177,7 @@ library
         Object
       methods
         m
+          reference: <testLibrary>::@mixin::M::@method::m
           firstFragment: <testLibraryFragment>::@mixin::M::@method::m
           metadata
             Annotation
@@ -3282,7 +3369,7 @@ library
           methods
             bar @77
               reference: <testLibraryFragment>::@mixin::M::@method::bar
-              element: <testLibraryFragment>::@mixin::M::@method::bar#element
+              element: <testLibrary>::@mixin::M::@method::bar
               metadata
                 Annotation
                   atSign: @ @65
@@ -3334,6 +3421,7 @@ library
           returnType: int
       methods
         bar
+          reference: <testLibrary>::@mixin::M::@method::bar
           firstFragment: <testLibraryFragment>::@mixin::M::@method::bar
           metadata
             Annotation
@@ -3733,7 +3821,7 @@ library
           methods
             method @40
               reference: <testLibraryFragment>::@class::A::@method::method
-              element: <testLibraryFragment>::@class::A::@method::method#element
+              element: <testLibrary>::@class::A::@method::method
               metadata
                 Annotation
                   atSign: @ @28
@@ -3786,6 +3874,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         method
+          reference: <testLibrary>::@class::A::@method::method
           firstFragment: <testLibraryFragment>::@class::A::@method::method
           metadata
             Annotation
@@ -5284,6 +5373,77 @@ library
   }
 
   test_metadata_partDirective() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+part of 'test.dart';
+''');
+
+    var library = await buildLibrary('''
+@a
+part 'foo.dart';
+const a = 0;
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  metadata
+    Annotation
+      atSign: @ @0
+      name: SimpleIdentifier
+        token: a @1
+        element: <testLibraryFragment>::@getter::a#element
+        staticType: null
+      element2: <testLibraryFragment>::@getter::a#element
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      nextFragment: <testLibrary>::@fragment::package:test/foo.dart
+      parts
+        part_0
+          uri: package:test/foo.dart
+          metadata
+            Annotation
+              atSign: @ @0
+              name: SimpleIdentifier
+                token: a @1
+                element: <testLibraryFragment>::@getter::a#element
+                staticType: null
+              element2: <testLibraryFragment>::@getter::a#element
+          unit: <testLibrary>::@fragment::package:test/foo.dart
+      topLevelVariables
+        hasInitializer a @26
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @30
+              staticType: int
+          getter2: <testLibraryFragment>::@getter::a
+      getters
+        synthetic get a
+          reference: <testLibraryFragment>::@getter::a
+          element: <testLibraryFragment>::@getter::a#element
+    <testLibrary>::@fragment::package:test/foo.dart
+      element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
+      previousFragment: <testLibraryFragment>
+  topLevelVariables
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
+      getter: <testLibraryFragment>::@getter::a#element
+  getters
+    synthetic static get a
+      firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int
+''');
+  }
+
+  test_metadata_partDirective2() async {
     newFile('$testPackageLibPath/foo.dart', 'part of L;');
     var library = await buildLibrary('''
 library L;
@@ -5343,7 +5503,7 @@ library
 ''');
   }
 
-  test_metadata_partDirective2() async {
+  test_metadata_partDirective3() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
@@ -5357,7 +5517,10 @@ part 'b.dart';
 
     // The difference with the test above is that we ask the part first.
     // There was a bug that we were not loading library directives.
-    expect(library.definingCompilationUnit.parts[0].metadata, isEmpty);
+    expect(
+      library.definingCompilationUnit.parts[0].metadata.annotations,
+      isEmpty,
+    );
   }
 
   test_metadata_partOf_class() async {
@@ -5654,7 +5817,7 @@ library
           methods
             m @29
               reference: <testLibraryFragment>::@class::C::@method::m
-              element: <testLibraryFragment>::@class::C::@method::m#element
+              element: <testLibrary>::@class::C::@method::m
               formalParameters
                 x @34
                   element: <testLibraryFragment>::@class::C::@method::m::@parameter::x#element
@@ -5688,6 +5851,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType x
@@ -6396,7 +6560,7 @@ int x = 0;
 ''');
     // Check metadata without asking any other properties.
     var x = library.getTopLevelVariable('x')!;
-    expect(x.metadata2.annotations, hasLength(1));
+    expect(x.metadata.annotations, hasLength(1));
     // Check details.
     checkElementText(library, r'''
 library

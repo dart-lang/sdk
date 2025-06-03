@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,7 @@ class PreferMixin extends LintRule {
   PreferMixin() : super(name: LintNames.prefer_mixin, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_mixin;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_mixin;
 
   @override
   void registerNodeProcessors(
@@ -40,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var element = type.element3;
         if (element is MixinElement) continue;
         if (element is ClassElement && !element.isMixinClass) {
-          rule.reportAtNode(mixinNode, arguments: [mixinNode.name2.lexeme]);
+          rule.reportAtNode(mixinNode, arguments: [mixinNode.name.lexeme]);
         }
       }
     }

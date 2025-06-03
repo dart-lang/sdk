@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -46,7 +47,8 @@ class PreferInitializingFormals extends LintRule {
     : super(name: LintNames.prefer_initializing_formals, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_initializing_formals;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.prefer_initializing_formals;
 
   @override
   void registerNodeProcessors(
@@ -84,8 +86,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           !leftElement.isPrivate &&
           leftElement is FieldElement &&
           !leftElement.isSynthetic &&
-          leftElement.enclosingElement2 ==
-              node.declaredFragment?.element.enclosingElement2 &&
+          leftElement.enclosingElement ==
+              node.declaredFragment?.element.enclosingElement &&
           parameters.contains(rightElement) &&
           (!parametersUsedMoreThanOnce.contains(rightElement) &&
                   !(rightElement as FormalParameterElement).isNamed ||

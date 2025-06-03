@@ -1238,6 +1238,8 @@ class Thread : public AllStatic {
   static word range_error_shared_with_fpu_regs_stub_offset();
   static word write_error_shared_without_fpu_regs_stub_offset();
   static word write_error_shared_with_fpu_regs_stub_offset();
+  static word field_access_error_shared_without_fpu_regs_stub_offset();
+  static word field_access_error_shared_with_fpu_regs_stub_offset();
   static word resume_stub_offset();
   static word return_async_not_future_stub_offset();
   static word return_async_star_stub_offset();

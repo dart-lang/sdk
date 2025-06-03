@@ -161,6 +161,7 @@ IndexExpression
     token: b
     element: <null>
     staticType: InvalidType
+  question: ?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
@@ -183,6 +184,7 @@ IndexExpression
     token: b
     element: <null>
     staticType: InvalidType
+  question: ?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
@@ -218,7 +220,7 @@ IndexExpression
     correspondingParameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index#element
     staticType: int
   rightBracket: ]
-  element: <testLibraryFragment>::@class::A::@method::[]#element
+  element: <testLibrary>::@class::A::@method::[]
   staticType: bool
 ''');
   }
@@ -243,7 +245,7 @@ IndexExpression
     correspondingParameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index#element
     staticType: int
   rightBracket: ]
-  element: <testLibraryFragment>::@class::A::@method::[]#element
+  element: <testLibrary>::@class::A::@method::[]
   staticType: bool
 ''');
 
@@ -256,7 +258,7 @@ IndexExpression
     correspondingParameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index#element
     staticType: int
   rightBracket: ]
-  element: <testLibraryFragment>::@class::A::@method::[]#element
+  element: <testLibrary>::@class::A::@method::[]
   staticType: bool
 ''');
 
@@ -290,7 +292,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   element: MethodMember
-    baseElement: <testLibraryFragment>::@class::A::@method::[]#element
+    baseElement: <testLibrary>::@class::A::@method::[]
     substitution: {T: double}
   staticType: double
 ''');
@@ -321,7 +323,7 @@ IndexExpression
     superKeyword: super
     staticType: A
   rightBracket: ]
-  element: <testLibraryFragment>::@class::A::@method::[]#element
+  element: <testLibrary>::@class::A::@method::[]
   staticType: int
 ''');
   }
@@ -353,7 +355,7 @@ IndexExpression
     staticType: InvalidType
   rightBracket: ]
   element: MethodMember
-    baseElement: dart:core::<fragment>::@class::List::@method::[]#element
+    baseElement: dart:core::@class::List::@method::[]
     substitution: {E: int}
   staticType: int
 ''');
@@ -377,13 +379,14 @@ IndexExpression
     token: a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
+  question: ?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index#element
     staticType: int
   rightBracket: ]
-  element: <testLibraryFragment>::@class::A::@method::[]#element
+  element: <testLibrary>::@class::A::@method::[]
   staticType: bool?
 ''');
   }
@@ -411,7 +414,7 @@ IndexExpression
     correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index#element
     staticType: int
   rightBracket: ]
-  element: <testLibraryFragment>::@extension::E::@method::[]#element
+  element: <testLibrary>::@extension::E::@method::[]
   staticType: bool
 ''');
   }
@@ -505,7 +508,7 @@ IndexExpression
     correspondingParameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index#element
     staticType: int
   rightBracket: ]
-  element: <testLibraryFragment>::@class::A::@method::[]#element
+  element: <testLibrary>::@class::A::@method::[]
   staticType: bool
 ''');
   }
@@ -596,11 +599,11 @@ AssignmentExpression
     literal: 1.2
     correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
     staticType: double
-  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
+  readElement2: <testLibrary>::@class::A::@method::[]
   readType: num
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: double
 ''');
   }
@@ -642,14 +645,14 @@ AssignmentExpression
     correspondingParameter: dart:core::<fragment>::@class::double::@method::+::@parameter::other#element
     staticType: double
   readElement2: MethodMember
-    baseElement: <testLibraryFragment>::@class::A::@method::[]#element
+    baseElement: <testLibrary>::@class::A::@method::[]
     substitution: {T: double}
   readType: double
   writeElement2: MethodMember
-    baseElement: <testLibraryFragment>::@class::A::@method::[]=#element
+    baseElement: <testLibrary>::@class::A::@method::[]=
     substitution: {T: double}
   writeType: double
-  element: dart:core::<fragment>::@class::double::@method::+#element
+  element: dart:core::@class::double::@method::+
   staticType: double
 ''');
   }
@@ -675,6 +678,7 @@ AssignmentExpression
       token: a
       element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
+    question: ?
     leftBracket: [
     index: IntegerLiteral
       literal: 0
@@ -688,11 +692,11 @@ AssignmentExpression
     literal: 1.2
     correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
     staticType: double
-  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
+  readElement2: <testLibrary>::@class::A::@method::[]
   readType: num
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: double?
 ''');
   }
@@ -728,7 +732,7 @@ int Function(int)? f(B? b) => b?.a[0];
       correspondingParameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::i#element
       staticType: int
     rightBracket: ]
-    element: <testLibraryFragment>::@class::A::@method::[]#element
+    element: <testLibrary>::@class::A::@method::[]
     staticType: T Function<T>(T)
   staticType: int Function(int)?
   typeArgumentTypes
@@ -771,7 +775,7 @@ AssignmentExpression
     staticType: double
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: <null>
   staticType: double
@@ -816,7 +820,7 @@ CascadeExpression
         staticType: A
       readElement2: <null>
       readType: null
-      writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+      writeElement2: <testLibrary>::@class::A::@method::[]=
       writeType: A
       element: <null>
       staticType: A
@@ -839,7 +843,7 @@ CascadeExpression
         staticType: A
       readElement2: <null>
       readType: null
-      writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+      writeElement2: <testLibrary>::@class::A::@method::[]=
       writeType: A
       element: <null>
       staticType: A
@@ -887,7 +891,7 @@ AssignmentExpression
   readElement2: <null>
   readType: null
   writeElement2: MethodMember
-    baseElement: <testLibraryFragment>::@class::A::@method::[]=#element
+    baseElement: <testLibrary>::@class::A::@method::[]=
     substitution: {T: double}
   writeType: double
   element: <null>
@@ -915,6 +919,7 @@ AssignmentExpression
       token: a
       element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
+    question: ?
     leftBracket: [
     index: IntegerLiteral
       literal: 0
@@ -930,7 +935,7 @@ AssignmentExpression
     staticType: double
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: <null>
   staticType: double?
@@ -970,7 +975,7 @@ AssignmentExpression
     staticType: double
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@method::[]=#element
+  writeElement2: <testLibrary>::@extension::E::@method::[]=
   writeType: num
   element: <null>
   staticType: double
@@ -1091,7 +1096,7 @@ AssignmentExpression
     staticType: double
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: <null>
   staticType: double

@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/utils.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/isolate/counter_chart.dart';
+import 'package:observatory/utils.dart';
 
 class IsolateSharedSummaryElement extends CustomElement implements Renderable {
   late RenderingScheduler<IsolateSharedSummaryElement> _r;
@@ -44,7 +47,7 @@ class IsolateSharedSummaryElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
     _isolateSubscription.cancel();
   }
@@ -54,116 +57,131 @@ class IsolateSharedSummaryElement extends CustomElement implements Renderable {
     final newHeapCapacity = Utils.formatSize(_isolate.newSpace!.capacity);
     final oldHeapUsed = Utils.formatSize(_isolate.oldSpace!.used);
     final oldHeapCapacity = Utils.formatSize(_isolate.oldSpace!.capacity);
-    final content = <Element>[
-      new DivElement()
-        ..classes = ['menu']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'new heap',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '$newHeapUsed of $newHeapCapacity',
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'old heap',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '$oldHeapUsed of $oldHeapCapacity',
-                ]
-            ],
-          new BRElement(),
-          new DivElement()
-            ..children = <Element>[
-              new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.debugger(_isolate))
-                ..text = 'debugger'
-            ],
-          new DivElement()
-            ..children = <Element>[
-              new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.classTree(_isolate))
-                ..text = 'class hierarchy'
-            ],
-          new DivElement()
-            ..children = <Element>[
-              new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.cpuProfiler(_isolate))
-                ..text = 'cpu profile'
-            ],
-          new DivElement()
-            ..children = <Element>[
-              new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.cpuProfilerTable(_isolate))
-                ..text = 'cpu profile (table)'
-            ],
-          new DivElement()
-            ..children = <Element>[
-              new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.allocationProfiler(_isolate))
-                ..text = 'allocation profile'
-            ],
-          new DivElement()
-            ..children = <Element>[
-              new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.heapSnapshot(_isolate))
-                ..text = 'heap snapshot'
-            ],
-          new DivElement()
-            ..children = <Element>[
-              new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.heapMap(_isolate))..text = 'heap map'
-            ],
-          new DivElement()
-            ..children = <Element>[
-              new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.metrics(_isolate))..text = 'metrics'
-            ],
-          new DivElement()
-            ..children = <Element>[
-              new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.persistentHandles(_isolate))
-                ..text = 'persistent handles'
-            ],
-          new DivElement()
-            ..children = <Element>[
-              new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.ports(_isolate))..text = 'ports'
-            ],
-          new DivElement()
-            ..children = <Element>[
-              new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.logging(_isolate))..text = 'logging'
-            ]
-        ],
+    final content = <HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'menu'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'new heap',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..textContent = '$newHeapUsed of $newHeapCapacity',
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'old heap',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..textContent = '$oldHeapUsed of $oldHeapCapacity',
+                ])
+            ]),
+          new HTMLBRElement(),
+          new HTMLDivElement()
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()..textContent = 'see ',
+              new HTMLAnchorElement()
+                ..href = Uris.debugger(_isolate)
+                ..textContent = 'debugger'
+            ]),
+          new HTMLDivElement()
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()..textContent = 'see ',
+              new HTMLAnchorElement()
+                ..href = Uris.classTree(_isolate)
+                ..textContent = 'class hierarchy'
+            ]),
+          new HTMLDivElement()
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()..textContent = 'see ',
+              new HTMLAnchorElement()
+                ..href = Uris.cpuProfiler(_isolate)
+                ..textContent = 'cpu profile'
+            ]),
+          new HTMLDivElement()
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()..textContent = 'see ',
+              new HTMLAnchorElement()
+                ..href = Uris.cpuProfilerTable(_isolate)
+                ..textContent = 'cpu profile (table)'
+            ]),
+          new HTMLDivElement()
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()..textContent = 'see ',
+              new HTMLAnchorElement()
+                ..href = Uris.allocationProfiler(_isolate)
+                ..textContent = 'allocation profile'
+            ]),
+          new HTMLDivElement()
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()..textContent = 'see ',
+              new HTMLAnchorElement()
+                ..href = Uris.heapSnapshot(_isolate)
+                ..textContent = 'heap snapshot'
+            ]),
+          new HTMLDivElement()
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()..textContent = 'see ',
+              new HTMLAnchorElement()
+                ..href = Uris.heapMap(_isolate)
+                ..textContent = 'heap map'
+            ]),
+          new HTMLDivElement()
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()..textContent = 'see ',
+              new HTMLAnchorElement()
+                ..href = Uris.metrics(_isolate)
+                ..textContent = 'metrics'
+            ]),
+          new HTMLDivElement()
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()..textContent = 'see ',
+              new HTMLAnchorElement()
+                ..href = Uris.persistentHandles(_isolate)
+                ..textContent = 'persistent handles'
+            ]),
+          new HTMLDivElement()
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()..textContent = 'see ',
+              new HTMLAnchorElement()
+                ..href = Uris.ports(_isolate)
+                ..textContent = 'ports'
+            ]),
+          new HTMLDivElement()
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()..textContent = 'see ',
+              new HTMLAnchorElement()
+                ..href = Uris.logging(_isolate)
+                ..textContent = 'logging'
+            ])
+        ]),
       new IsolateCounterChartElement(_isolate.counters!, queue: _r.queue)
           .element
     ];
     if (_isolate.error != null) {
-      children = <Element>[
-        new PreElement()
-          ..classes = ['errorBox']
-          ..text = _isolate.error!.message,
-        new DivElement()
-          ..classes = ['summary']
-          ..children = content
-      ];
+      appendChildren(<HTMLElement>[
+        new HTMLPreElement.pre()
+          ..className = 'errorBox'
+          ..textContent = _isolate.error!.message ?? '',
+        new HTMLDivElement()
+          ..className = 'summary'
+          ..appendChildren(content)
+      ]);
     } else {
-      children = <Element>[
-        new DivElement()
-          ..classes = ['summary']
-          ..children = content
-      ];
+      appendChildren(<HTMLElement>[
+        new HTMLDivElement()
+          ..className = 'summary'
+          ..appendChildren(content)
+      ]);
     }
   }
 

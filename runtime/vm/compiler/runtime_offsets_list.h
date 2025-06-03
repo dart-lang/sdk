@@ -307,6 +307,8 @@
   FIELD(Thread, range_error_shared_without_fpu_regs_stub_offset)               \
   FIELD(Thread, write_error_shared_with_fpu_regs_stub_offset)                  \
   FIELD(Thread, write_error_shared_without_fpu_regs_stub_offset)               \
+  FIELD(Thread, field_access_error_shared_with_fpu_regs_stub_offset)           \
+  FIELD(Thread, field_access_error_shared_without_fpu_regs_stub_offset)        \
   FIELD(Thread, resume_stub_offset)                                            \
   FIELD(Thread, return_async_not_future_stub_offset)                           \
   FIELD(Thread, return_async_star_stub_offset)                                 \

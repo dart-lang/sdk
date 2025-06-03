@@ -237,7 +237,7 @@ class ApiDescription {
 
   /// Appends information to [node] describing [element].
   void _dumpElement(Element element, Node<MemberSortKey> node) {
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is LibraryElement &&
         !element.isInPublicApiOf(_pkgName)) {
       if (!enclosingElement.uri.isIn(_pkgName)) {
@@ -396,10 +396,10 @@ class ApiDescription {
     }
 
     if (element case Annotatable element) {
-      if (element.metadata2.hasDeprecated) {
+      if (element.metadata.hasDeprecated) {
         parentheticals.add(['deprecated']);
       }
-      if (element.metadata2.hasExperimental) {
+      if (element.metadata.hasExperimental) {
         parentheticals.add(['experimental']);
       }
     }
@@ -512,7 +512,7 @@ class MemberSortKey implements Comparable<MemberSortKey> {
   };
 
   static bool _computeIsInstanceMember(Element element) =>
-      element.enclosingElement2 is InstanceElement &&
+      element.enclosingElement is InstanceElement &&
       switch (element) {
         ExecutableElement(:var isStatic) => !isStatic,
         dynamic(:var runtimeType) =>
@@ -657,10 +657,14 @@ extension on Element {
     ) when variable3.isInPublicApiOf(packageName)) {
       return true;
     }
-    if (this case Annotatable(
-      metadata2: Metadata(:var annotations),
-    ) when annotations.any(_isPublicApiAnnotation)) {
-      return true;
+    if (packageName == 'analyzer') {
+      // Any element annotated with `@analyzerPublicApi` is considered to be
+      // part of the public API of the analyzer package.
+      if (this case Annotatable(
+        metadata: Metadata(:var annotations),
+      ) when annotations.any(_isPublicApiAnnotation)) {
+        return true;
+      }
     }
     if (name3 case var name? when !name.isPublic) return false;
     if (library2!.uri.isInPublicLibOf(packageName)) return true;

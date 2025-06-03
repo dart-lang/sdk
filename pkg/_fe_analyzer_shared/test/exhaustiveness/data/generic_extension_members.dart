@@ -18,96 +18,78 @@ extension<T> on A<T> {
   void member(T t) {}
 }
 
-exhaustiveInferred(
-        A<num>
-            a) => /*
+exhaustiveInferred(A<num> a) => /*
              fields={A<int>.member:void Function(int),A<num>.member:void Function(num)},
              type=A<num>
-            */
-    switch (a) {
-      A<int>(
-        :var member
-      ) /*space=A<int>(A<int>.member: void Function(int) (void Function(int)))*/ =>
-        0,
-      A<num>(
-        :var member
-      ) /*space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
-        1,
-    };
+            */ switch (a) {
+  A<int>(
+    :var member,
+  ) /*space=A<int>(A<int>.member: void Function(int) (void Function(int)))*/ =>
+    0,
+  A<num>(
+    :var member,
+  ) /*space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
+    1,
+};
 
-exhaustiveTyped(
-        A<num>
-            a) => /*cfe.
+exhaustiveTyped(A<num> a) => /*cfe.
              fields={A<int>.member:void Function(int),A<num>.member:void Function(num)},
              type=A<num>
             */ /*analyzer.
  fields={A<int>.member:void Function(int),A<num>.member:void Function(num)},
  type=A<num>
-*/
-    switch (a) {
-      A<int>(
-        :void Function(int) member
-      ) /*space=A<int>(A<int>.member: void Function(int) (void Function(int)))*/ =>
-        0,
-      A<num>(
-        :void Function(num) member
-      ) /*space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
-        1,
-    };
+*/ switch (a) {
+  A<int>(
+    :void Function(int) member,
+  ) /*space=A<int>(A<int>.member: void Function(int) (void Function(int)))*/ =>
+    0,
+  A<num>(
+    :void Function(num) member,
+  ) /*space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
+    1,
+};
 
-unreachable(
-        A<num>
-            a) => /*cfe.
+unreachable(A<num> a) => /*cfe.
              fields={A<int>.member:void Function(int),A<num>.member:void Function(num)},
              type=A<num>
             */ /*analyzer.
  fields={A<int>.member:void Function(int),A<num>.member:void Function(num)},
  type=A<num>
-*/
-    switch (a) {
-      A<num>(
-        :var member
-      ) /*space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
-        1,
-      A<int>(
-        :var member
-      ) /*cfe.
+*/ switch (a) {
+  A<num>(
+    :var member,
+  ) /*space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
+    1,
+  A<int>(:var member) /*cfe.
        error=unreachable,
        space=A<int>(A<int>.member: void Function(int) (void Function(int)))
       */ /*analyzer.
      error=unreachable,
      space=A<int>(A<int>.member: void Function(int) (void Function(int)))
-    */
-        =>
-        0,
-    };
+    */ =>
+    0,
+};
 
-nonExhaustiveRestricted(
-        A<num>
-            a) => /*cfe.
+nonExhaustiveRestricted(A<num> a) => /*cfe.
              fields={A<int>.member:void Function(int),A<num>.member:void Function(num)},
              type=A<num>
             */ /*analyzer.
  fields={A<int>.member:void Function(int),A<num>.member:void Function(num)},
  type=A<num>
-*/
-    switch (a) {
-      A<num>(
-        :void Function(num) member
-      ) /*space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
-        1,
-      A<int>(
-        :var member
-      ) /*cfe.
+*/ switch (a) {
+  A<num>(
+    :void Function(num) member,
+  ) /*space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
+    1,
+  A<int>(:var member) /*cfe.
        error=unreachable,
        space=A<int>(A<int>.member: void Function(int) (void Function(int)))
       */ /*analyzer.
      error=unreachable,
      space=A<int>(A<int>.member: void Function(int) (void Function(int)))
-    */
-        =>
-        0,
-    };
+    */ =>
+    0,
+};
 
 intersection(o) {
   /*
@@ -117,24 +99,20 @@ intersection(o) {
    type=Object?
   */
   switch (o) {
-    /*space=?*/ case A<int>(member: var member1) &&
-          A<double>(member: var member2):
-    /*space=A<int>(A<int>.member: void Function(int) (void Function(int)), A<num>.member: void Function(num) (void Function(num)))*/ case A<
-              int>(member: var member1) &&
-          A<num>(member: var member2):
+    /*space=?*/
+    case A<int>(member: var member1) && A<double>(member: var member2):
+    /*space=A<int>(A<int>.member: void Function(int) (void Function(int)), A<num>.member: void Function(num) (void Function(num)))*/
+    case A<int>(member: var member1) && A<num>(member: var member2):
   }
 }
 
 // TODO(johnniwinther): This should be exhaustive.
-num exhaustiveMixed(
-        I<num>
-            i) => /*
+num exhaustiveMixed(I<num> i) => /*
  error=non-exhaustive:I<num>(member: double()),
  fields={I<num>.member:num,J<num>.member:num},
  type=I<num>
-*/
-    switch (i) {
-      I<num>(:int member) /*space=I<num>(I<num>.member: int (num))*/ => member,
-      J<num>(:double member) /*space=J<num>(J<num>.member: double (num))*/ =>
-        member,
-    };
+*/ switch (i) {
+  I<num>(:int member) /*space=I<num>(I<num>.member: int (num))*/ => member,
+  J<num>(:double member) /*space=J<num>(J<num>.member: double (num))*/ =>
+    member,
+};

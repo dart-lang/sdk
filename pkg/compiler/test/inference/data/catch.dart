@@ -13,7 +13,7 @@ main() {
 /// Untyped catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: catchUntyped:[subclass=Object|powerset={IN}]*/
+/*member: catchUntyped:[subclass=Object|powerset={IN}{GFUO}{IMN}]*/
 catchUntyped() {
   dynamic local = 0;
   try {} catch (e) {
@@ -26,7 +26,7 @@ catchUntyped() {
 /// Typed catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: catchTyped:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+/*member: catchTyped:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
 catchTyped() {
   dynamic local = 0;
   try {} on String catch (e) {
@@ -39,7 +39,7 @@ catchTyped() {
 /// Catch clause with stack trace.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: catchStackTrace:[null|subclass=Object|powerset={null}{IN}]*/
+/*member: catchStackTrace:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 catchStackTrace() {
   dynamic local = 0;
   try {} catch (_, s) {

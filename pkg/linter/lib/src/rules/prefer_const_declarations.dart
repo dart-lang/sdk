@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -16,7 +17,7 @@ class PreferConstDeclarations extends LintRule {
     : super(name: LintNames.prefer_const_declarations, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_const_declarations;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_const_declarations;
 
   @override
   void registerNodeProcessors(

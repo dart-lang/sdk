@@ -83,7 +83,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
     if (node.name == null) {
       var element = node.element;
       if (element != null) {
-        _addOccurrence(element, node.type.name2);
+        _addOccurrence(element, node.type.name);
       }
       return; // skip visitNamedType.
     }
@@ -205,7 +205,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   void visitNamedType(NamedType node) {
     var element = node.element2;
     if (element != null) {
-      _addOccurrence(element, node.name2);
+      _addOccurrence(element, node.name);
     }
 
     super.visitNamedType(node);
@@ -306,8 +306,10 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
     Element? canonicalElement = element;
     if (canonicalElement is FieldFormalParameterElement) {
       canonicalElement = canonicalElement.field2;
-    } else if (canonicalElement is PropertyAccessorElement) {
-      canonicalElement = canonicalElement.variable3;
+    } else if (canonicalElement case PropertyAccessorElement(
+      :var variable3?,
+    ) when !variable3.isSynthetic) {
+      canonicalElement = variable3;
     }
     return canonicalElement?.baseElement;
   }

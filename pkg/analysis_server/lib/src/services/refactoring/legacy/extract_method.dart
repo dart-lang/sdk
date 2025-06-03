@@ -30,12 +30,10 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 
@@ -786,7 +784,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       return null;
     }
     var offset = _selectionRange.offset;
-    var node = NodeLocator2(offset, offset).searchWithin(_resolveResult.unit);
+    var node = _resolveResult.unit.nodeCovering(offset: offset);
 
     // Check for the parameter list of a FunctionExpression.
     {

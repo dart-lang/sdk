@@ -35,8 +35,11 @@ Future<void> main() async {
       'use_dwarf_stack_traces_flag_deferred_program.dart',
     ),
     runNonDwarf,
-    runElf,
-    runAssembly,
+    [
+      runElf,
+      // Don't run assembly on Windows since DLLs don't contain DWARF.
+      if (!Platform.isWindows) runAssembly,
+    ],
   );
 }
 
@@ -104,10 +107,10 @@ typedef DwarfMap = Map<int, Dwarf>;
 
 class DeferredElfState extends ElfState<DwarfMap> {
   DeferredElfState(
-    super.snapshot,
-    super.debugInfo,
     super.output,
     super.outputWithOppositeFlag,
+    super.snapshot,
+    super.debugInfo,
   );
 
   @override
@@ -163,19 +166,19 @@ Future<DeferredElfState> runElf(String tempDir, String scriptDill) async {
   final snapshotDwarfMap = useSnapshotForDwarfPath(pathManifest).dwarfMap;
 
   return DeferredElfState(
-    snapshotDwarfMap,
-    debugInfoDwarfMap,
     output,
     outputWithOppositeFlag,
+    snapshotDwarfMap,
+    debugInfoDwarfMap,
   );
 }
 
 class DeferredAssemblyState extends AssemblyState<DwarfMap> {
   DeferredAssemblyState(
-    super.snapshot,
-    super.debugInfo,
     super.output,
-    super.outputWithOppositeFlag, [
+    super.outputWithOppositeFlag,
+    super.snapshot,
+    super.debugInfo, [
     super.singleArch,
     super.multiArch,
   ]);
@@ -298,10 +301,10 @@ Future<DeferredAssemblyState?> runAssembly(
   }
 
   return DeferredAssemblyState(
-    snapshotDwarfMap,
-    debugInfoDwarfMap,
     output,
     outputWithOppositeFlag,
+    snapshotDwarfMap,
+    debugInfoDwarfMap,
     singleArchSnapshotDwarfMap,
     multiArchSnapshotDwarfMap,
   );

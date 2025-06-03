@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -253,7 +254,7 @@ Annotation
 ''');
 
     var localVariable = findElement2.localVar('x');
-    var annotationOnElement = localVariable.metadata2.annotations.first;
+    var annotationOnElement = localVariable.metadata.annotations.first;
     _assertElementAnnotationValueText(annotationOnElement, '''
 A
   a: int 3
@@ -1474,7 +1475,7 @@ void f(C c) {}
 ''');
 
     var classC = findNode.namedType('C c').element2 as ClassElement;
-    var annotation = classC.metadata2.annotations.first;
+    var annotation = classC.metadata.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 B
   a: A
@@ -1504,7 +1505,7 @@ void f(B b) {}
 ''');
 
     var classB = findNode.namedType('B b').element2! as ClassElement;
-    var annotation = classB.metadata2.annotations.first;
+    var annotation = classB.metadata.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 A
   f: int 42
@@ -1533,7 +1534,7 @@ void f(B b) {}
 ''');
 
     var classB = findNode.namedType('B b').element2 as ClassElement;
-    var annotation = classB.metadata2.annotations.first;
+    var annotation = classB.metadata.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 A
   f: int 42

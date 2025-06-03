@@ -6,7 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
 import 'package:path/path.dart';
@@ -170,15 +170,15 @@ analyzer:
       '.dart_tool/package_config.json',
     );
     var generatedProject = join(testPackageRootPath, '.dart_tool/foo');
-    var generatedFile = join(generatedProject, 'lib', 'foo.dart');
+    var generatedFilePath = join(generatedProject, 'lib', 'foo.dart');
 
     // Add the generated project into package_config.json.
     var config = PackageConfigFileBuilder();
     config.add(name: 'foo', rootPath: generatedProject);
-    newFile(configPath, config.toContent(toUriStr: toUriStr));
+    newFile(configPath, config.toContent(pathContext: pathContext));
 
     // Set up project that references the class prior to initial analysis.
-    newFile(generatedFile, 'class A {}');
+    var generatedFile = newFile(generatedFilePath, 'class A {}');
     addTestFile('''
 import 'package:foo/foo.dart';
 A? a;
@@ -191,7 +191,7 @@ A? a;
 
     // Remove the class, which should cause the main project to have an analysis
     // error.
-    modifyFile(generatedFile, '');
+    modifyFile2(generatedFile, '');
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);

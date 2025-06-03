@@ -15,7 +15,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:collection/collection.dart';
 
 Element? declaredParameterElement(SimpleIdentifier node, Element? element) {
-  if (element == null || element.enclosingElement2 != null) {
+  if (element == null || element.enclosingElement != null) {
     return element;
   }
 
@@ -58,7 +58,7 @@ Element? declaredParameterElement(SimpleIdentifier node, Element? element) {
 }
 
 Element? declaredParameterElement2(SimpleIdentifier node, Element? element) {
-  if (element == null || element.enclosingElement2 != null) {
+  if (element == null || element.enclosingElement != null) {
     return element;
   }
 
@@ -128,17 +128,17 @@ class ElementNameComponents {
     }
 
     String? classMemberName;
-    if (element.enclosingElement2 is InterfaceElement ||
-        element.enclosingElement2 is ExtensionElement) {
+    if (element.enclosingElement is InterfaceElement ||
+        element.enclosingElement is ExtensionElement) {
       classMemberName = element.lookupName;
-      element = element.enclosingElement2!;
+      element = element.enclosingElement!;
     }
 
     String? unitMemberName;
     if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
       unitMemberName = element.lookupName;
       if (element is ExtensionElement && unitMemberName == null) {
-        var enclosingUnit = element.enclosingElement2;
+        var enclosingUnit = element.enclosingElement;
         var indexOf = enclosingUnit.extensions.indexOf(element);
         unitMemberName = 'extension-$indexOf';
       }
@@ -175,7 +175,7 @@ class IndexElementInfo {
     } else if (element.isSynthetic) {
       if (elementKind == ElementKind.CONSTRUCTOR) {
         kind = IndexSyntheticElementKind.constructor;
-        element = element.enclosingElement2!;
+        element = element.enclosingElement!;
       } else if (element is TopLevelFunctionElement &&
           element.name3 == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
         kind = IndexSyntheticElementKind.loadLibrary;
@@ -187,7 +187,7 @@ class IndexElementInfo {
       } else if (elementKind == ElementKind.GETTER ||
           elementKind == ElementKind.SETTER) {
         var accessor = element as PropertyAccessorElement;
-        var enclosing = element.enclosingElement2;
+        var enclosing = element.enclosingElement;
         bool isEnumGetter = enclosing is EnumElement;
         if (isEnumGetter && accessor.name3 == 'index') {
           kind = IndexSyntheticElementKind.enumIndex;
@@ -205,7 +205,7 @@ class IndexElementInfo {
           }
         }
       } else if (element is MethodElement) {
-        var enclosing = element.enclosingElement2;
+        var enclosing = element.enclosingElement;
         bool isEnumMethod = enclosing is EnumElement;
         if (isEnumMethod && element.name3 == 'toString') {
           kind = IndexSyntheticElementKind.enumToString;
@@ -657,7 +657,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // These functions are not bound to a source, we cannot index them.
     if (elementKind == ElementKind.PARAMETER &&
         element is FormalParameterElement) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement == null || enclosingElement.isSynthetic) {
         return;
       }
@@ -667,7 +667,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // named parameters. Ignore them.
     if (elementKind == ElementKind.PARAMETER &&
         element is FormalParameterElement &&
-        element.enclosingElement2 is GenericFunctionTypeElement) {
+        element.enclosingElement is GenericFunctionTypeElement) {
       return;
     }
     // Add the relation.
@@ -695,7 +695,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void recordSuperType(NamedType namedType, IndexRelationKind kind) {
     var isQualified = namedType.importPrefix != null;
     var element = namedType.element2;
-    recordRelation(element, kind, namedType.name2, isQualified);
+    recordRelation(element, kind, namedType.name, isQualified);
   }
 
   void recordUriReference(Element? element, StringLiteral uri) {
@@ -733,7 +733,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // If the class has only a synthetic default constructor, then it
     // implicitly invokes the default super constructor. Associate the
     // invocation with the name of the class.
-    var defaultConstructor = declaredElement.constructors2.singleOrNull;
+    var defaultConstructor = declaredElement.constructors.singleOrNull;
     if (defaultConstructor is ConstructorElementImpl2 &&
         defaultConstructor.isSynthetic) {
       defaultConstructor.isDefaultConstructor;
@@ -858,6 +858,41 @@ class _IndexContributor extends GeneralizingAstVisitor {
     recordRelationOffset(element, kind, offset, length, true);
 
     node.type.accept(this);
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    var element = _getActualConstructorElement(node.element?.baseElement);
+    recordRelation(
+      element,
+      IndexRelationKind.IS_INVOKED_BY,
+      node.constructorName,
+      true,
+    );
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    var name = node.memberName;
+    var element = name.element;
+    recordRelation(element, IndexRelationKind.IS_INVOKED_BY, name, true);
+    node.typeArguments?.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    IndexRelationKind kind;
+    var element = node.propertyName.element;
+    if (element is ConstructorElementMixin2) {
+      element = _getActualConstructorElement(element);
+      kind = IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF;
+    } else {
+      kind = IndexRelationKind.IS_REFERENCED_BY;
+    }
+    recordRelation(element, kind, node.propertyName, true);
   }
 
   @override
@@ -1050,7 +1085,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   visitNamedType(NamedType node) {
     _recordImportPrefixedElement(
       importPrefix: node.importPrefix,
-      name: node.name2,
+      name: node.name,
       element: node.element2,
     );
 
@@ -1343,7 +1378,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   ) {
     var seenConstructors = <ConstructorElement?>{};
     while (constructor is ConstructorElementImpl2 && constructor.isSynthetic) {
-      var enclosing = constructor.enclosingElement2;
+      var enclosing = constructor.enclosingElement;
       if (enclosing is ClassElementImpl2 && enclosing.isMixinApplication) {
         var superInvocation =
             constructor.firstFragment.constantInitializers

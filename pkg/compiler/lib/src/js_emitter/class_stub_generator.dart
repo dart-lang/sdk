@@ -180,11 +180,10 @@ class ClassStubGenerator {
         List.generate(selector.argumentCount, (i) => '\$$i') +
         List.generate(selector.typeArgumentCount, (i) => '\$T${i + 1}');
 
-    List<js_ast.Expression> argNames =
-        selector.callStructure
-            .getOrderedNamedArguments()
-            .map((String name) => js.string(name))
-            .toList();
+    List<js_ast.Expression> argNames = selector.callStructure
+        .getOrderedNamedArguments()
+        .map((String name) => js.string(name))
+        .toList();
 
     js_ast.Name methodName = _namer.asName(selector.invocationMirrorMemberName);
     js_ast.Name internalName = _namer.invocationMirrorInternalName(selector);

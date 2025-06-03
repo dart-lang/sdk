@@ -44,8 +44,8 @@ class _ModularTransformer extends Transformer {
       _awaitLowering = AwaitLowering(coreTypes),
       _asyncLowering =
           (options?.features.simpleAsyncToFuture.isEnabled ?? false)
-              ? AsyncLowering(coreTypes)
-              : null;
+          ? AsyncLowering(coreTypes)
+          : null;
 
   @override
   TreeNode defaultMember(Member node) {

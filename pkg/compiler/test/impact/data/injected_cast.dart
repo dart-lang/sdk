@@ -643,7 +643,8 @@ class Class7 {
     inst:JSUnmodifiableArray<dynamic>,
     param:A]
   */
-  A Function(A) get f => (a) => a;
+  A Function(A) get f =>
+      (a) => a;
 }
 
 /*member: method7:

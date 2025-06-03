@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:matcher/expect.dart';
 import 'package:meta/meta.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -48,7 +48,7 @@ class MissingDependencyTest with ResourceProviderMixin {
     Set<String> usedDeps = const {},
     Set<String> usedDevDeps = const {},
   }) {
-    List<AnalysisError> errors = _runValidator(content, usedDeps, usedDevDeps);
+    List<Diagnostic> errors = _runValidator(content, usedDeps, usedDevDeps);
     expect(errors.isEmpty, true);
   }
 
@@ -171,7 +171,7 @@ dev_dependencies:
     );
   }
 
-  List<AnalysisError> _runValidator(
+  List<Diagnostic> _runValidator(
     String content,
     Set<String> usedDeps,
     Set<String> usedDevDeps,

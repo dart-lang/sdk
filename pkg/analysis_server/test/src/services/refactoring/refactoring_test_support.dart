@@ -3,14 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
-import '../../../lsp/code_actions_abstract.dart';
-import '../../../utils/lsp_protocol_extensions.dart';
+import '../../../lsp/code_actions_mixin.dart';
+import '../../../lsp/server_abstract.dart';
 import '../../../utils/test_code_extensions.dart';
 
-abstract class RefactoringTest extends AbstractCodeActionsTest {
+abstract class RefactoringTest extends AbstractLspAnalysisServerTest
+    with LspSharedTestMixin, CodeActionsTestMixin {
   /// Position of the marker where the refactor will be invoked.
   Position? _position;
 
@@ -92,9 +94,21 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
   ///
   /// Enables all required client capabilities for new refactors unless the
   /// corresponding flags are set to `false`.
+  @override
   Future<void> initializeServer({bool experimentalOptInFlag = true}) async {
     var config = {if (experimentalOptInFlag) 'experimentalRefactors': true};
 
-    await provideConfig(super.initialize, config);
+    await provideConfig(super.initializeServer, config);
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+
+    // Many refactor tests test with code that produces errors.
+    failTestOnErrorDiagnostic = false;
+
+    setApplyEditSupport();
+    setDocumentChangesSupport();
   }
 }

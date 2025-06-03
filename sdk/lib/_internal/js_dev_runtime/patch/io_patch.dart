@@ -69,7 +69,7 @@ class _Directory {
 @patch
 class _AsyncDirectoryListerOps {
   @patch
-  factory _AsyncDirectoryListerOps(int pointer) {
+  factory _AsyncDirectoryListerOps._(int pointer) {
     throw UnsupportedError("Directory._list");
   }
 }
@@ -221,7 +221,7 @@ class _Namespace {
 @patch
 class _RandomAccessFileOps {
   @patch
-  factory _RandomAccessFileOps(int pointer) {
+  factory _RandomAccessFileOps._(int pointer) {
     throw UnsupportedError("RandomAccessFile");
   }
 }

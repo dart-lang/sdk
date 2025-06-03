@@ -467,7 +467,7 @@ abstract class RenameRefactoring implements Refactoring {
         element.import,
       );
     }
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (element is PrefixElement) {
       enclosingElement = element.library2;
     }
@@ -574,7 +574,7 @@ abstract class RenameRefactoring implements Refactoring {
     } else if (node is NamedCompilationUnitMember) {
       nameNode = node.name;
     } else if (node is NamedType) {
-      nameNode = node.name2;
+      nameNode = node.name;
     } else if (node is RepresentationConstructorName) {
       nameNode = node.name;
     } else if (node is RepresentationDeclaration) {
@@ -617,8 +617,8 @@ abstract class RenameRefactoring implements Refactoring {
     if (node is InstanceCreationExpression) {
       var namedType = node.constructorName.type;
       element = namedType.element2;
-      offset = namedType.name2.offset;
-      length = namedType.name2.length;
+      offset = namedType.name.offset;
+      length = namedType.name.length;
     }
 
     if (element == null) {

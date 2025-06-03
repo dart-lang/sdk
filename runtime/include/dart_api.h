@@ -3987,7 +3987,7 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
  *
  *  The assembly should be compiled as a static or shared library and linked or
  *  loaded by the embedder. Running this snapshot requires a VM compiled with
- *  DART_PRECOMPILED_SNAPSHOT. The kDartVmSnapshotData and
+ *  DART_PRECOMPILED_RUNTIME. The kDartVmSnapshotData and
  *  kDartVmSnapshotInstructions should be passed to Dart_Initialize. The
  *  kDartIsolateSnapshotData and kDartIsolateSnapshotInstructions should be
  *  passed to Dart_CreateIsolateGroup.
@@ -3998,7 +3998,8 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
  *  debugging sections.
  *
  *  If debug_callback_data is provided, debug_callback_data will be used with
- *  the callback to provide separate debugging information.
+ *  the callback to provide separate debugging information. Ignored when
+ *  targeting Windows.
  *
  *  \return A valid handle if no error occurs during the operation.
  */
@@ -4027,7 +4028,7 @@ Dart_CreateAppAOTSnapshotAsAssemblies(
  *   - _kDartIsolateSnapshotInstructions
  *
  *  The shared library should be dynamically loaded by the embedder.
- *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_SNAPSHOT.
+ *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_RUNTIME.
  *  The kDartVmSnapshotData and kDartVmSnapshotInstructions should be passed to
  *  Dart_Initialize. The kDartIsolateSnapshotData and
  *  kDartIsolateSnapshotInstructions should be passed to Dart_CreateIsolate.
@@ -4053,6 +4054,52 @@ Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
                                 bool stripped,
                                 Dart_StreamingWriteCallback write_callback,
                                 Dart_StreamingCloseCallback close_callback);
+
+typedef enum {
+  Dart_AotBinaryFormat_Elf = 0,
+  Dart_AotBinaryFormat_Assembly = 1,
+  Dart_AotBinaryFormat_MachO_Dylib = 2,
+} Dart_AotBinaryFormat;
+
+/**
+ *  Creates a precompiled snapshot.
+ *   - A root library must have been loaded.
+ *   - Dart_Precompile must have been called.
+ *
+ *  Outputs a snapshot in the specified binary format defining the symbols
+ *   - _kDartVmSnapshotData
+ *   - _kDartVmSnapshotInstructions
+ *   - _kDartIsolateSnapshotData
+ *   - _kDartIsolateSnapshotInstructions
+ *
+ *  The shared library should be dynamically loaded by the embedder.
+ *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_RUNTIME.
+ *  The kDartVmSnapshotData and kDartVmSnapshotInstructions should be passed to
+ *  Dart_Initialize. The kDartIsolateSnapshotData and
+ *  kDartIsolateSnapshotInstructions should be passed to Dart_CreateIsolate.
+ *
+ *  The callback will be invoked one or more times to provide the binary output.
+ *
+ *  If stripped is true, then the binary output will not include DWARF
+ *  debugging sections.
+ *
+ *  If debug_callback_data is provided, debug_callback_data will be used with
+ *  the callback to provide separate debugging information.
+ *
+ *  The identifier should be an appropriate string for identifying the resulting
+ *  dynamic library. For example, the identifier is used in ID_DYLIB and
+ *  CODE_SIGNATURE load commands for Mach-O dynamic libraries and for DW_AT_name
+ *  in the Dart progam's root DWARF compilation unit.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
+                                  Dart_StreamingWriteCallback callback,
+                                  void* callback_data,
+                                  bool stripped,
+                                  void* debug_callback_data,
+                                  const char* identifier);
 
 /**
  *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes

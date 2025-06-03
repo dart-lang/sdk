@@ -450,14 +450,17 @@ class ProcessStarter {
       if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
         ReportChildError();
       }
+      close(write_out_[0]);
 
       if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
         ReportChildError();
       }
+      close(read_in_[1]);
 
       if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
         ReportChildError();
       }
+      close(read_err_[1]);
     } else {
       ASSERT(mode_ == kInheritStdio);
     }
@@ -630,34 +633,28 @@ class ProcessStarter {
   }
 
   void SetupDetachedWithStdio() {
-    // Close all open file descriptors except for
-    // exec_control_[1], write_out_[0], read_in_[1] and
-    // read_err_[1].
-    int max_fds = sysconf(_SC_OPEN_MAX);
-    if (max_fds == -1) {
-      max_fds = _POSIX_OPEN_MAX;
-    }
-    for (int fd = 0; fd < max_fds; fd++) {
-      if ((fd != exec_control_[1]) && (fd != write_out_[0]) &&
-          (fd != read_in_[1]) && (fd != read_err_[1])) {
-        close(fd);
-      }
-    }
-
     if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
       ReportChildError();
     }
-    close(write_out_[0]);
 
     if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
       ReportChildError();
     }
-    close(read_in_[1]);
 
     if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
       ReportChildError();
     }
-    close(read_err_[1]);
+
+    // Close all open file descriptors except for std* and exec_control_[1].
+    int max_fds = sysconf(_SC_OPEN_MAX);
+    if (max_fds == -1) {
+      max_fds = _POSIX_OPEN_MAX;
+    }
+    for (int fd = 3; fd < max_fds; fd++) {
+      if (fd != exec_control_[1]) {
+        close(fd);
+      }
+    }
   }
 
   int CleanupAndReturnError() {

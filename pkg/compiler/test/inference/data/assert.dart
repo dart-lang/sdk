@@ -31,7 +31,7 @@ simpleAssert() {
 // Simple assert statement known to be invalid.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: failingAssert:[exact=JSUInt31|powerset={I}]*/
+/*member: failingAssert:[exact=JSUInt31|powerset={I}{O}{N}]*/
 failingAssert() {
   assert(false);
   return 0;
@@ -50,9 +50,9 @@ simpleAssertWithMessage() {
 // Assert statement that promotes a local.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _promoteLocalAssert:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+/*member: _promoteLocalAssert:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
 _promoteLocalAssert(
-  /*Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ o,
+  /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/ o,
 ) {
   var local = o;
   assert(local is int);
@@ -69,9 +69,9 @@ promoteLocalAssert() {
 // Assert statement that promotes a parameter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _promoteParameterAssert:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+/*member: _promoteParameterAssert:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
 _promoteParameterAssert(
-  /*Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ o,
+  /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/ o,
 ) {
   assert(o is int);
   return o;
@@ -87,7 +87,7 @@ promoteParameterAssert() {
 // Assert statement with an unreachable throw.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: unreachableThrow:[exact=JSUInt31|powerset={I}]*/
+/*member: unreachableThrow:[exact=JSUInt31|powerset={I}{O}{N}]*/
 unreachableThrow() {
   assert(true, throw "unreachable");
   return 0;
@@ -98,7 +98,7 @@ unreachableThrow() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _messageWithSideEffect:[null|powerset={null}]*/
-_messageWithSideEffect(/*[exact=JSBool|powerset={I}]*/ b) {
+_messageWithSideEffect(/*[exact=JSBool|powerset={I}{O}{N}]*/ b) {
   var a;
   assert(b, a = 42);
   return a;
@@ -115,7 +115,7 @@ messageWithSideEffect() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _messageWithCaughtSideEffect:[null|powerset={null}]*/
-_messageWithCaughtSideEffect(/*[exact=JSBool|powerset={I}]*/ b) {
+_messageWithCaughtSideEffect(/*[exact=JSBool|powerset={I}{O}{N}]*/ b) {
   var a;
   try {
     assert(b, a = 42);

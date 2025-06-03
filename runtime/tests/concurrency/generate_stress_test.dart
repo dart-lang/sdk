@@ -24,9 +24,7 @@ main(List<String> args) async {
 }
 
 Future<String> generateStressTest(List<String> testFiles) async {
-  testFiles = testFiles
-      .map((String file) => path.absolute(path.join(thisDirectory, file)))
-      .toList();
+  testFiles = List.from(testFiles)..shuffle();
 
   final sb = StringBuffer();
   sb.writeln(r'''
@@ -40,7 +38,7 @@ import 'dart:io';
     sb.writeln('import "$testFile" as test$i;');
   }
   for (int i = 0; i < testFiles.length; ++i) {
-    final testFile = testFiles[i];
+    final testFile = path.normalize(path.join(thisDirectory, testFiles[i]));
     sb.writeln('''
         wrapper$i(dynamic _) {
           print('[$testFile] starting ...');
@@ -65,7 +63,7 @@ import 'dart:io';
   ''');
   sb.writeln('final List<Test> tests = [');
   for (int i = 0; i < testFiles.length; ++i) {
-    final testFile = testFiles[i];
+    final testFile = path.normalize(path.join(thisDirectory, testFiles[i]));
     sb.writeln('  Test("$testFile", wrapper$i),');
   }
   sb.writeln('];');

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,7 @@ class RecursiveGetters extends LintRule {
     : super(name: LintNames.recursive_getters, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.recursive_getters;
+  DiagnosticCode get diagnosticCode => LinterLintCode.recursive_getters;
 
   @override
   void registerNodeProcessors(

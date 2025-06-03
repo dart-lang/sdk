@@ -1099,6 +1099,66 @@ void f(Object? x) {
 ''');
   }
 
+  test_propertyAccess_nullAware_dynamic_length_notNull() async {
+    await assertNoErrorsInCode(r'''
+const dynamic d = 'foo';
+const int? c = d?.length;
+''');
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+int 3
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_propertyAccess_nullAware_dynamic_length_null() async {
+    await assertNoErrorsInCode(r'''
+const dynamic d = null;
+const int? c = d?.length;
+''');
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+Null null
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_propertyAccess_nullAware_list_length_null() async {
+    await assertNoErrorsInCode(r'''
+const List? l = null;
+const int? c = l?.length;
+''');
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+Null null
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_propertyAccess_nullAware_string_length_notNull() async {
+    await assertNoErrorsInCode(r'''
+const String? s = 'foo';
+const int? c = s?.length;
+''');
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+int 3
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_propertyAccess_nullAware_string_length_null() async {
+    await assertNoErrorsInCode(r'''
+const String? s = null;
+const int? c = s?.length;
+''');
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+Null null
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
   test_recordTypeAnnotation() async {
     await assertNoErrorsInCode(r'''
 const a = ('',) is (int,);
@@ -1345,6 +1405,7 @@ const c = x ?? 1;
           23,
           1,
         ),
+        error(WarningCode.DEAD_CODE, 25, 4),
         error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
       ],
     );
@@ -1357,6 +1418,7 @@ final x = 1;
 const c = 0 ?? x;
 ''',
       [
+        error(WarningCode.DEAD_CODE, 25, 4),
         error(
           CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
           28,
@@ -3135,7 +3197,7 @@ const g = self.C.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <testLibraryFragment>::@class::C::@method::f#element
+  element: <testLibrary>::@class::C::@method::f
   variable: <testLibrary>::@topLevelVariable::g
 ''');
   }
@@ -3151,7 +3213,7 @@ const void Function(int) g = self.C.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <testLibraryFragment>::@class::C::@method::f#element
+  element: <testLibrary>::@class::C::@method::f
   typeArguments
     int
   variable: <testLibrary>::@topLevelVariable::g
@@ -3169,7 +3231,7 @@ const g = self.E.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 int Function(String)
-  element: <testLibraryFragment>::@extension::E::@method::f#element
+  element: <testLibrary>::@extension::E::@method::f
   variable: <testLibrary>::@topLevelVariable::g
 ''');
   }
@@ -3185,7 +3247,7 @@ const g = self.ET.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 int Function(String)
-  element: <testLibraryFragment>::@extensionType::ET::@method::f#element
+  element: <testLibrary>::@extensionType::ET::@method::f
   variable: <testLibrary>::@topLevelVariable::g
 ''');
   }
@@ -5348,7 +5410,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     var evaluationResult = element.evaluationResult;
     switch (evaluationResult) {
       case null:
-        fail('Not evaluated: ${element.name}');
+        fail('Not evaluated: ${element.name2}');
       case InvalidConstant():
         return null;
       case DartObjectImpl():

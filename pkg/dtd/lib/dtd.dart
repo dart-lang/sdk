@@ -7,6 +7,7 @@ library;
 
 export 'src/constants.dart';
 export 'src/dart_tooling_daemon.dart';
-export 'src/file_system/types.dart';
-export 'src/response_types.dart';
+export 'src/response_types/response_types.dart';
 export 'src/rpc_error_codes.dart';
+export 'src/services/connected_app_service.dart';
+export 'src/services/file_system_service.dart';

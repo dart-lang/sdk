@@ -42,9 +42,11 @@ FunctionDeclarationStatement
           TypeParameter
             name: T
             declaredElement: T@17
+              defaultType: dynamic
           TypeParameter
             name: U
             declaredElement: U@20
+              defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
@@ -111,9 +113,11 @@ FunctionDeclarationStatement
               element2: U@33
               type: U
             declaredElement: T@20
+              defaultType: dynamic
           TypeParameter
             name: U
             declaredElement: U@33
+              defaultType: dynamic
           TypeParameter
             name: V
             extendsKeyword: extends
@@ -122,6 +126,7 @@ FunctionDeclarationStatement
               element2: U@33
               type: U
             declaredElement: V@36
+              defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
@@ -188,6 +193,7 @@ FunctionDeclarationStatement
           TypeParameter
             name: T
             declaredElement: T@20
+              defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
@@ -244,6 +250,7 @@ FunctionDeclarationStatement
           TypeParameter
             name: T
             declaredElement: T@20
+              defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
@@ -300,6 +307,7 @@ FunctionDeclarationStatement
           TypeParameter
             name: T
             declaredElement: T@20
+              defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
@@ -357,6 +365,7 @@ FunctionDeclarationStatement
           TypeParameter
             name: T
             declaredElement: T@20
+              defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (

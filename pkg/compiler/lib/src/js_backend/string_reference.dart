@@ -266,8 +266,9 @@ class StringReferenceFinalizerImpl implements StringReferenceFinalizer {
   // Called from collector visitor.
   void registerStringReference(StringReference node) {
     StringConstantValue constant = node.constant;
-    _ReferenceSet refs =
-        _referencesByString[constant] ??= _ReferenceSet(constant);
+    _ReferenceSet refs = _referencesByString[constant] ??= _ReferenceSet(
+      constant,
+    );
     refs.count++;
     refs._references.add(node);
   }
@@ -290,8 +291,10 @@ class StringReferenceFinalizerImpl implements StringReferenceFinalizer {
       }
     }
 
-    List<_ReferenceSet> referenceSetsUsingProperties =
-        _referencesByString.values.where((ref) => !ref.generateAtUse).toList();
+    List<_ReferenceSet> referenceSetsUsingProperties = _referencesByString
+        .values
+        .where((ref) => !ref.generateAtUse)
+        .toList();
 
     // Sort by string (which is unique and stable) so that similar strings are
     // grouped together.
@@ -363,14 +366,14 @@ class StringReferenceFinalizerImpl implements StringReferenceFinalizer {
 
     // Step 2. Sort by frequency to arrange common entries have shorter property
     // names.
-    List<_ReferenceSet> referencesByFrequency =
-        referencesInTable.toList()..sort((a, b) {
-          assert(a.name != b.name);
-          int r = b.count.compareTo(a.count); // Decreasing frequency.
-          if (r != 0) return r;
-          // Tie-break with raw string.
-          return _ReferenceSet.compareByString(a, b);
-        });
+    List<_ReferenceSet> referencesByFrequency = referencesInTable.toList()
+      ..sort((a, b) {
+        assert(a.name != b.name);
+        int r = b.count.compareTo(a.count); // Decreasing frequency.
+        if (r != 0) return r;
+        // Tie-break with raw string.
+        return _ReferenceSet.compareByString(a, b);
+      });
 
     for (final referenceSet in referencesByFrequency) {
       // TODO(sra): Assess the dispersal of this hash function in the

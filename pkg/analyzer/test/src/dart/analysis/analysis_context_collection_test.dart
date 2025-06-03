@@ -11,18 +11,18 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
 
 main() {
@@ -406,12 +406,14 @@ analysisOptions
       enhanced-enums
       extension-methods
       generic-metadata
+      getter-setter-error
       inference-update-1
       inference-update-2
       inference-update-3
       inference-using-bounds
       inline-class
       named-arguments-anywhere
+      native-assets
       non-nullable
       nonfunction-type-aliases
       null-aware-elements
@@ -419,6 +421,7 @@ analysisOptions
       records
       sealed-class
       set-literals
+      sound-flow-analysis
       spread-collections
       super-parameters
       triple-shift
@@ -484,12 +487,14 @@ analysisOptions
       enhanced-enums
       extension-methods
       generic-metadata
+      getter-setter-error
       inference-update-1
       inference-update-2
       inference-update-3
       inference-using-bounds
       inline-class
       named-arguments-anywhere
+      native-assets
       non-nullable
       nonfunction-type-aliases
       null-aware-elements
@@ -497,6 +502,7 @@ analysisOptions
       records
       sealed-class
       set-literals
+      sound-flow-analysis
       spread-collections
       super-parameters
       triple-shift
@@ -1134,7 +1140,7 @@ class _AnalysisContextCollectionPrinter {
 
   final Map<AnalysisOptionsImpl, String> _analysisOptions = Map.identity();
   final Map<Workspace, (int, String)> _workspaces = Map.identity();
-  final Map<Workspace, Map<WorkspacePackage, String>> _workspacePackages =
+  final Map<Workspace, Map<WorkspacePackageImpl, String>> _workspacePackages =
       Map.identity();
 
   _AnalysisContextCollectionPrinter({
@@ -1168,7 +1174,7 @@ class _AnalysisContextCollectionPrinter {
     return _indexIdOfWorkspace(workspace).$2;
   }
 
-  String _idOfWorkspacePackage(WorkspacePackage package) {
+  String _idOfWorkspacePackage(WorkspacePackageImpl package) {
     var workspace = package.workspace;
     var packages = _workspacePackages[workspace] ??= Map.identity();
     if (packages[package] case var id?) {
@@ -1325,20 +1331,18 @@ class _AnalysisContextCollectionPrinter {
     }
   }
 
-  void _writeWorkspacePackage(WorkspacePackage package) {
+  void _writeWorkspacePackage(WorkspacePackageImpl package) {
     var id = _idOfWorkspacePackage(package);
     switch (package) {
       case BasicWorkspacePackage():
         sink.writelnWithIndent('$id: BasicWorkspacePackage');
         sink.withIndent(() {
-          var root = resourceProvider.getFolder(package.root);
-          sink.writelnWithIndent('root: ${root.posixPath}');
+          sink.writelnWithIndent('root: ${package.root.posixPath}');
         });
       case PubPackage():
         sink.writelnWithIndent('$id: PubPackage');
         sink.withIndent(() {
-          var root = resourceProvider.getFolder(package.root);
-          sink.writelnWithIndent('root: ${root.posixPath}');
+          sink.writelnWithIndent('root: ${package.root.posixPath}');
           var sdkVersionConstraint = package.sdkVersionConstraint;
           if (sdkVersionConstraint != null) {
             sink.writelnWithIndent(

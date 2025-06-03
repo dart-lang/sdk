@@ -486,8 +486,6 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.stopAfterProgramSplit, passThrough),
     _OneOption(Flags.disableTypeInference, passThrough),
     _OneOption(Flags.useTrivialAbstractValueDomain, passThrough),
-    _OneOption(Flags.experimentalWrapped, passThrough),
-    _OneOption(Flags.experimentalPowersets, passThrough),
     _OneOption(Flags.disableRtiOptimization, passThrough),
     _OneOption(Flags.terse, passThrough),
     _OneOption('--deferred-map=.+', passThrough),
@@ -538,6 +536,7 @@ Future<api.CompilationResult> compile(
     _OneOption('${Flags.invoker}=.+', setInvoker),
     _OneOption('${Flags.verbosity}=.+', passThrough),
     _OneOption(Flags.disableDiagnosticByteCache, passThrough),
+    _OneOption(Flags.enableDeferredLoadingEventLog, passThrough),
 
     // Experimental features.
     // We don't provide documentation for these yet.
@@ -716,10 +715,9 @@ Future<api.CompilationResult> compile(
   }
 
   // TODO(johnniwinther): Measure time for reading files.
-  SourceFileByteReader byteReader =
-      compilerOptions.memoryMappedFiles
-          ? const MemoryMapSourceFileByteReader()
-          : const MemoryCopySourceFileByteReader();
+  SourceFileByteReader byteReader = compilerOptions.memoryMappedFiles
+      ? const MemoryMapSourceFileByteReader()
+      : const MemoryCopySourceFileByteReader();
 
   SourceFileProvider inputProvider;
   if (bazelPaths != null) {
@@ -927,12 +925,16 @@ Future<api.CompilationResult> compile(
         break;
     }
 
+    final memoryUsed = await currentHeapCapacityInMb();
+    final memoryUsedString = memoryUsed != null
+        ? ' using $memoryUsed of memory'
+        : '';
+
     print(
       '$processName '
       '${_formatCharacterCount(inputSize)} $inputName to '
       '${_formatCharacterCount(outputSize)} $outputName in '
-      '${_formatDurationAsSeconds(wallclock.elapsed)} seconds using '
-      '${await currentHeapCapacityInMb()} of memory',
+      '${_formatDurationAsSeconds(wallclock.elapsed)} seconds$memoryUsedString',
     );
     if (primaryOutputSize != null && out != null) {
       diagnostic.info(
@@ -991,8 +993,9 @@ void writeString(Uri uri, String text) {
   if (!uri.isScheme('file')) {
     _fail('Unhandled scheme ${uri.scheme}.');
   }
-  var file = (File(uri.toFilePath())
-    ..createSync(recursive: true)).openSync(mode: FileMode.write);
+  var file = (File(
+    uri.toFilePath(),
+  )..createSync(recursive: true)).openSync(mode: FileMode.write);
   file.writeStringSync(text);
   file.closeSync();
 }
@@ -1053,7 +1056,8 @@ Usage: dart compile js [arguments] <dart entry point>
      -O2          Safe production-oriented optimizations (like minification).
      -O3          Potentially unsafe optimizations (see -h -v for details).
      -O4          More aggressive unsafe optimizations (see -h -v for details).
-'''.trim(),
+'''
+        .trim(),
   );
 }
 
@@ -1245,7 +1249,8 @@ be removed in a future version:
   --no-frequency-based-minification
     Experimental. Disable the new frequency based minifying namer and use the
     old namer instead.
-'''.trim(),
+'''
+        .trim(),
   );
 }
 

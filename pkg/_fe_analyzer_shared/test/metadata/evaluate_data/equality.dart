@@ -57,4 +57,3 @@ resolved=EqualityExpression(StaticGet(constInt) != IntegerLiteral(1))
 evaluate=BooleanLiteral(true)
 constInt=IntegerLiteral(42)*/
 void equalityExpression8() {}
-

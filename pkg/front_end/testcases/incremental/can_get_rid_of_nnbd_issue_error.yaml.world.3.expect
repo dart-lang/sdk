@@ -7,12 +7,12 @@ library from "package:bar/bar.dart" as bar {
 // // This file is in weak mode.
 // ^
 //
-// org-dartlang-test:///bar/lib/bar.dart:2:9: Error: The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
+// org-dartlang-test:///bar/lib/bar.dart:2:9: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
 // int y = null;
 //         ^
 //
 
-  static field dart.core::int y = invalid-expression "org-dartlang-test:///bar/lib/bar.dart:2:9: Error: The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.\nint y = null;\n        ^" in let Null #t1 = null in #t1 == null ?{dart.core::int} #t1 as{TypeError} dart.core::int : #t1{dart.core::int};
+  static field dart.core::int y = invalid-expression "org-dartlang-test:///bar/lib/bar.dart:2:9: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.\nint y = null;\n        ^" in let Null #t1 = null in #t1 == null ?{dart.core::int} #t1 as{TypeError} dart.core::int : #t1{dart.core::int};
 }
 library from "package:baz/main.dart" as main {
 

@@ -173,12 +173,13 @@ void main() {
     // Gets subtypes for sealed type.
     var aSubtypes = a.getSubtypes(const {}).toList();
     expect(
-        aSubtypes,
-        unorderedEquals([
-          WrappedStaticType(b, a),
-          WrappedStaticType(c, a),
-          WrappedStaticType(e, a)
-        ]));
+      aSubtypes,
+      unorderedEquals([
+        WrappedStaticType(b, a),
+        WrappedStaticType(c, a),
+        WrappedStaticType(e, a),
+      ]),
+    );
 
     // Unsealed subtype.
     var cSubtypes = c.getSubtypes(const {}).toList();

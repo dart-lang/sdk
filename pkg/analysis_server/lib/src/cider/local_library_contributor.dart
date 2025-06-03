@@ -62,12 +62,12 @@ class LibraryElementSuggestionBuilder
   void visitClassElement(ClassElement element) {
     AstNode node = request.target.containingNode;
     var libraryElement = request.libraryElement;
-    if (node is ExtendsClause && !element.isExtendableIn2(libraryElement)) {
+    if (node is ExtendsClause && !element.isExtendableIn(libraryElement)) {
       return;
     } else if (node is ImplementsClause &&
-        !element.isImplementableIn2(libraryElement)) {
+        !element.isImplementableIn(libraryElement)) {
       return;
-    } else if (node is WithClause && !element.isMixableIn2(libraryElement)) {
+    } else if (node is WithClause && !element.isMixableIn(libraryElement)) {
       return;
     }
     _visitInterfaceElement(element);
@@ -104,7 +104,7 @@ class LibraryElementSuggestionBuilder
         (opType.includeAnnotationSuggestions &&
             variable != null &&
             variable.isConst)) {
-      var parent = element.enclosingElement2;
+      var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
         if (element.isSynthetic) {
           if (variable is FieldElement) {
@@ -143,7 +143,7 @@ class LibraryElementSuggestionBuilder
         (opType.includeAnnotationSuggestions &&
             variable != null &&
             variable.isConst)) {
-      var parent = element.enclosingElement2;
+      var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
         if (!element.isSynthetic) {
           builder.suggestSetter(element, inheritanceDistance: 0.0);
@@ -193,7 +193,7 @@ class LibraryElementSuggestionBuilder
       return;
     }
 
-    for (var constructor in element.constructors2) {
+    for (var constructor in element.constructors) {
       if (constructor.isPrivate) {
         continue;
       }
@@ -223,7 +223,7 @@ class LibraryElementSuggestionBuilder
       var contextType = request.contextType;
       if (contextType is InterfaceType) {
         // TODO(scheglov): This looks not ideal - we should suggest getters.
-        for (var field in element.fields2) {
+        for (var field in element.fields) {
           if (field.isStatic &&
               field.isAccessibleIn2(request.libraryElement) &&
               typeSystem.isSubtypeOf(field.type, contextType)) {

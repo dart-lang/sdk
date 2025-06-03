@@ -14,7 +14,7 @@ import 'schema.dart' as schema;
 /// This is either '<class-name>' or '<class-name>.<constructor-name>',
 /// depending on whether the constructor is a named constructor.
 String _computeConstructorElementName(ConstructorElement constructor) {
-  var name = constructor.enclosingElement2.name3!;
+  var name = constructor.enclosingElement.name3!;
   var constructorName = constructor.name3;
   if (constructorName != null && constructorName != 'new') {
     name = '$name.$constructorName';
@@ -171,12 +171,12 @@ class _SignatureBuilder {
       // It is legal to have a named constructor with the same name as a type
       // parameter.  So we distinguish them by using '.' between the class (or
       // typedef) name and the type parameter name.
-      _appendSignatureTo(buffer, element.enclosingElement2!);
+      _appendSignatureTo(buffer, element.enclosingElement!);
       buffer
         ..write('.')
         ..write(element.name3!);
     } else {
-      var enclosingElt = element.enclosingElement2!;
+      var enclosingElt = element.enclosingElement!;
       _appendSignatureTo(buffer, enclosingElt);
       if (buffer.isNotEmpty) {
         buffer.write('#');

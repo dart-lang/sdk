@@ -14,7 +14,7 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:http/src/response.dart' as http;
 import 'package:linter/src/rules.dart';
 import 'package:path/path.dart' as path;

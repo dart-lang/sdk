@@ -16,7 +16,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-/// An object that listens for [AnalysisError]s being produced by the analysis
+/// An object that listens for [Diagnostic]s being produced by the analysis
 /// engine.
 abstract class AnalysisErrorListener {
   /// An error listener that ignores errors that are reported to it.
@@ -24,7 +24,7 @@ abstract class AnalysisErrorListener {
 
   /// This method is invoked when an [error] has been found by the analysis
   /// engine.
-  void onError(AnalysisError error);
+  void onError(Diagnostic error);
 }
 
 /// An [AnalysisErrorListener] that keeps track of whether any error has been
@@ -37,7 +37,7 @@ class BooleanErrorListener implements AnalysisErrorListener {
   bool get errorReported => _errorReported;
 
   @override
-  void onError(AnalysisError error) {
+  void onError(Diagnostic error) {
     _errorReported = true;
   }
 }
@@ -65,11 +65,12 @@ class ErrorReporter {
 
   Source get source => _source;
 
-  /// Report a diagnostic with the given [errorCode] and [arguments].
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
   /// The location of the diagnostic will be the name of the [node].
   void atConstructorDeclaration(
     ConstructorDeclaration node,
-    DiagnosticCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -82,27 +83,28 @@ class ErrorReporter {
       atOffset(
         offset: offset,
         length: nameToken.end - offset,
-        errorCode: errorCode,
+        diagnosticCode: diagnosticCode,
         arguments: arguments,
       );
     } else {
-      atNode(node.returnType, errorCode, arguments: arguments);
+      atNode(node.returnType, diagnosticCode, arguments: arguments);
     }
   }
 
-  /// Report an error with the given [diagnosticCode] and [arguments].
-  /// The [element] is used to compute the location of the error.
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
+  /// The [element] is used to compute the location of the diagnostic.
   @experimental
   void atElement2(
-    Element element2,
+    Element element,
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    var nonSynthetic = element2.nonSynthetic2;
+    var nonSynthetic = element.nonSynthetic2;
     atOffset(
-      errorCode: diagnosticCode,
+      diagnosticCode: diagnosticCode,
       offset: nonSynthetic.firstFragment.nameOffset2 ?? -1,
       length: nonSynthetic.name3?.length ?? 0,
       arguments: arguments,
@@ -111,17 +113,18 @@ class ErrorReporter {
     );
   }
 
-  /// Report an error with the given [errorCode] and [arguments].
-  /// The [entity] is used to compute the location of the error.
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
+  /// The [entity] is used to compute the location of the diagnostic.
   void atEntity(
     SyntacticEntity entity,
-    DiagnosticCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     atOffset(
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       offset: entity.offset,
       length: entity.length,
       arguments: arguments,
@@ -130,8 +133,9 @@ class ErrorReporter {
     );
   }
 
-  /// Report an error with the given [diagnosticCode] and [arguments].
-  /// The [node] is used to compute the location of the error.
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
+  /// The [node] is used to compute the location of the diagnostic.
   void atNode(
     AstNode node,
     DiagnosticCode diagnosticCode, {
@@ -140,7 +144,7 @@ class ErrorReporter {
     Object? data,
   }) {
     atOffset(
-      errorCode: diagnosticCode,
+      diagnosticCode: diagnosticCode,
       offset: node.offset,
       length: node.length,
       arguments: arguments,
@@ -149,12 +153,16 @@ class ErrorReporter {
     );
   }
 
-  /// Report an error with the given [errorCode] and [arguments]. The location
-  /// of the error is specified by the given [offset] and [length].
+  /// Reports a diagnostic with the given [diagnosticCode] (or [errorCode],
+  /// deprecated) and [arguments].
+  ///
+  /// The location of the diagnostic is specified by the given [offset] and
+  /// [length].
   void atOffset({
     required int offset,
     required int length,
-    required DiagnosticCode errorCode,
+    @Deprecated("Use 'diagnosticCode' instead") DiagnosticCode? errorCode,
+    DiagnosticCode? diagnosticCode,
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -162,6 +170,14 @@ class ErrorReporter {
     if (lockLevel != 0) {
       return;
     }
+    if ((errorCode == null && diagnosticCode == null) ||
+        (errorCode != null && diagnosticCode != null)) {
+      throw ArgumentError(
+        "Exactly one of 'errorCode' (deprecated) and 'diagnosticCode' should be given",
+      );
+    }
+
+    diagnosticCode ??= errorCode!;
 
     if (arguments != null) {
       var invalid =
@@ -182,11 +198,11 @@ class ErrorReporter {
     contextMessages ??= [];
     contextMessages.addAll(convertTypeNames(arguments));
     _errorListener.onError(
-      AnalysisError.tmp(
+      Diagnostic.tmp(
         source: _source,
         offset: offset,
         length: length,
-        errorCode: errorCode,
+        errorCode: diagnosticCode,
         arguments: arguments ?? const [],
         contextMessages: contextMessages,
         data: data,
@@ -194,17 +210,18 @@ class ErrorReporter {
     );
   }
 
-  /// Report an error with the given [errorCode] and [arguments].
-  /// The [span] is used to compute the location of the error.
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
+  /// The [span] is used to compute the location of the diagnostic.
   void atSourceSpan(
     SourceSpan span,
-    DiagnosticCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     atOffset(
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       offset: span.start.offset,
       length: span.length,
       arguments: arguments,
@@ -213,8 +230,9 @@ class ErrorReporter {
     );
   }
 
-  /// Report an error with the given [diagnosticCode] and [arguments]. The [token] is
-  /// used to compute the location of the error.
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
+  /// The [token] is used to compute the location of the diagnostic.
   void atToken(
     Token token,
     DiagnosticCode diagnosticCode, {
@@ -223,7 +241,7 @@ class ErrorReporter {
     Object? data,
   }) {
     atOffset(
-      errorCode: diagnosticCode,
+      diagnosticCode: diagnosticCode,
       offset: token.offset,
       length: token.length,
       arguments: arguments,
@@ -233,7 +251,7 @@ class ErrorReporter {
   }
 
   /// Report the given [error].
-  void reportError(AnalysisError error) {
+  void reportError(Diagnostic error) {
     _errorListener.onError(error);
   }
 }
@@ -241,10 +259,10 @@ class ErrorReporter {
 /// An error listener that will record the errors that are reported to it in a
 /// way that is appropriate for caching those errors within an analysis context.
 class RecordingErrorListener implements AnalysisErrorListener {
-  Set<AnalysisError>? _errors;
+  Set<Diagnostic>? _errors;
 
   /// Return the errors collected by the listener.
-  List<AnalysisError> get errors {
+  List<Diagnostic> get errors {
     if (_errors == null) {
       return const [];
     }
@@ -252,7 +270,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
   }
 
   /// Return the errors collected by the listener for the given [source].
-  List<AnalysisError> getErrorsForSource(Source source) {
+  List<Diagnostic> getErrorsForSource(Source source) {
     if (_errors == null) {
       return const [];
     }
@@ -260,7 +278,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
   }
 
   @override
-  void onError(AnalysisError error) {
+  void onError(Diagnostic error) {
     (_errors ??= {}).add(error);
   }
 }
@@ -268,7 +286,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
 /// An [AnalysisErrorListener] that ignores error.
 class _NullErrorListener implements AnalysisErrorListener {
   @override
-  void onError(AnalysisError event) {
+  void onError(Diagnostic event) {
     // Ignore errors
   }
 }

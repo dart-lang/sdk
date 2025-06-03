@@ -615,8 +615,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     if (data is JClassDataImpl && data.thisType == null) {
       ir.Class node = data.cls;
       if (node.typeParameters.isEmpty) {
-        data.thisType =
-            data.rawType = types.interfaceType(cls, const <DartType>[]);
+        data.thisType = data.rawType = types.interfaceType(
+          cls,
+          const <DartType>[],
+        );
       } else {
         data.thisType = types.interfaceType(
           cls,
@@ -696,11 +698,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         Set<InterfaceType> canonicalSupertypes = {};
 
         InterfaceType processSupertype(ir.Supertype supertypeNode) {
-          supertypeNode =
-              classHierarchy.getClassAsInstanceOf(
-                node,
-                supertypeNode.classNode,
-              )!;
+          supertypeNode = classHierarchy.getClassAsInstanceOf(
+            node,
+            supertypeNode.classNode,
+          )!;
           InterfaceType supertype = _typeConverter.visitSupertype(
             supertypeNode,
           );
@@ -759,10 +760,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
             cls,
             nativeData,
           );
-          InterfaceType defaultSupertype =
-              data.supertype = _elementEnvironment.getRawType(
-                defaultSuperclass,
-              );
+          InterfaceType defaultSupertype = data.supertype = _elementEnvironment
+              .getRawType(defaultSuperclass);
           assert(
             defaultSupertype.typeArguments.isEmpty,
             "Generic default supertypes are not supported",
@@ -1305,8 +1304,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       // library.
       // TODO(johnniwinther): Cache more results to avoid redundant lookups?
       cachedMayLookupInMain ??=
-      // Tests permit lookup outside of dart: libraries.
-      allowedNativeTest(elementEnvironment.mainLibrary!.canonicalUri);
+          // Tests permit lookup outside of dart: libraries.
+          allowedNativeTest(elementEnvironment.mainLibrary!.canonicalUri);
       DartType? type;
       if (cachedMayLookupInMain!) {
         type ??= findInLibrary(elementEnvironment.mainLibrary);
@@ -1537,8 +1536,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   Spannable getSpannable(MemberEntity member, ir.Node node) =>
       node is ir.TreeNode
-          ? computeSourceSpanFromTreeNode(node)
-          : getSourceSpan(member, null);
+      ? computeSourceSpanFromTreeNode(node)
+      : getSourceSpan(member, null);
 
   Iterable<LibraryEntity> get libraryListInternal {
     return libraryMap.values;
@@ -1565,8 +1564,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         int index = declaration.typeParameters.indexOf(node);
         if (declaration.kind == ir.ProcedureKind.Factory) {
           ir.Class cls = declaration.enclosingClass!;
-          typeVariableMap[node] =
-              typeVariable = getTypeVariableInternal(cls.typeParameters[index]);
+          typeVariableMap[node] = typeVariable = getTypeVariableInternal(
+            cls.typeParameters[index],
+          );
         }
       }
     }
@@ -1754,10 +1754,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       );
       classes.register(container, containerData, ContextEnv(memberMap));
 
-      InterfaceType? memberThisType =
-          member.enclosingClass != null
-              ? elementEnvironment.getThisType(member.enclosingClass!)
-              : null;
+      InterfaceType? memberThisType = member.enclosingClass != null
+          ? elementEnvironment.getThisType(member.enclosingClass!)
+          : null;
       for (ir.VariableDeclaration variable in info.boxedVariables) {
         boxedFields[variable] = _constructContextFieldEntry(
           memberThisType,
@@ -1804,12 +1803,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     InterfaceType supertype, {
     required bool createSignatureMethod,
   }) {
-    InterfaceType? memberThisType =
-        member.enclosingClass != null
-            ? elementEnvironment.getThisType(member.enclosingClass!)
-            : null;
-    ClassTypeVariableAccess typeVariableAccess =
-        members.getData(member as JMember).classTypeVariableAccess;
+    InterfaceType? memberThisType = member.enclosingClass != null
+        ? elementEnvironment.getThisType(member.enclosingClass!)
+        : null;
+    ClassTypeVariableAccess typeVariableAccess = members
+        .getData(member as JMember)
+        .classTypeVariableAccess;
     if (typeVariableAccess == ClassTypeVariableAccess.instanceField) {
       // A closure in a field initializer will only be executed in the
       // constructor and type variables are therefore accessed through
@@ -2090,8 +2089,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         typeVariableAccess,
       ),
     );
-    memberMap[signatureMethod.memberName] =
-        closureClassInfo.signatureMethod = signatureMethod;
+    memberMap[signatureMethod.memberName] = closureClassInfo.signatureMethod =
+        signatureMethod;
   }
 
   JField _constructClosureField(

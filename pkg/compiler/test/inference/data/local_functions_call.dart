@@ -15,12 +15,12 @@ main() {
 // Explicit .call on a local variable.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: closureCallToString:[exact=JSString|powerset={I}]*/
+/*member: closureCallToString:[exact=JSString|powerset={I}{O}{I}]*/
 closureCallToString() {
   var local = /*[null|powerset={null}]*/ () {};
   local.call();
   return local
       .
-      /*invoke: [subclass=Closure|powerset={N}]*/
+      /*invoke: [subclass=Closure|powerset={N}{O}{N}]*/
       toString();
 }

@@ -3,7 +3,7 @@ name: js_runtime
 publish_to: none
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.8.0
 
 resolution: workspace
 

@@ -105,13 +105,13 @@ class NamedTypeResolver with ScopeHelpers {
           node: node,
           importPrefix: importPrefix,
           importPrefixElement: prefixElement,
-          nameToken: node.name2,
+          nameToken: node.name,
         );
         return;
       }
 
       if (prefixElement is PrefixElement) {
-        var nameToken = node.name2;
+        var nameToken = node.name;
         var element = _lookupGetter(prefixElement.scope, nameToken);
         _resolveToElement(node, element, dataForTesting: dataForTesting);
         return;
@@ -124,12 +124,12 @@ class NamedTypeResolver with ScopeHelpers {
       );
       node.type = InvalidTypeImpl.instance;
     } else {
-      if (node.name2.lexeme == 'void') {
+      if (node.name.lexeme == 'void') {
         node.type = VoidTypeImpl.instance;
         return;
       }
 
-      var element = _lookupGetter(nameScope, node.name2);
+      var element = _lookupGetter(nameScope, node.name);
       _resolveToElement(node, element, dataForTesting: dataForTesting);
     }
   }
@@ -147,7 +147,7 @@ class NamedTypeResolver with ScopeHelpers {
       errorReporter.atNode(
         node,
         CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
-        arguments: [node.name2.lexeme, parameterCount, argumentCount],
+        arguments: [node.name.lexeme, parameterCount, argumentCount],
       );
       return List.filled(parameterCount, InvalidTypeImpl.instance);
     }
@@ -365,7 +365,7 @@ class NamedTypeResolver with ScopeHelpers {
 
       var namedType = NamedTypeImpl(
         importPrefix: null,
-        name2: importPrefix.name,
+        name: importPrefix.name,
         typeArguments: null,
         question: null,
       )..element2 = importPrefixElement;
@@ -375,7 +375,7 @@ class NamedTypeResolver with ScopeHelpers {
 
       constructorName.type = namedType;
       constructorName.period = importPrefix.period;
-      constructorName.name = SimpleIdentifierImpl(nameToken);
+      constructorName.name = SimpleIdentifierImpl(token: nameToken);
 
       rewriteResult = constructorName;
       return;
@@ -389,7 +389,7 @@ class NamedTypeResolver with ScopeHelpers {
       errorReporter.atOffset(
         offset: importPrefix.offset,
         length: nameToken.end - importPrefix.offset,
-        errorCode: CompileTimeErrorCode.NOT_A_TYPE,
+        diagnosticCode: CompileTimeErrorCode.NOT_A_TYPE,
         arguments: ['${importPrefix.name.lexeme}.${nameToken.lexeme}'],
       );
     }
@@ -446,7 +446,7 @@ class NamedTypeResolver with ScopeHelpers {
           errorReporter.atOffset(
             offset: errorRange.offset,
             length: errorRange.length,
-            errorCode:
+            diagnosticCode:
                 CompileTimeErrorCode
                     .INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
           );
@@ -455,7 +455,7 @@ class NamedTypeResolver with ScopeHelpers {
           errorReporter.atOffset(
             offset: errorRange.offset,
             length: errorRange.length,
-            errorCode:
+            diagnosticCode:
                 CompileTimeErrorCode
                     .REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
           );
@@ -486,7 +486,7 @@ class NamedTypeResolver with ScopeHelpers {
         errorReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          errorCode: diagnosticCode,
+          diagnosticCode: diagnosticCode,
         );
         hasErrorReported = true;
         return InvalidTypeImpl.instance;
@@ -521,11 +521,11 @@ class _ErrorHelper {
         errorReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          errorCode:
+          diagnosticCode:
               instanceCreation.isConst
                   ? CompileTimeErrorCode.CONST_WITH_NON_TYPE
                   : CompileTimeErrorCode.NEW_WITH_NON_TYPE,
-          arguments: [node.name2.lexeme],
+          arguments: [node.name.lexeme],
         );
         return true;
       }
@@ -534,17 +534,17 @@ class _ErrorHelper {
   }
 
   void reportNullOrNonTypeElement(NamedType node, Element? element) {
-    if (node.name2.isSynthetic) {
+    if (node.name.isSynthetic) {
       return;
     }
 
-    if (node.name2.lexeme == 'boolean') {
+    if (node.name.lexeme == 'boolean') {
       var errorRange = _getErrorRange(node, skipImportPrefix: true);
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        errorCode: CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
-        arguments: [node.name2.lexeme],
+        diagnosticCode: CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
+        arguments: [node.name.lexeme],
       );
       return;
     }
@@ -554,8 +554,8 @@ class _ErrorHelper {
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        errorCode: CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
-        arguments: [node.name2.lexeme],
+        diagnosticCode: CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
+        arguments: [node.name.lexeme],
       );
       return;
     }
@@ -565,8 +565,8 @@ class _ErrorHelper {
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        errorCode: CompileTimeErrorCode.CAST_TO_NON_TYPE,
-        arguments: [node.name2.lexeme],
+        diagnosticCode: CompileTimeErrorCode.CAST_TO_NON_TYPE,
+        arguments: [node.name.lexeme],
       );
       return;
     }
@@ -577,15 +577,15 @@ class _ErrorHelper {
         errorReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          errorCode: CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
-          arguments: [node.name2.lexeme],
+          diagnosticCode: CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
+          arguments: [node.name.lexeme],
         );
       } else {
         errorReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          errorCode: CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
-          arguments: [node.name2.lexeme],
+          diagnosticCode: CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+          arguments: [node.name.lexeme],
         );
       }
       return;
@@ -596,8 +596,8 @@ class _ErrorHelper {
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        errorCode: CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
-        arguments: [node.name2.lexeme],
+        diagnosticCode: CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
+        arguments: [node.name.lexeme],
       );
       return;
     }
@@ -607,8 +607,8 @@ class _ErrorHelper {
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        errorCode: CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT,
-        arguments: [node.name2.lexeme],
+        diagnosticCode: CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT,
+        arguments: [node.name.lexeme],
       );
       return;
     }
@@ -630,7 +630,7 @@ class _ErrorHelper {
       errorReporter.reportError(
         DiagnosticFactory().referencedBeforeDeclaration(
           errorReporter.source,
-          nameToken: node.name2,
+          nameToken: node.name,
           element2: element!,
         ),
       );
@@ -642,13 +642,13 @@ class _ErrorHelper {
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        errorCode: CompileTimeErrorCode.NOT_A_TYPE,
-        arguments: [node.name2.lexeme],
+        diagnosticCode: CompileTimeErrorCode.NOT_A_TYPE,
+        arguments: [node.name.lexeme],
       );
       return;
     }
 
-    if (node.importPrefix == null && node.name2.lexeme == 'await') {
+    if (node.importPrefix == null && node.name.lexeme == 'await') {
       errorReporter.atNode(
         node,
         CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
@@ -660,8 +660,8 @@ class _ErrorHelper {
     errorReporter.atOffset(
       offset: errorRange.offset,
       length: errorRange.length,
-      errorCode: CompileTimeErrorCode.UNDEFINED_CLASS,
-      arguments: [node.name2.lexeme],
+      diagnosticCode: CompileTimeErrorCode.UNDEFINED_CLASS,
+      arguments: [node.name.lexeme],
     );
   }
 
@@ -670,14 +670,14 @@ class _ErrorHelper {
     NamedType node, {
     bool skipImportPrefix = false,
   }) {
-    var firstToken = node.name2;
+    var firstToken = node.name;
     var importPrefix = node.importPrefix;
     if (importPrefix != null) {
       if (!skipImportPrefix || importPrefix.element2 is! PrefixElement) {
         firstToken = importPrefix.name;
       }
     }
-    var end = node.name2.end;
+    var end = node.name.end;
     return SourceRange(firstToken.offset, end - firstToken.offset);
   }
 

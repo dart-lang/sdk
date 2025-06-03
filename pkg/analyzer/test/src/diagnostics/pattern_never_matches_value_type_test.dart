@@ -958,7 +958,10 @@ void f(Null x) {
 
 class A {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 1)],
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 1),
+        error(WarningCode.DEAD_CODE, 35, 2),
+      ],
     );
   }
 
@@ -977,7 +980,10 @@ void f(Null x) {
   if (x case Object _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 6)],
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 6),
+        error(WarningCode.DEAD_CODE, 40, 2),
+      ],
     );
   }
 
@@ -1277,7 +1283,10 @@ void f(A x) {
 
 class A {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 4)],
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 4),
+        error(WarningCode.DEAD_CODE, 35, 2),
+      ],
     );
   }
 
@@ -1288,7 +1297,10 @@ void f(void Function() x) {
   if (x case Null _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 4)],
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 4),
+        error(WarningCode.DEAD_CODE, 49, 2),
+      ],
     );
   }
 
@@ -1299,7 +1311,10 @@ void f(Object x) {
   if (x case Null _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 4)],
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 4),
+        error(WarningCode.DEAD_CODE, 40, 2),
+      ],
     );
   }
 
@@ -1310,7 +1325,10 @@ void f<T extends num>(T x) {
   if (x case Null _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 4)],
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 4),
+        error(WarningCode.DEAD_CODE, 50, 2),
+      ],
     );
   }
 

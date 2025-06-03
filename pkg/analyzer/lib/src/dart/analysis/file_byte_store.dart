@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -58,7 +59,7 @@ class EvictingFileByteStore implements ByteStore {
   void release(Iterable<String> keys) {}
 
   /// If the cache clean up process has not been requested yet, request it.
-  Future<void> _requestCacheCleanUp() async {
+  void _requestCacheCleanUp() async {
     if (_cleanUpSendPortShouldBePrepared) {
       _cleanUpSendPortShouldBePrepared = false;
       ReceivePort response = ReceivePort();
@@ -300,12 +301,14 @@ class FuturePool {
   void _run(Future Function() fn) {
     _available--;
 
-    fn().whenComplete(() {
-      _available++;
+    unawaited(
+      fn().whenComplete(() {
+        _available++;
 
-      if (waiting.isNotEmpty) {
-        _run(waiting.removeAt(0));
-      }
-    });
+        if (waiting.isNotEmpty) {
+          _run(waiting.removeAt(0));
+        }
+      }),
+    );
   }
 }

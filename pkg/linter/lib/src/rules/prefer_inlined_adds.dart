@@ -4,17 +4,18 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
 const _desc = r'Inline list item declarations where possible.';
 
-class PreferInlinedAdds extends LintRule {
+class PreferInlinedAdds extends MultiAnalysisRule {
   PreferInlinedAdds()
     : super(name: LintNames.prefer_inlined_adds, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.prefer_inlined_adds_multiple,
     LinterLintCode.prefer_inlined_adds_single,
   ];
@@ -30,7 +31,7 @@ class PreferInlinedAdds extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -59,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     rule.reportAtNode(
       invocation.methodName,
-      errorCode:
+      diagnosticCode:
           addAll
               ? LinterLintCode.prefer_inlined_adds_multiple
               : LinterLintCode.prefer_inlined_adds_single,

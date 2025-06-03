@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -13,7 +14,7 @@ class ValidRegexps extends LintRule {
   ValidRegexps() : super(name: LintNames.valid_regexps, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.valid_regexps;
+  DiagnosticCode get diagnosticCode => LinterLintCode.valid_regexps;
 
   @override
   void registerNodeProcessors(
@@ -32,7 +33,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.constructorName.element?.enclosingElement2;
+    var element = node.constructorName.element?.enclosingElement;
     if (element == null) return;
 
     if (element.name3 == 'RegExp' && element.library2.isDartCore) {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -16,7 +15,6 @@ import 'package:analyzer/src/dart/element/type.dart' // ignore: implementation_i
     show InvalidTypeImpl;
 import 'package:collection/collection.dart';
 
-import 'analyzer.dart';
 import 'util/dart_type_utilities.dart';
 
 class EnumLikeClassDescription {
@@ -77,11 +75,19 @@ extension AstNodeExtension on AstNode {
   }
 
   bool get isInternal {
+    var self = this;
+    if (self is VariableDeclaration) {
+      var element = self.declaredFragment?.element;
+      if (element is TopLevelVariableElement) {
+        return element.metadata.hasInternal;
+      }
+    }
+
     var parent = thisOrAncestorOfType<CompilationUnitMember>();
     if (parent == null) return false;
 
     return switch (parent.declaredFragment?.element) {
-      Annotatable(:var metadata2) => metadata2.hasInternal,
+      Annotatable(:var metadata) => metadata.hasInternal,
       _ => false,
     };
   }
@@ -150,7 +156,7 @@ extension ClassElementExtension on ClassElement {
       this,
     ];
 
-    return inheritedAndSelfElements.any((e) => e.metadata2.hasImmutable);
+    return inheritedAndSelfElements.any((e) => e.metadata.hasImmutable);
 
     // TODO(pq): update when implemented or replace w/ a better has{*} call
     // https://github.com/dart-lang/linter/issues/4939
@@ -196,7 +202,7 @@ extension ClassElementExtension on ClassElement {
     }
 
     // With only private non-factory constructors.
-    for (var constructor in constructors2) {
+    for (var constructor in constructors) {
       if (!constructor.isPrivate || constructor.isFactory) {
         return null;
       }
@@ -207,7 +213,7 @@ extension ClassElementExtension on ClassElement {
     // And 2 or more static const fields whose type is the enclosing class.
     var enumConstantCount = 0;
     var enumConstants = <DartObject, Set<FieldElement>>{};
-    for (var field in fields2) {
+    for (var field in fields) {
       // Ensure static const.
       if (field.isSynthetic || !field.isConst || !field.isStatic) {
         continue;
@@ -250,7 +256,7 @@ extension ConstructorElementExtension on ConstructorElement {
     required String constructorName,
   }) =>
       library2.name3 == uri &&
-      enclosingElement2.name3 == className &&
+      enclosingElement.name3 == className &&
       name3 == constructorName;
 }
 
@@ -334,7 +340,7 @@ extension ElementExtension on Element? {
     if (self == null || self is! Annotatable) {
       return false;
     }
-    return (self as Annotatable).metadata2.hasAwaitNotRequired ||
+    return (self as Annotatable).metadata.hasAwaitNotRequired ||
         (self is PropertyAccessorElement && self.variable3.hasAwaitNotRequired);
   }
 
@@ -343,6 +349,27 @@ extension ElementExtension on Element? {
     return self is TopLevelFunctionElement &&
         self.name3 == 'print' &&
         self.firstFragment.libraryFragment.element.isDartCore;
+  }
+
+  /// Returns the class member that is overridden by `this`, if there is one,
+  /// as defined by [InterfaceElement.getInheritedMember].
+  ExecutableElement? get overriddenMember {
+    var member = switch (this) {
+      FieldElement(:var getter2) => getter2,
+      MethodElement method => method,
+      PropertyAccessorElement accessor => accessor,
+      _ => null,
+    };
+
+    if (member == null) return null;
+
+    var interfaceElement = member.enclosingElement;
+    if (interfaceElement is! InterfaceElement) return null;
+
+    var name = Name.forElement(member);
+    if (name == null) return null;
+
+    return interfaceElement.getInheritedMember(name);
   }
 }
 
@@ -363,7 +390,7 @@ extension ExpressionExtension on Expression {
     var elementName = element.name3;
     if (elementName == null) return false;
 
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return false;
 
     var superTypes = enclosingElement.allSupertypes;
@@ -506,40 +533,17 @@ extension FunctionBodyExtension on FunctionBody? {
   }
 }
 
-extension InhertanceManager3Extension on InheritanceManager3 {
-  /// Returns the class member that is overridden by [member], if there is one,
-  /// as defined by [getInherited].
-  ExecutableElement? overriddenMember(Element? member) {
-    var executable = switch (member) {
-      FieldElement() => member.getter2,
-      MethodElement() => member,
-      PropertyAccessorElement() => member,
-      _ => null,
-    };
-
-    if (executable == null) return null;
-
-    var interfaceElement = executable.enclosingElement2;
-    if (interfaceElement is! InterfaceElement) return null;
-
-    var nameObj = Name.forElement(executable);
-    if (nameObj == null) return null;
-
-    return getInherited3(interfaceElement.thisType, nameObj);
-  }
-}
-
 extension InstanceElementExtension on InstanceElement {
   bool get isReflectiveTest =>
       this is ClassElement &&
-      metadata2.annotations.any((a) => a.isReflectiveTest);
+      metadata.annotations.any((a) => a.isReflectiveTest);
 }
 
 extension InterfaceElementExtension on InterfaceElement {
   /// Whether this element has the exact [name] and defined in the file with
   /// the given [uri].
   bool isExactly(String name, Uri uri) =>
-      name3 == name && enclosingElement2.uri == uri;
+      name3 == name && enclosingElement.uri == uri;
 }
 
 extension InterfaceTypeExtension on InterfaceType {
@@ -578,13 +582,9 @@ extension InterfaceTypeExtension on InterfaceType {
       setters.firstWhereOrNull((s) => s.canonicalName == name);
 }
 
-extension LinterContextExtension on LinterContext {
-  /// Whether the given [feature] is enabled in this linter context.
-  bool isEnabled(Feature feature) =>
-      libraryElement2!.featureSet.isEnabled(feature);
-}
-
 extension MethodDeclarationExtension on MethodDeclaration {
+  bool get hasInheritedMethod => lookUpInheritedMethod() != null;
+
   /// Returns whether this method is an override of a method in any supertype.
   bool get isOverride {
     var element = declaredFragment?.element;
@@ -592,7 +592,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
     var name = element?.name3;
     if (name == null) return false;
 
-    var parentElement = element?.enclosingElement2;
+    var parentElement = element?.enclosingElement;
     if (parentElement is! InterfaceElement) return false;
 
     var parentLibrary = parentElement.library2;
@@ -615,17 +615,14 @@ extension MethodDeclarationExtension on MethodDeclaration {
     }
   }
 
-  bool hasInheritedMethod(InheritanceManager3 inheritanceManager) =>
-      lookUpInheritedMethod(inheritanceManager) != null;
-
-  MethodElement? lookUpInheritedMethod(InheritanceManager3 inheritanceManager) {
+  MethodElement? lookUpInheritedMethod() {
     var declaredElement = declaredFragment?.element;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement2;
+      var parent = declaredElement.enclosingElement;
       if (parent is InterfaceElement) {
         var methodName = Name.forElement(declaredElement);
         if (methodName == null) return null;
-        var inherited = inheritanceManager.getInherited4(parent, methodName);
+        var inherited = parent.getInheritedMember(methodName);
         if (inherited is MethodElement2OrMember) return inherited;
       }
     }

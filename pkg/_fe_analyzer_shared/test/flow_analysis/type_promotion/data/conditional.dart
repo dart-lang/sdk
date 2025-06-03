@@ -32,7 +32,8 @@ void conditional_factor_nullable(num? x) {
 
 void conditional_join_then(bool b, Object x) {
   if (b ? x is int : x is int) {
-    /*int*/ x;
+    /*int*/
+    x;
   } else {
     x;
   }
@@ -42,6 +43,7 @@ void conditional_join_else(bool b, Object x) {
   if (b ? x is! int : x is! int) {
     x;
   } else {
-    /*int*/ x;
+    /*int*/
+    x;
   }
 }

@@ -885,16 +885,21 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
     ElementEnvironment elementEnvironment,
   ) {
     source.begin(tag);
-    Set<ClassEntity> classesNeedingTypeArguments =
-        source.readClasses<ClassEntity>().toSet();
-    Set<FunctionEntity> methodsNeedingSignature =
-        source.readMembers<FunctionEntity>().toSet();
-    Set<FunctionEntity> methodsNeedingTypeArguments =
-        source.readMembers<FunctionEntity>().toSet();
-    Set<Selector> selectorsNeedingTypeArguments =
-        source.readList(() => Selector.readFromDataSource(source)).toSet();
-    Set<int> instantiationsNeedingTypeArguments =
-        source.readList(source.readInt).toSet();
+    Set<ClassEntity> classesNeedingTypeArguments = source
+        .readClasses<ClassEntity>()
+        .toSet();
+    Set<FunctionEntity> methodsNeedingSignature = source
+        .readMembers<FunctionEntity>()
+        .toSet();
+    Set<FunctionEntity> methodsNeedingTypeArguments = source
+        .readMembers<FunctionEntity>()
+        .toSet();
+    Set<Selector> selectorsNeedingTypeArguments = source
+        .readList(() => Selector.readFromDataSource(source))
+        .toSet();
+    Set<int> instantiationsNeedingTypeArguments = source
+        .readList(source.readInt)
+        .toSet();
     source.end(tag);
     return RuntimeTypesNeedImpl(
       elementEnvironment,
@@ -1130,8 +1135,9 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     }
 
     Set<Local> localFunctions = closedWorld.localFunctions.toSet();
-    Set<FunctionEntity> closurizedMembers =
-        closedWorld.closurizedMembersWithFreeTypeVariables.toSet();
+    Set<FunctionEntity> closurizedMembers = closedWorld
+        .closurizedMembersWithFreeTypeVariables
+        .toSet();
 
     // Check local functions and closurized members.
     void checkClosures({required DartType potentialSubtypeOf}) {
@@ -1389,10 +1395,9 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     Set<ClassEntity> allClassesNeedingRuntimeType;
     if (neededOnAll) {
       neededOnFunctions = true;
-      allClassesNeedingRuntimeType =
-          closedWorld.classHierarchy
-              .subclassesOf(commonElements.objectClass)
-              .toSet();
+      allClassesNeedingRuntimeType = closedWorld.classHierarchy
+          .subclassesOf(commonElements.objectClass)
+          .toSet();
     } else {
       allClassesNeedingRuntimeType = {};
       // TODO(johnniwinther): Support this operation directly in

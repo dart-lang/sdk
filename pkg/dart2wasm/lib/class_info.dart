@@ -21,7 +21,7 @@ class FieldIndex {
   static const asyncSuspendStateResume = 2;
   static const asyncSuspendStateContext = 3;
   static const asyncSuspendStateTargetIndex = 4;
-  static const asyncSuspendStateCompleter = 5;
+  static const asyncSuspendStateFuture = 5;
   static const asyncSuspendStateCurrentException = 6;
   static const asyncSuspendStateCurrentExceptionStackTrace = 7;
   static const asyncSuspendStateCurrentReturnValue = 8;
@@ -95,8 +95,8 @@ class FieldIndex {
         FieldIndex.asyncSuspendStateContext);
     check(translator.asyncSuspendStateClass, "_targetIndex",
         FieldIndex.asyncSuspendStateTargetIndex);
-    check(translator.asyncSuspendStateClass, "_completer",
-        FieldIndex.asyncSuspendStateCompleter);
+    check(translator.asyncSuspendStateClass, "_future",
+        FieldIndex.asyncSuspendStateFuture);
     check(translator.asyncSuspendStateClass, "_currentException",
         FieldIndex.asyncSuspendStateCurrentException);
     check(translator.asyncSuspendStateClass, "_currentExceptionStackTrace",
@@ -183,11 +183,11 @@ class ClassInfo {
   /// the superclass.
   final Map<TypeParameter, TypeParameter> typeParameterMatch;
 
-  /// The class whose struct is used as the type for variables of this type.
-  /// This is a type which is a superclass of all subtypes of this type.
-  ClassInfo get repr => _repr!;
+  /// The wasm type used to represent values of a dart interface type of this
+  /// class.
+  w.RefType get repr => _repr!;
 
-  ClassInfo? _repr;
+  w.RefType? _repr;
 
   /// Nullabe Wasm ref type for this class.
   final w.RefType nullableType;
@@ -478,7 +478,7 @@ class ClassInfoCollector {
       }
 
       for (Field field in info.cls!.fields) {
-        info._addField(w.FieldType(topInfo.nullableType),
+        info._addField(w.FieldType(translator.topType),
             fieldName: field.name.text);
       }
     }
@@ -548,7 +548,7 @@ class ClassInfoCollector {
         // class maps to topInfo because boxed values are a subtype of Object in
         // Dart but not of the object struct.
         representation = cls == translator.coreTypes.objectClass
-            ? translator.topInfo
+            ? topInfo
             : translator.objectInfo;
       } else {
         void addRanges(List<Range> ranges) {
@@ -572,7 +572,6 @@ class ClassInfoCollector {
         if (translator.isDynamicSubmodule && mainModuleConcreteRange.isEmpty) {
           final submoduleConcreteRange =
               classIdNumbering.getConcreteClassIdRangeForDynamicSubmodule(cls);
-          assert(submoduleConcreteRange.isNotEmpty);
           addRanges(submoduleConcreteRange);
         } else {
           assert(classIdNumbering
@@ -582,7 +581,13 @@ class ClassInfoCollector {
         }
       }
       final info = translator.classInfo[cls]!;
-      info._repr = representation ?? info;
+      representation ??= info;
+
+      if (representation == topInfo) {
+        info._repr = translator.topTypeNonNullable;
+      } else {
+        info._repr = representation!.nonNullableType;
+      }
     }
 
     // Now that the representation types for all classes have been computed,
@@ -678,10 +683,18 @@ class ClassIdNumbering {
         _concreteSubclassIdRangeForDynamicSubmodule);
   }
 
-  List<Range> getConcreteClassIdRangeForCurrentModule(Class klass) {
-    return translator.isDynamicSubmodule
-        ? getConcreteClassIdRangeForDynamicSubmodule(klass)
-        : getConcreteClassIdRangeForMainModule(klass);
+  /// In case the [klass] is from a dynamic module the returned class id
+  /// ranges may be relative. The caller has to ensure to use them
+  /// appropriately.
+  List<Range> getConcreteClassIdRangeForClass(Class klass) {
+    // We cannot return class id ranges for [klass] if there can be more
+    // classes in future dynamic module compilations.
+    assert(!klass.isDynamicSubmoduleExtendable(translator.coreTypes));
+
+    return !translator.isDynamicSubmodule ||
+            klass.enclosingLibrary.isFromMainModule(translator.coreTypes)
+        ? getConcreteClassIdRangeForMainModule(klass)
+        : getConcreteClassIdRangeForDynamicSubmodule(klass);
   }
 
   List<Range> _getConcreteClassIdRange(Class klass,

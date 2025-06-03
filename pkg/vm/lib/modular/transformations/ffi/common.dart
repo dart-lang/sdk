@@ -172,6 +172,23 @@ enum FfiTypeCheckDirection {
   dartToNative,
 }
 
+/// Converting mode of `Handle` in [convertNativeTypeToDartType].
+enum HandleToDartTypeConversionMode {
+  /// The variance-based conversion mode, where `Handle` is converted to
+  /// `Never` if it appears in covariant positions of the type being converted,
+  /// or to `Object?` when it appears in contravariant positions of the type.
+  /// This mode is used when the type being converted appears as the subtype of
+  /// a type check.
+  varianceBasedBehaviorForSubtype,
+
+  /// The variance-based conversion mode, where `Handle` is converted to
+  /// `Object?` if it appears in covariant positions of the type being
+  /// converted, or to `Never` when it appears in contravariant positions of
+  /// the type. This mode is used when the type being converted appears as the
+  /// supertype of a type check.
+  varianceBasedBehaviorForSupertype,
+}
+
 /// [FfiTransformer] contains logic which is shared between
 /// _FfiUseSiteTransformer and _FfiDefinitionTransformer.
 class FfiTransformer extends Transformer {
@@ -313,7 +330,10 @@ class FfiTransformer extends Transformer {
   final Procedure nativeCallbackFunctionProcedure;
   final Procedure nativeAsyncCallbackFunctionProcedure;
   final Procedure createNativeCallableIsolateLocalProcedure;
+  final Procedure createNativeCallableIsolateGroupSharedProcedure;
   final Procedure nativeIsolateLocalCallbackFunctionProcedure;
+  final Procedure nativeIsolateGroupSharedCallbackFunctionProcedure;
+  final Procedure nativeIsolateGroupSharedClosureFunctionProcedure;
   final Map<NativeType, Procedure> loadMethods;
   final Map<NativeType, Procedure> loadUnalignedMethods;
   final Map<NativeType, Procedure> storeMethods;
@@ -337,7 +357,9 @@ class FfiTransformer extends Transformer {
   final Class rawRecvPortClass;
   final Class nativeCallableClass;
   final Procedure nativeCallableIsolateLocalConstructor;
+  final Procedure nativeCallableIsolateGroupSharedConstructor;
   final Constructor nativeCallablePrivateIsolateLocalConstructor;
+  final Constructor nativeCallablePrivateIsolateGroupSharedConstructor;
   final Procedure nativeCallableListenerConstructor;
   final Constructor nativeCallablePrivateListenerConstructor;
   final Field nativeCallablePortField;
@@ -821,6 +843,11 @@ class FfiTransformer extends Transformer {
         'dart:ffi',
         '_createNativeCallableIsolateLocal',
       ),
+      createNativeCallableIsolateGroupSharedProcedure = index
+          .getTopLevelProcedure(
+            'dart:ffi',
+            '_createNativeCallableIsolateGroupShared',
+          ),
       nativeCallbackFunctionProcedure = index.getTopLevelProcedure(
         'dart:ffi',
         '_nativeCallbackFunction',
@@ -833,6 +860,16 @@ class FfiTransformer extends Transformer {
         'dart:ffi',
         '_nativeIsolateLocalCallbackFunction',
       ),
+      nativeIsolateGroupSharedCallbackFunctionProcedure = index
+          .getTopLevelProcedure(
+            'dart:ffi',
+            '_nativeIsolateGroupSharedCallbackFunction',
+          ),
+      nativeIsolateGroupSharedClosureFunctionProcedure = index
+          .getTopLevelProcedure(
+            'dart:ffi',
+            '_nativeIsolateGroupSharedClosureFunction',
+          ),
       nativeTypesClasses = nativeTypeClassNames.map(
         (nativeType, name) =>
             MapEntry(nativeType, index.getClass('dart:ffi', name)),
@@ -937,6 +974,11 @@ class FfiTransformer extends Transformer {
         'NativeCallable',
         'isolateLocal',
       ),
+      nativeCallableIsolateGroupSharedConstructor = index.getProcedure(
+        'dart:ffi',
+        'NativeCallable',
+        'isolateGroupShared',
+      ),
       nativeCallablePrivateIsolateLocalConstructor = index.getConstructor(
         'dart:ffi',
         '_NativeCallableIsolateLocal',
@@ -950,6 +992,11 @@ class FfiTransformer extends Transformer {
       nativeCallablePrivateListenerConstructor = index.getConstructor(
         'dart:ffi',
         '_NativeCallableListener',
+        '',
+      ),
+      nativeCallablePrivateIsolateGroupSharedConstructor = index.getConstructor(
+        'dart:ffi',
+        '_NativeCallableIsolateGroupShared',
         '',
       ),
       nativeCallablePortField = index.getField(
@@ -1050,16 +1097,38 @@ class FfiTransformer extends Transformer {
   /// [Pointer]<T>                         -> [Pointer]<T>
   /// T extends [Struct]                   -> T
   /// T extends [Union]                    -> T
-  /// [Handle]                             -> [Object]
+  /// [Handle]                             -> [Object?]|[Never]
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
   /// ```
+  ///
+  /// If [mode] is [HandleToDartTypeConversionMode.oldNativeBehavior], `Handle`
+  /// is converted to `Object?`.  Otherwise, `Handle` is converted to either
+  /// `Object?` or `Never`. Since `Handle` represents any possible Dart object,
+  /// it should match any type. To achieve that, in the subtype checks where
+  /// `Handle` appears as the subtype (as indicated by [mode] being
+  /// [HandleToDartTypeConversionMode.varianceBasedBehaviorForSubtype]), it
+  /// should be converted depending on the variance of its position: `Never` for
+  /// covariant positions, and `Object?` for contravariant ones. If `Handle`
+  /// appears as the supertype in the check (as indicated by [mode] being
+  /// [HandleToDartTypeConversionMode.varianceBasedBehaviorForSupertype]), the
+  /// treatment of covariant and contravariant positions is reversed. For more
+  /// details, see https://github.com/dart-lang/sdk/issues/49518.
+  ///
+  /// [isCovariant] is the flag that helps compute the variance of the position
+  /// in [nativeType]. It's updated in the recursive invocations of
+  /// [convertNativeTypeToDartType] and should be omitted in regular call sites.
+  /// [isCovariant] is ignored if [mode] is
+  /// [HandleToDartTypeConversionMode.oldNativeBehavior].
   DartType? convertNativeTypeToDartType(
     DartType nativeType, {
     bool allowStructAndUnion = false,
     bool allowHandle = false,
     bool allowInlineArray = false,
     bool allowVoid = false,
+    HandleToDartTypeConversionMode mode =
+        HandleToDartTypeConversionMode.varianceBasedBehaviorForSubtype,
+    Variance variance = Variance.invariant,
   }) {
     if (nativeType is! InterfaceType) {
       return null;
@@ -1116,7 +1185,22 @@ class FfiTransformer extends Transformer {
       return VoidType();
     }
     if (nativeType_ == NativeType.kHandle && allowHandle) {
-      return coreTypes.objectNonNullableRawType;
+      switch (mode) {
+        case HandleToDartTypeConversionMode.varianceBasedBehaviorForSubtype:
+          return switch (variance) {
+            Variance.contravariant => coreTypes.objectNullableRawType,
+            Variance.covariant ||
+            Variance.invariant ||
+            Variance.unrelated => const NeverType.nonNullable(),
+          };
+        case HandleToDartTypeConversionMode.varianceBasedBehaviorForSupertype:
+          return switch (variance) {
+            Variance.contravariant => const NeverType.nonNullable(),
+            Variance.covariant ||
+            Variance.invariant ||
+            Variance.unrelated => coreTypes.objectNullableRawType,
+          };
+      }
     }
     if (nativeType_ != NativeType.kNativeFunction ||
         native.typeArguments[0] is! FunctionType) {
@@ -1135,6 +1219,8 @@ class FfiTransformer extends Transformer {
       allowStructAndUnion: true,
       allowHandle: true,
       allowVoid: true,
+      mode: mode,
+      variance: variance,
     );
     if (returnType == null) return null;
     final argumentTypes = <DartType>[];
@@ -1144,6 +1230,8 @@ class FfiTransformer extends Transformer {
               paramDartType,
               allowStructAndUnion: true,
               allowHandle: true,
+              mode: mode,
+              variance: variance.combine(Variance.contravariant),
             ) ??
             dummyDartType,
       );
@@ -1826,17 +1914,21 @@ class FfiTransformer extends Transformer {
     bool allowVoid = false,
     bool allowArray = false,
   }) {
-    final DartType correspondingDartType =
-        convertNativeTypeToDartType(
-          nativeType,
-          allowStructAndUnion: true,
-          allowHandle: allowHandle,
-          allowInlineArray: allowArray,
-          allowVoid: allowVoid,
-        )!;
-    if (dartType == correspondingDartType) return correspondingDartType;
+    final DartType correspondingDartType;
     switch (direction) {
       case FfiTypeCheckDirection.nativeToDart:
+        correspondingDartType =
+            convertNativeTypeToDartType(
+              nativeType,
+              allowStructAndUnion: true,
+              allowHandle: allowHandle,
+              allowInlineArray: allowArray,
+              allowVoid: allowVoid,
+              mode:
+                  HandleToDartTypeConversionMode
+                      .varianceBasedBehaviorForSubtype,
+              variance: Variance.covariant,
+            )!;
         if (env.isSubtypeOf(
           correspondingDartType,
           dartType,
@@ -1858,6 +1950,18 @@ class FfiTransformer extends Transformer {
           }
         }
       case FfiTypeCheckDirection.dartToNative:
+        correspondingDartType =
+            convertNativeTypeToDartType(
+              nativeType,
+              allowStructAndUnion: true,
+              allowHandle: allowHandle,
+              allowInlineArray: allowArray,
+              allowVoid: allowVoid,
+              mode:
+                  HandleToDartTypeConversionMode
+                      .varianceBasedBehaviorForSupertype,
+              variance: Variance.covariant,
+            )!;
         if (env.isSubtypeOf(
           dartType,
           correspondingDartType,

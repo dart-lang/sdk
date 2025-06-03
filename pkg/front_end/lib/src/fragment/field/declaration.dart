@@ -13,6 +13,7 @@ import '../../base/constant_context.dart';
 import '../../base/messages.dart';
 import '../../base/problems.dart';
 import '../../base/scope.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/omitted_type_builder.dart';
@@ -40,6 +41,8 @@ import '../setter/declaration.dart';
 
 /// Common interface for fragments that can declare a field.
 abstract class FieldDeclaration {
+  UriOffsetLength? get uriOffset;
+
   FieldQuality get fieldQuality;
 
   /// The metadata declared on this fragment.
@@ -47,8 +50,11 @@ abstract class FieldDeclaration {
 
   /// Builds the core AST structures for this field declaration as needed for
   /// the outline.
-  void buildFieldOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
+  void buildFieldOutlineNode(
+      SourceLibraryBuilder libraryBuilder,
+      NameScheme nameScheme,
+      BuildNodesCallback f,
+      PropertyReferences references,
       {required List<TypeParameter>? classTypeParameters});
 
   void buildFieldOutlineExpressions(
@@ -60,6 +66,8 @@ abstract class FieldDeclaration {
       required bool isClassInstanceMember});
 
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context);
+
+  void createFieldEncoding(SourcePropertyBuilder builder);
 
   void checkFieldTypes(SourceLibraryBuilder libraryBuilder,
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder);
@@ -87,6 +95,9 @@ abstract class FieldDeclaration {
 
   /// Returns `true` if this field is declared by an enum element.
   bool get isEnumElement;
+
+  /// Returns `true` if the declaration is const.
+  bool get isConst;
 
   /// The [DartType] of this field declaration.
   abstract DartType fieldType;
@@ -152,6 +163,9 @@ class RegularFieldDeclaration
   RegularFieldDeclaration(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   SourcePropertyBuilder get builder => _fragment.builder;
@@ -352,8 +366,11 @@ class RegularFieldDeclaration
   }
 
   @override
-  void buildFieldOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
+  void buildFieldOutlineNode(
+      SourceLibraryBuilder libraryBuilder,
+      NameScheme nameScheme,
+      BuildNodesCallback f,
+      PropertyReferences references,
       {required List<TypeParameter>? classTypeParameters}) {
     _encoding.buildOutlineNode(libraryBuilder, nameScheme, references,
         isAbstractOrExternal:
@@ -412,7 +429,10 @@ class RegularFieldDeclaration
         isConst: _fragment.modifiers.isConst);
   }
 
-  void createEncoding(SourcePropertyBuilder builder) {
+  @override
+  void createFieldEncoding(SourcePropertyBuilder builder) {
+    _fragment.builder = builder;
+
     SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
 
     bool isAbstract = _fragment.modifiers.isAbstract;
@@ -691,6 +711,7 @@ mixin FieldDeclarationMixin
 
   SourcePropertyBuilder get builder;
 
+  @override
   bool get isConst;
 
   /// The [TypeBuilder] for the declared type of this field declaration.

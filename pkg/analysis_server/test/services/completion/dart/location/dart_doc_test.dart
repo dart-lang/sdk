@@ -76,6 +76,23 @@ suggestions
 ''');
   }
 
+  Future<void> test_enumConstant() async {
+    allowedIdentifiers = const {'value1'};
+    await computeSuggestions('''
+enum MyEnum {
+  /// This doc should suggest the commented enum constant name [val^].
+  value1
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  value1
+    kind: enumConstant
+''');
+  }
+
   Future<void> test_extension() async {
     allowedIdentifiers = const {'MyExt'};
     await computeSuggestions('''
@@ -303,6 +320,17 @@ replacement
 suggestions
   param1
     kind: parameter
+''');
+  }
+
+  Future<void> test_notInSquareBraces() async {
+    allowedIdentifiers = const {'MyClass1'};
+    await computeSuggestions('''
+/// This doc should not suggest the commented class name [] outside the braces ^
+class MyClass1 {}
+''');
+    assertResponse(r'''
+suggestions
 ''');
   }
 

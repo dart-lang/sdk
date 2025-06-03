@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/error/ignore_validator.dart';
 
@@ -9,7 +10,7 @@ import '../analyzer.dart';
 
 const _desc = r"Don't ignore a diagnostic code that is not produced.";
 
-class UnnecessaryIgnore extends LintRule {
+class UnnecessaryIgnore extends MultiAnalysisRule {
   UnnecessaryIgnore() : super(name: 'unnecessary_ignore', description: _desc) {
     // Register the unnecessary_ignore lint codes with the analyzer's validator.
     // We do this here to avoid having to introduce a dependency from the analyzer
@@ -25,7 +26,7 @@ class UnnecessaryIgnore extends LintRule {
   }
 
   @override
-  List<LintCode> get lintCodes => const [
+  List<DiagnosticCode> get diagnosticCodes => const [
     LinterLintCode.unnecessary_ignore,
     LinterLintCode.unnecessary_ignore_file,
     LinterLintCode.unnecessary_ignore_name,

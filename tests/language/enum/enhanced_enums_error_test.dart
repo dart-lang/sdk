@@ -76,8 +76,9 @@ enum ConflictStaticSetterInstanceMembers {
   static void set foo(int _) {}
   //              ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] This static member conflicts with an instance member.
   int foo() => 37;
+  //  ^
+  // [cfe] The declaration conflicts with setter 'foo'.
 }
 
 enum ConflictStaticInstanceProperty2 {
@@ -86,7 +87,7 @@ enum ConflictStaticInstanceProperty2 {
   static void set foo(int _) {}
   //              ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] This static member conflicts with an instance member.
+  // [cfe] Static property 'foo' conflicts with instance property of the same name.
 }
 
 // "It is an error if you have a static getter $v$
@@ -96,8 +97,9 @@ enum ConflictStaticInstanceProperty {
   static int get foo => 42;
   //             ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] This static member conflicts with an instance member.
   void set foo(int _) {}
+  //       ^
+  // [cfe] Instance property 'foo' conflicts with static property of the same name.
 }
 
 
@@ -172,14 +174,14 @@ enum ConflictEnumValueInheritedToString {
   toString;
 //^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
-// [cfe] 'toString' is already declared in this scope.
+// [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 enum ConflictEnumValueImplicitValues {
   values;
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.VALUES_DECLARATION_IN_ENUM
-// [cfe] 'values' is already declared in this scope.
+// [cfe] An enum can't declare a member named 'values'.
 }
 
 enum ConflictEnumValueInheritedFoo with MethodFoo {
@@ -192,9 +194,6 @@ enum ConflictEnumValueInheritedFoo with MethodFoo {
 enum ConflictClassGetterSetterTypeInstance {
   e1;
   num get foo => 42;
-  //      ^^^
-  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] The type 'num' of the getter 'ConflictClassGetterSetterTypeInstance.foo' is not a subtype of the type 'int' of the setter 'ConflictClassGetterSetterTypeInstance.foo'.
 
   // Type of setter parameter must be subtype of type of getter.
   void set foo(int _) {}
@@ -203,9 +202,6 @@ enum ConflictClassGetterSetterTypeInstance {
 enum ConflictClassGetterSetterTypeStatic {
   e1;
   static num get foo => 42;
-  //             ^^^
-  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] The type 'num' of the getter 'ConflictClassGetterSetterTypeStatic.foo' is not a subtype of the type 'int' of the setter 'ConflictClassGetterSetterTypeStatic.foo'.
 
   // Type of setter parameter must be subtype of type of getter.
   static void set foo(int _) {}
@@ -219,9 +215,6 @@ enum NoConflictClassEnumValueStaticSetter {
 
 enum ConflictClassEnumValueStaticSetterType {
   e1;
-//^^
-// [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-// [cfe] The type 'ConflictClassEnumValueStaticSetterType' of the getter 'ConflictClassEnumValueStaticSetterType.e1' is not a subtype of the type 'int' of the setter 'ConflictClassEnumValueStaticSetterType.e1'.
 
   // Type of setter parameter must be subtype of type of getter.
   static void set e1(int _) {}
@@ -332,22 +325,18 @@ enum DeclareSetterOptional {
 enum ConflictConstructorNameStatic {
   e1.foo();
   const ConflictConstructorNameStatic.foo();
-  //    ^
-  // [cfe] Conflicts with member 'foo'.
   //                                  ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER
   static int get foo => 42;
   //             ^
-  // [cfe] Conflicts with constructor 'ConflictConstructorNameStatic.foo'.
+  // [cfe] The member conflicts with constructor 'ConflictConstructorNameStatic.foo'.
 }
 
 enum ConflictConstructorNameStaticEnumValue {
   e1.e1();
-//^
-// [cfe] Conflicts with constructor 'ConflictConstructorNameStaticEnumValue.e1'.
   const ConflictConstructorNameStaticEnumValue.e1();
   //    ^
-  // [cfe] Conflicts with member 'e1'.
+  // [cfe] The constructor conflicts with member 'e1'.
   //                                           ^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER
 }
@@ -397,8 +386,7 @@ enum ConflictClassEnumValue {
   ConflictClassEnumValue;
 //^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING
-// [cfe] Name of enum constant 'ConflictClassEnumValue' can't be the same as the enum's own name.
-//                      ^
+// [cfe] A class member can't have the same name as the enclosing class.
 // [cfe] Couldn't find constructor 'ConflictClassEnumValue'.
 }
 
@@ -652,8 +640,6 @@ enum NSMImplementsNeverIndex implements NeverIndexGetter {
 
 // Cannot have cyclic references between constants.
 enum CyclicReference {
-//   ^
-// [cfe] Constant evaluation error:
   e1(e2),
 //^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT

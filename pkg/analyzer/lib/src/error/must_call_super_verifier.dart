@@ -36,12 +36,12 @@ class MustCallSuperVerifier {
       _verifySuperIsCalled(
         node,
         overriddenName,
-        overridden.enclosingElement2?.name3,
+        overridden.enclosingElement?.name3,
       );
       return;
     }
 
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is! ClassElement) {
       return;
     }
@@ -53,7 +53,7 @@ class MustCallSuperVerifier {
         _verifySuperIsCalled(
           node,
           overriddenName,
-          overridden.enclosingElement2?.name3,
+          overridden.enclosingElement?.name3,
         );
       }
       return;
@@ -69,7 +69,7 @@ class MustCallSuperVerifier {
         if (name.endsWith('=')) {
           name = name.substring(0, name.length - 1);
         }
-        _verifySuperIsCalled(node, name, overridden.enclosingElement2?.name3);
+        _verifySuperIsCalled(node, name, overridden.enclosingElement?.name3);
       }
     }
   }
@@ -85,7 +85,7 @@ class MustCallSuperVerifier {
   ExecutableElement? _findOverriddenMemberWithMustCallSuper(
     ExecutableElement element,
   ) {
-    var classElement = element.enclosingElement2;
+    var classElement = element.enclosingElement;
     if (classElement is! InterfaceElement) {
       return null;
     }
@@ -120,18 +120,18 @@ class MustCallSuperVerifier {
       ExecutableElement? member;
       switch (element) {
         case MethodElement():
-          member = ancestor.getMethod2(name);
+          member = ancestor.getMethod(name);
         case GetterElement():
-          member = ancestor.getMethod2(name) ?? ancestor.getGetter2(name);
+          member = ancestor.getMethod(name) ?? ancestor.getGetter(name);
         case SetterElement():
-          member = ancestor.getSetter2(name);
+          member = ancestor.getSetter(name);
       }
 
-      if (member is MethodElement && member.metadata2.hasMustCallSuper) {
+      if (member is MethodElement && member.metadata.hasMustCallSuper) {
         return member;
       }
       if (member is PropertyAccessorElement &&
-          member.metadata2.hasMustCallSuper) {
+          member.metadata.hasMustCallSuper) {
         return member;
       }
       // TODO(srawlins): What about a field annotated with `@mustCallSuper`?
@@ -144,7 +144,7 @@ class MustCallSuperVerifier {
 
   /// Returns whether [element] overrides a concrete method.
   bool _hasConcreteSuperMethod(ExecutableElement element) {
-    var classElement = element.enclosingElement2 as InterfaceElement;
+    var classElement = element.enclosingElement as InterfaceElement;
 
     var name = element.name3;
     if (name == null) {

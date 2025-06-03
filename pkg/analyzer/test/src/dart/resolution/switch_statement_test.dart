@@ -200,7 +200,7 @@ SwitchStatement
       keyword: case
       guardedPattern: GuardedPattern
         pattern: ConstantPattern
-          const: const
+          constKeyword: const
           expression: InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
@@ -321,7 +321,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::<::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::<#element
+            element: dart:core::@class::num::@method::<
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -349,7 +349,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -412,7 +412,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::<::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::<#element
+            element: dart:core::@class::num::@method::<
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -441,7 +441,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -521,7 +521,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::<::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::<#element
+            element: dart:core::@class::num::@method::<
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -567,7 +567,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -640,7 +640,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::<::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::<#element
+            element: dart:core::@class::num::@method::<
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -668,7 +668,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -741,7 +741,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::<::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::<#element
+            element: dart:core::@class::num::@method::<
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -769,7 +769,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -841,7 +841,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::<::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::<#element
+            element: dart:core::@class::num::@method::<
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -869,7 +869,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -949,7 +949,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -1020,7 +1020,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -1100,7 +1100,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -1252,7 +1252,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -1502,7 +1502,7 @@ SwitchStatement
                 token: a
                 element: a@62
                 staticType: int
-              element2: dart:core::<fragment>::@class::Object::@method::==#element
+              element2: dart:core::@class::Object::@method::==
               matchedValueType: Object?
           rightBracket: ]
           matchedValueType: Object?
@@ -1519,7 +1519,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
@@ -1580,7 +1580,7 @@ SwitchStatement
               literal: 0
               correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :

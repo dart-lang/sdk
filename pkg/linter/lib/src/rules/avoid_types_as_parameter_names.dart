@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart' // ignore: implementation_imports
     show Element2Extension;
 
@@ -14,12 +15,12 @@ import '../util/scope.dart';
 
 const _desc = r'Avoid types as parameter names.';
 
-class AvoidTypesAsParameterNames extends LintRule {
+class AvoidTypesAsParameterNames extends MultiAnalysisRule {
   AvoidTypesAsParameterNames()
     : super(name: LintNames.avoid_types_as_parameter_names, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.avoid_types_as_parameter_names_type_parameter,
     LinterLintCode.avoid_types_as_parameter_names_formal_parameter,
   ];
@@ -37,7 +38,7 @@ class AvoidTypesAsParameterNames extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
   final LinterContext context;
 
   _Visitor(this.rule, this.context);
@@ -49,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtNode(
         parameter,
         arguments: [parameter.name.lexeme],
-        errorCode:
+        diagnosticCode:
             LinterLintCode.avoid_types_as_parameter_names_formal_parameter,
       );
     }
@@ -68,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportAtToken(
           name,
           arguments: [name.lexeme],
-          errorCode:
+          diagnosticCode:
               LinterLintCode.avoid_types_as_parameter_names_formal_parameter,
         );
       }
@@ -109,7 +110,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportAtToken(
           name,
           arguments: [name.lexeme],
-          errorCode:
+          diagnosticCode:
               LinterLintCode.avoid_types_as_parameter_names_type_parameter,
         );
       }

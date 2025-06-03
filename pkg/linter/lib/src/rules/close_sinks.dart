@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -14,7 +15,7 @@ class CloseSinks extends LintRule {
   CloseSinks() : super(name: LintNames.close_sinks, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.close_sinks;
+  DiagnosticCode get diagnosticCode => LinterLintCode.close_sinks;
 
   @override
   void registerNodeProcessors(

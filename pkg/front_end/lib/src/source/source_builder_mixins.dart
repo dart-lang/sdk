@@ -11,9 +11,10 @@ import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/builder_mixins.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/factory_builder.dart';
 import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/type_algorithms.dart';
 import 'source_library_builder.dart';
@@ -51,20 +52,26 @@ mixin SourceDeclarationBuilderMixin
     ClassBuilder objectClassBuilder =
         coreLibrary.lookupLocalMember('Object', required: true) as ClassBuilder;
 
-    void buildBuilders(String name, Builder declaration) {
-      Builder? objectGetter = objectClassBuilder.lookupLocalMember(name);
-      Builder? objectSetter =
-          objectClassBuilder.lookupLocalMember(name, setter: true);
-      if (objectGetter != null && !objectGetter.isStatic ||
-          // Coverage-ignore(suite): Not run.
-          objectSetter != null && !objectSetter.isStatic) {
-        addProblem(
-            // TODO(johnniwinther): Use a different error message for extension
-            //  type declarations.
-            templateExtensionMemberConflictsWithObjectMember
-                .withArguments(name),
-            declaration.fileOffset,
-            name.length);
+    void buildBuilders(NamedBuilder declaration) {
+      String name = declaration.name;
+      if (!name.startsWith('_') &&
+          !(declaration is ConstructorBuilder ||
+              declaration is FactoryBuilder)) {
+        Builder? objectGetter = objectClassBuilder.lookupLocalMember(name);
+        Builder? objectSetter =
+            objectClassBuilder.lookupLocalMember(name, setter: true);
+        if (objectGetter != null && !objectGetter.isStatic ||
+            // Coverage-ignore(suite): Not run.
+            objectSetter != null && !objectSetter.isStatic) {
+          libraryBuilder.addProblem(
+              // TODO(johnniwinther): Use a different error message for
+              //  extension type declarations.
+              templateExtensionMemberConflictsWithObjectMember
+                  .withArguments(name),
+              declaration.fileOffset,
+              name.length,
+              declaration.fileUri);
+        }
       }
       if (declaration.parent != this) {
         // Coverage-ignore-block(suite): Not run.
@@ -90,16 +97,16 @@ mixin SourceDeclarationBuilderMixin
       }
     }
 
-    nameSpace.unfilteredNameIterator.forEach(buildBuilders);
-    nameSpace.unfilteredConstructorNameIterator.forEach(buildBuilders);
+    unfilteredMembersIterator.forEach(buildBuilders);
+    unfilteredConstructorsIterator.forEach(buildBuilders);
   }
 
   int buildBodyNodes({required bool addMembersToLibrary}) {
     int count = 0;
-    Iterator<SourceMemberBuilder> iterator = nameSpace
-        .filteredIterator<SourceMemberBuilder>(includeDuplicates: false)
-        .join(nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
-            includeDuplicates: false));
+    Iterator<SourceMemberBuilder> iterator =
+        filteredMembersIterator<SourceMemberBuilder>(includeDuplicates: false)
+            .join(filteredConstructorsIterator<SourceMemberBuilder>(
+                includeDuplicates: false));
     while (iterator.moveNext()) {
       SourceMemberBuilder declaration = iterator.current;
       count += declaration.buildBodyNodes(
@@ -121,45 +128,43 @@ mixin SourceDeclarationBuilderMixin
     int count = context.computeDefaultTypesForVariables(typeParameters,
         inErrorRecovery: hasErrors);
 
-    Iterator<SourceMemberBuilder> iterator =
-        nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
+    Iterator<SourceMemberBuilder> constructorIterator =
+        filteredConstructorsIterator<SourceMemberBuilder>(
             includeDuplicates: false);
-    while (iterator.moveNext()) {
-      count += iterator.current
+    while (constructorIterator.moveNext()) {
+      count += constructorIterator.current
           .computeDefaultTypes(context, inErrorRecovery: hasErrors);
     }
 
-    forEach((String name, Builder member) {
-      if (member is SourceMemberBuilder) {
-        count +=
-            member.computeDefaultTypes(context, inErrorRecovery: hasErrors);
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        assert(
-            false,
-            "Unexpected extension type member "
-            "$member (${member.runtimeType}).");
-      }
-    });
+    Iterator<SourceMemberBuilder> memberIterator =
+        filteredMembersIterator(includeDuplicates: false);
+    while (memberIterator.moveNext()) {
+      count += memberIterator.current
+          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
+    }
     return count;
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    forEach((String name, Builder builder) {
-      (builder as SourceMemberBuilder)
+    Iterator<SourceMemberBuilder> memberIterator =
+        filteredMembersIterator(includeDuplicates: false);
+    while (memberIterator.moveNext()) {
+      memberIterator.current
           .checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    });
+    }
 
-    nameSpace.forEachConstructor((String name, MemberBuilder builder) {
-      (builder as SourceMemberBuilder)
+    Iterator<SourceMemberBuilder> constructorIterator =
+        filteredConstructorsIterator(includeDuplicates: false);
+    while (constructorIterator.moveNext()) {
+      constructorIterator.current
           .checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    });
+    }
   }
 
   void _buildMember(SourceMemberBuilder memberBuilder, Member member,
       Member? tearOff, BuiltMemberKind memberKind,
       {required bool addMembersToLibrary}) {
-    if (!memberBuilder.isDuplicate && !memberBuilder.isConflictingSetter) {
+    if (!memberBuilder.isDuplicate) {
       if (memberKind == BuiltMemberKind.ExtensionTypeRepresentationField) {
         addMemberInternal(memberBuilder, memberKind, member, tearOff);
       } else {

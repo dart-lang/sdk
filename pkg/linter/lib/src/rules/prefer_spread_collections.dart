@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -14,7 +15,7 @@ class PreferSpreadCollections extends LintRule {
     : super(name: LintNames.prefer_spread_collections, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_spread_collections;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_spread_collections;
 
   @override
   void registerNodeProcessors(

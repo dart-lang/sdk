@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ContextRefElement extends CustomElement implements Renderable {
@@ -50,7 +53,7 @@ class ContextRefElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   Future _refresh() async {
@@ -59,23 +62,24 @@ class ContextRefElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    var children = <HtmlElement>[
-      new AnchorElement(href: Uris.inspect(_isolate, object: _context))
-        ..children = <Element>[
-          new SpanElement()
-            ..classes = ['emphasize']
-            ..text = 'Context',
-          new SpanElement()..text = ' (${_context.length})',
-        ],
+    final children = <HTMLElement>[
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(_isolate, object: _context)
+        ..appendChildren(<HTMLElement>[
+          new HTMLSpanElement()
+            ..className = 'emphasize'
+            ..textContent = 'Context',
+          new HTMLSpanElement()..textContent = ' (${_context.length})',
+        ]),
     ];
     if (_expandable) {
       children.addAll([
-        new SpanElement()..text = ' ',
+        new HTMLSpanElement()..textContent = ' ',
         (new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-              ..content = <Element>[
-                new DivElement()
-                  ..classes = ['indent']
-                  ..children = _createValue()
+              ..content = <HTMLElement>[
+                new HTMLDivElement()
+                  ..className = 'indent'
+                  ..appendChildren(_createValue())
               ]
               ..onToggle.listen((e) async {
                 _expanded = e.control.expanded;
@@ -88,53 +92,50 @@ class ContextRefElement extends CustomElement implements Renderable {
             .element
       ]);
     }
-    this.children = children;
+    setChildren(children);
   }
 
-  List<Element> _createValue() {
+  List<HTMLElement> _createValue() {
     if (_loadedContext == null) {
-      return [new SpanElement()..text = 'Loading...'];
+      return [new HTMLSpanElement()..textContent = 'Loading...'];
     }
-    var members = <Element>[];
+    var members = <HTMLElement>[];
     if (_loadedContext!.parentContext != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'parent context',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
-              new ContextRefElement(
-                      _isolate, _loadedContext!.parentContext!, _objects,
-                      queue: _r.queue)
-                  .element
-            ]
-        ]);
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'parent context',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChild(new ContextRefElement(
+                    _isolate, _loadedContext!.parentContext!, _objects,
+                    queue: _r.queue)
+                .element)
+        ]));
     }
     if (_loadedContext!.variables!.isNotEmpty) {
       var variables = _loadedContext!.variables!.toList();
       for (var index = 0; index < variables.length; index++) {
         var variable = variables[index];
-        members.add(new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = '[ $index ]',
-            new DivElement()
-              ..classes = ['memberName']
-              ..children = <Element>[
-                anyRef(_isolate, variable.value, _objects, queue: _r.queue)
-              ]
-          ]);
+        members.add(new HTMLDivElement()
+          ..className = 'memberItem'
+          ..appendChildren(<HTMLElement>[
+            new HTMLDivElement()
+              ..className = 'memberName'
+              ..textContent = '[ $index ]',
+            new HTMLDivElement()
+              ..className = 'memberName'
+              ..appendChild(
+                  anyRef(_isolate, variable.value, _objects, queue: _r.queue))
+          ]));
       }
     }
     return [
-      new DivElement()
-        ..classes = ['memberList']
-        ..children = members
+      new HTMLDivElement()
+        ..className = 'memberList'
+        ..appendChildren(members)
     ];
   }
 }

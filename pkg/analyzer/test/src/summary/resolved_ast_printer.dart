@@ -437,7 +437,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
           _sink.writeWithIndent('declaredElement: ');
           _sink.writeIf(fragment.hasImplicitType, 'hasImplicitType ');
           _sink.writeIf(fragment.isFinal, 'isFinal ');
-          _sink.writeln('${fragment.name}@${fragment.nameOffset}');
+          _sink.writeln('${fragment.name2 ?? ''}@${fragment.nameOffset}');
           _sink.withIndent(() {
             _writeType('type', fragment.type);
           });
@@ -1767,9 +1767,14 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.writeIf(fragment.isLate, ' isLate');
         // TODO(scheglov): This crashes.
         // _writeIf(element.hasInitializer, ' hasInitializer');
-        _sink.writeln(' ${fragment.name}@${fragment.nameOffset}');
+        _sink.writeln(' ${fragment.name2 ?? ''}@${fragment.nameOffset}');
         _sink.withIndent(() {
           _writeType('type', fragment.type);
+        });
+      } else if (fragment is TypeParameterFragmentImpl) {
+        _writeFragment('declaredElement', fragment);
+        _sink.withIndent(() {
+          _writeType('defaultType', fragment.defaultType);
         });
       } else {
         _writeFragment('declaredElement', fragment);
@@ -1933,8 +1938,8 @@ Expected parent: (${parent.runtimeType}) $parent
     _sink.writelnWithIndent('parameters');
     _sink.withIndent(() {
       for (var parameter in parameters) {
-        var name = parameter.name;
-        _sink.writelnWithIndent(name.isNotEmpty ? name : '<empty>');
+        var name = parameter.name2;
+        _sink.writelnWithIndent(name ?? '<empty>');
         _sink.withIndent(() {
           _writeParameterKind(parameter);
           _writeType('type', parameter.type);

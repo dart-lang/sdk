@@ -140,9 +140,10 @@ abstract class StackListener extends Listener with StackChecker {
   void push(Object? node) {
     if (node == null) {
       internalProblem(
-          templateInternalProblemUnhandled.withArguments("null", "push"),
-          /* charOffset = */ -1,
-          uri);
+        templateInternalProblemUnhandled.withArguments("null", "push"),
+        /* charOffset = */ -1,
+        uri,
+      );
     }
     stack.push(node);
   }
@@ -182,9 +183,10 @@ abstract class StackListener extends Listener with StackChecker {
   void logEvent(String name) {
     printEvent(name);
     internalProblem(
-        templateInternalProblemUnhandled.withArguments(name, "$runtimeType"),
-        /* charOffset = */ -1,
-        uri);
+      templateInternalProblemUnhandled.withArguments(name, "$runtimeType"),
+      /* charOffset = */ -1,
+      uri,
+    );
   }
 
   @override
@@ -201,10 +203,13 @@ abstract class StackListener extends Listener with StackChecker {
   void checkEmpty(int charOffset) {
     if (stack.isNotEmpty) {
       internalProblem(
-          templateInternalProblemStackNotEmpty.withArguments(
-              "${runtimeType}", stack.values.join("\n  ")),
-          charOffset,
-          uri);
+        templateInternalProblemStackNotEmpty.withArguments(
+          "${runtimeType}",
+          stack.values.join("\n  "),
+        ),
+        charOffset,
+        uri,
+      );
     }
   }
 
@@ -347,10 +352,13 @@ abstract class StackListener extends Listener with StackChecker {
       push(unescapeString(token.lexeme, token, this));
     } else {
       internalProblem(
-          templateInternalProblemUnhandled.withArguments(
-              "string interpolation", "endLiteralString"),
-          endToken.charOffset,
-          uri);
+        templateInternalProblemUnhandled.withArguments(
+          "string interpolation",
+          "endLiteralString",
+        ),
+        endToken.charOffset,
+        uri,
+      );
     }
   }
 
@@ -385,11 +393,17 @@ abstract class StackListener extends Listener with StackChecker {
 
   @override
   void handleRecoverableError(
-      Message message, Token startToken, Token endToken) {
+    Message message,
+    Token startToken,
+    Token endToken,
+  ) {
     debugEvent("Error: ${message.problemMessage}");
     if (isIgnoredError(message.code, startToken)) return;
     addProblem(
-        message, startToken.charOffset, lengthOfSpan(startToken, endToken));
+      message,
+      startToken.charOffset,
+      lengthOfSpan(startToken, endToken),
+    );
   }
 
   bool isIgnoredError(Code<dynamic> code, Token token) {
@@ -410,12 +424,21 @@ abstract class StackListener extends Listener with StackChecker {
 
   @override
   void handleUnescapeError(
-      Message message, Token token, int stringOffset, int length) {
+    Message message,
+    Token token,
+    int stringOffset,
+    int length,
+  ) {
     addProblem(message, token.charOffset + stringOffset, length);
   }
 
-  void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled = false, List<LocatedMessage> context});
+  void addProblem(
+    Message message,
+    int charOffset,
+    int length, {
+    bool wasHandled = false,
+    List<LocatedMessage> context,
+  });
 }
 
 abstract class Stack {
@@ -445,8 +468,10 @@ abstract class Stack {
 }
 
 class StackImpl implements Stack {
-  List<Object?> array =
-      new List<Object?>.filled(/* length = */ 8, /* fill = */ null);
+  List<Object?> array = new List<Object?>.filled(
+    /* length = */ 8,
+    /* fill = */ null,
+  );
   int arrayLength = 0;
 
   @override
@@ -539,16 +564,20 @@ class StackImpl implements Stack {
   @override
   List<Object?> get values {
     final int length = arrayLength;
-    final List<Object?> list =
-        new List<Object?>.filled(length, /* fill = */ null);
+    final List<Object?> list = new List<Object?>.filled(
+      length,
+      /* fill = */ null,
+    );
     list.setRange(/* start = */ 0, length, array);
     return list;
   }
 
   void _grow() {
     final int length = array.length;
-    final List<Object?> newArray =
-        new List<Object?>.filled(length * 2, /* fill = */ null);
+    final List<Object?> newArray = new List<Object?>.filled(
+      length * 2,
+      /* fill = */ null,
+    );
     newArray.setRange(/* start = */ 0, length, array, /* skipCount = */ 0);
     array = newArray;
   }
@@ -584,8 +613,9 @@ class DebugStack implements Stack {
   Object? pop(NullValue? nullValue) {
     Object? result = realStack.pop(nullValue);
     latestStacktraces.clear();
-    latestStacktraces
-        .add(stackTraceStack.pop(/* nullValue = */ null) as StackTrace);
+    latestStacktraces.add(
+      stackTraceStack.pop(/* nullValue = */ null) as StackTrace,
+    );
     return result;
   }
 
@@ -624,27 +654,45 @@ class FixedNullableList<T> {
   List<T?>? pop(Stack stack, int count, [NullValue? nullValue]) {
     if (count == 0) return null;
     return stack.popList(
-        count, new List<T?>.filled(count, /* fill = */ null), nullValue);
+      count,
+      new List<T?>.filled(count, /* fill = */ null),
+      nullValue,
+    );
   }
 
   List<T>? popNonNullable(Stack stack, int count, T dummyValue) {
     if (count == 0) return null;
     return stack.popNonNullableList(
-        count, new List<T>.filled(count, dummyValue));
+      count,
+      new List<T>.filled(count, dummyValue),
+    );
   }
 
-  List<T?>? popPadded(Stack stack, int count, int padding,
-      [NullValue? nullValue]) {
+  List<T?>? popPadded(
+    Stack stack,
+    int count,
+    int padding, [
+    NullValue? nullValue,
+  ]) {
     if (count + padding == 0) return null;
-    return stack.popList(count,
-        new List<T?>.filled(count + padding, /* fill = */ null), nullValue);
+    return stack.popList(
+      count,
+      new List<T?>.filled(count + padding, /* fill = */ null),
+      nullValue,
+    );
   }
 
   List<T>? popPaddedNonNullable(
-      Stack stack, int count, int padding, T dummyValue) {
+    Stack stack,
+    int count,
+    int padding,
+    T dummyValue,
+  ) {
     if (count + padding == 0) return null;
     return stack.popNonNullableList(
-        count, new List<T>.filled(count + padding, dummyValue));
+      count,
+      new List<T>.filled(count + padding, dummyValue),
+    );
   }
 }
 
@@ -655,15 +703,18 @@ class GrowableList<T> {
 
   List<T?>? pop(Stack stack, int count, [NullValue? nullValue]) {
     return stack.popList(
-        count,
-        new List<T?>.filled(count, /* fill = */ null, growable: true),
-        nullValue);
+      count,
+      new List<T?>.filled(count, /* fill = */ null, growable: true),
+      nullValue,
+    );
   }
 
   List<T>? popNonNullable(Stack stack, int count, T dummyValue) {
     if (count == 0) return null;
     return stack.popNonNullableList(
-        count, new List<T>.filled(count, dummyValue, growable: true));
+      count,
+      new List<T>.filled(count, dummyValue, growable: true),
+    );
   }
 }
 

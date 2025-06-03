@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:collection/collection.dart';
@@ -16,12 +17,12 @@ import '../extensions.dart';
 
 const _desc = r'Specify type annotations.';
 
-class StrictTopLevelInference extends LintRule {
+class StrictTopLevelInference extends MultiAnalysisRule {
   StrictTopLevelInference()
     : super(name: LintNames.strict_top_level_inference, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.strict_top_level_inference_add_type,
     LinterLintCode.strict_top_level_inference_replace_keyword,
     LinterLintCode.strict_top_level_inference_split_to_types,
@@ -43,12 +44,14 @@ class StrictTopLevelInference extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final bool _wildCardVariablesEnabled;
 
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   final LinterContext context;
 
   _Visitor(this.rule, this.context)
-    : _wildCardVariablesEnabled = context.isEnabled(Feature.wildcard_variables);
+    : _wildCardVariablesEnabled = context.isFeatureEnabled(
+        Feature.wildcard_variables,
+      );
 
   bool isWildcardIdentifier(String lexeme) =>
       _wildCardVariablesEnabled && lexeme == '_';
@@ -103,9 +106,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (node.variables.length == 1) {
       var variable = node.variables.single;
-      var overriddenMember = context.inheritanceManager.overriddenMember(
-        variable.declaredFragment?.element,
-      );
+      var overriddenMember =
+          variable.declaredFragment?.element.overriddenMember;
       if (overriddenMember == null) {
         _report(variable.name, keyword: node.keyword);
       }
@@ -113,13 +115,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Handle the multiple-variable case separately so that we can instead
       // report `LinterLintCode.strict_top_level_inference_split_to_types`.
       for (var variable in variablesMissingAnInitializer) {
-        var overriddenMember = context.inheritanceManager.overriddenMember(
-          variable.declaredFragment?.element,
-        );
+        var overriddenMember =
+            variable.declaredFragment?.element.overriddenMember;
         if (overriddenMember == null) {
           rule.reportAtToken(
             variable.name,
-            errorCode: LinterLintCode.strict_top_level_inference_split_to_types,
+            diagnosticCode:
+                LinterLintCode.strict_top_level_inference_split_to_types,
           );
         }
       }
@@ -179,7 +181,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isOverride(node, element)) {
       rule.reportAtToken(
         node.name,
-        errorCode: LinterLintCode.strict_top_level_inference_add_type,
+        diagnosticCode: LinterLintCode.strict_top_level_inference_add_type,
       );
     }
   }
@@ -201,16 +203,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (node.returnType == null) {
         rule.reportAtToken(
           node.name,
-          errorCode: LinterLintCode.strict_top_level_inference_add_type,
+          diagnosticCode: LinterLintCode.strict_top_level_inference_add_type,
         );
       }
       if (node.parameters case var parameters?) {
         _checkFormalParameters(parameters.parameters);
       }
     } else {
-      var overriddenMember = context.inheritanceManager.overriddenMember(
-        node.declaredFragment?.element,
-      );
+      var overriddenMember = node.declaredFragment?.element.overriddenMember;
       if (overriddenMember == null &&
           node.returnType == null &&
           (!container.isReflectiveTest ||
@@ -236,19 +236,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isOverride(node, element)) {
       rule.reportAtToken(
         node.name,
-        errorCode: LinterLintCode.strict_top_level_inference_add_type,
+        diagnosticCode: LinterLintCode.strict_top_level_inference_add_type,
       );
     }
   }
 
   bool _isOverride(MethodDeclaration node, PropertyAccessorElement element) {
-    var container = element.enclosingElement2;
+    var container = element.enclosingElement;
     if (node.isStatic) return false;
     if (container is ExtensionElement) return false;
     if (container is ExtensionTypeElement) return false;
-    var overriddenMember = context.inheritanceManager.overriddenMember(
-      node.declaredFragment?.element,
-    );
+    var overriddenMember = node.declaredFragment?.element.overriddenMember;
     return overriddenMember != null;
   }
 
@@ -256,13 +254,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (keyword == null || keyword.type == Keyword.FINAL) {
       rule.reportAtToken(
         errorToken,
-        errorCode: LinterLintCode.strict_top_level_inference_add_type,
+        diagnosticCode: LinterLintCode.strict_top_level_inference_add_type,
       );
     } else if (keyword.type == Keyword.VAR) {
       rule.reportAtToken(
         errorToken,
         arguments: [keyword.lexeme],
-        errorCode: LinterLintCode.strict_top_level_inference_replace_keyword,
+        diagnosticCode:
+            LinterLintCode.strict_top_level_inference_replace_keyword,
       );
     }
   }

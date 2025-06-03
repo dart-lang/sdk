@@ -4,6 +4,7 @@
 
 #include "include/dart_api.h"
 #include "vm/bootstrap_natives.h"
+#include "vm/heap/safepoint.h"
 #include "vm/os_thread.h"
 
 namespace dart {
@@ -67,7 +68,8 @@ DEFINE_FFI_NATIVE_ENTRY(ConditionVariable_Initialize,
 DEFINE_FFI_NATIVE_ENTRY(ConditionVariable_Wait,
                         void,
                         (Dart_Handle condvar_handle,
-                         Dart_Handle mutex_handle)) {
+                         Dart_Handle mutex_handle,
+                         intptr_t timeout)) {
   Mutex* mutex;
   Dart_Handle result_mutex = Dart_GetNativeInstanceField(
       mutex_handle, kCondVarNativeField, reinterpret_cast<intptr_t*>(&mutex));
@@ -81,7 +83,7 @@ DEFINE_FFI_NATIVE_ENTRY(ConditionVariable_Wait,
   if (Dart_IsError(result_condvar)) {
     Dart_PropagateError(result_condvar);
   }
-  condvar->Wait(mutex);
+  condvar->Wait(mutex, timeout);
 }
 
 DEFINE_FFI_NATIVE_ENTRY(ConditionVariable_Notify,

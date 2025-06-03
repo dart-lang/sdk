@@ -262,7 +262,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: m
-    element: <testLibraryFragment>::@class::B::@method::m#element
+    element: <testLibrary>::@class::B::@method::m
     staticType: B Function()
   argumentList: ArgumentList
     leftParenthesis: (

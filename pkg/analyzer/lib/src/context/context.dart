@@ -31,12 +31,6 @@ class AnalysisContextImpl implements AnalysisContext {
     required this.sourceFactory,
   }) : _analysisOptionsMap = analysisOptionsMap;
 
-  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
-  @override
-  AnalysisOptionsImpl get analysisOptions {
-    return _analysisOptionsMap.firstOrDefault;
-  }
-
   // TODO(scheglov): Remove it, exists only for Cider.
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {
     _analysisOptionsMap = AnalysisOptionsMap.forSharedOptions(analysisOptions);

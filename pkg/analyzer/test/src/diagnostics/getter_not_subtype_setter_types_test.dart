@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:collection/collection.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,36 +30,26 @@ class GetterNotSubtypeSetterTypesTest_withGetterSetterErrorFeature
 class GetterNotSubtypeSetterTypesTest_withoutGetterSetterErrorFeature
     extends _GetterNotSubtypeSetterTypesTest {
   @override
-  List<String> get experiments => [];
+  List<String> get experiments => [...experimentsForTests];
 }
 
 class _GetterNotSubtypeSetterTypesTest extends PubPackageResolutionTest {
   test_class_instance() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 class C {
   num get foo => 0;
   set foo(int v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 20, 3),
-      ]),
-    );
+''');
   }
 
   test_class_instance_dynamicGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 class C {
   get foo => 0;
   set foo(String v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 16, 3),
-      ]),
-    );
+''');
   }
 
   test_class_instance_dynamicSetter() async {
@@ -71,22 +62,16 @@ class C {
   }
 
   test_class_instance_field() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 class C {
   final num foo = 0;
   set foo(int v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 22, 3),
-      ]),
-    );
+''');
   }
 
   test_class_instance_interfaces() async {
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int get foo => 0;
 }
@@ -96,11 +81,7 @@ class B {
 }
 
 abstract class X implements A, B {}
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 84, 1),
-      ]),
-    );
+''');
   }
 
   test_class_instance_private_getter() async {
@@ -170,17 +151,12 @@ class B extends A {
   }
 
   test_class_instance_sameClass() async {
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 class C {
   int get foo => 0;
   set foo(String _) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 20, 3),
-      ]),
-    );
+''');
   }
 
   test_class_instance_sameTypes() async {
@@ -229,8 +205,7 @@ class C {
   }
 
   test_class_instance_superGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int get foo => 0;
 }
@@ -238,16 +213,11 @@ class A {
 class B extends A {
   set foo(String _) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 59, 3),
-      ]),
-    );
+''');
   }
 
   test_class_instance_superSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 class A {
   set foo(String _) {}
 }
@@ -255,39 +225,25 @@ class A {
 class B extends A {
   int get foo => 0;
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 66, 3),
-      ]),
-    );
+''');
   }
 
   test_class_static() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 class C {
   static num get foo => 0;
   static set foo(int v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 27, 3),
-      ]),
-    );
+''');
   }
 
   test_class_static_field() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 class C {
   static final num foo = 0;
   static set foo(int v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 29, 3),
-      ]),
-    );
+''');
   }
 
   test_class_static_sameTypes() async {
@@ -300,8 +256,7 @@ class C {
   }
 
   test_enum_instance_mixinGetter_mixinSetter() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 mixin M1 {
   num get foo => 0;
 }
@@ -313,16 +268,11 @@ mixin M2 {
 enum E with M1, M2 {
   v
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 73, 1),
-      ]),
-    );
+''');
   }
 
   test_enum_instance_mixinGetter_thisSetter() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 mixin M {
   num get foo => 0;
 }
@@ -331,159 +281,104 @@ enum E with M {
   v;
   set foo(int v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 60, 3),
-      ]),
-    );
+''');
   }
 
   test_enum_instance_superGetter_thisSetter_index() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 enum E {
   v;
   set index(String _) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 20, 5),
-      ]),
-    );
+''');
   }
 
   test_enum_instance_thisField_thisSetter() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 enum E {
   v;
   final num foo = 0;
   set foo(int v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 26, 3),
-      ]),
-    );
+''');
   }
 
   test_enum_instance_thisGetter_thisSetter() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 enum E {
   v;
   num get foo => 0;
   set foo(int v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 24, 3),
-      ]),
-    );
+''');
   }
 
   test_enum_static() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 enum E {
   v;
   static num get foo => 0;
   static set foo(int v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 31, 3),
-      ]),
-    );
+''');
   }
 
   test_enum_static_field() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 enum E {
   foo;
   static set foo(int v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 11, 3),
-      ]),
-    );
+''');
   }
 
   test_enum_static_generatedGetter_thisSetter_index() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 enum E {
   v;
   static set values(int _) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 5, 1),
-      ]),
-    );
+''');
   }
 
   test_extension_instance() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 extension E on Object {
   int get foo => 0;
   set foo(String v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 34, 3),
-      ]),
-    );
+''');
   }
 
   test_extension_static() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 extension E on Object {
   static int get foo => 0;
   static set foo(String v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 41, 3),
-      ]),
-    );
+''');
   }
 
   test_extension_static_field() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 extension E on Object {
   static final int foo = 0;
   static set foo(String v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 43, 3),
-      ]),
-    );
+''');
   }
 
   test_extensionType_instance() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 extension type A(int it) {
   int get foo => 0;
   void set foo(String _) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 37, 3),
-      ]),
-    );
+''');
   }
 
   test_extensionType_instance_fromImplements() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 extension type A(int it) {
   void set foo(String _) {}
 }
@@ -491,76 +386,47 @@ extension type A(int it) {
 extension type B(int it) implements A {
   int get foo => 0;
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 108, 3),
-      ]),
-    );
+''');
   }
 
   test_extensionType_instance_representationField() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 extension type A(int it) {
   void set it(String _) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 38, 2),
-      ]),
-    );
+''');
   }
 
   test_extensionType_static() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 extension type A(int it) {
   static int get foo => 0;
   static set foo(String v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 44, 3),
-      ]),
-    );
+''');
   }
 
   test_extensionType_static_field() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 extension type A(int it) {
   static final int foo = 0;
   static set foo(String v) {}
 }
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 46, 3),
-      ]),
-    );
+''');
   }
 
   test_topLevel() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 int get foo => 0;
 set foo(String v) {}
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 8, 3),
-      ]),
-    );
+''');
   }
 
   test_topLevel_dynamicGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 get foo => 0;
 set foo(int v) {}
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 4, 3),
-      ]),
-    );
+''');
   }
 
   test_topLevel_dynamicSetter() async {
@@ -578,15 +444,10 @@ set foo(int v) {}
   }
 
   test_topLevel_variable() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 final int foo = 0;
 set foo(String v) {}
-''',
-      _filterGetterSetterTypeErrors([
-        error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 10, 3),
-      ]),
-    );
+''');
   }
 
   List<ExpectedError> _filterGetterSetterTypeErrors(

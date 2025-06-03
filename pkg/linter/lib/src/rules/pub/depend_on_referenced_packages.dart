@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../../analyzer.dart';
 import '../../ast.dart';
@@ -15,7 +16,8 @@ class DependOnReferencedPackages extends LintRule {
     : super(name: LintNames.depend_on_referenced_packages, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.depend_on_referenced_packages;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.depend_on_referenced_packages;
 
   @override
   void registerNodeProcessors(

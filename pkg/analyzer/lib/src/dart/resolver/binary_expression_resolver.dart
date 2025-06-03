@@ -154,7 +154,7 @@ class BinaryExpressionResolver {
       _errorReporter.atOffset(
         offset: offset,
         length: end.end - offset,
-        errorCode: errorCode,
+        diagnosticCode: errorCode,
       );
     }
 
@@ -398,7 +398,7 @@ class BinaryExpressionResolver {
 
     if (leftOperand is ExtensionOverrideImpl) {
       var extension = leftOperand.element2;
-      var member = extension.getMethod2(methodName);
+      var member = extension.getMethod(methodName);
       if (member == null) {
         // Extension overrides can only be used with named extensions so it is
         // safe to assume `extension.name` is non-`null`.

@@ -4,9 +4,9 @@
 
 library shell;
 
-import 'package:observatory/service_io.dart';
-
 import 'dart:io';
+
+import 'package:observatory/service_io.dart';
 
 // Simple demo for service_io library. Connects to localhost on the default
 // port, picks the first isolate, reads requests from stdin, and prints

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -21,7 +22,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
@@ -196,11 +197,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertErrorsInList(
-    List<AnalysisError> errors,
+    List<Diagnostic> diagnostics,
     List<ExpectedError> expectedErrors,
   ) {
     GatheringErrorListener errorListener = GatheringErrorListener();
-    errorListener.addAll(errors);
+    errorListener.addAll(diagnostics);
     errorListener.assertErrors(expectedErrors);
   }
 
@@ -310,7 +311,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var actualMapString = Map.fromEntries(
       substitution.map.entries
           .where((entry) {
-            return entry.key.enclosingElement2 is! ExecutableElement;
+            return entry.key.enclosingElement is! ExecutableElement;
           })
           .map((entry) {
             return MapEntry(entry.key.name3, typeString(entry.value));

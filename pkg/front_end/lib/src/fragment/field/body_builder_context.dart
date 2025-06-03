@@ -67,15 +67,6 @@ class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  AugmentSuperTarget? get augmentSuperTarget {
-    if (_builder.isAugmentation) {
-      return _builder.augmentSuperTarget;
-    }
-    return null;
-  }
-
-  @override
   ConstantContext get constantContext {
     return _isConst
         ? ConstantContext.inferred

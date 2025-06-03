@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer_utilities/testing/test_support.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -174,6 +176,9 @@ class DocumentationValidator {
     'PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING',
     'PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY',
 
+    // Produces two diagnostics out of necessity.
+    'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',
+
     // Reports CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
     'WarningCode.DEPRECATED_EXTENDS_FUNCTION',
     // Produces more than one error range by design.
@@ -181,6 +186,8 @@ class DocumentationValidator {
     'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
     // Produces more than one error range by design.
     'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
+    // Produces two diagnostics out of necessity.
+    'WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE',
   ];
 
   /// The buffer to which validation errors are written.
@@ -321,21 +328,24 @@ class DocumentationValidator {
   }
 
   /// Report a problem with the current error code.
-  void _reportProblem(String problem, {List<AnalysisError> errors = const []}) {
+  void _reportProblem(
+    String problem, {
+    List<Diagnostic> diagnostics = const [],
+  }) {
     if (!hasWrittenVariableName) {
       buffer.writeln('  $variableName');
       hasWrittenVariableName = true;
     }
     buffer.writeln('    $problem');
-    for (AnalysisError error in errors) {
+    for (Diagnostic diagnostic in diagnostics) {
       buffer.write('      ');
-      buffer.write(error.errorCode);
+      buffer.write(diagnostic.errorCode);
       buffer.write(' (');
-      buffer.write(error.offset);
+      buffer.write(diagnostic.offset);
       buffer.write(', ');
-      buffer.write(error.length);
+      buffer.write(diagnostic.length);
       buffer.write(') ');
-      buffer.writeln(error.message);
+      buffer.writeln(diagnostic.message);
     }
   }
 
@@ -414,42 +424,42 @@ class DocumentationValidator {
     _SnippetTest test = _SnippetTest(snippet);
     test.setUp();
     await test.resolveTestFile();
-    List<AnalysisError> errors = test.result.errors;
-    int errorCount = errors.length;
+    List<Diagnostic> diagnostics = test.result.errors;
+    int errorCount = diagnostics.length;
     if (snippet.offset < 0) {
       if (errorCount > 0) {
         _reportProblem(
           'Expected no errors but found $errorCount ($section $index):',
-          errors: errors,
+          diagnostics: diagnostics,
         );
       }
     } else {
       if (errorCount == 0) {
         _reportProblem('Expected one error but found none ($section $index).');
       } else if (errorCount == 1) {
-        AnalysisError error = errors[0];
-        if (error.errorCode.name != codeName) {
+        Diagnostic diagnostic = diagnostics[0];
+        if (diagnostic.errorCode.name != codeName) {
           _reportProblem(
             'Expected an error with code $codeName, '
-            'found ${error.errorCode} ($section $index).',
+            'found ${diagnostic.errorCode} ($section $index).',
           );
         }
-        if (error.offset != snippet.offset) {
+        if (diagnostic.offset != snippet.offset) {
           _reportProblem(
             'Expected an error at ${snippet.offset}, '
-            'found ${error.offset} ($section $index).',
+            'found ${diagnostic.offset} ($section $index).',
           );
         }
-        if (error.length != snippet.length) {
+        if (diagnostic.length != snippet.length) {
           _reportProblem(
             'Expected an error of length ${snippet.length}, '
-            'found ${error.length} ($section $index).',
+            'found ${diagnostic.length} ($section $index).',
           );
         }
       } else {
         _reportProblem(
           'Expected one error but found $errorCount ($section $index):',
-          errors: errors,
+          diagnostics: diagnostics,
         );
       }
     }

@@ -4737,7 +4737,7 @@ class ServiceMessage extends ServiceObject {
 // Helper function to extract possible breakpoint locations from a
 // SourceReport for some script.
 Set<int> getPossibleBreakpointLines(ServiceMap report, Script script) {
-  var result = new Set<int>();
+  final result = new Set<int>();
   int scriptIndex;
   int numScripts = report['scripts'].length;
   for (scriptIndex = 0; scriptIndex < numScripts; scriptIndex++) {
@@ -4751,24 +4751,31 @@ Set<int> getPossibleBreakpointLines(ServiceMap report, Script script) {
   if (script.source == null) {
     return result;
   }
-  var ranges = report['ranges'];
-  if (ranges != null) {
-    for (var range in ranges) {
-      if (range['scriptIndex'] != scriptIndex) {
-        continue;
-      }
-      if (range['compiled']) {
-        var possibleBpts = range['possibleBreakpoints'];
-        if (possibleBpts != null) {
-          for (var tokenPos in possibleBpts) {
-            result.add(script.tokenToLine(tokenPos!)!);
+  final ranges = report['ranges'];
+  if (ranges == null) {
+    return result;
+  }
+  for (final range in ranges) {
+    if (range['scriptIndex'] != scriptIndex) {
+      continue;
+    }
+    if (range['compiled']) {
+      var possibleBpts = range['possibleBreakpoints'];
+      if (possibleBpts != null) {
+        for (final tokenPos in possibleBpts) {
+          final scriptLine = script.tokenToLine(tokenPos!);
+          if (scriptLine != null) {
+            result.add(scriptLine);
           }
         }
-      } else {
-        int startLine = script.tokenToLine(range['startPos'])!;
-        int endLine = script.tokenToLine(range['endPos'])!;
+      }
+    } else {
+      int? startLine = script.tokenToLine(range['startPos']);
+      int? endLine = script.tokenToLine(range['endPos']);
+      if (startLine != null && endLine != null) {
         for (int line = startLine; line <= endLine; line++) {
-          if (!script.getLine(line)!.isTrivial) {
+          final ScriptLine? lineText = script.getLine(line);
+          if (!lineText!.isTrivial) {
             result.add(line);
           }
         }

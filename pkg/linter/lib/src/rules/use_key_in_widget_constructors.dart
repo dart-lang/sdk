@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -18,7 +19,8 @@ class UseKeyInWidgetConstructors extends LintRule {
     : super(name: LintNames.use_key_in_widget_constructors, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_key_in_widget_constructors;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.use_key_in_widget_constructors;
 
   @override
   void registerNodeProcessors(
@@ -42,7 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (classElement != null &&
         classElement.isPublic &&
         classElement.extendsWidget &&
-        classElement.constructors2.where((e) => !e.isSynthetic).isEmpty) {
+        classElement.constructors.where((e) => !e.isSynthetic).isEmpty) {
       rule.reportAtToken(node.name);
     }
     super.visitClassDeclaration(node);
@@ -56,7 +58,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constructorElement == null) {
       return;
     }
-    var classElement = constructorElement.enclosingElement2;
+    var classElement = constructorElement.enclosingElement;
     if (constructorElement.isPublic &&
         !constructorElement.isFactory &&
         classElement.isPublic &&

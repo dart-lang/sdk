@@ -1,0 +1,50 @@
+@JS()
+library static_interop;
+
+import 'dart:js_interop';
+
+@JS()
+@staticInterop
+class A {}
+
+const annotation = pragma('a pragma');
+
+@JS()
+extension type B._(A a) {
+  @annotation
+  external A field;
+  @annotation
+  external A method();
+  @annotation
+  external B(A a);
+  @annotation
+  external B.named(int i);
+  @annotation
+  external B get getter;
+  @annotation
+  external B get property;
+  @annotation
+  external B methodWithOptionalArgument([B? b]);
+  @annotation
+  external T genericMethod<T extends B>(T t);
+  @annotation
+  external static A staticField;
+  @annotation
+  external static A staticMethod();
+  @annotation
+  external static B get staticGetter;
+  @annotation
+  external static B get staticProperty;
+  @annotation
+  external static T staticGenericMethod<T extends B>(T t);
+  @annotation
+  external static void set staticProperty(B b);
+  @annotation
+  external static void set staticSetter(B b);
+  @annotation
+  external void set property(B b);
+  @annotation
+  external void set setter(B b);
+}
+
+void method(A a) {}

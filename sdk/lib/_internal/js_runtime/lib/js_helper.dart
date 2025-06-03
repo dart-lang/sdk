@@ -662,6 +662,7 @@ class Primitives {
     return result;
   }
 
+  @pragma('dart2js:allow-cse')
   static String stringFromCharCode(int charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
@@ -3230,6 +3231,7 @@ void _addEvent({
   String? loadId,
   String? hash,
 }) {
+  if (!JS_GET_FLAG('DEFERRED_LOADING_EVENT_LOG')) return;
   var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
   var dataObj = JS('=Object', '{p: #, e: #}', part, event);
   if (hash != null) JS('', '#.h = #', dataObj, hash);

@@ -11,9 +11,11 @@ import 'package:analysis_server/src/lsp/channel/lsp_byte_stream_channel.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 
+import '../../constants.dart';
 import '../../lsp/request_helpers_mixin.dart';
 import '../../lsp/server_abstract.dart';
 import '../../support/sdk_paths.dart';
@@ -22,13 +24,21 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     with
         ClientCapabilitiesHelperMixin,
         LspRequestHelpersMixin,
+        LspReverseRequestHelpersMixin,
+        LspNotificationHelpersMixin,
         LspEditHelpersMixin,
+        LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin {
   final List<String> vmArgs = [];
   LspServerClient? client;
   InstrumentationService? instrumentationService;
   final Map<num, Completer<ResponseMessage>> _completers = {};
-  String dartSdkPath = dirname(dirname(Platform.resolvedExecutable));
+  String dartSdkPath = path.dirname(path.dirname(Platform.resolvedExecutable));
+
+  @override
+  late final ClientUriConverter uriConverter = ClientUriConverter.noop(
+    pathContext,
+  );
 
   /// Tracks the current overlay content so that when we apply edits they can
   /// be applied in the same way a real client would apply them.
@@ -37,7 +47,7 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   LspByteStreamServerChannel get channel => client!.channel!;
 
   @override
-  Context get pathContext => PhysicalResourceProvider.INSTANCE.pathContext;
+  path.Context get pathContext => PhysicalResourceProvider.INSTANCE.pathContext;
 
   @override
   Stream<Message> get serverToClient => client!.serverToClient;
@@ -130,9 +140,9 @@ abstract class AbstractLspAnalysisServerIntegrationTest
             .createTempSync('analysisServer')
             .resolveSymbolicLinksSync();
     newFolder(projectFolderPath);
-    newFolder(join(projectFolderPath, 'lib'));
-    mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
-    analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
+    newFolder(path.join(projectFolderPath, 'lib'));
+    mainFilePath = path.join(projectFolderPath, 'lib', 'main.dart');
+    analysisOptionsPath = path.join(projectFolderPath, 'analysis_options.yaml');
 
     var client = LspServerClient(instrumentationService);
     this.client = client;
@@ -182,7 +192,7 @@ class LspServerClient {
 
   Future<int> get exitCode => _process!.exitCode;
 
-  Context get pathContext => PhysicalResourceProvider.INSTANCE.pathContext;
+  path.Context get pathContext => PhysicalResourceProvider.INSTANCE.pathContext;
 
   Stream<Message> get serverToClient => _serverToClient.stream;
 
@@ -199,7 +209,7 @@ class LspServerClient {
       throw Exception('Process already started');
     }
 
-    var dartBinary = join(dartSdkPath, 'bin', 'dart');
+    var dartBinary = path.join(dartSdkPath, 'bin', 'dart');
     var serverPath = getAnalysisServerPath(dartSdkPath);
 
     var arguments = [...?vmArgs, serverPath, '--lsp', '--suppress-analytics'];
@@ -225,11 +235,12 @@ class LspServerClient {
     });
 
     var inputStream = _extractDevToolsLine(process.stdout);
+    var outputStream = process.stdin;
 
     channel = LspByteStreamServerChannel(
       inputStream,
-      process.stdin,
-      instrumentationService ?? InstrumentationService.NULL_SERVICE,
+      outputStream,
+      instrumentationService ?? InstrumentationLogAdapter(PrintableLogger()),
     )..listen(_serverToClient.add);
   }
 
@@ -266,7 +277,7 @@ class LspServerClient {
 
 /// An [InstrumentationLogger] that buffers logs until [debugStdio()] is called.
 class PrintableLogger extends InstrumentationLogger {
-  bool _printLogs = false;
+  bool _printLogs = debugPrintCommunication;
   final _buffer = StringBuffer();
 
   void debugStdio() {

@@ -19,7 +19,7 @@ class IgnoredDiagnosticComment implements IgnoredElement {
   IgnoredDiagnosticComment(this.text, this.offset);
 
   @override
-  bool _matches(ErrorCode errorCode, {String? pluginName}) => false;
+  bool _matches(DiagnosticCode diagnosticCode, {String? pluginName}) => false;
 }
 
 /// The name and location of a diagnostic name in an ignore comment.
@@ -35,14 +35,14 @@ class IgnoredDiagnosticName implements IgnoredElement {
     : name = name.toLowerCase();
 
   @override
-  bool _matches(ErrorCode errorCode, {String? pluginName}) {
+  bool _matches(DiagnosticCode diagnosticCode, {String? pluginName}) {
     if (this.pluginName != pluginName) {
       return false;
     }
-    if (name == errorCode.name.toLowerCase()) {
+    if (name == diagnosticCode.name.toLowerCase()) {
       return true;
     }
-    var uniqueName = errorCode.uniqueName;
+    var uniqueName = diagnosticCode.uniqueName;
     var period = uniqueName.indexOf('.');
     if (period >= 0) {
       uniqueName = uniqueName.substring(period + 1);
@@ -63,9 +63,9 @@ class IgnoredDiagnosticType implements IgnoredElement {
     : type = type.toLowerCase();
 
   @override
-  bool _matches(ErrorCode errorCode, {String? pluginName}) {
+  bool _matches(DiagnosticCode diagnosticCode, {String? pluginName}) {
     // Ignore 'pluginName'; it is irrelevant in an IgnoredDiagnosticType.
-    return switch (errorCode.type) {
+    return switch (diagnosticCode.type) {
       DiagnosticType.HINT => type == 'hint',
       DiagnosticType.LINT => type == 'lint',
       DiagnosticType.STATIC_WARNING => type == 'warning',
@@ -76,8 +76,8 @@ class IgnoredDiagnosticType implements IgnoredElement {
 }
 
 sealed class IgnoredElement {
-  /// Returns whether this matches the given [errorCode].
-  bool _matches(ErrorCode errorCode, {String? pluginName});
+  /// Returns whether this matches the given [diagnosticCode].
+  bool _matches(DiagnosticCode diagnosticCode, {String? pluginName});
 }
 
 /// Information about analysis `//ignore:` and `//ignore_for_file:` comments
@@ -197,14 +197,18 @@ class IgnoreInfo {
     return _ignoredAt(diagnostic.errorCode, line, pluginName: pluginName);
   }
 
-  /// Returns whether the [errorCode] is ignored at the given [line].
-  bool _ignoredAt(ErrorCode errorCode, int line, {String? pluginName}) {
+  /// Returns whether the [diagnosticCode] is ignored at the given [line].
+  bool _ignoredAt(
+    DiagnosticCode diagnosticCode,
+    int line, {
+    String? pluginName,
+  }) {
     var ignoredDiagnostics = _ignoredOnLine[line];
     if (ignoredForFile.isEmpty && ignoredDiagnostics == null) {
       return false;
     }
     if (ignoredForFile.any(
-      (name) => name._matches(errorCode, pluginName: pluginName),
+      (name) => name._matches(diagnosticCode, pluginName: pluginName),
     )) {
       return true;
     }
@@ -212,7 +216,7 @@ class IgnoreInfo {
       return false;
     }
     return ignoredDiagnostics.any(
-      (name) => name._matches(errorCode, pluginName: pluginName),
+      (name) => name._matches(diagnosticCode, pluginName: pluginName),
     );
   }
 }

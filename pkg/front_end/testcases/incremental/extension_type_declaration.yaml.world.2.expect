@@ -6,9 +6,9 @@ library from "org-dartlang-test:///main.dart" as main {
     method method = main::ExtensionType|method;
     method tearoff method = main::ExtensionType|get#method;
     get getter = main::ExtensionType|get#getter;
+    set setter = main::ExtensionType|set#setter;
     static method staticMethod = main::ExtensionType|staticMethod;
     static field staticField = main::ExtensionType|staticField;
-    set setter = main::ExtensionType|set#setter;
     constructor • = main::ExtensionType|constructor#;
     constructor tearoff • = main::ExtensionType|constructor#_#new#tearOff;
     static factory f = main::ExtensionType|constructor#f;

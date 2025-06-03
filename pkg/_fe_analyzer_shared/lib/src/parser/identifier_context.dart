@@ -53,7 +53,7 @@ abstract class IdentifierContext {
   /// Identifier is part of a name in an annotation that precedes a declaration,
   /// but it appears after type parameters (e.g. `foo` in `@X<Y>.foo()`).
   static const MetadataReferenceIdentifierContext
-      metadataContinuationAfterTypeArguments =
+  metadataContinuationAfterTypeArguments =
       const MetadataReferenceIdentifierContext.continuationAfterTypeArguments();
 
   /// Identifier is the name being declared by a typedef declaration.
@@ -68,7 +68,7 @@ abstract class IdentifierContext {
   /// Identifier is a formal parameter being declared as part of a function,
   /// method, or typedef declaration.
   static const FormalParameterDeclarationIdentifierContext
-      formalParameterDeclaration =
+  formalParameterDeclaration =
       const FormalParameterDeclarationIdentifierContext();
 
   /// Identifier is a record field being declared as part of a record type
@@ -114,14 +114,13 @@ abstract class IdentifierContext {
   /// declaration, or a named mixin application, for example,
   /// `Foo` in `class Foo = X with Y;`.
   static const ClassOrMixinOrExtensionIdentifierContext
-      classOrMixinOrExtensionDeclaration =
+  classOrMixinOrExtensionDeclaration =
       const ClassOrMixinOrExtensionIdentifierContext();
 
   /// Identifier is the name of a type variable being declared (e.g. `Foo` in
   /// `class C<Foo extends num> {}`).
   static const TypeVariableDeclarationIdentifierContext
-      typeVariableDeclaration =
-      const TypeVariableDeclarationIdentifierContext();
+  typeVariableDeclaration = const TypeVariableDeclarationIdentifierContext();
 
   /// Identifier is the start of a reference to a type that starts with prefix.
   static const TypeReferenceIdentifierContext prefixedTypeReference =
@@ -138,13 +137,10 @@ abstract class IdentifierContext {
 
   /// Identifier is a name being declared by a top level variable declaration.
   static const TopLevelDeclarationIdentifierContext
-      topLevelVariableDeclaration = const TopLevelDeclarationIdentifierContext(
-          'topLevelVariableDeclaration', const [
-    TokenType.SEMICOLON,
-    TokenType.EQ,
-    TokenType.COMMA,
-    TokenType.EOF
-  ]);
+  topLevelVariableDeclaration = const TopLevelDeclarationIdentifierContext(
+    'topLevelVariableDeclaration',
+    const [TokenType.SEMICOLON, TokenType.EQ, TokenType.COMMA, TokenType.EOF],
+  );
 
   /// Identifier is a name being declared by a field declaration.
   static const FieldDeclarationIdentifierContext fieldDeclaration =
@@ -152,16 +148,18 @@ abstract class IdentifierContext {
 
   /// Identifier is the name being declared by a top level function declaration.
   static const TopLevelDeclarationIdentifierContext
-      topLevelFunctionDeclaration = const TopLevelDeclarationIdentifierContext(
-          'topLevelFunctionDeclaration', const [
-    TokenType.LT,
-    TokenType.OPEN_PAREN,
-    TokenType.OPEN_CURLY_BRACKET,
-    TokenType.FUNCTION,
-    Keyword.ASYNC,
-    Keyword.SYNC,
-    TokenType.EOF
-  ]);
+  topLevelFunctionDeclaration = const TopLevelDeclarationIdentifierContext(
+    'topLevelFunctionDeclaration',
+    const [
+      TokenType.LT,
+      TokenType.OPEN_PAREN,
+      TokenType.OPEN_CURLY_BRACKET,
+      TokenType.FUNCTION,
+      Keyword.ASYNC,
+      Keyword.SYNC,
+      TokenType.EOF,
+    ],
+  );
 
   /// Identifier is the start of the name being declared by a method
   /// declaration.
@@ -175,7 +173,7 @@ abstract class IdentifierContext {
   /// named constructor which is being declared, e.g. `foo` in
   /// `class C { C.foo(); }`.
   static const MethodDeclarationIdentifierContext
-      methodDeclarationContinuation =
+  methodDeclarationContinuation =
       const MethodDeclarationIdentifierContext.continuation();
 
   /// Identifier appears after the word `operator` in a method declaration.
@@ -189,8 +187,7 @@ abstract class IdentifierContext {
   /// Identifier is the start of the name being declared by a local function
   /// declaration.
   static const LocalFunctionDeclarationIdentifierContext
-      localFunctionDeclaration =
-      const LocalFunctionDeclarationIdentifierContext();
+  localFunctionDeclaration = const LocalFunctionDeclarationIdentifierContext();
 
   /// Identifier is part of the name being declared by a local function
   /// declaration, but it's not the first identifier of the name.
@@ -198,7 +195,7 @@ abstract class IdentifierContext {
   /// TODO(paulberry,ahe): Does this ever occur in valid Dart, or does it only
   /// occur as part of error recovery?
   static const LocalFunctionDeclarationIdentifierContext
-      localFunctionDeclarationContinuation =
+  localFunctionDeclarationContinuation =
       const LocalFunctionDeclarationIdentifierContext.continuation();
 
   /// Identifier is the start of a reference to a constructor declared
@@ -209,15 +206,15 @@ abstract class IdentifierContext {
   /// Identifier is part of a reference to a constructor declared elsewhere, but
   /// it's not the first identifier of the reference.
   static const ConstructorReferenceIdentifierContext
-      constructorReferenceContinuation =
+  constructorReferenceContinuation =
       const ConstructorReferenceIdentifierContext.continuation();
 
   /// Identifier is part of a reference to a constructor declared elsewhere, but
   /// it appears after type parameters (e.g. `foo` in `X<Y>.foo`).
   static const ConstructorReferenceIdentifierContext
-      constructorReferenceContinuationAfterTypeArguments =
-      const ConstructorReferenceIdentifierContext
-          .continuationAfterTypeArguments();
+  constructorReferenceContinuationAfterTypeArguments =
+      // ignore: lines_longer_than_80_chars
+      const ConstructorReferenceIdentifierContext.continuationAfterTypeArguments();
 
   /// Identifier is the name of a primary constructor declaration.
   static const IdentifierContext primaryConstructorDeclaration =
@@ -255,13 +252,12 @@ abstract class IdentifierContext {
   /// Identifier is a reference to a named record field
   /// (e.g. `foo` in `(42, foo: 42);`.
   static const NamedRecordFieldReferenceIdentifierContext
-      namedRecordFieldReference =
+  namedRecordFieldReference =
       const NamedRecordFieldReferenceIdentifierContext();
 
   /// Identifier is a name being declared by a local variable declaration.
   static const LocalVariableDeclarationIdentifierContext
-      localVariableDeclaration =
-      const LocalVariableDeclarationIdentifierContext();
+  localVariableDeclaration = const LocalVariableDeclarationIdentifierContext();
 
   /// Identifier is a reference to a label (e.g. `foo` in `break foo;`).
   /// Labels have their own scope.
@@ -296,21 +292,22 @@ abstract class IdentifierContext {
 
   final Template<_MessageWithArgument<Token>> recoveryTemplate;
 
-  const IdentifierContext(this._name,
-      {this.inDeclaration = false,
-      this.inLibraryOrPartOfDeclaration = false,
-      this.inSymbol = false,
-      this.isContinuation = false,
-      this.isScopeReference = false,
-      this.isBuiltInIdentifierAllowed = true,
-      bool? allowedInConstantExpression,
-      this.recoveryTemplate = templateExpectedIdentifier})
-      : this.allowedInConstantExpression =
-            // Generally, declarations are legal in constant expressions.  A
-            // continuation doesn't affect constant expressions: if what it's
-            // continuing is a problem, it has already been reported.
-            allowedInConstantExpression ??
-                (inDeclaration || isContinuation || inSymbol);
+  const IdentifierContext(
+    this._name, {
+    this.inDeclaration = false,
+    this.inLibraryOrPartOfDeclaration = false,
+    this.inSymbol = false,
+    this.isContinuation = false,
+    this.isScopeReference = false,
+    this.isBuiltInIdentifierAllowed = true,
+    bool? allowedInConstantExpression,
+    this.recoveryTemplate = templateExpectedIdentifier,
+  }) : this.allowedInConstantExpression =
+           // Generally, declarations are legal in constant expressions.  A
+           // continuation doesn't affect constant expressions: if what it's
+           // continuing is a problem, it has already been reported.
+           allowedInConstantExpression ??
+           (inDeclaration || isContinuation || inSymbol);
 
   @override
   String toString() => _name;
@@ -335,8 +332,10 @@ abstract class IdentifierContext {
   /// If [isRecovered] implementers could allow 'token' to be used as an
   /// identifier, even if it isn't a valid identifier.
   Token ensureIdentifierPotentiallyRecovered(
-          Token token, Parser parser, bool isRecovered) =>
-      ensureIdentifier(token, parser);
+    Token token,
+    Parser parser,
+    bool isRecovered,
+  ) => ensureIdentifier(token, parser);
 }
 
 /// Return `true` if [next] should be treated like the start of an expression

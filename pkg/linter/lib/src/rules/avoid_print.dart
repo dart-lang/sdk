@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -15,7 +16,7 @@ class AvoidPrint extends LintRule {
   AvoidPrint() : super(name: LintNames.avoid_print, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_print;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_print;
 
   @override
   void registerNodeProcessors(

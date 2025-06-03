@@ -238,6 +238,22 @@ int OS::NumberOfAvailableProcessors() {
   return info.dwNumberOfProcessors;
 }
 
+uintptr_t OS::CurrentRSS() {
+// Although the documentation at
+// https://docs.microsoft.com/en-us/windows/win32/api/psapi/nf-psapi-getprocessmemoryinfo
+// claims that GetProcessMemoryInfo is UWP compatible, it is actually not
+// hence this function cannot work when compiled in UWP mode.
+#ifdef DART_TARGET_OS_WINDOWS_UWP
+  return 0;
+#else
+  PROCESS_MEMORY_COUNTERS pmc;
+  if (!GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+    return 0;
+  }
+  return pmc.WorkingSetSize;
+#endif
+}
+
 void OS::Sleep(int64_t millis) {
   ::Sleep(millis);
 }
@@ -387,12 +403,12 @@ void OS::Exit(int code) {
 }
 
 OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
-  // Since we only use direct-to-ELF snapshots on Windows, the build ID
-  // information must be available from the instructions image.
+  // Return the build ID information from the instructions image if available.
   const Image instructions_image(snapshot_instructions);
-  auto* const image_build_id = instructions_image.build_id();
-  ASSERT(image_build_id != nullptr);
-  return {instructions_image.build_id_length(), image_build_id};
+  if (auto* const image_build_id = instructions_image.build_id()) {
+    return {instructions_image.build_id_length(), image_build_id};
+  }
+  return {0, nullptr};
 }
 
 }  // namespace dart

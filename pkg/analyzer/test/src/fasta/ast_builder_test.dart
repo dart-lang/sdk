@@ -540,10 +540,10 @@ ClassTypeAlias
   documentationComment: Comment
     tokens
       /// text
+  mixinKeyword: mixin
   typedefKeyword: class
   name: A
   equals: =
-  mixinKeyword: mixin
   superclass: NamedType
     name: Object
   withClause: WithClause
@@ -593,10 +593,10 @@ ClassTypeAlias
   documentationComment: Comment
     tokens
       /// text
+  baseKeyword: base
   typedefKeyword: class
   name: A
   equals: =
-  baseKeyword: base
   superclass: NamedType
     name: Object
   withClause: WithClause
@@ -622,10 +622,10 @@ ClassTypeAlias
   documentationComment: Comment
     tokens
       /// text
+  finalKeyword: final
   typedefKeyword: class
   name: A
   equals: =
-  finalKeyword: final
   superclass: NamedType
     name: Object
   withClause: WithClause
@@ -684,10 +684,10 @@ ClassTypeAlias
   documentationComment: Comment
     tokens
       /// text
+  interfaceKeyword: interface
   typedefKeyword: class
   name: A
   equals: =
-  interfaceKeyword: interface
   superclass: NamedType
     name: Object
   withClause: WithClause
@@ -713,10 +713,10 @@ ClassTypeAlias
   documentationComment: Comment
     tokens
       /// text
+  sealedKeyword: sealed
   typedefKeyword: class
   name: A
   equals: =
-  sealedKeyword: sealed
   superclass: NamedType
     name: Object
   withClause: WithClause
@@ -1264,7 +1264,7 @@ library name.and.dots;
     assertParsedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
-  name: LibraryIdentifier
+  name2: LibraryIdentifier
     components
       SimpleIdentifier
         token: name

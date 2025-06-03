@@ -7,6 +7,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type.dart';
 // ignore: implementation_imports
@@ -83,7 +85,7 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
   var element = type.element3;
   // `hasJS` only checks for the `dart:_js_annotations` definition, which is
   // what we want here.
-  if (element.metadata2.hasJS) return true;
+  if (element.metadata.hasJS) return true;
   return _sdkWebLibraries.any((uri) => element.isFromLibrary(uri)) ||
       // While a type test with types from this library is very rare, we should
       // still ignore it for consistency.
@@ -101,7 +103,7 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
 DartType? _jsTypeForStaticInterop(InterfaceType type) {
   var element = type.element3;
   if (element is! ClassElement) return null;
-  var metadata = element.metadata2;
+  var metadata = element.metadata;
   var hasJS = false;
   var hasStaticInterop = false;
   LibraryElement? dartJsInterop;
@@ -109,7 +111,7 @@ DartType? _jsTypeForStaticInterop(InterfaceType type) {
     var annotationElement = annotation.element2;
     if (annotationElement is ConstructorElement &&
         annotationElement.isFromLibrary(_dartJsInteropUri) &&
-        annotationElement.enclosingElement2.name3 == 'JS') {
+        annotationElement.enclosingElement.name3 == 'JS') {
       hasJS = true;
       dartJsInterop = annotationElement.library2;
     } else if (annotationElement is GetterElement &&
@@ -204,7 +206,7 @@ class InteropTypeChecker extends RecursiveTypeVisitor {
   }
 }
 
-class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
+class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
   InvalidRuntimeCheckWithJSInteropTypes()
     : super(
         name: LintNames.invalid_runtime_check_with_js_interop_types,
@@ -212,7 +214,7 @@ class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
       );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.invalid_runtime_check_with_js_interop_types_dart_as_js,
     LinterLintCode.invalid_runtime_check_with_js_interop_types_dart_is_js,
     LinterLintCode.invalid_runtime_check_with_js_interop_types_js_as_dart,
@@ -247,7 +249,7 @@ class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
 enum _InteropTypeKind { dartJsInteropType, userJsInteropType, any }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
   final TypeSystemImpl typeSystem;
   final EraseNonJSInteropTypes eraseNonJsInteropTypes =
       EraseNonJSInteropTypes();
@@ -423,7 +425,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtNode(
         node,
         arguments: [leftType, rightType],
-        errorCode: code,
+        diagnosticCode: code,
       );
     }
   }
@@ -438,7 +440,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtNode(
         node,
         arguments: [leftType, rightType],
-        errorCode: code,
+        diagnosticCode: code,
       );
     }
   }

@@ -9,8 +9,11 @@ library;
 
 /// Callback API used by flow analysis to query and manipulate the client's
 /// representation of variables and types.
-abstract interface class FlowAnalysisOperations<Variable extends Object,
-    Type extends Object> implements FlowAnalysisTypeOperations<Type> {
+abstract interface class FlowAnalysisOperations<
+  Variable extends Object,
+  Type extends Object
+>
+    implements FlowAnalysisTypeOperations<Type> {
   /// Whether the given [variable] was declared with the `final` modifier.
   bool isFinal(Variable variable);
 

@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -33,9 +32,7 @@ class RenameParameter extends Change<_Data> {
       var declaration = data.methodDeclaration;
       var parameter = declaration.parameterNamed(oldName);
       if (parameter != null) {
-        var overriddenMethod = declaration.overriddenElement(
-          fix.inheritanceManager,
-        );
+        var overriddenMethod = declaration.overriddenElement;
         var overriddenParameter = overriddenMethod?.parameterNamed(oldName);
         if (overriddenParameter == null) {
           // If the overridden parameter has already been removed, then just
@@ -58,8 +55,8 @@ class RenameParameter extends Change<_Data> {
                 type: parameterElement.type,
               );
               builder.write(', ');
-              if (overriddenParameter.metadata2.hasDeprecated &&
-                  !parameterElement.metadata2.hasDeprecated) {
+              if (overriddenParameter.metadata.hasDeprecated &&
+                  !parameterElement.metadata.hasDeprecated) {
                 builder.write('@deprecated ');
               }
             });
@@ -134,13 +131,13 @@ extension on MethodDeclaration {
   /// Returns the element that this method overrides.
   ///
   /// Returns `null` if this method doesn't override any inherited member.
-  ExecutableElement? overriddenElement(InheritanceManager3 inheritanceManager) {
+  ExecutableElement? get overriddenElement {
     var element = declaredFragment?.element;
     if (element != null) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is InterfaceElement) {
         var name = Name(enclosingElement.library2.uri, element.name3!);
-        return inheritanceManager.getInherited4(enclosingElement, name);
+        return enclosingElement.getInheritedMember(name);
       }
     }
     return null;

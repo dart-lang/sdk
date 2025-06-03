@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -54,7 +55,6 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:collection/collection.dart';
 
 class AnalysisForCompletionResult {
@@ -108,7 +108,6 @@ class LibraryAnalyzer {
       constructorFieldsVerifier: ConstructorFieldsVerifier(
         typeSystem: _typeSystem,
       ),
-      files: _libraryFiles,
     );
   }
 
@@ -383,11 +382,11 @@ class LibraryAnalyzer {
 
   void _computeLints() {
     var definingUnit = _libraryElement.definingCompilationUnit;
-    var analysesToContextUnits = <FileAnalysis, LintRuleUnitContext>{};
-    LintRuleUnitContext? definingContextUnit;
-    WorkspacePackage? workspacePackage;
+    var analysesToContextUnits = <FileAnalysis, RuleContextUnit>{};
+    RuleContextUnit? definingContextUnit;
+    WorkspacePackageImpl? workspacePackage;
     for (var fileAnalysis in _libraryFiles.values) {
-      var linterContextUnit = LintRuleUnitContext(
+      var linterContextUnit = RuleContextUnit(
         file: fileAnalysis.file.resource,
         content: fileAnalysis.file.content,
         unit: fileAnalysis.unit,
@@ -403,13 +402,12 @@ class LibraryAnalyzer {
     var allUnits = analysesToContextUnits.values.toList();
     definingContextUnit ??= allUnits.first;
 
-    var nodeRegistry = NodeLintRegistry(enableTiming: _enableLintRuleTiming);
-    var context = LinterContextWithResolvedResults(
+    var nodeRegistry = RuleVisitorRegistry(enableTiming: _enableLintRuleTiming);
+    var context = RuleContextWithResolvedResults(
       allUnits,
       definingContextUnit,
       _typeProvider,
       _typeSystem,
-      _inheritance,
       workspacePackage,
     );
 
@@ -514,7 +512,6 @@ class LibraryAnalyzer {
         _libraryElement,
         unit,
         typeSystem: _typeSystem,
-        inheritanceManager: _inheritance,
         analysisOptions: _analysisOptions,
         workspacePackage: _library.file.workspacePackage,
       ),
@@ -522,7 +519,7 @@ class LibraryAnalyzer {
 
     unit.accept(OverrideVerifier(_inheritance, errorReporter));
 
-    unit.accept(RedeclareVerifier(_inheritance, errorReporter));
+    unit.accept(RedeclareVerifier(errorReporter));
 
     TodoFinder(errorReporter).findIn(unit);
     LanguageVersionOverrideVerifier(errorReporter).verify(unit);
@@ -677,14 +674,6 @@ class LibraryAnalyzer {
       fileElement: _libraryElement.definingCompilationUnit,
     );
 
-    // Configure scopes for all files to track imports usages.
-    // Associate tracking objects with file objects.
-    for (var fileAnalysis in _libraryFiles.values) {
-      var scope = fileAnalysis.element.scope;
-      var tracking = scope.importsTrackingInit();
-      fileAnalysis.importsTracking = tracking;
-    }
-
     for (var fileAnalysis in _libraryFiles.values) {
       _resolveFile(fileAnalysis);
     }
@@ -789,7 +778,7 @@ class LibraryAnalyzer {
         );
       } else if (directive is LibraryDirectiveImpl) {
         if (fileKind == _library) {
-          directive.element = _libraryElement;
+          directive.element2 = _libraryElement;
         }
       } else if (directive is PartDirectiveImpl) {
         var index = partIndex++;
@@ -800,9 +789,6 @@ class LibraryAnalyzer {
           partElement: fileElement.parts[index],
           errorReporter: containerErrorReporter,
         );
-      } else if (directive is PartOfDirectiveImpl) {
-        // TODO(scheglov): this should be LibraryFragment.
-        directive.element = _libraryElement;
       }
     }
 
@@ -922,11 +908,11 @@ class LibraryAnalyzer {
 
   void _resolveLibraryExportDirective({
     required ExportDirectiveImpl directive,
-    required LibraryExportElementImpl element,
+    required LibraryExportImpl element,
     required LibraryExportState state,
     required ErrorReporter errorReporter,
   }) {
-    directive.element = element;
+    directive.libraryExport = element;
     _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
@@ -977,11 +963,11 @@ class LibraryAnalyzer {
 
   void _resolveLibraryImportDirective({
     required ImportDirectiveImpl directive,
-    required LibraryImportElementImpl element,
+    required LibraryImportImpl element,
     required LibraryImportState state,
     required ErrorReporter errorReporter,
   }) {
-    directive.element = element;
+    directive.libraryImport = element;
     directive.prefix?.element = element.prefix2?.element;
     _resolveUriConfigurations(
       configurationNodes: directive.configurations,
@@ -998,10 +984,10 @@ class LibraryAnalyzer {
     required FileAnalysis enclosingFile,
     required PartDirectiveImpl? directive,
     required PartIncludeState partState,
-    required PartElementImpl partElement,
+    required PartIncludeImpl partElement,
     required ErrorReporter errorReporter,
   }) {
-    directive?.element = partElement;
+    directive?.partInclude = partElement;
 
     void reportOnDirectiveUri(
       DiagnosticCode diagnosticCode, {

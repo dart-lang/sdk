@@ -572,12 +572,11 @@ static void JumpToExceptionHandler(Thread* thread,
 }
 
 NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
-    void
-    Exceptions::JumpToFrame(Thread* thread,
-                            uword program_counter,
-                            uword stack_pointer,
-                            uword frame_pointer,
-                            bool clear_deopt_at_target) {
+    void Exceptions::JumpToFrame(Thread* thread,
+                                 uword program_counter,
+                                 uword stack_pointer,
+                                 uword frame_pointer,
+                                 bool clear_deopt_at_target) {
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
 
   const uword fp_for_clearing =
@@ -1158,6 +1157,12 @@ void Exceptions::ThrowCompileTimeError(const LanguageError& error) {
   Exceptions::ThrowByType(Exceptions::kCompileTimeError, args);
 }
 
+void Exceptions::ThrowStaticFieldAccessedWithoutIsolate(const String& name) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, name);
+  Exceptions::ThrowByType(Exceptions::kStaticFieldAccessedWithoutIsolate, args);
+}
+
 void Exceptions::ThrowLateFieldAlreadyInitialized(const String& name) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, name);
@@ -1254,6 +1259,11 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kCompileTimeError:
       library = Library::CoreLibrary();
       class_name = &Symbols::_CompileTimeError();
+      break;
+    case kStaticFieldAccessedWithoutIsolate:
+      library = Library::InternalLibrary();
+      class_name = &Symbols::FieldAccessError();
+      constructor_name = &Symbols::DotStaticFieldAccessedWithoutIsolate();
       break;
     case kLateFieldAlreadyInitialized:
       library = Library::InternalLibrary();

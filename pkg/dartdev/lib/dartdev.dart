@@ -20,6 +20,7 @@ import 'src/commands/build.dart';
 import 'src/commands/compilation_server.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
+import 'src/commands/dart_mcp_server.dart';
 import 'src/commands/debug_adapter.dart';
 import 'src/commands/development_service.dart';
 import 'src/commands/devtools.dart';
@@ -118,6 +119,7 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(FormatCommand(verbose: verbose));
     addCommand(InfoCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
+    addCommand(DartMCPServerCommand(verbose: verbose));
     addCommand(pubCommand(isVerbose: () => verbose));
     addCommand(RunCommand(
       verbose: verbose,

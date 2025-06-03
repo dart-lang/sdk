@@ -968,7 +968,7 @@ DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone,
       instructions_(),
       num_args_(num_args),
       assembler_(assembler),
-      trie_root_(new(zone) TrieNode()),
+      trie_root_(new (zone) TrieNode()),
       current_info_number_(0),
       frame_start_(-1),
       materializations_() {}

@@ -31,7 +31,7 @@ class ConstructorReferenceResolver {
     node.constructorName.accept(_resolver);
     var element = node.constructorName.element;
     if (element != null && !element.isFactory) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElementImpl2 &&
           enclosingElement.isAbstract) {
         _resolver.errorReporter.atNode(
@@ -63,9 +63,9 @@ class ConstructorReferenceResolver {
       // This is illegal.
       if (enclosingElement is InterfaceElement) {
         var method =
-            enclosingElement.getMethod2(name.name) ??
-            enclosingElement.getGetter2(name.name) ??
-            enclosingElement.getSetter2(name.name);
+            enclosingElement.getMethod(name.name) ??
+            enclosingElement.getGetter(name.name) ??
+            enclosingElement.getSetter(name.name);
         if (method != null) {
           var error =
               method.isStatic

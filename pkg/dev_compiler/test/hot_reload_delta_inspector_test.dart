@@ -348,24 +348,150 @@ Future<void> main() async {
           orderedEquals(['deletedSetter']));
     });
   });
+
+  group('Non-hot-reloadable packages ', () {
+    final packageName = 'test_package';
+
+    final deltaInspector =
+        HotReloadDeltaInspector(nonHotReloadablePackages: {packageName});
+    test('reject reloads when a member is added.', () async {
+      final initialAndDeltaSource = '''
+          import 'package:$packageName/file.dart';
+          main() {}
+          ''';
+      final initialPackageSource = 'class Foo {}';
+      final deltaPackageSource = 'class Foo { int member = 100; }';
+      final (:initial, :delta) = await compileComponents(
+        initialAndDeltaSource,
+        initialAndDeltaSource,
+        initialPackageSource: initialPackageSource,
+        deltaPackageSource: deltaPackageSource,
+        packageName: packageName,
+      );
+      expect(
+          deltaInspector.compareGenerations(initial, delta),
+          unorderedEquals([
+            'Attempting to hot reload a modified library from a package '
+                'marked as non-hot-reloadable: '
+                "Library: 'package:$packageName/file.dart'"
+          ]));
+    });
+    test('reject reloads when a member is removed.', () async {
+      final initialAndDeltaSource = '''
+          import 'package:$packageName/file.dart';
+          main() {}
+          ''';
+      final initialPackageSource = 'class Foo { int member = 100; }';
+      final deltaPackageSource = 'class Foo {}';
+      final (:initial, :delta) = await compileComponents(
+        initialAndDeltaSource,
+        initialAndDeltaSource,
+        initialPackageSource: initialPackageSource,
+        deltaPackageSource: deltaPackageSource,
+        packageName: packageName,
+      );
+      expect(
+          deltaInspector.compareGenerations(initial, delta),
+          unorderedEquals([
+            'Attempting to hot reload a modified library from a package '
+                'marked as non-hot-reloadable: '
+                "Library: 'package:$packageName/file.dart'"
+          ]));
+    });
+    test('accept reloads when introduced but not modified.', () async {
+      final initialSource = '''
+          main() {}
+          ''';
+      final initialAndDeltaPackageSource = 'class Foo { int member = 100; }';
+      final deltaSource = '''
+          import 'package:$packageName/file.dart';
+          main() {}
+          ''';
+      final (:initial, :delta) = await compileComponents(
+        initialSource,
+        deltaSource,
+        initialPackageSource: initialAndDeltaPackageSource,
+        deltaPackageSource: initialAndDeltaPackageSource,
+        packageName: packageName,
+      );
+      expect(() => deltaInspector.compareGenerations(initial, delta),
+          returnsNormally);
+    });
+  });
 }
 
 /// Test only helper compiles [initialSource] and [deltaSource] and returns two
 /// kernel components.
+///
+/// Auto-generates a fake package_config.json if [packageName] is provided.
+/// Supports a single package named [packageName] containing a single file
+/// whose source contents across one generation are [initialPackageSource] and
+/// [deltaPackageSource].
 Future<({Component initial, Component delta})> compileComponents(
-    String initialSource, String deltaSource) async {
+    String initialSource, String deltaSource,
+    {Uri? baseUri,
+    String? packageName,
+    String initialPackageSource = '',
+    String deltaPackageSource = ''}) async {
+  baseUri ??= memoryDirectory;
+
   final fileName = 'main.dart';
-  final fileUri = Uri(scheme: 'memory', host: '', path: fileName);
+  final packageFileName = 'lib/file.dart';
+  final fileUri = Uri(scheme: baseUri.scheme, host: '', path: fileName);
   final memoryFileMap = {fileName: initialSource};
-  final initialResult = await componentFromMemory(memoryFileMap, fileUri);
+
+  // Generate a fake package_config.json and package.
+  Uri? packageConfigUri;
+  if (packageName != null) {
+    packageConfigUri = baseUri.resolve('package_config.json');
+    memoryFileMap['package_config.json'] =
+        generateFakePackagesFile(packageName: packageName);
+    memoryFileMap[packageFileName] = initialPackageSource;
+  }
+  final initialResult = await incrementalComponentFromMemory(
+    memoryFileMap,
+    fileUri,
+    baseUri: baseUri,
+    packageConfigUri: packageConfigUri,
+  );
   expect(initialResult.errors, isEmpty,
       reason: 'Initial source produced compile time errors.');
+
   memoryFileMap[fileName] = deltaSource;
-  final deltaResult = await componentFromMemory(memoryFileMap, fileUri);
+  if (packageName != null) {
+    memoryFileMap[packageFileName] = initialPackageSource;
+  }
+  final deltaResult = await incrementalComponentFromMemory(
+    memoryFileMap,
+    fileUri,
+    baseUri: baseUri,
+    packageConfigUri: packageConfigUri,
+    initialCompilerState: initialResult.initialCompilerState,
+  );
   expect(deltaResult.errors, isEmpty,
       reason: 'Delta source produced compile time errors.');
   return (
     initial: initialResult.ddcResult.component,
     delta: deltaResult.ddcResult.component
   );
+}
+
+String generateFakePackagesFile({
+  required String packageName,
+  String rootUri = '/',
+  String packageUri = 'lib/',
+}) {
+  return '''
+{
+  "configVersion": 0,
+  "packages": [
+    {
+      "name": "$packageName",
+      "rootUri": "$rootUri",
+      "packageUri": "$packageUri",
+      "languageVersion": "3.4"
+    }
+  ]
+}
+''';
 }

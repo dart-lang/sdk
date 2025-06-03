@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -17,23 +18,22 @@ class OverriddenFields extends LintRule {
     : super(name: LintNames.overridden_fields, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.overridden_fields;
+  DiagnosticCode get diagnosticCode => LinterLintCode.overridden_fields;
 
   @override
   void registerNodeProcessors(
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var visitor = _Visitor(this, context.inheritanceManager);
+    var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule, this.inheritanceManager);
+  _Visitor(this.rule);
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
@@ -41,16 +41,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return;
 
     for (var variable in node.fields.variables) {
-      var parent = variable.declaredFragment?.element.enclosingElement2;
+      var parent = variable.declaredFragment?.element.enclosingElement;
       if (parent is InterfaceElement) {
-        var overriddenMember = inheritanceManager.getMember4(
-          parent,
+        var overriddenMember = parent.getInheritedConcreteMember(
           Name(parent.library2.uri, variable.name.lexeme),
-          forSuper: true,
         );
         if (overriddenMember is GetterElement2OrMember &&
             overriddenMember.isSynthetic) {
-          var definingInterface = overriddenMember.enclosingElement2;
+          var definingInterface = overriddenMember.enclosingElement;
           rule.reportAtToken(
             variable.name,
             arguments: [definingInterface.displayName],

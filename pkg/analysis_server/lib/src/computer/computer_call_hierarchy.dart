@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// Returns the container for [element] that should be used in Call Hierarchy.
 ///
@@ -109,7 +108,7 @@ class CallHierarchyItem {
       file = element.firstFragment.libraryFragment!.source.fullName,
       kind = CallHierarchyKind.forElement(element) {
     var enclosingElement =
-        element.enclosingElement2 ??
+        element.enclosingElement ??
         element.firstFragment.enclosingFragment?.element;
     var container =
         enclosingElement != null ? _getContainer(enclosingElement) : null;
@@ -146,7 +145,7 @@ class CallHierarchyItem {
   static Element _nonSynthetic(Element element) {
     element = element.nonSynthetic2;
     if (element.isSynthetic) {
-      element = element.enclosingElement2 ?? element;
+      element = element.enclosingElement ?? element;
     }
     return element;
   }
@@ -467,6 +466,26 @@ class _OutboundCallVisitor extends RecursiveAstVisitor<void> {
   void visitConstructorName(ConstructorName node) {
     collect(node.name ?? node);
     super.visitConstructorName(node);
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    collect(node.constructorName);
+    super.visitDotShorthandConstructorInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    collect(node.memberName);
+    super.visitDotShorthandInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    collect(node.propertyName);
+    super.visitDotShorthandPropertyAccess(node);
   }
 
   @override

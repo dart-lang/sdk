@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -18,7 +19,7 @@ class AvoidClassesWithOnlyStaticMembers extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.avoid_classes_with_only_static_members;
 
   @override
@@ -44,10 +45,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = fragment.element;
     if (element.isSealed) return;
 
-    var interface = context.inheritanceManager.getInterface2(element);
-    var map = interface.map2;
-    for (var member in map.values) {
-      var enclosingElement = member.enclosingElement2;
+    for (var member in element.interfaceMembers.values) {
+      var enclosingElement = member.enclosingElement;
       if (enclosingElement is ClassElement &&
           !enclosingElement.isDartCoreObject) {
         return;
@@ -57,16 +56,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     var declaredElement = node.declaredFragment?.element;
     if (declaredElement == null) return;
 
-    var constructors = declaredElement.constructors2;
+    var constructors = declaredElement.constructors;
     if (constructors.isNotEmpty &&
         constructors.any((c) => !c.isDefaultConstructor)) {
       return;
     }
 
-    var methods = declaredElement.methods2;
+    var methods = declaredElement.methods;
     if (methods.isNotEmpty && !methods.every((m) => m.isStatic)) return;
 
-    if (methods.isNotEmpty || declaredElement.fields2.any((f) => !f.isConst)) {
+    if (methods.isNotEmpty || declaredElement.fields.any((f) => !f.isConst)) {
       rule.reportAtNode(node);
     }
   }

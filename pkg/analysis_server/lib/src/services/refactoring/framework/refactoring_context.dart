@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
@@ -97,7 +97,7 @@ class AbstractRefactoringContext {
 
 /// The context in which a refactoring was requested.
 class RefactoringContext extends AbstractRefactoringContext {
-  final LspAnalysisServer server;
+  final AnalysisServer server;
 
   /// Initialize a newly created refactoring context.
   RefactoringContext({

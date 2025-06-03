@@ -31,6 +31,7 @@
 #include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
+#include "vm/mach_o.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/message_snapshot.h"
@@ -6433,11 +6434,12 @@ static void CreateAppAOTSnapshot(
     Dart_StreamingWriteCallback callback,
     void* callback_data,
     bool strip,
-    bool as_elf,
+    Dart_AotBinaryFormat format,
     void* debug_callback_data,
     GrowableArray<LoadingUnitSerializationData*>* units,
     LoadingUnitSerializationData* unit,
-    uint32_t program_hash) {
+    uint32_t program_hash,
+    const char* identifier) {
   Thread* T = Thread::Current();
 
   NOT_IN_PRODUCT(TimelineBeginEndScope tbes2(T, Timeline::GetIsolateStream(),
@@ -6449,74 +6451,83 @@ static void CreateAppAOTSnapshot(
                                         FullSnapshotWriter::kInitialSize);
   ZoneWriteStream isolate_snapshot_instructions(T->zone(), kInitialSize);
 
-  const bool generate_debug = debug_callback_data != nullptr;
+  bool generate_debug = debug_callback_data != nullptr;
+#if defined(DART_TARGET_OS_WINDOWS)
+  if (format == Dart_AotBinaryFormat_Assembly) {
+    // TODO(https://github.com/dart-lang/sdk/issues/60812): Support PDB.
+    generate_debug = false;  // PDB unimplemented, no DWARF in PE.
+  }
+#endif
 
   auto* const deobfuscation_trie =
       (strip && !generate_debug) ? nullptr
                                  : ImageWriter::CreateReverseObfuscationTrie(T);
 
-  if (as_elf) {
-    StreamingWriteStream elf_stream(kInitialSize, callback, callback_data);
-    StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
-                                      callback, debug_callback_data);
+  StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
+                                    callback, debug_callback_data);
+  Dwarf* debug_dwarf = nullptr;
+  SharedObjectWriter* debug_so = nullptr;
+  if (generate_debug) {
+    debug_dwarf = new (Z) Dwarf(Z, deobfuscation_trie, identifier);
+    if (format == Dart_AotBinaryFormat_MachO_Dylib) {
+      debug_so = new (Z)
+          MachOWriter(Z, &debug_stream, SharedObjectWriter::Type::DebugInfo,
+                      identifier, debug_dwarf);
+    } else {
+      debug_so = new (Z) ElfWriter(
+          Z, &debug_stream, SharedObjectWriter::Type::DebugInfo, debug_dwarf);
+    }
+  }
 
-    auto const dwarf = strip ? nullptr : new (Z) Dwarf(Z, deobfuscation_trie);
-    auto const elf = new (Z) Elf(Z, &elf_stream, Elf::Type::Snapshot, dwarf);
-    // Re-use the same DWARF object if the snapshot is unstripped.
-    auto const debug_elf =
-        generate_debug
-            ? new (Z) Elf(Z, &debug_stream, Elf::Type::DebugInfo,
-                          strip ? new (Z) Dwarf(Z, deobfuscation_trie) : dwarf)
-            : nullptr;
+  StreamingWriteStream output_stream(format == Dart_AotBinaryFormat_Assembly
+                                         ? kAssemblyInitialSize
+                                         : kInitialSize,
+                                     callback, callback_data);
 
-    BlobImageWriter image_writer(T, &vm_snapshot_instructions,
-                                 &isolate_snapshot_instructions,
-                                 deobfuscation_trie, debug_elf, elf);
+  auto const use_output_writer = [&](ImageWriter* image_writer) {
     FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data,
-                              &isolate_snapshot_data, &image_writer,
-                              &image_writer);
+                              &isolate_snapshot_data, image_writer,
+                              image_writer);
 
     if (unit == nullptr || unit->id() == LoadingUnit::kRootId) {
       writer.WriteFullSnapshot(units);
     } else {
       writer.WriteUnitSnapshot(units, unit, program_hash);
     }
+    image_writer->Finalize();
+  };
 
-    elf->Finalize();
-    if (debug_elf != nullptr) {
-      debug_elf->Finalize();
-      Elf::AssertConsistency(elf, debug_elf);
-    }
+  Dwarf* const dwarf =
+      (format == Dart_AotBinaryFormat_Assembly || strip) ? nullptr
+      : generate_debug                                   ? debug_dwarf
+                       : new (Z) Dwarf(Z, deobfuscation_trie, identifier);
+  SharedObjectWriter* so = nullptr;
+  if (format == Dart_AotBinaryFormat_Elf) {
+    so = new (Z)
+        ElfWriter(Z, &output_stream, SharedObjectWriter::Type::Snapshot, dwarf);
+  } else if (format == Dart_AotBinaryFormat_MachO_Dylib) {
+    so = new (Z)
+        MachOWriter(Z, &output_stream, SharedObjectWriter::Type::Snapshot,
+                    identifier, dwarf);
+  }
+
+  if (format == Dart_AotBinaryFormat_Assembly) {
+    ASSERT(so == nullptr);
+    AssemblyImageWriter assembly_writer(T, &output_stream, deobfuscation_trie,
+                                        strip, debug_so);
+    use_output_writer(&assembly_writer);
   } else {
-    StreamingWriteStream assembly_stream(kAssemblyInitialSize, callback,
-                                         callback_data);
-    StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
-                                      callback, debug_callback_data);
-
-    auto const elf = generate_debug
-                         ? new (Z) Elf(Z, &debug_stream, Elf::Type::DebugInfo,
-                                       new (Z) Dwarf(Z, deobfuscation_trie))
-                         : nullptr;
-
-    AssemblyImageWriter image_writer(T, &assembly_stream, deobfuscation_trie,
-                                     strip, elf);
-    FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data,
-                              &isolate_snapshot_data, &image_writer,
-                              &image_writer);
-
-    if (unit == nullptr || unit->id() == LoadingUnit::kRootId) {
-      writer.WriteFullSnapshot(units);
-    } else {
-      writer.WriteUnitSnapshot(units, unit, program_hash);
-    }
-    image_writer.Finalize();
+    BlobImageWriter blob_writer(T, &vm_snapshot_instructions,
+                                &isolate_snapshot_instructions,
+                                deobfuscation_trie, debug_so, so);
+    use_output_writer(&blob_writer);
   }
 }
 
 static void Split(Dart_CreateLoadingUnitCallback next_callback,
                   void* next_callback_data,
                   bool strip,
-                  bool as_elf,
+                  Dart_AotBinaryFormat format,
                   Dart_StreamingWriteCallback write_callback,
                   Dart_StreamingCloseCallback close_callback) {
   Thread* T = Thread::Current();
@@ -6548,9 +6559,9 @@ static void Split(Dart_CreateLoadingUnitCallback next_callback,
       next_callback(next_callback_data, id, &write_callback_data,
                     &write_debug_callback_data);
     }
-    CreateAppAOTSnapshot(write_callback, write_callback_data, strip, as_elf,
+    CreateAppAOTSnapshot(write_callback, write_callback_data, strip, format,
                          write_debug_callback_data, &data, data[id],
-                         program_hash);
+                         program_hash, /*identifier=*/nullptr);
     {
       TransitionVMToNative transition(T);
       close_callback(write_callback_data);
@@ -6569,8 +6580,6 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                     void* debug_callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(DART_TARGET_OS_WINDOWS)
-  return Api::NewError("Assembly generation is not implemented for Windows.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
@@ -6582,8 +6591,9 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   // Mark as not split.
   T->isolate_group()->object_store()->set_loading_units(Object::null_array());
 
-  CreateAppAOTSnapshot(callback, callback_data, strip, /*as_elf*/ false,
-                       debug_callback_data, nullptr, nullptr, 0);
+  CreateAppAOTSnapshot(callback, callback_data, strip,
+                       Dart_AotBinaryFormat_Assembly, debug_callback_data,
+                       nullptr, nullptr, 0, /*identifier=*/nullptr);
 
   return Api::Success();
 #endif
@@ -6597,8 +6607,6 @@ DART_EXPORT Dart_Handle Dart_CreateAppAOTSnapshotAsAssemblies(
     Dart_StreamingCloseCallback close_callback) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(DART_TARGET_OS_WINDOWS)
-  return Api::NewError("Assembly generation is not implemented for Windows.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
@@ -6609,7 +6617,7 @@ DART_EXPORT Dart_Handle Dart_CreateAppAOTSnapshotAsAssemblies(
   CHECK_NULL(write_callback);
   CHECK_NULL(close_callback);
 
-  Split(next_callback, next_callback_data, strip, /*as_elf*/ false,
+  Split(next_callback, next_callback_data, strip, Dart_AotBinaryFormat_Assembly,
         write_callback, close_callback);
 
   return Api::Success();
@@ -6621,8 +6629,6 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                    void* callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(DART_TARGET_OS_WINDOWS)
-  return Api::NewError("Assembly generation is not implemented for Windows.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
@@ -6663,8 +6669,9 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   // Mark as not split.
   T->isolate_group()->object_store()->set_loading_units(Object::null_array());
 
-  CreateAppAOTSnapshot(callback, callback_data, strip, /*as_elf*/ true,
-                       debug_callback_data, nullptr, nullptr, 0);
+  CreateAppAOTSnapshot(callback, callback_data, strip, Dart_AotBinaryFormat_Elf,
+                       debug_callback_data, nullptr, nullptr, 0,
+                       /*identifier=*/nullptr);
 
   return Api::Success();
 #endif
@@ -6688,8 +6695,35 @@ Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
   CHECK_NULL(write_callback);
   CHECK_NULL(close_callback);
 
-  Split(next_callback, next_callback_data, strip, /*as_elf*/ true,
+  Split(next_callback, next_callback_data, strip, Dart_AotBinaryFormat_Elf,
         write_callback, close_callback);
+
+  return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle
+Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
+                                  Dart_StreamingWriteCallback callback,
+                                  void* callback_data,
+                                  bool strip,
+                                  void* debug_callback_data,
+                                  const char* identifier) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("AOT compilation is not supported on IA32.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  CHECK_NULL(callback);
+
+  // Mark as not split.
+  T->isolate_group()->object_store()->set_loading_units(Object::null_array());
+
+  CreateAppAOTSnapshot(callback, callback_data, strip, format,
+                       debug_callback_data, nullptr, nullptr, 0, identifier);
 
   return Api::Success();
 #endif

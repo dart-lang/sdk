@@ -6,7 +6,13 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
     show FormalParameterKind;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart'
-    show DartType, DynamicType, Expression, NullLiteral, VariableDeclaration;
+    show
+        DartType,
+        DynamicType,
+        Expression,
+        InvalidExpression,
+        NullLiteral,
+        VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
@@ -50,7 +56,7 @@ abstract class ParameterBuilder {
 
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
-class FormalParameterBuilder extends BuilderImpl
+class FormalParameterBuilder extends NamedBuilderImpl
     implements VariableBuilder, ParameterBuilder, InferredTypeListener {
   static const String noNameSentinel = 'no name sentinel';
 
@@ -146,10 +152,10 @@ class FormalParameterBuilder extends BuilderImpl
       !isSuperInitializingFormal;
 
   @override
-  Builder get getable => this;
+  NamedBuilder get getable => this;
 
   @override
-  Builder? get setable => isAssignable ? this : null;
+  NamedBuilder? get setable => isAssignable ? this : null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -282,6 +288,9 @@ class FormalParameterBuilder extends BuilderImpl
         initializer = bodyBuilder.typeInferrer.inferParameterInitializer(
             bodyBuilder, initializer, variable!.type, hasDeclaredInitializer);
         variable!.initializer = initializer..parent = variable;
+        if (initializer is InvalidExpression) {
+          variable!.isErroneouslyInitialized = true;
+        }
         initializerWasInferred = true;
         bodyBuilder.performBacklogComputations();
       } else if (kind.isOptional) {

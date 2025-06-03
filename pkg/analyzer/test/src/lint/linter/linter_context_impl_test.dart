@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -26,7 +26,7 @@ main() {
 
 @reflectiveTest
 abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
-  late final LinterContextWithResolvedResults context;
+  late final RuleContextWithResolvedResults context;
 
   Future<void> resolve(String content) async {
     await resolveTestCode(content);
@@ -34,7 +34,7 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
       RecordingErrorListener(),
       StringSource(result.content, null),
     );
-    var contextUnit = LintRuleUnitContext(
+    var contextUnit = RuleContextUnit(
       file: result.file,
       content: result.content,
       errorReporter: errorReporter,
@@ -47,12 +47,11 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
     var workspace = analysisContext.contextRoot.workspace;
     var workspacePackage = workspace.findPackageFor(libraryPath);
 
-    context = LinterContextWithResolvedResults(
+    context = RuleContextWithResolvedResults(
       [contextUnit],
       contextUnit,
       result.typeProvider,
       result.typeSystem,
-      InheritanceManager3(),
       // TODO(pq): Use a test package or consider passing in `null`.
       workspacePackage,
     );

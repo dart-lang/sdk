@@ -46,7 +46,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     }
 
     for (var param in namedParams) {
-      if (param.metadata2.hasRequired || param.isRequiredNamed) {
+      if (param.metadata.hasRequired || param.isRequiredNamed) {
         if (buffer.isNotEmpty) {
           buffer.write(', ');
         }
@@ -84,7 +84,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       annotatable = annotatable2;
     }
 
-    var isDeprecated = annotatable?.metadata2.hasDeprecated ?? false;
+    var isDeprecated = annotatable?.metadata.hasDeprecated ?? false;
     var suggestion = CompletionSuggestion(
         kind ?? CompletionSuggestionKind.INVOCATION,
         isDeprecated ? DART_RELEVANCE_LOW : relevance,
@@ -100,7 +100,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     suggestion.docSummary = getDartDocSummary(doc);
 
     suggestion.element = converter.convertElement(element);
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is ClassElement) {
       suggestion.declaringType = enclosingElement.displayName;
     }

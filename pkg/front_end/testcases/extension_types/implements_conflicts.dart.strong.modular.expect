@@ -79,61 +79,6 @@ library;
 //   void set method4(int value) {}
 //            ^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:89:11: Error: The type 'int' of the getter 'ExtensionType11.property' is not a subtype of the type 'String' of the setter 'ExtensionType11.property'.
-//   int get property => 42; /* Error */
-//           ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:90:12: Context: This is the declaration of the setter 'ExtensionType11.property'.
-//   void set property(String value) {} /* Error */
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:93:16: Error: The type 'int' of the inherited getter 'ClassL.property' is not a subtype of the type 'String' of the inherited setter 'ClassM.property'.
-// extension type ExtensionType12a(ClassLM n) /* Error */
-//                ^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:93:11: Context: This is the declaration of the getter 'ClassL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:97:12: Context: This is the declaration of the setter 'ClassM.property'.
-//   void set property(String value) {}
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:98:12: Error: The type 'int' of the inherited getter 'ClassL.property' is not a subtype of the type 'bool' of the setter 'ExtensionType12b.property'.
-//   void set property(bool value) {} /* Error */
-//            ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:93:11: Context: This is the declaration of the getter 'ClassL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:103:12: Error: The type 'bool' of the getter 'ExtensionType12c.property' is not a subtype of the type 'String' of the inherited setter 'ClassM.property'.
-//   bool get property => true; /* Error */
-//            ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:97:12: Context: This is the declaration of the setter 'ClassM.property'.
-//   void set property(String value) {}
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:112:16: Error: The type 'int' of the inherited getter 'ExtensionTypeL.property' is not a subtype of the type 'String' of the inherited setter 'ExtensionTypeM.property'.
-// extension type ExtensionType13a(ClassLM i) /* Error */
-//                ^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:103:11: Context: This is the declaration of the getter 'ExtensionTypeL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:107:12: Context: This is the declaration of the setter 'ExtensionTypeM.property'.
-//   void set property(String value) {}
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:117:12: Error: The type 'int' of the inherited getter 'ExtensionTypeL.property' is not a subtype of the type 'bool' of the setter 'ExtensionType13b.property'.
-//   void set property(bool value) {} /* Error */
-//            ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:103:11: Context: This is the declaration of the getter 'ExtensionTypeL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:122:12: Error: The type 'bool' of the getter 'ExtensionType13c.property' is not a subtype of the type 'String' of the inherited setter 'ExtensionTypeM.property'.
-//   bool get property => true; /* Error */
-//            ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:107:12: Context: This is the declaration of the setter 'ExtensionTypeM.property'.
-//   void set property(String value) {}
-//            ^^^^^^^^
-//
 // pkg/front_end/testcases/extension_types/implements_conflicts.dart:42:16: Error: Extension type 'ExtensionType6a' inherits multiple members named 'method2' with incompatible signatures.
 // Try adding a declaration of 'method2' to 'ExtensionType6a'.
 // extension type ExtensionType6a(ClassF c) /* Error */
@@ -255,7 +200,6 @@ extension type ExtensionType9(core::int i) {
   abstract extension-type-member representation-field get i() → core::int;
   method method4 = self::ExtensionType9|method4;
   method tearoff method4 = self::ExtensionType9|get#method4;
-  set method4 = self::ExtensionType9|set#method4;
   constructor • = self::ExtensionType9|constructor#;
   constructor tearoff • = self::ExtensionType9|constructor#_#new#tearOff;
 }
@@ -389,15 +333,15 @@ static extension-type-member method ExtensionType2a|constructor#(imp::ClassC c) 
 }
 static extension-type-member synthetic method ExtensionType2a|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType2a /* erasure=imp::ClassC */
   return self::ExtensionType2a|constructor#(c);
+static extension-type-member synthetic method ExtensionType2b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType2b /* erasure=imp::ClassC */
+  return self::ExtensionType2b|constructor#(c);
 static extension-type-member method ExtensionType2b|constructor#(imp::ClassC c) → self::ExtensionType2b /* erasure=imp::ClassC */ {
   lowered final self::ExtensionType2b /* erasure=imp::ClassC */ #this = c;
   return #this;
 }
-static extension-type-member synthetic method ExtensionType2b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType2b /* erasure=imp::ClassC */
-  return self::ExtensionType2b|constructor#(c);
-static extension-type-member method ExtensionType2b|method1(lowered final self::ExtensionType2b /* erasure=imp::ClassC */ #this) → void {}
 static extension-type-member method ExtensionType2b|get#method1(lowered final self::ExtensionType2b /* erasure=imp::ClassC */ #this) → () → void
   return () → void => self::ExtensionType2b|method1(#this);
+static extension-type-member method ExtensionType2b|method1(lowered final self::ExtensionType2b /* erasure=imp::ClassC */ #this) → void {}
 static extension-type-member method ExtensionType3a|constructor#(imp::ClassC c) → self::ExtensionType3a /* erasure=imp::ClassC */ {
   lowered final self::ExtensionType3a /* erasure=imp::ClassC */ #this = c;
   return #this;
@@ -449,12 +393,12 @@ static extension-type-member synthetic method ExtensionType6b|constructor#_#new#
 static extension-type-member method ExtensionType6b|method2(lowered final self::ExtensionType6b /* erasure=imp::ClassF */ #this) → void {}
 static extension-type-member method ExtensionType6b|get#method2(lowered final self::ExtensionType6b /* erasure=imp::ClassF */ #this) → () → void
   return () → void => self::ExtensionType6b|method2(#this);
-static extension-type-member synthetic method ExtensionType7a|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType7a /* erasure=imp::ClassF */
-  return self::ExtensionType7a|constructor#(c);
 static extension-type-member method ExtensionType7a|constructor#(imp::ClassF c) → self::ExtensionType7a /* erasure=imp::ClassF */ {
   lowered final self::ExtensionType7a /* erasure=imp::ClassF */ #this = c;
   return #this;
 }
+static extension-type-member synthetic method ExtensionType7a|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType7a /* erasure=imp::ClassF */
+  return self::ExtensionType7a|constructor#(c);
 static extension-type-member method ExtensionType7b|constructor#(imp::ClassF c) → self::ExtensionType7b /* erasure=imp::ClassF */ {
   lowered final self::ExtensionType7b /* erasure=imp::ClassF */ #this = c;
   return #this;
@@ -485,7 +429,6 @@ static extension-type-member synthetic method ExtensionType9|constructor#_#new#t
 static extension-type-member method ExtensionType9|method4(lowered final self::ExtensionType9% /* erasure=core::int, declared=! */ #this) → void {}
 static extension-type-member method ExtensionType9|get#method4(lowered final self::ExtensionType9% /* erasure=core::int, declared=! */ #this) → () → void
   return () → void => self::ExtensionType9|method4(#this);
-static extension-type-member method ExtensionType9|set#method4(lowered final self::ExtensionType9% /* erasure=core::int, declared=! */ #this, core::int value) → void {}
 static extension-type-member method ExtensionType9a|constructor#(imp::ClassJK n) → self::ExtensionType9a /* erasure=imp::ClassJK */ {
   lowered final self::ExtensionType9a /* erasure=imp::ClassJK */ #this = n;
   return #this;

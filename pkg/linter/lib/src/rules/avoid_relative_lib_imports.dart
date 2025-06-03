@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,7 +15,8 @@ class AvoidRelativeLibImports extends LintRule {
     : super(name: LintNames.avoid_relative_lib_imports, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_relative_lib_imports;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_relative_lib_imports;
 
   @override
   void registerNodeProcessors(

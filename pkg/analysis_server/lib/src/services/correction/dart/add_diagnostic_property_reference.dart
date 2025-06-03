@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -198,7 +197,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
         var identifier = parameter.name;
         if (type is NamedType &&
             identifier != null &&
-            type.name2.lexeme == 'DiagnosticPropertiesBuilder') {
+            type.name.lexeme == 'DiagnosticPropertiesBuilder') {
           return identifier.lexeme;
         }
       }

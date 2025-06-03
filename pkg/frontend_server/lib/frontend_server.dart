@@ -188,6 +188,10 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       hide: true)
   ..addOption('dynamic-interface',
       help: 'Path to dynamic module interface yaml file.')
+  ..addOption(
+    'dump-detailed-dynamic-interface',
+    help: 'Path to output detailed dynamic interface.',
+  )
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, e.g. set-literals.',
       hide: true)
@@ -624,6 +628,8 @@ class FrontendCompiler implements CompilerInterface {
     final Uri? dynamicInterfaceUri = dynamicInterfaceFilePath == null
         ? null
         : resolveInputUri(dynamicInterfaceFilePath);
+    final String? dumpDetailedDynamicInterface =
+        options['dump-detailed-dynamic-interface'];
 
     _processedOptions = new ProcessedOptions(options: compilerOptions);
 
@@ -672,6 +678,7 @@ class FrontendCompiler implements CompilerInterface {
               keepClassNamesImplementing:
                   options['keep-class-names-implementing'],
               dynamicInterface: dynamicInterfaceUri,
+              dumpDetailedDynamicInterface: dumpDetailedDynamicInterface,
               aot: options['aot'],
               targetOS: options['target-os'],
               useGlobalTypeFlowAnalysis: options['tfa'],

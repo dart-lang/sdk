@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -21,7 +22,8 @@ class AvoidPositionalBooleanParameters extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_positional_boolean_parameters;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_positional_boolean_parameters;
 
   @override
   void registerNodeProcessors(
@@ -86,7 +88,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         !node.isSetter &&
         !declaredElement.isPrivate &&
         !node.isOperator &&
-        !node.hasInheritedMethod(context.inheritanceManager) &&
+        !node.hasInheritedMethod &&
         !_isOverridingMember(declaredElement)) {
       checkParams(node.parameters?.parameters);
     }
@@ -100,11 +102,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (name == null) return false;
 
     var libraryUri = classElement.library2.uri;
-    return context.inheritanceManager.getInherited3(
-          classElement.thisType,
-          Name(libraryUri, name),
-        ) !=
-        null;
+    return classElement.getInheritedMember(Name(libraryUri, name)) != null;
   }
 
   static bool _isBoolean(FormalParameter node) {

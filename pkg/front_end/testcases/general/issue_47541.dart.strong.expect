@@ -2,51 +2,51 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue_47541.dart:24:6: Error: Expected a type, but got '42'.
+// pkg/front_end/testcases/general/issue_47541.dart:28:6: Error: Expected a type, but got '42'.
 //   on(42);
 //      ^^
 //
-// pkg/front_end/testcases/general/issue_47541.dart:24:6: Error: This couldn't be parsed.
+// pkg/front_end/testcases/general/issue_47541.dart:28:6: Error: This couldn't be parsed.
 //   on(42);
 //      ^
 //
-// pkg/front_end/testcases/general/issue_47541.dart:24:6: Error: Expected ')' before this.
+// pkg/front_end/testcases/general/issue_47541.dart:28:6: Error: Expected ')' before this.
 //   on(42);
 //      ^^
 //
-// pkg/front_end/testcases/general/issue_47541.dart:24:8: Error: A record type with exactly one positional field requires a trailing comma.
+// pkg/front_end/testcases/general/issue_47541.dart:28:8: Error: A record type with exactly one positional field requires a trailing comma.
 // Try adding a trailing comma.
 //   on(42);
 //        ^
 //
-// pkg/front_end/testcases/general/issue_47541.dart:24:8: Error: A catch clause must have a body, even if it is empty.
+// pkg/front_end/testcases/general/issue_47541.dart:28:8: Error: A catch clause must have a body, even if it is empty.
 // Try adding an empty body.
 //   on(42);
 //        ^
 //
-// pkg/front_end/testcases/general/issue_47541.dart:50:6: Error: Expected a type, but got '='.
+// pkg/front_end/testcases/general/issue_47541.dart:54:6: Error: Expected a type, but got '='.
 //   on = 42;
 //      ^
 //
-// pkg/front_end/testcases/general/issue_47541.dart:50:6: Error: This couldn't be parsed.
+// pkg/front_end/testcases/general/issue_47541.dart:54:6: Error: This couldn't be parsed.
 //   on = 42;
 //      ^
 //
-// pkg/front_end/testcases/general/issue_47541.dart:50:6: Error: A catch clause must have a body, even if it is empty.
+// pkg/front_end/testcases/general/issue_47541.dart:54:6: Error: A catch clause must have a body, even if it is empty.
 // Try adding an empty body.
 //   on = 42;
 //      ^
 //
-// pkg/front_end/testcases/general/issue_47541.dart:50:6: Error: Expected an identifier, but got '='.
+// pkg/front_end/testcases/general/issue_47541.dart:54:6: Error: Expected an identifier, but got '='.
 // Try inserting an identifier before '='.
 //   on = 42;
 //      ^
 //
-// pkg/front_end/testcases/general/issue_47541.dart:61:5: Error: Expected a type, but got '.'.
+// pkg/front_end/testcases/general/issue_47541.dart:65:5: Error: Expected a type, but got '.'.
 //   on.toString();
 //     ^
 //
-// pkg/front_end/testcases/general/issue_47541.dart:61:6: Error: A catch clause must have a body, even if it is empty.
+// pkg/front_end/testcases/general/issue_47541.dart:65:6: Error: A catch clause must have a body, even if it is empty.
 // Try adding an empty body.
 //   on.toString();
 //      ^^^^^^^^
@@ -109,7 +109,7 @@ static method c(core::int on) → void {
   }
   on invalid-type catch(no-exception-var) {
   }
-  invalid-expression "pkg/front_end/testcases/general/issue_47541.dart:50:6: Error: This couldn't be parsed.
+  invalid-expression "pkg/front_end/testcases/general/issue_47541.dart:54:6: Error: This couldn't be parsed.
   on = 42;
      ^";
 }

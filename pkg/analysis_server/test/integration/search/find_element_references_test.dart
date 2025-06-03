@@ -59,6 +59,130 @@ foo(String str) {}
     expect(result.path.first.name, 'f');
   }
 
+  Future<void> test_findReferences_dotShorthand_invocation_class() async {
+    var text = r'''
+class A {
+  A.foo /* target */();
+}
+
+void f() {
+  A a = .foo();
+}
+''';
+
+    pathname = sourcePath('foo.dart');
+    writeFile(pathname, text);
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    var results = (await _findElementReferences(text))!;
+    expect(results, hasLength(1));
+    var result = results.first;
+    expect(result.location.file, pathname);
+    expect(result.isPotential, isFalse);
+    expect(result.kind.name, SearchResultKind.INVOCATION.name);
+    expect(result.path.first.name, 'f');
+  }
+
+  Future<void>
+  test_findReferences_dotShorthand_invocation_extensionType() async {
+    var text = r'''
+extension type A(int x) {
+  static A foo /* target */() => A(1);
+}
+
+void f() {
+  A a = .foo();
+}
+''';
+
+    pathname = sourcePath('foo.dart');
+    writeFile(pathname, text);
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    var results = (await _findElementReferences(text))!;
+    expect(results, hasLength(1));
+    var result = results.first;
+    expect(result.location.file, pathname);
+    expect(result.isPotential, isFalse);
+    expect(result.kind.name, SearchResultKind.INVOCATION.name);
+    expect(result.path.first.name, 'f');
+  }
+
+  Future<void> test_findReferences_dotShorthand_read_class() async {
+    var text = r'''
+class A {
+  static A get getter /* target */ => A();
+}
+
+void f() {
+  A a = .getter;
+}
+''';
+
+    pathname = sourcePath('foo.dart');
+    writeFile(pathname, text);
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    var results = (await _findElementReferences(text))!;
+    expect(results, hasLength(1));
+    var result = results.first;
+    expect(result.location.file, pathname);
+    expect(result.isPotential, isFalse);
+    expect(result.kind.name, SearchResultKind.READ.name);
+    expect(result.path.first.name, 'f');
+  }
+
+  Future<void> test_findReferences_dotShorthand_read_enum() async {
+    var text = r'''
+enum A { a /* target */ }
+
+void f() {
+  A a = .a;
+}
+''';
+
+    pathname = sourcePath('foo.dart');
+    writeFile(pathname, text);
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    var results = (await _findElementReferences(text))!;
+    expect(results, hasLength(1));
+    var result = results.first;
+    expect(result.location.file, pathname);
+    expect(result.isPotential, isFalse);
+    expect(result.kind.name, SearchResultKind.READ.name);
+    expect(result.path.first.name, 'f');
+  }
+
+  Future<void> test_findReferences_dotShorthand_read_extensionType() async {
+    var text = r'''
+extension type A(int x) {
+  static A get getter /* target */ => A(1);
+}
+
+void f() {
+  A a = .getter;
+}
+''';
+
+    pathname = sourcePath('foo.dart');
+    writeFile(pathname, text);
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    var results = (await _findElementReferences(text))!;
+    expect(results, hasLength(1));
+    var result = results.first;
+    expect(result.location.file, pathname);
+    expect(result.isPotential, isFalse);
+    expect(result.kind.name, SearchResultKind.READ.name);
+    expect(result.path.first.name, 'f');
+  }
+
   Future<void> test_findReferences_inNullAware_listElement() async {
     var text = r'''
 List<int> f(int? foo) {

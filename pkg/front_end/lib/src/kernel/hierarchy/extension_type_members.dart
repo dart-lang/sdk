@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 
 import '../../base/messages.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
@@ -33,8 +34,8 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
   ExtensionTypeMembersNode build() {
     Map<Name, _Tuple> memberMap = {};
 
-    Iterator<MemberBuilder> iterator =
-        extensionTypeDeclarationBuilder.fullMemberIterator<MemberBuilder>();
+    Iterator<MemberBuilder> iterator = extensionTypeDeclarationBuilder
+        .filteredMembersIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       MemberBuilder memberBuilder = iterator.current;
       for (ClassMember classMember in memberBuilder.localMembers) {
@@ -217,13 +218,21 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
           /// `ET1.property2` is _not_ a subtype of the setter
           /// `ET2.property1`.
           ///
-          _membersBuilder.registerGetterSetterCheck(
-              new DelayedExtensionTypeGetterSetterCheck(
-                  extensionTypeDeclarationBuilder
-                      as SourceExtensionTypeDeclarationBuilder,
-                  name,
-                  getableMember,
-                  setableMember));
+          SourceExtensionTypeDeclarationBuilder
+              sourceExtensionTypeDeclarationBuilder =
+              extensionTypeDeclarationBuilder
+                  as SourceExtensionTypeDeclarationBuilder;
+          if (!sourceExtensionTypeDeclarationBuilder
+              .libraryBuilder.libraryFeatures.getterSetterError.isEnabled) {
+            // Coverage-ignore-block(suite): Not run.
+            _membersBuilder.registerGetterSetterCheck(
+                new DelayedExtensionTypeGetterSetterCheck(
+                    extensionTypeDeclarationBuilder
+                        as SourceExtensionTypeDeclarationBuilder,
+                    name,
+                    getableMember,
+                    setableMember));
+          }
         }
       }
     }
@@ -979,33 +988,33 @@ class _SanitizedMember {
           context.add((extensionTypeMemberDeclarations.length > 1
                   ? messageExtensionTypeMemberOneOfContext
                   : messageExtensionTypeMemberContext)
-              .withLocation(classMember.fileUri, classMember.charOffset,
-                  name.text.length));
+              .withLocation2(classMember.uriOffset));
         }
         for (ClassMember classMember in nonExtensionTypeMemberDeclarations) {
           context.add((nonExtensionTypeMemberDeclarations.length > 1
                   ? messageNonExtensionTypeMemberOneOfContext
                   : messageNonExtensionTypeMemberContext)
-              .withLocation(classMember.fileUri, classMember.charOffset,
-                  name.text.length));
+              .withLocation2(classMember.uriOffset));
         }
-        extensionTypeDeclarationBuilder.addProblem(
+        extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
             templateImplementNonExtensionTypeAndExtensionTypeMember
                 .withArguments(extensionTypeDeclarationBuilder.name, name.text),
             extensionTypeDeclarationBuilder.fileOffset,
             extensionTypeDeclarationBuilder.name.length,
+            extensionTypeDeclarationBuilder.fileUri,
             context: context);
       } else if (extensionTypeMemberDeclarations.length > 1) {
         List<LocatedMessage> context = [];
         for (ClassMember classMember in extensionTypeMemberDeclarations) {
-          context.add(messageExtensionTypeMemberOneOfContext.withLocation(
-              classMember.fileUri, classMember.charOffset, name.text.length));
+          context.add(messageExtensionTypeMemberOneOfContext
+              .withLocation2(classMember.uriOffset));
         }
-        extensionTypeDeclarationBuilder.addProblem(
+        extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
             templateImplementMultipleExtensionTypeMembers.withArguments(
                 extensionTypeDeclarationBuilder.name, name.text),
             extensionTypeDeclarationBuilder.fileOffset,
             extensionTypeDeclarationBuilder.name.length,
+            extensionTypeDeclarationBuilder.fileUri,
             context: context);
       }
       return extensionTypeMemberMap[name] =

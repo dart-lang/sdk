@@ -99,8 +99,8 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:7:10 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:23:10 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:27:40 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:32:27 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:11:10 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:27:10 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:31:40 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:36:27 -> IntConstant(-1)
 Extra constant evaluation: evaluated: 190, effectively constant: 4

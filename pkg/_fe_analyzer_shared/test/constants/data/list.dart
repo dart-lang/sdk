@@ -19,7 +19,9 @@ main() {
   print(/*cfe.List<int!>()*/ /*analyzer|dart2js.List<int>()*/ list1);
   print(/*cfe.List<int!>()*/ /*analyzer|dart2js.List<int>()*/ list2);
   print(
-      /*cfe.List<int!>(Int(42))*/ /*analyzer|dart2js.List<int>(Int(42))*/ list3);
+    /*cfe.List<int!>(Int(42))*/ /*analyzer|dart2js.List<int>(Int(42))*/ list3,
+  );
   print(
-      /*cfe.List<int!>(Int(42),Int(87))*/ /*analyzer|dart2js.List<int>(Int(42),Int(87))*/ list4);
+    /*cfe.List<int!>(Int(42),Int(87))*/ /*analyzer|dart2js.List<int>(Int(42),Int(87))*/ list4,
+  );
 }

@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../lsp/request_helpers_mixin.dart';
-import '../../../utils/lsp_protocol_extensions.dart';
 import 'refactoring_test_support.dart';
 
 void main() {
@@ -323,7 +323,7 @@ class A {}
     // above but get a relative import back to src.
     mainFilePath = join(projectFolderPath, 'tool', 'main.dart');
 
-    newFile(libFilePath, 'mixin PackageMixin {};');
+    newFile(libFilePath, 'mixin PackageMixin {}');
     var originalSource = '''
 import 'package:test/mixin.dart';
 
@@ -487,7 +487,7 @@ final ^moving = other.A.new;
 import 'package:test/main.dart';
 
 extension X on A {
-  void extensionMethod();
+  void extensionMethod() {}
 }
 ''';
 
@@ -569,7 +569,7 @@ void moving() {
 
   Future<void> test_imports_prefix_extensionOverride() async {
     var otherFileDeclarations = '''
-extension E on int { void f() {} },
+extension E on int { void f() {} }
 ''';
 
     var movingCode = '''
@@ -912,7 +912,7 @@ import 'package:test/main.dart';
 import 'package:test/main.dart' as p;
 import 'package:test/main.dart' as q;
 
-void f(p.B b, q.B b, B b) {}
+void f(p.B a, q.B b, B c) {}
 ''';
 
     var expected = '''
@@ -926,7 +926,7 @@ import 'package:test/main.dart';
 import 'package:test/main.dart' as p;
 import 'package:test/main.dart' as q;
 
-void f(p.B b, q.B b, B b) {}
+void f(p.B a, q.B b, B c) {}
 >>>>>>>>>> lib/main.dart
 class A {}
 ''';
@@ -1116,7 +1116,7 @@ class B {}
     var originalSource = '''
 class A {}
 
-extensionType ExtensionTypeToMove^(int i) {}
+extension type ExtensionTypeToMove^(int i) {}
 
 class B {}
 ''';
@@ -1124,7 +1124,7 @@ class B {}
 
     var expected = '''
 >>>>>>>>>> lib/extension_type_to_move.dart created
-extensionType ExtensionTypeToMove(int i) {}
+extension type ExtensionTypeToMove(int i) {}
 >>>>>>>>>> lib/main.dart
 class A {}
 
@@ -1179,7 +1179,7 @@ class B {}
 class A {}
 
 [!class ClassToMove1 {}
-extension on Int {}
+extension on int {}
 class ClassToMove2 {}!]
 
 class B {}
@@ -1188,7 +1188,7 @@ class B {}
     var expected = '''
 >>>>>>>>>> lib/class_to_move1.dart created
 class ClassToMove1 {}
-extension on Int {}
+extension on int {}
 class ClassToMove2 {}
 >>>>>>>>>> lib/main.dart
 class A {}

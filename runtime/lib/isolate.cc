@@ -260,15 +260,15 @@ class WorkSet {
 class WorkSet {
  public:
   explicit WorkSet(Thread* thread)
-      : isolate_(thread->isolate()), list_(GrowableObjectArray::Handle()) {
-    isolate_->set_forward_table_new(new WeakTable());
-    isolate_->set_forward_table_old(new WeakTable());
+      : thread_(thread), list_(GrowableObjectArray::Handle()) {
+    thread_->set_forward_table_new(new WeakTable());
+    thread_->set_forward_table_old(new WeakTable());
     list_ = GrowableObjectArray::New(256);
     cursor_ = 0;
   }
   ~WorkSet() {
-    isolate_->set_forward_table_new(nullptr);
-    isolate_->set_forward_table_old(nullptr);
+    thread_->set_forward_table_new(nullptr);
+    thread_->set_forward_table_old(nullptr);
   }
 
   void Push(const Object& obj) {
@@ -292,22 +292,22 @@ class WorkSet {
   DART_FORCE_INLINE
   intptr_t GetObjectId(ObjectPtr object) {
     if (object->IsNewObject()) {
-      return isolate_->forward_table_new()->GetValueExclusive(object);
+      return thread_->forward_table_new()->GetValueExclusive(object);
     } else {
-      return isolate_->forward_table_old()->GetValueExclusive(object);
+      return thread_->forward_table_old()->GetValueExclusive(object);
     }
   }
 
   DART_FORCE_INLINE
   void SetObjectId(ObjectPtr object, intptr_t id) {
     if (object->IsNewObject()) {
-      isolate_->forward_table_new()->SetValueExclusive(object, id);
+      thread_->forward_table_new()->SetValueExclusive(object, id);
     } else {
-      isolate_->forward_table_old()->SetValueExclusive(object, id);
+      thread_->forward_table_old()->SetValueExclusive(object, id);
     }
   }
 
-  Isolate* isolate_;
+  Thread* thread_;
   GrowableObjectArray& list_;
   intptr_t cursor_;
 };
@@ -475,7 +475,6 @@ class MessageValidator : private WorkSet {
                   const char* exception_message,
                   const Object& root) {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
     Zone* zone = thread->zone();
     const Array& args = Array::Handle(zone, Array::New(3));
     args.SetAt(0, illegal_object);
@@ -483,7 +482,7 @@ class MessageValidator : private WorkSet {
                       zone, String::NewFormatted(
                                 "%s%s",
                                 FindRetainingPath(
-                                    zone, isolate, root, illegal_object,
+                                    zone, thread, root, illegal_object,
                                     TraversalRules::kInternalToIsolateGroup),
                                 exception_message)));
     const Object& exception = Object::Handle(

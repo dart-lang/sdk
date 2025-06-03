@@ -199,7 +199,10 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
       entryPoints.addRawCall(
         new DirectSelector(ctor, callKind: CallKind.Method),
       );
-      entryPoints.addAllocatedClass(ctor.enclosingClass);
+      final cls = ctor.enclosingClass;
+      if (!cls.isAbstract) {
+        entryPoints.addAllocatedClass(cls);
+      }
       nativeCodeOracle.setMemberReferencedFromNativeCode(ctor);
     }
   }

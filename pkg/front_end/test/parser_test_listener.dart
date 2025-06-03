@@ -123,7 +123,10 @@ class ParserTestListener implements Listener {
 
   @override
   void endInvalidAwaitExpression(
-      Token beginToken, Token endToken, MessageCode errorCode) {
+    Token beginToken,
+    Token endToken,
+    MessageCode errorCode,
+  ) {
     indent--;
     seen(beginToken);
     seen(endToken);
@@ -142,7 +145,11 @@ class ParserTestListener implements Listener {
 
   @override
   void endBlock(
-      int count, Token beginToken, Token endToken, BlockKind blockKind) {
+    int count,
+    Token beginToken,
+    Token endToken,
+    BlockKind blockKind,
+  ) {
     indent--;
     seen(beginToken);
     seen(endToken);
@@ -193,7 +200,11 @@ class ParserTestListener implements Listener {
 
   @override
   void endClassOrMixinOrExtensionBody(
-      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
+    DeclarationKind kind,
+    int memberCount,
+    Token beginToken,
+    Token endToken,
+  ) {
     indent--;
     seen(beginToken);
     seen(endToken);
@@ -213,16 +224,17 @@ class ParserTestListener implements Listener {
 
   @override
   void beginClassDeclaration(
-      Token begin,
-      Token? abstractToken,
-      Token? macroToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token? augmentToken,
-      Token? mixinToken,
-      Token name) {
+    Token begin,
+    Token? abstractToken,
+    Token? macroToken,
+    Token? sealedToken,
+    Token? baseToken,
+    Token? interfaceToken,
+    Token? finalToken,
+    Token? augmentToken,
+    Token? mixinToken,
+    Token name,
+  ) {
     seen(begin);
     seen(abstractToken);
     seen(macroToken);
@@ -281,8 +293,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
-      Token? baseToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token? baseToken,
+    Token mixinKeyword,
+    Token name,
+  ) {
     seen(beginToken);
     seen(augmentToken);
     seen(baseToken);
@@ -338,7 +355,10 @@ class ParserTestListener implements Listener {
 
   @override
   void beginExtensionDeclaration(
-      Token? augmentToken, Token extensionKeyword, Token? name) {
+    Token? augmentToken,
+    Token extensionKeyword,
+    Token? name,
+  ) {
     seen(augmentToken);
     seen(extensionKeyword);
     seen(name);
@@ -350,8 +370,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
-      Token? onKeyword, Token endToken) {
+  void endExtensionDeclaration(
+    Token beginToken,
+    Token extensionKeyword,
+    Token? onKeyword,
+    Token endToken,
+  ) {
     indent--;
     seen(beginToken);
     seen(extensionKeyword);
@@ -366,7 +390,10 @@ class ParserTestListener implements Listener {
 
   @override
   void beginExtensionTypeDeclaration(
-      Token? augmentKeyword, Token extensionKeyword, Token name) {
+    Token? augmentKeyword,
+    Token extensionKeyword,
+    Token name,
+  ) {
     seen(augmentKeyword);
     seen(extensionKeyword);
     seen(name);
@@ -378,8 +405,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
-      Token extensionKeyword, Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token extensionKeyword,
+    Token typeKeyword,
+    Token endToken,
+  ) {
     indent--;
     seen(beginToken);
     seen(augmentToken);
@@ -403,7 +435,10 @@ class ParserTestListener implements Listener {
 
   @override
   void endPrimaryConstructor(
-      Token beginToken, Token? constKeyword, bool hasConstructorName) {
+    Token beginToken,
+    Token? constKeyword,
+    bool hasConstructorName,
+  ) {
     indent--;
     seen(beginToken);
     seen(constKeyword);
@@ -474,8 +509,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endConstructorReference(Token start, Token? periodBeforeName,
-      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
+  void endConstructorReference(
+    Token start,
+    Token? periodBeforeName,
+    Token endToken,
+    ConstructorReferenceContext constructorReferenceContext,
+  ) {
     indent--;
     seen(start);
     seen(periodBeforeName);
@@ -496,7 +535,10 @@ class ParserTestListener implements Listener {
 
   @override
   void endDoWhileStatement(
-      Token doKeyword, Token whileKeyword, Token endToken) {
+    Token doKeyword,
+    Token whileKeyword,
+    Token endToken,
+  ) {
     indent--;
     seen(doKeyword);
     seen(whileKeyword);
@@ -541,8 +583,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
-      int memberCount, Token endToken) {
+  void endEnum(
+    Token beginToken,
+    Token enumKeyword,
+    Token leftBrace,
+    int memberCount,
+    Token endToken,
+  ) {
     indent--;
     seen(beginToken);
     seen(enumKeyword);
@@ -557,8 +604,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endEnumConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
@@ -581,7 +633,10 @@ class ParserTestListener implements Listener {
 
   @override
   void handleEnumHeader(
-      Token? augmentToken, Token enumKeyword, Token leftBrace) {
+    Token? augmentToken,
+    Token enumKeyword,
+    Token leftBrace,
+  ) {
     seen(augmentToken);
     seen(enumKeyword);
     seen(leftBrace);
@@ -598,7 +653,10 @@ class ParserTestListener implements Listener {
 
   @override
   void endEnumFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     indent--;
     seen(beginToken);
     seen(factoryKeyword);
@@ -638,8 +696,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
-      Token? externalToken, Token? constToken) {
+  void beginFactoryMethod(
+    DeclarationKind declarationKind,
+    Token lastConsumed,
+    Token? externalToken,
+    Token? constToken,
+  ) {
     seen(lastConsumed);
     seen(externalToken);
     seen(constToken);
@@ -653,7 +715,10 @@ class ParserTestListener implements Listener {
 
   @override
   void endClassFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     indent--;
     seen(beginToken);
     seen(factoryKeyword);
@@ -666,7 +731,10 @@ class ParserTestListener implements Listener {
 
   @override
   void endMixinFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     indent--;
     seen(beginToken);
     seen(factoryKeyword);
@@ -679,7 +747,10 @@ class ParserTestListener implements Listener {
 
   @override
   void endExtensionFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     indent--;
     seen(beginToken);
     seen(factoryKeyword);
@@ -692,7 +763,10 @@ class ParserTestListener implements Listener {
 
   @override
   void endExtensionTypeFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     indent--;
     seen(beginToken);
     seen(factoryKeyword);
@@ -704,8 +778,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
-      Token? covariantToken, Token? varFinalOrConst) {
+  void beginFormalParameter(
+    Token token,
+    MemberKind kind,
+    Token? requiredToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+  ) {
     seen(token);
     seen(requiredToken);
     seen(covariantToken);
@@ -721,14 +800,15 @@ class ParserTestListener implements Listener {
 
   @override
   void endFormalParameter(
-      Token? thisKeyword,
-      Token? superKeyword,
-      Token? periodAfterThisOrSuper,
-      Token nameToken,
-      Token? initializerStart,
-      Token? initializerEnd,
-      FormalParameterKind kind,
-      MemberKind memberKind) {
+    Token? thisKeyword,
+    Token? superKeyword,
+    Token? periodAfterThisOrSuper,
+    Token nameToken,
+    Token? initializerStart,
+    Token? initializerEnd,
+    FormalParameterKind kind,
+    MemberKind memberKind,
+  ) {
     indent--;
     seen(thisKeyword);
     seen(superKeyword);
@@ -762,7 +842,11 @@ class ParserTestListener implements Listener {
 
   @override
   void endFormalParameters(
-      int count, Token beginToken, Token endToken, MemberKind kind) {
+    int count,
+    Token beginToken,
+    Token endToken,
+    MemberKind kind,
+  ) {
     indent--;
     seen(beginToken);
     seen(endToken);
@@ -775,16 +859,17 @@ class ParserTestListener implements Listener {
 
   @override
   void endClassFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     indent--;
     seen(abstractToken);
     seen(augmentToken);
@@ -810,16 +895,17 @@ class ParserTestListener implements Listener {
 
   @override
   void endMixinFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     indent--;
     seen(abstractToken);
     seen(augmentToken);
@@ -845,16 +931,17 @@ class ParserTestListener implements Listener {
 
   @override
   void endExtensionFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     indent--;
     seen(abstractToken);
     seen(augmentToken);
@@ -880,16 +967,17 @@ class ParserTestListener implements Listener {
 
   @override
   void endExtensionTypeFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     indent--;
     seen(abstractToken);
     seen(augmentToken);
@@ -915,16 +1003,17 @@ class ParserTestListener implements Listener {
 
   @override
   void endEnumFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     indent--;
     seen(abstractToken);
     seen(augmentToken);
@@ -949,8 +1038,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endEnumMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
@@ -986,7 +1080,9 @@ class ParserTestListener implements Listener {
 
   @override
   void handleForInitializerPatternVariableAssignment(
-      Token keyword, Token equals) {
+    Token keyword,
+    Token equals,
+  ) {
     seen(keyword);
     seen(equals);
     doPrint('handleForInitializerPatternVariableAssignment('
@@ -1002,8 +1098,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {
+  void handleForLoopParts(
+    Token forKeyword,
+    Token leftParen,
+    Token leftSeparator,
+    Token rightSeparator,
+    int updateExpressionCount,
+  ) {
     seen(forKeyword);
     seen(leftParen);
     seen(leftSeparator);
@@ -1038,8 +1139,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
+  void handleForInLoopParts(
+    Token? awaitToken,
+    Token forToken,
+    Token leftParenthesis,
+    Token? patternKeyword,
+    Token inKeyword,
+  ) {
     seen(awaitToken);
     seen(forToken);
     seen(leftParenthesis);
@@ -1152,7 +1258,10 @@ class ParserTestListener implements Listener {
 
   @override
   void endFunctionName(
-      Token beginToken, Token token, bool isFunctionExpression) {
+    Token beginToken,
+    Token token,
+    bool isFunctionExpression,
+  ) {
     indent--;
     seen(beginToken);
     seen(token);
@@ -1168,8 +1277,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
-      Token endToken) {
+  void endTypedef(
+    Token? augmentToken,
+    Token typedefKeyword,
+    Token? equals,
+    Token endToken,
+  ) {
     indent--;
     seen(augmentToken);
     seen(typedefKeyword);
@@ -1212,16 +1325,17 @@ class ParserTestListener implements Listener {
 
   @override
   void beginNamedMixinApplication(
-      Token beginToken,
-      Token? abstractToken,
-      Token? macroToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token? augmentToken,
-      Token? mixinToken,
-      Token name) {
+    Token beginToken,
+    Token? abstractToken,
+    Token? macroToken,
+    Token? sealedToken,
+    Token? baseToken,
+    Token? interfaceToken,
+    Token? finalToken,
+    Token? augmentToken,
+    Token? mixinToken,
+    Token name,
+  ) {
     seen(beginToken);
     seen(abstractToken);
     seen(macroToken);
@@ -1253,8 +1367,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endNamedMixinApplication(Token begin, Token classKeyword, Token equals,
-      Token? implementsKeyword, Token endToken) {
+  void endNamedMixinApplication(
+    Token begin,
+    Token classKeyword,
+    Token equals,
+    Token? implementsKeyword,
+    Token endToken,
+  ) {
     indent--;
     seen(begin);
     seen(classKeyword);
@@ -1562,7 +1681,10 @@ class ParserTestListener implements Listener {
 
   @override
   void endLibraryAugmentation(
-      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
+    Token augmentKeyword,
+    Token libraryKeyword,
+    Token semicolon,
+  ) {
     indent--;
     seen(augmentKeyword);
     seen(libraryKeyword);
@@ -1589,8 +1711,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleLiteralMapEntry(Token colon, Token endToken,
-      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
+  void handleLiteralMapEntry(
+    Token colon,
+    Token endToken, {
+    Token? nullAwareKeyToken,
+    Token? nullAwareValueToken,
+  }) {
     seen(colon);
     seen(endToken);
     seen(nullAwareKeyToken);
@@ -1656,15 +1782,16 @@ class ParserTestListener implements Listener {
 
   @override
   void beginMethod(
-      DeclarationKind declarationKind,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? varFinalOrConst,
-      Token? getOrSet,
-      Token name,
-      String? enclosingDeclarationName) {
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
     seen(augmentToken);
     seen(externalToken);
     seen(staticToken);
@@ -1686,8 +1813,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endClassMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
@@ -1703,8 +1835,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endMixinMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endMixinMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
@@ -1720,8 +1857,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endExtensionMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endExtensionMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
@@ -1737,8 +1879,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endExtensionTypeMethod(Token? getOrSet, Token beginToken,
-      Token beginParam, Token? beginInitializers, Token endToken) {
+  void endExtensionTypeMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
@@ -1754,8 +1901,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endClassConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
@@ -1771,8 +1923,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endMixinConstructor(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endMixinConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
@@ -1788,8 +1945,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endExtensionConstructor(Token? getOrSet, Token beginToken,
-      Token beginParam, Token? beginInitializers, Token endToken) {
+  void endExtensionConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
@@ -1805,8 +1967,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endExtensionTypeConstructor(Token? getOrSet, Token beginToken,
-      Token beginParam, Token? beginInitializers, Token endToken) {
+  void endExtensionTypeConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
@@ -1859,7 +2026,11 @@ class ParserTestListener implements Listener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken, MemberKind kind) {
+    int count,
+    Token beginToken,
+    Token endToken,
+    MemberKind kind,
+  ) {
     indent--;
     seen(beginToken);
     seen(endToken);
@@ -1894,7 +2065,11 @@ class ParserTestListener implements Listener {
 
   @override
   void endPartOf(
-      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
+    Token partKeyword,
+    Token ofKeyword,
+    Token semicolon,
+    bool hasName,
+  ) {
     indent--;
     seen(partKeyword);
     seen(ofKeyword);
@@ -1964,7 +2139,10 @@ class ParserTestListener implements Listener {
 
   @override
   void endReturnStatement(
-      bool hasExpression, Token beginToken, Token endToken) {
+    bool hasExpression,
+    Token beginToken,
+    Token endToken,
+  ) {
     indent--;
     seen(beginToken);
     seen(endToken);
@@ -2047,7 +2225,10 @@ class ParserTestListener implements Listener {
 
   @override
   void endSwitchExpressionBlock(
-      int caseCount, Token beginToken, Token endToken) {
+    int caseCount,
+    Token beginToken,
+    Token endToken,
+  ) {
     indent--;
     seen(beginToken);
     seen(endToken);
@@ -2115,15 +2296,16 @@ class ParserTestListener implements Listener {
 
   @override
   void beginFields(
-      DeclarationKind declarationKind,
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      Token lastConsumed) {
+    DeclarationKind declarationKind,
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    Token lastConsumed,
+  ) {
     seen(abstractToken);
     seen(augmentToken);
     seen(externalToken);
@@ -2147,15 +2329,16 @@ class ParserTestListener implements Listener {
 
   @override
   void endTopLevelFields(
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     indent--;
     seen(augmentToken);
     seen(externalToken);
@@ -2179,7 +2362,10 @@ class ParserTestListener implements Listener {
 
   @override
   void beginTopLevelMethod(
-      Token lastConsumed, Token? augmentToken, Token? externalToken) {
+    Token lastConsumed,
+    Token? augmentToken,
+    Token? externalToken,
+  ) {
     seen(lastConsumed);
     seen(augmentToken);
     seen(externalToken);
@@ -2236,7 +2422,11 @@ class ParserTestListener implements Listener {
 
   @override
   void endTryStatement(
-      int catchCount, Token tryKeyword, Token? finallyKeyword, Token endToken) {
+    int catchCount,
+    Token tryKeyword,
+    Token? finallyKeyword,
+    Token endToken,
+  ) {
     indent--;
     seen(tryKeyword);
     seen(finallyKeyword);
@@ -2280,8 +2470,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleDeclaredVariablePattern(Token? keyword, Token variable,
-      {required bool inAssignmentPattern}) {
+  void handleDeclaredVariablePattern(
+    Token? keyword,
+    Token variable, {
+    required bool inAssignmentPattern,
+  }) {
     seen(keyword);
     seen(variable);
     doPrint('handleDeclaredVariablePattern('
@@ -2312,7 +2505,11 @@ class ParserTestListener implements Listener {
 
   @override
   void endRecordType(
-      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    Token leftBracket,
+    Token? questionMark,
+    int count,
+    bool hasNamedFields,
+  ) {
     indent--;
     seen(leftBracket);
     seen(questionMark);
@@ -2406,7 +2603,11 @@ class ParserTestListener implements Listener {
 
   @override
   void endTypeVariable(
-      Token token, int index, Token? extendsOrSuper, Token? variance) {
+    Token token,
+    int index,
+    Token? extendsOrSuper,
+    Token? variance,
+  ) {
     indent--;
     seen(token);
     seen(extendsOrSuper);
@@ -2456,7 +2657,10 @@ class ParserTestListener implements Listener {
 
   @override
   void beginVariablesDeclaration(
-      Token token, Token? lateToken, Token? varFinalOrConst) {
+    Token token,
+    Token? lateToken,
+    Token? varFinalOrConst,
+  ) {
     seen(token);
     seen(lateToken);
     seen(varFinalOrConst);
@@ -2695,7 +2899,10 @@ class ParserTestListener implements Listener {
 
   @override
   void handleIndexedExpression(
-      Token? question, Token openSquareBracket, Token closeSquareBracket) {
+    Token? question,
+    Token openSquareBracket,
+    Token closeSquareBracket,
+  ) {
     seen(question);
     seen(openSquareBracket);
     seen(closeSquareBracket);
@@ -2734,7 +2941,10 @@ class ParserTestListener implements Listener {
 
   @override
   void handleBreakStatement(
-      bool hasTarget, Token breakKeyword, Token endToken) {
+    bool hasTarget,
+    Token breakKeyword,
+    Token endToken,
+  ) {
     seen(breakKeyword);
     seen(endToken);
     doPrint(
@@ -2743,7 +2953,10 @@ class ParserTestListener implements Listener {
 
   @override
   void handleContinueStatement(
-      bool hasTarget, Token continueKeyword, Token endToken) {
+    bool hasTarget,
+    Token continueKeyword,
+    Token endToken,
+  ) {
     seen(continueKeyword);
     seen(endToken);
     doPrint('handleContinueStatement('
@@ -2766,8 +2979,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token endToken) {
+  void endAssert(
+    Token assertKeyword,
+    Assert kind,
+    Token leftParenthesis,
+    Token? commaToken,
+    Token endToken,
+  ) {
     indent--;
     seen(assertKeyword);
     seen(leftParenthesis);
@@ -2807,7 +3025,11 @@ class ParserTestListener implements Listener {
 
   @override
   void handleLiteralList(
-      int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
+    int count,
+    Token leftBracket,
+    Token? constKeyword,
+    Token rightBracket,
+  ) {
     seen(leftBracket);
     seen(constKeyword);
     seen(rightBracket);
@@ -3064,7 +3286,10 @@ class ParserTestListener implements Listener {
 
   @override
   void handleObjectPattern(
-      Token firstIdentifier, Token? dot, Token? secondIdentifier) {
+    Token firstIdentifier,
+    Token? dot,
+    Token? secondIdentifier,
+  ) {
     seen(firstIdentifier);
     seen(dot);
     seen(secondIdentifier);
@@ -3094,7 +3319,10 @@ class ParserTestListener implements Listener {
 
   @override
   void handleAugmentSuperExpression(
-      Token augmentToken, Token superToken, IdentifierContext context) {
+    Token augmentToken,
+    Token superToken,
+    IdentifierContext context,
+  ) {
     seen(augmentToken);
     seen(superToken);
     doPrint('handleAugmentSuperExpression('
@@ -3113,13 +3341,14 @@ class ParserTestListener implements Listener {
 
   @override
   void endSwitchCase(
-      int labelCount,
-      int expressionCount,
-      Token? defaultKeyword,
-      Token? colonAfterDefault,
-      int statementCount,
-      Token beginToken,
-      Token endToken) {
+    int labelCount,
+    int expressionCount,
+    Token? defaultKeyword,
+    Token? colonAfterDefault,
+    int statementCount,
+    Token beginToken,
+    Token endToken,
+  ) {
     indent--;
     seen(defaultKeyword);
     seen(colonAfterDefault);
@@ -3143,7 +3372,11 @@ class ParserTestListener implements Listener {
 
   @override
   void endSwitchExpressionCase(
-      Token beginToken, Token? when, Token arrow, Token endToken) {
+    Token beginToken,
+    Token? when,
+    Token arrow,
+    Token endToken,
+  ) {
     indent--;
     seen(beginToken);
     seen(when);
@@ -3200,7 +3433,10 @@ class ParserTestListener implements Listener {
 
   @override
   void handleValuedFormalParameter(
-      Token equals, Token token, FormalParameterKind kind) {
+    Token equals,
+    Token token,
+    FormalParameterKind kind,
+  ) {
     seen(equals);
     seen(token);
     doPrint('handleValuedFormalParameter(' '$equals, ' '$token, ' '$kind)');
@@ -3241,8 +3477,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endInvalidYieldStatement(Token beginToken, Token? starToken,
-      Token endToken, MessageCode errorCode) {
+  void endInvalidYieldStatement(
+    Token beginToken,
+    Token? starToken,
+    Token endToken,
+    MessageCode errorCode,
+  ) {
     indent--;
     seen(beginToken);
     seen(starToken);
@@ -3256,7 +3496,10 @@ class ParserTestListener implements Listener {
 
   @override
   void handleRecoverableError(
-      Message message, Token startToken, Token endToken) {
+    Message message,
+    Token startToken,
+    Token endToken,
+  ) {
     seen(startToken);
     seen(endToken);
     doPrint(
@@ -3266,7 +3509,10 @@ class ParserTestListener implements Listener {
 
   @override
   void handleExperimentNotEnabled(
-      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    ExperimentalFlag experimentalFlag,
+    Token startToken,
+    Token endToken,
+  ) {
     seen(startToken);
     seen(endToken);
     doPrint('handleExperimentNotEnabled('
@@ -3283,7 +3529,11 @@ class ParserTestListener implements Listener {
 
   @override
   void handleUnescapeError(
-      Message message, Token location, int stringOffset, int length) {
+    Message message,
+    Token location,
+    int stringOffset,
+    int length,
+  ) {
     seen(location);
     doPrint('handleUnescapeError('
         '$message, '
@@ -3318,7 +3568,10 @@ class ParserTestListener implements Listener {
 
   @override
   void handlePatternVariableDeclarationStatement(
-      Token keyword, Token equals, Token semicolon) {
+    Token keyword,
+    Token equals,
+    Token semicolon,
+  ) {
     seen(keyword);
     seen(equals);
     seen(semicolon);

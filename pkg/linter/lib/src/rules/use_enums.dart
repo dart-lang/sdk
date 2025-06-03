@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -17,14 +18,14 @@ class UseEnums extends LintRule {
   UseEnums() : super(name: LintNames.use_enums, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_enums;
+  DiagnosticCode get diagnosticCode => LinterLintCode.use_enums;
 
   @override
   void registerNodeProcessors(
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    if (!context.isEnabled(Feature.enhanced_enums)) return;
+    if (!context.isFeatureEnabled(Feature.enhanced_enums)) return;
 
     var visitor = _Visitor(this, context);
     registry.addClassDeclaration(this, visitor);
@@ -44,7 +45,7 @@ class _BaseVisitor extends RecursiveAstVisitor<void> {
     var constructorElement = node.constructorName.element;
     return constructorElement != null &&
         !constructorElement.isFactory &&
-        constructorElement.enclosingElement2 == classElement;
+        constructorElement.enclosingElement == classElement;
   }
 }
 
@@ -169,7 +170,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           var constructorElement = initializer.constructorName.element;
           if (constructorElement == null) continue;
           if (constructorElement.isFactory) continue;
-          if (constructorElement.enclosingElement2 != classElement) continue;
+          if (constructorElement.enclosingElement != classElement) continue;
           if (fieldElement.computeConstantValue() == null) continue;
 
           candidateConstants.add(field);

@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
+import 'package:front_end/src/base/name_space.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
@@ -71,8 +72,6 @@ import '../builder/declaration_builders.dart'
 import '../builder/library_builder.dart'
     show CompilationUnit, LibraryBuilder, SourceCompilationUnit;
 import '../builder/member_builder.dart' show MemberBuilder;
-import '../builder/name_iterator.dart' show NameIterator;
-import '../builder/property_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
@@ -82,7 +81,6 @@ import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
-import '../source/source_extension_builder.dart';
 import '../source/source_library_builder.dart'
     show
         ImplicitLanguageVersion,
@@ -99,10 +97,9 @@ import 'compiler_context.dart' show CompilerContext;
 import 'hybrid_file_system.dart' show HybridFileSystem;
 import 'incremental_serializer.dart' show IncrementalSerializer;
 import 'library_graph.dart' show LibraryGraph;
-import 'lookup_result.dart';
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
-import 'uris.dart' show dartCore, getPartUri;
+import 'uris.dart' show getPartUri;
 
 final Uri dartFfiUri = Uri.parse("dart:ffi");
 
@@ -593,31 +590,27 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         /// dill library builders might have links (via export scopes) to the
         /// source builders. Patch that up.
 
-        // Maps from old library builder to map of new content.
-        Map<LibraryBuilder, Map<String, Builder>>? replacementMap = {};
-
-        // Maps from old library builder to map of new content.
-        Map<LibraryBuilder, Map<String, Builder>>? replacementSettersMap = {};
+        // Map from old library builder to name space of new content.
+        Map<LibraryBuilder, NameSpace>? replacementNameSpaceMap = {};
 
         _experimentalInvalidationFillReplacementMaps(
-            convertedLibraries!, replacementMap, replacementSettersMap);
+            convertedLibraries!, replacementNameSpaceMap);
 
         for (DillLibraryBuilder builder
             in experimentalInvalidation.originalNotReusedLibraries) {
           if (builder.isBuilt) {
-            builder.patchUpExportScope(replacementMap, replacementSettersMap);
+            builder.patchUpExportScope(replacementNameSpaceMap);
 
             // Clear cached calculations that points (potential) to now replaced
             // things.
-            for (Builder builder in builder.libraryNameSpace.localMembers) {
-              if (builder is DillClassBuilder) {
-                builder.clearCachedValues();
-              }
+            Iterator<DillClassBuilder> iterator =
+                builder.filteredMembersIterator(includeDuplicates: true);
+            while (iterator.moveNext()) {
+              iterator.current.clearCachedValues();
             }
           }
         }
-        replacementMap = null;
-        replacementSettersMap = null;
+        replacementNameSpaceMap = null;
       }
     }
     nextGoodKernelTarget.loader.buildersCreatedWithReferences.clear();
@@ -652,62 +645,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   // Coverage-ignore(suite): Not run.
   String? _hasEquivalentScopes(SourceLibraryBuilder sourceLibraryBuilder,
       DillLibraryBuilder dillLibraryBuilder) {
-    bool isEquivalent = true;
-    StringBuffer sb = new StringBuffer();
-    sb.writeln('Mismatch on ${sourceLibraryBuilder.importUri}:');
-    sourceLibraryBuilder.exportNameSpace
-        .forEachLocalMember((String name, Builder sourceBuilder) {
-      Builder? dillBuilder =
-          dillLibraryBuilder.exportNameSpace.lookupLocalMember(name)?.getable;
-      if (dillBuilder == null) {
-        if ((name == 'dynamic' || name == 'Never') &&
-            sourceLibraryBuilder.importUri == dartCore) {
-          // The source library builder for dart:core has synthetically
-          // injected builders for `dynamic` and `Never` which do not have
-          // corresponding classes in the AST.
-          return;
-        }
-        sb.writeln('No dill builder for ${name}: $sourceBuilder');
-        isEquivalent = false;
-      }
-    });
-    dillLibraryBuilder.exportNameSpace
-        .forEachLocalMember((String name, Builder dillBuilder) {
-      Builder? sourceBuilder =
-          sourceLibraryBuilder.exportNameSpace.lookupLocalMember(name)?.getable;
-      if (sourceBuilder == null) {
-        sb.writeln('No source builder for ${name}: $dillBuilder');
-        isEquivalent = false;
-      }
-    });
-    sourceLibraryBuilder.exportNameSpace
-        .forEachLocalSetter((String name, Builder sourceBuilder) {
-      Builder? dillBuilder =
-          dillLibraryBuilder.exportNameSpace.lookupLocalMember(name)?.setable;
-      if (dillBuilder == null) {
-        sb.writeln('No dill builder for ${name}=: $sourceBuilder');
-        isEquivalent = false;
-      }
-    });
-    dillLibraryBuilder.exportNameSpace
-        .forEachLocalSetter((String name, Builder dillBuilder) {
-      LookupResult? result =
-          sourceLibraryBuilder.exportNameSpace.lookupLocalMember(name);
-      Builder? sourceBuilder = result?.setable;
-      if (sourceBuilder == null) {
-        sourceBuilder = result?.getable;
-        if (sourceBuilder is PropertyBuilder && sourceBuilder.hasSetter) {
-          // Assignable fields can be lowered into a getter and setter.
-          return;
-        }
-        sb.writeln('No source builder for ${name}=: $dillBuilder');
-        isEquivalent = false;
-      }
-    });
-    if (isEquivalent) {
-      return null;
-    }
-    return sb.toString();
+    return areNameSpacesEquivalent(
+        importUri: sourceLibraryBuilder.importUri,
+        sourceNameSpace: sourceLibraryBuilder.exportNameSpace,
+        dillNameSpace: dillLibraryBuilder.exportNameSpace);
   }
 
   /// Compute which libraries to output and which (previous) errors/warnings we
@@ -819,38 +760,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// happen because of experimental invalidation.
   void _experimentalInvalidationFillReplacementMaps(
       Map<LibraryBuilder, CompilationUnit> rebuildBodiesMap,
-      Map<LibraryBuilder, Map<String, Builder>> replacementMap,
-      Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap) {
+      Map<LibraryBuilder, NameSpace> replacementNameSpaceMap) {
     for (MapEntry<LibraryBuilder, CompilationUnit> entry
         in rebuildBodiesMap.entries) {
-      Map<String, Builder> childReplacementMap = {};
-      Map<String, Builder> childReplacementSettersMap = {};
       CompilationUnit mainCompilationUnit = rebuildBodiesMap[entry.key]!;
-      replacementMap[entry.key] = childReplacementMap;
-      replacementSettersMap[entry.key] = childReplacementSettersMap;
-      NameIterator iterator =
-          mainCompilationUnit.libraryBuilder.localMembersNameIterator;
-      while (iterator.moveNext()) {
-        Builder childBuilder = iterator.current;
-        if (childBuilder is SourceExtensionBuilder &&
-            childBuilder.isUnnamedExtension) {
-          continue;
-        }
-        String name = iterator.name;
-        Map<String, Builder> map;
-        if (isMappedAsSetter(childBuilder)) {
-          map = childReplacementSettersMap;
-        } else {
-          map = childReplacementMap;
-        }
-        assert(
-            !map.containsKey(name),
-            "Unexpected double-entry for $name in "
-            "${mainCompilationUnit.importUri} "
-            "(org from ${entry.key.importUri}): "
-            "$childBuilder and ${map[name]}");
-        map[name] = childBuilder;
-      }
+      replacementNameSpaceMap[entry.key] =
+          mainCompilationUnit.libraryBuilder.libraryNameSpace;
     }
   }
 
@@ -888,20 +803,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ExperimentalInvalidation? experimentalInvalidation,
       Map<DillLibraryBuilder, CompilationUnit> rebuildBodiesMap) {
     if (experimentalInvalidation != null) {
-      // Maps from old library builder to map of new content.
-      Map<LibraryBuilder, Map<String, Builder>> replacementMap = {};
-
-      // Maps from old library builder to map of new content.
-      Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap = {};
+      // Map from old library builder to name space of new content.
+      Map<LibraryBuilder, NameSpace> replacementNameSpaceMap = {};
 
       _experimentalInvalidationFillReplacementMaps(
-          rebuildBodiesMap, replacementMap, replacementSettersMap);
+          rebuildBodiesMap, replacementNameSpaceMap);
 
       for (DillLibraryBuilder builder
           in experimentalInvalidation.originalNotReusedLibraries) {
         // There's only something to patch up if it was build already.
         if (builder.isBuilt) {
-          builder.patchUpExportScope(replacementMap, replacementSettersMap);
+          builder.patchUpExportScope(replacementNameSpaceMap);
         }
       }
     }
@@ -961,10 +873,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (builder.isBuiltAndMarked) {
           // Clear cached calculations in classes which upon calculation can
           // mark things as needed.
-          for (Builder builder in builder.libraryNameSpace.localMembers) {
-            if (builder is DillClassBuilder) {
-              builder.clearCachedValues();
-            }
+          Iterator<DillClassBuilder> iterator =
+              builder.filteredMembersIterator(includeDuplicates: true);
+          while (iterator.moveNext()) {
+            iterator.current.clearCachedValues();
           }
           builder.isBuiltAndMarked = false;
         }
@@ -1883,7 +1795,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               packageLanguageVersion:
                   new ImplicitLanguageVersion(libraryBuilder.languageVersion),
               loader: lastGoodKernelTarget.loader,
-              nameOrigin: libraryBuilder,
+              resolveInLibrary: libraryBuilder,
               isUnsupported: libraryBuilder.isUnsupported,
               forAugmentationLibrary: false,
               forPatchLibrary: false,
@@ -1897,17 +1809,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       SourceLibraryBuilder debugLibrary = debugCompilationUnit.createLibrary();
       debugLibrary.buildNameSpace();
-      libraryBuilder.libraryNameSpace.forEachLocalMember((name, member) {
-        debugLibrary.libraryNameSpace
-            .addLocalMember(name, member, setter: false);
-      });
-      libraryBuilder.libraryNameSpace.forEachLocalSetter((name, member) {
-        debugLibrary.libraryNameSpace
-            .addLocalMember(name, member, setter: true);
-      });
-      libraryBuilder.libraryNameSpace.forEachLocalExtension((member) {
-        debugLibrary.libraryNameSpace.addExtension(member);
-      });
       debugLibrary.buildScopes(lastGoodKernelTarget.loader.coreLibrary);
       _ticker.logMs("Created debug library");
 
@@ -1939,7 +1840,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         debugLibrary.addImportsToScope();
         _ticker.logMs("Added imports");
       }
-      SourceCompilationUnit? orgCompilationUnit = debugCompilationUnit;
       debugCompilationUnit = new SourceCompilationUnitImpl(
           importUri: libraryUri,
           fileUri: debugExprUri,
@@ -1947,7 +1847,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           packageLanguageVersion:
               new ImplicitLanguageVersion(libraryBuilder.languageVersion),
           loader: lastGoodKernelTarget.loader,
-          nameOrigin: libraryBuilder,
+          resolveInLibrary: libraryBuilder,
           parentScope: debugCompilationUnit.compilationUnitScope,
           isUnsupported: libraryBuilder.isUnsupported,
           forAugmentationLibrary: false,
@@ -1961,24 +1861,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       debugCompilationUnit.markLanguageVersionFinal();
 
       debugLibrary = debugCompilationUnit.createLibrary();
-
-      // Copy over the prefix namespace for extensions
-      // (`forEachExtensionInScope`) to be found when imported via prefixes.
-      // TODO(johnniwinther): Do we still need these with the new scope
-      //  structure?
-      orgCompilationUnit.prefixNameSpace.forEachLocalMember((name, member) {
-        debugCompilationUnit.prefixNameSpace
-            .addLocalMember(name, member, setter: false);
-      });
-      // Does a prefix namespace ever have anything but locals?
-      orgCompilationUnit.prefixNameSpace.forEachLocalSetter((name, member) {
-        debugCompilationUnit.prefixNameSpace
-            .addLocalMember(name, member, setter: true);
-      });
-      orgCompilationUnit.prefixNameSpace.forEachLocalExtension((member) {
-        debugCompilationUnit.prefixNameSpace.addExtension(member);
-      });
-      orgCompilationUnit = null;
 
       HybridFileSystem hfs =
           lastGoodKernelTarget.fileSystem as HybridFileSystem;

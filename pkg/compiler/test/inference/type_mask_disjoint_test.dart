@@ -107,12 +107,11 @@ main() {
             return cls;
           });
 
-          var mask =
-              isExact
-                  ? TypeMask.nonNullExact(element, commonMasks)
-                  : (isSubclass
-                      ? TypeMask.nonNullSubclass(element, commonMasks)
-                      : TypeMask.nonNullSubtype(element, commonMasks));
+          var mask = isExact
+              ? TypeMask.nonNullExact(element, commonMasks)
+              : (isSubclass
+                    ? TypeMask.nonNullSubclass(element, commonMasks)
+                    : TypeMask.nonNullSubtype(element, commonMasks));
           return isNullable ? mask.nullable(commonMasks) : mask;
         });
 

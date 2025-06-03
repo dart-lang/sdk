@@ -218,8 +218,9 @@ class DiagnosticReporter {
   }
 
   void _reportAssertionFailure(SpannableAssertionFailure ex) {
-    String message =
-        (ex.message != null) ? tryToString(ex.message!) : tryToString(ex);
+    String message = (ex.message != null)
+        ? tryToString(ex.message!)
+        : tryToString(ex);
     _reportDiagnosticInternal(
       createMessage(ex.node, MessageKind.generic, {'text': message}),
       const <DiagnosticMessage>[],

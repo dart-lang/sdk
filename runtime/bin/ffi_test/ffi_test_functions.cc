@@ -66,6 +66,12 @@ DART_EXPORT Coord GetGlobalStruct() {
   return globalStruct;
 }
 
+DART_EXPORT void SleepFor(int32_t ms) {
+  std::cout << "Sleeping for " << ms << " milliseconds...\n";
+  std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+  std::cout << "done\n";
+}
+
 // Sums two ints and adds 42.
 // Simple function to test trampolines.
 // Also used for testing argument exception on passing null instead of a Dart
@@ -1336,7 +1342,7 @@ static void* Start(void* data_in) {
   Data* data = reinterpret_cast<Data*>(data_in);
   void (*fn)(int64_t, int32_t) = data->fn;
   int64_t a = data->a;
-  int64_t b = data->b;
+  int32_t b = data->b;
   delete data;
   fn(a, b);
   return nullptr;

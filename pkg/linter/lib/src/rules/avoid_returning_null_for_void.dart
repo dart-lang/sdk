@@ -5,17 +5,18 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
 const _desc = r'Avoid returning `null` for `void`.';
 
-class AvoidReturningNullForVoid extends LintRule {
+class AvoidReturningNullForVoid extends MultiAnalysisRule {
   AvoidReturningNullForVoid()
     : super(name: LintNames.avoid_returning_null_for_void, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.avoid_returning_null_for_void_from_function,
     LinterLintCode.avoid_returning_null_for_void_from_method,
   ];
@@ -32,7 +33,7 @@ class AvoidReturningNullForVoid extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -72,11 +73,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (type == null) return;
 
     if (!isAsync && type is VoidType) {
-      rule.reportAtNode(node, errorCode: code);
+      rule.reportAtNode(node, diagnosticCode: code);
     } else if (isAsync &&
         type.isDartAsyncFuture &&
         (type as InterfaceType).typeArguments.first is VoidType) {
-      rule.reportAtNode(node, errorCode: code);
+      rule.reportAtNode(node, diagnosticCode: code);
     }
   }
 }

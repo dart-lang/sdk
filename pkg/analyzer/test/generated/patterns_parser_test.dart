@@ -1716,7 +1716,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: ListLiteral
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -1742,7 +1742,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1770,7 +1770,7 @@ CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
-      const: const
+      constKeyword: const
       expression: ListLiteral
         typeArguments: TypeArgumentList
           leftBracket: <
@@ -1796,7 +1796,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullAssertPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1823,7 +1823,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullCheckPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1849,7 +1849,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: ListLiteral
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -1878,7 +1878,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1909,7 +1909,7 @@ CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
-      const: const
+      constKeyword: const
       expression: ListLiteral
         typeArguments: TypeArgumentList
           leftBracket: <
@@ -1938,7 +1938,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullAssertPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1968,7 +1968,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullCheckPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1997,7 +1997,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: ListLiteral
     leftBracket: [
     rightBracket: ]
@@ -2017,7 +2017,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       leftBracket: [
       rightBracket: ]
@@ -2039,7 +2039,7 @@ CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
-      const: const
+      constKeyword: const
       expression: ListLiteral
         leftBracket: [
         rightBracket: ]
@@ -2059,7 +2059,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullAssertPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       leftBracket: [
       rightBracket: ]
@@ -2080,7 +2080,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullCheckPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       leftBracket: [
       rightBracket: ]
@@ -2100,7 +2100,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: ListLiteral
     leftBracket: [
     elements
@@ -2123,7 +2123,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       leftBracket: [
       elements
@@ -2148,7 +2148,7 @@ CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
-      const: const
+      constKeyword: const
       expression: ListLiteral
         leftBracket: [
         elements
@@ -2171,7 +2171,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullAssertPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       leftBracket: [
       elements
@@ -2195,7 +2195,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullCheckPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       leftBracket: [
       elements
@@ -2218,7 +2218,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: SetOrMapLiteral
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -2254,7 +2254,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -2292,7 +2292,7 @@ CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
-      const: const
+      constKeyword: const
       expression: SetOrMapLiteral
         typeArguments: TypeArgumentList
           leftBracket: <
@@ -2328,7 +2328,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullAssertPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -2365,7 +2365,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullCheckPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -2401,7 +2401,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: SetOrMapLiteral
     leftBracket: {
     elements
@@ -2429,7 +2429,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -2459,7 +2459,7 @@ CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
-      const: const
+      constKeyword: const
       expression: SetOrMapLiteral
         leftBracket: {
         elements
@@ -2487,7 +2487,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullAssertPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -2516,7 +2516,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullCheckPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -2544,7 +2544,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: MethodInvocation
     methodName: SimpleIdentifier
       token: Foo
@@ -2570,7 +2570,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: Foo
@@ -2598,7 +2598,7 @@ CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
-      const: const
+      constKeyword: const
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: Foo
@@ -2624,7 +2624,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullAssertPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: Foo
@@ -2651,7 +2651,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullCheckPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: Foo
@@ -2677,7 +2677,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: ParenthesizedExpression
     leftParenthesis: (
     expression: IntegerLiteral
@@ -2699,7 +2699,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ParenthesizedExpression
       leftParenthesis: (
       expression: IntegerLiteral
@@ -2723,7 +2723,7 @@ CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
-      const: const
+      constKeyword: const
       expression: ParenthesizedExpression
         leftParenthesis: (
         expression: IntegerLiteral
@@ -2745,7 +2745,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullAssertPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ParenthesizedExpression
       leftParenthesis: (
       expression: IntegerLiteral
@@ -2768,7 +2768,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullCheckPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ParenthesizedExpression
       leftParenthesis: (
       expression: IntegerLiteral
@@ -2790,7 +2790,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: SetOrMapLiteral
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -2820,7 +2820,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -2852,7 +2852,7 @@ CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
-      const: const
+      constKeyword: const
       expression: SetOrMapLiteral
         typeArguments: TypeArgumentList
           leftBracket: <
@@ -2882,7 +2882,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullAssertPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -2913,7 +2913,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullCheckPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -2943,7 +2943,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: SetOrMapLiteral
     leftBracket: {
     elements
@@ -2967,7 +2967,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -2993,7 +2993,7 @@ CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
-      const: const
+      constKeyword: const
       expression: SetOrMapLiteral
         leftBracket: {
         elements
@@ -3017,7 +3017,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullAssertPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -3042,7 +3042,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 NullCheckPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -3420,7 +3420,7 @@ f(x) => switch(x) { const (() => 0) => 0 };
     var node = findNode.switchExpressionCase('() => 0').guardedPattern.pattern;
     assertParsedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: ParenthesizedExpression
     leftParenthesis: (
     expression: FunctionExpression
@@ -3889,7 +3889,7 @@ SwitchExpression
     SwitchExpressionCase
       guardedPattern: GuardedPattern
         pattern: ConstantPattern
-          const: const
+          constKeyword: const
           expression: MethodInvocation
             methodName: SimpleIdentifier
               token: A

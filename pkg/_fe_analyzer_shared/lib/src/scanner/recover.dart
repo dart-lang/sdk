@@ -5,13 +5,7 @@
 library _fe_analyzer_shared.scanner.recover;
 
 String closeBraceFor(String openBrace) {
-  return const {
-    '(': ')',
-    '[': ']',
-    '{': '}',
-    '<': '>',
-    r'${': '}',
-  }[openBrace]!;
+  return const {'(': ')', '[': ']', '{': '}', '<': '>', r'${': '}'}[openBrace]!;
 }
 
 String closeQuoteFor(String openQuote) {

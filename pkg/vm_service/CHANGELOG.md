@@ -1,8 +1,11 @@
 ## 15.0.1
-- Update to version `4.17` of the spec.
+- Update to version `4.19` of the spec.
 - Add `Timer` stream.
 - Add `TimerSignificantlyOverdue` event kind.
 - Add `details` property to `Event`.
+- Add `getQueuedMicrotasks` RPC.
+- Add `Microtask` and `QueuedMicrotasks` types.
+- Add `RPCErrorKind.kCannotGetQueuedMicrotasks`.
 
 ## 15.0.0
 - Update type of `CodeRef.function` from `FuncRef` to `dynamic` to allow for `NativeFunction`

@@ -50,7 +50,8 @@ Map<Object, FormalParameterElementMixin> _computeParameterMap(
   int unnamedParameterIndex = 0;
   return {
     for (var parameter in parameters)
-      parameter.isNamed ? parameter.name3! : unnamedParameterIndex++: parameter,
+      parameter.isNamed ? parameter.name3 ?? '' : unnamedParameterIndex++:
+          parameter,
   };
 }
 
@@ -159,6 +160,16 @@ class DotShorthandConstructorInvocationInferrer
 
   @override
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;
+
+  @override
+  void _reportWrongNumberOfTypeArguments(
+    TypeArgumentList typeArgumentList,
+    FunctionType rawType,
+    List<TypeParameterElement> typeParameters,
+  ) {
+    // Error reporting for dot shorthand constructor invocations is done
+    // within the [InstanceCreationExpressionResolver].
+  }
 
   @override
   List<FormalParameterElement>? _storeResult(
@@ -632,7 +643,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         inferrer?.constrainArgument(
           argument.typeOrThrow,
           parameter.type,
-          parameter.name3!,
+          parameter.name3 ?? '',
           nodeForTesting: node,
         );
       }
@@ -707,7 +718,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
           inferrer?.constrainArgument(
             argument.typeOrThrow,
             parameter.type,
-            parameter.name3!,
+            parameter.name3 ?? '',
             nodeForTesting: node,
           );
         }

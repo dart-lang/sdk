@@ -42,13 +42,13 @@ class Super extends core::Object {
   synthetic constructor •() → self::Super
     : super core::Object::•()
     ;
-  method foo({core::num x = #C1, core::String y = #C1}) → dynamic {}
+  method foo({erroneously-initialized core::num x = #C1, erroneously-initialized core::String y = #C1}) → dynamic {}
 }
 class Sub extends self::Super {
   synthetic constructor •() → self::Sub
     : super self::Super::•()
     ;
-  erroneous method foo({core::num x = #C1, core::Symbol x2 = #C1, core::bool x3 = #C1}) → dynamic {}
+  erroneous method foo({erroneously-initialized core::num x = #C1, erroneously-initialized core::Symbol x2 = #C1, erroneously-initialized core::bool x3 = #C1}) → dynamic {}
 }
 
 constants  {

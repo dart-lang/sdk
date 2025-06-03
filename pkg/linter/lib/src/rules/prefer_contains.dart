@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -13,14 +14,14 @@ import '../util/dart_type_utilities.dart';
 
 const _desc = r'Use contains for `List` and `String` instances.';
 
-class PreferContains extends LintRule {
+class PreferContains extends MultiAnalysisRule {
   PreferContains() : super(name: LintNames.prefer_contains, description: _desc);
 
   // TODO(brianwilkerson): Both `alwaysFalse` and `alwaysTrue` should be warnings
   //  rather than lints because they represent a bug rather than a style
   //  preference.
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.prefer_contains_always_false,
     LinterLintCode.prefer_contains_always_true,
     LinterLintCode.prefer_contains_use_contains,
@@ -79,19 +80,19 @@ class _Visitor extends SimpleAstVisitor<void> {
           type == TokenType.GT) {
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_contains_use_contains,
+          diagnosticCode: LinterLintCode.prefer_contains_use_contains,
         );
       } else if (type == TokenType.LT) {
         // indexOf < -1 is always false
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_contains_always_false,
+          diagnosticCode: LinterLintCode.prefer_contains_always_false,
         );
       } else if (type == TokenType.GT_EQ) {
         // indexOf >= -1 is always true
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_contains_always_true,
+          diagnosticCode: LinterLintCode.prefer_contains_always_true,
         );
       }
     } else if (value == 0) {
@@ -100,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (type == TokenType.GT_EQ || type == TokenType.LT) {
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_contains_use_contains,
+          diagnosticCode: LinterLintCode.prefer_contains_use_contains,
         );
       }
     } else if (value < -1) {
@@ -111,14 +112,14 @@ class _Visitor extends SimpleAstVisitor<void> {
           type == TokenType.LT) {
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_contains_always_false,
+          diagnosticCode: LinterLintCode.prefer_contains_always_false,
         );
       } else if (type == TokenType.BANG_EQ ||
           type == TokenType.GT_EQ ||
           type == TokenType.GT) {
         rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_contains_always_true,
+          diagnosticCode: LinterLintCode.prefer_contains_always_true,
         );
       }
     }

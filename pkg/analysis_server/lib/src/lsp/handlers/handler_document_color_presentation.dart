@@ -11,7 +11,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// Handles textDocument/colorPresentation.
@@ -232,7 +231,7 @@ class DocumentColorPresentationHandler
   /// `const` should be inserted if the existing expression is constant but
   /// we are not already in a constant context.
   bool _willRequireConstKeyword(int offset, ResolvedUnitResult unit) {
-    var node = NodeLocator2(offset).searchWithin(unit.unit);
+    var node = unit.unit.nodeCovering(offset: offset);
     if (node is! Expression) {
       return false;
     }

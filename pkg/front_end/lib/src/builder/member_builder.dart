@@ -11,7 +11,8 @@ import 'builder.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 
-abstract class MemberBuilder implements Builder, LookupResult {
+abstract class MemberBuilder implements Builder, LookupResult, NamedBuilder {
+  @override
   String get name;
 
   LibraryBuilder get libraryBuilder;
@@ -87,10 +88,6 @@ abstract class MemberBuilder implements Builder, LookupResult {
   /// the getter and setter capabilities.
   Iterable<Reference> get exportedMemberReferences;
 
-  /// Returns `true` if this member is a setter that conflicts with the implicit
-  /// setter of a field.
-  bool get isConflictingSetter;
-
   /// Returns the [ClassMember]s for the non-setter members created for this
   /// member builder.
   ///
@@ -118,7 +115,8 @@ abstract class MemberBuilder implements Builder, LookupResult {
   bool get isProperty;
 }
 
-abstract class MemberBuilderImpl extends BuilderImpl implements MemberBuilder {
+abstract class MemberBuilderImpl extends NamedBuilderImpl
+    implements MemberBuilder {
   @override
   Uri get fileUri;
 
@@ -155,9 +153,6 @@ abstract class MemberBuilderImpl extends BuilderImpl implements MemberBuilder {
   bool get isTopLevel => !isDeclarationMember;
 
   @override
-  bool get isConflictingSetter => false;
-
-  @override
   String get fullNameForErrors => name;
 }
 
@@ -166,14 +161,8 @@ abstract class BuilderClassMember implements ClassMember {
   MemberBuilderImpl get memberBuilder;
 
   @override
-  int get charOffset => memberBuilder.fileOffset;
-
-  @override
   DeclarationBuilder get declarationBuilder =>
       memberBuilder.declarationBuilder!;
-
-  @override
-  Uri get fileUri => memberBuilder.fileUri;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -234,9 +223,9 @@ abstract class BuilderClassMember implements ClassMember {
   ClassMember get interfaceMember => this;
 
   @override
+  // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     if (isStatic) {
-      // Coverage-ignore-block(suite): Not run.
       return new StaticMemberResult(getMember(membersBuilder), memberKind,
           isDeclaredAsField:
               isDeclaredAsField(memberBuilder, forSetter: forSetter),

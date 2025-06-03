@@ -162,7 +162,7 @@ class DeclarationHelper {
 
   /// Add suggestions for all constructors of [element].
   void addConstructorNamesForElement({required InterfaceElement element}) {
-    var constructors = element.constructors2;
+    var constructors = element.constructors;
     for (var constructor in constructors) {
       _suggestConstructor(
         constructor,
@@ -235,7 +235,7 @@ class DeclarationHelper {
     FieldElement? fieldToInclude,
   ) {
     var constructorElement = constructor.declaredFragment?.element;
-    var containingElement = constructorElement?.enclosingElement2;
+    var containingElement = constructorElement?.enclosingElement;
     if (containingElement == null) {
       return;
     }
@@ -265,7 +265,7 @@ class DeclarationHelper {
     }
     fieldsToSkip.remove(fieldToInclude);
 
-    for (var field in containingElement.fields2) {
+    for (var field in containingElement.fields) {
       // Skip fields that are already initialized at their declaration.
       if (!field.isStatic &&
           !field.isSynthetic &&
@@ -399,7 +399,10 @@ class DeclarationHelper {
       return;
     }
     AstNode? parent = containingMember.parent ?? containingMember;
-    if (parent is ClassMember) {
+    if (parent is EnumConstantDeclaration) {
+      assert(node is CommentReference);
+      parent = parent.parent;
+    } else if (parent is ClassMember) {
       assert(node is CommentReference);
       parent = parent.parent;
     } else if (parent is Directive) {
@@ -441,7 +444,7 @@ class DeclarationHelper {
     var referencingInterface =
         (extendedType is InterfaceType) ? extendedType.element3 : null;
     if (includeMethods) {
-      for (var method in extension.methods2) {
+      for (var method in extension.methods) {
         if (!method.isStatic) {
           if (method.isOperator) {
             continue;
@@ -454,7 +457,7 @@ class DeclarationHelper {
         }
       }
     }
-    for (var accessor in extension.getters2) {
+    for (var accessor in extension.getters) {
       if (excludedGetters.contains(accessor.name3)) {
         continue;
       }
@@ -467,7 +470,7 @@ class DeclarationHelper {
       }
     }
     if (includeSetters) {
-      for (var accessor in extension.setters2) {
+      for (var accessor in extension.setters) {
         if (!accessor.isStatic) {
           _suggestProperty(
             accessor: accessor,
@@ -605,12 +608,12 @@ class DeclarationHelper {
     ConstructorElement redirectingConstructor,
     LibraryElement library,
   ) {
-    var classElement = redirectingConstructor.enclosingElement2;
+    var classElement = redirectingConstructor.enclosingElement;
     var classType = classElement.thisType;
     var typeSystem = library.typeSystem;
     for (var classElement in library.classes) {
       if (typeSystem.isSubtypeOf(classElement.thisType, classType)) {
-        for (var constructor in classElement.constructors2) {
+        for (var constructor in classElement.constructors) {
           if (constructor != redirectingConstructor &&
               constructor.isAccessibleIn2(library)) {
             _suggestConstructor(
@@ -636,30 +639,30 @@ class DeclarationHelper {
     switch (element) {
       case EnumElement():
         _addStaticMembers(
-          getters: element.getters2,
-          setters: element.setters2,
-          constructors: element.constructors2,
+          getters: element.getters,
+          setters: element.setters,
+          constructors: element.constructors,
           containingElement: element,
-          fields: element.fields2,
-          methods: element.methods2,
+          fields: element.fields,
+          methods: element.methods,
         );
       case ExtensionElement():
         _addStaticMembers(
-          getters: element.getters2,
-          setters: element.setters2,
+          getters: element.getters,
+          setters: element.setters,
           constructors: const [],
           containingElement: element,
-          fields: element.fields2,
-          methods: element.methods2,
+          fields: element.fields,
+          methods: element.methods,
         );
       case InterfaceElement():
         _addStaticMembers(
-          getters: element.getters2,
-          setters: element.setters2,
-          constructors: element.constructors2,
+          getters: element.getters,
+          setters: element.setters,
+          constructors: element.constructors,
           containingElement: element,
-          fields: element.fields2,
-          methods: element.methods2,
+          fields: element.fields,
+          methods: element.methods,
         );
     }
   }
@@ -669,16 +672,16 @@ class DeclarationHelper {
   void _addConstructors(LibraryElement library, ImportData importData) {
     for (var element in library.classes) {
       _suggestConstructors(
-        element.constructors2,
+        element.constructors,
         importData,
         allowNonFactory: !element.isAbstract,
       );
     }
     for (var element in library.enums) {
-      _suggestConstructors(element.constructors2, importData);
+      _suggestConstructors(element.constructors, importData);
     }
     for (var element in library.extensionTypes) {
-      _suggestConstructors(element.constructors2, importData);
+      _suggestConstructors(element.constructors, importData);
     }
     for (var element in library.typeAliases) {
       _addConstructorsForAliasedElement(element, importData);
@@ -694,14 +697,14 @@ class DeclarationHelper {
     var aliasedElement = alias.aliasedElement2;
     if (aliasedElement is ClassElement) {
       _suggestConstructors(
-        aliasedElement.constructors2,
+        aliasedElement.constructors,
         importData,
         allowNonFactory: !aliasedElement.isAbstract,
       );
     } else if (aliasedElement is ExtensionTypeElement) {
-      _suggestConstructors(aliasedElement.constructors2, importData);
+      _suggestConstructors(aliasedElement.constructors, importData);
     } else if (aliasedElement is MixinElement) {
-      _suggestConstructors(aliasedElement.constructors2, importData);
+      _suggestConstructors(aliasedElement.constructors, importData);
     }
   }
 
@@ -721,12 +724,12 @@ class DeclarationHelper {
       switch (element) {
         case ClassElement():
           _suggestConstructors(
-            element.constructors2,
+            element.constructors,
             importData,
             allowNonFactory: !element.isAbstract,
           );
         case ExtensionTypeElement():
-          _suggestConstructors(element.constructors2, importData);
+          _suggestConstructors(element.constructors, importData);
         case TypeAliasElement():
           _addConstructorsForAliasedElement(element, importData);
       }
@@ -780,7 +783,7 @@ class DeclarationHelper {
     for (var instantiatedExtension in applicableExtensions) {
       var extension = instantiatedExtension.extension;
       if (includeMethods) {
-        for (var method in extension.methods2) {
+        for (var method in extension.methods) {
           if (!method.isStatic) {
             if (method.isOperator) {
               continue;
@@ -789,7 +792,7 @@ class DeclarationHelper {
           }
         }
       }
-      for (var getter in extension.getters2) {
+      for (var getter in extension.getters) {
         if (excludedGetters.contains(getter.name3)) {
           continue;
         }
@@ -803,7 +806,7 @@ class DeclarationHelper {
           }
         }
       }
-      for (var setter in extension.setters2) {
+      for (var setter in extension.setters) {
         if (!setter.isSynthetic) {
           if (includeSetters) {
             _suggestProperty(accessor: setter);
@@ -1023,7 +1026,7 @@ class DeclarationHelper {
       return;
     }
     var referencingInterface = _referencingInterfaceFor(element);
-    var members = request.inheritanceManager.getInheritedMap(element);
+    var members = element.inheritedMembers;
     for (var member in members.values) {
       switch (member) {
         case MethodElement():
@@ -1060,8 +1063,8 @@ class DeclarationHelper {
     var substitution = Substitution.fromInterfaceType(type);
     var map =
         onlySuper
-            ? request.inheritanceManager.getInheritedConcreteMap(type.element3)
-            : request.inheritanceManager.getInterface2(type.element3).map2;
+            ? type.element3.inheritedConcreteMembers
+            : type.element3.interfaceMembers;
 
     var membersByName = <String, List<ExecutableElement>>{};
     for (var rawMember in map.values) {
@@ -1271,7 +1274,7 @@ class DeclarationHelper {
   void _addMembersOfEnclosingInstance(InstanceElement element) {
     var referencingInterface = _referencingInterfaceFor(element);
 
-    for (var accessor in element.getters2) {
+    for (var accessor in element.getters) {
       if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
         _suggestProperty(
           accessor: accessor,
@@ -1281,7 +1284,7 @@ class DeclarationHelper {
       }
     }
 
-    for (var accessor in element.setters2) {
+    for (var accessor in element.setters) {
       if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
         _suggestProperty(
           accessor: accessor,
@@ -1291,7 +1294,7 @@ class DeclarationHelper {
       }
     }
 
-    for (var field in element.fields2) {
+    for (var field in element.fields) {
       if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
         _suggestField(
           field: field,
@@ -1301,7 +1304,7 @@ class DeclarationHelper {
       }
     }
 
-    for (var method in element.methods2) {
+    for (var method in element.methods) {
       if (!mustBeStatic || method.isStatic) {
         _suggestMethod(
           method: method,
@@ -1317,6 +1320,8 @@ class DeclarationHelper {
         includeMethods: true,
         includeSetters: true,
       );
+    } else if (thisType is RecordType) {
+      _addFieldsOfRecordType(type: thisType, excludedFields: {});
     }
   }
 
@@ -1413,7 +1418,7 @@ class DeclarationHelper {
               (containingElement is EnumElement && field.name3 == 'values')) &&
           field.isVisibleIn(request.libraryElement)) {
         if (field.isEnumConstant) {
-          var enumElement = field.enclosingElement2;
+          var enumElement = field.enclosingElement;
           var matcherScore = state.matcher.score(
             '${enumElement.name3}.${field.name3}',
           );
@@ -1573,7 +1578,7 @@ class DeclarationHelper {
     }
 
     if (element.isProtected) {
-      var elementInterface = element.enclosingElement2;
+      var elementInterface = element.enclosingElement;
       if (elementInterface is! InterfaceElement) {
         return false;
       }
@@ -1672,10 +1677,10 @@ class DeclarationHelper {
   void _suggestClass(ClassElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if ((mustBeExtendable &&
-              !element.isExtendableIn2(request.libraryElement)) ||
+              !element.isExtendableIn(request.libraryElement)) ||
           (mustBeImplementable &&
-              !element.isImplementableIn2(request.libraryElement)) ||
-          (mustBeMixable && !element.isMixableIn2(request.libraryElement))) {
+              !element.isImplementableIn(request.libraryElement)) ||
+          (mustBeMixable && !element.isMixableIn(request.libraryElement))) {
         return;
       }
       if (!(mustBeConstant && !objectPatternAllowed) && !excludeTypeNames) {
@@ -1690,11 +1695,12 @@ class DeclarationHelper {
         }
       }
       if (!mustBeType) {
-        _suggestStaticFields(element.fields2, importData);
+        _suggestStaticFields(element.fields, importData);
         _suggestConstructors(
-          element.constructors2,
+          element.constructors,
           importData,
           allowNonFactory: !element.isAbstract,
+          checkVisibilty: false,
         );
       }
     }
@@ -1706,6 +1712,7 @@ class DeclarationHelper {
     required ImportData? importData,
     required bool hasClassName,
     required bool isConstructorRedirect,
+    bool checkVisibilty = true,
   }) {
     if (mustBeAssignable) {
       return;
@@ -1715,10 +1722,11 @@ class DeclarationHelper {
       return;
     }
     if (importData?.isNotImported ?? false) {
-      if (!visibilityTracker.isVisible(
-        element: element.enclosingElement2,
-        importData: importData,
-      )) {
+      if (checkVisibilty &&
+          !visibilityTracker.isVisible(
+            element: element.enclosingElement,
+            importData: importData,
+          )) {
         // If the constructor is on a class from a not-yet-imported library and
         // the class isn't visible, then we shouldn't suggest it.
         //
@@ -1732,7 +1740,7 @@ class DeclarationHelper {
       // Add the class to the visibility tracker so that we will know later that
       // any non-imported elements with the same name are not visible.
       visibilityTracker.isVisible(
-        element: element.enclosingElement2,
+        element: element.enclosingElement,
         importData: importData,
       );
     }
@@ -1761,6 +1769,7 @@ class DeclarationHelper {
     List<ConstructorElement> constructors,
     ImportData? importData, {
     bool allowNonFactory = true,
+    bool checkVisibilty = true,
   }) {
     if (mustBeAssignable) {
       return;
@@ -1773,6 +1782,7 @@ class DeclarationHelper {
           hasClassName: false,
           importData: importData,
           isConstructorRedirect: false,
+          checkVisibilty: checkVisibilty,
         );
       }
     }
@@ -1795,9 +1805,9 @@ class DeclarationHelper {
       }
 
       if (!mustBeType) {
-        _suggestStaticFields(element.fields2, importData);
+        _suggestStaticFields(element.fields, importData);
         _suggestConstructors(
-          element.constructors2,
+          element.constructors,
           importData,
           allowNonFactory: false,
         );
@@ -1825,7 +1835,7 @@ class DeclarationHelper {
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
-        _suggestStaticFields(element.fields2, importData);
+        _suggestStaticFields(element.fields, importData);
       }
     }
   }
@@ -1849,8 +1859,12 @@ class DeclarationHelper {
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
-        _suggestStaticFields(element.fields2, importData);
-        _suggestConstructors(element.constructors2, importData);
+        _suggestStaticFields(element.fields, importData);
+        _suggestConstructors(
+          element.constructors,
+          importData,
+          checkVisibilty: false,
+        );
       }
     }
   }
@@ -1940,7 +1954,7 @@ class DeclarationHelper {
       }
       var matcherScore = state.matcher.score(method.displayName);
       if (matcherScore != -1) {
-        var enclosingElement = method.enclosingElement2;
+        var enclosingElement = method.enclosingElement;
         if (method.name3 == 'setState' &&
             enclosingElement is ClassElement &&
             enclosingElement.isExactState) {
@@ -1984,7 +1998,7 @@ class DeclarationHelper {
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
-        _suggestStaticFields(element.fields2, importData);
+        _suggestStaticFields(element.fields, importData);
       }
     }
   }
@@ -2109,7 +2123,7 @@ class DeclarationHelper {
           contextType,
         )) {
       if (element.isEnumConstant) {
-        var enumElement = element.enclosingElement2;
+        var enumElement = element.enclosingElement;
         var matcherScore = state.matcher.score(
           '${enumElement.displayName}.${element.displayName}',
         );

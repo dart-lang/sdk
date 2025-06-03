@@ -144,10 +144,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
         }
 
         // Write getter.
-        var overriddenGetters = inheritanceManager.getOverridden4(
-          parentElement,
-          Name(null, name),
-        );
+        var overriddenGetters = parentElement.getOverridden(Name(null, name));
         writeHeader(overriddenGetters != null);
         builder.write('  ${typeCode}get $name => _$name;');
 
@@ -155,8 +152,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
         if (variableList.isFinal) {
           return;
         }
-        var overriddenSetters = inheritanceManager.getOverridden4(
-          parentElement,
+        var overriddenSetters = parentElement.getOverridden(
           Name(null, '$name='),
         );
         writeHeader(overriddenSetters != null);

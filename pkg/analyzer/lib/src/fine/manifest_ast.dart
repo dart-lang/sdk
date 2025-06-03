@@ -369,6 +369,11 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
     node.visitChildren(this);
   }
 
+  @override
+  void visitTypeLiteral(TypeLiteral node) {
+    node.visitChildren(this);
+  }
+
   void _addElement(Element? element) {
     ManifestAstElementKind kind;
     int rawIndex;
@@ -395,6 +400,13 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
 
     var index = kind.encodeRawIndex(rawIndex);
     elementIndexList.add(index);
+
+    // We resolve `a` in `const b = a;` as a getter. But during constant
+    // evaluation we will access the corresponding constant variable for
+    // its initializer. So, we also depend on the variable.
+    if (element is GetterElementImpl) {
+      _addElement(element.variable3!);
+    }
   }
 }
 

@@ -1783,12 +1783,12 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
 
   void test_directSuperclass_nullability() {
     var aElement = class_2(name: 'A');
-    var aQuestion = interfaceTypeQuestion2(aElement);
+    var aQuestion = interfaceTypeQuestion(aElement);
     var aNone = interfaceTypeNone(aElement);
 
     var bElementNone = class_2(name: 'B', superType: aNone);
 
-    var bNoneQuestion = interfaceTypeQuestion2(bElementNone);
+    var bNoneQuestion = interfaceTypeQuestion(bElementNone);
 
     var bNoneNone = interfaceTypeNone(bElementNone);
 
@@ -1842,7 +1842,7 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   void test_sameElement_nullability() {
     var aElement = class_2(name: 'A');
 
-    var aQuestion = interfaceTypeQuestion2(aElement);
+    var aQuestion = interfaceTypeQuestion(aElement);
     var aNone = interfaceTypeNone(aElement);
 
     void assertLUB(TypeImpl type1, TypeImpl type2, TypeImpl expected) {
@@ -1943,16 +1943,16 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
 
   void test_sharedSuperclass1_nullability() {
     var aElement = class_2(name: 'A');
-    var aQuestion = interfaceTypeQuestion2(aElement);
+    var aQuestion = interfaceTypeQuestion(aElement);
     var aNone = interfaceTypeNone(aElement);
 
     var bElementNone = class_2(name: 'B', superType: aNone);
     var cElementNone = class_2(name: 'C', superType: aNone);
 
-    var bNoneQuestion = interfaceTypeQuestion2(bElementNone);
+    var bNoneQuestion = interfaceTypeQuestion(bElementNone);
     var bNoneNone = interfaceTypeNone(bElementNone);
 
-    var cNoneQuestion = interfaceTypeQuestion2(cElementNone);
+    var cNoneQuestion = interfaceTypeQuestion(cElementNone);
     var cNoneNone = interfaceTypeNone(cElementNone);
 
     void assertLUB(TypeImpl type1, TypeImpl type2, TypeImpl expected) {
@@ -2853,7 +2853,7 @@ class UpperBoundTest extends _BoundsTestBase {
     var C = class_2(name: 'C', typeParameters: [X]);
     var Y = typeParameter('Y');
     var Y_none = typeParameterTypeNone(Y);
-    Y.bound = interfaceTypeQuestion2(C, typeArguments: [Y_none]);
+    Y.bound = interfaceTypeQuestion(C, typeArguments: [Y_none]);
     var C_Y_none = interfaceTypeNone(C, typeArguments: [Y_none]);
     var Y_none_promoted = typeParameterTypeNone(Y, promotedBound: C_Y_none);
     var C_Never_none = interfaceTypeNone(C, typeArguments: [neverNone]);

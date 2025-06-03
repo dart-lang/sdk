@@ -279,4 +279,31 @@ extension FolderExtension on Folder {
       current = current.parent;
     }
   }
+
+  /// Return a relative path if the [path] references a resource in this folder,
+  /// or `null` if it doesn't.
+  ///
+  /// The [path] must be absolute and normalized.
+  String? relativeIfContains(String path) {
+    // Given that paths are absolute and normalized the below is equivalent,
+    // but much faster, than something like
+    // ```
+    // if (parent.contains(path)) {
+    //  return provider.pathContext.relative(path, from: this.path);
+    // }
+    // return null;
+    // ```
+    String parent = this.path;
+    if (path.length <= parent.length) return null;
+    int separator = path.codeUnitAt(parent.length);
+    var style = provider.pathContext.style;
+    if (!style.isSeparator(separator)) return null;
+    for (var i = 0; i < parent.length; i++) {
+      if (parent.codeUnitAt(i) != path.codeUnitAt(i) &&
+          !style.codeUnitsEqual(parent.codeUnitAt(i), path.codeUnitAt(i))) {
+        return null;
+      }
+    }
+    return path.substring(parent.length + 1);
+  }
 }

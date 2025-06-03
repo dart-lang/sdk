@@ -356,7 +356,7 @@ enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operat
 type ExtensionMemberDescriptor {
   Name name;
   ExtensionMemberKind kind;
-  Byte flags (isStatic);
+  Byte flags (isStatic, isInternalImplementation);
   MemberReference member;  // May be NullReference.
   MemberReference tearOff; // May be NullReference.
 }
@@ -382,7 +382,7 @@ enum ExtensionTypeMemberKind { Constructor = 0, Factory = 1, Field = 2, Method =
 type ExtensionTypeMemberDescriptor {
   Name name;
   ExtensionTypeMemberKind kind;
-  Byte flags (isStatic);
+  Byte flags (isStatic, isInternalImplementation);
   MemberReference member;  // May be NullReference.
   MemberReference tearOff; // May be NullReference.
 }
@@ -415,7 +415,7 @@ type Constructor extends Member {
   FileOffset startFileOffset; // Offset of the start of the constructor including any annotations.
   FileOffset fileOffset; // Offset of the constructor name.
   FileOffset fileEndOffset;
-  Byte flags (isConst, isExternal, isSynthetic);
+  Byte flags (isConst, isExternal, isSynthetic, isErroneous);
   Name name;
   List<Expression> annotations;
   FunctionNode function;
@@ -1502,7 +1502,8 @@ type VariableDeclarationPlain {
 
   UInt flags (isFinal, isConst, hasDeclaredInitializer, isInitializingFormal,
               isCovariantByClass, isLate, isRequired, isCovariantByDeclaration,
-              isLowered, isSynthesized, isHoisted, isWildcard, isSuperInitializingFormal);
+              isLowered, isSynthesized, isHoisted, isWildcard, isSuperInitializingFormal,
+              isErroneouslyInitialized);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.

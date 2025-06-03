@@ -5,27 +5,28 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
 
 const _desc = "Don't use `final` for local variables.";
 
-class UnnecessaryFinal extends LintRule {
+class UnnecessaryFinal extends MultiAnalysisRule {
   UnnecessaryFinal()
     : super(name: LintNames.unnecessary_final, description: _desc);
+
+  @override
+  List<DiagnosticCode> get diagnosticCodes => [
+    LinterLintCode.unnecessary_final_with_type,
+    LinterLintCode.unnecessary_final_without_type,
+  ];
 
   @override
   List<String> get incompatibleRules => const [
     LintNames.prefer_final_locals,
     LintNames.prefer_final_parameters,
     LintNames.prefer_final_in_for_each,
-  ];
-
-  @override
-  List<LintCode> get lintCodes => [
-    LinterLintCode.unnecessary_final_with_type,
-    LinterLintCode.unnecessary_final_without_type,
   ];
 
   @override
@@ -43,7 +44,7 @@ class UnnecessaryFinal extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -70,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (keyword == null || keyword.type != Keyword.FINAL) return;
 
     var errorCode = getErrorCode(node.matchedValueType);
-    rule.reportAtToken(keyword, errorCode: errorCode);
+    rule.reportAtToken(keyword, diagnosticCode: errorCode);
   }
 
   @override
@@ -81,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (keyword == null) continue;
 
         var errorCode = getErrorCode(type);
-        rule.reportAtToken(keyword, errorCode: errorCode);
+        rule.reportAtToken(keyword, diagnosticCode: errorCode);
       }
     }
   }
@@ -99,14 +100,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (keyword == null) return;
       if (loopVariable.isFinal) {
         var errorCode = getErrorCode(loopVariable.type);
-        rule.reportAtToken(keyword, errorCode: errorCode);
+        rule.reportAtToken(keyword, diagnosticCode: errorCode);
       }
     } else if (forLoopParts is ForEachPartsWithPattern) {
       var keyword = forLoopParts.keyword;
       if (keyword.isFinal) {
         rule.reportAtToken(
           keyword,
-          errorCode: LinterLintCode.unnecessary_final_without_type,
+          diagnosticCode: LinterLintCode.unnecessary_final_without_type,
         );
       }
     }
@@ -118,7 +119,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (keyword == null) return;
     if (node.variables.isFinal) {
       var errorCode = getErrorCode(node.variables.type);
-      rule.reportAtToken(keyword, errorCode: errorCode);
+      rule.reportAtToken(keyword, diagnosticCode: errorCode);
     }
   }
 }

@@ -1059,6 +1059,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiNativeCallbackFunction:
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
     case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupSharedCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupSharedClosureFunction:
     case MethodRecognizer::kFfiStoreInt8:
     case MethodRecognizer::kFfiStoreInt16:
     case MethodRecognizer::kFfiStoreInt32:
@@ -1549,7 +1551,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       break;
     case MethodRecognizer::kFfiNativeCallbackFunction:
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction: {
+    case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupSharedCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupSharedClosureFunction: {
       const auto& error = String::ZoneHandle(
           Z, Symbols::New(thread_,
                           "This function should be handled on call site."));
@@ -5258,7 +5262,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
   switch (function.GetFfiCallbackKind()) {
     case FfiCallbackKind::kIsolateLocalStaticCallback:
+    case FfiCallbackKind::kIsolateGroupSharedStaticCallback:
     case FfiCallbackKind::kIsolateLocalClosureCallback:
+    case FfiCallbackKind::kIsolateGroupSharedClosureCallback:
       return BuildGraphOfSyncFfiCallback(function);
     case FfiCallbackKind::kAsyncCallback:
       return BuildGraphOfAsyncFfiCallback(function);
@@ -5569,8 +5575,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
   RELEASE_ASSERT(error == nullptr);
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;
-  const bool is_closure = function.GetFfiCallbackKind() ==
-                          FfiCallbackKind::kIsolateLocalClosureCallback;
+  const bool is_closure =
+      function.GetFfiCallbackKind() ==
+          FfiCallbackKind::kIsolateLocalClosureCallback ||
+      function.GetFfiCallbackKind() ==
+          FfiCallbackKind::kIsolateGroupSharedClosureCallback;
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);

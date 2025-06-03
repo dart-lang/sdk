@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/pub.dart'; // ignore: implementation_imports
 
 import '../../analyzer.dart';
@@ -13,10 +14,10 @@ class SecurePubspecUrls extends LintRule {
     : super(name: LintNames.secure_pubspec_urls, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.secure_pubspec_urls;
+  DiagnosticCode get diagnosticCode => LinterLintCode.secure_pubspec_urls;
 
   @override
-  PubspecVisitor<void> getPubspecVisitor() => Visitor(this);
+  PubspecVisitor<void> get pubspecVisitor => Visitor(this);
 }
 
 class Visitor extends PubspecVisitor<void> {

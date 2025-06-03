@@ -5,17 +5,18 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
 const _desc = r'Missing deprecated annotation.';
 
-class DeprecatedConsistency extends LintRule {
+class DeprecatedConsistency extends MultiAnalysisRule {
   DeprecatedConsistency()
     : super(name: LintNames.deprecated_consistency, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.deprecated_consistency_constructor,
     LinterLintCode.deprecated_consistency_field,
     LinterLintCode.deprecated_consistency_parameter,
@@ -33,7 +34,7 @@ class DeprecatedConsistency extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -41,13 +42,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var constructorElement = node.declaredFragment?.element;
     if (constructorElement != null &&
-        constructorElement.enclosingElement2.hasDeprecated &&
+        constructorElement.enclosingElement.hasDeprecated &&
         !constructorElement.hasDeprecated) {
       var nodeToAnnotate = node.name ?? node.returnType;
       rule.reportAtOffset(
         nodeToAnnotate.offset,
         nodeToAnnotate.length,
-        errorCode: LinterLintCode.deprecated_consistency_constructor,
+        diagnosticCode: LinterLintCode.deprecated_consistency_constructor,
       );
     }
   }
@@ -63,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {
       rule.reportAtNode(
         node,
-        errorCode: LinterLintCode.deprecated_consistency_field,
+        diagnosticCode: LinterLintCode.deprecated_consistency_field,
       );
     }
     if (!field.hasDeprecated && declaredElement.hasDeprecated) {
@@ -75,12 +76,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         nameOffset,
         nameLength,
-        errorCode: LinterLintCode.deprecated_consistency_parameter,
+        diagnosticCode: LinterLintCode.deprecated_consistency_parameter,
       );
     }
   }
 }
 
 extension on Annotatable {
-  bool get hasDeprecated => metadata2.hasDeprecated;
+  bool get hasDeprecated => metadata.hasDeprecated;
 }

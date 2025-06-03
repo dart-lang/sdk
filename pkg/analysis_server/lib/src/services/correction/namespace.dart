@@ -38,7 +38,7 @@ LibraryImport? _getImportElement(
   String prefix,
   Element element,
 ) {
-  if (element.enclosingElement2 is! LibraryElement) {
+  if (element.enclosingElement is! LibraryElement) {
     return null;
   }
   var usedLibrary = element.library2;

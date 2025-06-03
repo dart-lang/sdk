@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -18,7 +19,7 @@ class PreferConstConstructors extends LintRule {
     : super(name: LintNames.prefer_const_constructors, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_const_constructors;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_const_constructors;
 
   @override
   void registerNodeProcessors(
@@ -45,9 +46,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!element.isConst) return;
 
     // Handled by an analyzer warning.
-    if (element.metadata2.hasLiteral) return;
+    if (element.metadata.hasLiteral) return;
 
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is ClassElement && enclosingElement.isDartCoreObject) {
       // Skip lint for `new Object()`, because it can be used for ID creation.
       return;

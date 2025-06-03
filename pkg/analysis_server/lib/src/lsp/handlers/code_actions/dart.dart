@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/assist/assist.dart';
 import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
 import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
@@ -28,7 +29,6 @@ import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// Produces [CodeActionLiteral]s from Dart source commands, fixes, assists and
 /// refactors from the server.
@@ -51,7 +51,11 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.offset,
     required super.length,
     required super.shouldIncludeKind,
-    required super.capabilities,
+    required super.editorCapabilities,
+    required super.callerCapabilities,
+    required super.allowCodeActionLiterals,
+    required super.allowCommands,
+    required super.allowSnippets,
     required super.analysisOptions,
     required this.triggerKind,
     required this.willBeDeduplicated,
@@ -71,7 +75,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       (() => Commands.serverSupportedCommands.contains(command))(),
       'serverSupportedCommands did not contain $command',
     );
-    return _commandOrCodeActionLiteral(
+    return _maybeWrapCommandInCodeActionLiteral(
       actionKind,
       Command(
         title: title,
@@ -100,8 +104,12 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       (() => Commands.serverSupportedCommands.contains(command))(),
       'serverSupportedCommands did not contain $command',
     );
+    assert(
+      (() => serverSupportsCommand(command))(),
+      'This kind of server does not support $command',
+    );
 
-    return _commandOrCodeActionLiteral(
+    return _maybeWrapCommandInCodeActionLiteral(
       actionKind,
       Command(
         title: name,
@@ -125,11 +133,6 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   Future<List<CodeActionWithPriority>> getAssistActions({
     OperationPerformanceImpl? performance,
   }) async {
-    // These assists are only provided as literal CodeActions.
-    if (!supportsLiterals) {
-      return const [];
-    }
-
     try {
       var context = DartAssistContext(
         server.instrumentationService,
@@ -162,15 +165,31 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         assists = await computeAssists(context);
       }
 
-      return assists.map((assist) {
-        var action = createAssistAction(
-          assist.change,
-          assist.change.id,
-          unitResult.path,
-          unitResult.lineInfo,
-        );
-        return (action: action, priority: assist.kind.priority);
-      }).toList();
+      return assists
+          .map((assist) {
+            var change = assist.change;
+            var kind = toCodeActionKind(change.id, CodeActionKind.Refactor);
+            // TODO(dantup): Find a way to filter these earlier, so we don't
+            //  compute fixes we will filter out.
+            if (!shouldIncludeKind(kind)) {
+              return null;
+            }
+            var action = createCodeActionLiteralOrApplyCommand(
+              unitResult.path,
+              docIdentifier,
+              range,
+              unitResult.lineInfo,
+              change,
+              kind,
+              change.id,
+            );
+            if (action == null) {
+              return null;
+            }
+            return (action: action, priority: assist.kind.priority);
+          })
+          .nonNulls
+          .toList();
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
       // the source and therefore is no longer interested in the results, so
@@ -183,11 +202,6 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   Future<List<CodeActionWithPriority>> getFixActions(
     OperationPerformance? performance,
   ) async {
-    // These fixes are only provided as literal CodeActions.
-    if (!supportsLiterals) {
-      return [];
-    }
-
     var lineInfo = unitResult.lineInfo;
     var codeActions = <CodeActionWithPriority>[];
 
@@ -197,6 +211,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       Set<String>? skipAlreadyCalculatedIfNonNull =
           willBeDeduplicated ? {} : null;
       var workspace = DartChangeWorkspace(await server.currentSessions);
+      CorrectionUtils? correctionUtils;
       for (var error in unitResult.errors) {
         // Return fixes for any part of the line where a diagnostic is.
         // If a diagnostic spans multiple lines, the fix will be included for
@@ -215,6 +230,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           libraryResult: libraryResult,
           unitResult: unitResult,
           error: error,
+          correctionUtils: correctionUtils ??= CorrectionUtils(unitResult),
         );
 
         var performanceTracker = FixPerformance();
@@ -242,20 +258,33 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             server.uriConverter,
             unitResult,
             error,
-            supportedTags: supportedDiagnosticTags,
-            clientSupportsCodeDescription: supportsCodeDescription,
+            supportedTags: callerSupportedDiagnosticTags,
+            clientSupportsCodeDescription: callerSupportsCodeDescription,
           );
           codeActions.addAll(
             fixes.map((fix) {
-              var action = createFixAction(
-                fix.change,
-                fix.change.id,
-                diagnostic,
-                path,
+              var change = fix.change;
+              var kind = toCodeActionKind(change.id, CodeActionKind.QuickFix);
+              // TODO(dantup): Find a way to filter these earlier, so we don't
+              //  compute fixes we will filter out.
+              if (!shouldIncludeKind(kind)) {
+                return null;
+              }
+              var action = createCodeActionLiteralOrApplyCommand(
+                unitResult.path,
+                docIdentifier,
+                range,
                 lineInfo,
+                change,
+                kind,
+                change.id,
+                diagnostic: diagnostic,
               );
+              if (action == null) {
+                return null;
+              }
               return (action: action, priority: fix.kind.priority);
-            }),
+            }).nonNulls,
           );
         }
       }
@@ -275,7 +304,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   ) async {
     // If the client does not support workspace/applyEdit, we won't be able to
     // run any of these.
-    if (!supportsApplyEdit) {
+    if (!editorSupportsApplyEdit) {
       return const [];
     }
 
@@ -289,7 +318,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         startSessions: await server.currentSessions,
         resolvedLibraryResult: libraryResult,
         resolvedUnitResult: unitResult,
-        clientCapabilities: capabilities,
+        // TODO(dantup): Determine if we need to provide both editor+caller
+        //  capabilities here.
+        clientCapabilities: editorCapabilities,
         selectionOffset: offset,
         selectionLength: length,
         includeExperimental:
@@ -300,7 +331,11 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         performance: performanceTracker,
       );
       var actions = await processor.compute();
-      refactorActions.addAll(actions.map(CodeAction.t1));
+      refactorActions.addAll(
+        actions
+            .where((literal) => shouldIncludeKind(literal.kind))
+            .map(CodeAction.t1),
+      );
 
       // Extracts
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
@@ -479,7 +514,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   Future<List<CodeAction>> getSourceActions() async {
     // If the client does not support workspace/applyEdit, we won't be able to
     // run any of these.
-    if (!supportsApplyEdit) {
+    if (!editorSupportsApplyEdit) {
       return const [];
     }
 
@@ -496,15 +531,20 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           'Organize Imports',
           Commands.organizeImports,
         ),
-      if (shouldIncludeKind(DartCodeActionKind.FixAll))
+      if (serverSupportsCommand(Commands.fixAll) &&
+          shouldIncludeKind(DartCodeActionKind.FixAll))
         createAction(DartCodeActionKind.FixAll, 'Fix All', Commands.fixAll),
     ];
   }
 
-  /// Wraps a command in a CodeAction if the client supports it so that a
-  /// CodeActionKind can be supplied.
-  CodeAction _commandOrCodeActionLiteral(CodeActionKind kind, Command command) {
-    return supportsLiterals
+  /// Returns a [CodeAction] that is [command] wrapped in a [CodeActionLiteral]
+  /// (to allow a [CodeActionKind] to be supplied) if the client supports it,
+  /// otherwise the bare command.
+  CodeAction _maybeWrapCommandInCodeActionLiteral(
+    CodeActionKind kind,
+    Command command,
+  ) {
+    return allowCodeActionLiterals
         ? CodeAction.t1(
           CodeActionLiteral(title: command.title, kind: kind, command: command),
         )

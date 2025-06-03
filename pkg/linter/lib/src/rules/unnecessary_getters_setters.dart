@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -17,7 +18,8 @@ class UnnecessaryGettersSetters extends LintRule {
     : super(name: LintNames.unnecessary_getters_setters, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_getters_setters;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.unnecessary_getters_setters;
 
   @override
   void registerNodeProcessors(
@@ -76,8 +78,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (getterElement == null || setterElement == null) return;
     if (isSimpleSetter(setter) &&
         isSimpleGetter(getter) &&
-        getterElement.metadata2.annotations.isEmpty &&
-        setterElement.metadata2.annotations.isEmpty) {
+        getterElement.metadata.annotations.isEmpty &&
+        setterElement.metadata.annotations.isEmpty) {
       // Just flag the getter (https://github.com/dart-lang/linter/issues/2851)
       rule.reportAtToken(getter.name);
     }

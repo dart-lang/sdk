@@ -64,7 +64,7 @@ mixin ElementSuggestionBuilder {
           if (existingSuggestion != null) {
             var getter =
                 element is GetterElement ? suggestion : existingSuggestion;
-            var elemKind = element.enclosingElement2 is ClassElement
+            var elemKind = element.enclosingElement is ClassElement
                 ? protocol.ElementKind.FIELD
                 : protocol.ElementKind.TOP_LEVEL_VARIABLE;
             existingSuggestion.element = protocol.Element(

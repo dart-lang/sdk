@@ -3,13 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -85,12 +88,12 @@ class SingleTargetCacheViewElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    children = <Element>[
-      navBar(<Element>[
+    setChildren(<HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -105,59 +108,59 @@ class SingleTargetCacheViewElement extends CustomElement implements Renderable {
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h2()..text = 'SingleTargetCache',
-          new HRElement(),
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h2()..textContent = 'SingleTargetCache',
+          new HTMLHRElement(),
           new ObjectCommonElement(_isolate, _singleTargetCache, _retainedSizes,
                   _reachableSizes, _references, _retainingPaths, _objects,
                   queue: _r.queue)
               .element,
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'target',
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..children = <Element>[
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'target',
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..appendChildren(<HTMLElement>[
                       anyRef(_isolate, _singleTargetCache.target, _objects,
                           queue: _r.queue)
-                    ]
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'lowerLimit',
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..children = <Element>[
-                      new SpanElement()
-                        ..text = _singleTargetCache.lowerLimit.toString()
-                    ]
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'upperLimit',
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..children = <Element>[
-                      new SpanElement()
-                        ..text = _singleTargetCache.upperLimit.toString()
-                    ]
-                ]
-            ],
-        ]
-    ];
+                    ])
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'lowerLimit',
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..appendChildren(<HTMLElement>[
+                      new HTMLSpanElement()
+                        ..textContent = _singleTargetCache.lowerLimit.toString()
+                    ])
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'upperLimit',
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..appendChildren(<HTMLElement>[
+                      new HTMLSpanElement()
+                        ..textContent = _singleTargetCache.upperLimit.toString()
+                    ])
+                ])
+            ]),
+        ])
+    ]);
   }
 }

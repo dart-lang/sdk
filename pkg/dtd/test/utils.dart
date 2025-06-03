@@ -6,6 +6,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:async/async.dart';
+import 'package:json_rpc_2/json_rpc_2.dart';
+import 'package:path/path.dart';
+import 'package:test/test.dart';
+import 'package:test_process/test_process.dart';
+
 /// Helper class for starting a Dart Tooling Daemon instance, and extracting
 /// it's [trustedSecret] and [uri] from stdout.
 class ToolingDaemonTestProcess {
@@ -56,6 +62,67 @@ class ToolingDaemonTestProcess {
   }
 }
 
+/// Helper class for starting a Dart CLI app and extracting its VM service uri
+/// from stdout.
+class DartCliAppProcess {
+  late final String vmServiceUri;
+  late final TestProcess? process;
+
+  Future<TestProcess> start() async {
+    final tmpDir = Directory.systemTemp.createTempSync();
+    addTearDown(() => tmpDir.deleteSync(recursive: true));
+
+    // A simple Dart command line app that will never exit.
+    const fileName = 'app.dart';
+    File(join(tmpDir.path, fileName))
+      ..writeAsStringSync('''
+void main() async {
+  while (true) {
+    // Loop on an awaited delay to avoid pinning a CPU core.
+    await Future.delayed(const Duration(seconds: 1));
+  }
+}
+''')
+      ..createSync();
+
+    process = await TestProcess.start(
+      Platform.resolvedExecutable,
+      [
+        'run',
+        '--observe=0',
+        fileName,
+      ],
+      workingDirectory: tmpDir.path,
+    );
+
+    addTearDown(() async {
+      await process!.kill();
+    });
+
+    String? uri;
+    final stdout = StreamQueue(process!.stdoutStream());
+    while (await stdout.hasNext) {
+      final line = await stdout.next;
+      if (line.contains('The Dart VM service is listening on')) {
+        vmServiceUri = uri =
+            line.substring(line.indexOf('http:')).replaceFirst('http:', 'ws:');
+        await stdout.cancel();
+        break;
+      }
+    }
+    if (uri == null) {
+      throw StateError(
+        'Failed to read vm service URI from the Dart run output.',
+      );
+    }
+    return process!;
+  }
+
+  void kill() {
+    process?.kill();
+  }
+}
+
 extension OutputProcessExtension on Process {
   void handle({
     required void Function(String) stdoutLines,
@@ -75,4 +142,8 @@ extension OutputProcessExtension on Process {
           .listen((line) => stderrLines(line));
     }
   }
+}
+
+Matcher throwsAnRpcError(int code) {
+  return throwsA(predicate((p0) => (p0 is RpcException) && (p0.code == code)));
 }

@@ -63,9 +63,9 @@ class LinkedElementFactory {
   @visibleForTesting
   List<Uri> get uriListWithLibraryElements {
     return rootReference.children
-        .map((reference) => reference.element)
+        .map((reference) => reference.element2)
         .whereType<LibraryElementImpl>()
-        .map((e) => e.source.uri)
+        .map((e) => e.uri)
         .toList();
   }
 
@@ -90,9 +90,9 @@ class LinkedElementFactory {
     var exportedNames = <String, Element>{};
 
     for (var exportedReference in exportedReferences) {
-      var element = elementOfReference(exportedReference.reference);
+      var fragment = elementOfReference(exportedReference.reference);
       // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/41212
-      if (element == null) {
+      if (fragment == null) {
         throw StateError(
           '[No element]'
           '[uri: $uri]'
@@ -100,18 +100,16 @@ class LinkedElementFactory {
           '[exportedReference: $exportedReference]',
         );
       }
-      exportedNames[element.name!] = element.asElement2!;
+      var element = fragment.asElement2!;
+      exportedNames[element.lookupName!] = element;
     }
 
     return Namespace(exportedNames);
   }
 
-  LibraryElementImpl? createLibraryElementForReading(Uri uri) {
+  LibraryElementImpl createLibraryElementForReading(Uri uri) {
     var sourceFactory = analysisContext.sourceFactory;
-    var librarySource = sourceFactory.forUri2(uri);
-
-    // The URI cannot be resolved, we don't know the library.
-    if (librarySource == null) return null;
+    var librarySource = sourceFactory.forUri2(uri)!;
 
     var reader = _libraryReaders[uri];
     if (reader == null) {
@@ -158,7 +156,7 @@ class LinkedElementFactory {
     // During linking we create libraries when typeProvider is not ready.
     // Update these libraries now, when typeProvider is ready.
     for (var reference in rootReference.children) {
-      var libraryElement = reference.element as LibraryElementImpl?;
+      var libraryElement = reference.element2 as LibraryElementImpl?;
       if (libraryElement != null && !libraryElement.hasTypeProviderSystemSet) {
         setLibraryTypeSystem(libraryElement);
       }
@@ -182,7 +180,8 @@ class LinkedElementFactory {
 
     if (reference.isLibrary) {
       var uri = uriCache.parse(reference.name);
-      return createLibraryElementForReading(uri);
+      createLibraryElementForReading(uri);
+      return null;
     }
 
     var parentRef = reference.parentNotContainer;
@@ -205,6 +204,32 @@ class LinkedElementFactory {
     return elementOfReference(reference)?.asElement2;
   }
 
+  Element elementOfReference3(Reference reference) {
+    if (reference.element2 case var element?) {
+      return element;
+    }
+
+    if (reference.isLibrary) {
+      var uri = uriCache.parse(reference.name);
+      return createLibraryElementForReading(uri);
+    }
+
+    var parentRef = reference.parentNotContainer;
+    var parentElement = elementOfReference3(parentRef);
+
+    // Only classes delay creating children.
+    if (parentElement is ClassElementImpl2) {
+      var firstFragment = parentElement.firstFragment;
+      firstFragment.linkedData?.readMembers(firstFragment);
+    }
+
+    var element = reference.element2;
+    if (element == null) {
+      throw StateError('Expected existing element: $reference');
+    }
+    return element;
+  }
+
   bool hasLibrary(Uri uri) {
     // We already have the element, linked or read.
     if (rootReference['$uri']?.element is LibraryElementImpl) {
@@ -216,7 +241,10 @@ class LinkedElementFactory {
 
   LibraryElementImpl? libraryOfUri(Uri uri) {
     var reference = rootReference.getChild('$uri');
-    return elementOfReference(reference) as LibraryElementImpl?;
+    if (reference.element2 case LibraryElementImpl element) {
+      return element;
+    }
+    return createLibraryElementForReading(uri);
   }
 
   LibraryElementImpl libraryOfUri2(Uri uri) {
@@ -251,12 +279,16 @@ class LinkedElementFactory {
     // If we discard `dart:core` and `dart:async`, we should also discard
     // the type provider.
     if (uriSet.contains(_dartCoreUri)) {
-      if (!uriSet.contains(_dartAsyncUri)) {
-        throw StateError(
-          'Expected to link dart:core and dart:async together: '
-          '${uriSet.toList()}',
-        );
-      }
+      // Most of the time, if the `uriSet` contains `dart:core`, then it will
+      // also contain `dart:async`, since `dart:core` and `dart:async` are part
+      // of the same library cycle. However, if an event triggers `dart:core` to
+      // be discarded at a time when no library cycle information has been built
+      // yet, then just `dart:core` will be in `uriSet`. This can happen, for
+      // example, if two events trigger invalidation of `dart:core` in rapid
+      // succession. Fortunately, if this happens, it is benign; since no
+      // library cycle information has been built yet, there is nothing that
+      // that needs to be discarded.
+
       if (_libraryReaders.isNotEmpty) {
         throw StateError(
           'Expected to link dart:core and dart:async first: '
@@ -270,7 +302,7 @@ class LinkedElementFactory {
   void replaceAnalysisSession(AnalysisSessionImpl newSession) {
     analysisSession = newSession;
     for (var libraryReference in rootReference.children) {
-      var libraryElement = libraryReference.element;
+      var libraryElement = libraryReference.element2;
       if (libraryElement is LibraryElementImpl) {
         libraryElement.session = newSession;
       }

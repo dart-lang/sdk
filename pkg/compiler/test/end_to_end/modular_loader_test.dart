@@ -58,16 +58,15 @@ main() {
       diagnosticHandler: diagnostics,
       outputProvider: output,
     );
-    load_kernel.Output result =
-        (await load_kernel.run(
-          load_kernel.Input(
-            compiler.options,
-            compiler.provider,
-            compiler.reporter,
-            compiler.initializedCompilerState,
-            false,
-          ),
-        ))!;
+    load_kernel.Output result = (await load_kernel.run(
+      load_kernel.Input(
+        compiler.options,
+        compiler.provider,
+        compiler.reporter,
+        compiler.initializedCompilerState,
+        false,
+      ),
+    ))!;
 
     // Make sure we trim the unused library.
     Expect.isFalse(result.libraries!.any((l) => l.path == '/unused0.dart'));
@@ -111,13 +110,12 @@ Future<Uint8List> compileUnit(
   fs
       .entityForUri(toTestUri('.dart_tool/package_config.json'))
       .writeAsStringSync('{"configVersion": 2, "packages": []}');
-  var options =
-      CompilerOptions()
-        ..target = Dart2jsTarget("dart2js", TargetFlags())
-        ..fileSystem = TestFileSystem(fs)
-        ..additionalDills = additionalDills
-        ..packagesFileUri = toTestUri('.dart_tool/package_config.json')
-        ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: true};
+  var options = CompilerOptions()
+    ..target = Dart2jsTarget("dart2js", TargetFlags())
+    ..fileSystem = TestFileSystem(fs)
+    ..additionalDills = additionalDills
+    ..packagesFileUri = toTestUri('.dart_tool/package_config.json')
+    ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: true};
   var inputUris = inputs.map(toTestUri).toList();
   var inputUriSet = inputUris.toSet();
   var component = (await kernelForModule(inputUris, options)).component;

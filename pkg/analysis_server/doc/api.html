@@ -110,7 +110,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.39.0
+  1.40.0
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -181,7 +181,7 @@ a:focus, a:hover {
   is the 'clientRequestTime' field, which is a number indicating
   the time at which the client made the request (milliseconds
   since epoch). Providing clientRequestTime helps us track
-  how responsive analysis server is to client requests
+  how responsive the analysis server is to client requests
   and better address any issues that occur.
 </p>
 <p>
@@ -245,6 +245,10 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.40.0</h4>
+<ul>
+  <li>Added an optional <tt>version</tt> field to <tt>AddContentOverlay</tt> and <tt>ChangeContentOverlay</tt> to allow clients/servers to have a way to identify specific versions of documents.</li>
+</ul>
 <h4>1.39.0</h4>
 <ul>
   <li>Added a new <tt>lspCapabilities</tt> field to the <tt>setClientCapabilities</tt> parameters to allow clients to provide their LSP capabilities. These capabilities can indicate that a client can support <tt>lsp.handle</tt> requests in the server-to-client direction.</li>
@@ -953,7 +957,7 @@ a:focus, a:hover {
   }
 }</pre></div>
     <p>
-      Return the hover information associate with the given
+      Return the hover information associated with the given
       location. If some or all of the hover information is not
       available at the time this request is processed the
       information will be omitted from the response.
@@ -1179,14 +1183,14 @@ a:focus, a:hover {
       analysis roots is automatically updated, but the set of
       requested analysis roots is unchanged. This means that if
       the client sets an analysis root before the root becomes
-      visible to server in the filesystem, there is no error; once
-      the server sees the root in the filesystem it will start
-      analyzing it. Similarly, server will stop analyzing files
+      visible to the server in the filesystem, there is no error;
+      once the server sees the root in the filesystem it will start
+      analyzing it. Similarly, the server will stop analyzing files
       that are removed from the file system but they will remain
       in the set of requested roots.
     </p>
     <p>
-      If an included path represents a file, then server will look
+      If an included path represents a file, then the server will look
       in the directory containing the file for a pubspec.yaml
       file. If none is found, then the parents of the directory
       will be searched until such a file is found or the root of
@@ -1360,7 +1364,7 @@ a:focus, a:hover {
       previously updated but not included in this update remain
       unchanged. This effectively represents an overlay of the
       filesystem. The files whose content is overridden are
-      therefore seen by server as being files with the given
+      therefore seen by the server as being files with the given
       content, even if the files do not exist on the filesystem or
       if the file path represents the path to a directory on the
       filesystem.
@@ -1445,7 +1449,7 @@ a:focus, a:hover {
         <p>
           Closing labels relevant to the file. Each item
           represents a useful label associated with some range
-          with may be useful to display to the user within the editor
+          which may be useful to display to the user within the editor
           at the end of the range to indicate what construct is closed
           at that location. Closing labels include constructor/method
           calls and List arguments that span multiple lines.
@@ -1600,7 +1604,7 @@ a:focus, a:hover {
       </dd><dt class="field"><b>members: List&lt;<a href="#type_ImplementedMember">ImplementedMember</a>&gt;</b></dt><dd>
         
         <p>
-          The member defined in the file that are implemented or overridden.
+          The members defined in the file that are implemented or overridden.
         </p>
       </dd></dl></dd><dt class="notification"><a name="notification_analysis.invalidate">analysis.invalidate</a></dt><dd><div class="box"><pre>notification: {
   "event": "analysis.invalidate"
@@ -1964,8 +1968,8 @@ a:focus, a:hover {
         <p>
           The <tt>completion</tt> from the selected
           <tt>CompletionSuggestion</tt>.  It could be a name of a class, or a
-          name of a constructor in form "typeName.constructorName()", or an
-          enumeration constant in form "enumName.constantName", etc.
+          name of a constructor in the form "typeName.constructorName()", or an
+          enumeration constant in the form "enumName.constantName", etc.
         </p>
       </dd><dt class="field"><b>libraryUri: String</b></dt><dd>
         
@@ -2718,7 +2722,7 @@ a:focus, a:hover {
       </dd></dl><h4>returns:</h4><dl><dt class="field"><b>edit: <a href="#type_SourceFileEdit">SourceFileEdit</a></b></dt><dd>
         
         <p>
-          The file edit that is to be applied to the given file to effect
+          The file edit that is to be applied to the given file to affect
           the sorting.
         </p>
       </dd></dl></dd><dt class="request"><a name="request_edit.organizeDirectives">edit.organizeDirectives</a></dt><dd><div class="box"><pre>request: {
@@ -2761,7 +2765,7 @@ a:focus, a:hover {
       </dd></dl><h4>returns:</h4><dl><dt class="field"><b>edit: <a href="#type_SourceFileEdit">SourceFileEdit</a></b></dt><dd>
         
         <p>
-          The file edit that is to be applied to the given file to effect
+          The file edit that is to be applied to the given file to affect
           the organizing.
         </p>
       </dd></dl></dd></dl>
@@ -2915,7 +2919,7 @@ a:focus, a:hover {
       </dd></dl><h4>returns:</h4><dl><dt class="field"><b>suggestions: List&lt;<a href="#type_CompletionSuggestion">CompletionSuggestion</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
         
         <p>
-          The completion suggestions. In contrast to usual completion request,
+          The completion suggestions. In contrast to usual completion requests,
           suggestions for private elements also will be provided.
         </p>
         <p>
@@ -3283,6 +3287,10 @@ a:focus, a:hover {
         <p>
           The new content of the file.
         </p>
+      </dd><dt class="field"><b>version: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>An optional version number for the document. Version numbers allow the server to tag edits with the version of the document they apply to which can avoid applying edits to documents that have already been updated since the edits were computed.</p>
+        <p>If version numbers are supplied with AddContentOverlay and ChangeContentOverlay, they must be increasing (but not necessarily consecutive) numbers.</p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_AnalysisError">AnalysisError: object</a></dt><dd>
     <p>
       An indication of an error, warning, or hint that was produced by the
@@ -3512,6 +3520,10 @@ a:focus, a:hover {
         <p>
           The edits to be applied to the file.
         </p>
+      </dd><dt class="field"><b>version: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>An optional version number for the document. Version numbers allow the server to tag edits with the version of the document they apply to which can avoid applying edits to documents that have already been updated since the edits were computed.</p>
+        <p>If version numbers are supplied with AddContentOverlay and ChangeContentOverlay, they must be increasing (but not necessarily consecutive) numbers.</p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_ClosingLabel">ClosingLabel: object</a></dt><dd>
     <p>
       A label that is associated with a range of code that may be useful to

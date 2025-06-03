@@ -3,27 +3,32 @@
 // BSD-style license that can be found in the LICENSE file.
 
 localFunctions() {
-  /*Null*/ unrestrictedLocalFunction1(/*dynamic*/ o) {}
+  /*Null*/
+  unrestrictedLocalFunction1(/*dynamic*/ o) {}
   var /*Null Function(dynamic)*/ unrestrictedLocalFunction2 =
       /*Null*/ (/*dynamic*/ o) {};
 
-  /*dynamic*/ arrowReturn1(/*dynamic*/ o) => o;
+  /*dynamic*/
+  arrowReturn1(/*dynamic*/ o) => o;
   var /*dynamic Function(dynamic)*/ arrowReturn2 =
       /*dynamic*/ (/*dynamic*/ o) => o;
 
-  /*dynamic*/ singleReturn1(/*dynamic*/ o) {
+  /*dynamic*/
+  singleReturn1(/*dynamic*/ o) {
     return o;
   }
 
   var /*dynamic Function(dynamic)*/ singleReturn2 =
-      /*dynamic*/ (/*dynamic*/ o) {
+  /*dynamic*/ (/*dynamic*/ o) {
     return o;
   };
 
-  /*int*/ typedArrowReturn1() => 1;
+  /*int*/
+  typedArrowReturn1() => 1;
   var /*int Function()*/ typedArrowReturn2 = /*int*/ () => 1;
 
-  /*int*/ singleTypedReturn1() {
+  /*int*/
+  singleTypedReturn1() {
     return 1;
   }
 
@@ -31,7 +36,8 @@ localFunctions() {
     return 1;
   };
 
-  /*int?*/ multipleTypedReturns1(bool condition) {
+  /*int?*/
+  multipleTypedReturns1(bool condition) {
     if (condition) {
       return 1;
     } else {
@@ -39,8 +45,9 @@ localFunctions() {
     }
   }
 
-  var /*int? Function(bool)*/ multipleTypedReturns2 = /*int?*/ (bool
-      condition) {
+  var /*int? Function(bool)*/ multipleTypedReturns2 = /*int?*/ (
+    bool condition,
+  ) {
     if (condition) {
       return 1;
     } else {
@@ -48,6 +55,6 @@ localFunctions() {
     }
   };
 
-  int Function(String) inferredFromContext = /*int*/ (/*String*/ condition) =>
-      condition.length;
+  int Function(String) inferredFromContext = /*int*/
+      (/*String*/ condition) => condition.length;
 }

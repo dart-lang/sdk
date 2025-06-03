@@ -96,10 +96,9 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
     final info = await infoFromFile(args.first);
 
     final groupingFile = argRes['grouping'];
-    final groupingText =
-        groupingFile != null
-            ? File(groupingFile).readAsStringSync()
-            : defaultGrouping;
+    final groupingText = groupingFile != null
+        ? File(groupingFile).readAsStringSync()
+        : defaultGrouping;
     final groupingYaml = loadYaml(groupingText);
     final groups = [];
     for (var group in groupingYaml['groups']) {
@@ -145,10 +144,9 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
         return;
       }
 
-      var percent =
-          row.value == realTotal
-              ? '100'
-              : (row.value * 100 / realTotal).toStringAsFixed(2);
+      var percent = row.value == realTotal
+          ? '100'
+          : (row.value * 100 / realTotal).toStringAsFixed(2);
       print(
         ' ${_pad(row.label, longest + 1, right: true)}'
         ' ${_pad(row.value, 8)} ${_pad(percent, 6)}%',
@@ -223,7 +221,8 @@ String _pad(Object value, int n, {bool right = false}) {
 /// Default grouping specification that includes an entry per library, and
 /// grouping entries for each package, all packages, all core libs, and loose
 /// files.
-final defaultGrouping = """
+final defaultGrouping =
+    """
 groups:
 - { name: "Loose files", regexp: "file://.*", cluster: 2}
 - { name: "All packages", regexp: "package:.*", cluster: 2}

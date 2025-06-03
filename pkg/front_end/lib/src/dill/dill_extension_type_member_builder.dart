@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/names.dart';
 
+import '../base/uri_offset.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/factory_builder.dart';
 import '../builder/method_builder.dart';
@@ -84,6 +86,15 @@ class DillExtensionTypeFieldBuilder extends DillExtensionTypeMemberBuilder
   @override
   SetterQuality get setterQuality =>
       _field.hasSetter ? SetterQuality.Implicit : SetterQuality.Absent;
+
+  @override
+  UriOffsetLength get getterUriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
+
+  @override
+  UriOffsetLength? get setterUriOffset => hasSetter
+      ? new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length)
+      : null;
 }
 
 class DillExtensionTypeSetterBuilder extends DillExtensionTypeMemberBuilder
@@ -110,6 +121,7 @@ class DillExtensionTypeSetterBuilder extends DillExtensionTypeMemberBuilder
   Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
 
   @override
+  // Coverage-ignore(suite): Not run.
   FieldQuality get fieldQuality => FieldQuality.Absent;
 
   @override
@@ -120,6 +132,10 @@ class DillExtensionTypeSetterBuilder extends DillExtensionTypeMemberBuilder
   // Coverage-ignore(suite): Not run.
   SetterQuality get setterQuality =>
       _procedure.isExternal ? SetterQuality.External : SetterQuality.Concrete;
+
+  @override
+  UriOffsetLength get setterUriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
 }
 
 class DillExtensionTypeGetterBuilder extends DillExtensionTypeMemberBuilder
@@ -153,6 +169,7 @@ class DillExtensionTypeGetterBuilder extends DillExtensionTypeMemberBuilder
   Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
 
   @override
+  // Coverage-ignore(suite): Not run.
   FieldQuality get fieldQuality => FieldQuality.Absent;
 
   @override
@@ -163,6 +180,10 @@ class DillExtensionTypeGetterBuilder extends DillExtensionTypeMemberBuilder
   @override
   // Coverage-ignore(suite): Not run.
   SetterQuality get setterQuality => SetterQuality.Absent;
+
+  @override
+  UriOffsetLength get getterUriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
 }
 
 class DillExtensionTypeOperatorBuilder extends DillExtensionTypeMemberBuilder
@@ -191,6 +212,10 @@ class DillExtensionTypeOperatorBuilder extends DillExtensionTypeMemberBuilder
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
+
+  @override
+  UriOffsetLength get uriOffset => new UriOffsetLength(fileUri, fileOffset,
+      _descriptor.name == unaryMinusName ? 1 : _descriptor.name.text.length);
 }
 
 class DillExtensionTypeStaticMethodBuilder
@@ -228,6 +253,10 @@ class DillExtensionTypeStaticMethodBuilder
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
+
+  @override
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
 }
 
 class DillExtensionTypeInstanceMethodBuilder
@@ -268,6 +297,10 @@ class DillExtensionTypeInstanceMethodBuilder
   @override
   // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => _procedure.reference;
+
+  @override
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
 }
 
 class DillExtensionTypeConstructorBuilder extends DillExtensionTypeMemberBuilder

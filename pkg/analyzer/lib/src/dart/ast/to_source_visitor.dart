@@ -227,7 +227,10 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitComment(Comment node) {}
 
   @override
-  void visitCommentReference(CommentReference node) {}
+  void visitCommentReference(CommentReference node) {
+    sink.write(node.newKeyword?.lexeme ?? '');
+    _visitNode(prefix: '[', node.expression, suffix: ']');
+  }
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -965,7 +968,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     _visitNode(node.importPrefix);
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.typeArguments);
     if (node.question != null) {
       sink.write('?');

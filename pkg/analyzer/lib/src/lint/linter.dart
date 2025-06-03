@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -10,101 +14,316 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
+import 'package:analyzer/src/lint/linter_visitor.dart' show RuleVisitorRegistry;
 import 'package:analyzer/src/lint/pub.dart';
-import 'package:analyzer/src/lint/state.dart';
-import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
+import 'package:analyzer/workspace/workspace.dart';
 
+export 'package:analyzer/analysis_rule/rule_state.dart'
+    show dart2_12, dart3, dart3_3, RuleState;
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
-export 'package:analyzer/src/lint/state.dart'
-    show dart2_12, dart3, dart3_3, State;
+
+/// Returns whether [filePath] is in the top-level `lib` directory in [package].
+bool _isInLibDir(String? filePath, WorkspacePackage? package) {
+  if (package == null) return false;
+  if (filePath == null) return false;
+  var libDir = package.root.getChildAssumingFolder('lib');
+  return libDir.contains(filePath);
+}
+
+/// A soon-to-be deprecated alias for [RuleContext].
+typedef LinterContext = RuleContext;
+
+/// Describes an [AbstractAnalysisRule] which reports diagnostics using exactly
+/// one [DiagnosticCode].
+typedef LintRule = AnalysisRule;
 
 /// Describes a static analysis rule, either a lint rule (which must be enabled
 /// via analysis options) or a warning rule (which is enabled by default).
-typedef AnalysisRule = LintRule;
+sealed class AbstractAnalysisRule {
+  /// Used to report lints and warnings.
+  /// NOTE: this is set by the framework before any node processors start
+  /// visiting nodes.
+  late ErrorReporter _reporter;
 
-/// Provides access to information needed by lint rules that is not available
-/// from AST nodes or the element model.
-abstract class LinterContext {
-  /// The list of all compilation units that make up the library under analysis,
-  /// including the defining compilation unit, all parts, and all augmentations.
-  List<LintRuleUnitContext> get allUnits;
+  /// Short description suitable for display in console output.
+  final String description;
 
-  /// The compilation unit being linted.
+  /// The rule name.
+  final String name;
+
+  /// The state of this analysis rule, optionally indicating the "version" that
+  /// this state started applying to this rule.
+  final RuleState state;
+
+  AbstractAnalysisRule({
+    required this.name,
+    required this.description,
+    this.state = const RuleState.stable(),
+  });
+
+  /// Indicates whether this analysis rule can work with just the parsed
+  /// information or if it requires a resolved unit.
+  bool get canUseParsedResult => false;
+
+  /// The diagnostic codes associated with this analysis rule.
+  List<DiagnosticCode> get diagnosticCodes;
+
+  /// A list of incompatible rule ids.
+  List<String> get incompatibleRules => const [];
+
+  /// A visitor that visits a [Pubspec] to perform analysis.
   ///
-  /// `null` when a unit is not currently being linted (for example when node
-  /// processors are being registered).
-  LintRuleUnitContext? get currentUnit;
+  /// Diagnostics are reported via this [AbstractAnalysisRule]'s error
+  /// [reporter].
+  PubspecVisitor? get pubspecVisitor => null;
 
-  /// The defining compilation unit of the library under analysis.
-  LintRuleUnitContext get definingUnit;
+  /// Sets the [ErrorReporter] for the [CompilationUnit] currently being
+  /// visited.
+  set reporter(ErrorReporter value) => _reporter = value;
 
-  InheritanceManager3 get inheritanceManager;
+  /// Registers node processors in the given [registry].
+  ///
+  /// The node processors may use the provided [context] to access information
+  /// that is not available from the AST nodes or their associated elements.
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {}
 
-  /// Whether the [definingUnit]'s location is in a package's top-level 'lib'
-  /// directory, including locations deeply nested, and locations in the
-  /// package-implementation directory, 'lib/src'.
-  bool get isInLibDir;
+  void _reportAtNode(
+    AstNode? node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+    required DiagnosticCode diagnosticCode,
+  }) {
+    if (node != null && !node.isSynthetic) {
+      _reporter.atNode(
+        node,
+        diagnosticCode,
+        arguments: arguments,
+        contextMessages: contextMessages,
+      );
+    }
+  }
 
-  /// Whether the [definingUnit] is in a [package]'s "test" directory.
-  bool get isInTestDirectory;
+  void _reportAtOffset(
+    int offset,
+    int length, {
+    required DiagnosticCode diagnosticCode,
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) {
+    _reporter.atOffset(
+      offset: offset,
+      length: length,
+      diagnosticCode: diagnosticCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+    );
+  }
 
-  /// The library element representing the library that contains the compilation
-  /// unit being linted.
-  @experimental
-  LibraryElement? get libraryElement2;
+  void _reportAtPubNode(
+    PSNode node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage> contextMessages = const [],
+    required DiagnosticCode diagnosticCode,
+  }) {
+    // Cache diagnostic and location info for creating `AnalysisErrorInfo`s.
+    var diagnostic = Diagnostic.tmp(
+      source: node.source,
+      offset: node.span.start.offset,
+      length: node.span.length,
+      errorCode: diagnosticCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+    );
+    _reporter.reportError(diagnostic);
+  }
 
-  /// The package in which the library being analyzed lives, or `null` if it
-  /// does not live in a package.
-  WorkspacePackage? get package;
-
-  TypeProvider get typeProvider;
-
-  TypeSystem get typeSystem;
-
-  static bool _isInLibDir(String? path, WorkspacePackage? package) {
-    if (package == null) return false;
-    if (path == null) return false;
-    var libDir = p.join(package.root, 'lib');
-    return p.isWithin(libDir, path);
+  void _reportAtToken(
+    Token token, {
+    required DiagnosticCode diagnosticCode,
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) {
+    if (!token.isSynthetic) {
+      _reporter.atToken(
+        token,
+        diagnosticCode,
+        arguments: arguments,
+        contextMessages: contextMessages,
+      );
+    }
   }
 }
 
-/// A [LinterContext] for a library, resolved into [ParsedUnitResult]s.
-final class LinterContextWithParsedResults implements LinterContext {
-  @override
-  final List<LintRuleUnitContext> allUnits;
+/// Describes an [AbstractAnalysisRule] which reports exactly one type of
+/// diagnostic (one [DiagnosticCode]).
+abstract class AnalysisRule extends AbstractAnalysisRule {
+  AnalysisRule({required super.name, required super.description, super.state});
+
+  /// The code to report for a violation.
+  DiagnosticCode get diagnosticCode;
 
   @override
-  final LintRuleUnitContext definingUnit;
+  List<DiagnosticCode> get diagnosticCodes => [diagnosticCode];
 
-  @override
-  LintRuleUnitContext? currentUnit;
-
-  @override
-  final InheritanceManager3 inheritanceManager = InheritanceManager3();
-
-  LinterContextWithParsedResults(this.allUnits, this.definingUnit);
-
-  @override
-  bool get isInLibDir => LinterContext._isInLibDir(
-    definingUnit.unit.declaredFragment?.source.fullName,
-    package,
+  /// Reports a diagnostic at [node] with message [arguments] and
+  /// [contextMessages].
+  void reportAtNode(
+    AstNode? node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) => _reportAtNode(
+    node,
+    diagnosticCode: diagnosticCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
   );
+
+  /// Reports a diagnostic at [offset], with [length], with message [arguments]
+  /// and [contextMessages].
+  void reportAtOffset(
+    int offset,
+    int length, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) => _reportAtOffset(
+    offset,
+    length,
+    diagnosticCode: diagnosticCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
+
+  /// Reports a diagnostic at Pubspec [node], with message [arguments] and
+  /// [contextMessages].
+  void reportAtPubNode(
+    PSNode node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage> contextMessages = const [],
+  }) => _reportAtPubNode(
+    node,
+    diagnosticCode: diagnosticCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
+
+  /// Reports a diagnostic at [token], with message [arguments] and
+  /// [contextMessages].
+  void reportAtToken(
+    Token token, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) => _reportAtToken(
+    token,
+    diagnosticCode: diagnosticCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
+}
+
+/// Describes an [AbstractAnalysisRule] which reports diagnostics using multiple
+/// [DiagnosticCode]s).
+abstract class MultiAnalysisRule extends AbstractAnalysisRule {
+  MultiAnalysisRule({
+    required super.name,
+    required super.description,
+    super.state,
+  });
+
+  /// Reports [diagnosticCode] at [node] with message [arguments] and
+  /// [contextMessages].
+  void reportAtNode(
+    AstNode? node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+    required DiagnosticCode diagnosticCode,
+  }) => _reportAtNode(
+    node,
+    diagnosticCode: diagnosticCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
+
+  /// Reports [diagnosticCode] at [offset], with [length], with message [arguments]
+  /// and [contextMessages].
+  void reportAtOffset(
+    int offset,
+    int length, {
+    required DiagnosticCode diagnosticCode,
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) => _reportAtOffset(
+    offset,
+    length,
+    diagnosticCode: diagnosticCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
+
+  /// Reports [diagnosticCode] at Pubspec [node], with message [arguments] and
+  /// [contextMessages].
+  void reportAtPubNode(
+    PSNode node, {
+    required DiagnosticCode diagnosticCode,
+    List<Object> arguments = const [],
+    List<DiagnosticMessage> contextMessages = const [],
+  }) {
+    // Cache error and location info for creating `AnalysisErrorInfo`s.
+    var error = Diagnostic.tmp(
+      source: node.source,
+      offset: node.span.start.offset,
+      length: node.span.length,
+      errorCode: diagnosticCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+    );
+    _reporter.reportError(error);
+  }
+
+  /// Reports [diagnosticCode] at [token], with message [arguments] and
+  /// [contextMessages].
+  void reportAtToken(
+    Token token, {
+    required DiagnosticCode diagnosticCode,
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) => _reportAtToken(
+    token,
+    diagnosticCode: diagnosticCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
+}
+
+/// A [RuleContext] for a library, parsed into [ParsedUnitResult]s.
+///
+/// This is available for analysis rules that can operate on parsed,
+/// unresolved syntax trees.
+final class RuleContextWithParsedResults implements RuleContext {
+  @override
+  final List<RuleContextUnit> allUnits;
+
+  @override
+  final RuleContextUnit definingUnit;
+
+  @override
+  RuleContextUnit? currentUnit;
+
+  RuleContextWithParsedResults(this.allUnits, this.definingUnit);
+
+  @override
+  bool get isInLibDir =>
+      _isInLibDir(definingUnit.unit.declaredFragment?.source.fullName, package);
 
   @override
   bool get isInTestDirectory => false;
 
-  @experimental
   @override
-  LibraryElement get libraryElement2 =>
+  LibraryElement get libraryElement =>
       throw UnsupportedError(
-        'LinterContext with parsed results does not include a LibraryElement',
+        'RuleContext with parsed results does not include a LibraryElement',
       );
 
   @override
@@ -113,26 +332,32 @@ final class LinterContextWithParsedResults implements LinterContext {
   @override
   TypeProvider get typeProvider =>
       throw UnsupportedError(
-        'LinterContext with parsed results does not include a TypeProvider',
+        'RuleContext with parsed results does not include a TypeProvider',
       );
 
   @override
   TypeSystem get typeSystem =>
       throw UnsupportedError(
-        'LinterContext with parsed results does not include a TypeSystem',
+        'RuleContext with parsed results does not include a TypeSystem',
+      );
+
+  @override
+  bool isFeatureEnabled(Feature feature) =>
+      throw UnsupportedError(
+        'RuleContext with parsed results does not include a LibraryElement',
       );
 }
 
-/// A [LinterContext] for a library, resolved into [ResolvedUnitResult]s.
-final class LinterContextWithResolvedResults implements LinterContext {
+/// A [RuleContext] for a library, resolved into [ResolvedUnitResult]s.
+final class RuleContextWithResolvedResults implements RuleContext {
   @override
-  final List<LintRuleUnitContext> allUnits;
+  final List<RuleContextUnit> allUnits;
 
   @override
-  final LintRuleUnitContext definingUnit;
+  final RuleContextUnit definingUnit;
 
   @override
-  LintRuleUnitContext? currentUnit;
+  RuleContextUnit? currentUnit;
 
   @override
   final WorkspacePackage? package;
@@ -143,23 +368,17 @@ final class LinterContextWithResolvedResults implements LinterContext {
   @override
   final TypeSystem typeSystem;
 
-  @override
-  final InheritanceManager3 inheritanceManager;
-
-  LinterContextWithResolvedResults(
+  RuleContextWithResolvedResults(
     this.allUnits,
     this.definingUnit,
     this.typeProvider,
     this.typeSystem,
-    this.inheritanceManager,
     this.package,
   );
 
   @override
-  bool get isInLibDir => LinterContext._isInLibDir(
-    definingUnit.libraryFragment.source.fullName,
-    package,
-  );
+  bool get isInLibDir =>
+      _isInLibDir(definingUnit.unit.declaredFragment?.source.fullName, package);
 
   @override
   bool get isInTestDirectory {
@@ -170,184 +389,11 @@ final class LinterContextWithResolvedResults implements LinterContext {
     return false;
   }
 
-  @experimental
   @override
-  LibraryElement get libraryElement2 => definingUnit.libraryFragment.element;
-}
+  LibraryElement get libraryElement =>
+      definingUnit.unit.declaredFragment!.element;
 
-/// Describes a lint rule.
-abstract class LintRule {
-  /// Used to report lint warnings.
-  /// NOTE: this is set by the framework before any node processors start
-  /// visiting nodes.
-  late ErrorReporter _reporter;
-
-  /// Short description suitable for display in console output.
-  final String description;
-
-  /// Lint name.
-  final String name;
-
-  /// The state of a lint, and optionally since when the state began.
-  final State state;
-
-  LintRule({
-    required this.name,
-    required this.description,
-    this.state = const State.stable(),
-  });
-
-  /// Indicates whether the lint rule can work with just the parsed information
-  /// or if it requires a resolved unit.
-  bool get canUseParsedResult => false;
-
-  /// A list of incompatible rule ids.
-  List<String> get incompatibleRules => const [];
-
-  /// The lint code associated with this linter, if it is only associated with a
-  /// single lint code.
-  ///
-  /// Note that this property is just a convenient shorthand for a rule to
-  /// associate a lint rule with a single lint code. Use [lintCodes] for the
-  /// full list of (possibly multiple) lint codes which a lint rule may be
-  /// associated with.
-  LintCode get lintCode =>
-      throw UnimplementedError(
-        "'lintCode' is not implemented for $runtimeType",
-      );
-
-  /// The lint codes associated with this lint rule.
-  List<LintCode> get lintCodes => [lintCode];
-
-  @protected
-  // Protected so that lint rule visitors do not access this directly.
-  // TODO(srawlins): With the new availability of an ErrorReporter on
-  // LinterContextUnit, we should probably remove this reporter. But whatever
-  // the new API would be is not yet decided. It might also change with the
-  // notion of post-processing lint rules that have access to all unit
-  // reporters at once.
-  ErrorReporter get reporter => _reporter;
-
-  set reporter(ErrorReporter value) => _reporter = value;
-
-  /// Returns a visitor to be passed to pubspecs to perform lint
-  /// analysis.
-  ///
-  /// Lint errors are reported via this [LintRule]'s error [reporter].
-  PubspecVisitor? getPubspecVisitor() => null;
-
-  /// Registers node processors in the given [registry].
-  ///
-  /// The node processors may use the provided [context] to access information
-  /// that is not available from the AST nodes or their associated elements.
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {}
-
-  /// Reports a diagnostic at [node] with message [arguments] and
-  /// [contextMessages].
-  ///
-  /// The error reported is either [errorCode] if that is passed in, otherwise
-  /// [lintCode].
-  void reportAtNode(
-    AstNode? node, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage>? contextMessages,
-    ErrorCode? errorCode,
-  }) {
-    if (node != null && !node.isSynthetic) {
-      reporter.atNode(
-        node,
-        errorCode ?? lintCode,
-        arguments: arguments,
-        contextMessages: contextMessages,
-      );
-    }
-  }
-
-  /// Reports a diagnostic at [offset], with [length], with message [arguments]
-  /// and [contextMessages].
-  ///
-  /// The error reported is either [errorCode] if that is passed in, otherwise
-  /// [lintCode].
-  void reportAtOffset(
-    int offset,
-    int length, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage>? contextMessages,
-    ErrorCode? errorCode,
-  }) {
-    reporter.atOffset(
-      offset: offset,
-      length: length,
-      errorCode: errorCode ?? lintCode,
-      arguments: arguments,
-      contextMessages: contextMessages,
-    );
-  }
-
-  /// Reports a diagnostic at Pubspec [node], with message [arguments] and
-  /// [contextMessages].
-  ///
-  /// The error reported is either [errorCode] if that is passed in, otherwise
-  /// [lintCode].
-  void reportAtPubNode(
-    PSNode node, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage> contextMessages = const [],
-    ErrorCode? errorCode,
-  }) {
-    // Cache error and location info for creating `AnalysisErrorInfo`s.
-    var error = Diagnostic.tmp(
-      source: node.source,
-      offset: node.span.start.offset,
-      length: node.span.length,
-      errorCode: errorCode ?? lintCode,
-      arguments: arguments,
-      contextMessages: contextMessages,
-    );
-    reporter.reportError(error);
-  }
-
-  /// Reports a diagnostic at [token], with message [arguments] and
-  /// [contextMessages].
-  ///
-  /// The error reported is either [errorCode] if that is passed in, otherwise
-  /// [lintCode].
-  void reportAtToken(
-    Token token, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage>? contextMessages,
-    ErrorCode? errorCode,
-  }) {
-    if (!token.isSynthetic) {
-      reporter.atToken(
-        token,
-        errorCode ?? lintCode,
-        arguments: arguments,
-        contextMessages: contextMessages,
-      );
-    }
-  }
-}
-
-/// Provides access to information needed by lint rules that is not available
-/// from AST nodes or the element model.
-class LintRuleUnitContext {
-  final File file;
-  final String content;
-  final ErrorReporter errorReporter;
-  final CompilationUnit unit;
-
-  LintRuleUnitContext({
-    required this.file,
-    required this.content,
-    required this.errorReporter,
-    required this.unit,
-  });
-
-  /// The library fragment representing the compilation unit.
-  @experimental
-  LibraryFragment get libraryFragment => unit.declaredFragment!;
+  @override
+  bool isFeatureEnabled(Feature feature) =>
+      libraryElement.featureSet.isEnabled(feature);
 }

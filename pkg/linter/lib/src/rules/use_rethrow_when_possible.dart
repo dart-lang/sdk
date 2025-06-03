@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -15,7 +16,7 @@ class UseRethrowWhenPossible extends LintRule {
     : super(name: LintNames.use_rethrow_when_possible, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_rethrow_when_possible;
+  DiagnosticCode get diagnosticCode => LinterLintCode.use_rethrow_when_possible;
 
   @override
   void registerNodeProcessors(

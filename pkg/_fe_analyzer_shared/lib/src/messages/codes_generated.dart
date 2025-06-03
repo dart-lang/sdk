@@ -16408,28 +16408,6 @@ const MessageCode messageStackOverflow = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeStaticAndInstanceConflict =
-    messageStaticAndInstanceConflict;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStaticAndInstanceConflict = const MessageCode(
-  "StaticAndInstanceConflict",
-  analyzerCodes: <String>["CONFLICTING_STATIC_AND_INSTANCE"],
-  problemMessage: r"""This static member conflicts with an instance member.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeStaticAndInstanceConflictCause =
-    messageStaticAndInstanceConflictCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStaticAndInstanceConflictCause = const MessageCode(
-  "StaticAndInstanceConflictCause",
-  severity: Severity.context,
-  problemMessage: r"""This is the instance member.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateStaticConflictsWithInstance =
     const Template<Message Function(String name)>(

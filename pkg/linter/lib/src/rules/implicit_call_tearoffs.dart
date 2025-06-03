@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,7 @@ class ImplicitCallTearoffs extends LintRule {
     : super(name: LintNames.implicit_call_tearoffs, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.implicit_call_tearoffs;
+  DiagnosticCode get diagnosticCode => LinterLintCode.implicit_call_tearoffs;
 
   @override
   void registerNodeProcessors(

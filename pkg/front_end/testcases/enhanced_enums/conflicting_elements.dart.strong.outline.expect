@@ -44,13 +44,6 @@ library;
 //   element; // Error.
 //   ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:35:3: Error: This static member conflicts with an instance member.
-//   element; // Error.
-//   ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:37:12: Context: This is the instance member.
-//   void set element(E6 value) {}
-//            ^^^^^^^
-//
 // pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:51:3: Error: Can't declare a member that conflicts with an inherited one.
 //   element // Error.
 //   ^^^^^^^
@@ -132,8 +125,6 @@ class E6 extends core::_Enum /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
-  set element(self::E6 value) → void
-    ;
 }
 class E7 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E7 element = const self::E7::•(0, "element");

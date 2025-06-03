@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -39,8 +40,9 @@ class PropertyElementResolver with ScopeHelpers {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   PropertyElementResolverResult resolveDotShorthand(
-    DotShorthandPropertyAccessImpl node,
-  ) {
+    DotShorthandPropertyAccessImpl node, {
+    required TypeImpl contextType,
+  }) {
     if (_resolver.isDotShorthandContextEmpty) {
       assert(
         false,
@@ -56,29 +58,62 @@ class PropertyElementResolver with ScopeHelpers {
     // `FutureOr<S>`.
     context = _resolver.typeSystem.futureOrBase(context);
 
-    // TODO(kallentu): Support other context types
     if (context is InterfaceTypeImpl) {
       var identifier = node.propertyName;
-      if (identifier.name == 'new') {
-        var element = context.lookUpConstructor2(
-          identifier.name,
-          _definingLibrary,
-        );
-        // We didn't resolve to any static getter or static field using the
-        // context type.
-        if (element == null) {
-          errorReporter.atNode(
-            node,
-            CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER,
-            arguments: [node.propertyName.name, context.getDisplayString()],
-          );
-          return PropertyElementResolverResult();
+      // Find constructor tearoffs.
+      var element = context.lookUpConstructor2(
+        identifier.name,
+        _definingLibrary,
+      );
+      if (element != null) {
+        if (!element.isFactory) {
+          var enclosingElement = element.enclosingElement;
+          if (enclosingElement is ClassElementImpl2 &&
+              enclosingElement.isAbstract) {
+            _resolver.errorReporter.atNode(
+              node,
+              CompileTimeErrorCode
+                  .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+            );
+          }
         }
+
+        // Infer type parameters.
+        var elementToInfer = _resolver.inferenceHelper
+            .constructorElementToInfer(
+              typeElement: context.element3,
+              constructorName: identifier,
+              definingLibrary: _resolver.definingLibrary,
+            );
+        if (elementToInfer != null &&
+            elementToInfer.typeParameters2.isNotEmpty) {
+          var inferred =
+              _resolver.inferenceHelper.inferTearOff(
+                    node,
+                    identifier,
+                    elementToInfer.asType,
+                    contextType: contextType,
+                  )
+                  as FunctionType;
+          var inferredType = inferred.returnType;
+          var constructorElement = ConstructorMember.from2(
+            elementToInfer.element2.baseElement,
+            inferredType as InterfaceType,
+          );
+          node.propertyName.element = constructorElement.baseElement;
+          return PropertyElementResolverResult(
+            readElementRequested2: node.propertyName.element,
+            getType: inferred.returnType,
+          );
+        }
+
         return PropertyElementResolverResult(
           readElementRequested2: element,
           getType: element.returnType,
         );
       }
+
+      // Didn't find any constructor tearoffs, look for static getters.
       var contextElement = context.element3;
       return _resolveTargetInterfaceElement(
         typeReference: contextElement,
@@ -390,7 +425,7 @@ class PropertyElementResolver with ScopeHelpers {
           CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
         );
       } else {
-        var enclosingElement = element.enclosingElement2;
+        var enclosingElement = element.enclosingElement;
         if (enclosingElement is ExtensionElement &&
             enclosingElement.name3 == null) {
           _resolver.errorReporter.atNode(
@@ -437,7 +472,7 @@ class PropertyElementResolver with ScopeHelpers {
     errorReporter.atOffset(
       offset: offset,
       length: length,
-      errorCode: diagnosticCode,
+      diagnosticCode: diagnosticCode,
       arguments: arguments,
     );
   }
@@ -625,8 +660,8 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? readElementRecovery;
     DartType? getType;
     if (hasRead) {
-      readElement ??= extension.getGetter2(memberName);
-      readElement ??= extension.getMethod2(memberName);
+      readElement ??= extension.getGetter(memberName);
+      readElement ??= extension.getMethod(memberName);
 
       if (readElement == null) {
         // This method is only called for extension overrides, and extension
@@ -649,7 +684,7 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? writeElement;
     ExecutableElement? writeElementRecovery;
     if (hasWrite) {
-      writeElement = extension.getSetter2(memberName);
+      writeElement = extension.getSetter(memberName);
 
       if (writeElement == null) {
         errorReporter.atNode(
@@ -751,13 +786,13 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? readElementRecovery;
     DartType? getType;
     if (hasRead) {
-      readElement = typeReference.getGetter2(propertyName.name);
+      readElement = typeReference.getGetter(propertyName.name);
       if (readElement != null && !_isAccessible(readElement)) {
         readElement = null;
       }
 
       if (readElement == null) {
-        readElement = typeReference.getMethod2(propertyName.name);
+        readElement = typeReference.getMethod(propertyName.name);
         if (readElement != null && !_isAccessible(readElement)) {
           readElement = null;
         }
@@ -795,7 +830,7 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? writeElement;
     ExecutableElement? writeElementRecovery;
     if (hasWrite) {
-      writeElement = typeReference.getSetter2(propertyName.name);
+      writeElement = typeReference.getSetter(propertyName.name);
       if (writeElement != null) {
         if (!_isAccessible(writeElement)) {
           errorReporter.atNode(
@@ -810,7 +845,7 @@ class PropertyElementResolver with ScopeHelpers {
         }
       } else {
         // Recovery, try to use getter.
-        writeElementRecovery = typeReference.getGetter2(propertyName.name);
+        writeElementRecovery = typeReference.getGetter(propertyName.name);
         AssignmentVerifier(errorReporter).verify(
           node: propertyName,
           requested: null,

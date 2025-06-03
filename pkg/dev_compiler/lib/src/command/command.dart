@@ -363,7 +363,8 @@ Future<CompilerResult> _compile(List<String> args,
       final lastAcceptedComponent = Component();
       kernel.BinaryBuilder((await File(reloadLastAcceptedKernel).readAsBytes()))
           .readComponent(lastAcceptedComponent);
-      final deltaInspector = HotReloadDeltaInspector();
+      final deltaInspector = HotReloadDeltaInspector(
+          nonHotReloadablePackages: options.nonHotReloadablePackages);
       final rejectionReasons = deltaInspector.compareGenerations(
           lastAcceptedComponent, compiledLibraries);
       if (rejectionReasons.isNotEmpty) {

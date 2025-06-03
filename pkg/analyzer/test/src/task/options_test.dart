@@ -4,6 +4,7 @@
 
 import 'dart:mirrors';
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -12,7 +13,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -176,7 +177,7 @@ analyzer:
   }
 
   test_analyzer_error_code_supported_bad_value() {
-    var errors = validate(
+    var diagnostics = validate(
       '''
 analyzer:
   errors:
@@ -185,13 +186,13 @@ analyzer:
       [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES],
     );
     expect(
-      errors.single.problemMessage.messageText(includeUrl: false),
+      diagnostics.single.problemMessage.messageText(includeUrl: false),
       contains("The option 'ftw'"),
     );
   }
 
   test_analyzer_error_code_supported_bad_value_null() {
-    var errors = validate(
+    var diagnostics = validate(
       '''
 analyzer:
   errors:
@@ -200,13 +201,13 @@ analyzer:
       [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES],
     );
     expect(
-      errors.single.problemMessage.messageText(includeUrl: false),
+      diagnostics.single.problemMessage.messageText(includeUrl: false),
       contains("The option 'null'"),
     );
   }
 
   test_analyzer_error_code_unsupported() {
-    var errors = validate(
+    var diagnostics = validate(
       '''
 analyzer:
   errors:
@@ -215,13 +216,13 @@ analyzer:
       [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE],
     );
     expect(
-      errors.single.problemMessage.messageText(includeUrl: false),
+      diagnostics.single.problemMessage.messageText(includeUrl: false),
       contains("'not_supported' isn't a recognized error code"),
     );
   }
 
   test_analyzer_error_code_unsupported_null() {
-    var errors = validate(
+    var diagnostics = validate(
       '''
 analyzer:
   errors:
@@ -230,7 +231,7 @@ analyzer:
       [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE],
     );
     expect(
-      errors.single.problemMessage.messageText(includeUrl: false),
+      diagnostics.single.problemMessage.messageText(includeUrl: false),
       contains("'null' isn't a recognized error code"),
     );
   }
@@ -580,14 +581,14 @@ plugins:
 ''', []);
   }
 
-  List<AnalysisError> validate(String source, List<DiagnosticCode> expected) {
+  List<Diagnostic> validate(String source, List<DiagnosticCode> expected) {
     var options = optionsProvider.getOptionsFromString(source);
-    var errors = validator.validate(options);
+    var diagnostics = validator.validate(options);
     expect(
-      errors.map((AnalysisError e) => e.errorCode),
+      diagnostics.map((Diagnostic e) => e.errorCode),
       unorderedEquals(expected),
     );
-    return errors;
+    return diagnostics;
   }
 }
 
@@ -600,11 +601,11 @@ class OptionsProviderTest with ResourceProviderMixin {
   String get optionsFilePath => '/analysis_options.yaml';
 
   void assertErrorsInList(
-    List<AnalysisError> errors,
+    List<Diagnostic> diagnostics,
     List<ExpectedError> expectedErrors,
   ) {
     GatheringErrorListener errorListener = GatheringErrorListener();
-    errorListener.addAll(errors);
+    errorListener.addAll(diagnostics);
     errorListener.assertErrors(expectedErrors);
   }
 
@@ -613,7 +614,7 @@ class OptionsProviderTest with ResourceProviderMixin {
     List<ExpectedError> expectedErrors,
   ) {
     newFile(optionsFilePath, code);
-    var errors = analyzeAnalysisOptions(
+    var diagnostics = analyzeAnalysisOptions(
       sourceFactory.forUri2(toUri(optionsFilePath))!,
       code,
       sourceFactory,
@@ -621,7 +622,7 @@ class OptionsProviderTest with ResourceProviderMixin {
       null /*sdkVersionConstraint*/,
     );
 
-    assertErrorsInList(errors, expectedErrors);
+    assertErrorsInList(diagnostics, expectedErrors);
   }
 
   ExpectedError error(
@@ -797,9 +798,9 @@ analyzer:
     );
   }
 
-  List<AnalysisError> validate(String code, List<DiagnosticCode> expected) {
+  List<Diagnostic> validate(String code, List<DiagnosticCode> expected) {
     newFile(optionsFilePath, code);
-    var errors = analyzeAnalysisOptions(
+    var diagnostics = analyzeAnalysisOptions(
       sourceFactory.forUri('file://$optionsFilePath')!,
       code,
       sourceFactory,
@@ -807,10 +808,10 @@ analyzer:
       null /*sdkVersionConstraint*/,
     );
     expect(
-      errors.map((AnalysisError e) => e.errorCode),
+      diagnostics.map((Diagnostic e) => e.errorCode),
       unorderedEquals(expected),
     );
-    return errors;
+    return diagnostics;
   }
 }
 
@@ -826,5 +827,5 @@ class TestRule extends LintRule {
   TestRule.withName(String name) : super(name: name, description: '');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 }

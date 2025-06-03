@@ -46,15 +46,17 @@ class PositionSourceInformation extends SourceInformation {
         .readIndexedOrNullNoCache<SourceLocation>(
           () => SourceLocation.readFromDataSource(source),
         );
-    List<FrameContext>?
-    inliningContext = source.readIndexedOrNullNoCache<List<FrameContext>>(
-      () =>
-      // FrameContext must be cached since PositionSourceInformation.==
-      // requires identity comparison on the objects in inliningContext.
-      source.readList(
-        () => source.readIndexed(() => FrameContext.readFromDataSource(source)),
-      ),
-    );
+    List<FrameContext>? inliningContext = source
+        .readIndexedOrNullNoCache<List<FrameContext>>(
+          () =>
+              // FrameContext must be cached since PositionSourceInformation.==
+              // requires identity comparison on the objects in inliningContext.
+              source.readList(
+                () => source.readIndexed(
+                  () => FrameContext.readFromDataSource(source),
+                ),
+              ),
+        );
     source.end(tag);
     return PositionSourceInformation(
       startPosition,
@@ -1161,10 +1163,9 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
       node,
       _currentNode,
       active: _currentNode.active,
-      branchData:
-          branchKind == null
-              ? null
-              : _BranchData(branchKind, branchNotificationMode, branchToken),
+      branchData: branchKind == null
+          ? null
+          : _BranchData(branchKind, branchNotificationMode, branchToken),
       statementOffset: statementOffset ?? _currentNode.statementOffset,
       offsetPositionMode: offsetPositionMode,
       steps: resetSteps ? [] : _currentNode.steps,
@@ -1284,12 +1285,8 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
           counter: value.counter + 1,
           position: value.position,
         ),
-        ifAbsent:
-            () => (
-              kind: callPosition.codePositionKind,
-              counter: 1,
-              position: null,
-            ),
+        ifAbsent: () =>
+            (kind: callPosition.codePositionKind, counter: 1, position: null),
       );
     }
     _currentNode.addNotifyStep(StepKind.call);
@@ -1495,8 +1492,12 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
     notifyStart(node);
 
     // Create empty node as root of tree.
-    _rootNode =
-        _currentNode = _PositionInfoNode(node, null, active: false, steps: []);
+    _rootNode = _currentNode = _PositionInfoNode(
+      node,
+      null,
+      active: false,
+      steps: [],
+    );
 
     Offset startOffset = getOffsetForNode(null, startPosition);
     notifyStep(node, startOffset, StepKind.noInfo, force: true);

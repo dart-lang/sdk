@@ -7,14 +7,17 @@ import 'package:kernel/ast.dart' show VariableDeclaration;
 import '../builder/builder.dart';
 import '../builder/variable_builder.dart';
 
-class VariableBuilderImpl extends BuilderImpl implements VariableBuilder {
+class VariableBuilderImpl extends NamedBuilderImpl implements VariableBuilder {
+  @override
+  final String name;
+
   @override
   final Uri fileUri;
 
   @override
   final VariableDeclaration variable;
 
-  VariableBuilderImpl(this.variable, this.fileUri);
+  VariableBuilderImpl(this.name, this.variable, this.fileUri);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -30,10 +33,10 @@ class VariableBuilderImpl extends BuilderImpl implements VariableBuilder {
   bool get isAssignable => variable.isAssignable;
 
   @override
-  Builder get getable => this;
+  NamedBuilder get getable => this;
 
   @override
-  Builder? get setable => isAssignable ? this : null;
+  NamedBuilder? get setable => isAssignable ? this : null;
 
   @override
   // Coverage-ignore(suite): Not run.

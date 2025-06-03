@@ -16,16 +16,16 @@ import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:analyzer_utilities/test/experiments/experiments.dart';
-import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
-import 'package:analyzer_utilities/testing/test_support.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
+import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
@@ -35,8 +35,6 @@ import '../../../generated/test_support.dart';
 import '../analysis/analyzer_state_printer.dart';
 import 'node_text_expectations.dart';
 import 'resolution.dart';
-
-export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
 class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
   @override
@@ -346,7 +344,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
     String directoryPath,
     PackageConfigFileBuilder config,
   ) {
-    var content = config.toContent(toUriStr: toUriStr);
+    var content = config.toContent(pathContext: pathContext);
     newPackageConfigJsonFile(directoryPath, content);
   }
 

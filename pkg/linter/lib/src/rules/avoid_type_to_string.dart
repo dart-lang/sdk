@@ -6,6 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,7 +19,7 @@ class AvoidTypeToString extends LintRule {
     : super(name: LintNames.avoid_type_to_string, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_type_to_string;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_type_to_string;
 
   @override
   void registerNodeProcessors(
@@ -86,7 +88,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isSimpleIdDeclByCoreObj(SimpleIdentifier simpleIdentifier) {
-    var encloser = simpleIdentifier.element?.enclosingElement2;
+    var encloser = simpleIdentifier.element?.enclosingElement;
     return encloser is ClassElement && encloser.isDartCoreObject;
   }
 

@@ -43,7 +43,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
   FixKind get multiFixKind => DartFixKind.CREATE_METHOD_MULTI;
 
   @override
-  Future<void> compute(ChangeBuilder builder) async => switch (_kind) {
+  Future<void> compute(ChangeBuilder builder) => switch (_kind) {
     _MethodKind.equalityOrHashCode => _createEqualsOrHashCode(builder),
     _MethodKind.method => _createMethod(builder),
   };
@@ -69,14 +69,12 @@ class CreateMethod extends ResolvedCorrectionProducer {
         ExecutableElement? element;
         if (missingEquals) {
           _memberName = '==';
-          element = inheritanceManager.getInherited4(
-            classElement,
+          element = classElement.getInheritedMember(
             Name.forLibrary(classElement.library2, _memberName),
           );
         } else {
           _memberName = 'hashCode';
-          element = inheritanceManager.getInherited4(
-            classElement,
+          element = classElement.getInheritedMember(
             Name.forLibrary(classElement.library2, _memberName),
           );
         }

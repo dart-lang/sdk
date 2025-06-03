@@ -911,16 +911,6 @@ bool dtest(obj) {
   return obj;
 }
 
-asInt(obj) {
-  // Note: null (and undefined) will fail this test.
-  if (JS('!', 'Math.floor(#) != #', obj, obj)) {
-    castError(obj, TYPE_REF<int>());
-  }
-  return obj;
-}
-
-asNullableInt(obj) => obj == null ? null : asInt(obj);
-
 /// Checks for null or undefined and returns [x].
 ///
 /// Throws [NoSuchMethodError] when it is null or undefined.
@@ -1101,7 +1091,7 @@ const_(obj) => JS('', '''(() => {
   return $obj;
 })()''');
 
-constFn(x) => JS('', '() => x');
+constFn(x) => JS('', '() => #', x);
 
 /// Gets the extension symbol given a member [name].
 ///
@@ -1576,9 +1566,25 @@ declareClass(library, classIdentifier, classDeclaration) {
       !isStateBearingSymbol(property),
       originalClass,
     );
+    deleteClassMembers(originalClass, classDeclaration);
     copyProperties(originalClass, classDeclaration, copyWhen: copyWhen);
   }
   return JS<Object>('!', '#.#', library, classIdentifier);
+}
+
+/// Deletes the members from [oldClass] that are not present in [newClass].
+///
+/// Existing members not prefixed by a special identifier are replaced
+/// (see [isStateBearingSymbol]).
+///
+/// Called from generated code.
+void deleteClassMembers(Object oldClass, Object newClass) {
+  for (var name in getOwnNamesAndSymbols(oldClass)) {
+    if (JS<Object?>('', '#.#', newClass, name) == null &&
+        !isStateBearingSymbol(name)) {
+      JS('', 'delete #.#', oldClass, name);
+    }
+  }
 }
 
 /// Declares properties in [propertiesObject] on [topLevelContainer].

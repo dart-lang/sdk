@@ -15,7 +15,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 typedef StaticOptions = Either2<bool, ReferenceOptions>;
 
@@ -45,7 +44,7 @@ class ReferencesHandler
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await message.performance.runAsync(
       '_getReferences',
-      (performance) async => (unit, offset).mapResults(
+      (performance) => (unit, offset).mapResults(
         (unit, offset) => _getReferences(unit, offset, params, performance),
       ),
     );

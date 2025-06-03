@@ -10,7 +10,6 @@ import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 

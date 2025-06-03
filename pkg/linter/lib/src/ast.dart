@@ -13,19 +13,20 @@ import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/lint/constants.dart' // ignore: implementation_imports
     show ExpressionExtension;
-import 'package:analyzer/src/workspace/workspace.dart' // ignore: implementation_imports
-    show WorkspacePackage;
+import 'package:analyzer/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
 
 import 'analyzer.dart';
-import 'utils.dart';
 
-final List<String> reservedWords = _collectReservedWords();
+final Set<String> _reservedWords = {
+  for (var entry in Keyword.keywords.entries)
+    if (entry.value.isReservedWord) entry.key,
+};
 
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String? name]) {
   var children = <Element>[];
-  visitChildren(parent, (Element element) {
+  _visitChildren(parent, (Element element) {
     if (name == null || element.displayName == name) {
       children.add(element);
     }
@@ -131,26 +132,11 @@ bool hasConstantError(Expression node) =>
 bool isEquals(ClassMember element) =>
     element is MethodDeclaration && element.name.lexeme == '==';
 
-/// Returns `true` if the keyword associated with this token is `final` or
-/// `const`.
-bool isFinalOrConst(Token token) =>
-    isKeyword(token, Keyword.FINAL) || isKeyword(token, Keyword.CONST);
-
 /// Returns `true` if this element is a `hashCode` method or field declaration.
 bool isHashCode(ClassMember element) => _hasFieldOrMethod(element, 'hashCode');
 
 /// Returns `true` if this element is an `index` method or field declaration.
 bool isIndex(ClassMember element) => _hasFieldOrMethod(element, 'index');
-
-/// Return true if this compilation unit [node] is declared within the given
-/// [package]'s `lib/` directory tree.
-bool isInLibDir(CompilationUnit node, WorkspacePackage? package) {
-  if (package == null) return false;
-  var cuPath = node.declaredFragment?.element.firstFragment.source.fullName;
-  if (cuPath == null) return false;
-  var libDir = path.join(package.root, 'lib');
-  return path.isWithin(libDir, cuPath);
-}
 
 /// Return `true` if this compilation unit [node] is declared within a public
 /// directory in the given [package]'s directory tree. Public dirs are the
@@ -161,36 +147,19 @@ bool isInPublicDir(CompilationUnit node, WorkspacePackage? package) {
   if (package == null) return false;
   var cuPath = node.declaredFragment?.element.firstFragment.source.fullName;
   if (cuPath == null) return false;
-  var libDir = path.join(package.root, 'lib');
-  var binDir = path.join(package.root, 'bin');
+  var libDir = path.join(package.root.path, 'lib');
+  var binDir = path.join(package.root.path, 'bin');
   // Hook directory: https://github.com/dart-lang/sdk/issues/54334,
-  var buildHookFile = path.join(package.root, 'hook', 'build.dart');
-  var linkHookFile = path.join(package.root, 'hook', 'link.dart');
+  var buildHookFile = path.join(package.root.path, 'hook', 'build.dart');
+  var linkHookFile = path.join(package.root.path, 'hook', 'link.dart');
   return path.isWithin(libDir, cuPath) ||
       path.isWithin(binDir, cuPath) ||
       cuPath == buildHookFile ||
       cuPath == linkHookFile;
 }
 
-/// Returns `true` if the given [id] is a Dart keyword.
-bool isKeyWord(String id) => Keyword.keywords.containsKey(id);
-
-/// Returns `true` if the keyword associated with the given [token] matches
-/// [keyword].
-bool isKeyword(Token token, Keyword keyword) =>
-    token is KeywordToken && token.keyword == keyword;
-
-/// Returns `true` if the given [ClassMember] is a method.
-bool isMethod(ClassMember m) => m is MethodDeclaration;
-
-/// Returns `true` if the given [ClassMember] is a public method.
-bool isPublicMethod(ClassMember m) {
-  var declaredElement = m.declaredFragment?.element;
-  return declaredElement != null && isMethod(m) && declaredElement.isPublic;
-}
-
 /// Check if the given word is a Dart reserved word.
-bool isReservedWord(String word) => reservedWords.contains(word);
+bool isReservedWord(String word) => _reservedWords.contains(word);
 
 /// Returns `true` if the given method [declaration] is a "simple getter".
 ///
@@ -263,14 +232,8 @@ bool isSimpleSetter(MethodDeclaration setter) {
   return false;
 }
 
-/// Returns `true` if the given [id] is a valid Dart identifier.
-bool isValidDartIdentifier(String id) => !isKeyWord(id) && isIdentifier(id);
-
 /// Returns `true` if this element is a `values` method or field declaration.
 bool isValues(ClassMember element) => _hasFieldOrMethod(element, 'values');
-
-/// Returns `true` if the keyword associated with this token is `var`.
-bool isVar(Token token) => isKeyword(token, Keyword.VAR);
 
 /// Return the nearest enclosing pubspec file.
 File? locatePubspecFile(CompilationUnit compilationUnit) {
@@ -293,20 +256,14 @@ File? locatePubspecFile(CompilationUnit compilationUnit) {
   return null;
 }
 
-/// Uses [processor] to visit all of the children of [element].
-/// If [processor] returns `true`, then children of a child are visited too.
-void visitChildren(Element element, ElementProcessor processor) {
-  element.visitChildren2(_ElementVisitorAdapter(processor));
-}
-
 bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
   if (expression is SimpleIdentifier) {
     var staticElement = expression.element;
     if (staticElement is GetterElement) {
-      var enclosingElement = getter.declaredFragment?.element.enclosingElement2;
+      var enclosingElement = getter.declaredFragment?.element.enclosingElement;
       // Skipping library level getters, test that the enclosing element is
       // the same
-      if (staticElement.enclosingElement2 == enclosingElement) {
+      if (staticElement.enclosingElement == enclosingElement) {
         var variable = staticElement.variable3;
         if (variable != null) {
           return staticElement.isSynthetic && variable.isPrivate;
@@ -350,16 +307,6 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   }
 
   return false;
-}
-
-List<String> _collectReservedWords() {
-  var reserved = <String>[];
-  for (var entry in Keyword.keywords.entries) {
-    if (entry.value.isReservedWord) {
-      reserved.add(entry.key);
-    }
-  }
-  return reserved;
 }
 
 int? _getIntValue(
@@ -408,6 +355,12 @@ Element? _getWriteElement(AstNode node) {
 bool _hasFieldOrMethod(ClassMember element, String name) =>
     (element is MethodDeclaration && element.name.lexeme == name) ||
     (element is FieldDeclaration && getFieldName(element, name) != null);
+
+/// Uses [processor] to visit all of the children of [element].
+/// If [processor] returns `true`, then children of a child are visited too.
+void _visitChildren(Element element, ElementProcessor processor) {
+  element.visitChildren2(_ElementVisitorAdapter(processor));
+}
 
 /// An [Element] processor function type.
 /// If `true` is returned, children of [element] will be visited.

@@ -22,6 +22,7 @@ import 'core.dart';
 class DartNativeAssetsBuilder {
   final Uri? pubspecUri;
   final Uri packageConfigUri;
+  final package_config.PackageConfig packageConfig;
   final String runPackageName;
   final bool verbose;
 
@@ -30,7 +31,7 @@ class DartNativeAssetsBuilder {
   late final Future<PackageLayout> _packageLayout = () async {
     return PackageLayout.fromPackageConfig(
       _fileSystem,
-      await package_config.loadPackageConfigUri(packageConfigUri),
+      packageConfig,
       packageConfigUri,
       runPackageName,
     );
@@ -65,6 +66,7 @@ class DartNativeAssetsBuilder {
   DartNativeAssetsBuilder({
     this.pubspecUri,
     required this.packageConfigUri,
+    required this.packageConfig,
     required this.runPackageName,
     required this.verbose,
     Target? target,
@@ -112,27 +114,14 @@ class DartNativeAssetsBuilder {
   }
 
   Future<bool> warnOnNativeAssets() async {
-    try {
-      final builder = await _nativeAssetsBuildRunner;
-      final packageNames = await builder.packagesWithBuildHooks();
-      if (packageNames.isEmpty) return false;
-      log.stderr(
-        'Package(s) $packageNames require the native assets feature to be enabled. '
-        'Enable native assets with `--enable-experiment=native-assets`.',
-      );
-      return true;
-    } on FormatException catch (e) {
-      // This can be thrown if the package_config.json is malformed or has
-      // duplicate entries.
-      log.stderr(
-        'Error encountered while parsing '
-        '${packageConfigUri.toFilePath()}: ${e.message}.',
-      );
-      // If the package config cannot be read, don't fail here. The dartdev
-      // command invoking this function can fail if it requires to have a valid
-      // package config.
-      return false;
-    }
+    final builder = await _nativeAssetsBuildRunner;
+    final packageNames = await builder.packagesWithBuildHooks();
+    if (packageNames.isEmpty) return false;
+    log.stderr(
+      'Package(s) $packageNames require the native assets feature to be enabled. '
+      'Enable native assets with `--enable-experiment=native-assets`.',
+    );
+    return true;
   }
 
   late final _extensions = [
@@ -156,7 +145,8 @@ class DartNativeAssetsBuilder {
       extensions: _extensions,
       linkingEnabled: linkingEnabled,
     );
-    return buildResult;
+    if (buildResult.isFailure) return null;
+    return buildResult.success;
   }
 
   Future<BuildResult?> buildNativeAssetsAOT() {
@@ -174,7 +164,8 @@ class DartNativeAssetsBuilder {
           recordedUsagesPath != null ? Uri.file(recordedUsagesPath) : null,
       buildResult: buildResult,
     );
-    return linkResult;
+    if (linkResult.isFailure) return null;
+    return linkResult.success;
   }
 
   final Target target;
@@ -243,6 +234,24 @@ class DartNativeAssetsBuilder {
     return packageConfig;
   }
 
+  /// Tries to load the package config.
+  ///
+  /// Returns null and writes to stderr if the package config is malformed.
+  static Future<package_config.PackageConfig?> loadPackageConfig(
+      Uri packageConfigUri) async {
+    try {
+      return await package_config.loadPackageConfigUri(packageConfigUri);
+    } on FormatException catch (e) {
+      // This can be thrown if the package_config.json is malformed or has
+      // duplicate entries.
+      log.stderr(
+        'Error encountered while parsing '
+        '${packageConfigUri.toFilePath()}: ${e.message}.',
+      );
+      return null;
+    }
+  }
+
   /// Finds the package config uri.
   ///
   /// Returns `null` if no package config can be found.
@@ -250,10 +259,12 @@ class DartNativeAssetsBuilder {
   // logic in package:package_config.
   static Future<Uri?> _findPackageConfigUri(Uri uri) async {
     while (true) {
-      final candidate = uri.resolve('.dart_tool/package_config.json');
-      final file = File.fromUri(candidate);
-      if (await file.exists()) {
-        return file.uri;
+      final packageConfig =
+          File.fromUri(uri.resolve('.dart_tool/package_config.json'));
+      final packageGraph =
+          File.fromUri(uri.resolve('.dart_tool/package_graph.json'));
+      if (await packageConfig.exists() && await packageGraph.exists()) {
+        return packageConfig.uri;
       }
       final parent = uri.resolve('..');
       if (parent == uri) {

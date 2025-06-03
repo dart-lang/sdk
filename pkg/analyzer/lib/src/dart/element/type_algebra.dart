@@ -259,7 +259,10 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
 
     var freshElements = List.generate(elements.length, (index) {
       var element = elements[index];
-      var freshElement = TypeParameterFragmentImpl(element.name3!, -1);
+      var freshElement = TypeParameterFragmentImpl(
+        name2: element.name3,
+        nameOffset: -1,
+      );
       var freshType = freshElement.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -497,10 +500,10 @@ abstract class _TypeSubstitutor
     if (useCounter == before) return type;
 
     return FunctionTypeBuilder(
-      typeParameters,
-      formalParameters,
-      returnType,
-      type.nullabilitySuffix,
+      typeParameters: typeParameters,
+      formalParameters: formalParameters,
+      returnType: returnType,
+      nullabilitySuffix: type.nullabilitySuffix,
     );
   }
 
@@ -541,11 +544,11 @@ abstract class _TypeSubstitutor
     }
 
     return NamedTypeBuilder(
-      type.linker,
-      type.typeSystem,
-      type.element3,
-      arguments,
-      type.nullabilitySuffix,
+      linker: type.linker,
+      typeSystem: type.typeSystem,
+      element3: type.element3,
+      arguments: arguments,
+      nullabilitySuffix: type.nullabilitySuffix,
     );
   }
 

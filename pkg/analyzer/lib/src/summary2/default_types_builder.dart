@@ -11,15 +11,23 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
-import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/util/graph.dart';
 
-class DefaultTypesBuilder {
-  final Linker _linker;
+/// Function that returns the [AstNode] corresponding to the type parameter
+/// [fragment].
+///
+/// If the [fragment] is not part of a library currently being linked or
+/// resolved, `null` is returned.
+typedef GetTypeParameterNodeFunction = AstNode? Function(Fragment fragment);
 
-  DefaultTypesBuilder(this._linker);
+class DefaultTypesBuilder {
+  final GetTypeParameterNodeFunction _getTypeParameterNode;
+
+  DefaultTypesBuilder({
+    required GetTypeParameterNodeFunction getTypeParameterNode,
+  }) : _getTypeParameterNode = getTypeParameterNode;
 
   void build(List<AstNode> nodes) {
     for (var node in nodes) {
@@ -73,6 +81,11 @@ class DefaultTypesBuilder {
         _breakSelfCycles(node.functionExpression.typeParameters);
         _breakRawTypeCycles(element, node.functionExpression.typeParameters);
         _computeBounds(element, node.functionExpression.typeParameters);
+      } else if (node is FunctionExpressionImpl) {
+        var element = node.declaredFragment!.element;
+        _breakSelfCycles(node.typeParameters);
+        _breakRawTypeCycles(element, node.typeParameters);
+        _computeBounds(element, node.typeParameters);
       }
     }
     for (var node in nodes) {
@@ -94,6 +107,8 @@ class DefaultTypesBuilder {
         _build(node.typeParameters);
       } else if (node is FunctionDeclarationImpl) {
         _build(node.functionExpression.typeParameters);
+      } else if (node is FunctionExpressionImpl) {
+        _build(node.typeParameters);
       } else if (node is MethodDeclarationImpl) {
         _build(node.typeParameters);
       }
@@ -160,7 +175,7 @@ class DefaultTypesBuilder {
           var bound = current.bound;
           if (bound is NamedType) {
             if (bound.importPrefix == null) {
-              current = typeParametersByName[bound.name2.lexeme];
+              current = typeParametersByName[bound.name.lexeme];
               continue;
             }
           }
@@ -274,7 +289,7 @@ class DefaultTypesBuilder {
         } else if (visited.add(startType.element3)) {
           void recurseParameters(List<TypeParameterElement> parameters) {
             for (var parameter in parameters) {
-              var parameterNode = _linker.getLinkingNode2(
+              var parameterNode = _getTypeParameterNode(
                 parameter.firstFragment,
               );
               if (parameterNode is TypeParameter) {

@@ -2,39 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
-import 'package:analyzer/src/lint/io.dart';
 import 'package:test/test.dart';
 
 import '../tool/checks/check_all_yaml.dart';
 import '../tool/checks/check_messages_yaml.dart';
 
 void main() {
-  group('integration', () {
-    group('config', () {
-      var currentOut = outSink;
-      var collectingOut = StringBuffer();
-      setUp(() {
-        exitCode = 0;
-        outSink = collectingOut;
-      });
-      tearDown(() {
-        collectingOut.clear();
-        outSink = currentOut;
-        exitCode = 0;
-      });
-    });
-
-    group('examples', () {
-      test('all.yaml', () {
-        var errors = checkAllYaml();
-        if (errors != null) {
-          fail(errors);
-        }
-      });
-    });
-
-    test('messages.yaml', checkMessagesYaml);
+  test('examples/all.yaml is correct', () {
+    var errors = checkAllYaml();
+    if (errors != null) {
+      fail(errors);
+    }
   });
+
+  test('messages.yaml is correct', checkMessagesYaml);
 }

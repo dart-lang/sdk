@@ -105,10 +105,9 @@ Future runTest(
       CompilationResult compilationResult = await entry.internalMain(arguments);
       return compilationResult.isSuccess;
     },
-    jsPreambles:
-        (input, output) => [
-          '$sdkPath/_internal/js_runtime/lib/preambles/d8.js',
-        ],
+    jsPreambles: (input, output) => [
+      '$sdkPath/_internal/js_runtime/lib/preambles/d8.js',
+    ],
     afterExceptions: testAfterExceptions,
     beforeExceptions: beforeExceptions,
     verbose: verbose,

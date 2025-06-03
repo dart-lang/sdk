@@ -19,11 +19,11 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -887,9 +887,7 @@ class PluginManager {
         }
         packageConfigFile.writeAsStringSync(
           packageConfigBuilder.toContent(
-            toUriStr: (path) {
-              return resourceProvider.pathContext.toUri(path).toString();
-            },
+            pathContext: resourceProvider.pathContext,
           ),
         );
       } catch (exception) {

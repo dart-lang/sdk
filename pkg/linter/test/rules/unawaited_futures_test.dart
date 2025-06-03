@@ -57,20 +57,6 @@ void f<T extends Future<void>>(T p) async {
 ''');
   }
 
-  test_classImplementsFuture() async {
-    // https://github.com/dart-lang/linter/issues/2211
-    await assertDiagnostics(
-      r'''
-void f(Future2 p) async {
-  g(p);
-}
-Future2 g(Future2 p) => p;
-abstract class Future2 implements Future {}
-''',
-      [lint(28, 5)],
-    );
-  }
-
   test_functionCall_assigned() async {
     await assertNoDiagnostics(r'''
 Future<int> f() async {
@@ -88,6 +74,20 @@ void f() async {
 }
 Future<int> g() => Future.value(0);
 ''');
+  }
+
+  test_functionCall_classImplementsFuture() async {
+    // https://github.com/dart-lang/linter/issues/2211
+    await assertDiagnostics(
+      r'''
+void f(Future2 p) async {
+  g(p);
+}
+Future2 g(Future2 p) => p;
+abstract class Future2 implements Future {}
+''',
+      [lint(28, 5)],
+    );
   }
 
   test_functionCall_inListContext() async {
@@ -121,6 +121,20 @@ void f() async {
 @awaitNotRequired
 Future<int> g() => Future.value(0);
 ''');
+  }
+
+  test_functionCall_interpolated_unawaited_classImplementsFuture() async {
+    await assertDiagnostics(
+      r'''
+void f() async {
+  '${g()}';
+}
+Future2<int> g() => f2;
+abstract class Future2<T> implements Future<T> {}
+external Future2<int> f2;
+''',
+      [lint(22, 3)],
+    );
   }
 
   test_functionCall_nullableFuture_unawaited() async {

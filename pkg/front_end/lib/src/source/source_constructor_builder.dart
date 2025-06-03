@@ -20,7 +20,6 @@ import '../base/messages.dart'
         templateCantInferTypeDueToCircularity;
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
-import '../base/problems.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -305,7 +304,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder get getable => this;
+  NamedBuilder get getable => this;
 
   bool get hasParameters => _introductory.hasParameters;
 
@@ -315,10 +314,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => _invokeTargetReference;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAugmentation => modifiers.isAugment;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -406,7 +401,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder? get setable => null;
+  NamedBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -707,14 +702,10 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   void markAsErroneous() {
-    switch (invokeTarget) {
-      case Constructor constructorTarget:
-        constructorTarget.isErroneous = true;
-      case Procedure procedureTarget:
-        procedureTarget.isErroneous = true;
-      // Coverage-ignore(suite): Not run.
-      case Field():
-        unexpected("Procedure|Constructor", "Field", fileOffset, fileUri);
+    _introductory.markAsErroneous();
+    for (ConstructorDeclaration augmentation in _augmentations) {
+      // Coverage-ignore-block(suite): Not run.
+      augmentation.markAsErroneous();
     }
   }
 }
@@ -774,7 +765,7 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder get getable => this;
+  NamedBuilder get getable => this;
 
   @override
   Constructor get invokeTarget => _constructor;
@@ -847,7 +838,7 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder? get setable => null;
+  NamedBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.

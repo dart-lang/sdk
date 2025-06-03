@@ -1617,7 +1617,7 @@ library
           methods
             f @43
               reference: <testLibraryFragment>::@extension::E::@method::f
-              element: <testLibraryFragment>::@extension::E::@method::f#element
+              element: <testLibrary>::@extension::E::@method::f
       topLevelVariables
         hasInitializer x @59
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -1648,6 +1648,7 @@ library
       firstFragment: <testLibraryFragment>::@extension::E
       methods
         static f
+          reference: <testLibrary>::@extension::E::@method::f
           firstFragment: <testLibraryFragment>::@extension::E::@method::f
           returnType: int
   topLevelVariables
@@ -1879,7 +1880,7 @@ library
           element: <testLibraryFragment>::@setter::0#element
           formalParameters
             <null-name>
-              element: <testLibraryFragment>::@setter::0::@parameter::_#element
+              element: <testLibraryFragment>::@setter::0::@parameter::#element
   topLevelVariables
     a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1910,7 +1911,7 @@ library
     synthetic static set <null-name>
       firstFragment: <testLibraryFragment>::@setter::0
       formalParameters
-        requiredPositional _
+        requiredPositional <null-name>
           type: Object?
       returnType: void
 ''');

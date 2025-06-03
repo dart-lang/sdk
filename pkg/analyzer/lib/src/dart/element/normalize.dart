@@ -29,6 +29,14 @@ class NormalizeHelper {
     return _normalize(T);
   }
 
+  FunctionTypeImpl normalizeFunctionType(FunctionTypeImpl T) {
+    return _normalize(T) as FunctionTypeImpl;
+  }
+
+  InterfaceTypeImpl normalizeInterfaceType(InterfaceTypeImpl T) {
+    return _normalize(T) as InterfaceTypeImpl;
+  }
+
   /// `NORM(R Function<X extends B>(S)) = R1 Function(X extends B1>(S1)`
   ///   * where R1 = NORM(R)
   ///   * and B1 = NORM(B)

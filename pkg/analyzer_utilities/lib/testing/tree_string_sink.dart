@@ -37,7 +37,7 @@ class TreeStringSink {
     }
   }
 
-  Future<void> writeFlags(Map<String, bool> flags) async {
+  void writeFlags(Map<String, bool> flags) {
     if (flags.values.any((flag) => flag)) {
       writeIndentedLine(() {
         write('flags:');

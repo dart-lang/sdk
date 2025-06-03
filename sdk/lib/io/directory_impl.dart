@@ -294,9 +294,9 @@ class _Directory extends FileSystemEntity implements Directory {
 }
 
 abstract class _AsyncDirectoryListerOps {
-  external factory _AsyncDirectoryListerOps(int pointer);
+  external factory _AsyncDirectoryListerOps._(int pointer);
 
-  int? getPointer();
+  int? _getPointer();
 }
 
 class _AsyncDirectoryLister {
@@ -335,7 +335,7 @@ class _AsyncDirectoryLister {
   // only be called to pass the pointer to the IO Service, which will decrement
   // the reference count when it is finished with it.
   int? _pointer() {
-    return _ops?.getPointer();
+    return _ops?._getPointer();
   }
 
   Stream<FileSystemEntity> get stream => controller.stream;
@@ -348,7 +348,7 @@ class _AsyncDirectoryLister {
       followLinks,
     ]).then((response) {
       if (response is int) {
-        _ops = _AsyncDirectoryListerOps(response);
+        _ops = _AsyncDirectoryListerOps._(response);
         next();
       } else if (response is Error) {
         controller.addError(response, response.stackTrace);

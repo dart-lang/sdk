@@ -24,9 +24,6 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   MemberBuilder? findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
 
-  void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled = false, List<LocatedMessage>? context});
-
   /// Returns the type of `this` in an instance of this declaration.
   ///
   /// This is non-null for class and mixin declarations and `null` for
@@ -38,11 +35,31 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   /// If [setter] is `true` the sought member is a setter or assignable field.
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
-  Builder? lookupLocalMember(String name,
+  NamedBuilder? lookupLocalMember(String name,
       {bool setter = false, bool required = false});
 
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);
+
+  /// Returns an iterator of all members declared in this declaration, including
+  /// duplicate declarations.
+  Iterator<MemberBuilder> get unfilteredMembersIterator;
+
+  /// [Iterator] for all members declared in this declaration of type [T].
+  ///
+  /// If [includeDuplicates] is `true`, duplicate declarations are included.
+  Iterator<T> filteredMembersIterator<T extends MemberBuilder>(
+      {required bool includeDuplicates});
+
+  /// Returns an iterator of all constructors declared in this declaration,
+  /// including duplicate declarations.
+  Iterator<MemberBuilder> get unfilteredConstructorsIterator;
+
+  /// [Iterator] for all constructors declared in this declaration of type [T].
+  ///
+  /// If [includeDuplicates] is `true`, duplicate declarations are included.
+  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>(
+      {required bool includeDuplicates});
 }
 
 abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
@@ -71,12 +88,5 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
     }
 
     return declaration;
-  }
-
-  @override
-  void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled = false, List<LocatedMessage>? context}) {
-    libraryBuilder.addProblem(message, charOffset, length, fileUri,
-        wasHandled: wasHandled, context: context);
   }
 }

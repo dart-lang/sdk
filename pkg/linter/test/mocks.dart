@@ -82,7 +82,7 @@ class MockSource extends BasicSource {
 
 class TestDiagnosticCode extends DiagnosticCode {
   @override
-  late DiagnosticSeverity errorSeverity;
+  late DiagnosticSeverity severity;
 
   @override
   late DiagnosticType type;

@@ -11,7 +11,8 @@ ifNull_left() {
 ifNull_right(int a) {
   late int v;
   a ?? (v = 0);
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 logicalAnd_left(bool c) {
@@ -23,7 +24,8 @@ logicalAnd_left(bool c) {
 logicalAnd_right(bool c) {
   late int v;
   c && ((v = 0) >= 0);
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 logicalOr_left(bool c) {
@@ -35,7 +37,8 @@ logicalOr_left(bool c) {
 logicalOr_right(bool c) {
   late int v;
   c || ((v = 0) >= 0);
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 plus_left() {

@@ -83,7 +83,7 @@ class CodeFragmentParser {
         errorReporter.atOffset(
           offset: token.offset + delta,
           length: token.length,
-          errorCode: TransformSetErrorCode.wrongToken,
+          diagnosticCode: TransformSetErrorCode.wrongToken,
           arguments: ['.', token.kind.displayName],
         );
         return null;
@@ -113,7 +113,7 @@ class CodeFragmentParser {
       errorReporter.atOffset(
         offset: token.offset + delta,
         length: token.length,
-        errorCode: TransformSetErrorCode.unexpectedToken,
+        diagnosticCode: TransformSetErrorCode.unexpectedToken,
         arguments: [token.kind.displayName],
       );
       return null;
@@ -151,7 +151,7 @@ class CodeFragmentParser {
       errorReporter.atOffset(
         offset: offset + delta,
         length: length,
-        errorCode: TransformSetErrorCode.missingToken,
+        diagnosticCode: TransformSetErrorCode.missingToken,
         arguments: [validKindsDisplayString()],
       );
       return null;
@@ -160,7 +160,7 @@ class CodeFragmentParser {
       errorReporter.atOffset(
         offset: token.offset + delta,
         length: token.length,
-        errorCode: TransformSetErrorCode.wrongToken,
+        diagnosticCode: TransformSetErrorCode.wrongToken,
         arguments: [validKindsDisplayString(), token.kind.displayName],
       );
       return null;
@@ -233,7 +233,7 @@ class CodeFragmentParser {
       errorReporter.atOffset(
         offset: token.offset + delta,
         length: token.length,
-        errorCode: TransformSetErrorCode.unknownAccessor,
+        diagnosticCode: TransformSetErrorCode.unknownAccessor,
         arguments: [identifier],
       );
       return null;
@@ -313,7 +313,7 @@ class CodeFragmentParser {
           errorReporter.atOffset(
             offset: token.offset + delta,
             length: token.length,
-            errorCode: TransformSetErrorCode.undefinedVariable,
+            diagnosticCode: TransformSetErrorCode.undefinedVariable,
             arguments: [variableName],
           );
           return null;
@@ -344,7 +344,7 @@ class CodeFragmentParser {
     errorReporter.atOffset(
       offset: offset,
       length: length,
-      errorCode: TransformSetErrorCode.expectedPrimary,
+      diagnosticCode: TransformSetErrorCode.expectedPrimary,
     );
     return null;
   }
@@ -471,7 +471,7 @@ class _CodeFragmentScanner {
     errorReporter.atOffset(
       offset: offset + delta,
       length: 1,
-      errorCode: TransformSetErrorCode.invalidCharacter,
+      diagnosticCode: TransformSetErrorCode.invalidCharacter,
       arguments: [content.substring(offset, offset + 1)],
     );
     return null;

@@ -14,6 +14,7 @@
 #include "vm/compiler/compiler_state.h"
 #endif
 #include "vm/debugger.h"
+#include "vm/heap/safepoint.h"
 #include "vm/instructions.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
@@ -606,7 +607,7 @@ class SampleBlockCleanupVisitor : public IsolateVisitor {
 };
 
 void Profiler::Cleanup() {
-  if (!FLAG_profiler) {
+  if (!FLAG_profiler && !initialized_) {
     return;
   }
   ASSERT(initialized_);

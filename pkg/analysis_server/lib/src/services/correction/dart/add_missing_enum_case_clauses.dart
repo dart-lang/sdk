@@ -47,7 +47,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
       var enumElement = expressionType.element3;
       if (enumElement is EnumElement) {
         enumName = enumElement.name3;
-        for (var field in enumElement.fields2) {
+        for (var field in enumElement.fields) {
           if (field.isEnumConstant) {
             unhandledEnumCases.addIfNotNull(field.name3);
           }

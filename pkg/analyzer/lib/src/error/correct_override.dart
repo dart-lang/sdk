@@ -127,9 +127,9 @@ class CovariantParametersVerifier {
             CompileTimeErrorCode.INVALID_OVERRIDE,
             arguments: [
               _thisMember.name3!,
-              _thisMember.enclosingElement2!.name3!,
+              _thisMember.enclosingElement!.name3!,
               _thisMember.type,
-              superMember.enclosingElement2!.name3!,
+              superMember.enclosingElement!.name3!,
               superMember.type,
             ],
           );
@@ -140,7 +140,7 @@ class CovariantParametersVerifier {
 
   List<_SuperMember> _superMembers() {
     var classHierarchy = _session.classHierarchy;
-    var classElement = _thisMember.enclosingElement2 as InterfaceElementImpl2;
+    var classElement = _thisMember.enclosingElement as InterfaceElementImpl2;
     var interfaces = classHierarchy.implementedInterfaces(classElement);
 
     var superMembers = <_SuperMember>[];
@@ -213,13 +213,13 @@ class CovariantParametersVerifier {
     ExecutableElement proto,
   ) {
     if (proto is MethodElement) {
-      return classElement.getMethod2(proto.displayName);
+      return classElement.getMethod(proto.displayName);
     }
     if (proto is PropertyAccessorElement) {
       if (proto is GetterElement) {
-        return classElement.getGetter2(proto.displayName);
+        return classElement.getGetter(proto.displayName);
       }
-      return classElement.getSetter2(proto.displayName);
+      return classElement.getSetter(proto.displayName);
     }
     return null;
   }
@@ -263,6 +263,5 @@ class _SuperParameter {
 
   _SuperParameter(this.element, this.type);
 
-  ExecutableElement get member =>
-      element.enclosingElement2 as ExecutableElement;
+  ExecutableElement get member => element.enclosingElement as ExecutableElement;
 }

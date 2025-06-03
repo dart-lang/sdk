@@ -2198,6 +2198,13 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
       add_megamorphic_call = true;
       break;
     }
+    const Function& function = *targets.TargetAt(i)->target;
+    if (function.is_declared_in_bytecode()) {
+      // Optimized static calls dispatch via Code object without passing
+      // Function object which is incompatible to the bytecode interpreter.
+      add_megamorphic_call = true;
+      continue;
+    }
     compiler::Label next_test;
     if (!complete || !is_last_check) {
       bias = EmitTestAndCallCheckCid(assembler(),
@@ -2207,7 +2214,6 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     }
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
-    const Function& function = *targets.TargetAt(i)->target;
     GenerateStaticDartCall(deopt_id, source_index,
                            UntaggedPcDescriptors::kOther, locs, function,
                            entry_kind);
@@ -3271,6 +3277,11 @@ void LateInitializationErrorSlowPath::EmitSharedStubCall(
                 ->late_initialization_error_stub_without_fpu_regs_stub());
   compiler->EmitCallToStub(stub);
 #endif
+}
+
+void FieldAccessErrorSlowPath::PushArgumentsForRuntimeCall(
+    FlowGraphCompiler* compiler) {
+  __ PushObject(Field::ZoneHandle(OriginalField()));
 }
 
 void FlowGraphCompiler::EmitNativeMove(

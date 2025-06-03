@@ -1148,21 +1148,28 @@ CompileTimeErrorCode:
       }
       ```
   AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT:
+    experiment: augmentations
     problemMessage: The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
     correctionMessage: Try removing the 'extends' clause, either here or in the augmentation target.
+    hasPublishedDocs: false
   AUGMENTATION_MODIFIER_EXTRA:
+    experiment: augmentations
     problemMessage: The augmentation has the '{0}' modifier that the declaration doesn't have.
     correctionMessage: Try removing the '{0}' modifier, or adding it to the declaration.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the lexeme of the modifier.
   AUGMENTATION_MODIFIER_MISSING:
+    experiment: augmentations
     problemMessage: The augmentation is missing the '{0}' modifier that the declaration has.
     correctionMessage: Try adding the '{0}' modifier, or removing it from the declaration.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the lexeme of the modifier.
   AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND:
+    experiment: augmentations
     problemMessage: Can't augment a {0} with a {1}.
     correctionMessage: Try changing the augmentation to match the declaration kind.
     hasPublishedDocs: false
@@ -1171,30 +1178,37 @@ CompileTimeErrorCode:
       0: the name of the declaration kind.
       1: the name of the augmentation kind.
   AUGMENTATION_TYPE_PARAMETER_BOUND:
+    experiment: augmentations
     problemMessage: The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
     hasPublishedDocs: false
   AUGMENTATION_TYPE_PARAMETER_COUNT:
+    experiment: augmentations
     problemMessage: The augmentation must have the same number of type parameters as the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
     hasPublishedDocs: false
   AUGMENTATION_TYPE_PARAMETER_NAME:
+    experiment: augmentations
     problemMessage: The augmentation type parameter must have the same name as the corresponding type parameter of the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
     hasPublishedDocs: false
   AUGMENTATION_WITHOUT_DECLARATION:
+    experiment: augmentations
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
     hasPublishedDocs: false
   AUGMENTED_EXPRESSION_IS_NOT_SETTER:
+    experiment: augmentations
     problemMessage: The augmented declaration is not a setter, it can't be used to write a value.
     correctionMessage: Try assigning a value to a setter.
     hasPublishedDocs: false
   AUGMENTED_EXPRESSION_IS_SETTER:
+    experiment: augmentations
     problemMessage: The augmented declaration is a setter, it can't be used to read a value.
     correctionMessage: Try assigning a value to the augmented setter.
     hasPublishedDocs: false
   AUGMENTED_EXPRESSION_NOT_OPERATOR:
+    experiment: augmentations
     problemMessage: The enclosing augmentation doesn't augment the operator '{0}'.
     correctionMessage: Try augmenting or invoking the correct operator.
     hasPublishedDocs: false
@@ -2089,6 +2103,7 @@ CompileTimeErrorCode:
     problemMessage: "A record literal with exactly one positional field requires a trailing comma."
     correctionMessage: Try adding a trailing comma.
     hasPublishedDocs: true
+    comment: The documentation is in `front_end/message.yaml`.
   SET_ELEMENT_FROM_DEFERRED_LIBRARY:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as values in a 'const' set literal."
@@ -3861,19 +3876,25 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the duplicate entity
   DOT_SHORTHAND_MISSING_CONTEXT:
+    experiment: dot-shorthands
     problemMessage: "A dot shorthand can't be used where there is no context type."
+    hasPublishedDocs: false
   DOT_SHORTHAND_UNDEFINED_GETTER:
     sharedName: DOT_SHORTHAND_UNDEFINED_MEMBER
+    experiment: dot-shorthands
     problemMessage: "The static getter '{0}' isn't defined for the context type '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing static getter, or defining a getter or field named '{0}'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the static getter
       1: the name of the enclosing type where the getter is being looked for
   DOT_SHORTHAND_UNDEFINED_INVOCATION:
     sharedName: DOT_SHORTHAND_UNDEFINED_MEMBER
+    experiment: dot-shorthands
     problemMessage: "The static method or constructor '{0}' isn't defined for the type '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '{0}'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the static method or constructor
@@ -7576,6 +7597,7 @@ CompileTimeErrorCode:
   INCONSISTENT_INHERITANCE_GETTER_AND_METHOD:
     problemMessage: "'{0}' is inherited as a getter (from '{1}') and also a method (from '{2}')."
     correctionMessage: Try adjusting the supertypes of this class to remove the inconsistency.
+    hasPublishedDocs: false
     comment: |-
       11.1.1 Inheritance and Overriding. Let `I` be the implicit interface of a
       class `C` declared in library `L`. `I` inherits all members of
@@ -18392,6 +18414,16 @@ CompileTimeErrorCode:
       }
       C f() => C.named();
       ```
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR:
+    sharedName: WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+    experiment: dot-shorthands
+    problemMessage: "The constructor '{0}.{1}` doesn't have type parameters."
+    correctionMessage: Try removing the type arguments, or adding a class name, followed by the type arguments, then the constructor name.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the class being instantiated
+      1: the name of the constructor being invoked
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
     problemMessage: The enum is declared with {0} type parameters, but {1} type arguments were given.
     correctionMessage: Try adjusting the number of type arguments.
@@ -18919,16 +18951,132 @@ FfiCode:
     problemMessage: "The '.address' expression can only be used as argument to a leaf native external call."
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `.address` getter is used
+      in a context other than as an argument to a native external call that is
+      marked as a leaf call (`isLeaf: true`).
+
+      #### Example
+
+      The following code produces this diagnostic because `.address` is used
+      incorrectly:
+
+      ```dart
+      import 'dart:ffi';
+      import 'dart:typed_data';
+
+      @Native<Void Function(Pointer<Uint8>)>()
+      external void nonLeafCall(Pointer<Uint8> ptr);
+
+      void main() {
+        final data = Uint8List(10);
+
+        // Incorrect: Using '.address' as an argument to a non-leaf call.
+        nonLeafCall(data.[!address!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Ensure that the `.address` expression is used directly as an argument to a
+      native external call that is annotated with `@Native(...)` and has
+      `isLeaf: true` set in its annotation.
+
+      ```dart
+      import 'dart:ffi';
+      import 'dart:typed_data';
+
+      @Native<Void Function(Pointer<Uint8>)>(isLeaf: true)
+      external void leafCall(Pointer<Uint8> ptr);
+
+      void main() {
+        final data = Uint8List(10); 
+
+        // Correct: Using .address directly as an argument to a leaf call.
+        leafCall(data.address);
+      }
+      ```
   ADDRESS_RECEIVER:
     problemMessage: "The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field."
     correctionMessage: Change the receiver of '.address' to one of the allowed kinds.
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `.address` getter is used
+      on a receiver whose static type isn't one of the allowed FFI types. The
+      `.address` getter is used to obtain a `Pointer` to the underlying memory
+      of an FFI data structure.
+
+      The receiver of `.address` must be one of the following:
+      - A concrete `TypedData` instance (e.g., `Uint8List`).
+      - An element of a concrete `TypedData` instance accessed via `[]`.
+      - An `Array<T>` instance (from `dart:ffi`).
+      - An element of an `Array<T>` instance accessed via `[]`.
+      - A field of a `Struct` or `Union` subclass, if that field's type is `Array<T>`, a nested `Struct`, or a nested `Union`.
+      - A `Struct` or `Union` instance.
+
+      #### Example
+
+      The following code produces this diagnostic for various incorrect receivers:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class MyStruct extends Struct {
+        @Uint8()
+        external int x;
+
+        @Uint8()
+        external int y;
+      }
+
+      @Native<Void Function(Pointer)>(isLeaf: true)
+      external void nativeLeafCall(Pointer ptr);
+
+      void main() {
+        final struct = Struct.create<MyStruct>();
+        final y = struct.y;
+        // Incorrect: The receiver is not a struct field, but some integer.
+        nativeLeafCall(y.[!address!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Ensure that the receiver of the `.address` getter is one of the allowed
+      types.  The `.address` getter is for obtaining a `Pointer` to the memory
+      of `TypedData`, `Array`, `Struct`, or `Union` instances, or certain
+      fields/elements thereof.
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Void Function(Pointer)>(isLeaf: true)
+      external void nativeLeafCall(Pointer ptr);
+
+      final class MyStruct extends Struct {
+        @Uint8()
+        external int x;
+
+        @Uint8()
+        external int y;
+      }
+
+      void main() {
+        final struct = Struct.create<MyStruct>();
+        // Correct: The receiver is a struct field.
+        nativeLeafCall(struct.y.address);
+      }
+      ```
   ANNOTATION_ON_POINTER_FIELD:
     problemMessage: "Fields in a struct class whose type is 'Pointer' shouldn't have any annotations."
     correctionMessage: Try removing the annotation.
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19572,6 +19720,57 @@ FfiCode:
     correctionMessage: Pass as Handle instead.
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a function or method annotated
+      with `@Native` has a parameter in its FFI signature that is a `Pointer`,
+      but the corresponding Dart parameter type is a class instance that doesn't
+      extend `NativeFieldWrapperClass1` (or is a Pointer or TypedData).
+
+      #### Example
+
+      The following code produces this diagnostic because `MyService` doesn't
+      extend `NativeFieldWrapperClass1`, but the `@Native` signature for its
+      `process` method indicates the receiver should be passed as a `Pointer<Void>`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class MyService { // MyService does not extend NativeFieldWrapperClass1
+        @Native<Void Function(Pointer<Void>, Int8)>(symbol: 'MyService_process')
+        external void [!process!](int data);
+      }
+      ```
+
+      #### Common fixes
+
+      1.  **If the Dart class is intended to wrap a native object:**
+          Make the Dart class extend `NativeFieldWrapperClass1`. This is the
+          correct approach if the Dart class instance has a corresponding native
+          object whose pointer should be passed.
+          ```dart
+          import 'dart:ffi';
+
+          class MyService extends NativeFieldWrapperClass1 {
+            @Native<Void Function(Pointer<Void>, Int8)>(symbol: 'MyService_process')
+            external void process(int data);
+          }
+          ```
+
+      2.  **If you intend to pass an opaque handle to the Dart object:**
+          Change the FFI signature in the `@Native` annotation to use `Handle`
+          instead of `Pointer` for the parameter. This allows passing a
+          reference to the Dart object itself, which native code can interact
+          with using the Dart C API.
+          ```dart
+          import 'dart:ffi';
+
+          class MyService {
+            @Native<Void Function(Handle, Int8)>(symbol: 'MyService_process')
+            external void process(int data);
+          }
+          ```
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
     problemMessage: Unexpected number of Native annotation parameters. Expected {0} but has {1}.
     correctionMessage: Make sure parameters match the function annotated.
@@ -21466,8 +21665,10 @@ ParserErrorCode:
   ABSTRACT_STATIC_METHOD:
     problemMessage: "Static methods can't be declared to be 'abstract'."
     correctionMessage: "Try removing the keyword 'abstract'."
+    hasPublishedDocs: false
   ASYNC_KEYWORD_USED_AS_IDENTIFIER:
     problemMessage: "The keywords 'await' and 'yield' can't be used as identifiers in an asynchronous or generator function."
+    hasPublishedDocs: false
     comment: |-
       16.32 Identifier Reference: It is a compile-time error if any of the
       identifiers async, await, or yield is used as an identifier in a function
@@ -21475,12 +21676,16 @@ ParserErrorCode:
   CONST_CONSTRUCTOR_WITH_BODY:
     problemMessage: "Const constructors can't have a body."
     correctionMessage: "Try removing either the 'const' keyword or the body."
+    hasPublishedDocs: false
   COVARIANT_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'covariant'."
     correctionMessage: "Try removing the keyword 'covariant'."
+    hasPublishedDocs: false
   DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
+    experiment: augmentations
     problemMessage: "The identifier 'augmented' has a special meaning inside augmenting declarations."
     correctionMessage: "Try using a different name."
+    hasPublishedDocs: false
   DEFAULT_VALUE_IN_FUNCTION_TYPE:
     problemMessage: "Parameters in a function type can't have default values."
     correctionMessage: Try removing the default value.
@@ -21515,91 +21720,119 @@ ParserErrorCode:
   EMPTY_ENUM_BODY:
     problemMessage: An enum must declare at least one constant name.
     correctionMessage: Try declaring a constant.
+    hasPublishedDocs: false
   EXPECTED_CASE_OR_DEFAULT:
     problemMessage: "Expected 'case' or 'default'."
     correctionMessage: Try placing this code inside a case clause.
+    hasPublishedDocs: false
   EXPECTED_CLASS_MEMBER:
     problemMessage: Expected a class member.
     correctionMessage: Try placing this code inside a class member.
+    hasPublishedDocs: false
   EXPECTED_EXECUTABLE:
     problemMessage: Expected a method, getter, setter or operator declaration.
     correctionMessage: This appears to be incomplete code. Try removing it or completing it.
+    hasPublishedDocs: false
   EXPECTED_LIST_OR_MAP_LITERAL:
     problemMessage: Expected a list or map literal.
     correctionMessage: Try inserting a list or map literal, or remove the type arguments.
+    hasPublishedDocs: false
   EXPECTED_NAMED_TYPE_EXTENDS:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected a class name.
     correctionMessage: Try using a class name, possibly with type arguments.
+    hasPublishedDocs: false
   EXPECTED_NAMED_TYPE_IMPLEMENTS:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected the name of a class or mixin.
     correctionMessage: Try using a class or mixin name, possibly with type arguments.
+    hasPublishedDocs: false
   EXPECTED_NAMED_TYPE_ON:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected the name of a class or mixin.
     correctionMessage: Try using a class or mixin name, possibly with type arguments.
+    hasPublishedDocs: false
   EXPECTED_NAMED_TYPE_WITH:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected a mixin name.
     correctionMessage: Try using a mixin name, possibly with type arguments.
+    hasPublishedDocs: false
   EXPECTED_REPRESENTATION_FIELD:
     problemMessage: Expected a representation field.
     correctionMessage: Try providing the representation field for this extension type.
+    hasPublishedDocs: false
   EXPECTED_REPRESENTATION_TYPE:
     problemMessage: Expected a representation type.
     correctionMessage: Try providing the representation type for this extension type.
+    hasPublishedDocs: false
   EXPECTED_STRING_LITERAL:
     problemMessage: Expected a string literal.
+    hasPublishedDocs: false
   EXPECTED_TOKEN:
     problemMessage: "Expected to find '{0}'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the token that was expected but not found
   EXPECTED_TYPE_NAME:
     problemMessage: Expected a type name.
+    hasPublishedDocs: false
   EXTERNAL_GETTER_WITH_BODY:
     problemMessage: "External getters can't have a body."
     correctionMessage: "Try removing the body of the getter, or removing the keyword 'external'."
+    hasPublishedDocs: false
   EXTERNAL_OPERATOR_WITH_BODY:
     problemMessage: "External operators can't have a body."
     correctionMessage: "Try removing the body of the operator, or removing the keyword 'external'."
+    hasPublishedDocs: false
   EXTERNAL_SETTER_WITH_BODY:
     problemMessage: "External setters can't have a body."
     correctionMessage: "Try removing the body of the setter, or removing the keyword 'external'."
+    hasPublishedDocs: false
   FACTORY_WITHOUT_BODY:
     problemMessage: "A non-redirecting 'factory' constructor must have a body."
     correctionMessage: Try adding a body to the constructor.
+    hasPublishedDocs: false
   FACTORY_WITH_INITIALIZERS:
     problemMessage: "A 'factory' constructor can't have initializers."
     correctionMessage: "Try removing the 'factory' keyword to make this a generative constructor, or removing the initializers."
+    hasPublishedDocs: false
   FINAL_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
+    hasPublishedDocs: false
   FINAL_METHOD:
     problemMessage: "Getters, setters and methods can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
+    hasPublishedDocs: false
   GETTER_IN_FUNCTION:
     problemMessage: "Getters can't be defined within methods or functions."
     correctionMessage: Try moving the getter outside the method or function, or converting the getter to a function.
+    hasPublishedDocs: false
   GETTER_WITH_PARAMETERS:
     problemMessage: Getters must be declared without a parameter list.
     correctionMessage: "Try removing the parameter list, or removing the keyword 'get' to define a method rather than a getter."
+    hasPublishedDocs: false
   INVALID_CODE_POINT:
     problemMessage: "The escape sequence '{0}' isn't a valid code point."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the invalid escape sequence
   INVALID_COMMENT_REFERENCE:
     problemMessage: "Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else."
+    hasPublishedDocs: false
   INVALID_GENERIC_FUNCTION_TYPE:
     problemMessage: Invalid generic function type.
     correctionMessage: "Try using a generic function type (returnType 'Function(' parameters ')')."
+    hasPublishedDocs: false
   INVALID_LITERAL_IN_CONFIGURATION:
     problemMessage: "The literal in a configuration can't contain interpolation."
     correctionMessage: Try removing the interpolation expressions.
+    hasPublishedDocs: false
   INVALID_OPERATOR_FOR_SUPER:
     problemMessage: "The operator '{0}' can't be used with 'super'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the operator being applied to 'super'
@@ -21609,173 +21842,225 @@ ParserErrorCode:
   INVALID_STAR_AFTER_ASYNC:
     problemMessage: "The modifier 'async*' isn't allowed for an expression function body."
     correctionMessage: Try converting the body to a block.
+    hasPublishedDocs: false
   INVALID_SYNC:
     problemMessage: "The modifier 'sync' isn't allowed for an expression function body."
     correctionMessage: Try converting the body to a block.
+    hasPublishedDocs: false
   INVALID_USE_OF_IDENTIFIER_AUGMENTED:
+    experiment: augmentations
     problemMessage: The identifier 'augmented' can only be used to reference the augmented declaration inside an augmentation.
     correctionMessage: Try using a different identifier.
     hasPublishedDocs: false
   LOCAL_FUNCTION_DECLARATION_MODIFIER:
     problemMessage: "Local function declarations can't specify any modifiers."
     correctionMessage: Try removing the modifier.
+    hasPublishedDocs: false
   MISSING_CLOSING_PARENTHESIS:
     problemMessage: The closing parenthesis is missing.
     correctionMessage: Try adding the closing parenthesis.
+    hasPublishedDocs: false
   MISSING_ENUM_BODY:
     problemMessage: An enum definition must have a body with at least one constant name.
     correctionMessage: Try adding a body and defining at least one constant.
+    hasPublishedDocs: false
   MISSING_EXPRESSION_IN_INITIALIZER:
     problemMessage: Expected an expression after the assignment operator.
     correctionMessage: Try adding the value to be assigned, or remove the assignment operator.
+    hasPublishedDocs: false
   MISSING_FUNCTION_BODY:
     problemMessage: A function body must be provided.
     correctionMessage: Try adding a function body.
+    hasPublishedDocs: false
   MISSING_FUNCTION_KEYWORD:
     problemMessage: "Function types must have the keyword 'Function' before the parameter list."
     correctionMessage: "Try adding the keyword 'Function'."
+    hasPublishedDocs: false
   MISSING_FUNCTION_PARAMETERS:
     problemMessage: Functions must have an explicit list of parameters.
     correctionMessage: Try adding a parameter list.
+    hasPublishedDocs: false
   MISSING_GET:
     problemMessage: "Getters must have the keyword 'get' before the getter name."
     correctionMessage: "Try adding the keyword 'get'."
+    hasPublishedDocs: false
   MISSING_IDENTIFIER:
     problemMessage: Expected an identifier.
+    hasPublishedDocs: false
   MISSING_METHOD_PARAMETERS:
     problemMessage: Methods must have an explicit list of parameters.
     correctionMessage: Try adding a parameter list.
+    hasPublishedDocs: false
   MISSING_NAME_FOR_NAMED_PARAMETER:
     problemMessage: Named parameters in a function type must have a name
     correctionMessage: Try providing a name for the parameter or removing the curly braces.
+    hasPublishedDocs: false
   MISSING_NAME_IN_LIBRARY_DIRECTIVE:
     problemMessage: Library directives must include a library name.
     correctionMessage: "Try adding a library name after the keyword 'library', or remove the library directive if the library doesn't have any parts."
+    hasPublishedDocs: false
   MISSING_NAME_IN_PART_OF_DIRECTIVE:
     problemMessage: Part-of directives must include a library name.
     correctionMessage: "Try adding a library name after the 'of'."
+    hasPublishedDocs: false
   MISSING_STAR_AFTER_SYNC:
     problemMessage: "The modifier 'sync' must be followed by a star ('*')."
     correctionMessage: Try removing the modifier, or add a star.
+    hasPublishedDocs: false
   MISSING_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "There is no '{0}' to close the parameter group."
     correctionMessage: "Try inserting a '{0}' at the end of the group."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the terminator that is missing
   MISSING_TYPEDEF_PARAMETERS:
     problemMessage: Typedefs must have an explicit list of parameters.
     correctionMessage: Try adding a parameter list.
+    hasPublishedDocs: false
   MISSING_VARIABLE_IN_FOR_EACH:
     problemMessage: "A loop variable must be declared in a for-each loop before the 'in', but none was found."
     correctionMessage: Try declaring a loop variable.
+    hasPublishedDocs: false
   MIXED_PARAMETER_GROUPS:
     problemMessage: "Can't have both positional and named parameters in a single parameter list."
     correctionMessage: Try choosing a single style of optional parameters.
+    hasPublishedDocs: false
   MULTIPLE_IMPLEMENTS_CLAUSES:
     problemMessage: Each class or mixin definition can have at most one implements clause.
     correctionMessage: Try combining all of the implements clauses into a single clause.
+    hasPublishedDocs: false
   MULTIPLE_NAMED_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of named parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
+    hasPublishedDocs: false
   MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of positional parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
+    hasPublishedDocs: false
   MULTIPLE_REPRESENTATION_FIELDS:
     problemMessage: Each extension type should have exactly one representation field.
     correctionMessage: Try combining fields into a record, or removing extra fields.
+    hasPublishedDocs: false
   MULTIPLE_VARIABLES_IN_FOR_EACH:
     problemMessage: "A single loop variable must be declared in a for-each loop before the 'in', but {0} were found."
     correctionMessage: Try moving all but one of the declarations inside the loop body.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the number of variables being declared
   NAMED_FUNCTION_EXPRESSION:
     problemMessage: "Function expressions can't be named."
     correctionMessage: Try removing the name, or moving the function expression to a function declaration statement.
+    hasPublishedDocs: false
   NAMED_FUNCTION_TYPE:
     problemMessage: "Function types can't be named."
     correctionMessage: "Try replacing the name with the keyword 'Function'."
+    hasPublishedDocs: false
   NAMED_PARAMETER_OUTSIDE_GROUP:
     problemMessage: "Named parameters must be enclosed in curly braces ('{' and '}')."
     correctionMessage: Try surrounding the named parameters in curly braces.
+    hasPublishedDocs: false
   NATIVE_CLAUSE_IN_NON_SDK_CODE:
     problemMessage: Native clause can only be used in the SDK and code that is loaded through native extensions.
     correctionMessage: Try removing the native clause.
+    hasPublishedDocs: false
   NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE:
     problemMessage: Native functions can only be declared in the SDK and code that is loaded through native extensions.
     correctionMessage: "Try removing the word 'native'."
+    hasPublishedDocs: false
   NON_CONSTRUCTOR_FACTORY:
     problemMessage: Only a constructor can be declared to be a factory.
     correctionMessage: "Try removing the keyword 'factory'."
+    hasPublishedDocs: false
   NON_IDENTIFIER_LIBRARY_NAME:
     problemMessage: The name of a library must be an identifier.
     correctionMessage: Try using an identifier as the name of the library.
+    hasPublishedDocs: false
   NON_PART_OF_DIRECTIVE_IN_PART:
     problemMessage: The part-of directive must be the only directive in a part.
     correctionMessage: Try removing the other directives, or moving them to the library for which this is a part.
+    hasPublishedDocs: false
   NON_STRING_LITERAL_AS_URI:
     problemMessage: The URI must be a string literal.
     correctionMessage: Try enclosing the URI in either single or double quotes.
+    hasPublishedDocs: false
   NON_USER_DEFINABLE_OPERATOR:
     problemMessage: "The operator '{0}' isn't user definable."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the operator that the user is trying to define
   NORMAL_BEFORE_OPTIONAL_PARAMETERS:
     problemMessage: Normal parameters must occur before optional parameters.
     correctionMessage: Try moving all of the normal parameters before the optional parameters.
+    hasPublishedDocs: false
   PART_OF_NAME:
     problemMessage: "The 'part of' directive can't use a name with the enhanced-parts feature."
     correctionMessage: "Try using 'part of' with a URI instead."
+    hasPublishedDocs: false
   POSITIONAL_AFTER_NAMED_ARGUMENT:
     problemMessage: Positional arguments must occur before named arguments.
     correctionMessage: Try moving all of the positional arguments before the named arguments.
+    hasPublishedDocs: false
   POSITIONAL_PARAMETER_OUTSIDE_GROUP:
     problemMessage: "Positional parameters must be enclosed in square brackets ('[' and ']')."
     correctionMessage: Try surrounding the positional parameters in square brackets.
+    hasPublishedDocs: false
   REPRESENTATION_FIELD_MODIFIER:
     problemMessage: "Representation fields can't have modifiers."
     correctionMessage: Try removing the modifier.
+    hasPublishedDocs: false
   REPRESENTATION_FIELD_TRAILING_COMMA:
     problemMessage: The representation field can't have a trailing comma.
     correctionMessage: Try removing the trailing comma.
+    hasPublishedDocs: false
   SETTER_IN_FUNCTION:
     problemMessage: "Setters can't be defined within methods or functions."
     correctionMessage: Try moving the setter outside the method or function.
+    hasPublishedDocs: false
   STATIC_GETTER_WITHOUT_BODY:
     problemMessage: "A 'static' getter must have a body."
     correctionMessage: "Try adding a body to the getter, or removing the keyword 'static'."
+    hasPublishedDocs: false
   STATIC_SETTER_WITHOUT_BODY:
     problemMessage: "A 'static' setter must have a body."
     correctionMessage: "Try adding a body to the setter, or removing the keyword 'static'."
+    hasPublishedDocs: false
   UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "There is no '{0}' to open a parameter group."
     correctionMessage: "Try inserting the '{0}' at the appropriate location."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the starting character that was missing
   UNEXPECTED_TOKEN:
     problemMessage: "Unexpected text '{0}'."
     correctionMessage: Try removing the text.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the unexpected text that was found
   VAR_CLASS:
     problemMessage: "Classes can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var'."
+    hasPublishedDocs: false
   VAR_ENUM:
     problemMessage: "Enums can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var'."
+    hasPublishedDocs: false
   VAR_TYPEDEF:
     problemMessage: "Typedefs can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var', or replacing it with the name of the return type."
+    hasPublishedDocs: false
   WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
     problemMessage: "The default value of a positional parameter should be preceded by '='."
     correctionMessage: "Try replacing the ':' with '='."
+    hasPublishedDocs: false
   WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "Expected '{0}' to close parameter group."
     correctionMessage: "Try replacing '{0}' with '{1}'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the terminator that was expected
@@ -25244,6 +25529,7 @@ WarningCode:
       ```
   INVALID_WIDGET_PREVIEW_APPLICATION:
     problemMessage: "The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions."
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -25375,6 +25661,7 @@ WarningCode:
   INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT:
     problemMessage: "'@Preview(...)' can only accept arguments that consist of literals and public symbols."
     correctionMessage: "Rename private symbol '{0}' to '{1}'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the private symbol

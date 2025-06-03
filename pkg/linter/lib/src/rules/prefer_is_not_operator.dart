@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,7 +16,7 @@ class PreferIsNotOperator extends LintRule {
     : super(name: LintNames.prefer_is_not_operator, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_is_not_operator;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_is_not_operator;
 
   @override
   void registerNodeProcessors(

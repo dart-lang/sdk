@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -11,18 +12,18 @@ import '../extensions.dart';
 const _desc =
     r'Prefer final in for-each loop variable if reference is not reassigned.';
 
-class PreferFinalInForEach extends LintRule {
+class PreferFinalInForEach extends MultiAnalysisRule {
   PreferFinalInForEach()
     : super(name: LintNames.prefer_final_in_for_each, description: _desc);
 
   @override
-  List<String> get incompatibleRules => const [LintNames.unnecessary_final];
-
-  @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.prefer_final_in_for_each_pattern,
     LinterLintCode.prefer_final_in_for_each_variable,
   ];
+
+  @override
+  List<String> get incompatibleRules => const [LintNames.unnecessary_final];
 
   @override
   void registerNodeProcessors(
@@ -36,7 +37,7 @@ class PreferFinalInForEach extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -53,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var name = loopVariable.name;
       rule.reportAtToken(
         name,
-        errorCode: LinterLintCode.prefer_final_in_for_each_variable,
+        diagnosticCode: LinterLintCode.prefer_final_in_for_each_variable,
         arguments: [name.lexeme],
       );
     }
@@ -71,21 +72,21 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (!function.potentiallyMutatesAnyField(pattern.fields)) {
         rule.reportAtNode(
           pattern,
-          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+          diagnosticCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     } else if (pattern is ObjectPattern) {
       if (!function.potentiallyMutatesAnyField(pattern.fields)) {
         rule.reportAtNode(
           pattern,
-          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+          diagnosticCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     } else if (pattern is ListPattern) {
       if (!pattern.elements.any((e) => function.potentiallyMutates(e))) {
         rule.reportAtNode(
           pattern,
-          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+          diagnosticCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     } else if (pattern is MapPattern) {
@@ -94,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       )) {
         rule.reportAtNode(
           pattern,
-          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+          diagnosticCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     }

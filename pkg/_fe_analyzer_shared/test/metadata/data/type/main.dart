@@ -66,8 +66,10 @@ resolved=ConstructorInvocation(
   GenericClass<void Function(),int Function(int)>.new())*/
 void type4() {}
 
-@GenericClass<Object? Function({int a, String b}),
-    int Function(int a, {int b})>()
+@GenericClass<
+  Object? Function({int a, String b}),
+  int Function(int a, {int b})
+>()
 /*member: type5:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedInstantiate(
@@ -97,8 +99,10 @@ resolved=ConstructorInvocation(
   GenericClass<void Function<(T),S Function<(T)>.new())*/
 void type7() {}
 
-@GenericClass<void Function<T extends Class>(T),
-    S Function<S, @Class() T extends S>(T)>()
+@GenericClass<
+  void Function<T extends Class>(T),
+  S Function<S, @Class() T extends S>(T)
+>()
 /*member: type8:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedInstantiate(

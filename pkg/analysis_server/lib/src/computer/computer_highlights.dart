@@ -28,6 +28,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
 /// A computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a Dart [CompilationUnit].
@@ -132,7 +133,7 @@ class DartUnitHighlightsComputer {
     if (_addIdentifierRegion_importPrefix(nameToken, element)) {
       return;
     }
-    if (_addIdentifierRegion_label(nameToken, element)) {
+    if (_addIdentifierRegion_label(parent, nameToken, element)) {
       return;
     }
     if (_addIdentifierRegion_localVariable(nameToken, element)) {
@@ -292,11 +293,16 @@ class DartUnitHighlightsComputer {
       } else {
         type = HighlightRegionType.INSTANCE_SETTER_REFERENCE;
       }
-    } else if (element == null &&
-        parent is PropertyAccess &&
-        nameToken == parent.propertyName.token) {
+    } else if (element == null) {
+      DartType? staticType;
+      if (parent is PropertyAccess && nameToken == parent.propertyName.token) {
+        staticType = parent.realTarget.staticType;
+      } else if (parent.enclosingInstanceElement case ExtensionElement(
+        :var extendedType,
+      ) when parent is! PrefixedIdentifier) {
+        staticType = extendedType;
+      }
       // Handle tokens that are references to record fields.
-      var staticType = parent.realTarget.staticType;
       if (staticType is RecordType) {
         type =
             staticType.fieldByName(nameToken.lexeme) != null
@@ -395,11 +401,22 @@ class DartUnitHighlightsComputer {
     return false;
   }
 
-  bool _addIdentifierRegion_label(Token nameToken, Element? element) {
+  bool _addIdentifierRegion_label(
+    AstNode parent,
+    Token nameToken,
+    Element? element,
+  ) {
     if (element is! LabelElement) {
       return false;
     }
-    return _addRegion_token(nameToken, HighlightRegionType.LABEL);
+    return _addRegion_token(
+      nameToken,
+      HighlightRegionType.LABEL,
+      semanticTokenModifiers:
+          parent is! BreakStatement
+              ? {SemanticTokenModifiers.declaration}
+              : null,
+    );
   }
 
   bool _addIdentifierRegion_localVariable(Token nameToken, Element? element) {
@@ -901,7 +918,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorSelector(ConstructorSelector node) {
     computer._addRegion_node(node.name, HighlightRegionType.CONSTRUCTOR);
-    node.visitChildren(this);
   }
 
   @override
@@ -1335,6 +1351,17 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitInterpolationString(InterpolationString node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_STRING);
+    if (computer._computeSemanticTokens) {
+      var string = node.contents.lexeme;
+      var parent = node.parent as StringInterpolation;
+      _addRegions_stringEscapes(
+        string,
+        parent.quote,
+        node.offset,
+        0,
+        string.length,
+      );
+    }
     super.visitInterpolationString(node);
   }
 
@@ -1441,11 +1468,11 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     var type = node.type;
     if (type != null) {
-      var isDynamic = type is DynamicType && node.name2.lexeme == 'dynamic';
+      var isDynamic = type is DynamicType && node.name.lexeme == 'dynamic';
       var isNever = type is NeverType;
       if (isDynamic || isNever) {
         computer._addRegion_token(
-          node.name2,
+          node.name,
           isDynamic
               ? HighlightRegionType.TYPE_NAME_DYNAMIC
               : HighlightRegionType.CLASS,
@@ -1457,7 +1484,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     computer._addIdentifierRegion(
       parent: node,
-      nameToken: node.name2,
+      nameToken: node.name,
       element: node.element2,
     );
 
@@ -1652,7 +1679,17 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_STRING);
     if (computer._computeSemanticTokens) {
-      _addRegions_stringEscapes(node);
+      var string = node.literal.lexeme;
+      var quote = analyzeQuote(string);
+      var startIndex = firstQuoteLength(string, quote);
+      var endIndex = string.length - lastQuoteLength(quote);
+      _addRegions_stringEscapes(
+        string,
+        quote,
+        node.offset,
+        startIndex,
+        endIndex,
+      );
     }
     super.visitSimpleStringLiteral(node);
   }
@@ -1918,47 +1955,48 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _addRegions_stringEscapes(SimpleStringLiteral node) {
-    var string = node.literal.lexeme;
-    var quote = analyzeQuote(string);
-    var startIndex = firstQuoteLength(string, quote);
-    var endIndex = string.length - lastQuoteLength(quote);
+  void _addRegions_stringEscapes(
+    String string,
+    Quote quote,
+    int nodeOffset,
+    int startIndex,
+    int endIndex,
+  ) {
     switch (quote) {
-      case Quote.Single:
-      case Quote.Double:
-      case Quote.MultiLineSingle:
-      case Quote.MultiLineDouble:
+      case Quote.RawSingle ||
+          Quote.RawDouble ||
+          Quote.RawMultiLineSingle ||
+          Quote.RawMultiLineDouble:
+        // Raw strings don't have escape characters.
+        break;
+      case Quote.Single ||
+          Quote.Double ||
+          Quote.MultiLineSingle ||
+          Quote.MultiLineDouble:
         _findEscapes(
-          node,
+          string,
           startIndex: startIndex,
           endIndex: endIndex,
           listener: (offset, end) {
             var length = end - offset;
             computer._addRegion(
-              node.offset + offset,
+              nodeOffset + offset,
               length,
               HighlightRegionType.VALID_STRING_ESCAPE,
             );
           },
         );
-      case Quote.RawSingle:
-      case Quote.RawDouble:
-      case Quote.RawMultiLineSingle:
-      case Quote.RawMultiLineDouble:
-        // Raw strings don't have escape characters.
-        break;
     }
   }
 
   /// Finds escaped regions within a string between [startIndex] and [endIndex],
   /// calling [listener] for each found region.
   void _findEscapes(
-    SimpleStringLiteral node, {
+    String string, {
     required int startIndex,
     required int endIndex,
     required void Function(int offset, int end) listener,
   }) {
-    var string = node.literal.lexeme;
     var codeUnits = string.codeUnits;
     var length = string.length;
 
@@ -2017,4 +2055,17 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       }
     }
   }
+}
+
+extension on StringInterpolation {
+  Quote get quote => switch ((isRaw, isMultiline, isSingleQuoted)) {
+    (true, true, true) => Quote.RawMultiLineSingle,
+    (true, true, false) => Quote.RawMultiLineDouble,
+    (true, false, true) => Quote.RawSingle,
+    (true, false, false) => Quote.RawDouble,
+    (false, true, true) => Quote.MultiLineSingle,
+    (false, true, false) => Quote.MultiLineDouble,
+    (false, false, true) => Quote.Single,
+    (false, false, false) => Quote.Double,
+  };
 }

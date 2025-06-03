@@ -147,7 +147,7 @@ IfElement
               token: a
               element: a@56
               staticType: int
-            element2: dart:core::<fragment>::@class::Object::@method::==#element
+            element2: dart:core::@class::Object::@method::==
             matchedValueType: Object?
         rightBracket: ]
         matchedValueType: Object
@@ -164,7 +164,7 @@ IfElement
             literal: 0
             correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
             staticType: int
-          element: dart:core::<fragment>::@class::num::@method::>#element
+          element: dart:core::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -228,7 +228,7 @@ IfElement
             literal: 0
             correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
             staticType: int
-          element: dart:core::<fragment>::@class::num::@method::>#element
+          element: dart:core::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -302,7 +302,7 @@ IfElement
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
-        const: const
+        constKeyword: const
         expression: InstanceCreationExpression
           constructorName: ConstructorName
             type: NamedType

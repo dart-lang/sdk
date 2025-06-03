@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
-import 'package:analyzer/src/dart/error/lint_codes.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
@@ -313,18 +313,22 @@ class InternalRule extends LintRule {
   );
 
   InternalRule()
-    : super(name: 'internal_lint', state: State.internal(), description: '');
+    : super(
+        name: 'internal_lint',
+        state: RuleState.internal(),
+        description: '',
+      );
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 }
 
 class _RemovedLint extends LintRule {
   static const LintCode _code = LintCode('removed_lint', 'Removed rule.');
 
   _RemovedLint()
-    : super(name: 'removed_lint', state: State.removed(), description: '');
+    : super(name: 'removed_lint', state: RuleState.removed(), description: '');
 
   @override
-  LintCode get lintCode => _code;
+  DiagnosticCode get diagnosticCode => _code;
 }

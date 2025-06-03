@@ -1213,6 +1213,13 @@ class ArrayBindingPattern extends BindingPattern {
   ArrayBindingPattern _clone() => ArrayBindingPattern(variables);
 }
 
+/// Entirely transparent wrapper only used to identify the node as being a
+/// rewritten invocation that includes correctness checks in case of a hot
+/// reload at runtime.
+class InvocationWithHotReloadChecks extends Conditional {
+  InvocationWithHotReloadChecks(super.condition, super.then, super.otherwise);
+}
+
 class Conditional extends Expression {
   final Expression condition;
   final Expression then;

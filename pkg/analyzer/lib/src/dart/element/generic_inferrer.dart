@@ -157,7 +157,7 @@ class GenericInferrer {
       argumentType: SharedTypeView(argumentType),
       parameterType: SharedTypeView(parameterType),
       parameterName: parameterName,
-      genericClassName: genericClass?.name,
+      genericClassName: genericClass?.name2,
       isGenericClassInDartCore: genericClass?.library.isDartCore ?? false,
     );
     inferenceLogWriter?.enterConstraintGeneration(
@@ -189,7 +189,7 @@ class GenericInferrer {
       constrainArgument(
         argumentTypes[i],
         parameters[i].type,
-        parameters[i].name,
+        parameters[i].name2 ?? '',
         genericClass: genericClass,
         nodeForTesting: nodeForTesting,
       );
@@ -210,7 +210,7 @@ class GenericInferrer {
       constrainArgument(
         argumentTypes[i],
         parameters[i].type,
-        parameters[i].name3!,
+        parameters[i].name3 ?? '',
         genericClass: genericClass,
         nodeForTesting: nodeForTesting,
       );
@@ -796,7 +796,7 @@ class GenericInferrer {
     if (errorEntity is ConstructorName &&
         !(errorEntity.type.type as InterfaceType)
             .element3
-            .metadata2
+            .metadata
             .hasOptionalTypeArgs) {
       String constructorName =
           errorEntity.name == null
@@ -831,12 +831,12 @@ class GenericInferrer {
           var type = element.type;
           var typeElement = type is InterfaceType ? type.element3 : null;
           if (typeElement != null &&
-              typeElement.metadata2.hasOptionalTypeArgs) {
+              typeElement.metadata.hasOptionalTypeArgs) {
             return;
           }
           var typeAliasElement = type.alias?.element2;
           if (typeAliasElement != null &&
-              typeAliasElement.metadata2.hasOptionalTypeArgs) {
+              typeAliasElement.metadata.hasOptionalTypeArgs) {
             return;
           }
         }
@@ -977,7 +977,7 @@ class GenericInferrer {
 extension on Element {
   bool get hasOptionalTypeArgs {
     if (this case Annotatable annotatable) {
-      return annotatable.metadata2.hasOptionalTypeArgs;
+      return annotatable.metadata.hasOptionalTypeArgs;
     }
     return false;
   }

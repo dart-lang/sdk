@@ -17,9 +17,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -115,7 +115,7 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   }
 
   String _elementToReferenceString(Element element) {
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     var reference = switch (element) {
       ElementImpl2() =>
         element.reference ?? (element.firstFragment as FragmentImpl).reference,
@@ -373,7 +373,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@method::test
+element: self::@class::A::@method::test
 formalParameters
   id: 0
     kind: requiredPositional

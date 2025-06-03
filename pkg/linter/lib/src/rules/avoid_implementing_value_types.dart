@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -16,14 +17,15 @@ class AvoidImplementingValueTypes extends LintRule {
     : super(name: LintNames.avoid_implementing_value_types, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_implementing_value_types;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_implementing_value_types;
 
   @override
   void registerNodeProcessors(
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var visitor = _Visitor(this, context.inheritanceManager);
+    var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
 }
@@ -32,9 +34,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   static var equalsName = Name(null, '==');
 
   final LintRule rule;
-  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule, this.inheritanceManager);
+  _Visitor(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -53,12 +54,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _overridesEquals(InterfaceElement element) {
-    var member = inheritanceManager.getMember4(
-      element,
-      equalsName,
-      concrete: true,
-    );
-    var definingLibrary = member?.enclosingElement2?.library2;
+    var member = element.getInterfaceMember(equalsName);
+    var definingLibrary = member?.enclosingElement?.library2;
     return definingLibrary != null && !definingLibrary.isDartCore;
   }
 }

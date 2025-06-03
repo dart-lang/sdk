@@ -317,7 +317,7 @@ class MethodInvocationResolver with ScopeHelpers {
     ExecutableElement element,
     bool nullReceiver,
   ) {
-    var enclosingElement = element.enclosingElement2!;
+    var enclosingElement = element.enclosingElement!;
     if (nullReceiver) {
       if (_resolver.enclosingExtension != null) {
         _resolver.errorReporter.atNode(
@@ -486,10 +486,10 @@ class MethodInvocationResolver with ScopeHelpers {
     String name = propertyName.name;
     Element? element;
     if (propertyName.inSetterContext()) {
-      element = classElement.getSetter2(name);
+      element = classElement.getSetter(name);
     }
-    element ??= classElement.getGetter2(name);
-    element ??= classElement.getMethod2(name);
+    element ??= classElement.getGetter(name);
+    element ??= classElement.getMethod(name);
     if (element != null && element.isAccessibleIn2(_definingLibrary)) {
       return element;
     }
@@ -509,7 +509,7 @@ class MethodInvocationResolver with ScopeHelpers {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var getter = extension.getGetter2(name);
+    var getter = extension.getGetter(name);
     if (getter != null) {
       nameNode.element = getter;
       _reportStaticAccessToInstanceMember(getter, nameNode);
@@ -525,7 +525,7 @@ class MethodInvocationResolver with ScopeHelpers {
       );
     }
 
-    var method = extension.getMethod2(name);
+    var method = extension.getMethod(name);
     if (method != null) {
       nameNode.element = method;
       _reportStaticAccessToInstanceMember(method, nameNode);
@@ -633,7 +633,7 @@ class MethodInvocationResolver with ScopeHelpers {
     var nameNode = node.methodName;
 
     var objectElement = _typeSystem.typeProvider.objectElement2;
-    var target = objectElement.getMethod2(nameNode.name);
+    var target = objectElement.getMethod(nameNode.name);
 
     FunctionType? rawType;
     if (receiverType is InvalidType) {
@@ -689,7 +689,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (receiverType == NeverTypeImpl.instanceNullable) {
       var methodName = node.methodName;
       var objectElement = _resolver.typeProvider.objectElement2;
-      var objectMember = objectElement.getMethod2(methodName.name);
+      var objectMember = objectElement.getMethod(methodName.name);
       if (objectMember != null) {
         methodName.element = objectMember;
         _setResolution(
@@ -838,8 +838,8 @@ class MethodInvocationResolver with ScopeHelpers {
       // or is static, then we do not keep searching for the getter; this
       // setter represents the property being accessed (erroneously).
       var noGetterIsPossible =
-          element.enclosingElement2 is LibraryElement ||
-          element.enclosingElement2 is ExtensionElement ||
+          element.enclosingElement is LibraryElement ||
+          element.enclosingElement is ExtensionElement ||
           (element is ExecutableElement && element.isStatic);
       if (noGetterIsPossible) {
         nameNode.element = element;
@@ -1293,8 +1293,6 @@ class MethodInvocationResolver with ScopeHelpers {
     if (receiver.getNamedConstructor2(name)
         case ConstructorElementImpl2 element?
         when element.isAccessibleIn2(_resolver.definingLibrary)) {
-      // TODO(kallentu): Produce an error if there are type arguments for this
-      // constructor.
       var replacement = DotShorthandConstructorInvocationImpl(
         constKeyword: null,
         period: node.period,
@@ -1354,7 +1352,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
       var element = methodName.element;
       if (element is ExecutableElement &&
-          element.enclosingElement2 is InstanceElement &&
+          element.enclosingElement is InstanceElement &&
           !element.isStatic) {
         targetType =
             _resolver.flowAnalysis.flow

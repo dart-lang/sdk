@@ -45,7 +45,7 @@ void main() {
     var node = findNode.assignment('+=');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::num::@method::+#element
+dart:core::@class::num::@method::+
 ''');
   }
 
@@ -54,7 +54,7 @@ dart:core::<fragment>::@class::num::@method::+#element
     var node = findNode.binary('+');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::num::@method::+#element
+dart:core::@class::num::@method::+
 ''');
   }
 
@@ -135,6 +135,55 @@ void f(Object? x) {
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
 foo@37
+''');
+  }
+
+  test_locate_DotShorthandConstructorInvocation() async {
+    await resolveTestCode(r'''
+class A {}
+
+void main() {
+ A a = .new();
+}
+''');
+    var node = findNode.singleDotShorthandConstructorInvocation;
+    var element = ElementLocator.locate2(node);
+    _assertElement(element, r'''
+<testLibraryFragment>::@class::A::@constructor::new#element
+''');
+  }
+
+  test_locate_DotShorthandInvocation() async {
+    await resolveTestCode(r'''
+class A {
+  static A foo() => A();
+}
+
+void main() {
+ A a = .foo();
+}
+''');
+    var node = findNode.singleDotShorthandInvocation;
+    var element = ElementLocator.locate2(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@method::foo
+''');
+  }
+
+  test_locate_DotShorthandPropertyAccess() async {
+    await resolveTestCode(r'''
+class A {
+  static A foo = A();
+}
+
+void main() {
+ A a = .foo;
+}
+''');
+    var node = findNode.singleDotShorthandPropertyAccess;
+    var element = ElementLocator.locate2(node);
+    _assertElement(element, r'''
+<testLibraryFragment>::@class::A::@getter::foo#element
 ''');
   }
 
@@ -318,7 +367,7 @@ void main() {
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
 MethodMember
-  baseElement: dart:core::<fragment>::@class::List::@method::[]#element
+  baseElement: dart:core::@class::List::@method::[]
   substitution: {E: int}
 ''');
   }
@@ -400,7 +449,7 @@ class A {
     var node = findNode.methodDeclaration('foo');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@method::foo#element
+<testLibrary>::@class::A::@method::foo
 ''');
   }
 
@@ -417,7 +466,7 @@ void main() {
     var node = findNode.methodInvocation('foo();');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@method::foo#element
+<testLibrary>::@class::A::@method::foo
 ''');
   }
 
@@ -463,7 +512,7 @@ dart:core::<fragment>::@class::int::@getter::isEven#element
     var node = findNode.postfix('x++');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::num::@method::+#element
+dart:core::@class::num::@method::+
 ''');
   }
 
@@ -498,7 +547,7 @@ dart:core::<fragment>::@class::int::@getter::isEven#element
     var node = findNode.prefix('++x');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::num::@method::+#element
+dart:core::@class::num::@method::+
 ''');
   }
 

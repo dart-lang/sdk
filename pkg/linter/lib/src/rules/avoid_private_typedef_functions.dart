@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -18,7 +19,8 @@ class AvoidPrivateTypedefFunctions extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_private_typedef_functions;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_private_typedef_functions;
 
   @override
   void registerNodeProcessors(
@@ -38,7 +40,7 @@ class _CountVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    if (node.name2.lexeme == type) count++;
+    if (node.name.lexeme == type) count++;
     super.visitNamedType(node);
   }
 }

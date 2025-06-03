@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer/workspace/workspace.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 
 /// Utilities for tests of subclasses of [WorkspacePackage].
 abstract class WorkspacePackageTest with ResourceProviderMixin {
@@ -12,6 +13,6 @@ abstract class WorkspacePackageTest with ResourceProviderMixin {
 
   /// Return the package containing the given [path], or `null` if there is no
   /// such package in the [workspace].
-  WorkspacePackage? findPackage(String path) =>
+  WorkspacePackageImpl? findPackage(String path) =>
       workspace.findPackageFor(convertPath(path));
 }

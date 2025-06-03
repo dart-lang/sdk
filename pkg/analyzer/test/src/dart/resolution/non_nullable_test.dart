@@ -286,6 +286,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
+    question: ?
     declaredElement: <testLibraryFragment>::@function::f2::@formalParameter::p2
       type: void Function()?
   rightParenthesis: )
@@ -306,6 +307,7 @@ FormalParameterList
       parameters: FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
+      question: ?
       declaredElement: <testLibraryFragment>::@function::f3::@parameter::p3
         type: void Function()?
     declaredElement: <testLibraryFragment>::@function::f3::@parameter::p3
@@ -362,6 +364,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
+    question: ?
     declaredElement: <testLibraryFragment>::@class::A::@constructor::f2::@formalParameter::f2
       type: void Function()?
   rightParenthesis: )
@@ -384,6 +387,7 @@ FormalParameterList
       parameters: FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
+      question: ?
       declaredElement: <testLibraryFragment>::@class::A::@constructor::f3::@parameter::f3
         type: void Function()?
     declaredElement: <testLibraryFragment>::@class::A::@constructor::f3::@parameter::f3
@@ -440,6 +444,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
+    question: ?
     declaredElement: f2@37::@formalParameter::p2
       type: void Function()?
   rightParenthesis: )
@@ -460,6 +465,7 @@ FormalParameterList
       parameters: FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
+      question: ?
       declaredElement: f3@62::@formalParameter::p3
         type: void Function()?
     declaredElement: f3@62::@formalParameter::p3

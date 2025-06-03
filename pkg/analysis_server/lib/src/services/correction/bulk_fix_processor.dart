@@ -17,6 +17,7 @@ import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -273,15 +274,15 @@ class BulkFixProcessor {
         }
         if (parsedLibrary is ParsedLibraryResult) {
           var errorListener = RecordingErrorListener();
-          var unitContexts = <LintRuleUnitContext>[];
+          var contextUnits = <RuleContextUnit>[];
 
           for (var parsedUnit in parsedLibrary.units) {
             var errorReporter = ErrorReporter(
               errorListener,
               StringSource(parsedUnit.content, null),
             );
-            unitContexts.add(
-              LintRuleUnitContext(
+            contextUnits.add(
+              RuleContextUnit(
                 file: parsedUnit.file,
                 content: parsedUnit.content,
                 errorReporter: errorReporter,
@@ -289,8 +290,8 @@ class BulkFixProcessor {
               ),
             );
           }
-          for (var unitContext in unitContexts) {
-            _computeParsedResultLint(unitContext, unitContexts);
+          for (var unitContext in contextUnits) {
+            _computeParsedResultLint(unitContext, contextUnits);
           }
           await _fixErrorsInParsedLibrary(
             parsedLibrary,
@@ -334,9 +335,8 @@ class BulkFixProcessor {
   ) => _organizeDirectives(contexts);
 
   Future<void> _applyProducer(CorrectionProducer producer) async {
+    var localBuilder = builder as ChangeBuilderImpl;
     try {
-      var localBuilder = builder.copy() as ChangeBuilderImpl;
-
       // Set a description of the change for this fix for the duration of
       // computer which will be passed down to the individual changes.
       localBuilder.currentChangeDescription = producer.fixKind?.message;
@@ -348,11 +348,11 @@ class BulkFixProcessor {
         'computation. $producer changed from $fixKind to ${producer.fixKind}.',
       );
       localBuilder.currentChangeDescription = null;
-
-      builder = localBuilder;
+      localBuilder.commit();
     } on ConflictingEditException {
-      // If a conflicting edit was added in [compute], then the [localBuilder]
-      // is discarded and we revert to the previous state of the builder.
+      // If a conflicting edit was added in [compute], then the builder is
+      // reverted to its previous state.
+      localBuilder.revert();
     }
   }
 
@@ -392,7 +392,6 @@ class BulkFixProcessor {
         continue;
       }
       var pathContext = context.contextRoot.resourceProvider.pathContext;
-      var resourceProvider = workspace.provider;
       var packageToDeps = <PubPackage, _PubspecDeps>{};
 
       for (var path in context.contextRoot.analyzedFiles()) {
@@ -405,17 +404,8 @@ class BulkFixProcessor {
           continue;
         }
 
-        var libPath =
-            resourceProvider.getFolder(package.root).getChild('lib').path;
-        var binPath =
-            resourceProvider.getFolder(package.root).getChild('bin').path;
-
-        bool isPublic(String path, PubPackage package) {
-          if (path.startsWith(libPath) || path.startsWith(binPath)) {
-            return true;
-          }
-          return false;
-        }
+        var libPath = package.root.getChildAssumingFolder('lib');
+        var binPath = package.root.getChildAssumingFolder('bin');
 
         var pubspecDeps = packageToDeps.putIfAbsent(
           package,
@@ -435,7 +425,7 @@ class BulkFixProcessor {
                 (directive is ImportDirective) ? directive.uri.stringValue : '';
             if (uri!.startsWith('package:')) {
               var name = Uri.parse(uri).pathSegments.first;
-              if (isPublic(path, package)) {
+              if (libPath.contains(path) || binPath.contains(path)) {
                 pubspecDeps.packages.add(name);
               } else {
                 pubspecDeps.devPackages.add(name);
@@ -542,11 +532,13 @@ class BulkFixProcessor {
   /// Computes lint for lint rules with names [_syntacticLintCodes] (rules that
   /// do not require [ResolvedUnitResult]s).
   void _computeParsedResultLint(
-    LintRuleUnitContext currentUnit,
-    List<LintRuleUnitContext> allUnits,
+    RuleContextUnit currentUnit,
+    List<RuleContextUnit> allUnits,
   ) {
-    var nodeRegistry = NodeLintRegistry(enableTiming: false);
-    var context = LinterContextWithParsedResults(allUnits, currentUnit);
+    var nodeRegistry = RuleVisitorRegistry(enableTiming: false);
+    // TODO(srawlins): We are passing `currentUnit` in as `definingUnit`. Seems
+    // wrong.
+    var context = RuleContextWithParsedResults(allUnits, currentUnit);
     var lintRules =
         _syntacticLintCodes
             .map((name) => Registry.ruleRegistry.getRule(name))

@@ -153,7 +153,7 @@ class _MockSdkElementsBuilder {
 
     deprecatedElement.fields = [_field('message', stringType, isFinal: true)];
 
-    deprecatedElement.accessors =
+    deprecatedElement.getters =
         deprecatedElement.fields.map((f) => f.getter!).toList();
 
     deprecatedElement.constructors = [
@@ -191,7 +191,7 @@ class _MockSdkElementsBuilder {
       staticConstDoubleField('maxFinite'),
     ];
 
-    doubleElement.accessors =
+    doubleElement.getters =
         doubleElement.fields.map((field) => field.getter!).toList();
 
     doubleElement.methods = [
@@ -408,7 +408,7 @@ class _MockSdkElementsBuilder {
 
     iterableElement.constructors = [_constructor(isConst: true)];
 
-    _setAccessors(iterableElement, [
+    _setGetters(iterableElement, [
       _getter('iterator', iteratorType(eType)),
       _getter('last', eType),
     ]);
@@ -433,7 +433,7 @@ class _MockSdkElementsBuilder {
         );
     iteratorElement.supertype = objectType;
 
-    _setAccessors(iterableElement, [_getter('current', eType)]);
+    _setGetters(iterableElement, [_getter('current', eType)]);
 
     _buildClassElement(iteratorElement);
     return iteratorElement;
@@ -463,7 +463,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
-    _setAccessors(listElement, [_getter('length', intType)]);
+    _setGetters(listElement, [_getter('length', intType)]);
 
     listElement.methods = [
       _method('[]', eType, parameters: [_requiredParameter('index', intType)]),
@@ -504,7 +504,7 @@ class _MockSdkElementsBuilder {
         );
     mapElement.supertype = objectType;
 
-    _setAccessors(mapElement, [_getter('length', intType)]);
+    _setGetters(mapElement, [_getter('length', intType)]);
 
     mapElement.methods = [
       _method('[]', vType, parameters: [_requiredParameter('key', objectType)]),
@@ -618,7 +618,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
-    _setAccessors(numElement, [
+    _setGetters(numElement, [
       _getter('isInfinite', boolType),
       _getter('isNaN', boolType),
       _getter('isNegative', boolType),
@@ -657,7 +657,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
-    _setAccessors(objectElement, [
+    _setGetters(objectElement, [
       _getter('hashCode', intType),
       _getter('runtimeType', typeType),
     ]);
@@ -825,7 +825,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
-    _setAccessors(stringElement, [
+    _setGetters(stringElement, [
       _getter('isEmpty', boolType),
       _getter('length', intType),
       _getter('codeUnits', listType(intType)),
@@ -968,7 +968,7 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElementImpl2> typeParameters = const [],
     required LibraryFragmentImpl unit,
   }) {
-    var fragment = ClassFragmentImpl(name, 0);
+    var fragment = ClassFragmentImpl(name2: name, nameOffset: 0);
     ClassElementImpl2(Reference.root(), fragment);
     fragment.typeParameters =
         typeParameters.map((tp) => tp.firstFragment).toList();
@@ -978,13 +978,12 @@ class _MockSdkElementsBuilder {
   }
 
   ConstructorFragmentImpl _constructor({
-    String name = '',
+    String name = 'new',
     bool isConst = false,
     bool isFactory = false,
     List<FormalParameterElement> parameters = const [],
   }) {
-    var element = ConstructorFragmentImpl(name, 0);
-    element.name2 = name.ifNotEmptyOrElse('new');
+    var element = ConstructorFragmentImpl(name2: name, nameOffset: 0);
     element.isFactory = isFactory;
     element.isConst = isConst;
     element.parameters =
@@ -1002,7 +1001,9 @@ class _MockSdkElementsBuilder {
     bool isStatic = false,
   }) {
     var fragment =
-        isConst ? ConstFieldFragmentImpl(name, 0) : FieldFragmentImpl(name, 0);
+        isConst
+            ? ConstFieldFragmentImpl(name2: name, nameOffset: 0)
+            : FieldFragmentImpl(name2: name, nameOffset: 0);
     fragment.isConst = isConst;
     fragment.isFinal = isFinal;
     fragment.isStatic = isStatic;
@@ -1021,7 +1022,7 @@ class _MockSdkElementsBuilder {
     List<FormalParameterElement> parameters = const [],
   }) {
     var fragment =
-        TopLevelFunctionFragmentImpl(name, 0)
+        TopLevelFunctionFragmentImpl(name2: name, nameOffset: 0)
           ..parameters =
               parameters
                   .map((p) => p.firstFragment as FormalParameterFragmentImpl)
@@ -1045,17 +1046,17 @@ class _MockSdkElementsBuilder {
     );
   }
 
-  PropertyAccessorFragmentImpl _getter(
+  GetterFragmentImpl _getter(
     String name,
     TypeImpl type, {
     bool isStatic = false,
   }) {
-    var field = FieldFragmentImpl(name, -1);
+    var field = FieldFragmentImpl(name2: name, nameOffset: -1);
     field.isStatic = isStatic;
     field.isSynthetic = true;
     field.type = type;
 
-    var getter = GetterFragmentImpl(name, 0);
+    var getter = GetterFragmentImpl(name2: name, nameOffset: 0);
     getter.isStatic = isStatic;
     getter.isSynthetic = false;
     getter.returnType = type;
@@ -1083,13 +1084,18 @@ class _MockSdkElementsBuilder {
     List<FormalParameterElement> parameters = const [],
   }) {
     var fragment =
-        MethodFragmentImpl(name, 0)
+        MethodFragmentImpl(name2: name, nameOffset: 0)
           ..parameters =
               parameters
                   .map((p) => p.firstFragment as FormalParameterFragmentImpl)
                   .toList()
           ..returnType = returnType
           ..typeParameters = typeFormals;
+    MethodElementImpl2(
+      name3: name,
+      reference: Reference.root(),
+      firstFragment: fragment,
+    );
     return fragment;
   }
 
@@ -1099,7 +1105,6 @@ class _MockSdkElementsBuilder {
     String? initializerCode,
   }) {
     var fragment = DefaultParameterFragmentImpl(
-      name: name,
       nameOffset: 0,
       name2: name,
       nameOffset2: 0,
@@ -1172,7 +1177,7 @@ class _MockSdkElementsBuilder {
       _interfaceType(overrideElement),
     );
 
-    _coreUnit.accessors = <PropertyAccessorFragmentImpl>[
+    _coreUnit.getters = <GetterFragmentImpl>[
       deprecatedVariable.getter!,
       overrideVariable.getter!,
     ];
@@ -1187,7 +1192,6 @@ class _MockSdkElementsBuilder {
 
   FormalParameterElement _positionalParameter(String name, TypeImpl type) {
     var fragment = FormalParameterFragmentImpl(
-      name: name,
       nameOffset: 0,
       name2: name,
       nameOffset2: 0,
@@ -1199,7 +1203,6 @@ class _MockSdkElementsBuilder {
 
   FormalParameterElement _requiredParameter(String name, TypeImpl type) {
     var fragment = FormalParameterFragmentImpl(
-      name: name,
       nameOffset: 0,
       name2: name,
       nameOffset2: 0,
@@ -1209,14 +1212,14 @@ class _MockSdkElementsBuilder {
     return FormalParameterElementImpl(fragment);
   }
 
-  /// Set the [accessors] and the corresponding fields for the [classElement].
-  void _setAccessors(
+  /// Set the [getters] and the corresponding fields for the [classElement].
+  void _setGetters(
     ClassFragmentImpl classElement,
-    List<PropertyAccessorFragmentImpl> accessors,
+    List<GetterFragmentImpl> getters,
   ) {
-    classElement.accessors = accessors;
+    classElement.getters = getters;
     classElement.fields =
-        accessors
+        getters
             .map((accessor) => accessor.variable2)
             .cast<FieldFragmentImpl>()
             .toList();
@@ -1227,7 +1230,7 @@ class _MockSdkElementsBuilder {
     TypeImpl type,
   ) {
     var fragment =
-        ConstTopLevelVariableFragmentImpl(name, -1)
+        ConstTopLevelVariableFragmentImpl(name2: name, nameOffset: -1)
           ..isConst = true
           ..type = type;
     TopLevelVariableElementImpl2(Reference.root(), fragment);
@@ -1237,7 +1240,7 @@ class _MockSdkElementsBuilder {
 
   TypeParameterElementImpl2 _typeParameter(String name) {
     return TypeParameterElementImpl2(
-      firstFragment: TypeParameterFragmentImpl(name, 0),
+      firstFragment: TypeParameterFragmentImpl(name2: name, nameOffset: 0),
       name3: name.nullIfEmpty,
     );
   }

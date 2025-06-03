@@ -5,11 +5,11 @@
 import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin_common;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart'
     as analyzer_plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

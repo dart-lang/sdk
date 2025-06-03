@@ -21,7 +21,6 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -675,7 +674,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
             enclosingClass,
             ...enclosingClass.allSupertypes.map((t) => t.element3),
           ];
-      return enclosingClasses.contains(element.enclosingElement2);
+      return enclosingClasses.contains(element.enclosingElement);
     }
     return false;
   }

@@ -106,7 +106,7 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    var enumElement = constructorElement.enclosingElement2;
+    var enumElement = constructorElement.enclosingElement;
     var typeParameters = enumElement.typeParameters2;
 
     for (var typeParameter in typeParameters) {
@@ -565,7 +565,7 @@ class TypeArgumentsVerifier {
           _errorReporter.atNode(
             typeAnnotation,
             errorCode,
-            arguments: [typeAnnotation.name2.lexeme],
+            arguments: [typeAnnotation.name.lexeme],
           );
         } else if (typeArguments != null) {
           for (var argument in typeArguments.arguments) {
@@ -633,7 +633,7 @@ class TypeArgumentsVerifier {
   /// - [type] does not have any `dynamic` type arguments.
   /// - the element is marked with `@optionalTypeArgs` from "package:meta".
   bool _isMissingTypeArguments(AstNode node, DartType type, Element? element) {
-    var elementMetadata = element.ifTypeOrNull<Annotatable>()?.metadata2;
+    var elementMetadata = element.ifTypeOrNull<Annotatable>()?.metadata;
     if (elementMetadata == null) {
       return false;
     }

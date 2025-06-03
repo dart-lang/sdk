@@ -21,6 +21,7 @@ can-be-overridden:
 
 # TODO(sigmund): consider implying this for all extendable types.
 callable:
+  - library: 'dart:core'
   - library: 'shared/shared.dart'
     class: 'Base'
     member: ''

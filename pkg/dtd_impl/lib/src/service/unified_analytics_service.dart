@@ -67,6 +67,14 @@ class UnifiedAnalyticsService extends InternalService {
     }
   }
 
+  @override
+  void shutdown() {
+    _analyticsInstances.clear();
+    _cachedDartVersion = null;
+    _cachedFlutterChannel = null;
+    _cachedFlutterVersion = null;
+  }
+
   /// Contains an [Analytics] instance for each [DashTool] client that uses
   /// DTD to manage analytics.
   final _analyticsInstances = <DashTool, Analytics>{};

@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:path/path.dart' as path;
 
 /// Information about a library to display in a hover.
@@ -69,10 +68,10 @@ class DartUnitHoverComputer {
         hover.elementDescription = _elementDisplayString(node, element);
         hover.elementKind = element.kind.displayName;
         if (element case Annotatable a) {
-          hover.isDeprecated = a.metadata2.hasDeprecated;
+          hover.isDeprecated = a.metadata.hasDeprecated;
         }
         // not local element
-        if (element.enclosingElement2 is! ExecutableElement) {
+        if (element.enclosingElement is! ExecutableElement) {
           // containing class
           hover.containingClassDescription = _containingClass(element);
           // containing library
@@ -191,7 +190,7 @@ class DartUnitHoverComputer {
       ExtensionDeclaration() => node.name,
       FormalParameter() => node.name,
       MethodDeclaration() => node.name,
-      NamedType() => node.name2,
+      NamedType() => node.name,
       ConstructorDeclaration() => node.name ?? node.returnType,
       DeclaredIdentifier() => node.name,
       VariableDeclaration() => node.name,
@@ -212,7 +211,7 @@ class DartUnitHoverComputer {
       return null;
     }
     var parameter = node.correspondingParameter;
-    return switch (parameter?.enclosingElement2) {
+    return switch (parameter?.enclosingElement) {
       // Expressions passed as arguments to setters and binary expressions
       // will have parameters here but we don't want them to show as such in
       // hovers because information about those functions are already available

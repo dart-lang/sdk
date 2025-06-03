@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

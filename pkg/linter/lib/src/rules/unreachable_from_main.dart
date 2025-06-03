@@ -4,11 +4,12 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -22,11 +23,11 @@ class UnreachableFromMain extends LintRule {
     : super(
         name: LintNames.unreachable_from_main,
         description: _desc,
-        state: State.stable(since: Version(3, 1, 0)),
+        state: RuleState.stable(since: Version(3, 1, 0)),
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.unreachable_from_main;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unreachable_from_main;
 
   @override
   void registerNodeProcessors(
@@ -94,13 +95,12 @@ class _DeclarationGatherer {
         return false;
       }
 
-      var nameObj = Name.forElement(element);
-      if (nameObj == null) {
+      var name = Name.forElement(element);
+      if (name == null) {
         return false;
       }
 
-      var inheritance = linterContext.inheritanceManager;
-      return inheritance.getOverridden(containerElement, nameObj) != null;
+      return containerElement.getOverridden(name) != null;
     }
 
     for (var member in members) {
@@ -184,14 +184,14 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
         _addDefaultSuperConstructorDeclaration(node);
       }
 
-      var metadata = element.metadata2;
+      var metadata = element.metadata;
       // This for-loop style is copied from analyzer's `hasX` getters on
       // [Element].
       for (var i = 0; i < metadata.annotations.length; i++) {
         if (metadata.annotations[i].isReflectiveTest) {
           // The class is instantiated through the use of mirrors in
           // 'test_reflective_loader'.
-          var unnamedConstructor = element.constructors2.firstWhereOrNull(
+          var unnamedConstructor = element.constructors.firstWhereOrNull(
             (constructor) => constructor.name3 == 'new',
           );
           if (unnamedConstructor != null) {
@@ -375,8 +375,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   void _addDeclaration(Element element) {
     // First add the enclosing top-level declaration.
     var enclosingTopLevelElement = element.thisOrAncestorMatching2(
-      (a) =>
-          a.enclosingElement2 == null || a.enclosingElement2 is LibraryElement,
+      (a) => a.enclosingElement == null || a.enclosingElement is LibraryElement,
     );
     var enclosingTopLevelDeclaration = declarationMap[enclosingTopLevelElement];
     if (enclosingTopLevelDeclaration != null) {
@@ -388,7 +387,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     if (element.isPrivate) {
       return;
     }
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement == null || enclosingElement.isPrivate) {
       return;
     }
@@ -601,7 +600,7 @@ extension on ElementAnnotation {
   bool get isWidgetPreview {
     var element2 = this.element2;
     return element2 is ConstructorElement &&
-        element2.enclosingElement2.name3 == 'Preview' &&
+        element2.enclosingElement.name3 == 'Preview' &&
         element2.library2.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
@@ -614,11 +613,11 @@ extension on LibraryElement {
 
 extension on Element {
   bool get hasVisibleForTesting => switch (this) {
-    Annotatable(:var metadata2) => metadata2.hasVisibleForTesting,
+    Annotatable(:var metadata) => metadata.hasVisibleForTesting,
     _ => false,
   };
   bool get hasWidgetPreview => switch (this) {
-    Annotatable(:var metadata2) =>
+    Annotatable(:var metadata) =>
       // Widget previews can be applied to public:
       //   - Constructors (generative and factory)
       //   - Top-level functions
@@ -628,7 +627,7 @@ extension on Element {
               (this is ExecutableElement &&
                   (this as ExecutableElement).isStatic)) &&
           !isPrivate &&
-          metadata2.hasWidgetPreview,
+          metadata.hasWidgetPreview,
     _ => false,
   };
   bool get isPragma => (library2?.isDartCore ?? false) && name3 == 'pragma';

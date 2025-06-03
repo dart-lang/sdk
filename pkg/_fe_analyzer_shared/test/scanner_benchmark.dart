@@ -50,36 +50,33 @@ void main(List<String> args) {
     case ScanType.string:
       lengthProcessed = content.length;
       for (int i = 0; i < iterations; i++) {
-        hasErrors = scanString(
-          content,
-          configuration: new ScannerConfiguration(
-            enableTripleShift: true,
-          ),
-          includeComments: true,
-        ).hasErrors;
+        hasErrors =
+            scanString(
+              content,
+              configuration: new ScannerConfiguration(enableTripleShift: true),
+              includeComments: true,
+            ).hasErrors;
       }
     case ScanType.bytes:
       lengthProcessed = contentBytes.length;
       for (int i = 0; i < iterations; i++) {
-        hasErrors = scan(
-          contentBytes,
-          configuration: new ScannerConfiguration(
-            enableTripleShift: true,
-          ),
-          includeComments: true,
-        ).hasErrors;
+        hasErrors =
+            scan(
+              contentBytes,
+              configuration: new ScannerConfiguration(enableTripleShift: true),
+              includeComments: true,
+            ).hasErrors;
       }
     case ScanType.stringAsBytes:
       lengthProcessed = content.length;
       for (int i = 0; i < iterations; i++) {
         Uint8List tmp = utf8.encode(contentZeroTerminated);
-        hasErrors = scan(
-          tmp,
-          configuration: new ScannerConfiguration(
-            enableTripleShift: true,
-          ),
-          includeComments: true,
-        ).hasErrors;
+        hasErrors =
+            scan(
+              tmp,
+              configuration: new ScannerConfiguration(enableTripleShift: true),
+              includeComments: true,
+            ).hasErrors;
       }
     case ScanType.countLfs:
       lengthProcessed = contentBytes.length;
@@ -97,8 +94,10 @@ void main(List<String> args) {
       }
   }
   stopwatch.stop();
-  print("Scanned $lengthProcessed ${scanType.what} $iterations times "
-      "in ${stopwatch.elapsed}");
+  print(
+    "Scanned $lengthProcessed ${scanType.what} $iterations times "
+    "in ${stopwatch.elapsed}",
+  );
   print("Found errors $numErrors times");
   double lengthPerMicrosecond =
       (lengthProcessed * iterations) / stopwatch.elapsedMicroseconds;

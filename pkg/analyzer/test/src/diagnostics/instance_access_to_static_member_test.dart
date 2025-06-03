@@ -46,7 +46,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@class::C::@method::a#element
+    element: <testLibrary>::@class::C::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -211,7 +211,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@mixin::A::@method::a#element
+    element: <testLibrary>::@mixin::A::@method::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (

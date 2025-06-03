@@ -339,8 +339,9 @@ class TypeSystem {
       return excludeLateSentinel0();
     }
 
-    AbstractValue narrowing =
-        _abstractValueDomain.createFromStaticType(annotation).abstractValue;
+    AbstractValue narrowing = _abstractValueDomain
+        .createFromStaticType(annotation)
+        .abstractValue;
 
     if (excludeNull) {
       narrowing = _abstractValueDomain.excludeNull(narrowing);
@@ -376,10 +377,9 @@ class TypeSystem {
     Local parameter, {
     bool isVirtual = false,
   }) {
-    final typeInformations =
-        isVirtual
-            ? virtualParameterTypeInformations
-            : parameterTypeInformations;
+    final typeInformations = isVirtual
+        ? virtualParameterTypeInformations
+        : parameterTypeInformations;
     return typeInformations.putIfAbsent(parameter, () {
       ParameterTypeInformation typeInformation = strategy
           .createParameterTypeInformation(
@@ -489,8 +489,9 @@ class TypeSystem {
     bool isElementInferred = isConst || isTypedArray;
 
     final inferredLength = isFixed ? length : null;
-    final elementTypeMask =
-        isElementInferred ? elementType.type : dynamicType.type;
+    final elementTypeMask = isElementInferred
+        ? elementType.type
+        : dynamicType.type;
     AbstractValue mask = _abstractValueDomain.createContainerValue(
       type.type,
       node,
@@ -538,8 +539,9 @@ class TypeSystem {
     assert(strategy.checkSetNode(node));
     bool isConst = type.type == _abstractValueDomain.constSetType;
 
-    AbstractValue elementTypeMask =
-        isConst ? elementType.type : dynamicType.type;
+    AbstractValue elementTypeMask = isConst
+        ? elementType.type
+        : dynamicType.type;
     AbstractValue mask = _abstractValueDomain.createSetValue(
       type.type,
       node,
@@ -577,22 +579,22 @@ class TypeSystem {
     PhiElementTypeInformation? keyType, valueType;
     for (int i = 0; i < keyTypes.length; ++i) {
       final typeForKey = keyTypes[i];
-      keyType =
-          keyType == null
-              ? allocatePhi(null, null, typeForKey, isTry: false)
-              : addPhiInput(null, keyType, typeForKey);
+      keyType = keyType == null
+          ? allocatePhi(null, null, typeForKey, isTry: false)
+          : addPhiInput(null, keyType, typeForKey);
 
       final typeForValue = valueTypes[i];
-      valueType =
-          valueType == null
-              ? allocatePhi(null, null, typeForValue, isTry: false)
-              : addPhiInput(null, valueType, typeForValue);
+      valueType = valueType == null
+          ? allocatePhi(null, null, typeForValue, isTry: false)
+          : addPhiInput(null, valueType, typeForValue);
     }
 
-    final simplifiedKeyType =
-        keyType == null ? nonNullEmpty() : simplifyPhi(null, null, keyType);
-    final simplifiedValueType =
-        valueType == null ? nonNullEmpty() : simplifyPhi(null, null, valueType);
+    final simplifiedKeyType = keyType == null
+        ? nonNullEmpty()
+        : simplifyPhi(null, null, keyType);
+    final simplifiedValueType = valueType == null
+        ? nonNullEmpty()
+        : simplifyPhi(null, null, valueType);
 
     AbstractValue keyTypeMask, valueTypeMask;
     if (isFixed) {
@@ -847,8 +849,9 @@ class TypeSystem {
 
     AbstractValue? newType;
     for (AbstractValue mask in list) {
-      newType =
-          newType == null ? mask : _abstractValueDomain.union(newType, mask);
+      newType = newType == null
+          ? mask
+          : _abstractValueDomain.union(newType, mask);
       // Likewise - stop early if we already reach dynamic.
       if (_abstractValueDomain.containsAll(newType).isPotentiallyTrue) {
         isTopIgnoringFlags = true;

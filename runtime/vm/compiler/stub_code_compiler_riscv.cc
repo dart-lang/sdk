@@ -428,17 +428,19 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   COMPILE_ASSERT(!IsCalleeSavedRegister(T2) && !IsArgumentRegister(T2));
   COMPILE_ASSERT(!IsCalleeSavedRegister(T3) && !IsArgumentRegister(T3));
 
+  Label something_other_than_sync_callback;
   Label async_callback;
   Label done;
 
   // If GetFfiCallbackMetadata returned a null thread, it means that the
   // callback was invoked after it was deleted. In this case, do nothing.
-  __ beqz(THR, &done, Assembler::kNearJump);
+  __ beqz(THR, &done, Assembler::kFarJump);
 
   // Check the trampoline type to see how the callback should be invoked.
+
   COMPILE_ASSERT(
       static_cast<uword>(FfiCallbackMetadata::TrampolineType::kSync) == 0);
-  __ bnez(T3, &async_callback, Assembler::kNearJump);
+  __ bnez(T3, &something_other_than_sync_callback, Assembler::kNearJump);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -451,6 +453,66 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ EnterFullSafepoint(/*scratch=*/T1);
 
   __ j(&done, Assembler::kNearJump);
+
+  __ Bind(&something_other_than_sync_callback);
+  COMPILE_ASSERT(
+      static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync) == 2);
+  __ subi(T3, T3, 2);
+  __ beqz(T3, &async_callback, Assembler::kNearJump);
+
+  COMPILE_ASSERT(
+      static_cast<uword>(
+          FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared) == 3);
+  // isolate-group-shared callback
+  __ jalr(T2);
+
+  // Exit isolate group shared isolate.
+  {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        1 << CallingConventions::kReturnFpuReg);
+    __ PushRegisters(return_registers);
+
+    Label call;
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitIsolateGroupSharedIsolate,
+                           T1, T2);
+    } else {
+      const intptr_t kPCRelativeLoadOffset = 12;
+      intptr_t start = __ CodeSize();
+      __ auipc(T1, 0);
+      __ lx(T1, Address(T1, kPCRelativeLoadOffset));
+      __ j(&call);
+
+      ASSERT_EQUAL(__ CodeSize() - start, kPCRelativeLoadOffset);
+#if XLEN == 32
+      __ Emit32(reinterpret_cast<int32_t>(&DLRT_ExitIsolateGroupSharedIsolate));
+#else
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitIsolateGroupSharedIsolate));
+#endif
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitIsolateGroupSharedIsolate, T1);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
+
+    __ Bind(&call);
+    __ jalr(T1);
+
+    __ PopRegisters(return_registers);
+
+    __ LeaveFrame();
+  }
+
+  __ j(&done, Assembler::kNearJump);
+
   __ Bind(&async_callback);
 
   // Async callback. The entrypoint marshals the arguments into a message and

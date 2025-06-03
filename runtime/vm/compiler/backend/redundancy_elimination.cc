@@ -774,7 +774,7 @@ class AliasedSet : public ZoneAllocated {
         typed_data_access_sizes_(),
         representatives_(),
         killed_(),
-        aliased_by_effects_(new(zone) BitVector(zone, places->length())) {
+        aliased_by_effects_(new (zone) BitVector(zone, places->length())) {
     InsertAlias(Place::CreateAnyInstanceAnyIndexAlias(
         zone_, kAnyInstanceAnyIndexAlias));
     for (intptr_t i = 0; i < places_.length(); i++) {
@@ -1904,9 +1904,9 @@ class LoadOptimizer : public ValueObject {
 
   void ClearCallsInitializer(Instruction* instr) {
     if (auto* load_field = instr->AsLoadField()) {
-      load_field->set_calls_initializer(false);
+      load_field->clear_calls_initializer();
     } else if (auto* load_static = instr->AsLoadStaticField()) {
-      load_static->set_calls_initializer(false);
+      load_static->clear_calls_initializer();
     } else {
       UNREACHABLE();
     }

@@ -227,6 +227,8 @@ class StubCodeCompiler {
   void GenerateRangeError(bool with_fpu_regs);
   void GenerateWriteError(bool with_fpu_regs);
 
+  void GenerateFieldAccessError(bool with_fpu_regs);
+
   void GenerateSuspendStub(bool call_suspend_function,
                            bool pass_type_arguments,
                            intptr_t suspend_entry_point_offset_in_thread,

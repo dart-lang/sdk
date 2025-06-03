@@ -72,12 +72,10 @@ test() {
     reachability1.expectStaticType<Exactly<int?>>();
   }
   {
-    // `case null` can even match non-nullable types.
+    // `case null` cannot match non-nullable types.
 
-    // Note that in most cases, flow analysis assumes soundness when analyzing
-    // patterns. This is an exception: `case null` is assumed to be a possible
-    // match even for a non-nullable scrutinee; this makes `case null` behave
-    // similarly to an `if (x == null)` test.
+    // As of Dart 3.9, flow analysis assumes soundness when analyzing all
+    // patterns, so `case null` cannot match a non-nullable type.
     int? reachability0 = 0;
     int? reachability1 = 0;
     if (expr<int>() case null) {
@@ -85,7 +83,7 @@ test() {
     } else {
       reachability1 = null;
     }
-    reachability0.expectStaticType<Exactly<int?>>();
+    reachability0.expectStaticType<Exactly<int>>();
     reachability1.expectStaticType<Exactly<int?>>();
   }
   {

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -56,7 +57,7 @@ bool _isPartDirective(Directive node) => node is PartDirective;
 bool _isRelativeDirective(NamespaceDirective node) =>
     !_isAbsoluteDirective(node);
 
-class DirectivesOrdering extends LintRule {
+class DirectivesOrdering extends MultiAnalysisRule {
   static const List<LintCode> allCodes = [
     LinterLintCode.directives_ordering_alphabetical,
     LinterLintCode.directives_ordering_dart,
@@ -68,7 +69,7 @@ class DirectivesOrdering extends LintRule {
     : super(name: LintNames.directives_ordering, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => allCodes;
+  List<DiagnosticCode> get diagnosticCodes => allCodes;
 
   @override
   void registerNodeProcessors(
@@ -82,7 +83,7 @@ class DirectivesOrdering extends LintRule {
   void _reportLintWithDartDirectiveGoFirstMessage(AstNode node, String type) {
     reportAtNode(
       node,
-      errorCode: LinterLintCode.directives_ordering_dart,
+      diagnosticCode: LinterLintCode.directives_ordering_dart,
       arguments: [type],
     );
   }
@@ -92,12 +93,15 @@ class DirectivesOrdering extends LintRule {
   ) {
     reportAtNode(
       node,
-      errorCode: LinterLintCode.directives_ordering_alphabetical,
+      diagnosticCode: LinterLintCode.directives_ordering_alphabetical,
     );
   }
 
   void _reportLintWithExportDirectiveAfterImportDirectiveMessage(AstNode node) {
-    reportAtNode(node, errorCode: LinterLintCode.directives_ordering_exports);
+    reportAtNode(
+      node,
+      diagnosticCode: LinterLintCode.directives_ordering_exports,
+    );
   }
 
   void _reportLintWithPackageDirectiveBeforeRelativeMessage(
@@ -106,7 +110,8 @@ class DirectivesOrdering extends LintRule {
   ) {
     reportAtNode(
       node,
-      errorCode: LinterLintCode.directives_ordering_package_before_relative,
+      diagnosticCode:
+          LinterLintCode.directives_ordering_package_before_relative,
       arguments: [type],
     );
   }

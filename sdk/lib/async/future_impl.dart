@@ -71,14 +71,12 @@ AsyncError _interceptUserError(Object error, StackTrace? stackTrace) {
 }
 
 abstract class _Completer<T> implements Completer<T> {
-  @pragma("wasm:entry-point")
   @pragma("vm:entry-point")
   final _Future<T> future = _Future<T>();
 
   // Overridden by either a synchronous or asynchronous implementation.
   void complete([FutureOr<T>? value]);
 
-  @pragma("wasm:entry-point")
   void completeError(Object error, [StackTrace? stackTrace]) {
     if (!future._mayComplete) throw StateError("Future already completed");
     _completeErrorObject(_interceptUserError(error, stackTrace));
@@ -95,7 +93,6 @@ abstract class _Completer<T> implements Completer<T> {
 /// Completer which completes future asynchronously.
 @pragma("vm:entry-point")
 class _AsyncCompleter<T> extends _Completer<T> {
-  @pragma("wasm:entry-point")
   void complete([FutureOr<T>? value]) {
     if (!future._mayComplete) throw StateError("Future already completed");
     future._asyncComplete(value == null ? value as dynamic : value);
@@ -220,6 +217,7 @@ class _FutureListener<S, T> {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:never-inline")
+  @pragma("vm:invisible")
   FutureOr<T> handleValue(S sourceResult) {
     return _zone.runUnary<FutureOr<T>, S>(_onValue, sourceResult);
   }
@@ -280,7 +278,6 @@ class _FutureListener<S, T> {
   bool shouldChain(Future<dynamic> value) => value is Future<T> || value is! T;
 }
 
-@pragma("wasm:entry-point")
 class _Future<T> implements Future<T> {
   /// Initial state, waiting for a result. In this state, the
   /// [_resultOrListeners] field holds a single-linked list of

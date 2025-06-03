@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math' as math;
-
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
@@ -22,12 +20,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -172,9 +168,8 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
     }
     var errorOffset = diagnostic.problemMessage.offset;
     var errorLength = diagnostic.problemMessage.length;
-    var endOffset = math.max(errorOffset + errorLength - 1, 0);
     return _coveringNode =
-        NodeLocator2(errorOffset, endOffset).searchWithin(unit);
+        unit.nodeCovering(offset: errorOffset, length: errorLength);
   }
 
   /// The length of the source range associated with the error message being
@@ -244,7 +239,7 @@ final class CorrectionProducerContext {
   })  : _libraryResult = libraryResult,
         _unitResult = unitResult,
         _sessionHelper = AnalysisSessionHelper(unitResult.session),
-        _utils = CorrectionUtils(unitResult),
+        _utils = dartFixContext?.correctionUtils ?? CorrectionUtils(unitResult),
         _applyingBulkFixes = applyingBulkFixes,
         _diagnostic = diagnostic,
         _token = token,
@@ -378,6 +373,7 @@ abstract class ResolvedCorrectionProducer
   AnalysisOptions get analysisOptions => sessionHelper.session.analysisContext
       .getAnalysisOptionsForFile(unitResult.file);
 
+  @Deprecated('Use InterfaceElement members instead')
   InheritanceManager3 get inheritanceManager {
     return (libraryElement2 as LibraryElementImpl).session.inheritanceManager;
   }

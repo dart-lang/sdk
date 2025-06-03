@@ -2,11 +2,11 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/issue_59606.dart:1:8: Error: Not found: 'package:foobar1'
+// pkg/front_end/testcases/regress/issue_59606.dart:5:8: Error: Not found: 'package:foobar1'
 // import 'package:foobar1' as a;
 //        ^
 //
-// pkg/front_end/testcases/regress/issue_59606.dart:2:8: Error: Not found: 'package:foobar2'
+// pkg/front_end/testcases/regress/issue_59606.dart:6:8: Error: Not found: 'package:foobar2'
 // import 'package:foobar%32' as b;
 //        ^
 //

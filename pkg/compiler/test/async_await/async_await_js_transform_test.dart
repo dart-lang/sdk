@@ -28,46 +28,50 @@ void testTransform(String source, String expected, AsyncRewriterBase rewriter) {
 
 void testAsyncTransform(String source, String expected) {
   testTransform(
-      source,
-      expected,
-      AsyncRewriter(
-          SimpleErrorReporter(), // The diagnostic helper should not be used in these tests.
-          null,
-          asyncStart: VariableUse("startHelper"),
-          asyncAwait: VariableUse("awaitHelper"),
-          asyncReturn: VariableUse("returnHelper"),
-          asyncRethrow: VariableUse("rethrowHelper"),
-          completerFactory: VariableUse("NewCompleter"),
-          completerFactoryTypeArguments: [VariableUse("CompleterType")],
-          wrapBody: VariableUse("_wrapJsFunctionForAsync"),
-          safeVariableName: (String name) => "__$name",
-          bodyName: StringBackedName("body")));
+    source,
+    expected,
+    AsyncRewriter(
+      SimpleErrorReporter(), // The diagnostic helper should not be used in these tests.
+      null,
+      asyncStart: VariableUse("startHelper"),
+      asyncAwait: VariableUse("awaitHelper"),
+      asyncReturn: VariableUse("returnHelper"),
+      asyncRethrow: VariableUse("rethrowHelper"),
+      completerFactory: VariableUse("NewCompleter"),
+      completerFactoryTypeArguments: [VariableUse("CompleterType")],
+      wrapBody: VariableUse("_wrapJsFunctionForAsync"),
+      safeVariableName: (String name) => "__$name",
+      bodyName: StringBackedName("body"),
+    ),
+  );
 }
 
 void testSyncStarTransform(String source, String expected) {
   testTransform(
-      source,
-      expected,
-      SyncStarRewriter(SimpleErrorReporter(), null,
-          iteratorCurrentValueProperty: string('_current'),
-          iteratorDatumProperty: string('_datum'),
-          yieldStarSelector: string('_yieldStar'),
-          safeVariableName: (String name) => "__$name",
-          bodyName: StringBackedName("body")));
+    source,
+    expected,
+    SyncStarRewriter(
+      SimpleErrorReporter(),
+      null,
+      iteratorCurrentValueProperty: string('_current'),
+      iteratorDatumProperty: string('_datum'),
+      yieldStarSelector: string('_yieldStar'),
+      safeVariableName: (String name) => "__$name",
+      bodyName: StringBackedName("body"),
+    ),
+  );
 }
 
 main() {
-  testAsyncTransform( //# 01: ok
-      r"""function() async {
+  final fragment1 = r"""function() async {
   var closures = [new A.main_closure()], v0 = await closures, v1 = 0, v2, v3;
   if (v1 < 0 || v1 >= v0.length)
     H.ioore(v0, v1);
   v2 = 4;
   v3 = 2;
   P.print(v0[v1].call$2(v2, v3));
-}"""
-, //# 01: ok
-      r"""function() {
+}""";
+  final fragment2 = r"""function() {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
     closures, v0, v1, v2, v3;
@@ -95,15 +99,16 @@ main() {
       }
   });
   return startHelper(body, __completer);
-}"""
-    ) //# 01: ok
-  ;
+}""";
+  testAsyncTransform(fragment1, fragment2); //# 01: ok
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
 function(a) async {
   print(this.x); // Ensure `this` is translated in the helper function.
   await foo();
-}""", """
+}""",
+    """
 function(a) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
@@ -125,9 +130,11 @@ function(a) {
       }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
   function(b) async {
     try {
       __outer: while (true) { // Overlapping label name.
@@ -150,7 +157,8 @@ function(a) {
       return 3; // Return from finally with no pending finally.
     }
     return 4;
-  }""", """
+  }""",
+    """
 function(b) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
@@ -251,9 +259,11 @@ function(b) {
         }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
 function(c) async {
   var a, b, c, d, e, f;
   a = b++; // post- and preincrements.
@@ -262,7 +272,8 @@ function(c) async {
   d = ++(await foo()).a;
   e = foo1()[await foo2()]--;
   f = --foo1()[await foo2()];
-}""", """
+}""",
+    """
 function(c) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
@@ -303,9 +314,11 @@ function(c) {
       }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
   function(d2) async {
     var a, b, c, d, e, f, g, h; // empty initializer
     a = foo1() || await foo2(); // short circuiting operators
@@ -316,7 +329,8 @@ function(c) {
     f = await foo1() && foo2();
     g = await foo1() && await foo2();
     h = foo1() && foo2();
-  }""", """
+  }""",
+    """
 function(d2) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
@@ -433,9 +447,11 @@ function(d2) {
       }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
 function(x, y) async {
   while (true) {
     switch(y) { // Switch with no awaits in case key expressions
@@ -450,7 +466,8 @@ function(x, y) async {
         foo(); // No default
     }
   }
-}""", """
+}""",
+    """
 function(x, y) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType);
@@ -523,9 +540,11 @@ function(x, y) {
       }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
   function(f) async {
     do {
       var a = await foo();
@@ -535,7 +554,8 @@ function(x, y) {
         continue;
     } while (await foo());
   }
-  """, """
+  """,
+    """
 function(f) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
@@ -581,9 +601,11 @@ function(f) {
       }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
 function(g) async {
   for (var i = 0; i < await foo1(); i += await foo2()) {
     if (foo(i))
@@ -597,7 +619,8 @@ function(g) async {
     print(await(foo(i)));
   }
 }
-""", """
+""",
+    """
 function(g) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
@@ -668,9 +691,11 @@ function(g) {
       }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
   function(a, h) async {
     var x = {"a": foo1(), "b": await foo2(), "c": foo3(), foo4() {}};
     x["a"] = 2; // Different assignments
@@ -679,7 +704,8 @@ function(g) {
     x[(await foo1()).a = await foo2()] = 5;
     (await foo1())[await foo2()] = await foo3(6);
   }
-  """, """
+  """,
+    """
 function(a, h) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
@@ -743,9 +769,11 @@ function(a, h) {
       }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
 function(c, i) async {
   try {
     var x = c ? await foo() : foo(); // conditional
@@ -760,7 +788,8 @@ function(c, i) async {
     }
   }
 }
-""", """
+""",
+    """
 function(c, i) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
@@ -862,9 +891,11 @@ function(c, i) {
       }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
   function(x, y, j) async {
     print(await(foo(x))); // calls
     (await print)(foo(x));
@@ -872,7 +903,8 @@ function(c, i) {
     await (print(foo(await x)));
     print(foo(x, await y, z));
   }
-  """, """
+  """,
+    """
 function(x, y, j) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
@@ -925,9 +957,11 @@ function(x, y, j) {
       }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
 function(x, y, k) async {
   while (await(foo())) {
     lab: { // labelled statement
@@ -952,7 +986,8 @@ function(x, y, k) async {
       foo();
     }
   }
-}""", """
+}""",
+    """
 function(x, y, k) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
@@ -1062,9 +1097,11 @@ function(x, y, k) {
       }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
   function(l) async {
     switch(await l) {
       case 1:
@@ -1077,7 +1114,8 @@ function(x, y, k) {
         print(2);
         break;
     }
-  }""", """
+  }""",
+    """
 function(l) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType);
@@ -1131,9 +1169,11 @@ function(l) {
       }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
   // This example is like #47566
   function(b, l) async {
     print("start");
@@ -1148,7 +1188,8 @@ function(l) {
       }
     }
     print("end");
-  }""", """
+  }""",
+    """
 function(b, l) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType);
@@ -1203,9 +1244,11 @@ function(b, l) {
       }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testAsyncTransform("""
+  testAsyncTransform(
+    """
   function(m) async {
     var exception = 1;
     try {
@@ -1221,7 +1264,8 @@ function(b, l) {
       exception += 10;
     }
     print(exception);
-  }""", """
+  }""",
+    """
 function(m) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
@@ -1284,14 +1328,17 @@ function(m) {
       }
   });
   return startHelper(body, __completer);
-}""");
+}""",
+  );
 
-  testSyncStarTransform("""
+  testSyncStarTransform(
+    """
 function(a) sync* {
   // Ensure that return of a value is treated as first evaluating the value, and
   // then returning.
   return foo();
-}""", """
+}""",
+    """
 function(__a) {
   return function() {
     var a = __a;
@@ -1318,5 +1365,6 @@ function(__a) {
         }
     };
   };
-}""");
+}""",
+  );
 }

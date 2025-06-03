@@ -93,7 +93,7 @@ main(List<String> args) {
 
   var bloatyExec = "bloaty";
   var bloatyArgs = ["-d", "symbols,compileunits", "--domain=file", "-n", "0",
-                    "--csv", "--debug-file", unstrippedPath, strippedPath];
+                    "--tsv", "--debug-file", unstrippedPath, strippedPath];
   var bloatyResult = Process.runSync(bloatyExec, bloatyArgs);
   if (bloatyResult.exitCode != 0) {
     print("+ ${bloatyExec} ${bloatyArgs.join(' ')}");
@@ -105,7 +105,7 @@ main(List<String> args) {
 
   var root = new Symbol();
   root.name = strippedPath;
-  root.type = "path";
+  root.type = "binary";
   root.shallowSize = 0;
   var paths = new Map<String, Symbol>();
   paths[""] = root;
@@ -140,7 +140,7 @@ main(List<String> args) {
       continue;
     }
 
-    var columns = line.split(",");
+    var columns = line.split("\t");
     var name = columns[0];
     var path = columns[1];
     var vmSize = int.parse(columns[2]);
@@ -182,14 +182,14 @@ main(List<String> args) {
 }
 
 var viewer = """
-<html>
+<html lang="en">
 <head>
 <style>
 .treemapTile {
     position: absolute;
     box-sizing: border-box;
     border: solid 1px;
-    font-size: 13;
+    font-size: 13px;
     text-align: center;
     overflow: hidden;
     white-space: nowrap;
@@ -392,10 +392,9 @@ function showDominatorTree(v) {
   setBody(fill);
   let w = document.body.offsetWidth;
   let h = document.body.offsetHeight;
-
   let topTile = createTreemapTile(v, w, h, 0);
-  topTile.style.width = w;
-  topTile.style.height = h;
+  topTile.style.width = w + "px";
+  topTile.style.height = h + "px";
   setBody(topTile);
 
   // Encode the current view into the URL fragment.

@@ -8,9 +8,9 @@ extension NamedTypeExtension on NamedType {
   String get qualifiedName {
     final importPrefix = this.importPrefix;
     if (importPrefix != null) {
-      return '${importPrefix.name.lexeme}.${name2.lexeme}';
+      return '${importPrefix.name.lexeme}.${name.lexeme}';
     } else {
-      return name2.lexeme;
+      return name.lexeme;
     }
   }
 }

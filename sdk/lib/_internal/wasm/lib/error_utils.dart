@@ -161,6 +161,56 @@ Never _throwNegativeOrZeroError(int value, [String? name]) {
   throw RangeError.range(value, 1, null, name);
 }
 
+@pragma("wasm:never-inline")
+@pragma("wasm:entry-point")
+Never _throwArgumentNullError() {
+  if (minify) throw _nullErrorWithoutDetails;
+  throw ArgumentError.notNull();
+}
+
+Never _throwLateErrorFieldADI(String fieldName) {
+  if (minify) throw _lateErrorFieldADI;
+  throw LateError.fieldADI(fieldName);
+}
+
+Never _throwLateErrorLocalADI(String fieldName) {
+  if (minify) throw _lateErrorLocalADI;
+  throw LateError.localADI(fieldName);
+}
+
+Never _throwLateErrorFieldNI(String fieldName) {
+  if (minify) throw _lateErrorFieldNI;
+  throw LateError.fieldNI(fieldName);
+}
+
+Never _throwLateErrorLocalNI(String fieldName) {
+  if (minify) throw _lateErrorLocalNI;
+  throw LateError.localNI(fieldName);
+}
+
+Never _throwLateErrorFieldAI(String fieldName) {
+  if (minify) throw _lateErrorFieldAI;
+  throw LateError.fieldAI(fieldName);
+}
+
+Never _throwLateErrorLocalAI(String fieldName) {
+  if (minify) throw _lateErrorLocalAI;
+  throw LateError.localAI(fieldName);
+}
+
+Never _throwNoSuchMethodErrorWithInvocation(
+  Object? receiver,
+  Invocation invocation,
+) {
+  if (minify) throw _noSuchMethodErrorWithoutDetails;
+  throw NoSuchMethodError.withInvocation(receiver, invocation);
+}
+
+Never _throwReachabilityError([String? _message]) {
+  if (minify) throw _reachabilityError;
+  throw ReachabilityError(_message);
+}
+
 const _indexErrorWithoutDetails = _ErrorWithoutDetails(
   'IndexError (details omitted due to --minify)',
 );
@@ -176,6 +226,43 @@ const _negativeValueErrorWithoutDetails = _ErrorWithoutDetails(
 const _negativeOrZeroValueErrorWithoutDetails = _ErrorWithoutDetails(
   'Value was negative or zero (details omitted due to --minify)',
 );
+const _nullErrorWithoutDetails = _LateErrorWithoutDetails(
+  'Value must not be null (details omitted due to --minify)',
+);
+
+const _lateErrorFieldADI = _LateErrorWithoutDetails(
+  'LateInitializationError: Field has been assigned during initialization (details omitted due to --minify)',
+);
+
+const _lateErrorLocalADI = _LateErrorWithoutDetails(
+  'LateInitializationError: Local has been assigned during initialization (details omitted due to --minify)',
+);
+
+const _lateErrorFieldNI = _LateErrorWithoutDetails(
+  'LateInitializationError: Field has not been initialized (details omitted due to --minify)',
+);
+
+const _lateErrorLocalNI = _LateErrorWithoutDetails(
+  'LateInitializationError: Local has not been initialized (details omitted due to --minify)',
+);
+
+const _lateErrorFieldAI = _LateErrorWithoutDetails(
+  'LateInitializationError: Field has already been initialized (details omitted due to --minify)',
+);
+
+const _lateErrorLocalAI = _LateErrorWithoutDetails(
+  'LateInitializationError: Local has already been initialized (details omitted due to --minify)',
+);
+
+const _reachabilityError = _LateErrorWithoutDetails(
+  'ReachabilityError (details omitted due to --minify)',
+);
+
+const _NoSuchMethodErrorWithoutDetails _noSuchMethodErrorWithoutDetails =
+    _NoSuchMethodErrorWithoutDetails();
+
+const _TypeErrorWithoutDetails typeErrorWithoutDetails =
+    _TypeErrorWithoutDetails();
 
 class _ErrorWithoutDetails implements Error {
   final String _message;
@@ -186,9 +273,6 @@ class _ErrorWithoutDetails implements Error {
   String toString() => _message;
 }
 
-const _TypeErrorWithoutDetails typeErrorWithoutDetails =
-    _TypeErrorWithoutDetails();
-
 class _TypeErrorWithoutDetails implements TypeError {
   const _TypeErrorWithoutDetails();
 
@@ -196,4 +280,22 @@ class _TypeErrorWithoutDetails implements TypeError {
 
   String toString() =>
       'Runtime type check failed (details omitted due to --minify)';
+}
+
+class _NoSuchMethodErrorWithoutDetails implements NoSuchMethodError {
+  const _NoSuchMethodErrorWithoutDetails();
+
+  StackTrace? get stackTrace => null;
+
+  String toString() => 'NoSuchMethodError (details omitted due to --minify)';
+}
+
+class _LateErrorWithoutDetails implements LateError {
+  final String _message;
+
+  const _LateErrorWithoutDetails(this._message);
+
+  StackTrace? get stackTrace => null;
+
+  String toString() => _message;
 }

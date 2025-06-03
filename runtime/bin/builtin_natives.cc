@@ -99,8 +99,14 @@ void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
   chars[length] = '\n';
 
   // Uses fwrite to support printing NUL bytes.
-  intptr_t res = fwrite(chars, 1, new_length, stdout);
-  ASSERT(res == new_length);
+  const uint8_t* cursor = chars;
+  intptr_t remaining = new_length;
+  while (remaining > 0) {
+    intptr_t written = fwrite(cursor, 1, remaining, stdout);
+    if (written == 0) break;  // EOF or error: ignore
+    cursor += written;
+    remaining -= written;
+  }
   fflush(stdout);
   if (ShouldCaptureStdout()) {
     // For now we report print output on the Stdout stream.

@@ -53,15 +53,15 @@ class Class extends core::Object {
   synthetic constructor •() → test::Class
     : super core::Object::•()
     ;
-  method method([core::int i = #C2]) → void {}
+  method method([erroneously-initialized core::int i = #C2]) → void {}
   @#C1
-  method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([core::int i = #C2]) → void {}
-  method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i = #C2]) → void {}
+  method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([erroneously-initialized core::int i = #C2]) → void {}
+  method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([erroneously-initialized core::int i = #C2]) → void {}
 }
-static method method([core::int i = #C2]) → void {}
+static method method([erroneously-initialized core::int i = #C2]) → void {}
 @#C1
-static method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([core::int i = #C2]) → void {}
-static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i = #C2]) → void {}
+static method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([erroneously-initialized core::int i = #C2]) → void {}
+static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([erroneously-initialized core::int i = #C2]) → void {}
 
 constants  {
   #C1 = _in::_Patch {}

@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/nested_variance.dart:84:42: Error: A value of type 'void Function<Y extends Acon<dynamic Function(Never), dynamic>>()' can't be assigned to a variable of type 'void Function<Y extends Acon<dynamic Function(Null), dynamic>>()' because 'Null' is nullable and 'Never' isn't.
+// pkg/front_end/testcases/general/nested_variance.dart:84:42: Error: A value of type 'void Function<Y extends Acon<dynamic Function(Never), dynamic>>()' can't be assigned to a variable of type 'void Function<Y extends Acon<dynamic Function(Null), dynamic>>()'.
 //  - 'Acon' is from 'pkg/front_end/testcases/general/nested_variance.dart'.
 //   F<Acon<Fcon<Null>, dynamic>> target2 = fsource2;
 //                                          ^
@@ -125,7 +125,7 @@ static method testTypeAliasAsTypeArgument(self::Acov<() → dynamic, dynamic> so
   <Y extends self::Acov<() → dynamic, dynamic> = dynamic>() → void fsource1 = self::toF<self::Acov<() → dynamic, dynamic>>(source1);
   <Y extends self::Acov<() → dynamic, dynamic> = dynamic>() → void target1 = fsource1;
   <Y extends self::Acon<(Never) → dynamic, dynamic> = dynamic>() → void fsource2 = self::toF<self::Acon<(Never) → dynamic, dynamic>>(source2);
-  <Y extends self::Acon<(Null) → dynamic, dynamic> = dynamic>() → void target2 = invalid-expression "pkg/front_end/testcases/general/nested_variance.dart:84:42: Error: A value of type 'void Function<Y extends Acon<dynamic Function(Never), dynamic>>()' can't be assigned to a variable of type 'void Function<Y extends Acon<dynamic Function(Null), dynamic>>()' because 'Null' is nullable and 'Never' isn't.
+  <Y extends self::Acon<(Null) → dynamic, dynamic> = dynamic>() → void target2 = invalid-expression "pkg/front_end/testcases/general/nested_variance.dart:84:42: Error: A value of type 'void Function<Y extends Acon<dynamic Function(Never), dynamic>>()' can't be assigned to a variable of type 'void Function<Y extends Acon<dynamic Function(Null), dynamic>>()'.
  - 'Acon' is from 'pkg/front_end/testcases/general/nested_variance.dart'.
   F<Acon<Fcon<Null>, dynamic>> target2 = fsource2;
                                          ^" in fsource2 as{TypeError} <Y extends self::Acon<(Null) → dynamic, dynamic> = dynamic>() → void;

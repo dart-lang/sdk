@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// A verifier that checks for unsafe Unicode text.
 /// See: https://nvd.nist.gov/vuln/detail/CVE-2021-22567
@@ -32,7 +31,7 @@ class UnicodeTextVerifier {
         errorReporter.atOffset(
           offset: offset,
           length: 1,
-          errorCode: errorCode,
+          diagnosticCode: errorCode,
           arguments: [code],
         );
       }

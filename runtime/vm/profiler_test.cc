@@ -2452,6 +2452,63 @@ ISOLATE_UNIT_TEST_CASE(Profiler_EnterExitIsolate) {
   }
 }
 
+ISOLATE_UNIT_TEST_CASE(Profiler_UpdateRunningState) {
+  Isolate* isolate = Isolate::Current();
+  SampleFilter filter(isolate->main_port(), Thread::kMutatorTask, -1, -1);
+
+  EnableProfiler();
+  Profiler::UpdateFlagProfilePeriod(50);  // Microseconds.
+  Profiler::UpdateSamplePeriod();
+
+  const char* kScript = R"(
+void main() {
+  final sw = Stopwatch()..start();
+  while (sw.elapsedMilliseconds < 1000) {
+  }
+})";
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
+
+  // Test that profiler collects some samples while main is running if
+  // it is enabled.
+  Invoke(root_library, "main");
+  {
+    Profile profile;
+    profile.Build(thread, isolate, &filter, Profiler::sample_block_buffer());
+    // We expect to have collected at least some samples.
+    EXPECT_LT(0, profile.sample_count());
+  }
+
+  // Switch profiler off and clear the sample block buffer to discard all
+  // collected samples.
+  FLAG_profiler = false;
+  Profiler::UpdateRunningState();
+  delete Profiler::sample_block_buffer();
+  Profiler::set_sample_block_buffer(new SampleBlockBuffer());
+
+  // Test that no samples are collected if profiler is disabled.
+  Invoke(root_library, "main");
+  {
+    Profile profile;
+    profile.Build(thread, isolate, &filter, Profiler::sample_block_buffer());
+    // We expect to have collected no samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  // Enable profiler again.
+  FLAG_profiler = true;
+  Profiler::UpdateRunningState();
+
+  // Test again that samples are collected.
+  Invoke(root_library, "main");
+  {
+    Profile profile;
+    profile.Build(thread, isolate, &filter, Profiler::sample_block_buffer());
+
+    // We expect to have collected at least some samples.
+    EXPECT_LT(0, profile.sample_count());
+  }
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart

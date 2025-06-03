@@ -7,13 +7,15 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
 const _desc =
     'Do not expose implementation details through the analyzer public API.';
 
-class AnalyzerPublicApi extends LintRule {
+class AnalyzerPublicApi extends MultiAnalysisRule {
   static const ruleName = 'analyzer_public_api';
 
   /// Lint issued if a file in the analyzer public API contains a `part`
@@ -86,10 +88,14 @@ class AnalyzerPublicApi extends LintRule {
   );
 
   AnalyzerPublicApi()
-    : super(name: ruleName, description: _desc, state: const State.internal());
+    : super(
+        name: ruleName,
+        description: _desc,
+        state: const RuleState.internal(),
+      );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     badPartDirective,
     badType,
     exportsNonPublicName,
@@ -109,7 +115,7 @@ class AnalyzerPublicApi extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   /// Elements that are imported into the current compilation unit's import
   /// namespace via `import` directives that do *not* access a package's `src`
@@ -163,7 +169,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (badNames != null) {
       rule.reportAtNode(
         node,
-        errorCode: AnalyzerPublicApi.exportsNonPublicName,
+        diagnosticCode: AnalyzerPublicApi.exportsNonPublicName,
         arguments: [badNames.join(', ')],
       );
     }
@@ -178,13 +184,16 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (!partElement.includedFragment!.source.uri.isInAnalyzerPublicLib) {
-      rule.reportAtNode(node, errorCode: AnalyzerPublicApi.badPartDirective);
+      rule.reportAtNode(
+        node,
+        diagnosticCode: AnalyzerPublicApi.badPartDirective,
+      );
     }
   }
 
   void _checkMember(Fragment fragment) {
     if (fragment is ConstructorFragment &&
-        fragment.element.enclosingElement2 is EnumElement) {
+        fragment.element.enclosingElement is EnumElement) {
       // Enum constructors aren't callable from outside of the enum, so they
       // aren't public API.
       return;
@@ -207,7 +216,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         fragment.nameOffset2!,
         name.length,
-        errorCode: AnalyzerPublicApi.implInPublicApi,
+        diagnosticCode: AnalyzerPublicApi.implInPublicApi,
       );
     }
     switch (fragment) {
@@ -293,7 +302,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     rule.reportAtOffset(
       offset,
       length,
-      errorCode: AnalyzerPublicApi.badType,
+      diagnosticCode: AnalyzerPublicApi.badType,
       arguments: [problems.join(', ')],
     );
   }
@@ -378,7 +387,7 @@ extension on Element {
       return true;
     }
     if (this case Annotatable(
-      metadata2: Metadata(:var annotations),
+      metadata: Metadata(:var annotations),
     ) when annotations.any(_isPublicApiAnnotation)) {
       return true;
     }

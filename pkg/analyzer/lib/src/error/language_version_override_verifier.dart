@@ -189,7 +189,8 @@ class LanguageVersionOverrideVerifier {
       _errorReporter.atOffset(
         offset: offset,
         length: length,
-        errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES,
+        diagnosticCode:
+            WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES,
       );
       return false;
     }
@@ -198,7 +199,7 @@ class LanguageVersionOverrideVerifier {
       _errorReporter.atOffset(
         offset: offset,
         length: length,
-        errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
+        diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
       );
       return false;
     }
@@ -208,7 +209,8 @@ class LanguageVersionOverrideVerifier {
       _errorReporter.atOffset(
         offset: offset,
         length: length,
-        errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE,
+        diagnosticCode:
+            WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE,
       );
       return false;
     }
@@ -220,7 +222,7 @@ class LanguageVersionOverrideVerifier {
       _errorReporter.atOffset(
         offset: offset,
         length: length,
-        errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS,
+        diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS,
       );
       return false;
     }
@@ -229,7 +231,7 @@ class LanguageVersionOverrideVerifier {
       _errorReporter.atOffset(
         offset: offset,
         length: length,
-        errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX,
+        diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX,
       );
       return false;
     }
@@ -238,7 +240,7 @@ class LanguageVersionOverrideVerifier {
       _errorReporter.atOffset(
         offset: offset,
         length: length,
-        errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER,
+        diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER,
       );
     }
 
@@ -274,7 +276,7 @@ class LanguageVersionOverrideVerifier {
     _errorReporter.atOffset(
       offset: offset,
       length: length,
-      errorCode:
+      diagnosticCode:
           WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS,
     );
     return false;
@@ -304,7 +306,8 @@ class LanguageVersionOverrideVerifier {
             _errorReporter.atOffset(
               offset: commentToken.offset + atDartStart,
               length: match.end - atDartStart,
-              errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION,
+              diagnosticCode:
+                  WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION,
             );
           }
         }

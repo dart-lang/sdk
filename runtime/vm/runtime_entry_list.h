@@ -65,6 +65,7 @@ namespace dart {
   V(UpdateFieldCid)                                                            \
   V(InitInstanceField)                                                         \
   V(InitStaticField)                                                           \
+  V(StaticFieldAccessedWithoutIsolateError)                                    \
   V(LateFieldAlreadyInitializedError)                                          \
   V(LateFieldAssignedDuringInitializationError)                                \
   V(LateFieldNotInitializedError)                                              \
@@ -76,6 +77,7 @@ namespace dart {
   V(AllocateSubtypeTestCache)                                                  \
   V(GetFieldForDispatch)                                                       \
   V(AdjustArgumentsDesciptorForImplicitClosure)                                \
+  V(ConvertToInstanceTypeArguments)                                            \
   V(ClosureArgumentsValid)                                                     \
   V(ResolveCallFunction)                                                       \
   V(InterpretedInstanceCallMissHandler)                                        \

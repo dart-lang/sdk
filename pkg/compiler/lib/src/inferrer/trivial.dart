@@ -291,16 +291,13 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
   AbstractBool isArray(AbstractValue value) => AbstractBool.maybe;
 
   @override
+  AbstractBool isGrowableArray(AbstractValue value) => AbstractBool.maybe;
+
+  @override
+  AbstractBool isModifiableArray(AbstractValue value) => AbstractBool.maybe;
+
+  @override
   AbstractBool isMutableIndexable(AbstractValue value) => AbstractBool.maybe;
-
-  @override
-  AbstractBool isMutableArray(AbstractValue value) => AbstractBool.maybe;
-
-  @override
-  AbstractBool isExtendableArray(AbstractValue value) => AbstractBool.maybe;
-
-  @override
-  AbstractBool isFixedArray(AbstractValue value) => AbstractBool.maybe;
 
   @override
   AbstractBool isIndexablePrimitive(AbstractValue value) => AbstractBool.maybe;

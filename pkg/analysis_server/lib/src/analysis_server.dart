@@ -27,6 +27,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     show MessageType;
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
+import 'package:analysis_server/src/scheduler/scheduler_tracking_listener.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -78,7 +79,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
     as analyzer_plugin;
@@ -86,6 +86,7 @@ import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
 
 /// The function for sending `openUri` request to the client.
@@ -110,6 +111,15 @@ abstract class AnalysisServer {
 
   /// The object through which analytics are to be sent.
   final AnalyticsManager analyticsManager;
+
+  /// The versions of each document known to the server (keyed by path), used to
+  /// send back to the client for server-initiated edits so that the client can
+  /// ensure they have a matching version of the document before applying them.
+  ///
+  /// Handlers should prefer to use the `getVersionedDocumentIdentifier` method
+  /// which will return a null-versioned identifier if the document version is
+  /// not known.
+  final Map<String, int> documentVersions = {};
 
   /// A connection to DTD (the Dart Tooling Daemon) that allows other clients to
   /// call server functionality.
@@ -287,8 +297,12 @@ abstract class AnalysisServer {
          httpClient,
          Platform.environment['PUB_HOSTED_URL'],
        ),
-       messageScheduler = MessageScheduler(listener: messageSchedulerListener) {
-    messageScheduler.setServer(this);
+       messageScheduler = MessageScheduler(
+         listener:
+             messageSchedulerListener ??
+             SchedulerTrackingListener(analyticsManager),
+       ) {
+    messageScheduler.server = this;
     // Set the default URI converter. This uses the resource providers path
     // context (unlike the initialized value) which allows tests to override it.
     uriConverter = ClientUriConverter.noop(baseResourceProvider.pathContext);
@@ -447,6 +461,8 @@ abstract class AnalysisServer {
   /// Returns owners of files.
   OwnedFiles get ownedFiles => contextManager.ownedFiles;
 
+  path.Context get pathContext => resourceProvider.pathContext;
+
   /// Whether or not the client supports showMessageRequest to show the user
   /// a message and allow them to respond by clicking buttons.
   ///
@@ -559,6 +575,10 @@ abstract class AnalysisServer {
       return providedByteStore;
     }
 
+    if (options.disableFileByteStore ?? false) {
+      return MemoryCachingByteStore(NullByteStore(), memoryCacheSize);
+    }
+
     if (resourceProvider is OverlayResourceProvider) {
       resourceProvider = resourceProvider.baseProvider;
     }
@@ -636,8 +656,8 @@ abstract class AnalysisServer {
     return analysisContext.driver.dartdocDirectiveInfo;
   }
 
-  /// Gets the current version number of a document (if known).
-  int? getDocumentVersion(String path);
+  /// Gets the current version number of a document.
+  int? getDocumentVersion(String path) => documentVersions[path];
 
   /// Return a [Future] that completes with the [Element] at the given
   /// [offset] of the given [file], or with `null` if there is no node at the
@@ -766,7 +786,7 @@ abstract class AnalysisServer {
     String path,
   ) {
     return lsp.OptionalVersionedTextDocumentIdentifier(
-      uri: resourceProvider.pathContext.toUri(path),
+      uri: uriConverter.toClientUri(path),
       version: getDocumentVersion(path),
     );
   }

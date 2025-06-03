@@ -14,7 +14,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 typedef StaticOptions =
     Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>;
@@ -83,7 +82,7 @@ class TypeDefinitionHandler
         SyntacticEntity? originEntity;
         DartType? type;
         if (node is NamedType) {
-          originEntity = node.name2;
+          originEntity = node.name;
           var element = node.element2;
           if (element case analyzer.InterfaceElement element) {
             type = element.thisType;
