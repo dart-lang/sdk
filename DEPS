@@ -678,38 +678,38 @@ hooks = [
     # Generate the .dart_tool/package_confg.json file.
     'name': 'Generate .dart_tool/package_confg.json',
     'pattern': '.',
-    'action': ['python3', 'sdk/tools/generate_package_config.py'],
+    'action': ['python3', Var("dart_root") + '/tools/generate_package_config.py'],
   },
   {
     # Generate the sdk/version file.
     'name': 'Generate sdk/version',
     'pattern': '.',
-    'action': ['python3', 'sdk/tools/generate_sdk_version_file.py'],
+    'action': ['python3', Var("dart_root") + '/tools/generate_sdk_version_file.py'],
   },
   {
     'name': 'buildtools',
     'pattern': '.',
-    'action': ['python3', 'sdk/tools/buildtools/update.py'],
+    'action': ['python3', Var("dart_root") + '/tools/buildtools/update.py'],
   },
   {
     # Update the Windows toolchain if necessary.
     'name': 'win_toolchain',
     'pattern': '.',
-    'action': ['python3', 'sdk/build/vs_toolchain.py', 'update'],
+    'action': ['python3', Var("dart_root") + '/build/vs_toolchain.py', 'update'],
     'condition': 'checkout_win'
   },
   # Install and activate the empscripten SDK.
   {
     'name': 'install_emscripten',
     'pattern': '.',
-    'action': ['python3', 'sdk/third_party/emsdk/emsdk.py', 'install',
+    'action': ['python3', Var("dart_root") + '/third_party/emsdk/emsdk.py', 'install',
         Var('emsdk_ver')],
     'condition': 'download_emscripten'
   },
   {
     'name': 'activate_emscripten',
     'pattern': '.',
-    'action': ['python3', 'sdk/third_party/emsdk/emsdk.py', 'activate',
+    'action': ['python3', Var("dart_root") + '/third_party/emsdk/emsdk.py', 'activate',
         Var('emsdk_ver')],
     'condition': 'download_emscripten'
   },
@@ -718,8 +718,8 @@ hooks = [
     'pattern': '.',
     'action': [
       'python3',
-      'sdk/build/fuchsia/with_envs.py',
-      'sdk/third_party/fuchsia/test_scripts/update_product_bundles.py',
+      Var("dart_root") + '/build/fuchsia/with_envs.py',
+      Var("dart_root") + '/third_party/fuchsia/test_scripts/update_product_bundles.py',
       'terminal.x64,terminal.qemu-arm64',
     ],
     'condition': 'download_fuchsia_deps'
@@ -729,8 +729,8 @@ hooks = [
     'pattern': '.',
     'action': [
       'python3',
-      'sdk/build/fuchsia/with_envs.py',
-      'sdk/third_party/fuchsia/test_scripts/gen_build_defs.py',
+      Var("dart_root") + '/build/fuchsia/with_envs.py',
+      Var("dart_root") + '/third_party/fuchsia/test_scripts/gen_build_defs.py',
     ],
     'condition': 'download_fuchsia_deps'
   },
