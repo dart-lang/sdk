@@ -520,6 +520,20 @@ abstract class AnalysisServer {
     );
   }
 
+  /// Display a message that will allow us to enable analytics on the next run.
+  void checkAnalytics() {
+    var unifiedAnalytics = analyticsManager.analytics;
+    var prompt = userPromptSender;
+    if (!unifiedAnalytics.shouldShowMessage || prompt == null) {
+      return;
+    }
+
+    unawaited(
+      prompt(MessageType.info, unifiedAnalytics.getConsentMessage, ['Ok']),
+    );
+    unifiedAnalytics.clientShowedMessage();
+  }
+
   /// Checks that all [sessions] are still consistent, throwing
   /// [InconsistentAnalysisException] if not.
   void checkConsistency(List<AnalysisSessionImpl> sessions) {
